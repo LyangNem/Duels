@@ -1443,7 +1443,7 @@ const cam = {x:0, y:0};
 // ── 효과음 (Web Audio API — 저지연) ─────────────────────
 const _sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
 let _hitBuffer = null;
-fetch('https://lyangnem.github.io/Duals/hitted.mp3')
+fetch('https://Lyangnem.github.io/Duals/hitted.mp3')
   .then(r => r.arrayBuffer())
   .then(buf => _sfxCtx.decodeAudioData(buf))
   .then(decoded => { _hitBuffer = decoded; })
