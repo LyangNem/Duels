@@ -149,13 +149,13 @@ input[type=text]:focus{border-color:#4af;}
       <div><span style="color:#99b;min-width:110px;display:inline-block;">SPACE</span>회피 (스테미나 40 소모)</div>
       <div><span style="color:#99b;min-width:110px;display:inline-block;">L-SHIFT</span>반격 — 저스트 회피 후 사용</div>
       <div style="color:#4af;letter-spacing:3px;font-size:11px;margin:10px 0 6px;">── 시스템 ──</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">저스트 회피</span>투사체에 스치며 회피 → 반격 게이지 획득</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">스테미나</span>잠시 후 자동 회복</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">체력 회복</span>5초간 전투 없으면 10%/초 자연 회복</div>
+      <div><span style="color:#99b;min-width:110px;display:inline-block;">저스트 회피</span>공격 회피 → 반격기 활성화</div>
+      <div><span style="color:#99b;min-width:110px;display:inline-block;">스테미나</span>자동 회복</div>
+      <div><span style="color:#99b;min-width:110px;display:inline-block;">체력 회복</span>5초간 미전투 시 10%/s 자연 회복</div>
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.14.3</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.14.4</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -460,11 +460,11 @@ const BALANCE = {
     },
     rmb: {
       // 스테미나 전량 소모
-      speed:          11,
+      speed:          16,
       radius:         18,
-      damage:         65,       // 직격 데미지
       explosionRange: 150,      // 폭발 반경
-      stunRange:      70,       // 근접 기절 범위
+      explosionDamage:65,       // 폭발 피해 (범위 내 적중 시)
+      stunRange:      45,       // 근접 기절 범위
       stunDur:        1500,     // 기절 지속 (ms)
       slowRange:      150,      // 슬로우 지대 반경
       slowDur:        5000,     // 슬로우 지대 지속 (ms)
@@ -1064,7 +1064,7 @@ const CHARACTERS = {
     desc:      '로켓포로 게임을 끝장내는 캐릭터',
     skills: [
       { key:'LMB',     name:'초콜릿 쌍권총',    cost:BALANCE.veleu.lmb.cost, desc:`쌍권총 3발 발사 (탄당 ${BALANCE.veleu.lmb.damage}).` },
-      { key:'RMB',     name:'초콜릿 로켓포',    cost:'전량', desc:`강력한 초콜릿 로켓 발사 및 발사 지점에 ${BALANCE.veleu.rmb.slowDur/1000}초 슬로우 지대, 로켓에 근접해서 적중 시 기절 (${BALANCE.veleu.rmb.damage})` },
+      { key:'RMB',     name:'초콜릿 로켓포',    cost:'200', desc:`강력한 초콜릿 로켓 발사. 폭발 범위 내 피해 ${BALANCE.veleu.rmb.slowDur/1000}초간 슬로우 지대 형성. 근접 적중 시 기절 (${BALANCE.veleu.rmb.explosionDamage})` },
       { key:'L-Shift', name:'초콜릿 폭탄 투척', cost:0, desc:`전방에 초콜릿 폭탄 ${BALANCE.veleu.counter.count}개를 일렬로 투척 (탄당 ${BALANCE.veleu.counter.damage})` },
     ],
   },
@@ -1856,6 +1856,8 @@ function receiveKnockback(vx, vy) {
   L._kbVX = vx; L._kbVY = vy; L._kbFrames = 12;
   // 선딜레이 공격 취소 토큰 (모든 counter setTimeout 차단)
   L._counterToken = (L._counterToken || 0) + 1;
+  // 카운터 선딜레이 중 색상이 노란색이면 복구
+  if (L.color === '#ffd700') { L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor}); }
   // 메인마드 차징 중단
   if (L._drillCharging) { L._drillCharging = false; }
   // 타우 체인 대시 중단
@@ -2350,8 +2352,9 @@ const SKILLS = {
       // 로켓 발사 (슬로우존 정보를 로켓에 실어 폭발 시 생성)
       const rocket = {id:uid(), x:L.x, y:L.y, radius:B.radius, speed:B.speed,
                       dx:Math.cos(angle), dy:Math.sin(angle),
-                      damage:B.damage, maxRange:B.range, traveled:0,
+                      maxRange:B.range, traveled:0,
                       isRocket:true, explosionRange:B.explosionRange,
+                      explosionDamage:B.explosionDamage,
                       stunRange:B.stunRange, stunDur:B.stunDur,
                       slowRange:B.slowRange, slowDur:B.slowDur};
       localBullets.push(rocket);
@@ -3649,10 +3652,12 @@ function moveBullets(dt=1) {
       }
     } else if (b.isRocket) {
       if (hitWall || oob || hitEnemy || rangeOut) {
-        // 적 직격
-        if (hitEnemy) hitRemote(b.damage);
-        // 범위 내 기절
+        // 폭발 범위 내 피해
         if (Math.hypot(b.x-R.x, b.y-R.y) < b.explosionRange + R.radius) {
+          hitRemote(b.explosionDamage);
+        }
+        // 근접 기절
+        if (Math.hypot(b.x-R.x, b.y-R.y) < b.stunRange + R.radius) {
           stunRemote(b.stunDur);
         }
         // 폭발 위치 슬로우 지대
