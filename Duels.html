@@ -898,7 +898,7 @@ const BALANCE = {
       cd:          350,
     },
     rmb: {
-      cost:              100,
+      cost:              70,
       pullRange:         130,
       pullDur:           280,  // 끌어당기기 이동 시간
       lockDur:           500,  // 쌍방 행동불능 시간
@@ -1443,7 +1443,7 @@ const cam = {x:0, y:0};
 // ── 효과음 (Web Audio API — 저지연) ─────────────────────
 const _sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
 let _hitBuffer = null;
-fetch('https://lyangnem.github.io/duels/hitted.mp3')
+fetch('https://lyangnem.github.io/Duals/hitted.mp3')
   .then(r => r.arrayBuffer())
   .then(buf => _sfxCtx.decodeAudioData(buf))
   .then(decoded => { _hitBuffer = decoded; })
