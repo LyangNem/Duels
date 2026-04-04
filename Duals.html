@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Duals</title>
+<title>Duels</title>
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <style>
 
@@ -1443,7 +1443,7 @@ const cam = {x:0, y:0};
 // ── 효과음 (Web Audio API — 저지연) ─────────────────────
 const _sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
 let _hitBuffer = null;
-fetch('https://lyangnem.github.io/Duals/hitted.mp3')
+fetch('https://lyangnem.github.io/duels/hitted.mp3')
   .then(r => r.arrayBuffer())
   .then(buf => _sfxCtx.decodeAudioData(buf))
   .then(decoded => { _hitBuffer = decoded; })
