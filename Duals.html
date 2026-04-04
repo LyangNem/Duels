@@ -128,13 +128,13 @@ input[type=text]:focus{border-color:#4af;}
 <!-- 로비 -->
 <div id="scr-lobby" class="screen">
   <h1>&#9876; PvP</h1>
-  <p class="sub">1V1 PVP — 캐릭터 선택 배틀</p>
+  <p class="sub">Made By Lyan___</p>
   <div class="flex-gap-12">
     <button class="btn big" onclick="hostGame()">방 만들기</button>
     <button class="btn big" onclick="showJoin()">방 참가하기</button>
   </div>
   <p class="status" id="lobby-err"></p>
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.12.3</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.13.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -702,6 +702,93 @@ const BALANCE = {
     },
   },
 
+  // ── 레이카 ────────────────────────────────────────────────
+  reika: {
+    hp:     130,
+    speed:  3.75,
+    radius: 20,
+
+    energyMax:       100,
+    energyChargeTime:30000, // 0→100 충전 시간 (ms)
+    energyRate:      10,    // 초당 충전량 = energyMax / (energyChargeTime/1000)
+    energyThreshold: 60,    // 가호 발동 최소 에너지
+    blessedDrain:    20,       // 가호 중 초당 에너지 소모
+    blessedDur:      99999, // 가호 최대 지속 (ms, 에너지 소진이 우선)
+
+    lmb: {
+      cost:        20,
+      predelay:    300,
+      range:       165,
+      halfAngle:   1.2,
+      bias:        0.35,
+      damage:      15,
+      advanceDist: 38,
+      advanceDur:  120,
+      cd:          700,
+    },
+    lmbBlessed: {
+      cost:      20,
+      range:     230,
+      halfAngle: 1.2,
+      bias:      0.35,
+      damage:    20,
+      waveRange: 120,
+      burnDur:   2000,
+      cd:        450,
+    },
+    rmb: {
+      cost:          0,
+      energyCost:    60,
+      predelay:      500,
+      explosionRange:180,
+      damage:        50,
+      burnDur:       3000,
+      blessedDrain:  15,
+      cd:            700,
+    },
+    rmbBlessed: {
+      cost:             60,  // 공중강하 스테미나 비용
+      jumpDur:          450,   // 공중 대기
+      weaponTravelDur:  350,   // 무기 이동 시간
+      slamRange:        90,
+      slamDamage:       35,
+      landRange:        70,
+      landDamage:       20,
+      slamDelay:        160,   // 무기 착지→레이카 이동 간격
+      travelDur:        280,   // 레이카 이동 시간
+      knockbackPower:   380,
+      cd:               900,
+    },
+    counter: {
+      range:          300,
+      width:          44,
+      damage:         20,
+      dashDur:        220,
+      knockbackPower: 420,
+      cd:             300,
+    },
+    counterBlessed: {
+      range:             300,
+      width:             44,
+      damage:            20,
+      dashDur:           220,
+      explosionRange:    130,
+      explosionDamage:   30,
+      burnDur:           2000,
+      knockbackPower:    420,
+      cd:                300,
+    },
+    burn: {
+      damage: 4,
+      tickMs: 500,
+    },
+    fireTrail: {
+      radius:  35,
+      burnDur: 3000,
+      dur:     4000,
+    },
+  },
+
   // ── 샤이라즈 ────────────────────────────────────────────────
   shairaz: {
     hp:     150,
@@ -983,6 +1070,25 @@ const CHARACTERS = {
       { key:'LMB',     name:'레이저 연사',   cost:BALANCE.erapabi.lmb.cost,  desc:`레이저를 2발씩 2회 발사 (탄당 ${BALANCE.erapabi.lmb.damage})` },
       { key:'RMB',     name:'버티기/파비 레이저', cost:BALANCE.erapabi.rmb.cost, desc:`3초간 피해 50% 감소. 받은 피해를 일정량 이상 저장 시 파비 레이저로 변경` },
       { key:'L-Shift', name:'한바퀴 회전',   cost:0,  desc:`가로축 회전으로 앞뒤 피해 및 넉백 (${BALANCE.erapabi.counter.damage})` },
+    ],
+  },
+
+  reika: {
+    id:        'reika',
+    name:      '레이카',
+    color:     '#ff7a00',
+    maxHealth: BALANCE.reika.hp,
+    speed:     BALANCE.reika.speed,
+    radius:    BALANCE.reika.radius,
+    statsText: [['체력', String(BALANCE.reika.hp)],['이동속도','느림'],['스타일','각성형 근거리 딜러']],
+    desc:      '태양의 가호로 각성해 강화된 공격을 퍼붓는 캐릭터',
+    skills: [
+      { key:'LMB',     name:'태양의 대검',   cost:`${BALANCE.reika.lmb.cost}/${BALANCE.reika.lmbBlessed.cost}`,
+        desc:`선딜레이 후 전진 대검 휘두르기 (${BALANCE.reika.lmb.damage}). 가호 시, 태양의 파동 : 공격 사거리가 증가하며 주변 적을 불태움 (${BALANCE.reika.lmbBlessed.damage})` },
+      { key:'RMB',     name:'태양의 가호',   cost:`${BALANCE.reika.rmb.cost}/${BALANCE.reika.rmbBlessed.cost}`,
+        desc:`에너지 소모 후 폭발 및 화염 (${BALANCE.reika.rmb.damage}). 가호 시, 공중 강하 : 공중으로 잠시 떠오르며, 이후 검, 레이카 순서로 내려찍기 (${BALANCE.reika.rmbBlessed.slamDamage}/${BALANCE.reika.rmbBlessed.landDamage})` },
+      { key:'L-Shift', name:'반동제어불능!', cost:0,
+        desc:`전방 돌진 원형 피해 (${BALANCE.reika.counter.damage}). 가호 시, 적응완료! : 도착지점에서 폭발 및 화염 2초 (${BALANCE.reika.counterBlessed.explosionDamage})` },
     ],
   },
 
@@ -1350,6 +1456,7 @@ resizeCanvas();
 // ============================================================
 let peer = null, conn = null, isHost = false;
 let localReady = false, peerReady = false, peerCharId = null;
+let _stateInterval = null; // 상태 동기화 인터벌 ID
 let uidN = 0;
 const uid  = () => `${Date.now()}_${uidN++}`;
 const send = d => { try { if (conn?.open) conn.send(d); } catch(e){} };
@@ -1402,6 +1509,8 @@ function onData(d) {
       R.bindEnd = d.bindRemaining > 0 ? performance.now() + d.bindRemaining : 0;
       R.burrowEntry=d.burrowEntry??null;
       R.erapabiFortify=d.erapabiFortify??false;
+      R.nsonyaStacks=d.nsonyaStacks??0;
+      R.reikaBlessed=d.reikaBlessed??false;
       if (d.elinSpirit) {
         if (R.elinSpirit) { Object.assign(R.elinSpirit, d.elinSpirit); }
         else R.elinSpirit = {...d.elinSpirit, radius: BALANCE.elin.spirit.radius};
@@ -1480,6 +1589,9 @@ function onData(d) {
         if (ci!==-1) localBullets.splice(ci,1);
       }
       addFx({type:'justdodge', x:d.x??R.x, y:d.y??R.y, r:0, maxR:65, dur:22, maxDur:22}); break;
+    case 'burning':
+      L._burnEnd = Math.max(L._burnEnd||0, performance.now() + d.dur);
+      break;
     case 'cancelBullets':
       if (d.ids) d.ids.forEach(id => {
         const ci = localBullets.findIndex(b => b.id===id);
@@ -1504,7 +1616,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statsHtml   = ch.statsText.map(([k,v]) => `<b>${k}</b>: ${v}`).join('<br>');
     const tooltipHtml = `${ch.desc}<br><br>` + ch.skills.map(s =>
       `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
-      (s.cost > 0 ? ` / 스테미나 ${s.cost}` : ' / 스테미나 0')
+      (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`)
     ).join('<br>');
     card.innerHTML = `
       <div class="char-tooltip">${tooltipHtml}</div>
@@ -1629,6 +1741,17 @@ function knockbackRemote(power) {
   R.tx = Math.max(R.radius, Math.min(WORLD_W-R.radius, R.tx + Math.cos(ang)*power*0.35));
   R.ty = Math.max(R.radius, Math.min(WORLD_H-R.radius, R.ty + Math.sin(ang)*power*0.35));
 }
+// 레이카 연소 적용
+function reikaApplyBurn(dur) {
+  if (!L._reikaRBurning) L._reikaRBurning = {active:false, expiry:0, lastTick:0};
+  L._reikaRBurning.expiry = Math.max(L._reikaRBurning.expiry, performance.now() + dur);
+  if (!L._reikaRBurning.active) L._reikaRBurning.lastTick = performance.now();
+  L._reikaRBurning.active = true;
+  send({type:'burning', dur}); // R에게 화염 상태 통보
+  addFx({type:'reikaBurnStart', x:R.x, y:R.y, r:0, maxR:42, dur:14, maxDur:14});
+  send({type:'fx', fx:{type:'reikaBurnStart', x:R.x, y:R.y, r:0, maxR:42, dur:14, maxDur:14}});
+}
+
 function receiveKnockback(vx, vy) {
   if (!gameOn || L.burrowing) return;
   L._kbVX = vx; L._kbVY = vy; L._kbFrames = 12;
@@ -2786,6 +2909,199 @@ const SKILLS = {
   },
 
 
+  // ── 레이카 ──────────────────────────────────────────────────
+  reika: {
+    lmb(angle) {
+      const B = BALANCE.reika;
+      if (L.lmbCooldown > 0 || L._reikaPreswing || L._reikaJumping) return;
+      const now = performance.now();
+      const isBlessed = L._reikaBlessed && now < (L._reikaBlessedExpiry||0);
+
+      if (isBlessed) {
+        // ── 가호평타: 태양의 파동 ──
+        if (!useStam(B.lmbBlessed.cost)) return;
+        const bl = B.lmbBlessed;
+        const swingAngle = angle + bl.bias;
+        const dist = Math.hypot(R.x-L.x, R.y-L.y);
+        if (dist < bl.range + R.radius) {
+          const toR = Math.atan2(R.y-L.y, R.x-L.x);
+          const diff = Math.abs(((toR-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
+          if (diff < bl.halfAngle) { hitRemote(bl.damage); reikaApplyBurn(bl.burnDur); }
+        }
+        // 파동 원형 범위
+        if (Math.hypot(R.x-L.x, R.y-L.y) < bl.waveRange + R.radius) {
+          hitRemote(5); reikaApplyBurn(bl.burnDur);
+        }
+        addFx({type:'reikaSwingBlessed', x:L.x, y:L.y, angle:swingAngle, range:bl.range, halfAngle:bl.halfAngle, dur:11, maxDur:11});
+        send({type:'fx', fx:{type:'reikaSwingBlessed', x:L.x, y:L.y, angle:swingAngle, range:bl.range, halfAngle:bl.halfAngle, dur:11, maxDur:11}});
+        addFx({type:'reikaSolarWave', x:L.x, y:L.y, r:0, maxR:bl.waveRange, dur:18, maxDur:18});
+        send({type:'fx', fx:{type:'reikaSolarWave', x:L.x, y:L.y, r:0, maxR:bl.waveRange, dur:18, maxDur:18}});
+        L.lmbCooldown = bl.cd; L.lastAttackTime = now;
+      } else {
+        // ── 일반평타: 선딜레이 후 전진 휘두르기 ──
+        if (!useStam(B.lmb.cost)) return;
+        L._reikaPreswing = true;
+        const tok = ++L._counterToken;
+        addFx({type:'reikaCharge', x:L.x, y:L.y, dur:B.lmb.predelay/FRAME_MS, maxDur:B.lmb.predelay/FRAME_MS});
+        setTimeout(() => {
+          if (!gameOn || L._counterToken !== tok) { L._reikaPreswing = false; return; }
+          L._reikaPreswing = false;
+          const lmb = B.lmb;
+          const swingAngle = angle + lmb.bias;
+          const dist = Math.hypot(R.x-L.x, R.y-L.y);
+          if (dist < lmb.range + R.radius) {
+            const toR = Math.atan2(R.y-L.y, R.x-L.x);
+            const diff = Math.abs(((toR-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
+            if (diff < lmb.halfAngle) hitRemote(lmb.damage);
+          }
+          // 약간 전진
+          const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x+Math.cos(angle)*lmb.advanceDist));
+          const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y+Math.sin(angle)*lmb.advanceDist));
+          const ds = performance.now(), sx = L.x, sy = L.y;
+          const di = setInterval(() => {
+            if (!gameOn) { clearInterval(di); return; }
+            const t = Math.min(1, (performance.now()-ds)/lmb.advanceDur);
+            L.x = sx+(tx-sx)*(1-(1-t)*(1-t)); L.y = sy+(ty-sy)*(1-(1-t)*(1-t));
+            resolveWall(L);
+            if (t >= 1) clearInterval(di);
+          }, FRAME_MS);
+          addFx({type:'reikaSwing', x:L.x, y:L.y, angle:swingAngle, range:lmb.range, halfAngle:lmb.halfAngle, dur:12, maxDur:12});
+          send({type:'fx', fx:{type:'reikaSwing', x:L.x, y:L.y, angle:swingAngle, range:lmb.range, halfAngle:lmb.halfAngle, dur:12, maxDur:12}});
+          L.lmbCooldown = lmb.cd; L.lastAttackTime = performance.now();
+        }, B.lmb.predelay);
+      }
+    },
+
+    rmb(angle) {
+      const B = BALANCE.reika;
+      if (L.rmbCooldown > 0) return;
+      const now = performance.now();
+      const isBlessed = L._reikaBlessed && now < (L._reikaBlessedExpiry||0);
+
+      if (isBlessed) {
+        // ── 가호스킬: 공중 강하 ──
+        if (L._reikaJumping) return;
+        if (!useStam(B.rmbBlessed.cost)) return;
+        L._reikaJumping = true;
+        const tb = B.rmbBlessed;
+        const totalInv = tb.jumpDur + tb.weaponTravelDur + tb.slamDelay + tb.travelDur + 150;
+        L.invincible = Math.max(L.invincible, totalInv / FRAME_MS);
+        const targetX = Math.max(L.radius, Math.min(WORLD_W-L.radius, mouseX));
+        const targetY = Math.max(L.radius, Math.min(WORLD_H-L.radius, mouseY));
+        const startX = L.x, startY = L.y;
+        // 부상 FX
+        addFx({type:'reikaJumpUp', x:L.x, y:L.y, dur:tb.jumpDur/FRAME_MS, maxDur:tb.jumpDur/FRAME_MS});
+        send({type:'fx', fx:{type:'reikaJumpUp', x:L.x, y:L.y, dur:tb.jumpDur/FRAME_MS, maxDur:tb.jumpDur/FRAME_MS}});
+        const tok = ++L._counterToken;
+        // Phase 1: jumpDur 대기 후 무기 발사
+        setTimeout(() => {
+          if (!gameOn || L._counterToken !== tok) { L._reikaJumping = false; return; }
+          // 무기 날아가는 FX (양쪽 모두 표시)
+          const wDur = tb.weaponTravelDur / FRAME_MS;
+          addFx({type:'reikaSlamWeaponFly', x:startX, y:startY, tx:targetX, ty:targetY, dur:wDur, maxDur:wDur});
+          send({type:'fx', fx:{type:'reikaSlamWeaponFly', x:startX, y:startY, tx:targetX, ty:targetY, dur:wDur, maxDur:wDur}});
+          // Phase 2: 무기 도착 후 피해
+          setTimeout(() => {
+            if (!gameOn || L._counterToken !== tok) { L._reikaJumping = false; return; }
+            if (Math.hypot(R.x-targetX, R.y-targetY) < tb.slamRange + R.radius) hitRemote(tb.slamDamage);
+            addFx({type:'reikaSlamWeapon', x:targetX, y:targetY, r:0, maxR:tb.slamRange, dur:14, maxDur:14});
+            send({type:'fx', fx:{type:'reikaSlamWeapon', x:targetX, y:targetY, r:0, maxR:tb.slamRange, dur:14, maxDur:14}});
+            // Phase 3: slamDelay 후 레이카 이동 시작
+            setTimeout(() => {
+              if (!gameOn || L._counterToken !== tok) { L._reikaJumping = false; return; }
+              const ds = performance.now(), sx2 = L.x, sy2 = L.y;
+              const di = setInterval(() => {
+                if (!gameOn) { clearInterval(di); L._reikaJumping = false; return; }
+                const t = Math.min(1, (performance.now()-ds)/tb.travelDur);
+                L.x = sx2+(targetX-sx2)*(1-(1-t)*(1-t));
+                L.y = sy2+(targetY-sy2)*(1-(1-t)*(1-t));
+                // 벽 무시, 착지 시만 보정
+                if (t >= 1) {
+                  clearInterval(di);
+                  resolveWall(L);
+                  L._reikaJumping = false;
+                  if (Math.hypot(R.x-L.x, R.y-L.y) < tb.landRange + R.radius) {
+                    hitRemote(tb.landDamage); knockbackRemote(tb.knockbackPower);
+                  }
+                  addFx({type:'reikaLand', x:L.x, y:L.y, r:0, maxR:tb.landRange, dur:18, maxDur:18});
+                  send({type:'fx', fx:{type:'reikaLand', x:L.x, y:L.y, r:0, maxR:tb.landRange, dur:18, maxDur:18}});
+                  L.lastAttackTime = performance.now();
+                }
+              }, FRAME_MS);
+            }, tb.slamDelay);
+          }, tb.weaponTravelDur);
+        }, tb.jumpDur);
+        L.rmbCooldown = tb.cd; L.lastAttackTime = now;
+      } else {
+        // ── 태양의 가호: 에너지 소모 후 각성 ──
+        if ((L._reikaEnergy||0) < B.energyThreshold) return;
+        L._reikaPreswing = true;
+        const tok = ++L._counterToken;
+        addFx({type:'reikaGahoCharge', x:L.x, y:L.y, dur:B.rmb.predelay/FRAME_MS, maxDur:B.rmb.predelay/FRAME_MS});
+        send({type:'fx', fx:{type:'reikaGahoCharge', x:L.x, y:L.y, dur:B.rmb.predelay/FRAME_MS, maxDur:B.rmb.predelay/FRAME_MS}});
+        setTimeout(() => {
+          if (!gameOn || L._counterToken !== tok) { L._reikaPreswing = false; return; }
+          L._reikaPreswing = false;
+          if (Math.hypot(R.x-L.x, R.y-L.y) < B.rmb.explosionRange + R.radius) {
+            hitRemote(B.rmb.damage); reikaApplyBurn(B.rmb.burnDur);
+            knockbackRemote(B.counter.knockbackPower);
+          }
+          addFx({type:'reikaGahoExplosion', x:L.x, y:L.y, r:0, maxR:B.rmb.explosionRange, dur:24, maxDur:24});
+          send({type:'fx', fx:{type:'reikaGahoExplosion', x:L.x, y:L.y, r:0, maxR:B.rmb.explosionRange, dur:24, maxDur:24}});
+          L._reikaBlessed = true;
+          L._reikaBlessedExpiry = performance.now() + 99999; // 에너지가 소진될 때까지
+          L.lastAttackTime = performance.now();
+        }, B.rmb.predelay);
+        L.rmbCooldown = B.rmb.cd;
+      }
+    },
+
+    counter(angle) {
+      const B = BALANCE.reika;
+      if (!L.counterReady) return;
+      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
+      const now = performance.now();
+      const isBlessed = L._reikaBlessed && now < (L._reikaBlessedExpiry||0);
+      const CB = isBlessed ? B.counterBlessed : B.counter;
+      L.counterReady = false; L.lmbCooldown = CB.cd; L.rmbCooldown = CB.cd;
+      L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:38, maxR:38, dur:18, maxDur:18});
+      const tok = ++L._counterToken;
+      setTimeout(() => {
+        if (!gameOn || L._counterToken !== tok) return;
+        L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
+        const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x+Math.cos(angle)*CB.range));
+        const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y+Math.sin(angle)*CB.range));
+        const ds = performance.now(), sx = L.x, sy = L.y;
+        let hit = false;
+        const di = setInterval(() => {
+          if (!gameOn) { clearInterval(di); return; }
+          const t = Math.min(1, (performance.now()-ds)/CB.dashDur);
+          L.x = sx+(tx-sx)*(1-(1-t)*(1-t)); L.y = sy+(ty-sy)*(1-(1-t)*(1-t));
+          resolveWall(L);
+          if (!hit && Math.hypot(R.x-L.x, R.y-L.y) < CB.width + R.radius) {
+            hit = true;
+            hitRemote(CB.damage); knockbackRemote(CB.knockbackPower);
+            if (isBlessed) reikaApplyBurn(CB.burnDur);
+          }
+          if (t >= 1) {
+            clearInterval(di);
+            if (isBlessed) {
+              if (Math.hypot(R.x-L.x, R.y-L.y) < CB.explosionRange + R.radius) {
+                hitRemote(CB.explosionDamage); reikaApplyBurn(CB.burnDur);
+              }
+              addFx({type:'reikaGahoExplosion', x:L.x, y:L.y, r:0, maxR:CB.explosionRange, dur:18, maxDur:18});
+              send({type:'fx', fx:{type:'reikaGahoExplosion', x:L.x, y:L.y, r:0, maxR:CB.explosionRange, dur:18, maxDur:18}});
+            }
+          }
+        }, FRAME_MS);
+        addFx({type:'reikaDash', x:sx, y:sy, tx, ty, width:CB.width, dur:14, maxDur:14});
+        send({type:'fx', fx:{type:'reikaDash', x:sx, y:sy, tx, ty, width:CB.width, dur:14, maxDur:14}});
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
+    },
+  },
+
   // ── 샤이라즈 ──────────────────────────────────────────────────
   shairaz: {
     lmb(angle) {
@@ -3770,6 +4086,127 @@ function draw() {
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
       ctx.fillStyle = `rgba(136,85,255,${a*0.18})`; ctx.fill();
       ctx.strokeStyle = `rgba(196,140,255,${a*0.9})`; ctx.lineWidth = 2.5; ctx.stroke();
+    } else if (f.type==='reikaCharge') {
+      // 선딜레이 차징 — 수렴하는 주황 링
+      const rc = f.maxR * (f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(2,rc*0.5+6), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(255,140,0,${a*0.7})`; ctx.lineWidth=2;
+      ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+    } else if (f.type==='reikaGahoCharge') {
+      // 가호 활성화 차징 — 황금 수렴 링
+      const gc = f.maxR * (f.dur/f.maxDur);
+      for (let ri=0; ri<3; ri++) {
+        ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(2, gc*(0.8-ri*0.2)*16), 0, Math.PI*2);
+        ctx.strokeStyle=`rgba(255,${180+ri*25},0,${(a*(0.9-ri*0.25))})`; ctx.lineWidth=3-ri*0.7; ctx.stroke();
+      }
+    } else if (f.type==='reikaGahoExplosion') {
+      // 가호 폭발 — 주황-황금 팽창 원
+      const rr = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,140,0,${a*0.28})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,200,0,${a*0.95})`; ctx.lineWidth=4; ctx.stroke();
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr*0.55), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,220,80,${a*0.4})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,240,120,${a*0.7})`; ctx.lineWidth=2; ctx.stroke();
+    } else if (f.type==='reikaGahoEnd') {
+      // 가호 해제 — 주황 팽창 링
+      const rr2 = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr2), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(255,120,0,${a*0.7})`; ctx.lineWidth=3; ctx.stroke();
+    } else if (f.type==='reikaSwing') {
+      // 일반 대검 휘두르기 — 주황 부채꼴
+      ctx.beginPath(); ctx.moveTo(f.x, f.y);
+      ctx.arc(f.x, f.y, f.range, f.angle-f.halfAngle, f.angle+f.halfAngle);
+      ctx.closePath();
+      ctx.fillStyle=`rgba(255,120,0,${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,160,50,${a*0.92})`; ctx.lineWidth=3; ctx.stroke();
+      const ex1=f.x+Math.cos(f.angle-f.halfAngle)*f.range, ey1=f.y+Math.sin(f.angle-f.halfAngle)*f.range;
+      const ex2=f.x+Math.cos(f.angle+f.halfAngle)*f.range, ey2=f.y+Math.sin(f.angle+f.halfAngle)*f.range;
+      ctx.beginPath(); ctx.moveTo(ex1,ey1); ctx.lineTo(ex2,ey2);
+      ctx.strokeStyle=`rgba(255,200,80,${a*0.5})`; ctx.lineWidth=2; ctx.stroke();
+    } else if (f.type==='reikaSwingBlessed') {
+      // 가호 대검 — 황금-주황 넓은 부채꼴
+      ctx.beginPath(); ctx.moveTo(f.x, f.y);
+      ctx.arc(f.x, f.y, f.range, f.angle-f.halfAngle, f.angle+f.halfAngle);
+      ctx.closePath();
+      ctx.fillStyle=`rgba(255,200,0,${a*0.3})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,220,50,${a*0.97})`; ctx.lineWidth=3.5; ctx.stroke();
+    } else if (f.type==='reikaSolarWave') {
+      // 태양 파동 — 황금 팽창 링
+      const rw = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rw), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,220,0,${a*0.18})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,230,60,${a*0.92})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rw*0.55), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(255,240,120,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
+    } else if (f.type==='reikaBurnStart') {
+      const rb = f.maxR * (1-f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rb), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,80,0,${a*0.3})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,150,0,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+    } else if (f.type==='reikaBurnTick') {
+      // 연소 틱 — 작은 불꽃 펄스
+      const rt = f.maxR * (1-f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rt), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,100,0,${a*0.45})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,160,0,${a*0.8})`; ctx.lineWidth=2; ctx.stroke();
+    } else if (f.type==='reikaJumpUp') {
+      // 점프 — 주황 팽창 링
+      const pulse = 0.5+0.5*Math.sin(performance.now()*0.015);
+      ctx.beginPath(); ctx.arc(f.x, f.y, 28+pulse*6, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(255,140,0,${a*(0.6+0.3*pulse)})`; ctx.lineWidth=3;
+      ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+    } else if (f.type==='reikaSlamWeaponFly') {
+      // 무기 날아가는 FX
+      const tf = 1 - f.dur/f.maxDur;
+      const wx = f.x + (f.tx-f.x)*tf;
+      const wy = f.y + (f.ty-f.y)*tf;
+      // 꼬리
+      const wx2 = f.x + (f.tx-f.x)*Math.max(0,tf-0.25);
+      const wy2 = f.y + (f.ty-f.y)*Math.max(0,tf-0.25);
+      ctx.beginPath(); ctx.moveTo(wx2,wy2); ctx.lineTo(wx,wy);
+      ctx.strokeStyle=`rgba(255,180,0,${a*0.75})`; ctx.lineWidth=5; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(wx2,wy2); ctx.lineTo(wx,wy);
+      ctx.strokeStyle=`rgba(255,240,100,${a*0.5})`; ctx.lineWidth=2; ctx.stroke();
+      // 무기 헤드
+      ctx.beginPath(); ctx.arc(wx, wy, 7, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,220,50,${a*0.95})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,255,180,${a})`; ctx.lineWidth=2; ctx.stroke();
+    } else if (f.type==='reikaFireTrailGround') {
+      // 화염자국 — 양쪽 모두 표시
+      const pulse = 0.4+0.35*Math.sin(performance.now()*0.01 + f.x*0.008);
+      ctx.beginPath(); ctx.arc(f.x, f.y, 18, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,70,0,${a*0.2*pulse})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,130,0,${a*0.65})`; ctx.lineWidth=1.5;
+      ctx.setLineDash([3,4]); ctx.stroke(); ctx.setLineDash([]);
+      // 중심 불꽃 점
+      ctx.beginPath(); ctx.arc(f.x, f.y, 3+2*pulse, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,200,0,${a*0.8})`; ctx.fill();
+    } else if (f.type==='reikaSlamWeapon') {
+      // 무기 꽂힘 — 황금 충격파
+      const rs = f.maxR * (1-f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rs), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,200,0,${a*0.3})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,220,50,${a*0.95})`; ctx.lineWidth=3.5; ctx.stroke();
+    } else if (f.type==='reikaLand') {
+      // 착지 충격파
+      const rl = f.maxR * (1-f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rl), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,120,0,${a*0.25})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,180,0,${a*0.9})`; ctx.lineWidth=4; ctx.stroke();
+    } else if (f.type==='reikaDash') {
+      // 돌진 궤적 — 주황 직사각형
+      const cos=Math.cos(Math.atan2(f.ty-f.y, f.tx-f.x));
+      const sin=Math.sin(Math.atan2(f.ty-f.y, f.tx-f.x));
+      const len=Math.hypot(f.tx-f.x, f.ty-f.y), w=f.width;
+      ctx.beginPath();
+      ctx.moveTo(f.x+cos*0-sin*(-w), f.y+sin*0+cos*(-w));
+      ctx.lineTo(f.x+cos*len-sin*(-w), f.y+sin*len+cos*(-w));
+      ctx.lineTo(f.x+cos*len-sin*(w), f.y+sin*len+cos*(w));
+      ctx.lineTo(f.x+cos*0-sin*(w), f.y+sin*0+cos*(w));
+      ctx.closePath();
+      ctx.fillStyle=`rgba(255,120,0,${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,170,50,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
     } else if (f.type==='shairazTrapSet') {
       // 트랩 위치 — 0.5초간 점선 원 (오너+상대 모두 표시)
       ctx.beginPath(); ctx.arc(f.x, f.y, f.maxR, 0, Math.PI*2);
@@ -4003,6 +4440,7 @@ function draw() {
   }
 
   // 엔소냐 버프 링 표시
+  // 엔소냐 버프 링 (로컬)
   if (gameOn && L.charDef?.id==='nsonya' && (L._nsonyaStacks||0) > 0) {
     const st = L._nsonyaStacks;
     const pulse = 0.6+0.4*Math.sin(performance.now()*0.01);
@@ -4012,6 +4450,17 @@ function draw() {
     }
     ctx.fillStyle='rgba(255,160,220,0.95)'; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
     ctx.fillText(['','Ⅰ','Ⅱ','Ⅲ'][st], L.x, L.y+L.radius+20);
+  }
+  // 엔소냐 버프 링 (상대방)
+  if (gameOn && peerCharId==='nsonya' && (R.nsonyaStacks||0) > 0) {
+    const rst = R.nsonyaStacks;
+    const pulse2 = 0.6+0.4*Math.sin(performance.now()*0.01+1.5);
+    for (let si=0; si<rst; si++) {
+      ctx.beginPath(); ctx.arc(R.x, R.y, R.radius+7+si*5, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(217,70,168,${(0.7-si*0.18)*pulse2})`; ctx.lineWidth=2-si*0.3; ctx.stroke();
+    }
+    ctx.fillStyle='rgba(255,160,220,0.9)'; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+    ctx.fillText(['','Ⅰ','Ⅱ','Ⅲ'][rst], R.x, R.y+R.radius+20);
   }
   // 엔소냐 선딜레이 표시
   if (gameOn && L._nsonyaPredelay) {
@@ -4188,6 +4637,19 @@ function drawPlayer(p, label) {
     ctx.fillText('STUN', p.x, p.y-p.radius-16);
   }
 
+  // 화염(연소) 표시
+  const isBurningP = (p===R)
+    ? (L._reikaRBurning?.active && performance.now() < L._reikaRBurning.expiry)
+    : ((L._burnEnd||0) > performance.now());
+  if (isBurningP) {
+    const pulseF=0.5+0.5*Math.sin(performance.now()*0.018);
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.radius+10,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(255,90,0,${0.7+0.3*pulseF})`; ctx.lineWidth=3;
+    ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,120,0,0.95)'; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
+    ctx.fillText('BURN', p.x, p.y-p.radius-16);
+  }
+
   if (p.dodging) {
     ctx.beginPath(); ctx.arc(p.x,p.y,p.radius+6,0,Math.PI*2);
     ctx.strokeStyle='rgba(200,220,255,.55)'; ctx.lineWidth=2; ctx.stroke();
@@ -4284,6 +4746,58 @@ function drawPlayer(p, label) {
     ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
     ctx.restore();
   }
+  // 레이카 솔라 게이지 (원형 호) + 가호 링
+  if (p===L && L.charDef?.id==='reika') {
+    const ePct = Math.min(1, (L._reikaEnergy||0) / BALANCE.reika.energyMax);
+    const threshold = BALANCE.reika.energyThreshold / BALANCE.reika.energyMax;
+    // 원형 솔라 게이지
+    if (ePct > 0) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius+14, -Math.PI/2, -Math.PI/2 + Math.PI*2*ePct);
+      ctx.strokeStyle = ePct >= threshold ? 'rgba(255,122,0,1.0)' : 'rgba(180,70,0,0.65)';
+      ctx.lineWidth = 3.5; ctx.stroke();
+      // 준비 완료 펄스 링
+      if (ePct >= threshold) {
+        const pulseE = 0.5+0.4*Math.sin(performance.now()*0.012);
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+18, 0, Math.PI*2);
+        ctx.strokeStyle=`rgba(255,180,0,${pulseE*0.7})`; ctx.lineWidth=1.5;
+        ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle='rgba(255,160,0,0.9)'; ctx.font='bold 10px Courier New'; ctx.textAlign='center';
+        ctx.fillText('SOLAR', p.x, sby+sbh+13);
+      }
+    }
+    // 가호 링
+    const isBlsD = L._reikaBlessed && performance.now() < (L._reikaBlessedExpiry||0);
+    if (isBlsD) {
+      const pulseR = 0.6+0.4*Math.sin(performance.now()*0.012);
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+20, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(255,200,0,${0.85+0.15*pulseR})`; ctx.lineWidth=3;
+      ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+7, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(255,140,0,${0.5+0.2*pulseR})`; ctx.lineWidth=2;
+      ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='rgba(255,180,0,0.95)'; ctx.font='bold 10px Courier New'; ctx.textAlign='center';
+      ctx.fillText('가호', p.x, sby+sbh+13);
+    }
+  }
+
+  // 레이카 가호 링 — 상대방에게도 표시
+  const showReikaBlessed = (p===L && L.charDef?.id==='reika' && L._reikaBlessed && performance.now() < (L._reikaBlessedExpiry||0))
+                         || (p===R && peerCharId==='reika' && R.reikaBlessed);
+  if (showReikaBlessed) {
+    const pulseRB = 0.6+0.4*Math.sin(performance.now()*0.012);
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+20, 0, Math.PI*2);
+    ctx.strokeStyle=`rgba(255,200,0,${0.85+0.15*pulseRB})`; ctx.lineWidth=3;
+    ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+7, 0, Math.PI*2);
+    ctx.strokeStyle=`rgba(255,140,0,${0.5+0.2*pulseRB})`; ctx.lineWidth=2;
+    ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
+    if (p===R) {
+      ctx.fillStyle='rgba(255,180,0,0.95)'; ctx.font='bold 10px Courier New'; ctx.textAlign='center';
+      ctx.fillText('가호', p.x, p.y+p.radius+20);
+    }
+  }
+
   // 파비 버티기 링 — 로컬·상대 공통 표시
   const showFortify = (p===L && L._erapabiFortify) || (p===R && R.erapabiFortify);
   if (showFortify) {
@@ -4367,6 +4881,7 @@ function endGame(won) {
   if (!gameOn) return;
   gameOn=false;
   clearTimeout(window._gameTimer);
+  if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
   window._audioCtx?.close();
   document.body.classList.remove('game-active'); // 조이스틱 숨김
   const ov=document.getElementById('result-oveleulay');
@@ -4384,10 +4899,16 @@ function requestRematch() {
 }
 function acceptRematch() { send({type:'rematchAccept'}); doRematch(); }
 function doRematch() {
-  localReady=false; peerReady=false; selCharId=null; lastLoopTime=0;
+  localReady=false; peerReady=false; selCharId=null; peerCharId=null; lastLoopTime=0;
   localBullets=[]; peerBullets=[]; fxList=[]; _firedBurstKb=new Set();
   localSlowZones=[]; peerSlowZones=[];
+  if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
   if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
+  // R 상태 초기화
+  R.health=100; R.stamina=STAM_MAX; R.dodging=false; R.counterReady=false;
+  R.burrowing=false; R.stunEnd=0; R.bindEnd=0; R.burnEnd=0;
+  R.elinSpirit=null; R.ropeOrb=null; R.toolbox=null;
+  R.erapabiFortify=false; R.nsonyaStacks=0; R.burrowEntry=null;
   L.orb=null;
   document.getElementById('result-oveleulay').style.display='none';
   document.getElementById('hud').style.display='none';
@@ -4448,6 +4969,9 @@ function resetL() {
   L._erapabiFortify=false; L._erapabiPredelay=false; L._erapabiStoredDmg=0; L._erapabiLaserActive=false; L._erapabiLaserCharging=false; L._erapabiLaserAngle=0; L._erapabiLaserLastTick=0; L._erapabiChargeTimer=null;
   L._phaseJumping=false;
   L._shairazTraps=[];
+  L._reikaEnergy=0; L._reikaBlessed=false; L._reikaBlessedExpiry=0;
+  L._reikaPreswing=false; L._reikaJumping=false;
+  L._reikaRBurning=null; L._reikaFireTrails=[]; L._reikaTrailLast=null; L._burnEnd=0;
   if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
@@ -4461,6 +4985,9 @@ function startGame() {
   R.color=rc.color; R.defaultColor=rc.color;
   R.maxHealth=rc.maxHealth; R.health=rc.maxHealth;
   R.radius=rc.radius??20; R.stamina=STAM_MAX; R.dodging=false; R.counterReady=false;
+  R.burrowing=false; R.stunEnd=0; R.bindEnd=0; R.burnEnd=0;
+  R.elinSpirit=null; R.ropeOrb=null; R.toolbox=null;
+  R.erapabiFortify=false; R.nsonyaStacks=0; R.burrowEntry=null;
 
   if (isHost) { L.x=400; L.y=WORLD_H/2; R.x=WORLD_W-400; R.y=WORLD_H/2; }
   else        { L.x=WORLD_W-400; L.y=WORLD_H/2; R.x=400; R.y=WORLD_H/2; }
@@ -4471,7 +4998,8 @@ function startGame() {
   updateLocalHud(); updateRemoteHud();
   gameOn=true; lastLoopTime=0;
 
-  setInterval(() => {
+  if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
+  _stateInterval = setInterval(() => {
     if (!gameOn) return;
     send({type:'state', x:L.x, y:L.y, health:L.health, stamina:L.stamina,
           dodging:L.dodging, counterReady:L.counterReady,
@@ -4484,7 +5012,9 @@ function startGame() {
           stunRemaining: (L.stunEnd && L.stunEnd > performance.now()) ? L.stunEnd - performance.now() : 0,
           bindRemaining: (L.bindEnd && L.bindEnd > performance.now()) ? L.bindEnd - performance.now() : 0,
           burrowEntry: L.burrowEntry??null,
-          erapabiFortify: L._erapabiFortify??false});
+          erapabiFortify: L._erapabiFortify??false,
+          nsonyaStacks: (L.charDef?.id==='nsonya') ? (L._nsonyaStacks||0) : 0,
+          reikaBlessed: (L.charDef?.id==='reika') ? !!(L._reikaBlessed && performance.now() < (L._reikaBlessedExpiry||0)) : false});
   }, 50);
 
   window._audioCtx = new (window.AudioContext||window.webkitAudioContext)();
@@ -4540,7 +5070,7 @@ function loop() {
   const ePredelay  = L._nsonyaPredelay || false;
 
   const sp = L.speed * dt * slowMult * eSpeedMult * (ePredelay ? 0 : 1);
-  if (!stunned && !bound && !L.burrowing && !L._phaseJumping && !erapabiLaserLock) {
+  if (!stunned && !bound && !L.burrowing && !L._phaseJumping && !erapabiLaserLock && !L._reikaJumping && !L._reikaPreswing) {
     // 키보드 입력
     if (keys['w']) L.y=Math.max(L.radius, L.y-sp);
     if (keys['s']) L.y=Math.min(WORLD_H-L.radius, L.y+sp);
@@ -4561,7 +5091,7 @@ function loop() {
     if (L.hitFlash<=0) L._preFlashColor=null;
   }
 
-  if (mouseDown && !stunned && !L.burrowing && !ePredelay && L.charDef?.id !== 'mainmad' && L.charDef?.id !== 'veleu' && L.charDef?.id !== 'tau' && L.charDef?.id !== 'lian' && L.charDef?.id !== 'mehugu' && L.charDef?.id !== 'maisil' && L.charDef?.id !== 'erapabi') doLMB();
+  if (mouseDown && !stunned && !L.burrowing && !ePredelay && L.charDef?.id !== 'mainmad' && L.charDef?.id !== 'veleu' && L.charDef?.id !== 'tau' && L.charDef?.id !== 'lian' && L.charDef?.id !== 'mehugu' && L.charDef?.id !== 'maisil' && L.charDef?.id !== 'erapabi' && L.charDef?.id !== 'reika') doLMB();
 
   // 넉백 이동
   if (L._kbFrames > 0) {
@@ -4787,6 +5317,59 @@ function loop() {
         addFx({type:'shairazTrapTrigger', x:trap.x, y:trap.y, r:0, maxR:55, dur:20, maxDur:20});
         send({type:'fx', fx:{type:'shairazTrapTrigger', x:trap.x, y:trap.y, r:0, maxR:55, dur:20, maxDur:20}});
         L._shairazTraps.splice(i, 1);
+      }
+    }
+  }
+
+  // ── 레이카 게임루프 처리 ──────────────────────────────
+  if (L.charDef?.id === 'reika') {
+    const BR = BALANCE.reika;
+    // 에너지 충전 (가호 중이면 소모)
+    if (L._reikaBlessed && now < (L._reikaBlessedExpiry||0)) {
+      L._reikaEnergy = Math.max(0, (L._reikaEnergy||0) - BR.blessedDrain * (physDt/1000));
+      if (L._reikaEnergy <= 0) {
+        L._reikaBlessed = false;
+        addFx({type:'reikaGahoEnd', x:L.x, y:L.y, r:0, maxR:80, dur:18, maxDur:18});
+        send({type:'fx', fx:{type:'reikaGahoEnd', x:L.x, y:L.y, r:0, maxR:80, dur:18, maxDur:18}});
+      }
+    } else {
+      L._reikaBlessed = false;
+      const _rate = BR.energyMax / (BR.energyChargeTime / 1000);
+      L._reikaEnergy = Math.min(BR.energyMax, (L._reikaEnergy||0) + _rate * (physDt/1000));
+    }
+    // 연소 틱 (R에게)
+    if (L._reikaRBurning?.active) {
+      if (now > L._reikaRBurning.expiry) {
+        L._reikaRBurning.active = false;
+      } else if (now - L._reikaRBurning.lastTick >= BR.burn.tickMs) {
+        L._reikaRBurning.lastTick = now;
+        hitRemote(BR.burn.damage);
+        addFx({type:'reikaBurnTick', x:R.x, y:R.y, r:0, maxR:22, dur:8, maxDur:8});
+        send({type:'fx', fx:{type:'reikaBurnTick', x:R.x, y:R.y, r:0, maxR:22, dur:8, maxDur:8}});
+      }
+    }
+    // 가호 회피 화염자국 생성
+    if (L._reikaBlessed && L.dodging) {
+      if (!L._reikaTrailLast || Math.hypot(L.x-L._reikaTrailLast.x, L.y-L._reikaTrailLast.y) > 14) {
+        L._reikaTrailLast = {x:L.x, y:L.y};
+        if (!L._reikaFireTrails) L._reikaFireTrails = [];
+        L._reikaFireTrails.push({x:L.x, y:L.y, placedAt:now, triggered:false});
+        // 화염자국 FX — 양쪽 모두 표시
+        addFx({type:'reikaFireTrailGround', x:L.x, y:L.y, dur:BALANCE.reika.fireTrail.dur/FRAME_MS, maxDur:BALANCE.reika.fireTrail.dur/FRAME_MS});
+        send({type:'fx', fx:{type:'reikaFireTrailGround', x:L.x, y:L.y, dur:BALANCE.reika.fireTrail.dur/FRAME_MS, maxDur:BALANCE.reika.fireTrail.dur/FRAME_MS}});
+      }
+    }
+    // 화염자국 만료 + 충돌
+    if (L._reikaFireTrails?.length > 0) {
+      const FT = BR.fireTrail;
+      L._reikaFireTrails = L._reikaFireTrails.filter(t => now - t.placedAt < FT.dur);
+      for (const trail of L._reikaFireTrails) {
+        const inRange = Math.hypot(R.x-trail.x, R.y-trail.y) < FT.radius + R.radius;
+        // lastBurn 방식: 같은 자국이라도 burnDur 이후엔 재발동 가능
+        if (inRange && (!trail.lastBurn || now - trail.lastBurn >= FT.burnDur)) {
+          trail.lastBurn = now;
+          reikaApplyBurn(FT.burnDur);
+        }
       }
     }
   }
