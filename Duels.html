@@ -143,7 +143,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.3</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1237,7 +1237,7 @@ const CHARACTERS = {
       { key:'LMB',     name:'악식 건틀렛', cost:BALANCE.kan.lmb.cost,
         desc:`근거리 부채꼴 공격. 피해는 악식 게이지에 비례하며 적중시 게이지 상승 (${BALANCE.kan.lmb.baseDamage}~${BALANCE.kan.lmb.baseDamage+BALANCE.kan.lmb.gaugeDamage})` },
       { key:'RMB',     name:'붙들기',     cost:BALANCE.kan.rmb.cost,
-        desc:`근거리 상대를 붙들어 끌어당김. 쌍방 0.5초 행동불능 후 강하게 밀쳐내며 기절 (${BALANCE.kan.rmb.knockbackStunDur/1000}초)` },
+        desc:`근거리 상대를 붙들어 끌어당김. 이후 강하게 밀쳐내며 기절시킴 (${BALANCE.kan.rmb.knockbackStunDur/1000}초)` },
       { key:'L-Shift', name:'역류',       cost:0,
         desc:`악식 게이지를 모두 소모하여 충격파 발산. 게이지에 비례한 범위와 피해 (${BALANCE.kan.counter.minDamage}~${BALANCE.kan.counter.maxDamage})` },
     ],
@@ -1246,19 +1246,19 @@ const CHARACTERS = {
   cherity: {
     id:        'cherity',
     name:      '체리티',
-    color:     '#dc143c',
+    color:     '#6b0f1a',
     maxHealth: BALANCE.cherity.hp,
     speed:     BALANCE.cherity.speed,
     radius:    BALANCE.cherity.radius,
     statsText: [['체력','100'],['이동속도','보통'],['스타일','차징형 원거리 저격수']],
-    desc:      '강한 한방으로 게임을 터뜨리는 캐릭터',
+    desc:      '원거리에서 강한 한방으로 게임을 터뜨리는 캐릭터',
     skills: [
       { key:'LMB',     name:'저격',    cost:`${BALANCE.cherity.lmb.minCost}~${BALANCE.cherity.lmb.maxCost}`,
-        desc:`이동 정지 후 저격 준비. 길게 준비할수록 피해 및 탄속 증가. 최대 차징 시 벽 관통 (${BALANCE.cherity.lmb.minDamage}~${BALANCE.cherity.lmb.maxDamage})` },
+        desc:`이동을 정지하며 차징. 길게 차징할수록 피해 및 탄속 증가. 최대 차징 시 벽 관통 (${BALANCE.cherity.lmb.minDamage}~${BALANCE.cherity.lmb.maxDamage})` },
       { key:'RMB',     name:'물러서!', cost:BALANCE.cherity.rmb.cost,
         desc:`후방으로 슬라이딩 후 근거리 대응탄 발사. 적중 시 강한 넉백 (${BALANCE.cherity.rmb.damage})` },
       { key:'L-Shift', name:'연막탄',  cost:0,
-        desc:`연막탄 투척. 연막 내 플레이어는 상대에게 은신. 가까운 적은 확인가능` },
+        desc:`연막탄 투척. 연막 내 플레이어는 상대에게 은신. 가까운 적은 확인 가능` },
     ],
   },
 };
@@ -1504,7 +1504,7 @@ const cam = {x:0, y:0};
 // ── 효과음 (Web Audio API — 저지연) ─────────────────────
 const _sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
 let _hitBuffer = null;
-fetch('https://lyangnem.github.io/duels/hitted.mp3')
+fetch('https://Lyangnem.github.io/duels/hitted.mp3')
   .then(r => r.arrayBuffer())
   .then(buf => _sfxCtx.decodeAudioData(buf))
   .then(decoded => { _hitBuffer = decoded; })
@@ -1564,26 +1564,25 @@ document.addEventListener('visibilitychange', () => {
 // ============================================================
 // ── 캔버스 3:2 비율 고정 ──────────────────────────────────
 const ASPECT = 3 / 2;
+const LOGICAL_W = 1200;  // 논리 캔버스 너비 (고정)
+const LOGICAL_H = 800;   // 논리 캔버스 높이 (고정)
 
 function resizeCanvas() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-
-  let w, h;
+  let cssW, cssH;
   if (vw / vh >= ASPECT) {
-    // 화면이 더 넓음 → 높이 기준
-    h = vh;
-    w = Math.floor(h * ASPECT);
+    cssH = vh;
+    cssW = Math.floor(cssH * ASPECT);
   } else {
-    // 화면이 더 좁음 → 너비 기준
-    w = vw;
-    h = Math.floor(w / ASPECT);
+    cssW = vw;
+    cssH = Math.floor(cssW / ASPECT);
   }
-
-  CANVAS.width  = w;
-  CANVAS.height = h;
-  CANVAS.style.width  = w + 'px';
-  CANVAS.style.height = h + 'px';
+  // 논리 해상도 고정 — 기기 크기 무관 동일 시야 보장
+  CANVAS.width  = LOGICAL_W;
+  CANVAS.height = LOGICAL_H;
+  CANVAS.style.width  = cssW + 'px';
+  CANVAS.style.height = cssH + 'px';
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -3745,9 +3744,12 @@ function tauChainDash(tx, ty, dur) {
 // ============================================================
 
 CANVAS.addEventListener('mousemove', e => {
-  const r=CANVAS.getBoundingClientRect();
-  mouseScreenX = e.clientX - r.left;
-  mouseScreenY = e.clientY - r.top;
+  const r = CANVAS.getBoundingClientRect();
+  // CSS 스케일 → 논리 좌표 변환
+  const scaleX = CANVAS.width  / r.width;
+  const scaleY = CANVAS.height / r.height;
+  mouseScreenX = (e.clientX - r.left) * scaleX;
+  mouseScreenY = (e.clientY - r.top)  * scaleY;
 });
 CANVAS.addEventListener('mousedown', e => {
   _sfxCtx.state === 'suspended' && _sfxCtx.resume();
@@ -4750,18 +4752,18 @@ function draw() {
       const cos=Math.cos(f.angle), sin=Math.sin(f.angle);
       const flashLen = 40 + (f.t||0) * 80;
       const gFlash = ctx.createLinearGradient(f.x, f.y, f.x+cos*flashLen, f.y+sin*flashLen);
-      gFlash.addColorStop(0, `rgba(255,180,180,${a})`);
-      gFlash.addColorStop(1, `rgba(220,20,60,0)`);
+      gFlash.addColorStop(0, `rgba(185,65,85,${a})`);
+      gFlash.addColorStop(1, `rgba(120,5,25,0)`);
       ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x+cos*flashLen, f.y+sin*flashLen);
       ctx.strokeStyle=gFlash; ctx.lineWidth=3+a*3; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, 6+4*a, 0, Math.PI*2);
-      ctx.fillStyle=`rgba(255,150,150,${a*0.8})`; ctx.fill();
+      ctx.fillStyle=`rgba(185,65,85,${a*0.8})`; ctx.fill();
     } else if (f.type==='cheritySlide') {
       // 슬라이딩 궤적 — 진홍색
       ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(f.tx,f.ty);
-      ctx.strokeStyle=`rgba(220,20,60,${a*0.55})`; ctx.lineWidth=8; ctx.stroke();
+      ctx.strokeStyle=`rgba(120,5,25,${a*0.55})`; ctx.lineWidth=8; ctx.stroke();
       ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(f.tx,f.ty);
-      ctx.strokeStyle=`rgba(255,100,120,${a*0.8})`; ctx.lineWidth=2.5; ctx.stroke();
+      ctx.strokeStyle=`rgba(175,45,75,${a*0.8})`; ctx.lineWidth=2.5; ctx.stroke();
     } else if (f.type==='cherityBlast') {
       // 히트스캔 산탄 — 진홍 부채꼴 (spread 반영)
       const rr2 = f.maxR * (1 - f.dur/f.maxDur);
@@ -4769,12 +4771,12 @@ function draw() {
       ctx.beginPath(); ctx.moveTo(f.x, f.y);
       ctx.arc(f.x, f.y, Math.max(1, rr2), f.angle - halfSp, f.angle + halfSp);
       ctx.closePath();
-      ctx.fillStyle=`rgba(220,20,60,${a*0.3})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,100,120,${a*0.92})`; ctx.lineWidth=2.5; ctx.stroke();
+      ctx.fillStyle=`rgba(120,5,25,${a*0.3})`; ctx.fill();
+      ctx.strokeStyle=`rgba(175,45,75,${a*0.92})`; ctx.lineWidth=2.5; ctx.stroke();
       // 중심 강조선
       const bex=f.x+Math.cos(f.angle)*Math.max(1,rr2), bey=f.y+Math.sin(f.angle)*Math.max(1,rr2);
       ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(bex,bey);
-      ctx.strokeStyle=`rgba(255,180,180,${a*0.7})`; ctx.lineWidth=2; ctx.stroke();
+      ctx.strokeStyle=`rgba(185,70,90,${a*0.7})`; ctx.lineWidth=2; ctx.stroke();
     } else if (f.type==='cheritySmokeExpand') {
       // 연막 확산 — 회색 팽창 원
       const rs2 = f.maxR * (1 - f.dur/f.maxDur);
@@ -5073,14 +5075,14 @@ function draw() {
         const tx2 = bullet.x - bullet.dx * tailLen, ty2 = bullet.y - bullet.dy * tailLen;
         const grd3 = ctx.createLinearGradient(bullet.x, bullet.y, tx2, ty2);
         const isPierce = bullet.pierceWalls || bullet.chargeT >= 1;
-        grd3.addColorStop(0, `rgba(${isPierce?'255,80,80':'220,20,60'},${a})`);
-        grd3.addColorStop(1, `rgba(180,0,30,0)`);
+        grd3.addColorStop(0, `rgba(${isPierce?'175,35,60':'120,5,25'},${a})`);
+        grd3.addColorStop(1, `rgba(80,0,18,0)`);
         ctx.beginPath(); ctx.moveTo(bullet.x, bullet.y); ctx.lineTo(tx2, ty2);
         ctx.strokeStyle = grd3; ctx.lineWidth = isPierce ? 4 : 2.5; ctx.stroke();
         ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(${isPierce?'255,120,120':'255,80,80'},${a})`; ctx.fill();
+        ctx.fillStyle = `rgba(${isPierce?'195,50,80':'150,10,40'},${a})`; ctx.fill();
         if (isPierce) {
-          ctx.strokeStyle = `rgba(255,200,200,${a*0.7})`; ctx.lineWidth = 1.5; ctx.stroke();
+          ctx.strokeStyle = `rgba(200,110,140,${a*0.7})`; ctx.lineWidth = 1.5; ctx.stroke();
         }
       } else {
         ctx.beginPath(); ctx.arc(bullet.x,bullet.y,bullet.radius,0,Math.PI*2);
@@ -5113,23 +5115,27 @@ function draw() {
     const Bc = BALANCE.cherity.lmb;
     const tc = Math.min(1, (performance.now() - L._cherityChargeStart) / Bc.chargeTime);
     const fireAng = getAngle();
-    // 조준선
-    const lineAlpha = 0.25 + 0.45 * tc;
-    const lineCol = tc >= 1 ? `rgba(220,50,80,${lineAlpha})` : `rgba(200,80,80,${lineAlpha})`;
+    // ❶ 배경 트랙 링 (항상 가시적 — tc=0 시에도 표시)
+    ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 9, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(60,0,15,0.45)'; ctx.lineWidth = 3.5; ctx.stroke();
+    // ❷ 조준선
+    const lineAlpha = 0.2 + 0.5 * tc;
+    const lineCol = tc >= 1 ? `rgba(140,10,35,${lineAlpha})` : `rgba(110,5,25,${lineAlpha})`;
     ctx.beginPath(); ctx.moveTo(L.x, L.y);
     ctx.lineTo(L.x + Math.cos(fireAng) * Bc.range, L.y + Math.sin(fireAng) * Bc.range);
-    ctx.strokeStyle = lineCol; ctx.lineWidth = 1.5 + tc;
+    ctx.strokeStyle = lineCol; ctx.lineWidth = 1.2 + tc * 1.2;
     ctx.setLineDash([10, 8]); ctx.stroke(); ctx.setLineDash([]);
-    // 차징 호
-    ctx.beginPath(); ctx.arc(L.x, L.y, L.radius+8, -Math.PI/2, -Math.PI/2 + Math.PI*2*tc);
-    ctx.strokeStyle = tc >= 1 ? 'rgba(255,50,50,1)' : 'rgba(220,80,80,0.9)';
+    // ❸ 차징 진행 호 (tc > 0 이면 항상 보임)
+    const sweepAngle = Math.max(0.05, Math.PI * 2 * tc); // 최소 호 보장
+    ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 9, -Math.PI / 2, -Math.PI / 2 + sweepAngle);
+    ctx.strokeStyle = tc >= 1 ? 'rgba(175,20,48,1)' : `rgba(145,8,35,${0.75 + 0.25 * tc})`;
     ctx.lineWidth = 3.5; ctx.stroke();
-    // 최대 차징 시 벽관통 강조
+    // ❹ 최대 차징 시 벽관통 강조
     if (tc >= 1) {
       const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.025);
-      ctx.beginPath(); ctx.arc(L.x, L.y, L.radius+14, 0, Math.PI*2);
-      ctx.strokeStyle = `rgba(255,80,80,${pulse * 0.8})`; ctx.lineWidth = 2;
-      ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 16, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(155,12,38,${pulse * 0.85})`; ctx.lineWidth = 2;
+      ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
     }
   }
 
