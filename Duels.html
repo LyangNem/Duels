@@ -137,13 +137,13 @@ input[type=text]:focus{border-color:#4af;}
       <div><span style="color:#99b;min-width:110px;display:inline-block;">SPACE</span>회피 (스테미나 40 소모)</div>
       <div><span style="color:#99b;min-width:110px;display:inline-block;">L-SHIFT</span>반격 — 저스트 회피 후 사용</div>
       <div style="color:#4af;letter-spacing:3px;font-size:11px;margin:10px 0 6px;">── 시스템 ──</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">저스트 회피</span>공격 회피 → 반격기 활성화</div>
+      <div><span style="color:#99b;min-width:110px;display:inline-block;">저스트 회피</span>공격 회피 → 반격기 5s 활성화</div>
       <div><span style="color:#99b;min-width:110px;display:inline-block;">스테미나</span>자동 회복</div>
       <div><span style="color:#99b;min-width:110px;display:inline-block;">체력 회복</span>5초간 미전투 시 10%/s 자연 회복</div>
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.3</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.4</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -926,7 +926,7 @@ const BALANCE = {
     radius: 20,
 
     lmb: {
-      chargeTime: 1000,    // 최대 차징 시간 (ms)
+      chargeTime: 2500,    // 최대 차징 시간 (ms)
       minDamage:  10,
       maxDamage:  90,
       minSpeed:   18,
