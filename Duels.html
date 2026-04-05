@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Duels</title>
+<title>Duals</title>
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <style>
 
@@ -107,22 +107,10 @@ input[type=text]:focus{border-color:#4af;}
 .result-big{font-size:4em;letter-spacing:8px;font-weight:bold;margin-bottom:16px;text-transform:uppercase;}
 .win{color:#4f8;text-shadow:0 0 30px #4f8;}
 .lose{color:#f44;text-shadow:0 0 30px #f44;}
-/* ── 모바일 조이스틱 ── */
 
-/* ── 액션 조이스틱 공통 ── */
-/* 반격 (Counter) - 우상단, counterReady시만 */
-/* 스킬 (Skill) - 좌상단 */
-
-/* 평타 스타일 */
-
-/* 눌렸을 때 */
-
-/* 회피 - 단순 버튼 */
 </style>
 </head>
 <body>
-
-</div>
 
 <!-- 로비 -->
 <div id="scr-lobby" class="screen">
@@ -155,7 +143,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.14.5</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.0</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -212,11 +200,6 @@ input[type=text]:focus{border-color:#4af;}
   </div>
   <p class="status" id="rematch-status"></p>
 </div>
-  </div>
-</div>
-
-  <div class="rot-msg">화면을 가로로 돌려주세요<br><span style="font-size:11px;opacity:.6;">ROTATE YOUR DEVICE</span></div>
-</div>
 
 <!-- 게임 캔버스 래퍼 -->
 <div id="game-wrapper">
@@ -224,6 +207,25 @@ input[type=text]:focus{border-color:#4af;}
 </div>
 
 <script>
+// ============================================================
+// 모바일 감지 — PC 전용 게임
+// ============================================================
+(function() {
+  var ua = navigator.userAgent;
+  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
+               || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+  if (isMobile) {
+    document.body.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a0c;margin:0;';
+    document.body.innerHTML =
+      '<div style="text-align:center;color:#adf;font-family:Courier New,monospace;padding:40px;max-width:420px;">'
+      + '<div style="font-size:2em;letter-spacing:4px;color:#f44;margin-bottom:24px;">⚠ 플레이 불가</div>'
+      + '<div style="font-size:.9em;color:#778;letter-spacing:2px;line-height:2.4;">'
+      + '이 게임은 PC에서만 플레이 가능합니다.<br>키보드와 마우스가 필요합니다.<br><br>'
+      + '<span style="color:#556;">This game requires keyboard &amp; mouse.<br>Please play on a PC.</span>'
+      + '</div></div>';
+    throw new Error('Mobile not supported');
+  }
+})();
 // ============================================================
 // config.js
 // ============================================================
@@ -880,7 +882,7 @@ const BALANCE = {
 
   // ── 칸 ─────────────────────────────────────────────────────
   kan: {
-    hp:     100,
+    hp:     80,
     speed:  4.5,
     radius: 20,
 
@@ -889,9 +891,9 @@ const BALANCE = {
     gaugeDrainRate:  10,    // 초당 감소량
 
     lmb: {
-      cost:        25,
+      cost:        20,
       meleeRange:  130,
-      halfAngle:   0.45,
+      halfAngle:   0.75,
       baseDamage:  10,
       gaugeDamage: 20,    // 게이지 100%시 추가 최대 피해
       gaugeGain:   15,    // 적중시 게이지 상승
@@ -913,6 +915,45 @@ const BALANCE = {
       maxDamage:   70,
       minKbPower:  200,
       maxKbPower:  700,
+      cd:          300,
+    },
+  },
+
+  // ── 체리티 ────────────────────────────────────────────────
+  cherity: {
+    hp:     100,
+    speed:  4,
+    radius: 20,
+
+    lmb: {
+      chargeTime: 1000,    // 최대 차징 시간 (ms)
+      minDamage:  25,
+      maxDamage:  90,
+      minSpeed:   18,
+      maxSpeed:   44,
+      radius:     8,
+      range:      1400,
+      minCost:    15,
+      maxCost:    120,
+      cd:         600,
+    },
+    rmb: {
+      cost:           60,
+      slideDist:      150,
+      slideDur:       160,
+      pellets:        5,
+      spread:         0.50,
+      speed:          20,
+      radius:         7,
+      damage:         12,
+      range:          380,
+      knockbackPower: 580,
+      cd:             900,
+    },
+    counter: {
+      smokeRadius: 220,
+      smokeDur:    6000,
+      visionRange: 110,
       cd:          300,
     },
   },
@@ -1174,7 +1215,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.phase.hp,
     speed:     BALANCE.phase.speed,
     radius:    BALANCE.phase.radius,
-    statsText: [['체력', String(BALANCE.phase.hp)],['이동속도','보통'],['스타일','버서커형 근거리 암살자']],
+    statsText: [['체력', String(BALANCE.phase.hp)],['이동속도','보통'],['스타일','버서커형 근거리 딜러']],
     desc:      '빠른 속공으로 적을 한번에 처치하는 캐릭터',
     skills: [
       { key:'LMB',     name:'패스트 펀치', cost:BALANCE.phase.lmb.cost,  desc:`근거리 연속 펀치. 체력이 낮을수록 연사속도 증가 (${BALANCE.phase.lmb.damage})` },
@@ -1190,15 +1231,34 @@ const CHARACTERS = {
     maxHealth: BALANCE.kan.hp,
     speed:     BALANCE.kan.speed,
     radius:    BALANCE.kan.radius,
-    statsText: [['체력', String(BALANCE.kan.hp)],['이동속도','매우 빠름'],['스타일','게이지형 근거리 딜러']],
-    desc:      '악식 게이지를 쌓아 싸우고 마지막 타로 강력한 충격파를 발산하는 캐릭터',
+    statsText: [['체력', String(BALANCE.kan.hp)],['이동속도','매우 빠름'],['스타일','게이지형 근거리 파이터']],
+    desc:      '악식 게이지를 쌓아 강력한 충격파를 발산하는 캐릭터',
     skills: [
       { key:'LMB',     name:'악식 건틀렛', cost:BALANCE.kan.lmb.cost,
         desc:`근거리 부채꼴 공격. 피해는 악식 게이지에 비례하며 적중시 게이지 상승 (${BALANCE.kan.lmb.baseDamage}~${BALANCE.kan.lmb.baseDamage+BALANCE.kan.lmb.gaugeDamage})` },
       { key:'RMB',     name:'붙들기',     cost:BALANCE.kan.rmb.cost,
-        desc:`근거리 상대를 붙들어 끌어당김. 잠시 후 강하게 밀쳐내며 기절시킴 (${BALANCE.kan.rmb.knockbackStunDur/1000}초)` },
+        desc:`근거리 상대를 붙들어 끌어당김. 쌍방 0.5초 행동불능 후 강하게 밀쳐내며 기절 (${BALANCE.kan.rmb.knockbackStunDur/1000}초)` },
       { key:'L-Shift', name:'역류',       cost:0,
         desc:`악식 게이지를 모두 소모하여 충격파 발산. 게이지에 비례한 범위와 피해 (${BALANCE.kan.counter.minDamage}~${BALANCE.kan.counter.maxDamage})` },
+    ],
+  },
+
+  cherity: {
+    id:        'cherity',
+    name:      '체리티',
+    color:     '#dc143c',
+    maxHealth: BALANCE.cherity.hp,
+    speed:     BALANCE.cherity.speed,
+    radius:    BALANCE.cherity.radius,
+    statsText: [['체력','100'],['이동속도','보통'],['스타일','차징형 원거리 저격수']],
+    desc:      '강한 한방으로 게임을 터뜨리는 캐릭터',
+    skills: [
+      { key:'LMB',     name:'저격',    cost:`${BALANCE.cherity.lmb.minCost}~${BALANCE.cherity.lmb.maxCost}`,
+        desc:`이동 정지 후 저격 준비. 길게 준비할수록 피해 및 탄속 증가. 최대 차징 시 벽 관통 (${BALANCE.cherity.lmb.minDamage}~${BALANCE.cherity.lmb.maxDamage})` },
+      { key:'RMB',     name:'물러서!', cost:BALANCE.cherity.rmb.cost,
+        desc:`후방으로 슬라이딩 후 근거리 대응탄 발사. 적중 시 강한 넉백 (${BALANCE.cherity.rmb.damage})` },
+      { key:'L-Shift', name:'연막탄',  cost:0,
+        desc:`연막탄 투척. 연막 내 플레이어는 상대에게 은신. 가까운 적은 확인가능` },
     ],
   },
 };
@@ -1405,6 +1465,7 @@ let _firedBurstKb = new Set(); // 버스트 넉백 중복 방지
 let fxList       = [];
 let localSlowZones = [];  // 내가 만든 슬로우 지대
 let peerSlowZones  = [];  // 상대가 만든 슬로우 지대
+let globalSmokeZones = []; // 연막탄 지대 (양쪽 공유)
 let _dodgeInterval = null;
 
 const L = {
@@ -1443,7 +1504,7 @@ const cam = {x:0, y:0};
 // ── 효과음 (Web Audio API — 저지연) ─────────────────────
 const _sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
 let _hitBuffer = null;
-fetch('https://Lyangnem.github.io/Duals/hitted.mp3')
+fetch('https://lyangnem.github.io/duels/hitted.mp3')
   .then(r => r.arrayBuffer())
   .then(buf => _sfxCtx.decodeAudioData(buf))
   .then(decoded => { _hitBuffer = decoded; })
@@ -1662,6 +1723,12 @@ function onData(d) {
     }
     case 'slowZone':
       peerSlowZones.push({x:d.x, y:d.y, r:d.r, expiry:performance.now()+d.dur}); break;
+    case 'smokeZone':
+      globalSmokeZones.push({x:d.x, y:d.y, r:d.r, expiry:performance.now()+d.dur, visionRange:d.visionRange}); break;
+    case 'smokeReveal':
+      R.smokeRevealStart = performance.now();
+      R.smokeRevealDur   = d.dur;
+      break;
     case 'justDodge':
       if (d.cancelId) {
         const ci = localBullets.findIndex(b => b.id===d.cancelId);
@@ -1796,6 +1863,10 @@ function receiveHit(dmg) {
   L.health = Math.max(0, L.health - dmg);
   L.lastHitTime = performance.now();
   L.hitFlash = 14;
+  // 연막 안 피격 시 노출 신호
+  if (globalSmokeZones.some(s => performance.now() < s.expiry && Math.hypot(L.x-s.x, L.y-s.y) < s.r)) {
+    send({type:'smokeReveal', dur:750});
+  }
   addShake(Math.min(6 + dmg * 0.18, 16), 20); // 피격 시 강한 흔들림
   playHitSfx();
   if (L.health <= 0) { send({type:'dead'}); endGame(false); }
@@ -1864,6 +1935,8 @@ function receiveKnockback(vx, vy) {
   if (L._tauDashInterval) { clearInterval(L._tauDashInterval); L._tauDashInterval = null; }
   // 리안 방패 돌진 윈도우 취소
   if (L._shieldDashReady) { L._shieldDashReady = false; }
+  // 체리티 저격 차징 취소
+  if (L._cherityCharging) { L._cherityCharging = false; }
   // 속박 해제
   L.bindEnd = 0;
 }
@@ -1907,6 +1980,8 @@ function tryDodge() {
   // 리안: 회피 전 위치 저장
   if (L.charDef?.id==='lian') L._backupPos = {x:L.x, y:L.y, expiry: performance.now() + BALANCE.lian.rmb.window};
 
+  // 체리티 저격 차징 취소
+  if (L._cherityCharging) { L._cherityCharging = false; }
   L.justCheck = {x:L.x, y:L.y, radius:L.radius+12, frames:5};
   L.lastAttackTime = performance.now();
   L.invincible = DODGE_INVMS / FRAME_MS;
@@ -3512,6 +3587,117 @@ const SKILLS = {
       }, BALANCE.counter.delay);
     },
   },
+
+  // ── 체리티 ──────────────────────────────────────────────────
+  cherity: {
+    lmbStart() {
+      if (!gameOn || L.lmbCooldown > 0 || L._cherityCharging) return;
+      if (L.stunEnd && performance.now() < L.stunEnd) return;
+      L._cherityCharging = true;
+      L._cherityChargeStart = performance.now();
+    },
+
+    lmbRelease() {
+      if (!L._cherityCharging) return;
+      L._cherityCharging = false;
+      if (!gameOn || L.lmbCooldown > 0) return;
+      const B   = BALANCE.cherity.lmb;
+      const now = performance.now();
+      const held = Math.min(now - L._cherityChargeStart, B.chargeTime);
+      const t    = held / B.chargeTime;
+      const cost = Math.round(B.minCost + (B.maxCost - B.minCost) * t);
+      if (!useStam(cost)) return;
+      const damage      = Math.round(B.minDamage + (B.maxDamage - B.minDamage) * t);
+      const speed       = B.minSpeed + (B.maxSpeed - B.minSpeed) * t;
+      const pierceWalls = t >= 1.0;
+      const angle       = getAngle();
+      const b = {
+        id: uid(), x: L.x, y: L.y,
+        radius: B.radius, speed,
+        dx: Math.cos(angle), dy: Math.sin(angle),
+        damage, maxRange: B.range, traveled: 0,
+        pierceWalls, isCheritySniper: true, chargeT: t,
+      };
+      localBullets.push(b);
+      send({type: 'bullet', ...b});
+      addFx({type:'cherityShot', x:L.x, y:L.y, angle, t, dur:8, maxDur:8});
+      send({type:'fx', fx:{type:'cherityShot', x:L.x, y:L.y, angle, t, dur:8, maxDur:8}});
+      L.lmbCooldown = B.cd;
+      L.lastAttackTime = now;
+    },
+
+    rmb(angle) {
+      const B = BALANCE.cherity.rmb;
+      if (L.rmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      // 후방 슬라이딩
+      const slideAngle = angle + Math.PI;
+      const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(slideAngle)*B.slideDist));
+      const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(slideAngle)*B.slideDist));
+      addFx({type:'cheritySlide', x:L.x, y:L.y, tx, ty, dur:10, maxDur:10});
+      send({type:'fx', fx:{type:'cheritySlide', x:L.x, y:L.y, tx, ty, dur:10, maxDur:10}});
+      const ds = performance.now(), sx = L.x, sy = L.y;
+      const di = setInterval(() => {
+        if (!gameOn) { clearInterval(di); return; }
+        const t = Math.min(1, (performance.now()-ds)/B.slideDur);
+        L.x = sx+(tx-sx)*(1-(1-t)*(1-t));
+        L.y = sy+(ty-sy)*(1-(1-t)*(1-t));
+        resolveWall(L);
+        if (t >= 1) {
+          clearInterval(di);
+          // 슬라이드 완료 후 전방 히트스캔 산탄
+          const fireAngle = Math.atan2(mouseY-L.y, mouseX-L.x);
+          {
+            const halfSpread = B.spread / 2;
+            const rdist = Math.hypot(R.x-L.x, R.y-L.y);
+            if (rdist < B.range + R.radius) {
+              const toR3 = Math.atan2(R.y-L.y, R.x-L.x);
+              const adiff = Math.abs(((toR3-fireAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
+              if (adiff < halfSpread) {
+                // 거리 감쇠 + 각도 감쇠
+                const rangeFalloff = Math.max(0.5, 1 - rdist/B.range * 0.5);
+                const angleFalloff = 1 - adiff/halfSpread * 0.5;
+                hitRemote(Math.round(B.damage * B.pellets * rangeFalloff * angleFalloff));
+                knockbackRemote(B.knockbackPower);
+              }
+            }
+            // 정령 히트스캔
+            if (R.elinSpirit) {
+              const sdist = Math.hypot(R.elinSpirit.x-L.x, R.elinSpirit.y-L.y);
+              if (sdist < B.range + BALANCE.elin.spirit.radius) {
+                const sto = Math.atan2(R.elinSpirit.y-L.y, R.elinSpirit.x-L.x);
+                const sdiff = Math.abs(((sto-fireAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
+                if (sdiff < halfSpread) spiritHitRemote(B.damage * 3);
+              }
+            }
+          }
+          addFx({type:'cherityBlast', x:L.x, y:L.y, angle:fireAngle, spread:B.spread, r:0, maxR:B.range*0.55, dur:14, maxDur:14});
+          send({type:'fx', fx:{type:'cherityBlast', x:L.x, y:L.y, angle:fireAngle, spread:B.spread, r:0, maxR:B.range*0.55, dur:14, maxDur:14}});
+          L.lastAttackTime = performance.now();
+        }
+      }, FRAME_MS);
+      L.rmbCooldown = B.cd;
+      L.lastAttackTime = performance.now();
+    },
+
+    counter(angle) {
+      const B = BALANCE.cherity.counter;
+      if (!L.counterReady) return;
+      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
+      L.counterReady = false;
+      L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
+      // 연막탄 투척 (마우스 방향 200px)
+      const throwDist = 200;
+      const sx2 = Math.max(B.smokeRadius, Math.min(WORLD_W-B.smokeRadius, L.x + Math.cos(angle)*throwDist));
+      const sy2 = Math.max(B.smokeRadius, Math.min(WORLD_H-B.smokeRadius, L.y + Math.sin(angle)*throwDist));
+      const smoke = {x:sx2, y:sy2, r:B.smokeRadius, expiry:performance.now()+B.smokeDur, visionRange:B.visionRange};
+      globalSmokeZones.push(smoke);
+      send({type:'smokeZone', x:sx2, y:sy2, r:B.smokeRadius, dur:B.smokeDur, visionRange:B.visionRange});
+      addFx({type:'cheritySmokeExpand', x:sx2, y:sy2, r:0, maxR:B.smokeRadius, dur:22, maxDur:22});
+      send({type:'fx', fx:{type:'cheritySmokeExpand', x:sx2, y:sy2, r:0, maxR:B.smokeRadius, dur:22, maxDur:22}});
+      L.lastAttackTime = performance.now();
+    },
+  },
 };
 
 // ============================================================
@@ -3572,6 +3758,8 @@ CANVAS.addEventListener('mousedown', e => {
       if (L.lmbCooldown<=0 && !L.burrowing && !(L.stunEnd && performance.now()<L.stunEnd)) SKILLS.mainmad.lmb(getAngle());
     } else if (L.charDef?.id==='mehugu') {
       if (!(L.stunEnd && performance.now()<L.stunEnd)) SKILLS.mehugu.lmbStart();
+    } else if (L.charDef?.id==='cherity') {
+      SKILLS.cherity.lmbStart();
     } else {
       doLMB();
     }
@@ -3586,6 +3774,8 @@ CANVAS.addEventListener('mouseup', e => {
     } else if (gameOn && L.charDef?.id==='mehugu') {
       // 메후구: 차징 해제 → 발동
       if (!(L.stunEnd && performance.now()<L.stunEnd)) SKILLS.mehugu.lmbRelease(getAngle());
+    } else if (gameOn && L.charDef?.id==='cherity') {
+      SKILLS.cherity.lmbRelease();
     }
   }
 });
@@ -3699,7 +3889,7 @@ function moveBullets(dt=1) {
     }
     b.x+=b.dx*b.speed*dt; b.y+=b.dy*b.speed*dt; b.traveled+=b.speed*dt;
     const oob = b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H;
-    const hitWall = bulletHitsWall(b);
+    const hitWall = bulletHitsWall(b) && !b.pierceWalls;
     const hitEnemy = Math.hypot(b.x-R.x, b.y-R.y)<b.radius+R.radius;
     const rangeOut = b.traveled>=b.maxRange;
 
@@ -3903,7 +4093,7 @@ function moveBullets(dt=1) {
         continue;
       }
     }
-    if (b.traveled>=b.maxRange||b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H||bulletHitsWall(b)) { peerBullets.splice(i,1); continue; }
+    if (b.traveled>=b.maxRange||b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H||(bulletHitsWall(b)&&!b.pierceWalls)) { peerBullets.splice(i,1); continue; }
     if (Math.hypot(b.x-L.x, b.y-L.y)<b.radius+L.radius) {
       b._hitLocal = true;
       if (b.knockbackPower && b.burstId && !_firedBurstKb.has(b.burstId)) {
@@ -4555,6 +4745,44 @@ function draw() {
       ctx.strokeStyle=`rgba(40,${g2},80,${a*0.95})`; ctx.lineWidth=3+2*gt; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rs*0.55), 0, Math.PI*2);
       ctx.strokeStyle=`rgba(120,240,150,${a*(0.4+0.3*gt)})`; ctx.lineWidth=2; ctx.stroke();
+    } else if (f.type==='cherityShot') {
+      // 저격 발사 섬광
+      const cos=Math.cos(f.angle), sin=Math.sin(f.angle);
+      const flashLen = 40 + (f.t||0) * 80;
+      const gFlash = ctx.createLinearGradient(f.x, f.y, f.x+cos*flashLen, f.y+sin*flashLen);
+      gFlash.addColorStop(0, `rgba(255,180,180,${a})`);
+      gFlash.addColorStop(1, `rgba(220,20,60,0)`);
+      ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x+cos*flashLen, f.y+sin*flashLen);
+      ctx.strokeStyle=gFlash; ctx.lineWidth=3+a*3; ctx.stroke();
+      ctx.beginPath(); ctx.arc(f.x, f.y, 6+4*a, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,150,150,${a*0.8})`; ctx.fill();
+    } else if (f.type==='cheritySlide') {
+      // 슬라이딩 궤적 — 진홍색
+      ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(f.tx,f.ty);
+      ctx.strokeStyle=`rgba(220,20,60,${a*0.55})`; ctx.lineWidth=8; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(f.tx,f.ty);
+      ctx.strokeStyle=`rgba(255,100,120,${a*0.8})`; ctx.lineWidth=2.5; ctx.stroke();
+    } else if (f.type==='cherityBlast') {
+      // 히트스캔 산탄 — 진홍 부채꼴 (spread 반영)
+      const rr2 = f.maxR * (1 - f.dur/f.maxDur);
+      const halfSp = (f.spread||0.5) / 2;
+      ctx.beginPath(); ctx.moveTo(f.x, f.y);
+      ctx.arc(f.x, f.y, Math.max(1, rr2), f.angle - halfSp, f.angle + halfSp);
+      ctx.closePath();
+      ctx.fillStyle=`rgba(220,20,60,${a*0.3})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,100,120,${a*0.92})`; ctx.lineWidth=2.5; ctx.stroke();
+      // 중심 강조선
+      const bex=f.x+Math.cos(f.angle)*Math.max(1,rr2), bey=f.y+Math.sin(f.angle)*Math.max(1,rr2);
+      ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(bex,bey);
+      ctx.strokeStyle=`rgba(255,180,180,${a*0.7})`; ctx.lineWidth=2; ctx.stroke();
+    } else if (f.type==='cheritySmokeExpand') {
+      // 연막 확산 — 회색 팽창 원
+      const rs2 = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rs2), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(200,200,200,${a*0.35})`; ctx.fill();
+      ctx.strokeStyle=`rgba(220,220,220,${a*0.85})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rs2*0.5), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(240,240,240,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
     }
   });
 
@@ -4839,6 +5067,21 @@ function draw() {
         ctx.strokeStyle = `rgba(255,255,255,${a*0.7})`; ctx.lineWidth = 1.5; ctx.stroke();
         ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius+1, 0, Math.PI*2);
         ctx.fillStyle = `rgba(186,230,253,${a*0.9})`; ctx.fill();
+      } else if (bullet.isCheritySniper) {
+        // 체리티 저격탄 — 진홍색 예광탄
+        const tailLen = 16 + bullet.speed * 0.8;
+        const tx2 = bullet.x - bullet.dx * tailLen, ty2 = bullet.y - bullet.dy * tailLen;
+        const grd3 = ctx.createLinearGradient(bullet.x, bullet.y, tx2, ty2);
+        const isPierce = bullet.pierceWalls || bullet.chargeT >= 1;
+        grd3.addColorStop(0, `rgba(${isPierce?'255,80,80':'220,20,60'},${a})`);
+        grd3.addColorStop(1, `rgba(180,0,30,0)`);
+        ctx.beginPath(); ctx.moveTo(bullet.x, bullet.y); ctx.lineTo(tx2, ty2);
+        ctx.strokeStyle = grd3; ctx.lineWidth = isPierce ? 4 : 2.5; ctx.stroke();
+        ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(${isPierce?'255,120,120':'255,80,80'},${a})`; ctx.fill();
+        if (isPierce) {
+          ctx.strokeStyle = `rgba(255,200,200,${a*0.7})`; ctx.lineWidth = 1.5; ctx.stroke();
+        }
       } else {
         ctx.beginPath(); ctx.arc(bullet.x,bullet.y,bullet.radius,0,Math.PI*2);
         ctx.fillStyle=`rgba(${r},${g},${b},${a})`; ctx.fill();
@@ -4849,12 +5092,76 @@ function draw() {
   drawBullets(localBullets, L.defaultColor);
   drawBullets(peerBullets,  R.defaultColor);
 
+  // ── 연막탄 렌더링 ────────────────────────────────────────
+  globalSmokeZones.forEach(s => {
+    if (performance.now() >= s.expiry) return;
+    const pulse = 0.3 + 0.12 * Math.sin(performance.now() * 0.004 + s.x * 0.005);
+    const grad2 = ctx.createRadialGradient(s.x, s.y, s.r*0.1, s.x, s.y, s.r);
+    grad2.addColorStop(0, `rgba(200,200,200,${pulse * 0.55})`);
+    grad2.addColorStop(1, `rgba(160,160,160,${pulse * 0.18})`);
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = grad2; ctx.fill();
+    ctx.strokeStyle = `rgba(220,220,220,${pulse * 0.7})`; ctx.lineWidth = 2;
+    ctx.setLineDash([10, 7]); ctx.stroke(); ctx.setLineDash([]);
+    // 연막 내부 선
+    ctx.fillStyle = `rgba(200,200,200,${pulse * 0.45})`; ctx.font = 'bold 13px Courier New'; ctx.textAlign='center';
+    ctx.fillText('SMOKE', s.x, s.y + 5);
+  });
+
+  // ── 체리티 저격 차징 프리뷰 ──────────────────────────────
+  if (gameOn && L.charDef?.id === 'cherity' && L._cherityCharging) {
+    const Bc = BALANCE.cherity.lmb;
+    const tc = Math.min(1, (performance.now() - L._cherityChargeStart) / Bc.chargeTime);
+    const fireAng = getAngle();
+    // 조준선
+    const lineAlpha = 0.25 + 0.45 * tc;
+    const lineCol = tc >= 1 ? `rgba(220,50,80,${lineAlpha})` : `rgba(200,80,80,${lineAlpha})`;
+    ctx.beginPath(); ctx.moveTo(L.x, L.y);
+    ctx.lineTo(L.x + Math.cos(fireAng) * Bc.range, L.y + Math.sin(fireAng) * Bc.range);
+    ctx.strokeStyle = lineCol; ctx.lineWidth = 1.5 + tc;
+    ctx.setLineDash([10, 8]); ctx.stroke(); ctx.setLineDash([]);
+    // 차징 호
+    ctx.beginPath(); ctx.arc(L.x, L.y, L.radius+8, -Math.PI/2, -Math.PI/2 + Math.PI*2*tc);
+    ctx.strokeStyle = tc >= 1 ? 'rgba(255,50,50,1)' : 'rgba(220,80,80,0.9)';
+    ctx.lineWidth = 3.5; ctx.stroke();
+    // 최대 차징 시 벽관통 강조
+    if (tc >= 1) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.025);
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.radius+14, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(255,80,80,${pulse * 0.8})`; ctx.lineWidth = 2;
+      ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+
   ctx.beginPath(); ctx.moveTo(L.x,L.y); ctx.lineTo(mouseX,mouseY);
   ctx.strokeStyle = 'rgba(255,80,80,0.2)';
   ctx.lineWidth   = 1.5;
   ctx.stroke();
 
-  drawPlayer(R,'상대');
+  // ── 연막 가시성 + 페이드인아웃 처리 ────────────────────
+  {
+    const _now = performance.now();
+    let _rAlpha = 1, _rInSmoke = false;
+    for (const s of globalSmokeZones) {
+      if (_now < s.expiry && Math.hypot(R.x-s.x, R.y-s.y) < s.r) {
+        if (Math.hypot(L.x-R.x, L.y-R.y) > s.visionRange) {
+          _rInSmoke = true;
+          if (R.smokeRevealStart && _now - R.smokeRevealStart < (R.smokeRevealDur||0)) {
+            const _prog = (_now - R.smokeRevealStart) / (R.smokeRevealDur||1);
+            _rAlpha = Math.max(0, Math.sin(Math.PI * _prog));
+          } else {
+            _rAlpha = 0;
+          }
+          break;
+        }
+      }
+    }
+    if (_rAlpha > 0.01) {
+      if (_rInSmoke) { ctx.save(); ctx.globalAlpha = _rAlpha; }
+      drawPlayer(R,'상대');
+      if (_rInSmoke) ctx.restore();
+    }
+  }
   drawPlayer(L,'나');
 
   ctx.restore();
@@ -5178,8 +5485,31 @@ function drawMinimap() {
   }
   ctx.strokeStyle='rgba(255,255,255,.12)';
   ctx.strokeRect(mx+cam.x*sx, my+cam.y*sy, CANVAS.width*sx, CANVAS.height*sy);
-  [[L,3],[R,3]].forEach(([p,r]) => {
-    ctx.beginPath(); ctx.arc(mx+p.x*sx, my+p.y*sy, r, 0, Math.PI*2);
+  // 미니맵: 연막 안 상대 숨기기
+  [[L,3],[R,3]].forEach(([p,r2]) => {
+    if (p === R) {
+      const nowMm = performance.now();
+      const smokingSmoke = globalSmokeZones.find(s =>
+        nowMm < s.expiry
+        && Math.hypot(p.x - s.x, p.y - s.y) < s.r
+        && Math.hypot(L.x - p.x, L.y - p.y) > s.visionRange
+      );
+      if (smokingSmoke) {
+        // reveal 중이면 미니맵도 희미하게 표시
+        if (R.smokeRevealStart && nowMm - R.smokeRevealStart < (R.smokeRevealDur||0)) {
+          const prog = (nowMm - R.smokeRevealStart) / (R.smokeRevealDur||1);
+          const mmAlpha = Math.max(0, Math.sin(Math.PI * prog)) * 0.6;
+          if (mmAlpha > 0.01) {
+            ctx.globalAlpha = mmAlpha;
+            ctx.beginPath(); ctx.arc(mx+p.x*sx, my+p.y*sy, r2, 0, Math.PI*2);
+            ctx.fillStyle=p.color; ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+        }
+        return;
+      }
+    }
+    ctx.beginPath(); ctx.arc(mx+p.x*sx, my+p.y*sy, r2, 0, Math.PI*2);
     ctx.fillStyle=p.color; ctx.fill();
   });
 }
@@ -5220,7 +5550,6 @@ function endGame(won) {
   clearTimeout(window._gameTimer);
   if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
   window._audioCtx?.close();
-  document.body.classList.remove('game-active'); // 조이스틱 숨김
   const ov=document.getElementById('result-oveleulay');
   const tx=document.getElementById('result-text');
   tx.textContent=won?'승리!':'패배...';
@@ -5238,7 +5567,7 @@ function acceptRematch() { send({type:'rematchAccept'}); doRematch(); }
 function doRematch() {
   localReady=false; peerReady=false; selCharId=null; peerCharId=null; lastLoopTime=0;
   localBullets=[]; peerBullets=[]; fxList=[]; _firedBurstKb=new Set();
-  localSlowZones=[]; peerSlowZones=[];
+  localSlowZones=[]; peerSlowZones=[]; globalSmokeZones=[];
   if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
   if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
   // R 상태 초기화
@@ -5246,6 +5575,7 @@ function doRematch() {
   R.burrowing=false; R.stunEnd=0; R.bindEnd=0; R.burnEnd=0;
   R.elinSpirit=null; R.ropeOrb=null; R.toolbox=null;
   R.erapabiFortify=false; R.nsonyaStacks=0; R.burrowEntry=null;
+  R.smokeRevealStart=0; R.smokeRevealDur=0;
   L.orb=null;
   document.getElementById('result-oveleulay').style.display='none';
   document.getElementById('hud').style.display='none';
@@ -5310,13 +5640,13 @@ function resetL() {
   L._reikaPreswing=false; L._reikaJumping=false;
   L._reikaRBurning=null; L._reikaFireTrails=[]; L._reikaTrailLast=null; L._burnEnd=0;
   L._kanGauge=0;
+  L._cherityCharging=false; L._cherityChargeStart=0; L._smokeRevealSent=0;
   if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
 function startGame() {
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   document.getElementById('hud').style.display='flex';
-  document.body.classList.add('game-active');
 
   resetL();
   const rc=CHARACTERS[peerCharId];
@@ -5326,13 +5656,14 @@ function startGame() {
   R.burrowing=false; R.stunEnd=0; R.bindEnd=0; R.burnEnd=0;
   R.elinSpirit=null; R.ropeOrb=null; R.toolbox=null;
   R.erapabiFortify=false; R.nsonyaStacks=0; R.burrowEntry=null;
+  R.smokeRevealStart=0; R.smokeRevealDur=0;
 
   if (isHost) { L.x=400; L.y=WORLD_H/2; R.x=WORLD_W-400; R.y=WORLD_H/2; }
   else        { L.x=WORLD_W-400; L.y=WORLD_H/2; R.x=400; R.y=WORLD_H/2; }
   R.tx=R.x; R.ty=R.y;
 
   localBullets=[]; peerBullets=[]; fxList=[]; _firedBurstKb=new Set();
-  localSlowZones=[]; peerSlowZones=[];
+  localSlowZones=[]; peerSlowZones=[]; globalSmokeZones=[];
   updateLocalHud(); updateRemoteHud();
   gameOn=true; lastLoopTime=0;
 
@@ -5389,8 +5720,16 @@ function loop() {
   const bound = L.bindEnd && now < L.bindEnd;
   const erapabiLaserLock = L.charDef?.id === 'erapabi' && (L._erapabiLaserActive || L._erapabiLaserCharging);
   // 슬로우 지대 만료 처리 + 속도 계수 계산
-  localSlowZones  = localSlowZones.filter(z => now < z.expiry);
-  peerSlowZones   = peerSlowZones.filter(z => now < z.expiry);
+  localSlowZones   = localSlowZones.filter(z => now < z.expiry);
+  peerSlowZones    = peerSlowZones.filter(z => now < z.expiry);
+  globalSmokeZones = globalSmokeZones.filter(s => now < s.expiry);
+  // 연막 안 공격 시 상대에게 노출 신호
+  if (L.lastAttackTime > (L._smokeRevealSent||0) && now - L.lastAttackTime < 80) {
+    if (globalSmokeZones.some(s => now < s.expiry && Math.hypot(L.x-s.x, L.y-s.y) < s.r)) {
+      send({type:'smokeReveal', dur:600});
+      L._smokeRevealSent = now;
+    }
+  }
   const inPeerSlow  = peerSlowZones.some(z => Math.hypot(L.x-z.x, L.y-z.y) < z.r);
   const inLocalSlow = localSlowZones.some(z => Math.hypot(R.tx-z.x, R.ty-z.y) < z.r);
   const slowMult = inPeerSlow ? BALANCE.veleu.rmb.slowFactor : 1;
@@ -5408,7 +5747,7 @@ function loop() {
   const ePredelay  = L._nsonyaPredelay || false;
 
   const sp = L.speed * dt * slowMult * eSpeedMult * (ePredelay ? 0 : 1);
-  if (!stunned && !bound && !L.burrowing && !L._phaseJumping && !erapabiLaserLock && !L._reikaJumping && !L._reikaPreswing) {
+  if (!stunned && !bound && !L.burrowing && !L._phaseJumping && !erapabiLaserLock && !L._reikaJumping && !L._reikaPreswing && !L._cherityCharging) {
     // 키보드 입력
     if (keys['w']) L.y=Math.max(L.radius, L.y-sp);
     if (keys['s']) L.y=Math.min(WORLD_H-L.radius, L.y+sp);
@@ -5429,7 +5768,7 @@ function loop() {
     if (L.hitFlash<=0) L._preFlashColor=null;
   }
 
-  if (mouseDown && !stunned && !L.burrowing && !ePredelay && L.charDef?.id !== 'mainmad' && L.charDef?.id !== 'veleu' && L.charDef?.id !== 'tau' && L.charDef?.id !== 'lian' && L.charDef?.id !== 'mehugu' && L.charDef?.id !== 'maisil' && L.charDef?.id !== 'erapabi' && L.charDef?.id !== 'reika') doLMB();
+  if (mouseDown && !stunned && !L.burrowing && !ePredelay && L.charDef?.id !== 'mainmad' && L.charDef?.id !== 'veleu' && L.charDef?.id !== 'tau' && L.charDef?.id !== 'lian' && L.charDef?.id !== 'mehugu' && L.charDef?.id !== 'maisil' && L.charDef?.id !== 'erapabi' && L.charDef?.id !== 'reika' && L.charDef?.id !== 'cherity') doLMB();
 
   // 넉백 이동
   if (L._kbFrames > 0) {
