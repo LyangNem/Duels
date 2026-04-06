@@ -143,7 +143,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.8</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.9</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -914,10 +914,12 @@ const BALANCE = {
       cd:             900,
     },
     counter: {
-      smokeRadius: 220,
-      smokeDur:    6000,
-      visionRange: 110,
-      cd:          300,
+      smokeRadius:    220,
+      smokeDur:       6000,
+      visionRange:    110,
+      cd:             300,
+      damage:         15,
+      knockbackPower: 420,
     },
   },
 };
@@ -1218,7 +1220,7 @@ const CHARACTERS = {
       { key:'RMB',     name:'물러서!', cost:BALANCE.cherity.rmb.cost,
         desc:`후방으로 슬라이딩 후 근거리 대응 산탄 발사. 적중 시 강한 넉백 (${BALANCE.cherity.rmb.damage})` },
       { key:'L-Shift', name:'연막탄',  cost:0,
-        desc:`연막탄 투척. 연막 내 플레이어는 은신. 가까운 적은 확인 가능` },
+        desc:`연막탄 투척. 착탄 시 범위 내 피해(${BALANCE.cherity.counter.damage}) 및 넉백. 연막 내 플레이어는 은신. 가까운 적은 확인 가능` },
     ],
   },
 };
@@ -1476,6 +1478,22 @@ function playHitSfx() {
   const src = _sfxCtx.createBufferSource();
   const gain = _sfxCtx.createGain();
   src.buffer = _hitBuffer;
+  gain.gain.value = 0.5;
+  src.connect(gain); gain.connect(_sfxCtx.destination);
+  src.start(0);
+}
+
+let _shootBuffer = null;
+fetch('https://Lyangnem.github.io/Duels/shoot.mp3')
+  .then(r => r.arrayBuffer())
+  .then(buf => _sfxCtx.decodeAudioData(buf))
+  .then(decoded => { _shootBuffer = decoded; })
+  .catch(() => {});
+function playShootSfx() {
+  if (!_shootBuffer) return;
+  const src = _sfxCtx.createBufferSource();
+  const gain = _sfxCtx.createGain();
+  src.buffer = _shootBuffer;
   gain.gain.value = 0.5;
   src.connect(gain); gain.connect(_sfxCtx.destination);
   src.start(0);
@@ -2098,6 +2116,58 @@ function tickMinions(dt, physDt, now) {
 }
 
 // ── 소환수 렌더링 ────────────────────────────────────────────
+// ── 선딜레이 공격 예고 렌더 ────────────────────────────────
+function drawAttackPreview(preview) {
+  if (!preview || !gameOn) return;
+  const angle = getAngle();
+  const cos   = Math.cos(angle), sin = Math.sin(angle);
+  const col   = L.charDef?.color || '#fff';
+
+  ctx.save();
+  ctx.setLineDash([7, 5]);
+
+  for (const sh of preview.shapes) {
+    const cx = sh.offsetDist ? L.x + cos * sh.offsetDist : L.x;
+    const cy = sh.offsetDist ? L.y + sin * sh.offsetDist : L.y;
+    const sa = sh.angleOffset !== undefined ? angle + sh.angleOffset : angle;
+
+    // 외곽선: 흰색 기반 + 캐릭터 색 tint 으로 항상 가시
+    ctx.lineWidth   = 1.5;
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.fillStyle   = col + '22';   // 캐릭터 색상 아주 옅은 tint
+
+    if (sh.type === 'circle') {
+      ctx.globalAlpha = 0.85;
+      ctx.beginPath();
+      ctx.arc(cx, cy, sh.r, 0, Math.PI * 2);
+      ctx.globalAlpha = 0.18; ctx.fill();
+      ctx.globalAlpha = 0.55; ctx.stroke();
+
+    } else if (sh.type === 'sector') {
+      const ha = sh.halfAngle;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, sh.range, sa - ha, sa + ha);
+      ctx.closePath();
+      ctx.globalAlpha = 0.14; ctx.fill();
+      ctx.globalAlpha = 0.55; ctx.stroke();
+
+    } else if (sh.type === 'rect') {
+      ctx.save();
+      ctx.translate(L.x, L.y);
+      ctx.rotate(angle);
+      const hw = sh.width;
+      ctx.globalAlpha = 0.14; ctx.fillRect(0, -hw, sh.len, hw * 2);
+      ctx.globalAlpha = 0.55; ctx.strokeRect(0, -hw, sh.len, hw * 2);
+      ctx.restore();
+    }
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
 function drawMinions() {
   // 로컬 소환수 (isPeer=false), 피어 소환수 (isPeer=true)
   for (const isPeer of [true, false]) {
@@ -2335,7 +2405,9 @@ const SKILLS = {
       L.color='#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:35, maxR:35, dur:18, maxDur:18});
       const fa=angle, tok=++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'sector', range: B.range, halfAngle: B.spread/2 }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken!==tok) return;
         const fa = getAngle();
         L.color=L.defaultColor; L._preFlashColor=null; send({type:'colorChange', color:L.defaultColor});
@@ -2352,7 +2424,7 @@ const SKILLS = {
       if (!useStam(B.cost)) return;
       const b={id:uid(), x:L.x, y:L.y, radius:B.radius, speed:B.speed,
                dx:Math.cos(angle), dy:Math.sin(angle), damage:B.damage, maxRange:B.range, traveled:0};
-      localBullets.push(b); send({type:'bullet',...b});
+      localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
       L.lmbCooldown=B.cd; L.lastAttackTime=performance.now();
     },
     rmb(angle) {
@@ -2396,7 +2468,9 @@ const SKILLS = {
       L.color='#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:18, maxDur:18});
       const fa=angle, tok=++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'rect', len: B.length, width: B.width }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken!==tok) return;
         const fa = getAngle();
         L.color=L.defaultColor; L._preFlashColor=null; send({type:'colorChange', color:L.defaultColor});
@@ -2430,7 +2504,7 @@ const SKILLS = {
       } else {
         const b = {id:uid(), x:L.x, y:L.y, radius:B.throwRadius, speed:B.throwSpeed,
                    dx:Math.cos(angle), dy:Math.sin(angle), damage:B.throwDamage, maxRange:B.throwRange, traveled:0};
-        localBullets.push(b); send({type:'bullet', ...b});
+        localBullets.push(b); send({type:'bullet', ...b}); playShootSfx();
       }
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
@@ -2454,7 +2528,9 @@ const SKILLS = {
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:35, maxR:35, dur:18, maxDur:18});
       const tok=++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'circle', r: B.range }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken!==tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         if (hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage)) {
@@ -2553,7 +2629,9 @@ const SKILLS = {
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:40, maxR:40, dur:18, maxDur:18});
       const tok=++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'circle', r: B.range }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken!==tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         if (hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage)) {
@@ -2623,7 +2701,7 @@ const SKILLS = {
                       damage:B.damage, maxRange:B.range, traveled:0,
                       isTauSickle:true, dashDur:B.dashDur, bindDur:B.bindDur};
       localBullets.push(sickle);
-      send({type:'bullet', ...sickle});
+      send({type:'bullet', ...sickle}); playShootSfx();
       L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
 
@@ -2636,7 +2714,9 @@ const SKILLS = {
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:40, maxR:40, dur:18, maxDur:18});
       const tok=++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'circle', r: B.aoeRange }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken!==tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.aoeDamage);
@@ -2656,6 +2736,7 @@ const SKILLS = {
     lmb(angle) {
       const B = BALANCE.veleu.lmb;
       if (!useStam(B.cost)) return;
+      playShootSfx();
       const signs = L._veleuPhase === 0 ? [1, -1, 1] : [-1, 1, -1];
       L._veleuPhase = 1 - L._veleuPhase;
       signs.forEach((sign, idx) => {
@@ -2688,7 +2769,7 @@ const SKILLS = {
                       stunRange:B.stunRange, stunDur:B.stunDur,
                       slowRange:B.slowRange, slowDur:B.slowDur};
       localBullets.push(rocket);
-      send({type:'bullet', ...rocket});
+      send({type:'bullet', ...rocket}); playShootSfx();
       L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
 
@@ -2702,7 +2783,9 @@ const SKILLS = {
       addFx({type:'counterCharge', x:L.x, y:L.y, r:32, maxR:32, dur:18, maxDur:18});
       const sx = L.x, sy = L.y;
       const tok=++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'rect', len: B.count * B.spacing, width: B.blastRadius }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken!==tok) return;
         const fa = getAngle();
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
@@ -2792,8 +2875,10 @@ const SKILLS = {
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:35, maxR:35, dur:18, maxDur:18});
       const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'sector', range: B.meleeRange, halfAngle: B.halfAngle }] };
 
       const doSwing = (swingNum) => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         const angle = getAngle();
         if (swingNum === 2) {
@@ -2914,7 +2999,9 @@ const SKILLS = {
       L.color='#ffd700'; send({type:'colorChange',color:'#ffd700'});
       addFx({type:'counterCharge',x:L.x,y:L.y,r:32,maxR:32,dur:18,maxDur:18});
       const fa=angle, tok=++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'rect', len: B.length, width: B.width }] };
       setTimeout(()=>{
+        L._attackPreview = null;
         if(!gameOn||L._counterToken!==tok)return;
         const fa = getAngle();
         L.color=L.defaultColor; L._preFlashColor=null; send({type:'colorChange',color:L.defaultColor});
@@ -2962,7 +3049,7 @@ const SKILLS = {
         damage:B.damage, maxRange:B.range, traveled:0,
         isnsonyaBolt:true,
       };
-      localBullets.push(b); send({type:'bullet',...b});
+      localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
       L.lmbCooldown=B.cd; L.lastAttackTime=performance.now();
     },
 
@@ -3001,10 +3088,13 @@ const SKILLS = {
       if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
       L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
       const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'sector', range: B.range, halfAngle: B.spread / 2 }] };
       addFx({type:'counterCharge', x:L.x, y:L.y, r:26, maxR:26, dur:12, maxDur:12});
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         const angle = getAngle();
+        playShootSfx();
         // 8발을 spread 범위 내 균등 간격으로, 항상 같은 순서(좌→우)
         const kbRef = {fired: false, power: B.knockbackPower};
         const burstId = uid(); // 8발 공유 버스트 ID
@@ -3093,7 +3183,9 @@ const SKILLS = {
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:35, maxR:35, dur:18, maxDur:18});
       const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'rect', len: B.range, width: B.radius }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         const angle = getAngle();
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
@@ -3111,7 +3203,7 @@ const SKILLS = {
           pierceWalls: true,
         };
         localBullets.push(sc);
-        send({type:'bullet', ...sc});
+        send({type:'bullet', ...sc}); playShootSfx();
         L.lastAttackTime = performance.now();
       }, BALANCE.counter.delay);
     },
@@ -3124,6 +3216,7 @@ const SKILLS = {
       if (L.lmbCooldown > 0) return;
       if (!useStam(B.cost)) return;
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
+      playShootSfx();
       // 2발씩 2회 발사
       const firePair = (delay) => {
         setTimeout(() => {
@@ -3162,10 +3255,13 @@ const SKILLS = {
         if (L.rmbCooldown > 0 || L._erapabiLaserCharging) return;
         L._erapabiLaserCharging = true;
         L._erapabiLaserChargeAngle = angle;
+        const BL = B.megaLaser;
+        L._attackPreview = { shapes: [{ type: 'rect', len: BL.range, width: BL.width / 2 }] };
         addFx({type:'erapabiLaserCharge', x:L.x, y:L.y, dur:30, maxDur:30});
         send({type:'fx', fx:{type:'erapabiLaserCharge', x:L.x, y:L.y, dur:30, maxDur:30}});
         clearTimeout(L._erapabiChargeTimer);
         L._erapabiChargeTimer = setTimeout(() => {
+          L._attackPreview = null;
           if (!gameOn) { L._erapabiLaserCharging = false; return; }
           L._erapabiLaserCharging = false;
           L._erapabiLaserActive = true;
@@ -3207,9 +3303,11 @@ const SKILLS = {
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:32, maxR:32, dur:18, maxDur:18});
       const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'sector', range: B.frontRange, halfAngle: B.frontAngle }, { type: 'sector', range: B.backRange, halfAngle: B.backAngle, angleOffset: Math.PI }] };
 
       // 앞쪽 판정
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         const angle = getAngle();
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
@@ -3248,7 +3346,7 @@ const SKILLS = {
   reika: {
     lmb(angle) {
       const B = BALANCE.reika;
-      if (L.lmbCooldown > 0 || L._reikaPreswing || L._reikaJumping) return;
+      if (L.lmbCooldown > 0 || L._reikaPreswing || L._reikaLmbPreswing || L._reikaJumping) return;
       const now = performance.now();
       const isBlessed = L._reikaBlessed && now < (L._reikaBlessedExpiry||0);
 
@@ -3280,12 +3378,14 @@ const SKILLS = {
       } else {
         // ── 일반평타: 선딜레이 후 전진 휘두르기 ──
         if (!useStam(B.lmb.cost)) return;
-        L._reikaPreswing = true;
+        L._reikaLmbPreswing = true;
         const tok = ++L._counterToken;
+        L._attackPreview = { shapes: [{ type: 'sector', range: B.lmb.range, halfAngle: B.lmb.halfAngle, angleOffset: B.lmb.bias }] };
         addFx({type:'reikaCharge', x:L.x, y:L.y, dur:B.lmb.predelay/FRAME_MS, maxDur:B.lmb.predelay/FRAME_MS});
         setTimeout(() => {
-          if (!gameOn || L._counterToken !== tok) { L._reikaPreswing = false; return; }
-          L._reikaPreswing = false;
+          L._attackPreview = null;
+          if (!gameOn || L._counterToken !== tok) { L._reikaLmbPreswing = false; return; }
+          L._reikaLmbPreswing = false;
           const lmb = B.lmb;
           const swingAngle = angle + lmb.bias;
           const dist = Math.hypot(R.x-L.x, R.y-L.y);
@@ -3343,6 +3443,7 @@ const SKILLS = {
           const wDur = tb.weaponTravelDur / FRAME_MS;
           addFx({type:'reikaSlamWeaponFly', x:startX, y:startY, tx:targetX, ty:targetY, dur:wDur, maxDur:wDur});
           send({type:'fx', fx:{type:'reikaSlamWeaponFly', x:startX, y:startY, tx:targetX, ty:targetY, dur:wDur, maxDur:wDur}});
+          playShootSfx();
           // Phase 2: 무기 도착 후 피해
           setTimeout(() => {
             if (!gameOn || L._counterToken !== tok) { L._reikaJumping = false; return; }
@@ -3380,9 +3481,11 @@ const SKILLS = {
         if ((L._reikaEnergy||0) < B.energyThreshold) return;
         L._reikaPreswing = true;
         const tok = ++L._counterToken;
+        L._attackPreview = { shapes: [{ type: 'circle', r: B.rmb.explosionRange }] };
         addFx({type:'reikaGahoCharge', x:L.x, y:L.y, dur:B.rmb.predelay/FRAME_MS, maxDur:B.rmb.predelay/FRAME_MS});
         send({type:'fx', fx:{type:'reikaGahoCharge', x:L.x, y:L.y, dur:B.rmb.predelay/FRAME_MS, maxDur:B.rmb.predelay/FRAME_MS}});
         setTimeout(() => {
+          L._attackPreview = null;
           if (!gameOn || L._counterToken !== tok) { L._reikaPreswing = false; return; }
           L._reikaPreswing = false;
           if (Math.hypot(R.x-L.x, R.y-L.y) < B.rmb.explosionRange + R.radius) {
@@ -3410,7 +3513,11 @@ const SKILLS = {
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:38, maxR:38, dur:18, maxDur:18});
       const tok = ++L._counterToken;
+      L._attackPreview = { shapes: isBlessed
+        ? [{ type: 'rect', len: CB.range, width: CB.width }, { type: 'circle', r: CB.explosionRange, offsetDist: CB.range }]
+        : [{ type: 'rect', len: CB.range, width: CB.width }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         const angle = getAngle();
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
@@ -3482,7 +3589,9 @@ const SKILLS = {
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:35, maxR:35, dur:18, maxDur:18});
       const fa = angle, tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'sector', range: B.range, halfAngle: B.spread / 2 }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         const fa = getAngle();
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
@@ -3555,7 +3664,9 @@ const SKILLS = {
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:35, maxR:35, dur:18, maxDur:18});
       const fa = angle, tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'rect', len: B.range, width: B.width }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         const fa = getAngle();
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
@@ -3664,7 +3775,9 @@ const SKILLS = {
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:35, maxR:35, dur:18, maxDur:18});
       const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'circle', r: B.minRange + (B.maxRange - B.minRange) * ((L._kanGauge||0) / BALANCE.kan.gaugeMax) }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         if (Math.hypot(R.x - L.x, R.y - L.y) < range + R.radius) {
@@ -3718,7 +3831,7 @@ const SKILLS = {
         pierceWalls, isCheritySniper: true, chargeT: t,
       };
       localBullets.push(b);
-      send({type: 'bullet', ...b});
+      send({type: 'bullet', ...b}); playShootSfx();
       addFx({type:'cherityShot', x:L.x, y:L.y, angle, t, dur:8, maxDur:8});
       send({type:'fx', fx:{type:'cherityShot', x:L.x, y:L.y, angle, t, dur:8, maxDur:8}});
       L.lmbCooldown = B.cd;
@@ -3778,16 +3891,34 @@ const SKILLS = {
       if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
       L.counterReady = false;
       L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
-      // 연막탄 투척 (마우스 방향 200px)
-      const throwDist = 200;
-      const sx2 = Math.max(B.smokeRadius, Math.min(WORLD_W-B.smokeRadius, L.x + Math.cos(angle)*throwDist));
-      const sy2 = Math.max(B.smokeRadius, Math.min(WORLD_H-B.smokeRadius, L.y + Math.sin(angle)*throwDist));
-      const smoke = {x:sx2, y:sy2, r:B.smokeRadius, expiry:performance.now()+B.smokeDur, visionRange:B.visionRange};
-      globalSmokeZones.push(smoke);
-      send({type:'smokeZone', x:sx2, y:sy2, r:B.smokeRadius, dur:B.smokeDur, visionRange:B.visionRange});
-      addFx({type:'cheritySmokeExpand', x:sx2, y:sy2, r:0, maxR:B.smokeRadius, dur:22, maxDur:22});
-      send({type:'fx', fx:{type:'cheritySmokeExpand', x:sx2, y:sy2, r:0, maxR:B.smokeRadius, dur:22, maxDur:22}});
-      L.lastAttackTime = performance.now();
+      L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:18, maxDur:18});
+      const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'circle', r: B.smokeRadius, offsetDist: 200 }] };
+      setTimeout(() => {
+        L._attackPreview = null;
+        if (!gameOn || L._counterToken !== tok) {
+          L.color = L.defaultColor; L._preFlashColor = null;
+          send({type:'colorChange', color:L.defaultColor}); return;
+        }
+        L.color = L.defaultColor; L._preFlashColor = null;
+        send({type:'colorChange', color:L.defaultColor});
+        // 연막탄 투척 (마우스 방향 200px)
+        const throwDist = 200;
+        const sx2 = Math.max(B.smokeRadius, Math.min(WORLD_W-B.smokeRadius, L.x + Math.cos(angle)*throwDist));
+        const sy2 = Math.max(B.smokeRadius, Math.min(WORLD_H-B.smokeRadius, L.y + Math.sin(angle)*throwDist));
+        const smoke = {x:sx2, y:sy2, r:B.smokeRadius, expiry:performance.now()+B.smokeDur, visionRange:B.visionRange};
+        globalSmokeZones.push(smoke);
+        send({type:'smokeZone', x:sx2, y:sy2, r:B.smokeRadius, dur:B.smokeDur, visionRange:B.visionRange});
+        addFx({type:'cheritySmokeExpand', x:sx2, y:sy2, r:0, maxR:B.smokeRadius, dur:22, maxDur:22});
+        send({type:'fx', fx:{type:'cheritySmokeExpand', x:sx2, y:sy2, r:0, maxR:B.smokeRadius, dur:22, maxDur:22}});
+        // 연막 착탄 시 범위 내 피해 + 넉백
+        if (hitCtxAll({x:sx2, y:sy2, range:B.smokeRadius}, B.damage)) {
+          knockbackRemote(B.knockbackPower);
+        }
+        hitPeerMinionsInRange(sx2, sy2, B.smokeRadius, B.damage);
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
     },
   },
 };
@@ -3797,6 +3928,7 @@ const SKILLS = {
 // ============================================================
 
 function fireShotgun(angle, {pellets, spread, speed, radius, damage, maxRange, knockbackPower}) {
+  playShootSfx();
   const kbRef = knockbackPower ? {fired:false, power:knockbackPower} : null;
   for (let i=0; i<pellets; i++) {
     const a = angle + (i/(pellets-1)-0.5)*spread;
@@ -4823,22 +4955,32 @@ function draw() {
     const w   = B.width;
     const angle = Math.atan2(mouseY-L.y, mouseX-L.x);
     const cos = Math.cos(angle), sin = Math.sin(angle);
-    const g   = Math.round(70 + 50*t);
-    // 직사각형 꼭짓점 계산 (로컬→월드)
+    // 공격 범위 점선 직사각형 (처음부터 표시)
+    ctx.save();
+    ctx.setLineDash([7, 5]);
     ctx.beginPath();
     ctx.moveTo(L.x + cos*0  - sin*(-w), L.y + sin*0  + cos*(-w));
     ctx.lineTo(L.x + cos*len - sin*(-w), L.y + sin*len + cos*(-w));
     ctx.lineTo(L.x + cos*len - sin*(w),  L.y + sin*len + cos*(w));
     ctx.lineTo(L.x + cos*0  - sin*(w),  L.y + sin*0  + cos*(w));
     ctx.closePath();
-    ctx.fillStyle=`rgba(160,${g},30,${0.12+0.1*t})`; ctx.fill();
-    ctx.strokeStyle=`rgba(200,120,50,${0.5+0.4*t})`; ctx.lineWidth=1.5+t*1.5; ctx.stroke();
+    ctx.globalAlpha = 0.14; ctx.fillStyle=`rgba(200,120,50,1)`; ctx.fill();
+    ctx.globalAlpha = 0.55; ctx.strokeStyle='rgba(255,255,255,1)'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.globalAlpha = 1; ctx.setLineDash([]);
+    ctx.restore();
     // 차징 게이지 호 (플레이어 위에)
     ctx.beginPath(); ctx.arc(L.x, L.y, L.radius+8, -Math.PI/2, -Math.PI/2 + Math.PI*2*t);
     ctx.strokeStyle='rgba(200,120,50,0.9)'; ctx.lineWidth=3; ctx.stroke();
+    // 풀차징 깜빡임
+    if (t >= 1) {
+      const flash = 0.5+0.5*Math.sin(performance.now()*0.025);
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.radius+12, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(200,120,50,${flash*0.8})`; ctx.lineWidth=2.5;
+      ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    }
   }
 
-  // 메후구 차징 프리뷰 — 일자 직사각형 (메인마드와 동일 방식)
+  // 메후구 차징 프리뷰 — 풀차징 완료 시에만 점선 직사각형 표시
   if (gameOn && L.charDef?.id==='mehugu' && L._mhCharging) {
     const B   = BALANCE.mehugu.lmbCharge;
     const t   = Math.min(1, (performance.now()-L._mhChargeStart)/B.chargeTime);
@@ -4849,19 +4991,20 @@ function draw() {
     // 차징 게이지 호 (항상 표시)
     ctx.beginPath(); ctx.arc(L.x, L.y, L.radius+8, -Math.PI/2, -Math.PI/2 + Math.PI*2*t);
     ctx.strokeStyle=`rgba(74,222,128,0.8)`; ctx.lineWidth=3; ctx.stroke();
-    // 차징 완료 후에만 공격 범위 직사각형 표시
+    // 풀차징 완료 시에만 공격 범위 점선 직사각형 + 깜빡임
     if (t >= 1) {
+      ctx.save();
+      ctx.setLineDash([7, 5]);
       ctx.beginPath();
       ctx.moveTo(L.x + cos*0   - sin*(-w), L.y + sin*0   + cos*(-w));
       ctx.lineTo(L.x + cos*len - sin*(-w), L.y + sin*len + cos*(-w));
       ctx.lineTo(L.x + cos*len - sin*(w),  L.y + sin*len + cos*(w));
       ctx.lineTo(L.x + cos*0   - sin*(w),  L.y + sin*0   + cos*(w));
       ctx.closePath();
-      ctx.fillStyle=`rgba(34,197,94,0.18)`; ctx.fill();
-      ctx.strokeStyle=`rgba(74,222,128,0.9)`; ctx.lineWidth=2.5; ctx.stroke();
-    }
-    // 차징 완료 시 깜빡임 표시
-    if (t >= 1) {
+      ctx.globalAlpha = 0.14; ctx.fillStyle=`rgba(0,230,118,1)`; ctx.fill();
+      ctx.globalAlpha = 0.55; ctx.strokeStyle='rgba(255,255,255,1)'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.globalAlpha = 1; ctx.setLineDash([]);
+      ctx.restore();
       const flash = 0.5+0.5*Math.sin(performance.now()*0.025);
       ctx.beginPath(); ctx.arc(L.x, L.y, L.radius+12, 0, Math.PI*2);
       ctx.strokeStyle=`rgba(74,222,128,${flash*0.8})`; ctx.lineWidth=2.5;
@@ -5052,6 +5195,7 @@ function draw() {
       if (_rInSmoke) ctx.restore();
     }
   }
+  drawAttackPreview(L._attackPreview);
   drawMinions();
   drawPlayer(L,'나');
 
@@ -5530,9 +5674,10 @@ function resetL() {
   L._phaseJumping=false;
   L._shairazTraps=[];
   L._reikaEnergy=0; L._reikaBlessed=false; L._reikaBlessedExpiry=0;
-  L._reikaPreswing=false; L._reikaJumping=false;
+  L._reikaPreswing=false; L._reikaLmbPreswing=false; L._reikaJumping=false;
   L._reikaRBurning=null; L._reikaFireTrails=[]; L._reikaTrailLast=null; L._burnEnd=0;
   L._kanGauge=0;
+  L._attackPreview=null;
   L._cherityCharging=false; L._cherityChargeStart=0; L._cherityDrained=0; L._cherityFrozenT=null; L._smokeRevealSent=0;
   if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
