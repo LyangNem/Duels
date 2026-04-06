@@ -143,7 +143,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.6</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.8</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -530,45 +530,7 @@ const BALANCE = {
     hp:     100,
     speed:  4,
     radius: 20,
-
-    lmb: {
-      cost:             25,
-      projSpeed:        13,
-      projRadius:       10,
-      projDamage:       20,
-      projRange:        750,
-      explosionRange:   100,
-      explosionDamage:  15,
-      spiritHealAmount: 25,
-      cd:               400,
-    },
-    rmb: {
-      costSummon:       200,
-      costCommand:      20,
-      spiritDashDamage: 25,
-      spiritDashRange:  90,
-      spiritDashDur:    280,
-      cdSummon:         1200,
-      cdCommand:        350,
-    },
-    spirit: {
-      hp:            150,
-      speed:         2.2,
-      meleeDamage:   12,
-      meleeRange:    65,
-      meleeInterval: 800,
-      radius:        17,
-    },
-    counter: {
-      orbSpeed:   10,
-      orbRadius:  18,
-      orbDamage:  30,
-      aoeRange:   180,
-      aoeDamage:  25,
-      orbKb:      420,   // 구체 직격 넉백
-      aoeKb:      420,   // 폭발 넉백 (두 폭발 중 1회만)
-      cd:         300,
-    },
+    // 리메이크 예정 — 스킬 미구현
   },
 
   // ── 엔소냐 ────────────────────────────────────────────────
@@ -663,7 +625,7 @@ const BALANCE = {
       damage:         35,
       knockbackPower: 520,
       dur:            200,
-      window:         400,  // 회피 후 방패돌진 가능 시간 (ms)
+      window:         600,  // 회피 후 방패돌진 가능 시간 (ms)
       cd:             800,
     },
     rmb: {
@@ -712,7 +674,7 @@ const BALANCE = {
       drainPerTick: 20,   // 틱당 저장량 소진
       range:        2500, // 사거리 (맵 끝까지)
     },
-    damageThreshold: 2,     // maxHealth * this 이상 저장 시 궁 해금
+    damageThreshold: 1.75,     // maxHealth * this 이상 저장 시 궁 해금
     counter: {
       frontRange:   170,
       frontAngle:   Math.PI * 0.6,
@@ -770,17 +732,17 @@ const BALANCE = {
       cd:            700,
     },
     rmbBlessed: {
-      cost:             60,  // 공중강하 스테미나 비용
+      cost:             40,  // 공중강하 스테미나 비용
       jumpDur:          450,   // 공중 대기
-      weaponTravelDur:  350,   // 무기 이동 시간
+      weaponTravelDur:  200,   // 무기 이동 시간
       slamRange:        90,
       slamDamage:       35,
       landRange:        70,
       landDamage:       20,
-      slamDelay:        160,   // 무기 착지→레이카 이동 간격
+      slamDelay:        100,   // 무기 착지→레이카 이동 간격
       travelDur:        280,   // 레이카 이동 시간
-      knockbackPower:   380,
-      cd:               900,
+      knockbackPower:   100,
+      cd:               750,
     },
     counter: {
       range:          300,
@@ -926,7 +888,8 @@ const BALANCE = {
     radius: 20,
 
     lmb: {
-      chargeTime: 2500,    // 최대 차징 시간 (ms)
+      chargeTime:      2500,   // 최대 차징 시간 (ms)
+      chargeDrainRate:   48,   // 차징 중 스테미나 소모/초
       minDamage:  10,
       maxDamage:  90,
       minSpeed:   18,
@@ -1117,13 +1080,10 @@ const CHARACTERS = {
     maxHealth: BALANCE.elin.hp,
     speed:     BALANCE.elin.speed,
     radius:    BALANCE.elin.radius,
-    statsText: [['체력', String(BALANCE.elin.hp)],['이동속도','보통'],['스타일','소환수형 초장거리 서포터']],
-    desc:      '책의 정령을 소환해 다루는 사서 캐릭터',
-    skills: [
-      { key:'LMB',     name:'지식 영창',       cost:BALANCE.elin.lmb.cost,       desc:`클릭 위치 피해. 공격이 정령에 닿으면 정령 HP ${BALANCE.elin.lmb.spiritHealAmount} 회복 (${BALANCE.elin.lmb.projDamage})` },
-      { key:'RMB',     name:'정령 소환/명령', cost:BALANCE.elin.rmb.costSummon, desc:`책의 정령 소환 (스테미나 ${BALANCE.elin.rmb.costSummon}). 정령 존재 시 재사용하면 적을 향해 돌진 명령 (스테미나 ${BALANCE.elin.rmb.costCommand}, ${BALANCE.elin.rmb.spiritDashDamage})` },
-      { key:'L-Shift', name:'지식의 구체',      cost:0,                           desc:`정령을 향해 구체 발사. 도달 시 정령 및 엘린 양쪽에서 원형 폭발 (${BALANCE.elin.counter.orbDamage}/${BALANCE.elin.counter.aoeDamage}).` },
-    ],
+    disabled:  true,   // 리메이크 중 — 선택 불가
+    statsText: [['체력', '??'],['이동속도','??'],['스타일','리메이크 중']],
+    desc:      '리메이크 예정 캐릭터입니다.',
+    skills: [],
   },
 
   nsonya: {
@@ -1200,7 +1160,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.shairaz.hp,
     speed:     BALANCE.shairaz.speed,
     radius:    BALANCE.shairaz.radius,
-    statsText: [['체력', String(BALANCE.shairaz.hp)],['이동속도','느림'],['스타일','함정설치형 근거리 딜러']],
+    statsText: [['체력', String(BALANCE.shairaz.hp)],['이동속도','느림'],['스타일','함정설치형 근거리 컨트롤러']],
     desc:      '트랩으로 전장을 장악하는 캐릭터',
     skills: [
       { key:'LMB',     name:'소드오프',  cost:BALANCE.shairaz.lmb.cost,  desc:`단거리에 넓은 산탄 6발 (탄당 ${BALANCE.shairaz.lmb.damage})` },
@@ -1237,7 +1197,7 @@ const CHARACTERS = {
       { key:'LMB',     name:'악식 건틀렛', cost:BALANCE.kan.lmb.cost,
         desc:`근거리 부채꼴 공격. 피해는 악식 게이지에 비례하며 적중시 게이지 상승 (${BALANCE.kan.lmb.baseDamage}~${BALANCE.kan.lmb.baseDamage+BALANCE.kan.lmb.gaugeDamage})` },
       { key:'RMB',     name:'붙들기',     cost:BALANCE.kan.rmb.cost,
-        desc:`근거리 상대를 붙들어 끌어당김. 이후 강하게 밀쳐내며 기절시킴 (${BALANCE.kan.rmb.knockbackStunDur/1000}초)` },
+        desc:`근거리 상대를 붙들어 끌어당김. 이후 강하게 밀쳐내며 기절 부여` },
       { key:'L-Shift', name:'역류',       cost:0,
         desc:`악식 게이지를 모두 소모하여 충격파 발산. 게이지에 비례한 범위와 피해 (${BALANCE.kan.counter.minDamage}~${BALANCE.kan.counter.maxDamage})` },
     ],
@@ -1467,6 +1427,8 @@ let localSlowZones = [];  // 내가 만든 슬로우 지대
 let peerSlowZones  = [];  // 상대가 만든 슬로우 지대
 let globalSmokeZones = []; // 연막탄 지대 (양쪽 공유)
 let _dodgeInterval = null;
+let localMinions  = []; // 내가 소환한 소환수
+let peerMinions   = []; // 상대가 소환한 소환수 (state 패킷으로 수신)
 
 const L = {
   x:0, y:0, radius:20,
@@ -1650,39 +1612,34 @@ function onData(d) {
       R.erapabiFortify=d.erapabiFortify??false;
       R.nsonyaStacks=d.nsonyaStacks??0;
       R.reikaBlessed=d.reikaBlessed??false;
-      if (d.elinSpirit) {
-        if (R.elinSpirit) { Object.assign(R.elinSpirit, d.elinSpirit); }
-        else R.elinSpirit = {...d.elinSpirit, radius: BALANCE.elin.spirit.radius};
-      } else if (d.elinSpirit === null) { R.elinSpirit = null; }
+      // 상대 소환수 동기화
+      if (d.minions) {
+        // 기존 peerMinion에서 없어진 것 필터 + 새로 추가
+        const incoming = d.minions;
+        const nextPeer = [];
+        for (const md of incoming) {
+          const exist = peerMinions.find(pm => pm.id === md.id);
+          if (exist) {
+            // 위치·HP 갱신 (부드럽게 하려면 tx/ty 보간도 가능)
+            exist.x = md.x; exist.y = md.y;
+            exist.hp = md.hp; exist.maxHp = md.maxHp;
+            nextPeer.push(exist);
+          } else {
+            // 신규 소환수 등록
+            nextPeer.push({ ...md });
+          }
+        }
+        peerMinions = nextPeer;
+      } else {
+        peerMinions = [];
+      }
       updateRemoteHud(); break;
     case 'bullet':
       peerBullets.push({...d}); break;
     case 'hitMe':
       receiveHit(d.damage); break;
-    case 'spiritHit': {
-      if (L._elinSpirit) {
-        const sp = L._elinSpirit;
-        sp.hp = Math.max(0, sp.hp - d.damage);
-        addFx({type:'elinSpiritHit', x:sp.x, y:sp.y, r:0, maxR:30, dur:8, maxDur:8});
-        if (d.stun) sp.stunEnd = performance.now() + d.stun;
-        if (d.bind) sp.bindEnd = performance.now() + d.bind;
-        if (d.slow) sp.slowEnd = performance.now() + d.slow;
-        if (d.kb && d.kbFromX != null) {
-          const ang = Math.atan2(sp.y - d.kbFromY, sp.x - d.kbFromX);
-          sp._kbVX = Math.cos(ang) * d.kb * 0.4;
-          sp._kbVY = Math.sin(ang) * d.kb * 0.4;
-          sp._kbFrames = 10;
-          sp._path = [];
-        }
-        if (sp.hp <= 0) L._elinSpirit = null;
-      }
-      break;
-    }
-    case 'elinSpiritPos':
-      if (R.elinSpirit) { R.elinSpirit.x=d.x; R.elinSpirit.y=d.y; R.elinSpirit.hp=d.hp; R.elinSpirit.maxHp=d.maxHp??R.elinSpirit.maxHp; }
-      else if (d.hp > 0) R.elinSpirit = {x:d.x, y:d.y, hp:d.hp, maxHp:d.maxHp??BALANCE.elin.spirit.hp, radius:BALANCE.elin.spirit.radius};
-      else R.elinSpirit = null;
-      break;
+
+
     case 'ready':
       peerCharId=d.charId; peerReady=true; checkBothReady(); break;
     case 'start':
@@ -1742,6 +1699,18 @@ function onData(d) {
         const ci = localBullets.findIndex(b => b.id===id);
         if (ci!==-1) localBullets.splice(ci,1);
       }); break;
+    // ── 소환수 피해 수신 ──────────────────────────────────────
+    case 'minionHit': {
+      const lm = localMinions.find(m => m.id === d.id);
+      if (lm) damageLocalMinion(lm, d.damage);
+      break;
+    }
+    case 'minionDied': {
+      // 상대방이 자기 소환수 사망을 알려줌 → peerMinions에서 제거
+      const pi = peerMinions.findIndex(m => m.id === d.id);
+      if (pi !== -1) peerMinions.splice(pi, 1);
+      break;
+    }
   }
 }
 
@@ -1768,6 +1737,18 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="char-icon" style="background:${ch.color}22;border:3px solid ${ch.color};"></div>
       <div class="char-name" style="color:${ch.color}">${ch.name}</div>
       <div class="char-stats">${statsHtml}</div>`;
+    if (ch.disabled) {
+      card.style.opacity = '0.3';
+      card.style.cursor = 'not-allowed';
+      card.style.filter = 'grayscale(0.6)';
+      card.style.position = 'relative';
+      const badge = document.createElement('div');
+      badge.textContent = '리메이크 중';
+      badge.style.cssText = 'position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:10px;color:#888;';
+      card.appendChild(badge);
+      grid.appendChild(card);
+      return;
+    }
     card.onclick = () => {
       document.querySelectorAll('.char-card').forEach(c => c.classList.remove('sel'));
       card.classList.add('sel'); selCharId = ch.id;
@@ -1870,38 +1851,309 @@ function receiveHit(dmg) {
   playHitSfx();
   if (L.health <= 0) { send({type:'dead'}); endGame(false); }
 }
+// ============================================================
+// 통합 타겟 시스템
+// 새 소환수를 추가할 때 refreshEnemyTargets()에 push만 하면
+// 모든 공격이 자동으로 해당 소환수를 인식함.
+// ============================================================
+
+// 매 물리 틱 갱신되는 적 타겟 목록
+
+
+// ctx와 단순 위치 객체의 충돌 여부 판정
+// ctx 형태:
+//   원형:   {x, y, range}
+//   직사각: {x, y, cos, sin, len, width}
+//   부채꼴: {x, y, angle, range, halfAngle}
+function intersectsCtx(ctx, tx, ty, tr) {
+  if (ctx.cos !== undefined) {
+    const dx=tx-ctx.x, dy=ty-ctx.y;
+    const lx=dx*ctx.cos+dy*ctx.sin, ly=dx*-ctx.sin+dy*ctx.cos;
+    return lx>-tr && lx<ctx.len+tr && Math.abs(ly)<ctx.width+tr;
+  }
+  if (ctx.halfAngle !== undefined) {
+    if (Math.hypot(tx-ctx.x, ty-ctx.y) >= ctx.range+tr) return false;
+    const a = Math.atan2(ty-ctx.y, tx-ctx.x);
+    return Math.abs(((a-ctx.angle)+Math.PI*3)%(Math.PI*2)-Math.PI) < ctx.halfAngle;
+  }
+  return Math.hypot(tx-ctx.x, ty-ctx.y) < ctx.range+tr;
+}
+
+// ── R(플레이어)만 판정. 반환값: 명중 여부 ─────────────────
+function hitCtx(ctx, dmg) {
+  if (R.burrowing) return false;
+  if (!intersectsCtx(ctx, R.x, R.y, R.radius)) return false;
+  R.health = Math.max(0, R.health - dmg);
+  send({type:'hitMe', damage:dmg});
+  addShake(Math.min(4+dmg*0.12,10), 14);
+  playHitSfx();
+  if (R.health <= 0) endGame(true);
+  return true;
+}
+
+// ── R + 상대 소환수 판정 ────────────────────────────────────
+function hitCtxAll(ctx, dmg) {
+  let hit = hitCtx(ctx, dmg);
+  // 상대 소환수 판정 — 명중 시 minionHit 패킷 전송 (상대가 권위)
+  for (const pm of peerMinions) {
+    if (intersectsCtx(ctx, pm.x, pm.y, pm.radius)) {
+      send({ type: 'minionHit', id: pm.id, damage: dmg });
+      hit = true;
+    }
+  }
+  return hit;
+}
+
+// ── 상대 소환수만 판정 (플레이어 제외) ─────────────────────
+function hitCtxSpirit(ctx, dmg) {
+  let hit = false;
+  for (const pm of peerMinions) {
+    if (intersectsCtx(ctx, pm.x, pm.y, pm.radius)) {
+      send({ type: 'minionHit', id: pm.id, damage: dmg });
+      hit = true;
+    }
+  }
+  return hit;
+}
+
+// ── 매 프레임 적 타겟 목록 갱신 ────────────────────────────
+// 소환수 추가 시 refreshEnemyTargets()에 push만 하면 됨
+let _enemyTargets = [];
+function refreshEnemyTargets() {
+  _enemyTargets = [];
+  if (!R.burrowing) _enemyTargets.push(R);
+  for (const pm of peerMinions) _enemyTargets.push(pm);
+}
+
+// ============================================================
+// MINION SYSTEM — 소환수 프레임워크
+// ============================================================
+// 새 소환수 타입 등록:
+//   MINION_DEFS['type_name'] = {
+//     radius  : 16,
+//     maxHp   : 80,
+//     color   : '#aaa',
+//     speed   : 3,
+//     tick(m, dt, physDt, now) { /* AI 로직 */ },
+//     draw(m, ctx, isPeer)     { /* 선택적 커스텀 렌더 */ },
+//     onDeath(m)               { /* 사망 시 처리 */ },
+//     onRemove(m)              { /* 강제 제거 시 (리매치 등) */ },
+//   };
+//
+// ── 공통 AI 유틸 ────────────────────────────────────────────
+// 소환수 AI에서 사용하는 공통 헬퍼. tick() 내에서 호출.
+//
+// minionChaseNearest(m, dt, targets?)
+//   - targets 생략 시 _enemyTargets(R+상대소환수) 를 자동 추적
+//   - 직선이 열려있으면 직진, 막히면 우회 (단순 스티어링)
+//   - 반환값: 추적 중인 타겟 객체 (없으면 null)
+//
+// minionMeleeAttack(m, range, dmg, cooldownKey, cooldownMs, now)
+//   - 가장 가까운 적 타겟이 range 안에 들어오면 공격
+//   - cooldownKey : m._stateData 안의 쿨다운 키 이름 (문자열)
+//   - 상대 플레이어 + 상대 소환수 모두 타격
+//
+// ─────────────────────────────────────────────────────────────
+
+function minionChaseNearest(m, dt, targets) {
+  const tgts = targets ?? _enemyTargets;
+  if (!tgts.length) return null;
+
+  // 가장 가까운 타겟
+  let nearest = null, nearDist = Infinity;
+  for (const t of tgts) {
+    const d = Math.hypot(t.x - m.x, t.y - m.y);
+    if (d < nearDist) { nearDist = d; nearest = t; }
+  }
+  if (!nearest) return null;
+
+  const spd = m.speed * dt;
+  const dx = nearest.x - m.x, dy = nearest.y - m.y;
+  const dist = Math.hypot(dx, dy) || 1;
+
+  // 직선 장애물 체크 (10스텝)
+  let blocked = false;
+  const steps = Math.min(10, Math.ceil(dist / 40));
+  for (let s = 1; s <= steps; s++) {
+    const px = m.x + dx * s / steps, py = m.y + dy * s / steps;
+    for (const w of currentMap.walls) {
+      if (px+m.radius>w.x && px-m.radius<w.x+w.w &&
+          py+m.radius>w.y && py-m.radius<w.y+w.h) { blocked = true; break; }
+    }
+    if (blocked) break;
+  }
+
+  if (!blocked) {
+    m.x += (dx / dist) * spd;
+    m.y += (dy / dist) * spd;
+  } else {
+    // 벽 우회: 오른쪽/왼쪽 90° 중 더 열린 방향
+    const baseAngle = Math.atan2(dy, dx);
+    const sd = m._stateData;
+    // 방향 고정 (0.6초마다 재결정)
+    if (!sd._steerDir || !sd._steerAt || performance.now() - sd._steerAt > 600) {
+      sd._steerDir = (Math.random() < 0.5) ? 1 : -1;
+      sd._steerAt  = performance.now();
+    }
+    const steerAngle = baseAngle + sd._steerDir * Math.PI * 0.5;
+    m.x += Math.cos(steerAngle) * spd;
+    m.y += Math.sin(steerAngle) * spd;
+  }
+
+  return nearest;
+}
+
+// 소환수 근접 공격 — 적 플레이어 + 적 소환수 모두 타격
+function minionMeleeAttack(m, range, dmg, cooldownKey, cooldownMs, now) {
+  const cd = m._stateData;
+  if ((cd[cooldownKey] || 0) > now) return false;
+
+  let hit = false;
+  // 적 플레이어 (기존 hitRemote 재사용 — burrowing 체크, endGame 포함)
+  if (Math.hypot(R.x - m.x, R.y - m.y) < range + R.radius) {
+    hitRemote(dmg);
+    hit = true;
+  }
+  // 적 소환수
+  for (const pm of peerMinions) {
+    if (Math.hypot(pm.x - m.x, pm.y - m.y) < range + pm.radius) {
+      send({ type: 'minionHit', id: pm.id, damage: dmg });
+      hit = true;
+    }
+  }
+
+  if (hit) cd[cooldownKey] = now + cooldownMs;
+  return hit;
+}
+
+const MINION_DEFS = {};
+
+// ── 소환수 생성 ─────────────────────────────────────────────
+function spawnMinion(charId, type, x, y, overrides = {}) {
+  const def = MINION_DEFS[type];
+  if (!def) { console.warn(`[Minion] 미등록 타입: ${type}`); return null; }
+  const m = {
+    id:      uid(),
+    charId,
+    type,
+    x, y,
+    radius:  overrides.radius  ?? def.radius  ?? 16,
+    maxHp:   overrides.maxHp   ?? def.maxHp   ?? 80,
+    hp:      overrides.maxHp   ?? def.maxHp   ?? 80,
+    color:   overrides.color   ?? def.color   ?? '#aaa',
+    speed:   overrides.speed   ?? def.speed   ?? 3,
+    // AI 내부 상태용 여분 필드
+    _stateData: {},
+    ...overrides,
+  };
+  localMinions.push(m);
+  return m;
+}
+
+// ── 로컬 소환수 피해 처리 ───────────────────────────────────
+function damageLocalMinion(m, dmg) {
+  if (!m || m.hp <= 0) return;
+  m.hp = Math.max(0, m.hp - dmg);
+  addFx({ type: 'hit', x: m.x, y: m.y, r: 0, maxR: m.radius * 1.5, dur: 8, maxDur: 8 });
+  playHitSfx();
+}
+
+// ── 범위 내 적 소환수에 피해 (스킬에서 직접 호출) ──────────
+function hitPeerMinionsInRange(cx, cy, range, dmg) {
+  for (const pm of peerMinions) {
+    if (Math.hypot(pm.x - cx, pm.y - cy) < range + pm.radius) {
+      send({ type: 'minionHit', id: pm.id, damage: dmg });
+    }
+  }
+}
+// ── 범위 내 내 소환수에 피해 (상대 스킬 영역 등) ──────────
+function hitLocalMinionsInRange(cx, cy, range, dmg) {
+  for (const m of localMinions) {
+    if (Math.hypot(m.x - cx, m.y - cy) < range + m.radius) {
+      damageLocalMinion(m, dmg);
+    }
+  }
+}
+
+// ── 소환수 틱 ───────────────────────────────────────────────
+function tickMinions(dt, physDt, now) {
+  for (let i = localMinions.length - 1; i >= 0; i--) {
+    const m = localMinions[i];
+    const def = MINION_DEFS[m.type];
+    // AI 틱
+    def?.tick?.(m, dt, physDt, now);
+    // 벽 충돌
+    resolveWall(m);
+    // 범위 클램프
+    m.x = Math.max(m.radius, Math.min(WORLD_W - m.radius, m.x));
+    m.y = Math.max(m.radius, Math.min(WORLD_H - m.radius, m.y));
+    // 사망 처리
+    if (m.hp <= 0) {
+      def?.onDeath?.(m);
+      addFx({ type: 'bombBlast', x: m.x, y: m.y, r: 0, maxR: m.radius * 2, dur: 14, maxDur: 14 });
+      send({ type: 'minionDied', id: m.id });
+      localMinions.splice(i, 1);
+    }
+  }
+}
+
+// ── 소환수 렌더링 ────────────────────────────────────────────
+function drawMinions() {
+  // 로컬 소환수 (isPeer=false), 피어 소환수 (isPeer=true)
+  for (const isPeer of [true, false]) {
+    const arr = isPeer ? peerMinions : localMinions;
+    for (const m of arr) {
+      const def = MINION_DEFS[m.type];
+      if (def?.draw) {
+        def.draw(m, ctx, isPeer);
+      } else {
+        _drawDefaultMinion(m, isPeer);
+      }
+    }
+  }
+}
+
+function _drawDefaultMinion(m, isPeer) {
+  // 몸체
+  ctx.beginPath(); ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+  ctx.fillStyle = isPeer ? m.color + '55' : m.color + 'bb';
+  ctx.fill();
+  ctx.strokeStyle = m.color; ctx.lineWidth = 2.5; ctx.stroke();
+
+  // 소환수 식별 삼각형 (위쪽)
+  const tx = m.x, ty = m.y - m.radius - 8;
+  ctx.beginPath(); ctx.moveTo(tx, ty - 5); ctx.lineTo(tx - 5, ty + 3); ctx.lineTo(tx + 5, ty + 3);
+  ctx.closePath(); ctx.fillStyle = isPeer ? '#f44' : '#4af'; ctx.fill();
+
+  // HP바
+  const bw = m.radius * 2.8, bh = 4;
+  const bx = m.x - bw / 2, by = m.y - m.radius - 20;
+  ctx.fillStyle = '#111'; ctx.fillRect(bx, by, bw, bh);
+  const hpRatio = Math.max(0, m.hp / m.maxHp);
+  const barColor = hpRatio > 0.5 ? '#3d3' : hpRatio > 0.25 ? '#fa0' : '#f44';
+  ctx.fillStyle = barColor; ctx.fillRect(bx, by, bw * hpRatio, bh);
+  ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.strokeRect(bx, by, bw, bh);
+}
+
+// ── 소환수 초기화 ────────────────────────────────────────────
+function resetMinions() {
+  // 각 minion의 onRemove 콜백 (타이머 등 정리)
+  for (const m of localMinions) MINION_DEFS[m.type]?.onRemove?.(m);
+  localMinions = [];
+  peerMinions  = [];
+}
+
+// 플레이어 직접 타격 (투사체 루프 등 좌표 없이 확정 명중 시)
 function hitRemote(dmg) {
   if (R.burrowing) return;
   R.health = Math.max(0, R.health - dmg);
   send({type:'hitMe', damage:dmg});
-  addShake(Math.min(4 + dmg * 0.12, 10), 14); // 타격 시 작은 흔들림
+  addShake(Math.min(4+dmg*0.12,10), 14);
   playHitSfx();
   if (R.health <= 0) endGame(true);
 }
 
-// 정령 피해 전송 (cc: {stun, bind, slow, kb, kbFromX, kbFromY})
-function spiritHitRemote(dmg, cc={}) {
-  send({type:'spiritHit', damage:dmg, ...cc});
-}
 
-// 히트스캔 공격이 상대 정령을 맞췄는지 원형 판정
-function checkSpiritHit(ax, ay, range, dmg, cc={}) {
-  if (!R.elinSpirit) return;
-  if (Math.hypot(R.elinSpirit.x - ax, R.elinSpirit.y - ay) < range + BALANCE.elin.spirit.radius) {
-    spiritHitRemote(dmg, cc);
-  }
-}
-
-// 직사각형 히트스캔이 정령을 맞췄는지 판정
-function checkSpiritHitRect(attackerX, attackerY, cos, sin, length, width, dmg, cc={}) {
-  if (!R.elinSpirit) return;
-  const dx = R.elinSpirit.x - attackerX, dy = R.elinSpirit.y - attackerY;
-  const lx = dx*cos + dy*sin, ly = dx*-sin + dy*cos;
-  const sr = BALANCE.elin.spirit.radius;
-  if (lx > -sr && lx < length + sr && Math.abs(ly) < width + sr) {
-    spiritHitRemote(dmg, cc);
-  }
-}
 function knockbackRemote(power) {
   if (R.burrowing) return;
   const ang = Math.atan2(R.y - L.y, R.x - L.x);
@@ -2152,8 +2404,7 @@ const SKILLS = {
         const dx=R.x-L.x, dy=R.y-L.y;
         const localX = dx*cos + dy*sin;
         const localY = dx*-sin + dy*cos;
-        if (localX > -R.radius && localX < B.length + R.radius && Math.abs(localY) < B.width + R.radius) {
-          hitRemote(B.damage);
+        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:B.length, width:B.width}, B.damage)) {
           knockbackRemote(B.knockbackPower);
         }
         addFx({type:'swordSlash', x:L.x, y:L.y, angle:fa, len:B.length, width:B.width, dur:14, maxDur:14});
@@ -2169,18 +2420,11 @@ const SKILLS = {
       if (!useStam(B.cost)) return;
       if (L.orb) { clearTimeout(L.orb._timer); L.orb = null; }
       const dist = Math.hypot(R.x - L.x, R.y - L.y);
+      hitCtxSpirit({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.meleeDamage);
       if (dist < B.meleeRange) {
         const toR  = Math.atan2(R.y - L.y, R.x - L.x);
         const diff = Math.abs(((toR - angle) + Math.PI * 3) % (Math.PI * 2) - Math.PI);
-        if (diff < B.halfAngle) hitRemote(B.meleeDamage);
-        if (R.elinSpirit) {
-        const _sd = Math.hypot(R.elinSpirit.x-L.x, R.elinSpirit.y-L.y);
-        if (_sd < B.meleeRange + BALANCE.elin.spirit.radius) {
-          const _sa = Math.atan2(R.elinSpirit.y-L.y, R.elinSpirit.x-L.x);
-          if (Math.abs((((_sa-angle)+Math.PI*3)%(Math.PI*2))-Math.PI) < B.halfAngle)
-            spiritHitRemote(B.meleeDamage);
-        }
-      }
+        if (diff < B.halfAngle) hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.meleeDamage);
         addFx({type:'swing', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, dur:9, maxDur:9});
         send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, dur:9, maxDur:9}});
       } else {
@@ -2213,8 +2457,7 @@ const SKILLS = {
       setTimeout(() => {
         if (!gameOn || L._counterToken!==tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-        if (Math.hypot(R.x - L.x, R.y - L.y) < B.range) {
-          hitRemote(B.damage);
+        if (hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage)) {
           knockbackRemote(B.knockbackPower);
         }
         addFx({type:'aoe', x:L.x, y:L.y, r:B.range, dur:18, maxDur:18});
@@ -2240,15 +2483,22 @@ const SKILLS = {
     lmbRelease(angle, forced = false) {
       if (!L._drillCharging) return;
       L._drillCharging = false;
+      const drained   = L._drillDrained || 0;
+      const frozenT   = L._drillFrozenT;   // null이면 live 계산
+      L._drillDrained = 0;
+      L._drillFrozenT = null;
       if (!gameOn || L.lmbCooldown > 0) return;
       const B    = BALANCE.mainmad.lmb;
       const held = Math.min(performance.now() - L._drillChargeStart, B.chargeTime);
-      const t    = held / B.chargeTime;
+      const t    = frozenT !== null && frozenT !== undefined ? frozenT : held / B.chargeTime;
       const damage = Math.round(B.minDamage + (B.maxDamage - B.minDamage) * t);
       const len    = B.minLength + (B.maxLength - B.minLength) * t;
       const cost   = Math.round(B.costMin + (B.costMax - B.costMin) * t);
-      // 강제 발동(스테미나 소진)이면 체크 없이 통과, 아니면 정상 차감
-      if (!forced && !useStam(cost)) return;
+      // 동결 상태(스테미나 소진으로 동결)면 이미 전부 소모 → 추가 차감 없이 발동
+      if (!forced && frozenT === null || frozenT === undefined) {
+        const remaining = Math.max(0, cost - drained);
+        if (remaining > 0 && !useStam(remaining)) return;
+      }
 
       // ─ 일자 판정: 로컬 좌표계로 변환하여 직사각형 안에 있는지 확인
       const cos = Math.cos(angle), sin = Math.sin(angle);
@@ -2256,8 +2506,7 @@ const SKILLS = {
       const localX = dx*cos  + dy*sin;   // 앞방향
       const localY = dx*-sin + dy*cos;   // 수직방향
       // 판정은 시각보다 너그럽게: 폭 1.6배, 앞 시작점 -B.width*0.5 여유, 끝 1.1배
-      if (localX > -R.radius && localX < len + R.radius && Math.abs(localY) < B.width + R.radius) hitRemote(damage);
-      checkSpiritHitRect(L.x, L.y, cos, sin, len, B.width, damage);
+      hitCtxAll({x:L.x, y:L.y, cos, sin, len, width:B.width}, damage);
 
       const col = t > 0.8 ? '210,140,60' : t > 0.4 ? '180,110,45' : '150,85,35';
       addFx({type:'drillHit', x:L.x, y:L.y, angle, len, width:B.width, col, dur:10, maxDur:10});
@@ -2307,9 +2556,8 @@ const SKILLS = {
       setTimeout(() => {
         if (!gameOn || L._counterToken!==tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-        if (Math.hypot(R.x - L.x, R.y - L.y) < B.range) {
+        if (hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage)) {
           stunRemote(B.stunDur);
-          hitRemote(B.damage);
           knockbackRemote(B.knockbackPower);
         }
         addFx({type:'smash', x:L.x, y:L.y, r:B.range, dur:22, maxDur:22});
@@ -2348,18 +2596,11 @@ const SKILLS = {
               L._tauHitStack = 0;
             }
           }
-          hitRemote(dmg);
+          hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, dmg);
           hit = true;
         }
       }
-      if (R.elinSpirit) {
-        const _sd = Math.hypot(R.elinSpirit.x-L.x, R.elinSpirit.y-L.y);
-        if (_sd < B.meleeRange + BALANCE.elin.spirit.radius) {
-          const _sa = Math.atan2(R.elinSpirit.y-L.y, R.elinSpirit.x-L.x);
-          if (Math.abs((((_sa-angle)+Math.PI*3)%(Math.PI*2))-Math.PI) < B.halfAngle)
-            spiritHitRemote(dmg);
-        }
-      }
+      hitCtxSpirit({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.damage);
       const col = L._tauOveleucharge ? '255,255,0' : '0,255,255';
       addFx({type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col, dur:10, maxDur:10});
       send({type:'fx', fx:{type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col, dur:10, maxDur:10}});
@@ -2398,10 +2639,8 @@ const SKILLS = {
       setTimeout(() => {
         if (!gameOn || L._counterToken!==tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-        if (Math.hypot(R.x - L.x, R.y - L.y) < B.aoeRange + R.radius) {
-          hitRemote(B.aoeDamage);
-          knockbackRemote(B.knockbackPower);
-        }
+        hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.aoeDamage);
+        if (Math.hypot(R.x-L.x,R.y-L.y)<B.aoeRange+R.radius) knockbackRemote(B.knockbackPower);
         L._tauOveleucharge = true;
         L._tauHitStack = 0;
         addFx({type:'tauWave', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:22, maxDur:22});
@@ -2473,8 +2712,7 @@ const SKILLS = {
             if (!gameOn) return;
             const bx = sx + Math.cos(fa) * B.spacing * (i + 1);
             const by = sy + Math.sin(fa) * B.spacing * (i + 1);
-            if (Math.hypot(R.x - bx, R.y - by) < B.blastRadius + R.radius) {
-              hitRemote(B.damage);
+            if (hitCtxAll({x:bx, y:by, range:B.blastRadius}, B.damage)) {
               if (!didKnockback) { didKnockback=true; knockbackRemote(B.knockbackPower); }
             }
             addFx({type:'bombBlast', x:bx, y:by, r:0, maxR:B.blastRadius, dur:16, maxDur:16});
@@ -2509,11 +2747,9 @@ const SKILLS = {
         const cos = Math.cos(angle), sin = Math.sin(angle);
         const dx = R.x - L.x, dy = R.y - L.y;
         const lx = dx*cos + dy*sin, ly = dx*-sin + dy*cos;
-        if (lx > -R.radius && lx < B.lmbCharge.length + R.radius && Math.abs(ly) < B.lmbCharge.width + R.radius) {
-          hitRemote(B.lmbCharge.damage);
+        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:B.lmbCharge.length, width:B.lmbCharge.width}, B.lmbCharge.damage)) {
           bindRemote(B.lmbCharge.bindDur);
         }
-        checkSpiritHitRect(L.x, L.y, cos, sin, B.lmbCharge.length, B.lmbCharge.width, B.lmbCharge.damage);
         addFx({type:'ropeSlam', x:L.x, y:L.y, angle, len:B.lmbCharge.length, width:B.lmbCharge.width, dur:12, maxDur:12});
         send({type:'fx', fx:{type:'ropeSlam', x:L.x, y:L.y, angle, len:B.lmbCharge.length, width:B.lmbCharge.width, dur:12, maxDur:12}});
         L.lmbCooldown = B.lmbCharge.cd; L.lastAttackTime = performance.now();
@@ -2525,15 +2761,10 @@ const SKILLS = {
         if (dist < B.lmb.meleeRange + R.radius) {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
           const diff = Math.abs(((toR - swingAngle) + Math.PI*3) % (Math.PI*2) - Math.PI);
-          if (diff < B.lmb.halfAngle) hitRemote(B.lmb.damage);
+          if (diff < B.lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:swingAngle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle}, B.lmb.damage);
         }
-        if (R.elinSpirit) {
-        const _sd = Math.hypot(R.elinSpirit.x-L.x, R.elinSpirit.y-L.y);
-        if (_sd < B.lmb.meleeRange + BALANCE.elin.spirit.radius) {
-          const _sa = Math.atan2(R.elinSpirit.y-L.y, R.elinSpirit.x-L.x);
-          if (Math.abs((((_sa-swingAngle)+Math.PI*3)%(Math.PI*2))-Math.PI) < B.lmb.halfAngle)
-            spiritHitRemote(B.lmb.damage);
-        }
+        hitCtxSpirit({x:L.x, y:L.y, angle:swingAngle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle}, B.lmb.damage);
+        if (false) {
       }
         addFx({type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle, dur:10, maxDur:10});
         send({type:'fx', fx:{type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle, dur:10, maxDur:10}});
@@ -2575,9 +2806,10 @@ const SKILLS = {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
           const diff = Math.abs(((toR - swingAngle) + Math.PI*3) % (Math.PI*2) - Math.PI);
           if (diff < B.halfAngle) {
-            hitRemote(B.damage);
+            hitCtx({x:L.x, y:L.y, angle:swingAngle, range:B.meleeRange, halfAngle:B.halfAngle}, B.damage);
             if (swingNum === 2) bindRemote(B.bindDur);
           }
+          hitCtxSpirit({x:L.x, y:L.y, angle:swingAngle, range:B.meleeRange, halfAngle:B.halfAngle}, B.damage);
         }
         addFx({type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:B.meleeRange, halfAngle:B.halfAngle, dur:12, maxDur:12});
         send({type:'fx', fx:{type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:B.meleeRange, halfAngle:B.halfAngle, dur:12, maxDur:12}});
@@ -2615,8 +2847,8 @@ const SKILLS = {
           if(!gameOn){clearInterval(di);return;}
           const t=Math.min(1,(performance.now()-ds)/B.shieldDash.dur);
           L.x=sx+(tx-sx)*(1-(1-t)*(1-t)); L.y=sy+(ty-sy)*(1-(1-t)*(1-t)); resolveWall(L);
-          if(!hit && Math.hypot(R.x-L.x,R.y-L.y)<L.radius+R.radius+10){
-            hit=true; hitRemote(B.shieldDash.damage); knockbackRemote(B.shieldDash.knockbackPower);
+          if(!hit && hitCtxAll({x:L.x, y:L.y, range:L.radius+R.radius+10}, B.shieldDash.damage)){
+            hit=true; knockbackRemote(B.shieldDash.knockbackPower);
           }
           if(t>=1)clearInterval(di);
         },FRAME_MS);
@@ -2631,15 +2863,10 @@ const SKILLS = {
       if (dist < B.lmb.meleeRange+R.radius) {
         const toR=Math.atan2(R.y-L.y,R.x-L.x);
         const diff=Math.abs(((toR-angle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-        if (diff < B.lmb.halfAngle) hitRemote(B.lmb.damage);
+        if (diff < B.lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle}, B.lmb.damage);
       }
-      if (R.elinSpirit) {
-        const _sd = Math.hypot(R.elinSpirit.x-L.x, R.elinSpirit.y-L.y);
-        if (_sd < B.lmb.meleeRange + BALANCE.elin.spirit.radius) {
-          const _sa = Math.atan2(R.elinSpirit.y-L.y, R.elinSpirit.x-L.x);
-          if (Math.abs((((_sa-angle)+Math.PI*3)%(Math.PI*2))-Math.PI) < B.lmb.halfAngle)
-            spiritHitRemote(B.lmb.damage);
-        }
+      hitCtxSpirit({x:L.x, y:L.y, angle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle}, B.lmb.damage);
+      if (false) {
       }
       // 스윙 범위 내 투사체 즉시 소거 + 상대방 localBullets에서도 제거
       const cancelledIds = [];
@@ -2695,8 +2922,8 @@ const SKILLS = {
         // 적 일자 판정
         const dx=R.x-L.x, dy=R.y-L.y;
         const localX=dx*cos+dy*sin, localY=dx*-sin+dy*cos;
-        if (localX>-R.radius && localX<B.length+R.radius && Math.abs(localY)<B.width+R.radius) {
-          hitRemote(B.damage); knockbackRemote(B.knockbackPower);
+        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:B.length, width:B.width}, B.damage)) {
+          knockbackRemote(B.knockbackPower);
         }
         // 경로상 peerBullets 소거 + 상대 localBullets 취소
         const cancelledIds=[];
@@ -2719,126 +2946,11 @@ const SKILLS = {
 
   // ── 엘린 ──────────────────────────────────────────────────
   elin: {
-    lmb(angle) {
-      const B = BALANCE.elin.lmb;
-      if (L.lmbCooldown > 0) return;        // ✅ 쿨다운 체크
-      if (!useStam(B.cost)) return;
-
-      const rawDist = Math.hypot(mouseX - L.x, mouseY - L.y);
-      const travelDist = Math.min(rawDist, B.projRange);
-      const targetX = L.x + Math.cos(angle) * travelDist;
-      const targetY = L.y + Math.sin(angle) * travelDist;
-
-      const b = {
-        id: uid(),
-        x: L.x, y: L.y,
-        radius: B.projRadius,
-        speed:  B.projSpeed,
-        dx: Math.cos(angle), dy: Math.sin(angle),
-        damage: B.projDamage,
-        maxRange: B.projRange,
-        traveled: 0,
-        isElinBomb: true,
-        pierceWalls: true,
-        explosionRange:  B.explosionRange,
-        explosionDamage: B.explosionDamage,
-        spiritHealAmount: B.spiritHealAmount,
-        targetX, targetY,
-        _exploded: false,
-      };
-      localBullets.push(b);
-      send({type:'bullet', ...b});
-      L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
-    },
-
-    rmb(angle) {
-      const B = BALANCE.elin.rmb;
-      if (L._elinSpirit) {
-        // 정령 존재 → 돌진 명령
-        if (L.rmbCooldown > 0) return;
-        if (!useStam(B.costCommand)) return;
-        const sp = L._elinSpirit;
-        const dashAngle = Math.atan2(R.y - sp.y, R.x - sp.x);
-        sp.dashing   = true;
-        sp.dashSX    = sp.x; sp.dashSY    = sp.y;
-        sp.dashTX    = Math.max(10, Math.min(WORLD_W-10, sp.x + Math.cos(dashAngle)*B.spiritDashRange));
-        sp.dashTY    = Math.max(10, Math.min(WORLD_H-10, sp.y + Math.sin(dashAngle)*B.spiritDashRange));
-        sp.dashStart = performance.now(); sp.dashDur = B.spiritDashDur;
-        sp.dashHit   = false;
-        sp._path     = [];  // 경로 리셋
-        addFx({type:'elinSpiritCmd', x:sp.x, y:sp.y, tx:sp.dashTX, ty:sp.dashTY, dur:12, maxDur:12});
-        send({type:'fx', fx:{type:'elinSpiritCmd', x:sp.x, y:sp.y, tx:sp.dashTX, ty:sp.dashTY, dur:12, maxDur:12}});
-        L.rmbCooldown = B.cdCommand; L.lastAttackTime = performance.now();
-      } else {
-        // 정령 소환
-        if (L.rmbCooldown > 0) return;       // ✅ 소환 쿨다운 체크
-        if (!useStam(B.costSummon)) return;
-        L._elinSpirit = {
-          x: L.x, y: L.y,
-          hp: BALANCE.elin.spirit.hp,
-          maxHp: BALANCE.elin.spirit.hp,
-          dashing: false, dashHit: false, lastAttack: 0,
-          stunEnd: 0, bindEnd: 0, slowEnd: 0,
-          _path: [], _lastPathTime: 0,
-          _kbVX: 0, _kbVY: 0, _kbFrames: 0,
-        };
-        addFx({type:'elinSpiritSummon', x:L._elinSpirit.x, y:L._elinSpirit.y, r:0, maxR:50, dur:18, maxDur:18});
-        send({type:'fx', fx:{type:'elinSpiritSummon', x:L._elinSpirit.x, y:L._elinSpirit.y, r:0, maxR:50, dur:18, maxDur:18}});
-        L.rmbCooldown = B.cdSummon; L.lastAttackTime = performance.now();
-      }
-    },
-
-    counter(angle) {
-      const B = BALANCE.elin.counter;
-      if (!L.counterReady) return;
-      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
-      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
-      L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
-      addFx({type:'counterCharge', x:L.x, y:L.y, r:35, maxR:35, dur:18, maxDur:18});
-      const tok = ++L._counterToken;
-
-      if (!L._elinSpirit) {
-        // 정령 없음 → 자기 주변 원형 AOE만 발동
-        setTimeout(() => {
-          if (!gameOn || L._counterToken !== tok) return;
-          L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-          if (Math.hypot(R.x - L.x, R.y - L.y) < B.aoeRange + R.radius) {
-            hitRemote(B.aoeDamage);
-            knockbackRemote(B.aoeKb);
-          }
-          addFx({type:'elinOrbBurst', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:20, maxDur:20});
-          send({type:'fx', fx:{type:'elinOrbBurst', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:20, maxDur:20}});
-          L.lastAttackTime = performance.now();
-        }, BALANCE.counter.delay);
-        return;
-      }
-
-      const spX = L._elinSpirit.x, spY = L._elinSpirit.y;
-      const orbAngle = Math.atan2(spY - L.y, spX - L.x);
-      setTimeout(() => {
-        if (!gameOn || L._counterToken !== tok) return;
-        L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-        const orb = {
-          id: uid(), x: L.x, y: L.y,
-          radius: B.orbRadius, speed: B.orbSpeed,
-          dx: Math.cos(orbAngle), dy: Math.sin(orbAngle),
-          damage: B.orbDamage, maxRange: 9999, traveled: 0,
-          isElinOrb: true,
-          spiritX: spX, spiritY: spY,
-          aoeRange: B.aoeRange, aoeDamage: B.aoeDamage,
-          originX: L.x, originY: L.y,
-          orbKb: B.orbKb, aoeKb: B.aoeKb,
-          pierceWalls: true, _orbHit: false,
-        };
-        localBullets.push(orb);
-        send({type:'bullet', ...orb});
-        addFx({type:'elinSwing', x:L.x, y:L.y, angle:orbAngle, r:0, maxR:40, dur:14, maxDur:14});
-        send({type:'fx', fx:{type:'elinSwing', x:L.x, y:L.y, angle:orbAngle, r:0, maxR:40, dur:14, maxDur:14}});
-        L.lastAttackTime = performance.now();
-      }, BALANCE.counter.delay);
-    },
+    // 리메이크 예정 — 스킬 없음
+    lmb()     {},
+    rmb()     {},
+    counter() {},
   },
-
   // ── 엔소냐 ────────────────────────────────────────────────
   nsonya: {
     lmb(angle) {
@@ -2931,17 +3043,10 @@ const SKILLS = {
         if (diff < B.halfAngle) {
           // 중앙 판정: 2배 피해
           const dmg = diff < B.centerAngle ? B.centerDmg : B.damage;
-          hitRemote(dmg);
+          hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, dmg);
         }
       }
-      if (R.elinSpirit) {
-        const _sd = Math.hypot(R.elinSpirit.x-L.x, R.elinSpirit.y-L.y);
-        if (_sd < B.meleeRange + BALANCE.elin.spirit.radius) {
-          const _sa = Math.atan2(R.elinSpirit.y-L.y, R.elinSpirit.x-L.x);
-          if (Math.abs((((_sa-angle)+Math.PI*3)%(Math.PI*2))-Math.PI) < B.halfAngle)
-            spiritHitRemote(B.damage);
-        }
-      }
+      hitCtxSpirit({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.damage);
       addFx({type:'maisilSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, centerAngle:B.centerAngle, dur:10, maxDur:10});
       send({type:'fx', fx:{type:'maisilSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, centerAngle:B.centerAngle, dur:10, maxDur:10}});
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
@@ -2970,7 +3075,7 @@ const SKILLS = {
                && Math.abs(perp) <= widthAtFwd + R.radius;
       if (!hit) return;
 
-      hitRemote(10);
+      hitCtxAll({x:L.x, y:L.y, range:B.range}, 10);
       const dist = Math.hypot(dx, dy);
       const pullAngle = Math.atan2(L.y - R.y, L.x - R.x);
       const maxPull = Math.max(0, dist - L.radius - R.radius - 10);
@@ -3112,7 +3217,8 @@ const SKILLS = {
         if (dist < B.frontRange + R.radius) {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
           const diff = Math.abs(((toR - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
-          if (diff < B.frontAngle) { hitRemote(B.damage); knockbackRemote(B.knockbackPower); }
+          if (diff < B.frontAngle) { hitCtx({x:L.x, y:L.y, angle, range:B.frontRange, halfAngle:B.frontAngle}, B.damage); knockbackRemote(B.knockbackPower); }
+        hitCtxSpirit({x:L.x, y:L.y, angle, range:B.frontRange, halfAngle:B.frontAngle}, B.damage);
         }
         addFx({type:'erapabiSpin', x:L.x, y:L.y, angle, phase:'front', range:B.frontRange, halfAngle:B.frontAngle, dur:14, maxDur:14});
         send({type:'fx', fx:{type:'erapabiSpin', x:L.x, y:L.y, angle, phase:'front', range:B.frontRange, halfAngle:B.frontAngle, dur:14, maxDur:14}});
@@ -3128,7 +3234,8 @@ const SKILLS = {
         if (dist < B.backRange + R.radius) {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
           const diff = Math.abs(((toR - backAngle) + Math.PI*3) % (Math.PI*2) - Math.PI);
-          if (diff < B.backAngle) { hitRemote(B.damage); knockbackRemote(B.knockbackPower); }
+          if (diff < B.backAngle) { hitCtx({x:L.x, y:L.y, angle:backAngle, range:B.backRange, halfAngle:B.backAngle}, B.damage); knockbackRemote(B.knockbackPower); }
+        hitCtxSpirit({x:L.x, y:L.y, angle:backAngle, range:B.backRange, halfAngle:B.backAngle}, B.damage);
         }
         addFx({type:'erapabiSpin', x:L.x, y:L.y, angle:backAngle, phase:'back', range:B.backRange, halfAngle:B.backAngle, dur:14, maxDur:14});
         send({type:'fx', fx:{type:'erapabiSpin', x:L.x, y:L.y, angle:backAngle, phase:'back', range:B.backRange, halfAngle:B.backAngle, dur:14, maxDur:14}});
@@ -3154,20 +3261,17 @@ const SKILLS = {
         if (dist < bl.range + R.radius) {
           const toR = Math.atan2(R.y-L.y, R.x-L.x);
           const diff = Math.abs(((toR-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-          if (diff < bl.halfAngle) { hitRemote(bl.damage); reikaApplyBurn(bl.burnDur); }
+          if (diff < bl.halfAngle) { hitCtx({x:L.x, y:L.y, angle:angle+bl.bias, range:bl.range, halfAngle:bl.halfAngle}, bl.damage); reikaApplyBurn(bl.burnDur); }
         }
-        if (R.elinSpirit) {
-        const _sd = Math.hypot(R.elinSpirit.x-L.x, R.elinSpirit.y-L.y);
-        if (_sd < bl.range + BALANCE.elin.spirit.radius) {
-          const _sa = Math.atan2(R.elinSpirit.y-L.y, R.elinSpirit.x-L.x);
-          if (Math.abs((((_sa-angle + bl.bias)+Math.PI*3)%(Math.PI*2))-Math.PI) < bl.halfAngle)
-            spiritHitRemote(bl.damage);
-        }
+        hitCtxSpirit({x:L.x, y:L.y, angle:angle+bl.bias, range:bl.range, halfAngle:bl.halfAngle}, bl.damage);
+        if (false) {
       }
         // 파동 원형 범위
         if (Math.hypot(R.x-L.x, R.y-L.y) < bl.waveRange + R.radius) {
           hitRemote(5); reikaApplyBurn(bl.burnDur);
         }
+        // 파동 소환수 피해
+        hitPeerMinionsInRange(L.x, L.y, bl.waveRange, 5);
         addFx({type:'reikaSwingBlessed', x:L.x, y:L.y, angle:swingAngle, range:bl.range, halfAngle:bl.halfAngle, dur:11, maxDur:11});
         send({type:'fx', fx:{type:'reikaSwingBlessed', x:L.x, y:L.y, angle:swingAngle, range:bl.range, halfAngle:bl.halfAngle, dur:11, maxDur:11}});
         addFx({type:'reikaSolarWave', x:L.x, y:L.y, r:0, maxR:bl.waveRange, dur:18, maxDur:18});
@@ -3188,15 +3292,10 @@ const SKILLS = {
           if (dist < lmb.range + R.radius) {
             const toR = Math.atan2(R.y-L.y, R.x-L.x);
             const diff = Math.abs(((toR-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-            if (diff < lmb.halfAngle) hitRemote(lmb.damage);
+            if (diff < lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:angle+lmb.bias, range:lmb.range, halfAngle:lmb.halfAngle}, lmb.damage);
           }
-          if (R.elinSpirit) {
-        const _sd = Math.hypot(R.elinSpirit.x-L.x, R.elinSpirit.y-L.y);
-        if (_sd < lmb.range + BALANCE.elin.spirit.radius) {
-          const _sa = Math.atan2(R.elinSpirit.y-L.y, R.elinSpirit.x-L.x);
-          if (Math.abs((((_sa-angle + lmb.bias)+Math.PI*3)%(Math.PI*2))-Math.PI) < lmb.halfAngle)
-            spiritHitRemote(lmb.damage);
-        }
+          hitCtxSpirit({x:L.x, y:L.y, angle:angle+lmb.bias, range:lmb.range, halfAngle:lmb.halfAngle}, lmb.damage);
+          if (false) {
       }
           // 약간 전진
           const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x+Math.cos(angle)*lmb.advanceDist));
@@ -3247,7 +3346,7 @@ const SKILLS = {
           // Phase 2: 무기 도착 후 피해
           setTimeout(() => {
             if (!gameOn || L._counterToken !== tok) { L._reikaJumping = false; return; }
-            if (Math.hypot(R.x-targetX, R.y-targetY) < tb.slamRange + R.radius) hitRemote(tb.slamDamage);
+            hitCtxAll({x:targetX, y:targetY, range:tb.slamRange}, tb.slamDamage);
             addFx({type:'reikaSlamWeapon', x:targetX, y:targetY, r:0, maxR:tb.slamRange, dur:14, maxDur:14});
             send({type:'fx', fx:{type:'reikaSlamWeapon', x:targetX, y:targetY, r:0, maxR:tb.slamRange, dur:14, maxDur:14}});
             // Phase 3: slamDelay 후 레이카 이동 시작
@@ -3265,7 +3364,7 @@ const SKILLS = {
                   resolveWall(L);
                   L._reikaJumping = false;
                   if (Math.hypot(R.x-L.x, R.y-L.y) < tb.landRange + R.radius) {
-                    hitRemote(tb.landDamage); knockbackRemote(tb.knockbackPower);
+                    hitCtxAll({x:L.x, y:L.y, range:tb.landRange}, tb.landDamage); knockbackRemote(tb.knockbackPower);
                   }
                   addFx({type:'reikaLand', x:L.x, y:L.y, r:0, maxR:tb.landRange, dur:18, maxDur:18});
                   send({type:'fx', fx:{type:'reikaLand', x:L.x, y:L.y, r:0, maxR:tb.landRange, dur:18, maxDur:18}});
@@ -3287,7 +3386,7 @@ const SKILLS = {
           if (!gameOn || L._counterToken !== tok) { L._reikaPreswing = false; return; }
           L._reikaPreswing = false;
           if (Math.hypot(R.x-L.x, R.y-L.y) < B.rmb.explosionRange + R.radius) {
-            hitRemote(B.rmb.damage); reikaApplyBurn(B.rmb.burnDur);
+            hitCtxAll({x:L.x, y:L.y, range:B.rmb.explosionRange}, B.rmb.damage); reikaApplyBurn(B.rmb.burnDur);
             knockbackRemote(B.counter.knockbackPower);
           }
           addFx({type:'reikaGahoExplosion', x:L.x, y:L.y, r:0, maxR:B.rmb.explosionRange, dur:24, maxDur:24});
@@ -3326,14 +3425,14 @@ const SKILLS = {
           resolveWall(L);
           if (!hit && Math.hypot(R.x-L.x, R.y-L.y) < CB.width + R.radius) {
             hit = true;
-            hitRemote(CB.damage); knockbackRemote(CB.knockbackPower);
+            hitCtxAll({x:L.x, y:L.y, range:CB.width}, CB.damage); knockbackRemote(CB.knockbackPower);
             if (isBlessed) reikaApplyBurn(CB.burnDur);
           }
           if (t >= 1) {
             clearInterval(di);
             if (isBlessed) {
               if (Math.hypot(R.x-L.x, R.y-L.y) < CB.explosionRange + R.radius) {
-                hitRemote(CB.explosionDamage); reikaApplyBurn(CB.burnDur);
+                hitCtxAll({x:L.x, y:L.y, range:CB.explosionRange}, CB.explosionDamage); reikaApplyBurn(CB.burnDur);
               }
               addFx({type:'reikaGahoExplosion', x:L.x, y:L.y, r:0, maxR:CB.explosionRange, dur:18, maxDur:18});
               send({type:'fx', fx:{type:'reikaGahoExplosion', x:L.x, y:L.y, r:0, maxR:CB.explosionRange, dur:18, maxDur:18}});
@@ -3411,8 +3510,7 @@ const SKILLS = {
       const cos = Math.cos(angle), sin = Math.sin(angle);
       const dx = R.x - L.x, dy = R.y - L.y;
       const lx = dx*cos + dy*sin, ly = dx*(-sin) + dy*cos;
-      if (lx > -R.radius && lx < B.meleeRange + R.radius && Math.abs(ly) < B.width + R.radius) hitRemote(B.damage);
-      checkSpiritHitRect(L.x, L.y, cos, sin, B.meleeRange, B.width, B.damage);
+      hitCtxAll({x:L.x, y:L.y, cos, sin, len:B.meleeRange, width:B.width}, B.damage);
       addFx({type:'phasePunch', x:L.x, y:L.y, angle, len:B.meleeRange, width:B.width, dur:7, maxDur:7});
       send({type:'fx', fx:{type:'phasePunch', x:L.x, y:L.y, angle, len:B.meleeRange, width:B.width, dur:7, maxDur:7}});
       // 체력 비율에 따라 쿨다운 감소 (낮을수록 빠름)
@@ -3466,7 +3564,7 @@ const SKILLS = {
         const dx2 = R.x - L.x, dy2 = R.y - L.y;
         const lx2 = dx2*cos2 + dy2*sin2, ly2 = dx2*(-sin2) + dy2*cos2;
         if (lx2 > -R.radius && lx2 < B.range + R.radius && Math.abs(ly2) < B.width + R.radius) {
-          hitRemote(B.damage);
+          hitCtxAll({x:L.x, y:L.y, cos:cos2, sin:sin2, len:B.range, width:B.width}, B.damage);
           // 적을 끌어당김
           const dist2 = Math.hypot(dx2, dy2);
           const pullAngle = Math.atan2(L.y - R.y, L.x - R.x);
@@ -3497,19 +3595,12 @@ const SKILLS = {
         if (diff < B.halfAngle) {
           const gauge = L._kanGauge || 0;
           const dmg = Math.round(B.baseDamage + B.gaugeDamage * (gauge / BALANCE.kan.gaugeMax));
-          hitRemote(dmg);
+          hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, dmg);
           L._kanGauge = Math.min(BALANCE.kan.gaugeMax, gauge + B.gaugeGain);
           hit = true;
         }
       }
-      if (R.elinSpirit) {
-        const _sd = Math.hypot(R.elinSpirit.x-L.x, R.elinSpirit.y-L.y);
-        if (_sd < B.meleeRange + BALANCE.elin.spirit.radius) {
-          const _sa = Math.atan2(R.elinSpirit.y-L.y, R.elinSpirit.x-L.x);
-          if (Math.abs((((_sa-angle)+Math.PI*3)%(Math.PI*2))-Math.PI) < B.halfAngle)
-            spiritHitRemote(Math.round(B.baseDamage + B.gaugeDamage * ((L._kanGauge||0) / BALANCE.kan.gaugeMax)));
-        }
-      }
+      hitCtxSpirit({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.baseDamage);
       const col = hit ? '80,220,120' : '40,160,80';
       addFx({type:'kanSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col, dur:10, maxDur:10});
       send({type:'fx', fx:{type:'kanSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col, dur:10, maxDur:10}});
@@ -3577,8 +3668,8 @@ const SKILLS = {
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         if (Math.hypot(R.x - L.x, R.y - L.y) < range + R.radius) {
-          hitRemote(damage);
-          knockbackRemote(kbPower);
+          hitCtxAll({x:L.x, y:L.y, range}, damage);
+          if (Math.hypot(R.x-L.x,R.y-L.y)<range+R.radius) knockbackRemote(kbPower);
         }
         addFx({type:'kanShockwave', x:L.x, y:L.y, r:0, maxR:range, gaugeT:t, dur:22, maxDur:22});
         send({type:'fx', fx:{type:'kanShockwave', x:L.x, y:L.y, r:0, maxR:range, gaugeT:t, dur:22, maxDur:22}});
@@ -3592,6 +3683,7 @@ const SKILLS = {
     lmbStart() {
       if (!gameOn || L.lmbCooldown > 0 || L._cherityCharging) return;
       if (L.stunEnd && performance.now() < L.stunEnd) return;
+      if (L.stamina <= 0) return; // 스테미나 없으면 시작 불가
       L._cherityCharging = true;
       L._cherityChargeStart = performance.now();
     },
@@ -3599,13 +3691,21 @@ const SKILLS = {
     lmbRelease() {
       if (!L._cherityCharging) return;
       L._cherityCharging = false;
+      const drained     = L._cherityDrained || 0;
+      const frozenT     = L._cherityFrozenT;
+      L._cherityDrained = 0;
+      L._cherityFrozenT = null;
       if (!gameOn || L.lmbCooldown > 0) return;
       const B   = BALANCE.cherity.lmb;
       const now = performance.now();
       const held = Math.min(now - L._cherityChargeStart, B.chargeTime);
-      const t    = held / B.chargeTime;
+      const t    = frozenT !== null && frozenT !== undefined ? frozenT : held / B.chargeTime;
       const cost = Math.round(B.minCost + (B.maxCost - B.minCost) * t);
-      if (!useStam(cost)) return;
+      // 동결 상태(스테미나 소진으로 동결)면 이미 전부 소모 → 추가 차감 없이 발동
+      if (frozenT === null || frozenT === undefined) {
+        const remaining = Math.max(0, cost - drained);
+        if (remaining > 0 && !useStam(remaining)) return;
+      }
       const damage      = Math.round(B.minDamage + (B.maxDamage - B.minDamage) * t);
       const speed       = B.minSpeed + (B.maxSpeed - B.minSpeed) * t;
       const pierceWalls = t >= 1.0;
@@ -3660,15 +3760,8 @@ const SKILLS = {
                 knockbackRemote(B.knockbackPower);
               }
             }
-            // 정령 히트스캔
-            if (R.elinSpirit) {
-              const sdist = Math.hypot(R.elinSpirit.x-L.x, R.elinSpirit.y-L.y);
-              if (sdist < B.range + BALANCE.elin.spirit.radius) {
-                const sto = Math.atan2(R.elinSpirit.y-L.y, R.elinSpirit.x-L.x);
-                const sdiff = Math.abs(((sto-fireAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-                if (sdiff < halfSpread) spiritHitRemote(B.damage * 3);
-              }
-            }
+            // 소환수 히트스캔 (플레이어는 이미 위에서 hitRemote로 처리)
+            hitCtxSpirit({x:L.x, y:L.y, angle:fireAngle, range:B.range, halfAngle:halfSpread}, Math.round(B.damage * 3));
           }
           addFx({type:'cherityBlast', x:L.x, y:L.y, angle:fireAngle, spread:B.spread, r:0, maxR:B.range*0.55, dur:14, maxDur:14});
           send({type:'fx', fx:{type:'cherityBlast', x:L.x, y:L.y, angle:fireAngle, spread:B.spread, r:0, maxR:B.range*0.55, dur:14, maxDur:14}});
@@ -3826,78 +3919,34 @@ function resolveWall(p) {
   }
 }
 
-// ============================================================
-// A* 경로탐색 (엘린 정령용)
-// ============================================================
-const ASTAR_CELL = 60;
-function astarFind(sx, sy, gx, gy) {
-  const cols = Math.ceil(WORLD_W / ASTAR_CELL);
-  const rows = Math.ceil(WORLD_H / ASTAR_CELL);
-  const toNode = (x, y) => ({ c: Math.floor(x / ASTAR_CELL), r: Math.floor(y / ASTAR_CELL) });
-  const toWorld = (c, r) => ({ x: (c + 0.5) * ASTAR_CELL, y: (r + 0.5) * ASTAR_CELL });
-  const key = (c, r) => c * 10000 + r;
-  const blocked = (c, r) => {
-    const wx = (c + 0.5) * ASTAR_CELL, wy = (r + 0.5) * ASTAR_CELL;
-    const pad = BALANCE.elin.spirit.radius + 4;
-    return currentMap.walls.some(w => wx + pad > w.x && wx - pad < w.x + w.w && wy + pad > w.y && wy - pad < w.y + w.h);
-  };
-  const start = toNode(sx, sy), goal = toNode(gx, gy);
-  if (start.c === goal.c && start.r === goal.r) return null;
-  const open = new Map();
-  const closed = new Set();
-  const gScore = new Map(), fScore = new Map(), parent = new Map();
-  const h = (c, r) => Math.hypot(c - goal.c, r - goal.r);
-  const sk = key(start.c, start.r);
-  gScore.set(sk, 0); fScore.set(sk, h(start.c, start.r));
-  open.set(sk, start);
-  for (let iter = 0; iter < 300 && open.size > 0; iter++) {
-    let bestK = null, bestF = Infinity;
-    for (const [k, n] of open) { const f = fScore.get(k) ?? Infinity; if (f < bestF) { bestF = f; bestK = k; } }
-    const cur = open.get(bestK); open.delete(bestK); closed.add(bestK);
-    if (cur.c === goal.c && cur.r === goal.r) {
-      const path = []; let k = bestK;
-      while (parent.has(k)) { const n = open.get(k) || { c: Math.floor(k / 10000), r: k % 10000 }; path.unshift(toWorld(Math.floor(k / 10000), k % 10000)); k = parent.get(k); }
-      if (path.length > 1) path.shift();
-      return path;
-    }
-    for (const [dc, dr] of [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]]) {
-      const nc = cur.c + dc, nr = cur.r + dr;
-      if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
-      if (blocked(nc, nr)) continue;
-      const nk = key(nc, nr);
-      if (closed.has(nk)) continue;
-      const ng = (gScore.get(bestK) ?? 0) + Math.hypot(dc, dr);
-      if (ng < (gScore.get(nk) ?? Infinity)) {
-        parent.set(nk, bestK); gScore.set(nk, ng);
-        fScore.set(nk, ng + h(nc, nr));
-        open.set(nk, { c: nc, r: nr });
-      }
-    }
-  }
-  return null;
-}
+// astarFind — 엘린 리메이크 시 복원 예정
 
 function moveBullets(dt=1) {
   for (let i=localBullets.length-1; i>=0; i--) {
     const b=localBullets[i];
-    // 추적형 구체: 매 프레임 정령 위치로 방향 갱신
-    if (b.isElinOrb && L._elinSpirit) {
-      b.spiritX = L._elinSpirit.x; b.spiritY = L._elinSpirit.y;
-    }
-    if (b.isElinOrb) {
-      const tdx = b.spiritX - b.x, tdy = b.spiritY - b.y;
-      const tdist = Math.hypot(tdx, tdy);
-      if (tdist > 0.1) { b.dx = tdx/tdist; b.dy = tdy/tdist; }
-    }
+
     b.x+=b.dx*b.speed*dt; b.y+=b.dy*b.speed*dt; b.traveled+=b.speed*dt;
     const oob = b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H;
     const hitWall = bulletHitsWall(b) && !b.pierceWalls;
     const hitEnemy = Math.hypot(b.x-R.x, b.y-R.y)<b.radius+R.radius;
     const rangeOut = b.traveled>=b.maxRange;
 
+    // 상대 소환수 명중 판정 — 명중 시 minionHit 패킷 전송 후 탄환 제거
+    let hitPeerMinion = false;
+    if (!b.isTauSickle && !b.isRocket && !b.isBomb && !b.isMaisilOrb) {
+      for (const pm of peerMinions) {
+        if (Math.hypot(b.x - pm.x, b.y - pm.y) < b.radius + pm.radius) {
+          send({ type: 'minionHit', id: pm.id, damage: b.damage });
+          hitPeerMinion = true;
+          break;
+        }
+      }
+    }
+    const hitSpirit = hitPeerMinion; // 기존 hitSpirit 참조와 호환
+
     if (b.isTauSickle) {
-      // 적중/벽/oob → 돌진. 사거리 도달은 그냥 제거
-      if (hitEnemy || hitWall || oob) {
+      // 적중/벽/oob/정령 → 돌진. 사거리 도달은 그냥 제거
+      if (hitEnemy || hitWall || oob || hitSpirit) {
         if (hitEnemy) {
           hitRemote(b.damage);
           // 낫 명중 → 타우 도착까지 속박
@@ -3913,11 +3962,13 @@ function moveBullets(dt=1) {
         localBullets.splice(i,1);
       }
     } else if (b.isRocket) {
-      if (hitWall || oob || hitEnemy || rangeOut) {
+      if (hitWall || oob || hitEnemy || rangeOut || hitSpirit) {
         // 폭발 범위 내 피해
         if (Math.hypot(b.x-R.x, b.y-R.y) < b.explosionRange + R.radius) {
           hitRemote(b.explosionDamage);
         }
+        // 폭발 범위 내 소환수 피해
+        hitPeerMinionsInRange(b.x, b.y, b.explosionRange, b.explosionDamage);
         // 근접 기절
         if (Math.hypot(b.x-R.x, b.y-R.y) < b.stunRange + R.radius) {
           stunRemote(b.stunDur);
@@ -3936,10 +3987,11 @@ function moveBullets(dt=1) {
       }
     } else if (b.isBomb) {
       // 폭탄: 사거리 도달 시 폭발 (벽/적도 처리)
-      if (hitWall || oob || hitEnemy || rangeOut) {
+      if (hitWall || oob || hitEnemy || rangeOut || hitSpirit) {
         if (hitEnemy || rangeOut) {
           if (Math.hypot(b.x-R.x, b.y-R.y) < 50+R.radius) hitRemote(b.damage);
         }
+        hitPeerMinionsInRange(b.x, b.y, 50, b.damage);
         addFx({type:'bombBlast', x:b.x, y:b.y, r:0, maxR:50, dur:14, maxDur:14});
         send({type:'fx', fx:{type:'bombBlast', x:b.x, y:b.y, r:0, maxR:50, dur:14, maxDur:14}});
         localBullets.splice(i,1);
@@ -3949,68 +4001,21 @@ function moveBullets(dt=1) {
         send({type:'fx', fx:{type:'bombBlast', x:b.x, y:b.y, r:0, maxR:50, dur:14, maxDur:14}});
         localBullets.splice(i,1);
       }
-    } else if (b.isElinBomb) {
-      // 목표 지점 도달 시에만 폭발 (벽 관통, 직격 피해 없음)
-      const toTarget  = Math.hypot(b.x - b.targetX, b.y - b.targetY);
-      const arrivedAt = toTarget < b.speed + b.radius + 4;
-      if (arrivedAt || oob) {
-        const ex = arrivedAt ? b.targetX : b.x;
-        const ey = arrivedAt ? b.targetY : b.y;
-        // 적에게 피해
-        if (Math.hypot(R.x - ex, R.y - ey) < b.explosionRange + R.radius) hitRemote(b.explosionDamage);
-        // 상대 정령에게 피해
-        checkSpiritHit(ex, ey, b.explosionRange, b.explosionDamage);
-        // 내 정령 범위 안에 있으면 힐
-        if (L._elinSpirit) {
-          if (Math.hypot(L._elinSpirit.x - ex, L._elinSpirit.y - ey) < b.explosionRange + BALANCE.elin.spirit.radius) {
-            const healAmt = b.spiritHealAmount ?? BALANCE.elin.lmb.spiritHealAmount;
-            L._elinSpirit.hp = Math.min(L._elinSpirit.maxHp, L._elinSpirit.hp + healAmt);
-            addFx({type:'elinSpiritHeal', x:L._elinSpirit.x, y:L._elinSpirit.y, r:0, maxR:40, dur:14, maxDur:14});
-            send({type:'fx', fx:{type:'elinSpiritHeal', x:L._elinSpirit.x, y:L._elinSpirit.y, r:0, maxR:40, dur:14, maxDur:14}});
-          }
-        }
-        addFx({type:'elinBombBlast', x:ex, y:ey, r:0, maxR:b.explosionRange, dur:20, maxDur:20});
-        send({type:'fx', fx:{type:'elinBombBlast', x:ex, y:ey, r:0, maxR:b.explosionRange, dur:20, maxDur:20}});
-        localBullets.splice(i, 1);
-      }
-    } else if (b.isElinOrb) {
-      // 경로상 적 피해 + 넉백 (한 번만)
-      if (hitEnemy && !b._orbHit) {
-        b._orbHit = true;
-        hitRemote(b.damage);
-        if (b.orbKb) knockbackRemote(b.orbKb);
-      }
-      // 정령 위치 도달 판정
-      const arrDist = Math.hypot(b.x - b.spiritX, b.y - b.spiritY);
-      if (arrDist < b.speed * dt * 3 + b.radius || oob) {
-        if (!oob) {
-          const aoeKbFired = {done: false};  // 두 폭발 중 1회만 넉백
-          // 정령 위치 AOE
-          if (Math.hypot(R.x - b.spiritX, R.y - b.spiritY) < b.aoeRange + R.radius) {
-            hitRemote(b.aoeDamage);
-            if (b.aoeKb && !aoeKbFired.done) { aoeKbFired.done = true; knockbackRemote(b.aoeKb); }
-          }
-          // 엘린 본체 위치 AOE
-          if (Math.hypot(R.x - b.originX, R.y - b.originY) < b.aoeRange + R.radius) {
-            hitRemote(b.aoeDamage);
-            if (b.aoeKb && !aoeKbFired.done) { aoeKbFired.done = true; knockbackRemote(b.aoeKb); }
-          }
-          addFx({type:'elinOrbBurst', x:b.spiritX, y:b.spiritY, r:0, maxR:b.aoeRange, dur:20, maxDur:20});
-          addFx({type:'elinOrbBurst', x:b.originX, y:b.originY, r:0, maxR:b.aoeRange, dur:20, maxDur:20});
-          send({type:'fx', fx:{type:'elinOrbBurst', x:b.spiritX, y:b.spiritY, r:0, maxR:b.aoeRange, dur:20, maxDur:20}});
-          send({type:'fx', fx:{type:'elinOrbBurst', x:b.originX, y:b.originY, r:0, maxR:b.aoeRange, dur:20, maxDur:20}});
-        }
-        // 정령은 소멸하지 않음
-        localBullets.splice(i, 1);
-      }
+
     } else if (b.isMaisilOrb) {
       // 귀환형 대형 가위 구체
       if (!b.returning) {
-        // 전진 중: 적 명중 시 피해+넉백, 관통. 최대 사거리 도달 시 귀환
-        if (hitEnemy && !b._hit) {
+        // 전진 중: 적/정령 명중 시 피해+넉백, 관통. 최대 사거리 도달 시 귀환
+        // 소환수 판정
+        let hitPm = false;
+        for (const pm of peerMinions) {
+          if (!b._hit && Math.hypot(b.x-pm.x, b.y-pm.y) < b.radius+pm.radius) {
+            send({ type:'minionHit', id:pm.id, damage:b.damage }); hitPm=true; break;
+          }
+        }
+        if ((hitEnemy || hitPm) && !b._hit) {
           b._hit = true;
-          hitRemote(b.damage);
-          knockbackRemote(b.knockbackPower);
+          if (hitEnemy) { hitRemote(b.damage); knockbackRemote(b.knockbackPower); }
         }
         if (rangeOut) { b.returning = true; b.traveled = 0; }
       } else {
@@ -4021,23 +4026,24 @@ function moveBullets(dt=1) {
         if (od < b.returnSpd + b.radius) { localBullets.splice(i, 1); continue; }
         b.dx = (ox - b.x) / od; b.dy = (oy - b.y) / od;
         b.speed = b.returnSpd;
-        // 귀환 중 재적중 — 완전히 빠져나간 후 한 번만
-        if (hitEnemy && !b._returnHit) {
+        // 귀환 중 재적중
+        let hitPmR = false;
+        for (const pm of peerMinions) {
+          if (!b._returnHit && Math.hypot(b.x-pm.x, b.y-pm.y) < b.radius+pm.radius) {
+            send({ type:'minionHit', id:pm.id, damage:b.damage }); hitPmR=true; break;
+          }
+        }
+        if ((hitEnemy || hitPmR) && !b._returnHit) {
           b._returnHit = true;
-          hitRemote(b.damage);
-          knockbackRemote(b.knockbackPower);
-        } else if (!hitEnemy) {
+          if (hitEnemy) { hitRemote(b.damage); knockbackRemote(b.knockbackPower); }
+        } else if (!hitEnemy && !hitPmR) {
           b._returnHit = false;
         }
       }
       if (oob) { localBullets.splice(i, 1); }
     } else {
+      if (hitPeerMinion) { localBullets.splice(i,1); continue; }
       if (rangeOut||oob||hitWall) { localBullets.splice(i,1); continue; }
-      // 상대 정령 충돌 체크 (정령이 탄환을 흡수)
-      if (R.elinSpirit && Math.hypot(b.x - R.elinSpirit.x, b.y - R.elinSpirit.y) < b.radius + BALANCE.elin.spirit.radius) {
-        spiritHitRemote(b.damage);
-        localBullets.splice(i,1); continue;
-      }
       if (hitEnemy) { hitRemote(b.damage); if (b._kbRef && !b._kbRef.fired) { b._kbRef.fired=true; knockbackRemote(b._kbRef.power); } localBullets.splice(i,1); }
     }
   }
@@ -4045,27 +4051,7 @@ function moveBullets(dt=1) {
     const b=peerBullets[i];
     b.x+=b.dx*b.speed*dt; b.y+=b.dy*b.speed*dt; b.traveled+=b.speed*dt;
 
-    // 엘린 폭탄(상대): 벽 관통, 목표 도달 시 폭발
-    if (b.isElinBomb) {
-      const arrived = Math.hypot(b.x - b.targetX, b.y - b.targetY) < b.speed + b.radius + 4;
-      if (arrived || b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H) {
-        const ex = arrived ? b.targetX : b.x;
-        const ey = arrived ? b.targetY : b.y;
-        if (Math.hypot(L.x - ex, L.y - ey) < b.explosionRange + L.radius) b._hitLocal = true;
-        // 로컬 정령 피격
-        if (L._elinSpirit) {
-          const sp = L._elinSpirit;
-          if (Math.hypot(sp.x - ex, sp.y - ey) < b.explosionRange + BALANCE.elin.spirit.radius) {
-            sp.hp = Math.max(0, sp.hp - b.explosionDamage);
-            addFx({type:'elinSpiritHit', x:sp.x, y:sp.y, r:0, maxR:30, dur:8, maxDur:8});
-            if (sp.hp <= 0) L._elinSpirit = null;
-          }
-        }
-        addFx({type:'elinBombBlast', x:ex, y:ey, r:0, maxR:b.explosionRange, dur:20, maxDur:20});
-        peerBullets.splice(i, 1);
-      }
-      continue;
-    }
+
 
     // 메이실 귀환 구체(상대): 전진 후 귀환, 로컬 명중 처리
     if (b.isMaisilOrb) {
@@ -4085,16 +4071,6 @@ function moveBullets(dt=1) {
       b._hitLocal = b._hitLocal || (Math.hypot(b.x-L.x, b.y-L.y) < b.radius+L.radius);
       continue;
     }
-    if (L._elinSpirit) {
-      const sp = L._elinSpirit;
-      if (Math.hypot(b.x - sp.x, b.y - sp.y) < b.radius + BALANCE.elin.spirit.radius) {
-        sp.hp = Math.max(0, sp.hp - b.damage);
-        addFx({type:'elinSpiritHit', x:sp.x, y:sp.y, r:0, maxR:30, dur:8, maxDur:8});
-        peerBullets.splice(i, 1);
-        if (sp.hp <= 0) L._elinSpirit = null;
-        continue;
-      }
-    }
     if (b.traveled>=b.maxRange||b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H||(bulletHitsWall(b)&&!b.pierceWalls)) { peerBullets.splice(i,1); continue; }
     if (Math.hypot(b.x-L.x, b.y-L.y)<b.radius+L.radius) {
       b._hitLocal = true;
@@ -4106,6 +4082,8 @@ function moveBullets(dt=1) {
         L._kbFrames = 12;
       }
     }
+    // ※ localMinions 피해는 peer 측의 minionHit 패킷으로 처리
+    //   (peerBullets 시뮬레이션에서 직접 처리하면 이중 피해 발생)
   }
 }
 
@@ -4486,57 +4464,6 @@ function draw() {
         ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rr+si*8), 0, Math.PI*2);
         ctx.strokeStyle=`rgba(217,70,168,${a*(0.9-si*0.25)})`; ctx.lineWidth=2.5-si*0.5; ctx.stroke();
       }
-    } else if (f.type==='elinSwing') {
-      const rr = f.maxR * (1 - f.dur/f.maxDur);
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(156,163,175,${a*0.18})`; ctx.fill();
-      ctx.strokeStyle=`rgba(203,213,225,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
-    } else if (f.type==='elinHeal') {
-      const rr = f.maxR * (1 - f.dur/f.maxDur);
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(74,222,128,${a*0.25})`; ctx.fill();
-      ctx.strokeStyle=`rgba(74,222,128,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr*0.5), 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(180,255,200,${a*0.6})`; ctx.lineWidth=1.5; ctx.stroke();
-    } else if (f.type==='elinSpiritSummon') {
-      const rr = f.maxR * (1 - f.dur/f.maxDur);
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(148,163,184,${a*0.2})`; ctx.fill();
-      ctx.strokeStyle=`rgba(203,213,225,${a})`; ctx.lineWidth=2.5; ctx.stroke();
-    } else if (f.type==='elinSpiritCmd') {
-      ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(f.tx,f.ty);
-      ctx.strokeStyle=`rgba(148,163,184,${a*0.7})`; ctx.lineWidth=2;
-      ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-    } else if (f.type==='elinSpiritAtk') {
-      ctx.beginPath(); ctx.moveTo(f.x, f.y);
-      ctx.arc(f.x, f.y, f.range, f.angle - Math.PI/2, f.angle + Math.PI/2);
-      ctx.closePath();
-      ctx.fillStyle=`rgba(148,163,184,${a*0.3})`; ctx.fill();
-      ctx.strokeStyle=`rgba(203,213,225,${a*0.9})`; ctx.lineWidth=2; ctx.stroke();
-    } else if (f.type==='elinSpiritHit') {
-      const rr = f.maxR * (1 - f.dur/f.maxDur);
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(255,200,100,${a})`; ctx.lineWidth=2.5; ctx.stroke();
-    } else if (f.type==='elinSpiritHeal') {
-      const rr = f.maxR * (1 - f.dur/f.maxDur);
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(74,222,128,${a*0.2})`; ctx.fill();
-      ctx.strokeStyle=`rgba(74,222,128,${a*0.8})`; ctx.lineWidth=2; ctx.stroke();
-    } else if (f.type==='elinOrbBurst') {
-      const rr = f.maxR * (1 - f.dur/f.maxDur);
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(148,163,184,${a*0.2})`; ctx.fill();
-      ctx.strokeStyle=`rgba(203,213,225,${a*0.95})`; ctx.lineWidth=3; ctx.stroke();
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr*0.5), 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(255,255,255,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
-    } else if (f.type==='elinBombBlast') {
-      const rr = f.maxR * (1 - f.dur/f.maxDur);
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(220,225,240,${a*0.28})`; ctx.fill();
-      ctx.strokeStyle=`rgba(200,210,230,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr*0.45), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(255,255,255,${a*0.35})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,255,255,${a*0.7})`; ctx.lineWidth=1.5; ctx.stroke();
     } else if (f.type==='phasePunch') {
       const cos = Math.cos(f.angle), sin = Math.sin(f.angle), w = f.width;
       ctx.beginPath();
@@ -4789,56 +4716,9 @@ function draw() {
   });
 
   // 엘린 정령 (로컬)
-  if (gameOn && L._elinSpirit) {
-    const sp = L._elinSpirit;
-    const pulse = 0.7+0.3*Math.sin(performance.now()*0.012);
-    ctx.beginPath(); ctx.arc(sp.x, sp.y, BALANCE.elin.spirit.radius, 0, Math.PI*2);
-    ctx.fillStyle=`rgba(148,163,184,0.3)`; ctx.fill();
-    ctx.strokeStyle=`rgba(203,213,225,${pulse})`; ctx.lineWidth=2.5; ctx.stroke();
-    // HP 바
-    const sw=28, sh=4, sx2=sp.x-sw/2, sy2=sp.y-BALANCE.elin.spirit.radius-10;
-    const hpPct = sp.hp / (sp.maxHp || BALANCE.elin.spirit.hp);
-    ctx.fillStyle='#222'; ctx.fillRect(sx2,sy2,sw,sh);
-    ctx.fillStyle=hpPct>0.5?'#4af':hpPct>0.25?'#fa0':'#f44';
-    ctx.fillRect(sx2,sy2,sw*hpPct,sh);
-    // 돌진 중이면 궤적 표시
-    if (sp.dashing) {
-      ctx.beginPath(); ctx.moveTo(sp.dashSX||sp.x, sp.dashSY||sp.y); ctx.lineTo(sp.dashTX||sp.x, sp.dashTY||sp.y);
-      ctx.strokeStyle = `rgba(200,210,255,0.3)`; ctx.lineWidth = 8; ctx.stroke();
-    }
-    // CC 인디케이터
-    const _rNow = performance.now();
-    const SR = BALANCE.elin.spirit.radius;
-    if (sp.stunEnd > _rNow) {
-      ctx.beginPath(); ctx.arc(sp.x, sp.y, SR+6, 0, Math.PI*2);
-      ctx.strokeStyle='rgba(255,60,60,0.9)'; ctx.lineWidth=2.5;
-      ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-    } else if (sp.bindEnd > _rNow) {
-      ctx.beginPath(); ctx.arc(sp.x, sp.y, SR+6, 0, Math.PI*2);
-      ctx.strokeStyle='rgba(80,210,255,0.9)'; ctx.lineWidth=2.5;
-      ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-    }
-    // 플레이어-정령 연결선
-    ctx.beginPath(); ctx.moveTo(L.x,L.y); ctx.lineTo(sp.x,sp.y);
-    ctx.strokeStyle='rgba(148,163,184,0.3)'; ctx.lineWidth=1.5;
-    ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
-  }
+
   // 엘린 정령 (상대방)
-  if (gameOn && R.elinSpirit) {
-    const sp = R.elinSpirit;
-    const SR2 = BALANCE.elin.spirit.radius;
-    const pulse = 0.7+0.3*Math.sin(performance.now()*0.012+1);
-    ctx.beginPath(); ctx.arc(sp.x, sp.y, SR2, 0, Math.PI*2);
-    ctx.fillStyle=`rgba(148,163,184,0.2)`; ctx.fill();
-    ctx.strokeStyle=`rgba(160,170,180,${pulse})`; ctx.lineWidth=2; ctx.stroke();
-    // HP바 (상대방 정령)
-    if (sp.maxHp) {
-      const hpP = Math.max(0, sp.hp / sp.maxHp);
-      const bw2=44, bh2=4, bx2=sp.x-bw2/2, by2=sp.y-SR2-16;
-      ctx.fillStyle='#161616'; ctx.fillRect(bx2,by2,bw2,bh2);
-      ctx.fillStyle='#f66'; ctx.fillRect(bx2,by2,bw2*hpP,bh2);
-    }
-  }
+
 
   // 메후구 로프 구체 (로컬)
   if (gameOn && L.charDef?.id==='mehugu' && L._mhOrb) {
@@ -4936,7 +4816,9 @@ function draw() {
   // 메인마드 차징 프리뷰 — 일자 직사각형
   if (gameOn && L.charDef?.id==='mainmad' && L._drillCharging) {
     const B   = BALANCE.mainmad.lmb;
-    const t   = Math.min(1, (performance.now()-L._drillChargeStart)/B.chargeTime);
+    const t   = (L._drillFrozenT !== null && L._drillFrozenT !== undefined)
+                ? L._drillFrozenT
+                : Math.min(1, (performance.now()-L._drillChargeStart)/B.chargeTime);
     const len = B.minLength + (B.maxLength - B.minLength)*t;
     const w   = B.width;
     const angle = Math.atan2(mouseY-L.y, mouseX-L.x);
@@ -5113,7 +4995,9 @@ function draw() {
   // ── 체리티 저격 차징 프리뷰 ──────────────────────────────
   if (gameOn && L.charDef?.id === 'cherity' && L._cherityCharging) {
     const Bc = BALANCE.cherity.lmb;
-    const tc = Math.min(1, (performance.now() - L._cherityChargeStart) / Bc.chargeTime);
+    const tc = (L._cherityFrozenT !== null && L._cherityFrozenT !== undefined)
+               ? L._cherityFrozenT
+               : Math.min(1, (performance.now() - L._cherityChargeStart) / Bc.chargeTime);
     const fireAng = getAngle();
     // ❶ 배경 트랙 링 (항상 가시적 — tc=0 시에도 표시)
     ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 9, 0, Math.PI * 2);
@@ -5168,6 +5052,7 @@ function draw() {
       if (_rInSmoke) ctx.restore();
     }
   }
+  drawMinions();
   drawPlayer(L,'나');
 
   ctx.restore();
@@ -5184,6 +5069,7 @@ function draw() {
   // ── 화면 외곽 비네트 ──
   drawVignette();
 }
+
 
 function drawVignette() {
   const cw = CANVAS.width, ch = CANVAS.height;
@@ -5583,6 +5469,7 @@ function doRematch() {
   R.erapabiFortify=false; R.nsonyaStacks=0; R.burrowEntry=null;
   R.smokeRevealStart=0; R.smokeRevealDur=0;
   L.orb=null;
+  resetMinions();
   document.getElementById('result-oveleulay').style.display='none';
   document.getElementById('hud').style.display='none';
   const btn=document.getElementById('rematch-btn');
@@ -5628,7 +5515,7 @@ function resetL() {
   L.invincible=0; L.hitFlash=0; L._preFlashColor=null;
   L.dodging=false; L.justCheck=null; L.orb=null; L._toolboxHealTick=0;
   L.burrowing=false; L.burrowEntry=null; L.stunEnd=0;
-  L._drillCharging=false; L._drillChargeStart=0;
+  L._drillCharging=false; L._drillChargeStart=0; L._drillDrained=0; L._drillFrozenT=null;
   L._veleuPhase=0;
   L._tauHitStack=0; L._tauOveleucharge=false; L._tauDashInterval=null;
   L._counterToken=0;
@@ -5646,7 +5533,7 @@ function resetL() {
   L._reikaPreswing=false; L._reikaJumping=false;
   L._reikaRBurning=null; L._reikaFireTrails=[]; L._reikaTrailLast=null; L._burnEnd=0;
   L._kanGauge=0;
-  L._cherityCharging=false; L._cherityChargeStart=0; L._smokeRevealSent=0;
+  L._cherityCharging=false; L._cherityChargeStart=0; L._cherityDrained=0; L._cherityFrozenT=null; L._smokeRevealSent=0;
   if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
@@ -5670,6 +5557,7 @@ function startGame() {
 
   localBullets=[]; peerBullets=[]; fxList=[]; _firedBurstKb=new Set();
   localSlowZones=[]; peerSlowZones=[]; globalSmokeZones=[];
+  resetMinions();
   updateLocalHud(); updateRemoteHud();
   gameOn=true; lastLoopTime=0;
 
@@ -5689,7 +5577,13 @@ function startGame() {
           burrowEntry: L.burrowEntry??null,
           erapabiFortify: L._erapabiFortify??false,
           nsonyaStacks: (L.charDef?.id==='nsonya') ? (L._nsonyaStacks||0) : 0,
-          reikaBlessed: (L.charDef?.id==='reika') ? !!(L._reikaBlessed && performance.now() < (L._reikaBlessedExpiry||0)) : false});
+          reikaBlessed: (L.charDef?.id==='reika') ? !!(L._reikaBlessed && performance.now() < (L._reikaBlessedExpiry||0)) : false,
+          // 소환수 상태 동기화
+          minions: localMinions.map(m => ({
+            id: m.id, type: m.type, charId: m.charId,
+            x: m.x, y: m.y, hp: m.hp, maxHp: m.maxHp,
+            radius: m.radius, color: m.color,
+          }))});
   }, 50);
 
   window._audioCtx = new (window.AudioContext||window.webkitAudioContext)();
@@ -5718,6 +5612,9 @@ function loop() {
   const dt     = physDt / FRAME_MS;
   lastLoopTime = now;
   tickShake(dt);
+
+  // 적 타겟 목록 갱신 (플레이어 + 소환수)
+  refreshEnemyTargets();
 
   mouseX = mouseScreenX + cam.x;
   mouseY = mouseScreenY + cam.y;
@@ -5784,12 +5681,46 @@ function loop() {
     resolveWall(L);
   }
 
-  // 메인마드 차징 중 스테미나 소모 — 바닥나면 강제 발동
+  // 메인마드 차징 중 스테미나 소모
   if (L._drillCharging) {
-    const drain = BALANCE.mainmad.lmb.drainRate * (physDt / 1000);
-    L.stamina = Math.max(0, L.stamina - drain);
+    const B = BALANCE.mainmad.lmb;
+    const elapsed = now - L._drillChargeStart;
+    const liveT   = Math.min(1, elapsed / B.chargeTime);
+    const frozen  = L._drillFrozenT !== null && L._drillFrozenT !== undefined;
+
+    if (!frozen && liveT < 1 && L.stamina > 0) {
+      // 정상 차징 중 — 드레인
+      const drain = B.drainRate * (physDt / 1000);
+      const actual = Math.min(drain, L.stamina);
+      L.stamina = Math.max(0, L.stamina - drain);
+      L._drillDrained = (L._drillDrained || 0) + actual;
+      L.staminaUseTime = now;
+      // 스테미나 소진 → 현재 t에서 동결
+      if (L.stamina <= 0) L._drillFrozenT = liveT;
+    }
+    // 차징 중(동결·풀차징 포함)엔 항상 staminaUseTime 갱신 → 자동회복 억제
     L.staminaUseTime = now;
-    if (L.stamina <= 0) SKILLS.mainmad.lmbRelease(getAngle(), true);
+  }
+
+  // 체리티 차징 중 스테미나 소모
+  if (L._cherityCharging) {
+    const B = BALANCE.cherity.lmb;
+    const elapsed = now - L._cherityChargeStart;
+    const liveT   = Math.min(1, elapsed / B.chargeTime);
+    const frozen  = L._cherityFrozenT !== null && L._cherityFrozenT !== undefined;
+
+    if (!frozen && liveT < 1 && L.stamina > 0) {
+      // 정상 차징 중 — 드레인
+      const drain = B.chargeDrainRate * (physDt / 1000);
+      const actual = Math.min(drain, L.stamina);
+      L.stamina = Math.max(0, L.stamina - drain);
+      L._cherityDrained = (L._cherityDrained || 0) + actual;
+      L.staminaUseTime = now;
+      // 스테미나 소진 → 현재 t에서 동결
+      if (L.stamina <= 0) L._cherityFrozenT = liveT;
+    }
+    // 차징 중(동결·풀차징 포함)엔 항상 staminaUseTime 갱신 → 자동회복 억제
+    L.staminaUseTime = now;
   }
 
   tickStamina(now, physDt);
@@ -5828,13 +5759,31 @@ function loop() {
       }
       if (t >= 1) { sp.dashing = false; sp._inMeleeRange = false; }
     } else if (!isBound) {
+      // ── 가장 가까운 적 타겟 결정 (플레이어 or 상대 정령) ──
+      let chaseTarget = null, chaseDist = Infinity;
+      for (const _ct of _enemyTargets) {
+        const _cd = Math.hypot(_ct.x - sp.x, _ct.y - sp.y);
+        if (_cd < chaseDist) { chaseDist = _cd; chaseTarget = _ct; }
+      }
+      // 타겟 없으면 (상대 버로우 등) 대기
+      if (!chaseTarget) { /* 대기 */ } else
       // ── A* 자동 추적 ──
-      const distToR = Math.hypot(R.x - sp.x, R.y - sp.y);
+      { const distToR = chaseDist;
+        const chaseX = chaseTarget.x, chaseY = chaseTarget.y;
       if (distToR > BS.spirit.meleeRange) {
-        // 500ms마다 또는 웨이포인트 소진 시 경로 재계산
-        if (!sp._path || sp._path.length === 0 || now - (sp._lastPathTime||0) > 500) {
-          sp._path = astarFind(sp.x, sp.y, R.x, R.y) || [];
+        // 경로 재계산: 500ms마다 / 웨이포인트 소진 후 200ms 이상 경과 시
+        // 추적 대상이 바뀌면 즉시 재계산
+        const pathEmpty = !sp._path || sp._path.length === 0;
+        const timeSinceLastPath = now - (sp._lastPathTime || 0);
+        const targetChanged = sp._lastChaseTarget !== chaseTarget;
+        const shouldRecalc = targetChanged
+                          || (!pathEmpty && timeSinceLastPath > 500)
+                          || (pathEmpty && timeSinceLastPath > 200);
+        if (shouldRecalc) {
+          sp._path = astarFind(sp.x, sp.y, chaseX, chaseY) || [];
           sp._lastPathTime = now;
+          sp._lastChaseTarget = chaseTarget;
+          sp._pathFailCount = sp._path.length === 0 ? (sp._pathFailCount||0) + 1 : 0;
         }
 
         // 직선이 열려있으면 A* 생략
@@ -5843,8 +5792,8 @@ function loop() {
           const steps = Math.ceil(distToR / ASTAR_CELL);
           let clear = true;
           for (let s = 1; s <= steps; s++) {
-            const px = sp.x + (R.x - sp.x) * s / steps;
-            const py = sp.y + (R.y - sp.y) * s / steps;
+            const px = sp.x + (chaseX - sp.x) * s / steps;
+            const py = sp.y + (chaseY - sp.y) * s / steps;
             const r2 = BS.spirit.radius;
             for (const w of currentMap.walls) {
               if (px+r2>w.x && px-r2<w.x+w.w && py+r2>w.y && py-r2<w.y+w.h) { clear=false; break; }
@@ -5856,12 +5805,12 @@ function loop() {
 
         let moveDX, moveDY;
         if (useDirect) {
-          moveDX = (R.x - sp.x) / distToR;
-          moveDY = (R.y - sp.y) / distToR;
+          moveDX = (chaseX - sp.x) / distToR;
+          moveDY = (chaseY - sp.y) / distToR;
           sp._path = [];
         } else if (sp._path && sp._path.length > 0) {
           const wp = sp._path[0];
-          if (Math.hypot(wp.x - sp.x, wp.y - sp.y) < ASTAR_CELL * 0.6) sp._path.shift();
+          if (Math.hypot(wp.x - sp.x, wp.y - sp.y) < ASTAR_CELL * 0.55) sp._path.shift();
           if (sp._path.length === 0) { moveDX = 0; moveDY = 0; }
           else {
             const nwp = sp._path[0];
@@ -5869,7 +5818,14 @@ function loop() {
             moveDX = nd > 0.1 ? (nwp.x - sp.x) / nd : 0;
             moveDY = nd > 0.1 ? (nwp.y - sp.y) / nd : 0;
           }
-        } else { moveDX = 0; moveDY = 0; }
+        } else {
+          // A* 실패 폴백: 대각 방향으로 탈출 시도
+          const baseAngle = Math.atan2(chaseY - sp.y, chaseX - sp.x);
+          const failCount = sp._pathFailCount || 0;
+          const sideAngle = baseAngle + (Math.PI * 0.33) * (failCount % 2 === 0 ? 1 : -1);
+          moveDX = Math.cos(sideAngle);
+          moveDY = Math.sin(sideAngle);
+        }
 
         const slowFactor = isSlowed ? 0.4 : 1;
         const spd = BS.spirit.speed * dt * slowFactor;
@@ -5900,21 +5856,31 @@ function loop() {
       } else {
         sp._path = [];
       }
+      } // end chaseTarget block
     }
-
-    // ── 근접 공격 (속박 중에도 가능) ──
+    // ── 근접 공격 — hitCtx로 R과 R.elinSpirit 동시 판정 ──
     if (!isStunned) {
-      if (Math.hypot(R.x - sp.x, R.y - sp.y) < BS.spirit.meleeRange + R.radius) {
+      // 가장 가까운 타겟까지 거리 계산 (이동 목표 판단용)
+      const anyInRange = _enemyTargets.some(
+        t => Math.hypot(t.x - sp.x, t.y - sp.y) < BS.spirit.meleeRange + t.radius
+      );
+
+      if (anyInRange) {
         if (!sp._inMeleeRange) {
           sp._inMeleeRange = true;
-          sp._meleeReadyAt = now + 500;
-          // ✅ 500ms 선딜레이 후 첫 타 정확히 발동되도록 역산
-          sp._lastMeleeHit = now - (BS.spirit.meleeInterval - 500);
+          sp._meleeReadyAt  = now + 500;
+          sp._lastMeleeHit  = now - (BS.spirit.meleeInterval - 500);
         }
         if (now >= sp._meleeReadyAt && now - sp._lastMeleeHit >= BS.spirit.meleeInterval) {
           sp._lastMeleeHit = now;
-          hitRemote(BS.spirit.meleeDamage);
-          const atkAngle = Math.atan2(R.y - sp.y, R.x - sp.x);
+          // hitCtx 가 R + R.elinSpirit 모두 범위 안이면 동시에 타격
+          hitCtxAll({x:sp.x, y:sp.y, range:BS.spirit.meleeRange}, BS.spirit.meleeDamage); // R 공격
+          hitCtxSpirit({x:sp.x, y:sp.y, range:BS.spirit.meleeRange}, BS.spirit.meleeDamage); // 상대 정령 공격
+          // FX: 가장 가까운 타겟 방향
+          const closestT = _enemyTargets.reduce((a,b) =>
+            Math.hypot(a.x-sp.x,a.y-sp.y) < Math.hypot(b.x-sp.x,b.y-sp.y) ? a : b
+          );
+          const atkAngle = Math.atan2(closestT.y - sp.y, closestT.x - sp.x);
           addFx({type:'elinSpiritAtk', x:sp.x, y:sp.y, angle:atkAngle, range:BS.spirit.meleeRange, dur:10, maxDur:10});
           send({type:'fx', fx:{type:'elinSpiritAtk', x:sp.x, y:sp.y, angle:atkAngle, range:BS.spirit.meleeRange, dur:10, maxDur:10}});
         }
@@ -5950,8 +5916,13 @@ function loop() {
       const dx = R.x - L.x, dy = R.y - L.y;
       const fwd  =  dx*cos + dy*sin;
       const perp = Math.abs(-dx*sin + dy*cos);
-      if (fwd > 0 && fwd < BL.range && perp < BL.width/2 + R.radius) {
-        hitRemote(BL.damage);
+      // 레이저: R과 R.elinSpirit 직접 판정
+      if (!R.burrowing && fwd>0 && fwd<BL.range && perp<BL.width/2+R.radius) hitRemote(BL.damage);
+      if (R.elinSpirit) {
+        const _ldx=R.elinSpirit.x-L.x, _ldy=R.elinSpirit.y-L.y;
+        const _lfwd=_ldx*cos+_ldy*sin, _lperp=Math.abs(-_ldx*sin+_ldy*cos);
+        if (_lfwd>0 && _lfwd<BL.range && _lperp<BL.width/2+BALANCE.elin.spirit.radius)
+          send({type:'spiritHit', damage:BL.damage});
       }
       // 저장량 소진
       L._erapabiStoredDmg = Math.max(0, (L._erapabiStoredDmg || 0) - BL.drainPerTick);
@@ -5979,8 +5950,9 @@ function loop() {
       const perp=Math.abs(ex*(-uy)+ey*ux);
       if (proj>=-R.radius && proj<=len+R.radius && perp<28+R.radius) {
         L._mhOrb.hit=true;
-        clearTimeout(L._mhOrbTimer); L._mhOrbTimer=null; L._mhOrb=null;
-        hitRemote(BALANCE.mehugu.rmb.damage);
+        clearTimeout(L._mhOrbTimer); L._mhOrbTimer=null;
+        const _ox=L._mhOrb?.x??ox, _oy=L._mhOrb?.y??oy; L._mhOrb=null;
+        hitCtxAll({x:L.x+(ux*len*0.5), y:L.y+(uy*len*0.5), range:len*0.5+28}, BALANCE.mehugu.rmb.damage);
         bindRemote(BALANCE.mehugu.rmb.bindDur);
         addFx({type:'mhRopeLine', x:L.x, y:L.y, tx:ox, ty:oy, dur:14, maxDur:14});
         send({type:'fx', fx:{type:'mhRopeLine', x:L.x, y:L.y, tx:ox, ty:oy, dur:14, maxDur:14}});
@@ -5997,7 +5969,7 @@ function loop() {
       const trap = L._shairazTraps[i];
       if (nowT - trap.placedAt < 500) continue; // 0.5초 준비 시간
       if (Math.hypot(R.x - trap.x, R.y - trap.y) < BT.trapRadius + R.radius) {
-        hitRemote(BT.damage);
+        hitCtxAll({x:trap.x, y:trap.y, range:BT.trapRadius}, BT.damage);
         stunRemote(BT.stunDur);
         addFx({type:'shairazTrapTrigger', x:trap.x, y:trap.y, r:0, maxR:55, dur:20, maxDur:20});
         send({type:'fx', fx:{type:'shairazTrapTrigger', x:trap.x, y:trap.y, r:0, maxR:55, dur:20, maxDur:20}});
@@ -6089,6 +6061,7 @@ function loop() {
     }
   }
 
+  tickMinions(dt, physDt, now);
   moveBullets(dt);
   processJustCheck(dt);
   for (let i=peerBullets.length-1; i>=0; i--) {
