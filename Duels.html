@@ -143,7 +143,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.10</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.11</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -709,7 +709,7 @@ const BALANCE = {
       damage:      15,
       advanceDist: 38,
       advanceDur:  120,
-      cd:          700,
+      cd:          400,
     },
     lmbBlessed: {
       cost:      20,
@@ -970,7 +970,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.ruvu.hp,
     speed:     BALANCE.ruvu.speed,
     radius:    BALANCE.ruvu.radius,
-    statsText: [['체력', String(BALANCE.ruvu.hp)],['이동속도','보통'],['스타일','유지형 원거리 저격수']],
+    statsText: [['체력', String(BALANCE.ruvu.hp)],['이동속도','보통'],['스타일','기동형 원거리 저격수']],
     desc:      '망치로 못을 쳐날리는 캐릭터.',
     skills: [
       { key:'LMB',     name:'못망치',   cost:BALANCE.ruvu.lmb.cost, desc:`고속 못 발사 (${BALANCE.ruvu.lmb.damage})` },
@@ -1002,7 +1002,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.mainmad.hp,
     speed:     BALANCE.mainmad.speed,
     radius:    BALANCE.mainmad.radius,
-    statsText: [['체력', String(BALANCE.mainmad.hp)],['이동속도','빠름'],['스타일','차징형 초근거리 탱커']],
+    statsText: [['체력', String(BALANCE.mainmad.hp)],['이동속도','빠름'],['스타일','차징형 근거리 탱커']],
     desc:      '드릴 건틀렛을 차징해 한방 딜교환으로 승부수를 띄우는 캐릭터',
     skills: [
       { key:'LMB',     name:'드릴 건틀렛', cost:`${BALANCE.mainmad.lmb.costMin}~${BALANCE.mainmad.lmb.costMax}`, desc:`누르고 있으면 차징 후 떼면 발동 (${BALANCE.mainmad.lmb.minDamage}~${BALANCE.mainmad.lmb.maxDamage})` },
@@ -1066,11 +1066,11 @@ const CHARACTERS = {
     maxHealth: BALANCE.veleu.hp,
     speed:     BALANCE.veleu.speed,
     radius:    BALANCE.veleu.radius,
-    statsText: [['체력', String(BALANCE.veleu.hp)],['이동속도','매우 빠름'],['스타일','파워형 원거리 저격수']],
+    statsText: [['체력', String(BALANCE.veleu.hp)],['이동속도','매우 빠름'],['스타일','파워형 원거리 딜러']],
     desc:      '로켓포로 게임을 끝장내는 캐릭터',
     skills: [
       { key:'LMB',     name:'초콜릿 쌍권총',    cost:BALANCE.veleu.lmb.cost, desc:`쌍권총 3발 발사 (탄당 ${BALANCE.veleu.lmb.damage}).` },
-      { key:'RMB',     name:'초콜릿 로켓포',    cost:'전량', desc:`강력한 초콜릿 로켓 발사. 폭발 범위 내 피해(${BALANCE.veleu.rmb.explosionDamage}) 및 발사 지점에 ${BALANCE.veleu.rmb.slowDur/1000}초 슬로우 지대, 근접 적중 시 기절` },
+      { key:'RMB',     name:'초콜릿 로켓포',    cost:'전량', desc:`강력한 초콜릿 로켓 발사. 폭발 범위 내 피해 및 발사 지점에 ${BALANCE.veleu.rmb.slowDur/1000}초 슬로우 지대, 근접 적중 시 기절 (${BALANCE.veleu.rmb.explosionDamage})` },
       { key:'L-Shift', name:'초콜릿 폭탄 투척', cost:0, desc:`전방에 초콜릿 폭탄 ${BALANCE.veleu.counter.count}개를 일렬로 투척 (탄당 ${BALANCE.veleu.counter.damage})` },
     ],
   },
@@ -1177,7 +1177,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.phase.hp,
     speed:     BALANCE.phase.speed,
     radius:    BALANCE.phase.radius,
-    statsText: [['체력', String(BALANCE.phase.hp)],['이동속도','보통'],['스타일','버서커형 근거리 암살자']],
+    statsText: [['체력', String(BALANCE.phase.hp)],['이동속도','보통'],['스타일','버서커형 초근거리 암살자']],
     desc:      '빠른 속공으로 적을 한번에 처치하는 캐릭터',
     skills: [
       { key:'LMB',     name:'패스트 펀치', cost:BALANCE.phase.lmb.cost,  desc:`근거리 연속 펀치. 체력이 낮을수록 연사속도 증가 (${BALANCE.phase.lmb.damage})` },
@@ -1218,7 +1218,7 @@ const CHARACTERS = {
       { key:'LMB',     name:'저격',    cost:`${BALANCE.cherity.lmb.minCost}~${BALANCE.cherity.lmb.maxCost}`,
         desc:`이동을 정지하며 차징. 길게 차징할수록 피해 및 탄속 증가. 최대 차징 시 벽 관통 (${BALANCE.cherity.lmb.minDamage}~${BALANCE.cherity.lmb.maxDamage})` },
       { key:'RMB',     name:'물러서!', cost:BALANCE.cherity.rmb.cost,
-        desc:`후방으로 슬라이딩 후 근거리 대응 산탄 발사. 적중 시 강한 넉백 (${BALANCE.cherity.rmb.damage})` },
+        desc:`후방으로 슬라이딩 후 근거리 대응 산탄 발사. 적중 시 강한 넉백 (탄당 ${BALANCE.cherity.rmb.damage})` },
       { key:'L-Shift', name:'연막탄',  cost:0,
         desc:`연막탄 투척. 착탄 시 범위 내 피해 및 넉백. 연막 내 플레이어는 은신. 가까운 적은 확인 가능 (${BALANCE.cherity.counter.damage})` },
     ],
