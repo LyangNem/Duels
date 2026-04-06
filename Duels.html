@@ -108,6 +108,69 @@ input[type=text]:focus{border-color:#4af;}
 .win{color:#4f8;text-shadow:0 0 30px #4f8;}
 .lose{color:#f44;text-shadow:0 0 30px #f44;}
 
+/* ── 매치 포맷 선택 ── */
+.format-row{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px;color:#99b;letter-spacing:1px;}
+.format-row select{background:#111318;color:#adf;border:1px solid #2a4a6a;padding:6px 12px;font-family:'Courier New',monospace;font-size:13px;border-radius:2px;cursor:pointer;}
+.format-row select:focus{border-color:#4af;outline:none;}
+
+/* ── 라운드 스코어 ── */
+#round-score{position:fixed;top:10px;left:50%;transform:translateX(-50%);
+  background:rgba(10,10,15,0.85);border:1px solid #2a4a6a;border-radius:4px;
+  padding:4px 18px;font-size:13px;color:#adf;letter-spacing:3px;z-index:40;pointer-events:none;}
+
+/* ── 증강 HUD (좌상단 통합) ── */
+#aug-wrapper{position:fixed;top:48px;left:12px;z-index:40;display:flex;flex-direction:column;gap:4px;}
+#aug-hud{display:flex;flex-direction:row;gap:4px;}
+#peer-aug-hud{display:flex;flex-direction:row;gap:4px;}
+#aug-divider{font-size:9px;color:#334;letter-spacing:1px;padding:1px 0;display:none;}
+.aug-icon{width:32px;height:32px;border-radius:4px;border:1px solid #2a4a6a;background:#0d1520;
+  cursor:default;display:flex;align-items:center;justify-content:center;font-size:14px;
+  position:relative;transition:border-color .15s;}
+.aug-icon:hover{border-color:#4af;}
+.aug-tooltip{display:none;position:absolute;left:38px;top:0;background:#0d1520;border:1px solid #2a4a6a;
+  border-radius:4px;padding:8px 12px;white-space:nowrap;font-size:11px;color:#adf;
+  letter-spacing:1px;line-height:1.8;min-width:180px;z-index:60;}
+.aug-icon:hover .aug-tooltip{display:block;}
+.aug-tooltip b{color:#fa0;}
+.aug-icon.peer-aug{border-color:#f44;}
+.aug-icon.peer-aug:hover{border-color:#f88;}
+
+/* ── 라운드 종료 화면 ── */
+#scr-between{background:#0a0a0c;}
+.between-cols{display:flex;gap:40px;align-items:flex-start;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+.between-panel{background:#0d1520;border:1px solid #1a2a3a;border-radius:6px;padding:20px 24px;min-width:240px;}
+.between-title{font-size:12px;letter-spacing:3px;color:#4af;margin-bottom:14px;text-transform:uppercase;}
+.char-mini-grid{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.char-mini-card{width:80px;padding:10px 6px;border:1px solid #2a4a6a;border-radius:4px;
+  cursor:pointer;text-align:center;font-size:11px;transition:all .15s;background:#0a0a12;}
+.char-mini-card:hover{border-color:#4af;background:#111820;}
+.char-mini-card.sel{border-color:#fa0;background:#12100a;}
+.char-mini-card .cmini-icon{width:30px;height:30px;border-radius:50%;margin:0 auto 6px;border:2px solid;}
+.char-mini-card .cmini-name{color:#adf;letter-spacing:1px;}
+.aug-pick-grid{display:flex;flex-direction:column;gap:8px;}
+.aug-pick-card{border:1px solid #2a4a6a;border-radius:4px;padding:10px 14px;cursor:pointer;
+  transition:all .15s;background:#0a0a12;}
+.aug-pick-card:hover{border-color:#4af;background:#111820;}
+.aug-pick-card.sel{border-color:#fa0;background:#12100a;}
+.aug-pick-card.locked{opacity:0.45;cursor:not-allowed;pointer-events:none;}
+.aug-pick-name{color:#fa0;font-size:12px;letter-spacing:2px;margin-bottom:3px;}
+.aug-pick-desc{color:#667;font-size:11px;letter-spacing:1px;}
+.aug-rarity-common{color:#adf;}.aug-rarity-uncommon{color:#a8f;}.aug-rarity-rare{color:#fa0;}
+.score-display{display:flex;gap:24px;justify-content:center;margin-bottom:10px;}
+.score-pip{width:18px;height:18px;border-radius:50%;border:2px solid #2a4a6a;background:#0a0a12;transition:all .3s;}
+.score-pip.filled-local{background:#4af;border-color:#4af;box-shadow:0 0 8px #4af;}
+.score-pip.filled-peer{background:#f44;border-color:#f44;box-shadow:0 0 8px #f44;}
+/* ── 라운드 결과 오버레이 ── */
+#round-result-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);
+  flex-direction:column;align-items:center;justify-content:center;z-index:55;
+  pointer-events:none;
+}
+#round-result-text{font-size:3.2em;letter-spacing:6px;font-weight:bold;text-transform:uppercase;margin-bottom:10px;}
+#round-result-sub{font-size:1em;letter-spacing:3px;color:#778;}
+
+
+
 </style>
 </head>
 <body>
@@ -143,7 +206,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.15.11</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.16.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -152,6 +215,22 @@ input[type=text]:focus{border-color:#4af;}
   <div class="code-box" id="code-display">------</div>
   <button class="btn mb-8" id="copy-btn" onclick="copyCode()">코드 복사</button>
   <p class="sub">상대방에게 이 코드를 전달하세요</p>
+  <div style="margin:10px 0;padding:12px 20px;background:#0d1520;border:1px solid #1a2a3a;border-radius:4px;">
+    <div class="format-row">
+      <span>총 판 수</span>
+      <select id="fmt-total">
+        <option value="1">1판</option>
+        <option value="3">3판</option>
+        <option value="5">5판</option>
+        <option value="7">7판</option>
+        <option value="9" selected>9판</option>
+        <option value="11">11판</option>
+        <option value="13">13판</option>
+        <option value="15">15판</option>
+      </select>
+      <span id="fmt-wins-label" style="color:#4af;letter-spacing:2px;">3선승</span>
+    </div>
+  </div>
   <p class="status" id="host-status">상대방 연결 대기 중...</p>
   <button class="btn" onclick="backToLobby()">뒤로가기</button>
 </div>
@@ -194,11 +273,69 @@ input[type=text]:focus{border-color:#4af;}
 <!-- 결과 화면 -->
 <div id="result-oveleulay">
   <div id="result-text" class="result-big"></div>
+  <!-- 리매치 판수 설정 (호스트만 표시) -->
+  <div id="rematch-format-row" style="display:none;margin:14px 0 4px;gap:10px;" class="format-row">
+    <span>재경기 판 수</span>
+    <select id="rematch-fmt-total">
+      <option value="1">1판</option>
+      <option value="3">3판</option>
+      <option value="5">5판</option>
+      <option value="7">7판</option>
+      <option value="9" selected>9판</option>
+      <option value="11">11판</option>
+      <option value="13">13판</option>
+      <option value="15">15판</option>
+    </select>
+    <span id="rematch-wins-label" style="color:#4af;letter-spacing:2px;">5선승</span>
+  </div>
   <div class="flex-gap-12-mt8">
     <button class="btn big" id="rematch-btn" onclick="requestRematch()">리매치</button>
     <button class="btn big" onclick="location.reload()">처음으로</button>
   </div>
   <p class="status" id="rematch-status"></p>
+</div>
+
+<!-- 라운드 스코어 (인게임) -->
+<div id="round-score" style="display:none"></div>
+
+<!-- 라운드 결과 오버레이 (일시적) -->
+<div id="round-result-overlay">
+  <div id="round-result-text"></div>
+  <div id="round-result-sub"></div>
+</div>
+
+<!-- 증강 HUD (좌상단: 내 증강 위, 상대 증강 아래) -->
+<div id="aug-wrapper">
+  <div id="aug-hud"></div>
+  <div id="aug-divider">─ 상대 ─</div>
+  <div id="peer-aug-hud"></div>
+</div>
+
+<!-- 라운드 사이 화면 -->
+<div id="scr-between" class="screen hidden">
+  <h2 id="between-title">라운드 종료</h2>
+  <div class="score-display" id="between-score"></div>
+
+  <div class="between-cols">
+    <!-- 캐릭터 변경 패널 -->
+    <div class="between-panel">
+      <div class="between-title">캐릭터 변경 <span style="color:#556;font-size:10px;">(선택 안 하면 유지)</span></div>
+      <div class="char-mini-grid" id="between-char-grid"></div>
+      <p class="status" id="between-char-status" style="margin-top:10px;font-size:11px;"></p>
+    </div>
+
+    <!-- 증강 선택 패널 (패배자만 선택, 승리자는 관람) -->
+    <div class="between-panel" id="between-aug-panel">
+      <div class="between-title" id="between-aug-title">증강 선택</div>
+      <div class="aug-pick-grid" id="between-aug-grid"></div>
+      <div class="peer-aug-display" id="peer-aug-display"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;">
+    <button class="btn big" id="between-ready-btn" onclick="betweenReady()">준비 완료</button>
+    <p class="status" id="between-status" style="margin-top:8px;"></p>
+  </div>
 </div>
 
 <!-- 게임 캔버스 래퍼 -->
@@ -528,9 +665,49 @@ const BALANCE = {
   // ── 엘린 ──────────────────────────────────────────────────
   elin: {
     hp:     100,
-    speed:  4,
+    speed:  3.75,
     radius: 20,
-    // 리메이크 예정 — 스킬 미구현
+
+    lmb: {                  // 유령구체 — 관통 후 탄착지점 폭발
+      cost:           25,
+      speed:          14,
+      radius:         10,
+      range:          1100,
+      explosionRange: 80,
+      damage:         15,
+      healAmount:     15,   // 폭발 범위 내 유령 회복
+      cd:             600,
+    },
+    rmb: {                  // 유령친구 — 소환 / 돌진 명령
+      summonCost: 200,      // 소환 시 스테미나 전량 소모
+      cdSummon:   200,
+      cdDash:     700,
+      dashDur:    350,      // 돌진 이동 시간 (ms)
+      dashDamage: 30,
+      dashKnockback: 0,
+    },
+    counter: {              // 죽지말아줘! — 유령 회복 투사체 + 이중 폭발
+      projSpeed:      18,
+      projRadius:     12,
+      healAmount:     60,
+      explosionRange: 100,
+      damage:         20,
+      knockbackPower: 420,
+      cd:             300,
+    },
+    spirit: {               // 유령 소환수 스탯
+      maxHp:         130,
+      speed:         2.6,   // 이동속도 감소
+      radius:        18,
+      meleeRange:    80,    // 공격 사거리 (접촉 없이 공격)
+      meleeHalfAngle: Math.PI / 2, // 반원형 (앞쪽 180°)
+      meleeDamage:   10,
+      meleeInterval: 1200,
+      stopRange:     90,    // 이 거리 이내면 추격 중단
+      dashDamage:    30,
+      dashKnockback: 260,
+      dashDur:       350,
+    },
   },
 
   // ── 엔소냐 ────────────────────────────────────────────────
@@ -1082,10 +1259,16 @@ const CHARACTERS = {
     maxHealth: BALANCE.elin.hp,
     speed:     BALANCE.elin.speed,
     radius:    BALANCE.elin.radius,
-    disabled:  true,   // 리메이크 중 — 선택 불가
-    statsText: [['체력', '??'],['이동속도','??'],['스타일','리메이크 중']],
-    desc:      '리메이크 예정 캐릭터입니다.',
-    skills: [],
+    statsText: [['체력', String(BALANCE.elin.hp)],['이동속도','느림'],['스타일','소환형 초장거리 서포터']],
+    desc:      '유령 친구를 소환해 함께 전투하는 캐릭터.',
+    skills: [
+      { key:'LMB', name:'유령구체', cost: BALANCE.elin.lmb.cost,
+        desc:`벽과 적을 관통하는 구체 발사. 탄착지점에서 폭발해 피해. 범위 내 유령은 ${BALANCE.elin.lmb.healAmount} 체력 회복(${BALANCE.elin.lmb.damage})` },
+      { key:'RMB', name:'유령친구', cost: 200,
+        desc:`스테미나 전량 소모해 유령 소환. 유령이 있으면 가장 가까운 적에게 돌진 명령 (${BALANCE.elin.spirit.dashDamage})` },
+      { key:'L-Shift', name:'죽지말아줘!', cost: 0,
+        desc:`유령을 향해 투사체 발사. 도달 시 유령 ${BALANCE.elin.counter.healAmount} 회복. 유령 및 엘린 위치 폭발 및 넉백 (${BALANCE.elin.counter.damage})` },
+    ],
   },
 
   nsonya: {
@@ -1417,6 +1600,50 @@ const MAPS = [
 // game-state.js — 전역 게임 상태 변수 · 플레이어 객체 · 카메라
 // ============================================================
 let gameOn      = false;
+
+// ── 증강 정의 ──────────────────────────────────────────────
+const AUGMENTS = [
+  { id:'tank',       name:'탱크',         emoji:'🛡️', rarity:'rare',   desc:'최대 체력 +30%' },
+  { id:'big_bullet', name:'거대 총알',    emoji:'🔴', rarity:'common', desc:'탄환 크기 +60%' },
+  { id:'last_dance', name:'라스트 댄스',  emoji:'💃', rarity:'rare',   desc:'체력 30% 이하 시 피해량 +20%' },
+  { id:'movement',   name:'무브먼트',     emoji:'💨', rarity:'rare',   desc:'이동속도 +15%' },
+  { id:'last_stand', name:'최후의 발악',  emoji:'💀', rarity:'hero',   desc:'사망할 피해를 받을 때 체력 1을 남기고 버팀' },
+  { id:'lifesteal',   name:'흡혈',         emoji:'🩸', rarity:'rare',   desc:'타격 시 공격력의 10%만큼 체력 회복' },
+  { id:'endurance',   name:'지구력',       emoji:'⚡', rarity:'common', desc:'최대 스테미나 +25%' },
+  { id:'poison',      name:'독',           emoji:'☠️', rarity:'hero',   desc:'피해를 줄 시 2초간 초당 5%의 추가 피해를 2회 적용' },
+  { id:'berserker',   name:'버서커',       emoji:'🔥', rarity:'hero',   desc:'피해를 입으면 스테미나 회복 (4피해 : 1스테미나, 중첩당 +1)' },
+  { id:'protection',  name:'보호',         emoji:'🪨', rarity:'common', desc:'모든 받는 피해 15% 감소' },
+  { id:'overpower',   name:'오버파워',     emoji:'💪', rarity:'common', desc:'이동속도와 피해량 +10%' },
+  { id:'stun_shot',   name:'스턴샷',       emoji:'🌀', rarity:'hero',   desc:'4초마다 다음 평타가 적을 0.5초 기절시킴' },
+  { id:'speed_shot',  name:'스피드 샷',    emoji:'🚀', rarity:'common', desc:'탄속 +20%' },
+  { id:'fortress',    name:'절대방어',     emoji:'🏰', rarity:'hero',   desc:'0.5초간 가만히 서 있으면 받는 피해 60% 감소 (중첩 불가)' },
+  { id:'counter_def', name:'공격방어',     emoji:'🛡', rarity:'rare',   desc:'피해를 줄 시 2초간 받는 피해 20% 감소' },
+];
+const RARITY_COLOR = { common:'#aaa', rare:'#2dd4bf', hero:'#a855f7' };
+
+// ── 매치 상태 ──────────────────────────────────────────────
+const matchState = {
+  format: { total: 3, winsNeeded: 2 },
+  localWins: 0,
+  peerWins:  0,
+  round:     1,
+  localAugments: [],   // 내가 보유한 증강 id[]
+  peerAugments:  [],   // 상대가 보유한 증강 id[]
+  lastWinner: null,    // 'local' | 'peer'
+  // 라운드 사이 임시
+  _charChoices:   [],  // 제안된 3개 캐릭터 id
+  _augChoices:    [],  // 제안된 5개 증강 id
+  _selectedChar:  null,
+  _selectedAug:   null,
+  _localBetweenReady:  false,
+  _peerBetweenReady:   false,
+  _peerSelectedChar: null,
+  _peerSelectedAug:  null,
+};
+
+// 증강 보유 개수 반환 (중복 보유 가능)
+function getAugCount(id) { return matchState.localAugments.filter(x => x === id).length; }
+
 let currentMap  = MAPS[0];
 let mouseScreenX = 600, mouseScreenY = 400;
 let mouseX      = 600, mouseY = 400, mouseDown = false;
@@ -1585,7 +1812,17 @@ function hostGame() {
   showScr('scr-host');
   document.getElementById('code-display').textContent = code;
   peer = new Peer(code, { debug:0 });
-  peer.on('connection', c => { conn=c; isHost=true; setStatus('host-status','연결됨!','ok'); setupConn(); });
+  peer.on('connection', c => {
+    conn=c; isHost=true;
+    // 포맷 읽기 (선승은 총판수에서 자동 계산)
+    const tot  = parseInt(document.getElementById('fmt-total').value) || 5;
+    const wins = Math.ceil(tot / 2);
+    matchState.format = { total: tot, winsNeeded: wins };
+    matchState.localWins = 0; matchState.peerWins = 0; matchState.round = 1;
+    matchState.localAugments = []; matchState.peerAugments = [];
+    setStatus('host-status','연결됨!','ok');
+    setupConn();
+  });
   peer.on('error', e => setStatus('host-status','오류: '+e.type,'err'));
 }
 function showJoin() { showScr('scr-join'); }
@@ -1598,7 +1835,10 @@ function joinGame() {
   peer.on('error', e => setStatus('join-status','오류: '+e.type,'err'));
 }
 function setupConn() {
-  conn.on('open',  () => showScr('scr-select'));
+  conn.on('open', () => {
+    if (isHost) send({type:'matchFormat', format: matchState.format});
+    showScr('scr-select');
+  });
   conn.on('data',  onData);
   conn.on('close', () => { if (gameOn) alert('상대방 연결 끊김'); });
 }
@@ -1620,6 +1860,7 @@ function onData(d) {
   switch (d.type) {
     case 'state':
       R.tx=d.x; R.ty=d.y; R.health=d.health; R.stamina=d.stamina;
+      if (d.maxHealth) R.maxHealth = d.maxHealth;
       R.dodging=d.dodging; R.counterReady=d.counterReady??false;
       R.toolbox=d.toolbox??null;
       R.ropeOrb=d.ropeOrb??null;
@@ -1630,6 +1871,7 @@ function onData(d) {
       R.erapabiFortify=d.erapabiFortify??false;
       R.nsonyaStacks=d.nsonyaStacks??0;
       R.reikaBlessed=d.reikaBlessed??false;
+      R.fortressActive=d.fortressActive??false;
       // 상대 소환수 동기화
       if (d.minions) {
         // 기존 peerMinion에서 없어진 것 필터 + 새로 추가
@@ -1638,13 +1880,13 @@ function onData(d) {
         for (const md of incoming) {
           const exist = peerMinions.find(pm => pm.id === md.id);
           if (exist) {
-            // 위치·HP 갱신 (부드럽게 하려면 tx/ty 보간도 가능)
-            exist.x = md.x; exist.y = md.y;
+            // tx/ty를 목표 위치로 설정 — 매 프레임 보간으로 부드럽게 이동
+            exist.tx = md.x; exist.ty = md.y;
             exist.hp = md.hp; exist.maxHp = md.maxHp;
             nextPeer.push(exist);
           } else {
-            // 신규 소환수 등록
-            nextPeer.push({ ...md });
+            // 신규 소환수: 즉시 배치 후 tx/ty 초기화
+            nextPeer.push({ ...md, tx: md.x, ty: md.y });
           }
         }
         peerMinions = nextPeer;
@@ -1665,11 +1907,47 @@ function onData(d) {
     case 'dead':
       endGame(true); break;
     case 'rematchRequest':
+      if (d.format) { matchState.format = d.format; } // 호스트가 보낸 새 포맷 적용
       setStatus('rematch-status','상대방이 리매치를 요청했습니다!','ok');
       document.getElementById('rematch-btn').textContent='수락';
       document.getElementById('rematch-btn').onclick=acceptRematch; break;
     case 'rematchAccept':
+      if (d.format) matchState.format = d.format;
       doRematch(); break;
+    // ── 매치 포맷 수신 (호스트→참가자)
+    case 'matchFormat':
+      matchState.format = d.format;
+      matchState.localWins = 0; matchState.peerWins = 0; matchState.round = 1;
+      matchState.localAugments = []; matchState.peerAugments = [];
+      break;
+    // ── 라운드 사이: 캐릭터/증강 선택지 수신 (호스트→참가자)
+    case 'betweenData':
+      matchState._charChoices  = d.charChoices;
+      matchState._augChoices   = d.augChoices;
+      matchState.lastWinner    = d.winner === 'peer' ? 'local' : 'peer'; // 호스트 기준 반전
+      showBetweenScreen(); break;
+    // ── 상대방 선택 수신
+    case 'betweenSelection':
+      matchState._peerSelectedChar = d.charId ?? null;
+      matchState._peerSelectedAug  = d.augId  ?? null;
+      matchState._peerBetweenReady = true;
+      // 증강 추가
+      if (d.augId) matchState.peerAugments.push(d.augId);
+      updatePeerAugDisplay();
+      checkBetweenBothReady(); break;
+    // ── 라운드 시작 동기화 (호스트→참가자)
+    case 'roundStart':
+      currentMap = MAPS[d.mapIdx ?? 0]; // 3. 맵 변경
+      if (!matchState._betweenStarted) {
+        matchState._betweenStarted = true;
+        if (matchState._peerSelectedChar) peerCharId = matchState._peerSelectedChar;
+        updatePeerAugDisplay();
+      }
+      startBetweenCountdown(3); // 피어도 동시에 카운트다운 시작
+      break;
+    // ── 최종 매치 종료
+    case 'matchOver':
+      showMatchOver(false); break; // 내가 졌을 때 받음
     case 'fx':
       addFx({...d.fx}); break;
     case 'colorChange':
@@ -1712,6 +1990,9 @@ function onData(d) {
     case 'burning':
       L._burnEnd = Math.max(L._burnEnd||0, performance.now() + d.dur);
       break;
+    case 'poisoned':
+      L._beingPoisonedExpiry = performance.now() + d.dur; // 내가 독에 걸림
+      break;
     case 'cancelBullets':
       if (d.ids) d.ids.forEach(id => {
         const ci = localBullets.findIndex(b => b.id===id);
@@ -1740,6 +2021,18 @@ function onData(d) {
 // ============================================================
 let selCharId = null;
 document.addEventListener('DOMContentLoaded', () => {
+  // 총판수 변경 시 선승 자동 계산 표시
+  const fmtTotal = document.getElementById('fmt-total');
+  if (fmtTotal) {
+    fmtTotal.addEventListener('change', () => {
+      const tot = parseInt(fmtTotal.value);
+      const maxWins = Math.ceil(tot / 2);
+      const label = document.getElementById('fmt-wins-label');
+      if (label) label.textContent = `${maxWins}선승`;
+    });
+    fmtTotal.dispatchEvent(new Event('change'));
+  }
+
   const grid = document.getElementById('char-grid');
   Object.values(CHARACTERS).forEach(ch => {
     const card = document.createElement('div');
@@ -1803,7 +2096,11 @@ function confirmSelect() {
 }
 function checkBothReady() {
   if (!localReady||!peerReady) return;
-  if (isHost) { const mi=Math.floor(Math.random()*MAPS.length); currentMap=MAPS[mi]; send({type:'start', mapIdx:mi}); startGame(); }
+  if (isHost) {
+    if (matchState.round === 1) send({type:'matchFormat', format: matchState.format});
+    const mi=Math.floor(Math.random()*MAPS.length); currentMap=MAPS[mi];
+    send({type:'start', mapIdx:mi}); startGame();
+  }
 }
 
 // ============================================================
@@ -1823,19 +2120,23 @@ function useStam(amt) {
   return true;
 }
 function tickStamina(now, physDt) {
-  if (L.stamina >= STAM_MAX) return;
+  const stamMax = L._augStamMax ?? STAM_MAX;
+  if (L.stamina >= stamMax) return;
   if (now - L.staminaUseTime < STAM_DELAY) return;
   const regenMult = (L.charDef?.id === 'nsonya' && (L._nsonyaStacks||0) >= 2)
     ? BALANCE.nsonya.rmb.stamRegenMult : 1;
-  L.stamina = Math.min(STAM_MAX, L.stamina + (STAM_MAX / STAM_REGEN) * physDt * regenMult);
+  const augMult = 1;
+  L.stamina = Math.min(stamMax, L.stamina + (stamMax / STAM_REGEN) * physDt * regenMult * augMult);
 }
 function tickRegen(now) {
   if (L.health >= L.maxHealth) return;
-  if (now - L.lastHitTime    < REGEN_IDLE) return;
-  if (now - L.lastAttackTime < REGEN_IDLE) return;
+  const regenIdle = REGEN_IDLE;
+  if (now - L.lastHitTime    < regenIdle) return;
+  if (now - L.lastAttackTime < regenIdle) return;
   if (now - L.lastRegenTick  < REGEN_TICK) return;
   L.lastRegenTick = now;
-  L.health = Math.min(L.maxHealth, L.health + L.maxHealth * REGEN_AMT);
+  const amt = REGEN_AMT;
+  L.health = Math.min(L.maxHealth, L.health + L.maxHealth * amt);
 }
 
 // ============================================================
@@ -1858,14 +2159,38 @@ function receiveHit(dmg) {
   if (L.charDef?.id === 'erapabi') {
     L._erapabiStoredDmg = (L._erapabiStoredDmg || 0) + dmg;
   }
+  // 받는 피해 감소: 보호·공격방어·절대방어 중 최고값만 적용
+  const dmgReductions = [];
+  const protCount = getAugCount('protection');
+  if (protCount > 0) dmgReductions.push(0.15 * protCount);
+  const counterDefActive = L._counterDefExpiry && performance.now() < L._counterDefExpiry;
+  if (counterDefActive) dmgReductions.push(0.20 * getAugCount('counter_def'));
+  if (getAugCount('fortress') > 0 && L._fortressActive) dmgReductions.push(0.60);
+  if (dmgReductions.length > 0) {
+    dmg = dmg * Math.max(0, 1 - Math.max(...dmgReductions));
+    // 공격방어가 활성화 중이면 FX 표시
+    if (counterDefActive) addFx({type:'counterDefBlock', x:L.x, y:L.y, r:0, maxR:30, dur:10, maxDur:10});
+  }
+  // 최후의 발악: 치사량 피해 시 체력 1 유지 (스택당 1회씩)
+  if ((L._lastStandUses ?? 0) > 0 && L.health - dmg <= 0 && L.health > 1) {
+    L._lastStandUses--;
+    dmg = L.health - 1;
+    addFx({type:'counter', x:L.x, y:L.y, r:0, maxR:60, dur:20, maxDur:20});
+  }
   L.health = Math.max(0, L.health - dmg);
+  // 버서커: 피해 입을 때 스테미나 회복 (4피해 : 1스테미나, 중첩당 +1)
+  const bersCount = getAugCount('berserker');
+  if (bersCount > 0) {
+    const stamMax = L._augStamMax ?? STAM_MAX;
+    L.stamina = Math.min(stamMax, L.stamina + dmg * bersCount / 4);
+  }
   L.lastHitTime = performance.now();
   L.hitFlash = 14;
   // 연막 안 피격 시 노출 신호
   if (globalSmokeZones.some(s => performance.now() < s.expiry && Math.hypot(L.x-s.x, L.y-s.y) < s.r)) {
     send({type:'smokeReveal', dur:750});
   }
-  addShake(Math.min(6 + dmg * 0.18, 16), 20); // 피격 시 강한 흔들림
+  addShake(Math.min(6 + dmg * 0.18, 16), 20);
   playHitSfx();
   if (L.health <= 0) { send({type:'dead'}); endGame(false); }
 }
@@ -1901,11 +2226,14 @@ function intersectsCtx(ctx, tx, ty, tr) {
 function hitCtx(ctx, dmg) {
   if (R.burrowing) return false;
   if (!intersectsCtx(ctx, R.x, R.y, R.radius)) return false;
+  dmg = applyDmgAugs(dmg);
   R.health = Math.max(0, R.health - dmg);
   send({type:'hitMe', damage:dmg});
   addShake(Math.min(4+dmg*0.12,10), 14);
   playHitSfx();
-  if (R.health <= 0) endGame(true);
+  applyLifesteal(dmg);
+  applyPoison(dmg);
+  applyStunShot();
   return true;
 }
 
@@ -1977,7 +2305,7 @@ function minionChaseNearest(m, dt, targets) {
   const tgts = targets ?? _enemyTargets;
   if (!tgts.length) return null;
 
-  // 가장 가까운 타겟
+  // 가장 가까운 타겟 탐색
   let nearest = null, nearDist = Infinity;
   for (const t of tgts) {
     const d = Math.hypot(t.x - m.x, t.y - m.y);
@@ -1986,38 +2314,69 @@ function minionChaseNearest(m, dt, targets) {
   if (!nearest) return null;
 
   const spd = m.speed * dt;
-  const dx = nearest.x - m.x, dy = nearest.y - m.y;
-  const dist = Math.hypot(dx, dy) || 1;
+  const sd  = m._stateData;
 
-  // 직선 장애물 체크 (10스텝)
-  let blocked = false;
-  const steps = Math.min(10, Math.ceil(dist / 40));
-  for (let s = 1; s <= steps; s++) {
-    const px = m.x + dx * s / steps, py = m.y + dy * s / steps;
-    for (const w of currentMap.walls) {
-      if (px+m.radius>w.x && px-m.radius<w.x+w.w &&
-          py+m.radius>w.y && py-m.radius<w.y+w.h) { blocked = true; break; }
+  // 직선 통로 여부 확인 (막혀있으면 A* 사용)
+  const chaseX = nearest.x, chaseY = nearest.y;
+  let useDirect = nearDist < ASTAR_CELL * 2;
+  if (!useDirect) {
+    const steps = Math.ceil(nearDist / ASTAR_CELL);
+    let clear = true;
+    for (let s = 1; s <= steps; s++) {
+      const px = m.x + (chaseX - m.x) * s / steps;
+      const py = m.y + (chaseY - m.y) * s / steps;
+      for (const w of currentMap.walls) {
+        if (px+m.radius>w.x && px-m.radius<w.x+w.w &&
+            py+m.radius>w.y && py-m.radius<w.y+w.h) { clear=false; break; }
+      }
+      if (!clear) break;
     }
-    if (blocked) break;
+    useDirect = clear;
   }
 
-  if (!blocked) {
-    m.x += (dx / dist) * spd;
-    m.y += (dy / dist) * spd;
+  let moveDX, moveDY;
+
+  if (useDirect) {
+    // 직선 이동
+    moveDX = (chaseX - m.x) / nearDist;
+    moveDY = (chaseY - m.y) / nearDist;
+    sd._path = [];
   } else {
-    // 벽 우회: 오른쪽/왼쪽 90° 중 더 열린 방향
-    const baseAngle = Math.atan2(dy, dx);
-    const sd = m._stateData;
-    // 방향 고정 (0.6초마다 재결정)
-    if (!sd._steerDir || !sd._steerAt || performance.now() - sd._steerAt > 600) {
-      sd._steerDir = (Math.random() < 0.5) ? 1 : -1;
-      sd._steerAt  = performance.now();
+    // A* 경로 재계산 조건: 타겟 변경 / 경로 소진 / 500ms 경과
+    const pathEmpty    = !sd._path || sd._path.length === 0;
+    const targetMoved  = sd._lastChaseTarget !== nearest ||
+                         (sd._lastChaseX !== undefined &&
+                          Math.hypot(chaseX - sd._lastChaseX, chaseY - sd._lastChaseY) > ASTAR_CELL);
+    const timeElapsed  = (performance.now() - (sd._lastPathTime || 0)) > 500;
+    if (targetMoved || (pathEmpty && timeElapsed)) {
+      sd._path           = astarFind(m.x, m.y, chaseX, chaseY) || [];
+      sd._lastPathTime   = performance.now();
+      sd._lastChaseTarget = nearest;
+      sd._lastChaseX     = chaseX;
+      sd._lastChaseY     = chaseY;
     }
-    const steerAngle = baseAngle + sd._steerDir * Math.PI * 0.5;
-    m.x += Math.cos(steerAngle) * spd;
-    m.y += Math.sin(steerAngle) * spd;
+
+    if (sd._path && sd._path.length > 0) {
+      const wp = sd._path[0];
+      if (Math.hypot(wp.x - m.x, wp.y - m.y) < ASTAR_CELL * 0.55) sd._path.shift();
+      const nwp = sd._path[0];
+      if (nwp) {
+        const nd = Math.hypot(nwp.x - m.x, nwp.y - m.y) || 1;
+        moveDX = (nwp.x - m.x) / nd;
+        moveDY = (nwp.y - m.y) / nd;
+      } else {
+        moveDX = (chaseX - m.x) / nearDist;
+        moveDY = (chaseY - m.y) / nearDist;
+      }
+    } else {
+      // A* 실패 시 직선 이동 폴백
+      moveDX = (chaseX - m.x) / nearDist;
+      moveDY = (chaseY - m.y) / nearDist;
+    }
   }
 
+  m.x += moveDX * spd;
+  m.y += moveDY * spd;
   return nearest;
 }
 
@@ -2045,6 +2404,138 @@ function minionMeleeAttack(m, range, dmg, cooldownKey, cooldownMs, now) {
 }
 
 const MINION_DEFS = {};
+
+// ── 엘린 유령 ────────────────────────────────────────────────
+MINION_DEFS['elin_spirit'] = {
+  radius:  BALANCE.elin.spirit.radius,
+  maxHp:   BALANCE.elin.spirit.maxHp,
+  color:   '#c8d8f0',
+  speed:   BALANCE.elin.spirit.speed,
+
+  tick(m, dt, physDt, now) {
+    const BS = BALANCE.elin.spirit;
+
+    // ── 돌진 처리
+    if (m._dashing) {
+      const t = Math.min(1, (now - m._dashStart) / BS.dashDur);
+      const ease = 1 - (1 - t) * (1 - t);
+      m.x = m._dashSX + (m._dashTX - m._dashSX) * ease;
+      m.y = m._dashSY + (m._dashTY - m._dashSY) * ease;
+      // 돌진 중 적 판정 (한 번만)
+      if (!m._dashHit && Math.hypot(R.x - m.x, R.y - m.y) < BS.meleeRange + R.radius) {
+        m._dashHit = true;
+        hitRemote(BS.dashDamage);
+        addFx({type:'elinSpiritAtk', x:m.x, y:m.y, angle:Math.atan2(R.y-m.y, R.x-m.x), range:BS.meleeRange, halfAngle:BS.meleeHalfAngle, dur:10, maxDur:10});
+        send({type:'fx', fx:{type:'elinSpiritAtk', x:m.x, y:m.y, angle:Math.atan2(R.y-m.y, R.x-m.x), range:BS.meleeRange, halfAngle:BS.meleeHalfAngle, dur:10, maxDur:10}});
+      }
+      if (!m._dashHit) {
+        for (const pm of peerMinions) {
+          if (Math.hypot(pm.x - m.x, pm.y - m.y) < BS.meleeRange + pm.radius) {
+            m._dashHit = true;
+            send({type:'minionHit', id:pm.id, damage:BS.dashDamage}); break;
+          }
+        }
+      }
+      if (t >= 1) { m._dashing = false; m._dashHit = false; }
+      return;
+    }
+
+    // ── 가장 가까운 적 탐색
+    let nearest = null, nearDist = Infinity;
+    for (const t of _enemyTargets) {
+      const d = Math.hypot(t.x - m.x, t.y - m.y);
+      if (d < nearDist) { nearDist = d; nearest = t; }
+    }
+
+    // ── 추격: stopRange 바깥일 때만 이동
+    if (nearest && nearDist > BS.stopRange) {
+      minionChaseNearest(m, dt);
+    }
+
+    // ── 반원형 히트스캔 공격 (쿨다운 체크)
+    if (nearest && nearDist < BS.meleeRange + nearest.radius) {
+      const cd = m._stateData;
+      if (!cd.meleeCd || now >= cd.meleeCd) {
+        const atkAngle = Math.atan2(nearest.y - m.y, nearest.x - m.x);
+        let hit = false;
+
+        // R 판정 — 반원형 (atkAngle 기준 ±halfAngle)
+        if (!R.burrowing) {
+          const distR = Math.hypot(R.x - m.x, R.y - m.y);
+          if (distR < BS.meleeRange + R.radius) {
+            const toR  = Math.atan2(R.y - m.y, R.x - m.x);
+            const diff = Math.abs(((toR - atkAngle) + Math.PI*3) % (Math.PI*2) - Math.PI);
+            if (diff < BS.meleeHalfAngle) {
+              hitRemote(BS.meleeDamage);
+              hit = true;
+            }
+          }
+        }
+        // peerMinions 판정
+        for (const pm of peerMinions) {
+          const distPm = Math.hypot(pm.x - m.x, pm.y - m.y);
+          if (distPm < BS.meleeRange + pm.radius) {
+            const topm  = Math.atan2(pm.y - m.y, pm.x - m.x);
+            const diff  = Math.abs(((topm - atkAngle) + Math.PI*3) % (Math.PI*2) - Math.PI);
+            if (diff < BS.meleeHalfAngle) {
+              send({type:'minionHit', id:pm.id, damage:BS.meleeDamage});
+              hit = true;
+            }
+          }
+        }
+
+        if (hit) {
+          cd.meleeCd = now + BS.meleeInterval;
+          addFx({type:'elinSpiritAtk', x:m.x, y:m.y, angle:atkAngle, range:BS.meleeRange, halfAngle:BS.meleeHalfAngle, dur:11, maxDur:11});
+          send({type:'fx', fx:{type:'elinSpiritAtk', x:m.x, y:m.y, angle:atkAngle, range:BS.meleeRange, halfAngle:BS.meleeHalfAngle, dur:11, maxDur:11}});
+        }
+      }
+    }
+  },
+
+  draw(m, ctx, isPeer) {
+    const pulse = 0.88 + 0.12 * Math.sin(performance.now() * 0.004);
+    ctx.save();
+    ctx.globalAlpha = isPeer ? 0.45 : 0.9;
+
+    // 유령 몸체
+    ctx.beginPath(); ctx.arc(m.x, m.y, m.radius * pulse, 0, Math.PI * 2);
+    ctx.fillStyle = isPeer ? 'rgba(200,216,240,0.3)' : 'rgba(200,216,240,0.55)';
+    ctx.fill();
+    ctx.strokeStyle = '#c8d8f0'; ctx.lineWidth = 2;
+    ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
+
+    // 돌진 시 강조
+    if (m._dashing) {
+      ctx.beginPath(); ctx.arc(m.x, m.y, m.radius + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(200,216,240,0.9)'; ctx.lineWidth = 2.5;
+      ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    // HP바
+    ctx.globalAlpha = isPeer ? 0.5 : 1;
+    const bw = m.radius * 2.8, bh = 4;
+    const bx = m.x - bw/2, by = m.y - m.radius - 18;
+    ctx.fillStyle = '#111'; ctx.fillRect(bx, by, bw, bh);
+    const hr = Math.max(0, m.hp / m.maxHp);
+    ctx.fillStyle = hr > 0.5 ? '#c8d8f0' : hr > 0.25 ? '#fa0' : '#f55';
+    ctx.fillRect(bx, by, bw * hr, bh);
+    ctx.strokeStyle = '#445'; ctx.lineWidth = 1; ctx.strokeRect(bx, by, bw, bh);
+
+    // 이름
+    ctx.fillStyle = isPeer ? 'rgba(200,216,240,0.55)' : 'rgba(200,216,240,0.9)';
+    ctx.font = 'bold 10px Courier New'; ctx.textAlign = 'center';
+    ctx.fillText('SPIRIT', m.x, m.y - m.radius - 24);
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  },
+
+  onDeath(m) {
+    addFx({type:'elinSpiritDie', x:m.x, y:m.y, r:0, maxR:m.radius*2.5, dur:20, maxDur:20});
+    send({type:'fx', fx:{type:'elinSpiritDie', x:m.x, y:m.y, r:0, maxR:m.radius*2.5, dur:20, maxDur:20}});
+  },
+};
 
 // ── 소환수 생성 ─────────────────────────────────────────────
 function spawnMinion(charId, type, x, y, overrides = {}) {
@@ -2213,14 +2704,81 @@ function resetMinions() {
   peerMinions  = [];
 }
 
+// 피해 보정 헬퍼 (공격 시 증강 적용)
+// ── 독 전용 타격 (재귀 방지용 — lifesteal/poison 미적용) ─
+function hitRemoteRaw(dmg) {
+  if (!gameOn || R.burrowing) return;
+  R.health = Math.max(0, R.health - dmg);
+  send({type:'hitMe', damage:dmg});
+  addShake(Math.min(4+dmg*0.12,10), 8);
+  playHitSfx();
+}
+
+// ── 스턴샷: 4초마다 다음 평타 0.5초 기절 ────────────────────
+function applyStunShot() {
+  if (getAugCount('stun_shot') <= 0) return;
+  if (!L._stunShotReady) return;
+  L._stunShotReady = false;
+  stunRemote(500);
+  // 4초 후 다시 준비
+  setTimeout(() => { if (gameOn) L._stunShotReady = true; }, 4000);
+}
+
+// ── 흡혈: 공격력의 10% 회복 ──────────────────────────────
+function applyLifesteal(dmg) {
+  const cnt = getAugCount('lifesteal');
+  if (cnt <= 0) return;
+  L.health = Math.min(L.maxHealth, L.health + dmg * 0.10 * cnt);
+}
+
+// ── 독: 2초간 초당 5% 피해 × 2회 ──────────────────────────
+let _poisonTimer = null;
+function applyPoison(baseDmg) {
+  const cnt = getAugCount('poison');
+  if (cnt <= 0) return;
+  // 기존 독 타이머 취소 후 재적용 (중첩 시 피해량만 누적)
+  if (_poisonTimer) { _poisonTimer.forEach(t => clearTimeout(t)); }
+  _poisonTimer = [];
+  L._poisonExpiry = performance.now() + 2000; // 독 표시용 만료 시각
+  send({type:'poisoned', dur: 2000}); // 피해자에게 독 상태 통보
+  const tickDmg = Math.ceil(baseDmg * 0.05 * cnt); // 중첩당 +5%씩 가산
+  for (let i = 1; i <= 2; i++) {
+    _poisonTimer.push(setTimeout(() => {
+      if (!gameOn) return;
+      hitRemoteRaw(tickDmg); // 재귀 방지: raw 함수 사용
+      addFx({type:'reikaBurnTick', x:R.x, y:R.y, r:0, maxR:20, dur:8, maxDur:8});
+      send({type:'fx', fx:{type:'reikaBurnTick', x:R.x, y:R.y, r:0, maxR:20, dur:8, maxDur:8}});
+    }, i * 1000));
+  }
+}
+
+
+function applyDmgAugs(dmg) {
+  // 라스트 댄스: 체력 30% 이하 시 기본 피해의 +20% per 스택 (가산)
+  const ldCount = getAugCount('last_dance');
+  if (ldCount > 0 && L.health < L.maxHealth * 0.3) {
+    dmg = Math.round(dmg * (1 + 0.20 * ldCount));
+  }
+  // 오버파워: 피해량 +10% per 스택
+  const opCount = getAugCount('overpower');
+  if (opCount > 0) dmg = Math.round(dmg * (1 + 0.10 * opCount));
+  // 공격방어 발동
+  if (getAugCount('counter_def') > 0) L._counterDefExpiry = performance.now() + 2000;
+  return dmg;
+}
+
 // 플레이어 직접 타격 (투사체 루프 등 좌표 없이 확정 명중 시)
 function hitRemote(dmg) {
   if (R.burrowing) return;
+  dmg = applyDmgAugs(dmg);
   R.health = Math.max(0, R.health - dmg);
   send({type:'hitMe', damage:dmg});
   addShake(Math.min(4+dmg*0.12,10), 14);
   playHitSfx();
-  if (R.health <= 0) endGame(true);
+  applyLifesteal(dmg);
+  applyPoison(dmg);
+  applyStunShot();
+  // endGame(true)는 피격자의 'dead' 패킷에 의존
 }
 
 
@@ -2305,7 +2863,9 @@ function tryDodge() {
   if (L._cherityCharging) { L._cherityCharging = false; }
   L.justCheck = {x:L.x, y:L.y, radius:L.radius+12, frames:5};
   L.lastAttackTime = performance.now();
-  L.invincible = DODGE_INVMS / FRAME_MS;
+  // inv_extend 증강: 무적 시간 +50ms
+  const invMs = DODGE_INVMS;
+  L.invincible = invMs / FRAME_MS;
   L.dodging = true;
 
   addFx({type:'dodge', x:L.x, y:L.y, radius:L.radius+8, dur:12, maxDur:12});
@@ -2316,6 +2876,7 @@ function tryDodge() {
     if (L._counterPending) {
       L._counterPending = false;
       L.counterReady  = true;
+      // counter_ext 증강: 반격 가능 시간 +2초
       L.counterExpiry = performance.now() + 5000;
     }
     // 리안: 방패 돌진 윈도우 열기
@@ -2328,8 +2889,9 @@ function tryDodge() {
   if (!hasDir) { setTimeout(onDodgeEnd, 150); return; }
 
   const ds=performance.now(), sx=L.x, sy=L.y;
-  const tx=Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x+dx*DODGE_DIST));
-  const ty=Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y+dy*DODGE_DIST));
+  const augDodgeDist = DODGE_DIST;
+  const tx=Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x+dx*augDodgeDist));
+  const ty=Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y+dy*augDodgeDist));
   const dodgeDur = (L.charDef?.id==='nsonya' && (L._nsonyaStacks||0)>=3)
     ? DODGE_DUR / BALANCE.nsonya.rmb.dodgeSpeedMult : DODGE_DUR;
   if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
@@ -2352,7 +2914,7 @@ function processJustCheck(dt=1) {
     const b = peerBullets[i];
     if (Math.hypot(b.x-jp.x, b.y-jp.y) < jp.radius+b.radius) {
       peerBullets.splice(i,1);
-      L.stamina    = Math.min(STAM_MAX, L.stamina+DODGE_COST*0.5);
+      L.stamina    = Math.min(L._augStamMax??STAM_MAX, L.stamina+DODGE_COST*0.5);
       L.invincible = 8;
       L._counterPending = true;
       addFx({type:'justdodge', x:jp.x, y:jp.y, r:0, maxR:65, dur:22, maxDur:22});
@@ -2422,7 +2984,7 @@ const SKILLS = {
     lmb(angle) {
       const B = BALANCE.ruvu.lmb;
       if (!useStam(B.cost)) return;
-      const b={id:uid(), x:L.x, y:L.y, radius:B.radius, speed:B.speed,
+      const b={id:uid(), x:L.x, y:L.y, radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
                dx:Math.cos(angle), dy:Math.sin(angle), damage:B.damage, maxRange:B.range, traveled:0};
       localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
       L.lmbCooldown=B.cd; L.lastAttackTime=performance.now();
@@ -2667,21 +3229,27 @@ const SKILLS = {
             L._tauHitStack = 0;
             addFx({type:'tauOveleuchargeHit', x:R.x, y:R.y, r:0, maxR:80, dur:18, maxDur:18});
             send({type:'fx', fx:{type:'tauOveleuchargeHit', x:R.x, y:R.y, r:0, maxR:80, dur:18, maxDur:18}});
+            hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, dmg);
+            // 오버차지 FX — 노란색
+            const col2 = '255,255,0';
+            addFx({type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col:col2, dur:10, maxDur:10});
+            send({type:'fx', fx:{type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col:col2, dur:10, maxDur:10}});
           } else {
             L._tauHitStack = (L._tauHitStack||0) + 1;
             if (L._tauHitStack >= B.stackCount) {
               L._tauOveleucharge = true;
               L._tauHitStack = 0;
             }
+            hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, dmg);
+            // 일반 FX — 하늘색
+            const col2 = '0,255,255';
+            addFx({type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col:col2, dur:10, maxDur:10});
+            send({type:'fx', fx:{type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col:col2, dur:10, maxDur:10}});
           }
-          hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, dmg);
           hit = true;
         }
       }
       hitCtxSpirit({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.damage);
-      const col = L._tauOveleucharge ? '255,255,0' : '0,255,255';
-      addFx({type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col, dur:10, maxDur:10});
-      send({type:'fx', fx:{type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col, dur:10, maxDur:10}});
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
 
@@ -2696,7 +3264,7 @@ const SKILLS = {
       }
       if (L.rmbCooldown > 0) return;
       if (!useStam(B.cost)) return;
-      const sickle = {id:uid(), x:L.x, y:L.y, radius:B.radius, speed:B.speed,
+      const sickle = {id:uid(), x:L.x, y:L.y, radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
                       dx:Math.cos(angle), dy:Math.sin(angle),
                       damage:B.damage, maxRange:B.range, traveled:0,
                       isTauSickle:true, dashDur:B.dashDur, bindDur:B.bindDur};
@@ -2746,7 +3314,7 @@ const SKILLS = {
           const p2x = -Math.sin(a2), p2y = Math.cos(a2);
           const ox = L.x + p2x * sign * B.offset;
           const oy = L.y + p2y * sign * B.offset;
-          const b = {id:uid(), x:ox, y:oy, radius:B.radius, speed:B.speed,
+          const b = {id:uid(), x:ox, y:oy, radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
                      dx:Math.cos(a2), dy:Math.sin(a2),
                      damage:B.damage, maxRange:B.range, traveled:0};
           localBullets.push(b); send({type:'bullet', ...b});
@@ -2761,7 +3329,7 @@ const SKILLS = {
       const B = BALANCE.veleu.rmb;
       if (!useStam(200)) return;
       // 로켓 발사 (슬로우존 정보를 로켓에 실어 폭발 시 생성)
-      const rocket = {id:uid(), x:L.x, y:L.y, radius:B.radius, speed:B.speed,
+      const rocket = {id:uid(), x:L.x, y:L.y, radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
                       dx:Math.cos(angle), dy:Math.sin(angle),
                       maxRange:B.range, traveled:0,
                       isRocket:true, explosionRange:B.explosionRange,
@@ -3033,10 +3601,130 @@ const SKILLS = {
 
   // ── 엘린 ──────────────────────────────────────────────────
   elin: {
-    // 리메이크 예정 — 스킬 없음
-    lmb()     {},
-    rmb()     {},
-    counter() {},
+    // LMB: 유령구체 — 벽/적 관통, 클릭 지점에서 폭발 + 유령 회복
+    lmb(angle) {
+      const B = BALANCE.elin.lmb;
+      if (L.lmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      // 클릭 지점까지의 거리를 maxRange로 사용 (최소 80px 보장)
+      const clickDist = Math.max(80, Math.min(B.range, Math.hypot(mouseX - L.x, mouseY - L.y)));
+      const b = {
+        id: uid(), x: L.x, y: L.y,
+        radius: B.radius, speed: B.speed,
+        dx: Math.cos(angle), dy: Math.sin(angle),
+        damage: B.damage, maxRange: clickDist, traveled: 0,
+        pierceWalls: true,
+        isElinOrb:   true,
+        healAmount:  B.healAmount,
+        explosionRange: B.explosionRange,
+      };
+      localBullets.push(b); send({type:'bullet', ...b});
+      playShootSfx();
+      L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
+    },
+
+    // RMB: 유령친구 — 없으면 소환, 있으면 돌진 명령
+    rmb(angle) {
+      const B = BALANCE.elin.rmb;
+      if (L.rmbCooldown > 0) return;
+      const spirit = localMinions.find(m => m.type === 'elin_spirit');
+
+      if (spirit) {
+        // 돌진 명령 — A* 경로 방향으로 짧게 돌진 (적 위치가 아님)
+        if (spirit._dashing) return;
+        if (!_enemyTargets.length) return;
+
+        // 현재 A* 경로에서 방향 결정
+        const sd = spirit._stateData;
+        let dashDX = 0, dashDY = 0;
+        if (sd._path && sd._path.length > 0) {
+          // A* 경로의 첫 웨이포인트 방향
+          const wp = sd._path[0];
+          const nd = Math.hypot(wp.x - spirit.x, wp.y - spirit.y) || 1;
+          dashDX = (wp.x - spirit.x) / nd;
+          dashDY = (wp.y - spirit.y) / nd;
+        } else {
+          // 경로 없으면 가장 가까운 적 방향
+          const nearest = _enemyTargets.reduce((a, b) =>
+            Math.hypot(a.x - spirit.x, a.y - spirit.y) < Math.hypot(b.x - spirit.x, b.y - spirit.y) ? a : b,
+            _enemyTargets[0]);
+          if (!nearest) return;
+          const nd = Math.hypot(nearest.x - spirit.x, nearest.y - spirit.y) || 1;
+          dashDX = (nearest.x - spirit.x) / nd;
+          dashDY = (nearest.y - spirit.y) / nd;
+        }
+
+        const dashDist = 160; // 짧은 돌진 거리
+        spirit._dashing   = true;
+        spirit._dashHit   = false;
+        spirit._dashStart = performance.now();
+        spirit._dashSX    = spirit.x; spirit._dashSY = spirit.y;
+        spirit._dashTX    = Math.max(spirit.radius, Math.min(WORLD_W - spirit.radius, spirit.x + dashDX * dashDist));
+        spirit._dashTY    = Math.max(spirit.radius, Math.min(WORLD_H - spirit.radius, spirit.y + dashDY * dashDist));
+        addFx({type:'dash', x:spirit.x, y:spirit.y, tx:spirit._dashTX, ty:spirit._dashTY, dur:10, maxDur:10});
+        send({type:'fx', fx:{type:'dash', x:spirit.x, y:spirit.y, tx:spirit._dashTX, ty:spirit._dashTY, dur:10, maxDur:10}});
+        L.rmbCooldown = B.cdDash;
+      } else {
+        // 소환 — 스테미나 전량 소모
+        if (L.stamina < B.summonCost) return;
+        useStam(L.stamina); // 전량
+        const BS = BALANCE.elin.spirit;
+        spawnMinion('elin', 'elin_spirit', L.x, L.y);
+        addFx({type:'elinSummon', x:L.x, y:L.y, r:0, maxR:50, dur:22, maxDur:22});
+        send({type:'fx', fx:{type:'elinSummon', x:L.x, y:L.y, r:0, maxR:50, dur:22, maxDur:22}});
+        L.rmbCooldown = B.cdSummon; L.lastAttackTime = performance.now();
+      }
+    },
+
+    // L-Shift: 죽지말아줘! — 유령에게 회복 투사체 + 자신·유령 위치 폭발
+    counter(angle) {
+      const B = BALANCE.elin.counter;
+      if (!L.counterReady) return;
+      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
+      const spirit = localMinions.find(m => m.type === 'elin_spirit');
+      if (!spirit) return; // 유령 없으면 사용 불가
+      L.counterReady = false;
+      L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
+      L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:18, maxDur:18});
+      const tok = ++L._counterToken;
+      const snapSX = spirit.x, snapSY = spirit.y; // 선딜 시작 시 유령 위치 스냅샷
+      setTimeout(() => {
+        L._attackPreview = null;
+        if (!gameOn || L._counterToken !== tok) {
+          L.color = L.defaultColor; L._preFlashColor = null;
+          send({type:'colorChange', color:L.defaultColor}); return;
+        }
+        L.color = L.defaultColor; L._preFlashColor = null;
+        send({type:'colorChange', color:L.defaultColor});
+
+        // 현재 유령 위치로 투사체 발사
+        const sp2 = localMinions.find(m => m.type === 'elin_spirit');
+        const tx = sp2 ? sp2.x : snapSX, ty = sp2 ? sp2.y : snapSY;
+        const ddx = tx - L.x, ddy = ty - L.y;
+        const dd = Math.hypot(ddx, ddy) || 1;
+        const b = {
+          id: uid(), x: L.x, y: L.y,
+          radius: B.projRadius, speed: B.projSpeed,
+          dx: ddx / dd, dy: ddy / dd,
+          damage: 0, maxRange: dd + 150, traveled: 0,
+          pierceWalls: true, pierceEnemies: true,
+          isElinHeal: true,
+          healAmount: B.healAmount,
+          explosionRange: B.explosionRange,
+          explosionDamage: B.damage,
+          knockbackPower: B.knockbackPower,
+        };
+        localBullets.push(b); playShootSfx();
+
+        // 자신 위치에서 즉시 폭발
+        if (hitCtxAll({x:L.x, y:L.y, range:B.explosionRange}, B.damage)) knockbackRemote(B.knockbackPower);
+        hitPeerMinionsInRange(L.x, L.y, B.explosionRange, B.damage);
+        addFx({type:'elinExplosion', x:L.x, y:L.y, r:0, maxR:B.explosionRange, dur:18, maxDur:18});
+        send({type:'fx', fx:{type:'elinExplosion', x:L.x, y:L.y, r:0, maxR:B.explosionRange, dur:18, maxDur:18}});
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
+    },
   },
   // ── 엔소냐 ────────────────────────────────────────────────
   nsonya: {
@@ -3044,7 +3732,7 @@ const SKILLS = {
       const B = BALANCE.nsonya.lmb;
       if (!useStam(B.cost)) return;
       const b = {
-        id:uid(), x:L.x, y:L.y, radius:B.radius, speed:B.speed,
+        id:uid(), x:L.x, y:L.y, radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
         dx:Math.cos(angle), dy:Math.sin(angle),
         damage:B.damage, maxRange:B.range, traveled:0,
         isnsonyaBolt:true,
@@ -3104,7 +3792,7 @@ const SKILLS = {
           setTimeout(() => {
             if (!gameOn) return;
             const b = {
-              id:uid(), x:L.x, y:L.y, radius:B.radius, speed:B.speed,
+              id:uid(), x:L.x, y:L.y, radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
               dx:Math.cos(spreadAngle), dy:Math.sin(spreadAngle),
               damage:B.damage, maxRange:B.range, traveled:0,
               isnsonyaBolt:true, _kbRef: kbRef,
@@ -3226,7 +3914,7 @@ const SKILLS = {
           [-1, 1].forEach(sign => {
             const ox = L.x + perpX * sign * B.offset;
             const oy = L.y + perpY * sign * B.offset;
-            const b = { id:uid(), x:ox, y:oy, radius:B.radius, speed:B.speed,
+            const b = { id:uid(), x:ox, y:oy, radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
                         dx:Math.cos(a), dy:Math.sin(a),
                         damage:B.damage, maxRange:B.range, traveled:0,
                         iserapabiLaser:true };
@@ -3387,19 +4075,20 @@ const SKILLS = {
           if (!gameOn || L._counterToken !== tok) { L._reikaLmbPreswing = false; return; }
           L._reikaLmbPreswing = false;
           const lmb = B.lmb;
-          const swingAngle = angle + lmb.bias;
+          const currentAngle = getAngle(); // 선딜 후 실제 조준 방향 재계산
+          const swingAngle = currentAngle + lmb.bias;
           const dist = Math.hypot(R.x-L.x, R.y-L.y);
           if (dist < lmb.range + R.radius) {
             const toR = Math.atan2(R.y-L.y, R.x-L.x);
             const diff = Math.abs(((toR-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-            if (diff < lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:angle+lmb.bias, range:lmb.range, halfAngle:lmb.halfAngle}, lmb.damage);
+            if (diff < lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:currentAngle+lmb.bias, range:lmb.range, halfAngle:lmb.halfAngle}, lmb.damage);
           }
-          hitCtxSpirit({x:L.x, y:L.y, angle:angle+lmb.bias, range:lmb.range, halfAngle:lmb.halfAngle}, lmb.damage);
+          hitCtxSpirit({x:L.x, y:L.y, angle:currentAngle+lmb.bias, range:lmb.range, halfAngle:lmb.halfAngle}, lmb.damage);
           if (false) {
       }
-          // 약간 전진
-          const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x+Math.cos(angle)*lmb.advanceDist));
-          const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y+Math.sin(angle)*lmb.advanceDist));
+          // 약간 전진 (현재 방향 기준)
+          const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x+Math.cos(currentAngle)*lmb.advanceDist));
+          const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y+Math.sin(currentAngle)*lmb.advanceDist));
           const ds = performance.now(), sx = L.x, sy = L.y;
           const di = setInterval(() => {
             if (!gameOn) { clearInterval(di); return; }
@@ -3929,15 +4618,22 @@ const SKILLS = {
 
 function fireShotgun(angle, {pellets, spread, speed, radius, damage, maxRange, knockbackPower}) {
   playShootSfx();
+  const radiusMult = 1 + 0.60 * getAugCount('big_bullet');
+  const speedMult  = 1 + 0.20 * getAugCount('speed_shot');
   const kbRef = knockbackPower ? {fired:false, power:knockbackPower} : null;
   for (let i=0; i<pellets; i++) {
     const a = angle + (i/(pellets-1)-0.5)*spread;
-    const b = {id:uid(), x:L.x, y:L.y, radius, speed,
+    const b = {id:uid(), x:L.x, y:L.y, radius: radius * radiusMult, speed: speed * speedMult,
                dx:Math.cos(a), dy:Math.sin(a), damage, maxRange, traveled:0};
     if (kbRef) b._kbRef = kbRef;
     localBullets.push(b); send({type:'bullet', ...b});
   }
 }
+
+// 거대 총알 증강: 일반 투사체 생성 시 반경 보정
+function augBulletRadius(r) { return r * (1 + 0.60 * getAugCount('big_bullet')); }
+// 스피드샷 증강: 탄속 보정
+function augBulletSpeed(s) { return s * (1 + 0.20 * getAugCount('speed_shot')); }
 
 function ruvuDash(tx, ty, dur) {
   const ds=performance.now(), sx=L.x, sy=L.y;
@@ -4051,7 +4747,82 @@ function resolveWall(p) {
   }
 }
 
-// astarFind — 엘린 리메이크 시 복원 예정
+// astarFind — 소환수 경로 탐색
+const ASTAR_CELL = 60; // 그리드 셀 크기 (px)
+
+function astarFind(sx, sy, gx, gy) {
+  const CW = Math.ceil(WORLD_W / ASTAR_CELL);
+  const CH = Math.ceil(WORLD_H / ASTAR_CELL);
+  const toCX = x => Math.max(0, Math.min(CW-1, Math.floor(x / ASTAR_CELL)));
+  const toCY = y => Math.max(0, Math.min(CH-1, Math.floor(y / ASTAR_CELL)));
+  const key  = (cx, cy) => cx * 10000 + cy;
+
+  const scx = toCX(sx), scy = toCY(sy);
+  const gcx = toCX(gx), gcy = toCY(gy);
+  if (scx === gcx && scy === gcy) return [];
+
+  // 셀이 벽에 막혀있는지 확인 (경계 포함)
+  const isBlocked = (cx, cy) => {
+    if (cx < 0 || cy < 0 || cx >= CW || cy >= CH) return true;
+    const x1 = cx * ASTAR_CELL, y1 = cy * ASTAR_CELL;
+    const x2 = x1 + ASTAR_CELL, y2 = y1 + ASTAR_CELL;
+    for (const w of currentMap.walls) {
+      if (x1 < w.x + w.w && x2 > w.x && y1 < w.y + w.h && y2 > w.y) return true;
+    }
+    return false;
+  };
+
+  const h = (cx, cy) => Math.hypot(cx - gcx, cy - gcy); // 유클리드 휴리스틱
+  const DIRS  = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+  const COSTS = [1,1,1,1,1.414,1.414,1.414,1.414];
+
+  const gScore   = new Map([[key(scx, scy), 0]]);
+  const cameFrom = new Map();
+  const closed   = new Set();                     // 방문 완료 셀
+  const open     = [{ cx: scx, cy: scy, f: h(scx, scy) }];
+
+  let iters = 0;
+  while (open.length > 0 && iters++ < 1500) {
+    // 최소 f 노드 추출
+    let bi = 0;
+    for (let i = 1; i < open.length; i++) if (open[i].f < open[bi].f) bi = i;
+    const { cx, cy } = open.splice(bi, 1)[0];
+    const ck = key(cx, cy);
+    if (closed.has(ck)) continue; // 이미 처리된 노드 스킵
+    closed.add(ck);
+
+    if (cx === gcx && cy === gcy) {
+      // 경로 역추적: 목표 → 시작 방향으로 거슬러 올라감
+      const path = [];
+      let rk = ck, rcx = cx, rcy = cy;
+      while (cameFrom.has(rk)) {
+        path.unshift({ x: (rcx + 0.5) * ASTAR_CELL, y: (rcy + 0.5) * ASTAR_CELL });
+        const prev = cameFrom.get(rk);
+        rcx = prev.cx; rcy = prev.cy;
+        rk  = key(rcx, rcy);
+      }
+      return path;
+    }
+
+    const g = gScore.get(ck) ?? Infinity;
+    for (let di = 0; di < 8; di++) {
+      const [dx, dy] = DIRS[di];
+      const nx = cx + dx, ny = cy + dy;
+      if (isBlocked(nx, ny)) continue;
+      // 대각 이동: 코너 클리핑 방지 — 양쪽 직선 셀도 열려야 함
+      if (dx !== 0 && dy !== 0 && (isBlocked(cx + dx, cy) || isBlocked(cx, cy + dy))) continue;
+      const nk = key(nx, ny);
+      if (closed.has(nk)) continue;
+      const ng = g + COSTS[di];
+      if (ng < (gScore.get(nk) ?? Infinity)) {
+        gScore.set(nk, ng);
+        cameFrom.set(nk, { cx, cy });
+        open.push({ cx: nx, cy: ny, f: ng + h(nx, ny) });
+      }
+    }
+  }
+  return []; // 경로 없음
+}
 
 function moveBullets(dt=1) {
   for (let i=localBullets.length-1; i>=0; i--) {
@@ -4064,8 +4835,9 @@ function moveBullets(dt=1) {
     const rangeOut = b.traveled>=b.maxRange;
 
     // 상대 소환수 명중 판정 — 명중 시 minionHit 패킷 전송 후 탄환 제거
+    // isElinOrb/isElinHeal은 관통 탄환이므로 제외 (폭발 시점에 별도 처리)
     let hitPeerMinion = false;
-    if (!b.isTauSickle && !b.isRocket && !b.isBomb && !b.isMaisilOrb) {
+    if (!b.isTauSickle && !b.isRocket && !b.isBomb && !b.isMaisilOrb && !b.isElinOrb && !b.isElinHeal) {
       for (const pm of peerMinions) {
         if (Math.hypot(b.x - pm.x, b.y - pm.y) < b.radius + pm.radius) {
           send({ type: 'minionHit', id: pm.id, damage: b.damage });
@@ -4094,7 +4866,14 @@ function moveBullets(dt=1) {
         localBullets.splice(i,1);
       }
     } else if (b.isRocket) {
-      if (hitWall || oob || hitEnemy || rangeOut || hitSpirit) {
+      // 소환수 직접 명중 체크 (hitPeerMinion은 로켓 제외라 별도 처리)
+      let hitPeerMinionDirect = false;
+      for (const pm of peerMinions) {
+        if (Math.hypot(b.x - pm.x, b.y - pm.y) < b.radius + pm.radius) {
+          hitPeerMinionDirect = true; break;
+        }
+      }
+      if (hitWall || oob || hitEnemy || rangeOut || hitSpirit || hitPeerMinionDirect) {
         // 폭발 범위 내 피해
         if (Math.hypot(b.x-R.x, b.y-R.y) < b.explosionRange + R.radius) {
           hitRemote(b.explosionDamage);
@@ -4173,6 +4952,42 @@ function moveBullets(dt=1) {
         }
       }
       if (oob) { localBullets.splice(i, 1); }
+
+    } else if (b.isElinOrb) {
+      // 유령구체: 벽·적 모두 관통, 탄착지점(maxRange)에서 폭발
+      if (rangeOut || oob) {
+        if (hitCtxAll({x:b.x, y:b.y, range:b.explosionRange}, b.damage)) { /* 피해 처리됨 */ }
+        hitPeerMinionsInRange(b.x, b.y, b.explosionRange, b.damage);
+        // 폭발 범위 내 자신의 유령 회복
+        for (const lm of localMinions) {
+          if (lm.type === 'elin_spirit' && Math.hypot(lm.x - b.x, lm.y - b.y) < b.explosionRange + lm.radius) {
+            lm.hp = Math.min(lm.maxHp, lm.hp + b.healAmount);
+            addFx({type:'elinSpiritHeal', x:lm.x, y:lm.y, r:0, maxR:40, dur:14, maxDur:14});
+          }
+        }
+        addFx({type:'elinExplosion', x:b.x, y:b.y, r:0, maxR:b.explosionRange, dur:20, maxDur:20});
+        send({type:'fx', fx:{type:'elinExplosion', x:b.x, y:b.y, r:0, maxR:b.explosionRange, dur:20, maxDur:20}});
+        localBullets.splice(i, 1);
+      }
+      // 관통: hitWall / hitEnemy 무시
+
+    } else if (b.isElinHeal) {
+      // 죽지말아줘! 투사체: 자신의 유령에게 도달 시 회복 + 폭발, 벽·적 관통
+      const healSp = localMinions.find(m => m.type === 'elin_spirit');
+      const hitSpirit2 = healSp && Math.hypot(b.x - healSp.x, b.y - healSp.y) < b.radius + healSp.radius;
+      if (hitSpirit2) {
+        healSp.hp = Math.min(healSp.maxHp, healSp.hp + b.healAmount);
+        addFx({type:'elinSpiritHeal', x:healSp.x, y:healSp.y, r:0, maxR:55, dur:18, maxDur:18});
+        if (hitCtxAll({x:healSp.x, y:healSp.y, range:b.explosionRange}, b.explosionDamage)) knockbackRemote(b.knockbackPower);
+        hitPeerMinionsInRange(healSp.x, healSp.y, b.explosionRange, b.explosionDamage);
+        addFx({type:'elinExplosion', x:healSp.x, y:healSp.y, r:0, maxR:b.explosionRange, dur:18, maxDur:18});
+        send({type:'fx', fx:{type:'elinExplosion', x:healSp.x, y:healSp.y, r:0, maxR:b.explosionRange, dur:18, maxDur:18}});
+        localBullets.splice(i, 1);
+      } else if (rangeOut || oob) {
+        localBullets.splice(i, 1);
+      }
+      // 벽·적 관통 (hitWall / hitEnemy 무시)
+
     } else {
       if (hitPeerMinion) { localBullets.splice(i,1); continue; }
       if (rangeOut||oob||hitWall) { localBullets.splice(i,1); continue; }
@@ -4269,6 +5084,12 @@ function draw() {
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,f.r),0,Math.PI*2);
       ctx.strokeStyle=`rgba(255,210,40,${a*.9})`; ctx.lineWidth=3; ctx.stroke();
       ctx.fillStyle=`rgba(255,210,40,${a*.12})`; ctx.fill();
+    } else if (f.type==='counterDefBlock') {
+      // 공격방어 피해감소 — 청록 방패 링
+      const rr = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,rr),0,Math.PI*2);
+      ctx.strokeStyle=`rgba(56,189,248,${a*1.0})`; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.fillStyle=`rgba(56,189,248,${a*0.18})`; ctx.fill();
     } else if (f.type==='counter') {
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,f.r),0,Math.PI*2);
       ctx.strokeStyle=`rgba(255,215,0,${a*.9})`; ctx.lineWidth=3; ctx.stroke();
@@ -4485,6 +5306,15 @@ function draw() {
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rr), 0, Math.PI*2);
       ctx.fillStyle=`rgba(255,140,0,${a*0.4})`; ctx.fill();
       ctx.strokeStyle=`rgba(255,200,50,${a*0.85})`; ctx.lineWidth=2.5; ctx.stroke();
+    } else if (f.type==='elinExplosion') {
+      // 엘린 유령구체 폭발 — 캐릭터 색(#c8d8f0) 충격파
+      const rr = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rr), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(200,216,240,${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(200,216,240,${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rr*0.45), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(220,235,255,${a*0.3})`; ctx.fill();
+      ctx.strokeStyle=`rgba(230,242,255,${a*0.6})`; ctx.lineWidth=2; ctx.stroke();
     } else if (f.type==='slowZoneAppear') {
       // 슬로우 지대 — 지속 렌더링 (dur이 매우 큼)
       const pulse = 0.5 + 0.5*Math.sin(performance.now()*0.004);
@@ -4844,6 +5674,39 @@ function draw() {
       ctx.strokeStyle=`rgba(220,220,220,${a*0.85})`; ctx.lineWidth=3; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rs2*0.5), 0, Math.PI*2);
       ctx.strokeStyle=`rgba(240,240,240,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
+    } else if (f.type==='elinSpiritAtk') {
+      // 유령 근접 공격 — 부채꼴 휘두르기
+      if (f.halfAngle !== undefined) {
+        ctx.beginPath(); ctx.moveTo(f.x, f.y);
+        ctx.arc(f.x, f.y, f.range, f.angle - (f.halfAngle||1.2), f.angle + (f.halfAngle||1.2));
+        ctx.closePath();
+        ctx.fillStyle=`rgba(200,216,240,${a*0.25})`; ctx.fill();
+        ctx.strokeStyle=`rgba(200,216,240,${a*0.85})`; ctx.lineWidth=1.5; ctx.stroke();
+      } else {
+        const ar = f.range*(1-f.dur/f.maxDur);
+        ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,ar), 0, Math.PI*2);
+        ctx.strokeStyle=`rgba(200,216,240,${a*0.8})`; ctx.lineWidth=2; ctx.stroke();
+      }
+    } else if (f.type==='elinSpiritDie') {
+      // 유령 사망 — 흩어지는 원
+      const rd = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rd), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(200,216,240,${a*0.9})`; ctx.lineWidth=2.5;
+      ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=`rgba(200,216,240,${a*0.15})`; ctx.fill();
+    } else if (f.type==='elinSpiritHeal') {
+      // 유령 회복 — 녹색→파란 팽창 원
+      const rh = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rh), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(180,230,255,${a*0.25})`; ctx.fill();
+      ctx.strokeStyle=`rgba(180,230,255,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+    } else if (f.type==='elinSummon') {
+      // 소환 FX — 팽창 후 수축
+      const rs3 = f.r ?? f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rs3), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(200,216,240,${a*0.2})`; ctx.fill();
+      ctx.strokeStyle=`rgba(200,216,240,${a*0.9})`; ctx.lineWidth=2;
+      ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
     }
   });
 
@@ -5205,8 +6068,6 @@ function draw() {
   ctx.font='12px Courier New';
   ctx.fillStyle='rgba(180,200,255,.65)'; ctx.textAlign='left';
   ctx.fillText(`${L.charDef?.name||''}  |  ${isHost?'방장':'참가자'}`, 10, 20);
-  ctx.fillStyle='rgba(180,200,255,.4)'; ctx.textAlign='right';
-  ctx.fillText('LMB: 공격  RMB: 스킬  SPACE: 회피  SHIFT: 반격', CANVAS.width-10, 20);
   drawMinimap();
   ctx.restore();
 
@@ -5339,7 +6200,7 @@ function drawPlayer(p, label) {
   ctx.fillText(label,p.x,p.y-p.radius-26);
 
   const sbw=48,sbh=4,sbx=p.x-sbw/2,sby=p.y+p.radius+7;
-  const stPct=Math.max(0,Math.min(1,p.stamina/STAM_MAX));
+  const stPct=Math.max(0,Math.min(1,p.stamina/(p===L?(L._augStamMax??STAM_MAX):STAM_MAX)));
   ctx.fillStyle='#111'; ctx.fillRect(sbx,sby,sbw,sbh);
   ctx.fillStyle=stPct>0.4?'#fa0':'#f64'; ctx.fillRect(sbx,sby,sbw*stPct,sbh);
 
@@ -5353,6 +6214,12 @@ function drawPlayer(p, label) {
       ctx.fillStyle='rgba(0,220,220,0.85)';
       ctx.fillText('●'.repeat(L._tauHitStack), p.x, sby+sbh+13);
     }
+  }
+  // 스턴샷 준비 — 스테미나 바 아래 분홍 텍스트
+  if (p===L && L._stunShotReady) {
+    ctx.font='bold 10px Courier New'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,105,180,0.95)';
+    ctx.fillText('⚡스턴 준비', p.x, sby+sbh+25);
   }
 
   // 리안 방패 돌진 준비 표시
@@ -5397,6 +6264,88 @@ function drawPlayer(p, label) {
       const pulse3 = 0.5+0.5*Math.sin(performance.now()*0.02);
       ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+6, 0, Math.PI*2);
       ctx.strokeStyle=`rgba(255,255,255,${0.8+0.2*pulse3})`; ctx.lineWidth=4; ctx.stroke();
+    }
+  }
+  // ── 증강 상태 표시 (통일된 점선 호, 기존 캐릭터 링 바깥에 동적 배치) ──
+  {
+    const now2 = performance.now();
+    const pulse = 0.6 + 0.4 * Math.sin(now2 * 0.012);
+    const isLocal = p === L;
+    const cid = isLocal ? L.charDef?.id : peerCharId;
+
+    // 현재 실제로 그려진 링 중 최대 반경을 계산
+    let baseR = p.radius + 11; // STUN/BIND/BURN 등 기본 상태 링(+10) 바깥
+
+    if (isLocal) {
+      // 타우 오버차지 링: radius+14
+      if (cid === 'tau' && L._tauOveleucharge) baseR = Math.max(baseR, p.radius + 16);
+      // 칸 게이지 링: radius+14 (게이지 > 0일 때만)
+      if (cid === 'kan' && (L._kanGauge||0) > 0) baseR = Math.max(baseR, p.radius + 16);
+      // 파비 게이지: radius+14, LASER 준비 시 radius+18
+      if (cid === 'erapabi') {
+        const thr = L.maxHealth * BALANCE.erapabi.damageThreshold;
+        const stored = (L._erapabiStoredDmg||0) / thr;
+        if (stored > 0) baseR = Math.max(baseR, p.radius + 16);
+        if (stored >= 1) baseR = Math.max(baseR, p.radius + 20);
+      }
+      // 레이카 솔라 게이지: radius+14, 가호 링: radius+20+7=27
+      if (cid === 'reika') {
+        if ((L._reikaEnergy||0) > 0) baseR = Math.max(baseR, p.radius + 16);
+        if (L._reikaBlessed && now2 < (L._reikaBlessedExpiry||0)) baseR = Math.max(baseR, p.radius + 23);
+      }
+      // 엔소냐 스택 링: radius+7~17 (스택 있을 때만)
+      if (cid === 'nsonya' && (L._nsonyaStacks||0) > 0)
+        baseR = Math.max(baseR, p.radius + 7 + (L._nsonyaStacks - 1) * 5 + 3);
+      // 리안 방패 돌진 링: radius+12
+      if (cid === 'lian' && L._shieldDashReady) baseR = Math.max(baseR, p.radius + 14);
+    } else {
+      // 상대 레이카 가호 링
+      if (cid === 'reika' && R.reikaBlessed) baseR = Math.max(baseR, p.radius + 23);
+      // 상대 엔소냐 스택 링
+      if (cid === 'nsonya' && (R.nsonyaStacks||0) > 0)
+        baseR = Math.max(baseR, p.radius + 7 + (R.nsonyaStacks - 1) * 5 + 3);
+    }
+
+    let augR = baseR;
+
+    // ── 방어 버프 (노란색) ──
+    const defActive =
+      (isLocal && (L._fortressActive ||
+        (getAugCount('counter_def') > 0 && L._counterDefExpiry && now2 < L._counterDefExpiry))) ||
+      (!isLocal && R.fortressActive);
+    if (defActive) {
+      ctx.beginPath(); ctx.arc(p.x, p.y, augR, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(255,215,0,${0.7+0.3*pulse})`;
+      ctx.lineWidth=2.5; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='rgba(255,215,0,0.9)'; ctx.font='bold 9px Courier New'; ctx.textAlign='center';
+      ctx.fillText('방어', p.x, p.y + augR + 9);
+      augR += 5;
+    }
+
+    // ── 피해량 증가 버프 (보라색) ──
+    const peerAugCount = id => matchState.peerAugments.filter(x => x === id).length;
+    const dmgIncActive =
+      (isLocal && (getAugCount('overpower') > 0 || (getAugCount('last_dance') > 0 && L.health < L.maxHealth * 0.3))) ||
+      (!isLocal && (peerAugCount('overpower') > 0 || (peerAugCount('last_dance') > 0 && R.health < R.maxHealth * 0.3)));
+    if (dmgIncActive) {
+      ctx.beginPath(); ctx.arc(p.x, p.y, augR, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(160,80,255,${0.7+0.3*pulse})`;
+      ctx.lineWidth=2.5; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='rgba(160,80,255,0.9)'; ctx.font='bold 9px Courier New'; ctx.textAlign='center';
+      ctx.fillText('파워', p.x, p.y - augR - 3);
+      augR += 5;
+    }
+
+    // ── 독 디버프 (녹색) ──
+    const showPoison =
+      (!isLocal && L._poisonExpiry && now2 < L._poisonExpiry) ||
+      (isLocal && L._beingPoisonedExpiry && now2 < L._beingPoisonedExpiry);
+    if (showPoison) {
+      ctx.beginPath(); ctx.arc(p.x, p.y, augR, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(50,200,80,${0.7+0.3*pulse})`;
+      ctx.lineWidth=2.5; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='rgba(50,200,80,0.9)'; ctx.font='bold 9px Courier New'; ctx.textAlign='center';
+      ctx.fillText('독', p.x, p.y - augR - 3);
     }
   }
   // 페이즈 점프 중 표시
@@ -5562,12 +6511,13 @@ function drawMinimap() {
 // ============================================================
 function updateLocalHud() {
   const hp=Math.max(0,L.health);
+  const stamMax = L._augStamMax ?? STAM_MAX;
   document.getElementById('local-hp').style.width=(hp/L.maxHealth*100)+'%';
-  document.getElementById('local-label').textContent=`나: ${Math.round(hp)} / ${L.maxHealth}`;
-  document.getElementById('local-st').style.width=(L.stamina/STAM_MAX*100)+'%';
+  document.getElementById('local-label').textContent=`나: ${Math.round(hp)} / ${Math.round(L.maxHealth)}`;
+  document.getElementById('local-st').style.width=(L.stamina/stamMax*100)+'%';
   const cTxt=L.counterReady
     ?`  |  ⚡반격 가능 (${Math.max(0,Math.ceil((L.counterExpiry-performance.now())/1000))}초)`:'' ;
-  document.getElementById('hud-mid').textContent=`스테미나: ${Math.round(L.stamina)} / ${STAM_MAX}${cTxt}`;
+  document.getElementById('hud-mid').textContent=`스테미나: ${Math.round(L.stamina)} / ${Math.round(stamMax)}${cTxt}`;
 }
 function updateRemoteHud() {
   const hp=Math.max(0,R.health);
@@ -5585,27 +6535,400 @@ function endGame(won) {
   gameOn=false;
   clearTimeout(window._gameTimer);
   if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
+  if (_poisonTimer) { _poisonTimer.forEach(t => clearTimeout(t)); _poisonTimer=null; }
   window._audioCtx?.close();
+
+  // 라운드 스코어 갱신
+  if (won) matchState.localWins++;
+  else     matchState.peerWins++;
+  matchState.lastWinner = won ? 'local' : 'peer';
+
+  const fmt = matchState.format;
+  const matchDone = matchState.localWins >= fmt.winsNeeded || matchState.peerWins >= fmt.winsNeeded;
+
+  if (matchDone) {
+    // 매치 완전 종료
+    if (won) { showMatchOver(true); send({type:'matchOver'}); }
+    else     { showMatchOver(false); }
+  } else {
+    // 라운드 종료 → 결과 표시 후 라운드 사이 화면
+    matchState.round++;
+    showRoundResult(won, () => startBetweenRound(won));
+  }
+}
+
+function showRoundResult(won, callback) {
+  const ov  = document.getElementById('round-result-overlay');
+  const tx  = document.getElementById('round-result-text');
+  const sub = document.getElementById('round-result-sub');
+  tx.textContent  = won ? '라운드 승리!' : '라운드 패배...';
+  tx.style.color  = won ? '#4f8' : '#f44';
+  tx.style.textShadow = won ? '0 0 30px #4f8' : '0 0 30px #f44';
+  sub.textContent = `${matchState.localWins} — ${matchState.peerWins}`;
+  ov.style.display = 'flex';
+  setTimeout(() => {
+    ov.style.display = 'none';
+    callback();
+  }, 1800);
+}
+
+
+function showMatchOver(won) {
   const ov=document.getElementById('result-oveleulay');
   const tx=document.getElementById('result-text');
-  tx.textContent=won?'승리!':'패배...';
-  tx.className='result-big '+(won?'win':'lose');
+  tx.textContent = won ? '매치 승리!' : '매치 패배...';
+  tx.className = 'result-big ' + (won ? 'win' : 'lose');
   ov.style.display='flex';
   document.getElementById('rematch-btn').disabled=false;
   setStatus('rematch-status','','');
+  document.getElementById('round-score').style.display='none';
+  // 호스트만 포맷 선택 표시
+  const fmtRow = document.getElementById('rematch-format-row');
+  if (fmtRow) fmtRow.style.display = isHost ? 'flex' : 'none';
+  const rmTotal = document.getElementById('rematch-fmt-total');
+  const rmWins  = document.getElementById('rematch-wins-label');
+  if (rmTotal && rmWins) {
+    // 현재 포맷 값으로 초기화
+    rmTotal.value = String(matchState.format.total);
+    rmWins.textContent = `${Math.ceil(matchState.format.total/2)}선승`;
+    rmTotal.onchange = () => {
+      const t = parseInt(rmTotal.value);
+      rmWins.textContent = `${Math.ceil(t/2)}선승`;
+    };
+  }
 }
+function startBetweenRound(iWon) {
+  // 호스트가 선택지 생성 후 broadcast
+  if (isHost) {
+    // 3개 랜덤 캐릭터 (disabled 제외)
+    const availChars = Object.values(CHARACTERS).filter(c => !c.disabled).map(c => c.id);
+    const shuffled = availChars.sort(() => Math.random()-0.5);
+    const charChoices = shuffled.slice(0, 5);
+    // 5개 랜덤 증강
+    // 5개 증강 가중치 랜덤 선택 (common 45%, rare 35%, hero 20%)
+    const RARITY_WEIGHT = { common: 45, rare: 35, hero: 20 };
+    function weightedAugPick(pool, exclude) {
+      const avail = pool.filter(a => !exclude.includes(a.id));
+      if (!avail.length) return pool[Math.floor(Math.random()*pool.length)];
+      const total = avail.reduce((s, a) => s + RARITY_WEIGHT[a.rarity], 0);
+      let r = Math.random() * total;
+      for (const a of avail) { r -= RARITY_WEIGHT[a.rarity]; if (r <= 0) return a; }
+      return avail[avail.length - 1];
+    }
+    const pickedAugs = [];
+    for (let i = 0; i < Math.min(5, AUGMENTS.length); i++) {
+      const picked = weightedAugPick(AUGMENTS, pickedAugs.map(a => a.id));
+      pickedAugs.push(picked);
+    }
+    const augChoices = pickedAugs.map(a => a.id);
+    matchState._charChoices = charChoices;
+    matchState._augChoices  = augChoices;
+    send({type:'betweenData', charChoices, augChoices, winner: iWon ? 'local' : 'peer'});
+    matchState.lastWinner = iWon ? 'local' : 'peer';
+  }
+  showBetweenScreen();
+}
+
+function showBetweenScreen() {
+  matchState._selectedChar = null;
+  matchState._selectedAug  = null;
+  matchState._localBetweenReady = false;
+  matchState._peerBetweenReady  = false;
+  matchState._peerSelectedChar  = null;
+  matchState._peerSelectedAug   = null;
+  matchState._betweenStarted    = false;
+
+  // 버튼·상태 완전 초기화 (라운드 넘어갈 때 잔류 방지)
+  const readyBtn = document.getElementById('between-ready-btn');
+  readyBtn.disabled = false;
+  readyBtn.textContent = '준비 완료';
+  setStatus('between-status', '', '');
+
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('round-score').style.display = 'none';
+
+  // 스코어 표시
+  const fmt = matchState.format;
+  document.getElementById('between-title').textContent =
+    `라운드 ${matchState.round - 1} 종료 — ${matchState.round}라운드 준비`;
+  const scoreEl = document.getElementById('between-score');
+  scoreEl.innerHTML = '';
+  for (let i = 0; i < fmt.winsNeeded; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'score-pip' + (i < matchState.localWins ? ' filled-local' : '');
+    scoreEl.appendChild(pip);
+  }
+  const sep = document.createElement('div');
+  sep.style = 'color:#556;font-size:18px;margin:0 8px;line-height:18px;';
+  sep.textContent = ':';
+  scoreEl.appendChild(sep);
+  for (let i = 0; i < fmt.winsNeeded; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'score-pip' + (i < matchState.peerWins ? ' filled-peer' : '');
+    scoreEl.appendChild(pip);
+  }
+
+  // 캐릭터 선택 패널
+  const charGrid = document.getElementById('between-char-grid');
+  charGrid.innerHTML = '';
+  matchState._charChoices.forEach(cid => {
+    const ch = CHARACTERS[cid];
+    if (!ch) return;
+    const tooltipHtml = `${ch.desc}<br><br>` + ch.skills.map(s =>
+      `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
+      (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`)
+    ).join('<br>');
+    const card = document.createElement('div');
+    card.className = 'char-mini-card';
+    card.innerHTML = `
+      <div class="char-tooltip">${tooltipHtml}</div>
+      <div class="cmini-icon" style="background:${ch.color}22;border-color:${ch.color};"></div>
+      <div class="cmini-name" style="color:${ch.color}">${ch.name}</div>`;
+    card.onclick = () => {
+      if (matchState._localBetweenReady) return;
+      if (matchState._selectedChar === cid) {
+        card.classList.remove('sel');
+        matchState._selectedChar = null;
+      } else {
+        document.querySelectorAll('.char-mini-card').forEach(c => c.classList.remove('sel'));
+        card.classList.add('sel');
+        matchState._selectedChar = cid;
+      }
+    };
+    card.addEventListener('mouseenter', () => {
+      const tip = card.querySelector('.char-tooltip');
+      if (!tip) return;
+      tip.style.display = 'block';
+      const tr = tip.getBoundingClientRect();
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const cr = card.getBoundingClientRect();
+      let left = cr.left + cr.width/2 - tr.width/2;
+      left = Math.max(8, Math.min(vw - tr.width - 8, left));
+      let top = cr.bottom + 8;
+      if (top + tr.height > vh - 8) top = cr.top - tr.height - 8;
+      tip.style.left = left + 'px';
+      tip.style.top  = top  + 'px';
+    });
+    card.addEventListener('mouseleave', () => {
+      const tip = card.querySelector('.char-tooltip');
+      if (tip) tip.style.display = 'none';
+    });
+    charGrid.appendChild(card);
+  });
+  setStatus('between-char-status', '선택 안 하면 현재 캐릭터 유지', '');
+
+  // 증강 패널
+  const isLoser = matchState.lastWinner !== 'local';
+  const augPanel = document.getElementById('between-aug-panel');
+  const augTitle = document.getElementById('between-aug-title');
+  const augGrid  = document.getElementById('between-aug-grid');
+  augGrid.innerHTML = '';
+  document.getElementById('peer-aug-display').textContent = '';
+
+  if (isLoser) {
+    augTitle.textContent = '증강 선택 (패배자 혜택)';
+    matchState._augChoices.forEach(aid => {
+      const aug = AUGMENTS.find(a => a.id === aid);
+      if (!aug) return;
+      const col = RARITY_COLOR[aug.rarity] || '#aaa';
+      const rarityLabel = {common:'일반',rare:'희귀',hero:'영웅'}[aug.rarity];
+      const card = document.createElement('div');
+      card.className = 'aug-pick-card';
+      card.dataset.rarity = aug.rarity;
+      card.innerHTML = `<div class="aug-pick-name" style="color:${col}">${aug.emoji} ${aug.name}
+        <span style="font-size:9px;opacity:0.6;margin-left:6px;">${rarityLabel}</span></div>
+        <div class="aug-pick-desc">${aug.desc}</div>`;
+      card.onclick = () => {
+        if (matchState._localBetweenReady) return;
+        document.querySelectorAll('.aug-pick-card').forEach(c => c.classList.remove('sel'));
+        card.classList.add('sel');
+        matchState._selectedAug = aid;
+      };
+      augGrid.appendChild(card);
+    });
+  } else {
+    augTitle.textContent = '상대 증강 선택 대기 중...';
+    matchState._augChoices.forEach(aid => {
+      const aug = AUGMENTS.find(a => a.id === aid);
+      if (!aug) return;
+      const col = RARITY_COLOR[aug.rarity] || '#aaa';
+      const rarityLabel = {common:'일반',rare:'희귀',hero:'영웅'}[aug.rarity];
+      const card = document.createElement('div');
+      card.className = 'aug-pick-card locked';
+      card.innerHTML = `<div class="aug-pick-name" style="color:${col}">${aug.emoji} ${aug.name}
+        <span style="font-size:9px;opacity:0.6;margin-left:6px;">${rarityLabel}</span></div>
+        <div class="aug-pick-desc">${aug.desc}</div>`;
+      augGrid.appendChild(card);
+    });
+  }
+
+  showScr('scr-between');
+}
+
+function updatePeerAugDisplay() {
+  const el = document.getElementById('peer-aug-display');
+  if (el) el.textContent = '';
+  const augTitle = document.getElementById('between-aug-title');
+  if (matchState._peerBetweenReady && augTitle) {
+    augTitle.textContent = '상대방 준비 완료 ✓';
+  }
+  // 카드 하이라이트만 표시 (텍스트는 없음)
+  const aid = matchState._peerSelectedAug;
+  if (aid) {
+    const allAugs = document.querySelectorAll('.aug-pick-card');
+    matchState._augChoices.forEach((id, i) => {
+      if (id === aid && allAugs[i]) allAugs[i].classList.add('sel');
+    });
+  }
+}
+
+function betweenReady() {
+  if (matchState._localBetweenReady) return;
+  matchState._localBetweenReady = true;
+
+  // 선택 결과 증강 적용
+  if (matchState._selectedChar) selCharId = matchState._selectedChar;
+  if (matchState._selectedAug)  matchState.localAugments.push(matchState._selectedAug);
+
+  send({ type:'betweenSelection',
+         charId: matchState._selectedChar,
+         augId:  matchState._selectedAug });
+
+  // 3번 버그 수정: 카드 클릭 완전 비활성화
+  document.querySelectorAll('.char-mini-card').forEach(c => c.style.pointerEvents = 'none');
+  document.querySelectorAll('.aug-pick-card').forEach(c => c.style.pointerEvents = 'none');
+  document.getElementById('between-ready-btn').disabled = true;
+  setStatus('between-status', '상대방 대기 중...', '');
+  checkBetweenBothReady();
+}
+
+function checkBetweenBothReady() {
+  if (!matchState._localBetweenReady || !matchState._peerBetweenReady) return;
+  if (matchState._betweenStarted) return;
+  matchState._betweenStarted = true;
+
+  if (matchState._peerSelectedChar) peerCharId = matchState._peerSelectedChar;
+  updatePeerAugDisplay();
+
+  if (isHost) {
+    // 호스트: 새 맵 선택 → roundStart 전송 → 카운트다운
+    const mapIdx = Math.floor(Math.random() * MAPS.length);
+    currentMap = MAPS[mapIdx];
+    send({ type: 'roundStart', mapIdx });
+    startBetweenCountdown(3);
+  }
+  // 피어는 roundStart 수신 시 카운트다운 시작 (onData 처리)
+}
+
+function startBetweenCountdown(secs) {
+  const btn = document.getElementById('between-ready-btn');
+  const sta = document.getElementById('between-status');
+  if (secs > 0) {
+    btn.disabled = true;
+    btn.textContent = `${secs}초 후 시작...`;
+    sta.textContent = '양쪽 준비 완료!';
+    sta.className = 'status ok';
+    setTimeout(() => startBetweenCountdown(secs - 1), 1000);
+  } else {
+    btn.textContent = '준비 완료';
+    doRoundReset();
+  }
+}
+
+function doRoundReset() {
+  updateRoundScoreDisplay();
+  renderAugHud();
+  doRematch();
+}
+
 function requestRematch() {
-  send({type:'rematchRequest'});
+  if (isHost) {
+    // 호스트: 새 포맷 적용 후 전송
+    const rmTotal = document.getElementById('rematch-fmt-total');
+    const tot  = rmTotal ? (parseInt(rmTotal.value) || 9) : 9;
+    const wins = Math.ceil(tot / 2);
+    matchState.format = { total: tot, winsNeeded: wins };
+    send({ type: 'rematchRequest', format: matchState.format });
+  } else {
+    send({ type: 'rematchRequest' });
+  }
   setStatus('rematch-status','상대방 수락 대기 중...','');
   document.getElementById('rematch-btn').disabled=true;
 }
-function acceptRematch() { send({type:'rematchAccept'}); doRematch(); }
+function updateRoundScoreDisplay() {
+  const el = document.getElementById('round-score');
+  if (!el) return;
+  const fmt = matchState.format;
+  let s = '';
+  for (let i = 0; i < fmt.winsNeeded; i++)
+    s += `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px;background:${i < matchState.localWins ? '#4af' : '#1a2a3a'};border:1px solid #2a4a6a;"></span>`;
+  s += `<span style="color:#556;margin:0 6px;">:</span>`;
+  for (let i = 0; i < fmt.winsNeeded; i++)
+    s += `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px;background:${i < matchState.peerWins ? '#f44' : '#1a2a3a'};border:1px solid #2a4a6a;"></span>`;
+  s += `<span style="margin-left:8px;color:#556;">${matchState.round}R</span>`;
+  el.innerHTML = s;
+  el.style.display = 'block';
+}
+
+function renderAugHud() {
+  const el = document.getElementById('aug-hud');
+  if (el) {
+    el.innerHTML = '';
+    matchState.localAugments.forEach(aid => {
+      const aug = AUGMENTS.find(a => a.id === aid);
+      if (!aug) return;
+      const div = document.createElement('div');
+      div.className = 'aug-icon';
+      div.innerHTML = `<span>${aug.emoji}</span><div class="aug-tooltip"><b>${aug.name}</b><br>${aug.desc}</div>`;
+      el.appendChild(div);
+    });
+  }
+  const pel = document.getElementById('peer-aug-hud');
+  if (pel) {
+    pel.innerHTML = '';
+    matchState.peerAugments.forEach(aid => {
+      const aug = AUGMENTS.find(a => a.id === aid);
+      if (!aug) return;
+      const div = document.createElement('div');
+      div.className = 'aug-icon peer-aug';
+      div.innerHTML = `<span>${aug.emoji}</span><div class="aug-tooltip"><b style="color:#f88">[상대] ${aug.name}</b><br>${aug.desc}</div>`;
+      pel.appendChild(div);
+    });
+  }
+  // 구분선: 양쪽에 증강이 하나라도 있을 때만 표시
+  const divider = document.getElementById('aug-divider');
+  if (divider) {
+    divider.style.display =
+      (matchState.localAugments.length > 0 && matchState.peerAugments.length > 0)
+      ? 'block' : 'none';
+  }
+}
+
+function acceptRematch() {
+  // 호스트가 수락하는 경우에도 format 드롭다운 적용
+  if (isHost) {
+    const rmTotal = document.getElementById('rematch-fmt-total');
+    const tot  = rmTotal ? (parseInt(rmTotal.value) || 9) : 9;
+    const wins = Math.ceil(tot / 2);
+    matchState.format = { total: tot, winsNeeded: wins };
+    send({ type: 'rematchAccept', format: matchState.format });
+  } else {
+    send({ type: 'rematchAccept' });
+  }
+  doRematch();
+}
 function doRematch() {
-  localReady=false; peerReady=false; selCharId=null; peerCharId=null; lastLoopTime=0;
+  // 매치가 완전히 끝난 경우(승패 결정)엔 캐릭터 선택으로 → keepChars=false
+  const isMatchOver = matchState.localWins >= matchState.format.winsNeeded
+                   || matchState.peerWins  >= matchState.format.winsNeeded;
+  const keepChars = !isMatchOver && (matchState.localWins > 0 || matchState.peerWins > 0);
+  localReady=false; peerReady=false; lastLoopTime=0;
+  if (!keepChars) { selCharId=null; peerCharId=null; }
   localBullets=[]; peerBullets=[]; fxList=[]; _firedBurstKb=new Set();
   localSlowZones=[]; peerSlowZones=[]; globalSmokeZones=[];
   if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
   if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
+  if (_poisonTimer) { _poisonTimer.forEach(t => clearTimeout(t)); _poisonTimer=null; }
   // R 상태 초기화
   R.health=100; R.stamina=STAM_MAX; R.dodging=false; R.counterReady=false;
   R.burrowing=false; R.stunEnd=0; R.bindEnd=0; R.burnEnd=0;
@@ -5616,13 +6939,27 @@ function doRematch() {
   resetMinions();
   document.getElementById('result-oveleulay').style.display='none';
   document.getElementById('hud').style.display='none';
+  document.getElementById('round-score').style.display='none';
   const btn=document.getElementById('rematch-btn');
   btn.textContent='리매치'; btn.onclick=requestRematch; btn.disabled=false;
   setStatus('rematch-status','','');
-  document.querySelectorAll('.char-card').forEach(c => { c.classList.remove('sel'); c.style.pointerEvents=''; });
-  document.getElementById('confirm-btn').disabled=false;
-  setStatus('sel-status','','');
-  showScr('scr-select');
+
+  if (keepChars && selCharId && peerCharId) {
+    // 라운드 사이에서 호출: 바로 게임 시작
+    document.getElementById('hud').style.display='flex';
+    startGame();
+  } else {
+    // 완전 리매치: 캐릭터 선택 화면으로
+    matchState.localWins=0; matchState.peerWins=0; matchState.round=1;
+    matchState.localAugments=[]; matchState.peerAugments=[];
+    document.querySelectorAll('.char-card').forEach(c => { c.classList.remove('sel'); c.style.pointerEvents=''; });
+    document.getElementById('confirm-btn').disabled=false;
+    setStatus('sel-status','','');
+    document.getElementById('aug-hud').innerHTML='';
+    document.getElementById('peer-aug-hud').innerHTML='';
+    const d=document.getElementById('aug-divider'); if(d) d.style.display='none';
+    showScr('scr-select');
+  }
 }
 
 // ============================================================
@@ -5650,9 +6987,19 @@ function showScr(id) {
 function resetL() {
   const lc=CHARACTERS[selCharId];
   L.charDef=lc; L.color=lc.color; L.defaultColor=lc.color;
-  L.maxHealth=lc.maxHealth; L.health=lc.maxHealth;
-  L.speed=lc.speed; L.radius=lc.radius??20;
-  L.stamina=STAM_MAX; L.staminaUseTime=-99999;
+
+  // 기본 스탯 설정 후 증강 적용 (기본값 기준 가산 — 중복시 퍼센트 합산)
+  L.maxHealth = lc.maxHealth * (1 + 0.30 * getAugCount('tank'));
+  L.health    = L.maxHealth;
+  // 이동속도: 무브먼트(15%×stack)와 오버파워(10%×stack) 중 최고값만 적용
+  const speedBonusMovement = 0.15 * getAugCount('movement');
+  const speedBonusOverpower = 0.10 * getAugCount('overpower');
+  L.speed     = lc.speed * (1 + Math.max(speedBonusMovement, speedBonusOverpower));
+  L.radius    = lc.radius??20;
+  L.stamina   = STAM_MAX * (1 + 0.25 * getAugCount('endurance'));
+  L._augStamMax = L.stamina;
+  L._augFirstHit = false;
+  L.staminaUseTime=-99999;
   L.lmbCooldown=0; L.rmbCooldown=0;
   L.counterReady=false; L.counterExpiry=0; L._counterPending=false;
   L.lastHitTime=0; L.lastAttackTime=0; L.lastRegenTick=performance.now();
@@ -5679,10 +7026,15 @@ function resetL() {
   L._kanGauge=0;
   L._attackPreview=null;
   L._cherityCharging=false; L._cherityChargeStart=0; L._cherityDrained=0; L._cherityFrozenT=null; L._smokeRevealSent=0;
+  L._lastStandUses = getAugCount('last_stand'); // 스택당 1회씩 발동 가능
+  L._stunShotReady = getAugCount('stun_shot') > 0; // 스턴샷: 게임 시작 즉시 준비
+  L._fortressStillSince = null; L._fortressActive = false; // 절대방어
+  L._counterDefExpiry = 0; // 공격방어
   if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
 function startGame() {
+  localReady=true; peerReady=true; // 라운드 시작 시 항상 ready 상태
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   document.getElementById('hud').style.display='flex';
 
@@ -5705,11 +7057,13 @@ function startGame() {
   resetMinions();
   updateLocalHud(); updateRemoteHud();
   gameOn=true; lastLoopTime=0;
+  updateRoundScoreDisplay();
+  renderAugHud();
 
   if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
   _stateInterval = setInterval(() => {
     if (!gameOn) return;
-    send({type:'state', x:L.x, y:L.y, health:L.health, stamina:L.stamina,
+    send({type:'state', x:L.x, y:L.y, health:L.health, maxHealth:L.maxHealth, stamina:L.stamina,
           dodging:L.dodging, counterReady:L.counterReady,
           toolbox: (L.charDef?.id==='miaruky' && L.orb && !L.orb.returning)
                    ? {x:L.orb.x, y:L.orb.y} : null,
@@ -5723,6 +7077,7 @@ function startGame() {
           erapabiFortify: L._erapabiFortify??false,
           nsonyaStacks: (L.charDef?.id==='nsonya') ? (L._nsonyaStacks||0) : 0,
           reikaBlessed: (L.charDef?.id==='reika') ? !!(L._reikaBlessed && performance.now() < (L._reikaBlessedExpiry||0)) : false,
+          fortressActive: L._fortressActive ?? false,
           // 소환수 상태 동기화
           minions: localMinions.map(m => ({
             id: m.id, type: m.type, charId: m.charId,
@@ -5795,6 +7150,7 @@ function loop() {
   const ePredelay  = L._nsonyaPredelay || false;
 
   const sp = L.speed * dt * slowMult * eSpeedMult * (ePredelay ? 0 : 1);
+  const _prevX = L.x, _prevY = L.y;
   if (!stunned && !bound && !L.burrowing && !L._phaseJumping && !erapabiLaserLock && !L._reikaJumping && !L._reikaPreswing && !L._cherityCharging) {
     // 키보드 입력
     if (keys['w']) L.y=Math.max(L.radius, L.y-sp);
@@ -5803,9 +7159,20 @@ function loop() {
     if (keys['d']) L.x=Math.min(WORLD_W-L.radius, L.x+sp);
     resolveWall(L);
   }
+  // 절대방어: WASD 키 입력이 없을 때 0.5초 후 활성화
+  if (getAugCount('fortress') > 0) {
+    const pressing = keys['w'] || keys['a'] || keys['s'] || keys['d'];
+    if (pressing || stunned || bound) {
+      L._fortressStillSince = now;
+      L._fortressActive = false;
+    } else {
+      if (!L._fortressStillSince) L._fortressStillSince = now;
+      L._fortressActive = (now - L._fortressStillSince) >= 500;
+    }
+  }
 
-  if (L.lmbCooldown>0) L.lmbCooldown-=physDt;
-  if (L.rmbCooldown>0) L.rmbCooldown-=physDt;
+  if (L.lmbCooldown>0) L.lmbCooldown -= physDt;
+  if (L.rmbCooldown>0) L.rmbCooldown -= physDt;
   if (L.counterReady && now>L.counterExpiry) L.counterReady=false;
 
   if (L.invincible>0) { L.invincible-=dt; if (L.invincible<0) L.invincible=0; }
@@ -6187,6 +7554,13 @@ function loop() {
 
   const lf=1-Math.pow(1-0.22, dt);
   R.x+=(R.tx-R.x)*lf; R.y+=(R.ty-R.y)*lf;
+  // peerMinions 위치 보간 (끊김 방지)
+  for (const pm of peerMinions) {
+    if (pm.tx !== undefined) {
+      pm.x += (pm.tx - pm.x) * lf;
+      pm.y += (pm.ty - pm.y) * lf;
+    }
+  }
 
   if (L.orb && L.orb.returning) {
     const rt=Math.min(1,(now-L.orb.returnStart)/350);
