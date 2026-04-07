@@ -206,7 +206,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.0.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.1.2</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -674,8 +674,8 @@ const BALANCE = {
       radius:         10,
       range:          1100,
       explosionRange: 80,
-      damage:         15,
-      healAmount:     15,   // 폭발 범위 내 유령 회복
+      damage:         18,
+      healAmount:     25,   // 폭발 범위 내 유령 회복
       cd:             600,
     },
     rmb: {                  // 유령친구 — 소환 / 돌진 명령
@@ -701,7 +701,7 @@ const BALANCE = {
       radius:        18,
       meleeRange:    80,    // 공격 사거리 (접촉 없이 공격)
       meleeHalfAngle: Math.PI / 2, // 반원형 (앞쪽 180°)
-      meleeDamage:   10,
+      meleeDamage:   12,
       meleeInterval: 1200,
       stopRange:     90,    // 이 거리 이내면 추격 중단
       dashDamage:    30,
@@ -1265,7 +1265,7 @@ const CHARACTERS = {
       { key:'LMB', name:'유령구체', cost: BALANCE.elin.lmb.cost,
         desc:`벽과 적을 관통하는 구체 발사. 탄착지점에서 폭발해 피해. 범위 내 유령은 ${BALANCE.elin.lmb.healAmount} 체력 회복(${BALANCE.elin.lmb.damage})` },
       { key:'RMB', name:'유령친구', cost: 200,
-        desc:`스테미나 전량 소모해 유령 소환. 유령이 있으면 가장 가까운 적에게 돌진 명령 (${BALANCE.elin.spirit.dashDamage})` },
+        desc:`스테미나 전량 소모해 유령 소환. 유령이 있으면 스테미나 소모 없이 가장 가까운 적에게 돌진 명령 (${BALANCE.elin.spirit.dashDamage})` },
       { key:'L-Shift', name:'죽지말아줘!', cost: 0,
         desc:`유령을 향해 투사체 발사. 도달 시 유령 ${BALANCE.elin.counter.healAmount} 회복. 유령 및 엘린 위치 폭발 및 넉백 (${BALANCE.elin.counter.damage})` },
     ],
@@ -1618,6 +1618,11 @@ const AUGMENTS = [
   { id:'speed_shot',  name:'스피드 샷',    emoji:'🚀', rarity:'common', desc:'탄속 +20%' },
   { id:'fortress',    name:'절대방어',     emoji:'🏰', rarity:'hero',   desc:'0.5초간 가만히 서 있으면 받는 피해 60% 감소 (중첩 불가)' },
   { id:'counter_def', name:'공격방어',     emoji:'🛡', rarity:'rare',   desc:'피해를 줄 시 2초간 받는 피해 20% 감소' },
+  { id:'big_weapon',  name:'더 큰 무기',   emoji:'⚔️', rarity:'rare',   desc:'근접 무기 공격범위 +20%' },
+  { id:'healing',     name:'힐링',         emoji:'💚', rarity:'common', desc:'매 초마다 체력 2 회복' },
+  { id:'light_step',  name:'가벼운 걸음',  emoji:'🌬', rarity:'common', desc:'회피 거리 +30%' },
+  { id:'ration',      name:'비상식량',     emoji:'🍖', rarity:'hero',   desc:'라운드당 1회, HP 50% 이하 시 최대 체력까지 매초 10 회복' },
+  { id:'swift_regen', name:'배속',         emoji:'🔋', rarity:'common', desc:'스테미나 회복 속도 +20%' },
 ];
 const RARITY_COLOR = { common:'#aaa', rare:'#2dd4bf', hero:'#a855f7' };
 
@@ -2125,10 +2130,32 @@ function tickStamina(now, physDt) {
   if (now - L.staminaUseTime < STAM_DELAY) return;
   const regenMult = (L.charDef?.id === 'nsonya' && (L._nsonyaStacks||0) >= 2)
     ? BALANCE.nsonya.rmb.stamRegenMult : 1;
-  const augMult = 1;
+  const augMult = 1 + 0.20 * getAugCount('swift_regen');
   L.stamina = Math.min(stamMax, L.stamina + (stamMax / STAM_REGEN) * physDt * regenMult * augMult);
 }
 function tickRegen(now) {
+  // 힐링: 매 초마다 체력 2 × 스택 회복 (전투 여부 무관)
+  const healCount = getAugCount('healing');
+  if (healCount > 0 && L.health < L.maxHealth) {
+    if (now - (L._healingTick||0) >= 1000) {
+      L._healingTick = now;
+      L.health = Math.min(L.maxHealth, L.health + 2 * healCount);
+    }
+  }
+  // 비상식량: 라운드당 1회, HP 50% 이하 시 최대체력까지 매초 10 회복
+  if (getAugCount('ration') > 0 && !L._rationUsed && L.health < L.maxHealth * 0.5) {
+    L._rationUsed = true;
+    L._rationHealing = true;
+  }
+  if (L._rationHealing) {
+    if (L.health >= L.maxHealth) {
+      L._rationHealing = false;
+    } else if (now - (L._rationTick||0) >= 1000) {
+      L._rationTick = now;
+      L.health = Math.min(L.maxHealth, L.health + 10);
+    }
+  }
+  // 기존 자연회복
   if (L.health >= L.maxHealth) return;
   const regenIdle = REGEN_IDLE;
   if (now - L.lastHitTime    < regenIdle) return;
@@ -2889,7 +2916,7 @@ function tryDodge() {
   if (!hasDir) { setTimeout(onDodgeEnd, 150); return; }
 
   const ds=performance.now(), sx=L.x, sy=L.y;
-  const augDodgeDist = DODGE_DIST;
+  const augDodgeDist = DODGE_DIST * (1 + 0.30 * getAugCount('light_step'));
   const tx=Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x+dx*augDodgeDist));
   const ty=Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y+dy*augDodgeDist));
   const dodgeDur = (L.charDef?.id==='nsonya' && (L._nsonyaStacks||0)>=3)
@@ -3040,11 +3067,11 @@ const SKILLS = {
         const dx=R.x-L.x, dy=R.y-L.y;
         const localX = dx*cos + dy*sin;
         const localY = dx*-sin + dy*cos;
-        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:B.length, width:B.width}, B.damage)) {
+        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:augMeleeRange(B.length), width:B.width}, B.damage)) {
           knockbackRemote(B.knockbackPower);
         }
-        addFx({type:'swordSlash', x:L.x, y:L.y, angle:fa, len:B.length, width:B.width, dur:14, maxDur:14});
-        send({type:'fx', fx:{type:'swordSlash', x:L.x, y:L.y, angle:fa, len:B.length, width:B.width, dur:14, maxDur:14}});
+        addFx({type:'swordSlash', x:L.x, y:L.y, angle:fa, len:augMeleeRange(B.length), width:B.width, dur:14, maxDur:14});
+        send({type:'fx', fx:{type:'swordSlash', x:L.x, y:L.y, angle:fa, len:augMeleeRange(B.length), width:B.width, dur:14, maxDur:14}});
         L.lastAttackTime=performance.now();
       }, BALANCE.counter.delay);
     },
@@ -3056,13 +3083,13 @@ const SKILLS = {
       if (!useStam(B.cost)) return;
       if (L.orb) { clearTimeout(L.orb._timer); L.orb = null; }
       const dist = Math.hypot(R.x - L.x, R.y - L.y);
-      hitCtxSpirit({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.meleeDamage);
+      hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.meleeDamage);
       if (dist < B.meleeRange) {
         const toR  = Math.atan2(R.y - L.y, R.x - L.x);
         const diff = Math.abs(((toR - angle) + Math.PI * 3) % (Math.PI * 2) - Math.PI);
-        if (diff < B.halfAngle) hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.meleeDamage);
-        addFx({type:'swing', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, dur:9, maxDur:9});
-        send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, dur:9, maxDur:9}});
+        if (diff < B.halfAngle) hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.meleeDamage);
+        addFx({type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9});
+        send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9}});
       } else {
         const b = {id:uid(), x:L.x, y:L.y, radius:B.throwRadius, speed:B.throwSpeed,
                    dx:Math.cos(angle), dy:Math.sin(angle), damage:B.throwDamage, maxRange:B.throwRange, traveled:0};
@@ -3215,41 +3242,37 @@ const SKILLS = {
       if (!useStam(B.cost)) return;
       const dist = Math.hypot(R.x - L.x, R.y - L.y);
       let hit = false;
-      if (dist < B.meleeRange + R.radius) {
+      // FX 색상 결정 (hit 전에 미리)
+      const isOvercharge = !!L._tauOveleucharge;
+      const fxCol = isOvercharge ? '255,255,0' : '0,255,255';
+
+      if (dist < augMeleeRange(B.meleeRange) + R.radius) {
         const toR  = Math.atan2(R.y - L.y, R.x - L.x);
         const diff = Math.abs(((toR - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
         if (diff < B.halfAngle) {
-          // 거리 기반 피해: 가까울수록 maxDamage, 멀수록 minDamage
-          const distRatio = Math.max(0, 1 - dist / (B.meleeRange + R.radius));
+          const distRatio = Math.max(0, 1 - dist / (augMeleeRange(B.meleeRange) + R.radius));
           let dmg = Math.round(B.minDamage + (B.maxDamage - B.minDamage) * distRatio);
-          // 오버차지 발동 시 최대체력 비례 추가 피해
-          if (L._tauOveleucharge) {
+          if (isOvercharge) {
             dmg += Math.round(R.maxHealth * B.overchargeRatio);
             L._tauOveleucharge = false;
             L._tauHitStack = 0;
             addFx({type:'tauOveleuchargeHit', x:R.x, y:R.y, r:0, maxR:80, dur:18, maxDur:18});
             send({type:'fx', fx:{type:'tauOveleuchargeHit', x:R.x, y:R.y, r:0, maxR:80, dur:18, maxDur:18}});
-            hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, dmg);
-            // 오버차지 FX — 노란색
-            const col2 = '255,255,0';
-            addFx({type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col:col2, dur:10, maxDur:10});
-            send({type:'fx', fx:{type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col:col2, dur:10, maxDur:10}});
           } else {
             L._tauHitStack = (L._tauHitStack||0) + 1;
             if (L._tauHitStack >= B.stackCount) {
               L._tauOveleucharge = true;
               L._tauHitStack = 0;
             }
-            hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, dmg);
-            // 일반 FX — 하늘색
-            const col2 = '0,255,255';
-            addFx({type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col:col2, dur:10, maxDur:10});
-            send({type:'fx', fx:{type:'tauSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col:col2, dur:10, maxDur:10}});
           }
+          hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, dmg);
           hit = true;
         }
       }
-      hitCtxSpirit({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.damage);
+      hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
+      // FX는 항상 표시 (공중 휘두르기 포함)
+      addFx({type:'tauSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, col:fxCol, dur:10, maxDur:10});
+      send({type:'fx', fx:{type:'tauSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, col:fxCol, dur:10, maxDur:10}});
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
 
@@ -3398,11 +3421,11 @@ const SKILLS = {
         const cos = Math.cos(angle), sin = Math.sin(angle);
         const dx = R.x - L.x, dy = R.y - L.y;
         const lx = dx*cos + dy*sin, ly = dx*-sin + dy*cos;
-        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:B.lmbCharge.length, width:B.lmbCharge.width}, B.lmbCharge.damage)) {
+        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:augMeleeRange(B.lmbCharge.length), width:B.lmbCharge.width}, B.lmbCharge.damage)) {
           bindRemote(B.lmbCharge.bindDur);
         }
-        addFx({type:'ropeSlam', x:L.x, y:L.y, angle, len:B.lmbCharge.length, width:B.lmbCharge.width, dur:12, maxDur:12});
-        send({type:'fx', fx:{type:'ropeSlam', x:L.x, y:L.y, angle, len:B.lmbCharge.length, width:B.lmbCharge.width, dur:12, maxDur:12}});
+        addFx({type:'ropeSlam', x:L.x, y:L.y, angle, len:augMeleeRange(B.lmbCharge.length), width:B.lmbCharge.width, dur:12, maxDur:12});
+        send({type:'fx', fx:{type:'ropeSlam', x:L.x, y:L.y, angle, len:augMeleeRange(B.lmbCharge.length), width:B.lmbCharge.width, dur:12, maxDur:12}});
         L.lmbCooldown = B.lmbCharge.cd; L.lastAttackTime = performance.now();
       } else {
         // 일반 스윙: 120° 우편향 부채꼴
@@ -3412,13 +3435,13 @@ const SKILLS = {
         if (dist < B.lmb.meleeRange + R.radius) {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
           const diff = Math.abs(((toR - swingAngle) + Math.PI*3) % (Math.PI*2) - Math.PI);
-          if (diff < B.lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:swingAngle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle}, B.lmb.damage);
+          if (diff < B.lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
         }
-        hitCtxSpirit({x:L.x, y:L.y, angle:swingAngle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle}, B.lmb.damage);
+        hitCtxSpirit({x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
         if (false) {
       }
-        addFx({type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle, dur:10, maxDur:10});
-        send({type:'fx', fx:{type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle, dur:10, maxDur:10}});
+        addFx({type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle, dur:10, maxDur:10});
+        send({type:'fx', fx:{type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle, dur:10, maxDur:10}});
         L.lmbCooldown = B.lmb.cd; L.lastAttackTime = performance.now();
       }
     },
@@ -3459,13 +3482,13 @@ const SKILLS = {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
           const diff = Math.abs(((toR - swingAngle) + Math.PI*3) % (Math.PI*2) - Math.PI);
           if (diff < B.halfAngle) {
-            hitCtx({x:L.x, y:L.y, angle:swingAngle, range:B.meleeRange, halfAngle:B.halfAngle}, B.damage);
+            hitCtx({x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
             if (swingNum === 2) bindRemote(B.bindDur);
           }
-          hitCtxSpirit({x:L.x, y:L.y, angle:swingAngle, range:B.meleeRange, halfAngle:B.halfAngle}, B.damage);
+          hitCtxSpirit({x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
         }
-        addFx({type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:B.meleeRange, halfAngle:B.halfAngle, dur:12, maxDur:12});
-        send({type:'fx', fx:{type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:B.meleeRange, halfAngle:B.halfAngle, dur:12, maxDur:12}});
+        addFx({type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:12, maxDur:12});
+        send({type:'fx', fx:{type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:12, maxDur:12}});
         L.lastAttackTime = performance.now();
       };
 
@@ -3516,9 +3539,9 @@ const SKILLS = {
       if (dist < B.lmb.meleeRange+R.radius) {
         const toR=Math.atan2(R.y-L.y,R.x-L.x);
         const diff=Math.abs(((toR-angle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-        if (diff < B.lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle}, B.lmb.damage);
+        if (diff < B.lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
       }
-      hitCtxSpirit({x:L.x, y:L.y, angle, range:B.lmb.meleeRange, halfAngle:B.lmb.halfAngle}, B.lmb.damage);
+      hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
       if (false) {
       }
       // 스윙 범위 내 투사체 즉시 소거 + 상대방 localBullets에서도 제거
@@ -3577,7 +3600,7 @@ const SKILLS = {
         // 적 일자 판정
         const dx=R.x-L.x, dy=R.y-L.y;
         const localX=dx*cos+dy*sin, localY=dx*-sin+dy*cos;
-        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:B.length, width:B.width}, B.damage)) {
+        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:augMeleeRange(B.length), width:B.width}, B.damage)) {
           knockbackRemote(B.knockbackPower);
         }
         // 경로상 peerBullets 소거 + 상대 localBullets 취소
@@ -3821,12 +3844,12 @@ const SKILLS = {
         if (diff < B.halfAngle) {
           // 중앙 판정: 2배 피해
           const dmg = diff < B.centerAngle ? B.centerDmg : B.damage;
-          hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, dmg);
+          hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, dmg);
         }
       }
-      hitCtxSpirit({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.damage);
-      addFx({type:'maisilSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, centerAngle:B.centerAngle, dur:10, maxDur:10});
-      send({type:'fx', fx:{type:'maisilSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, centerAngle:B.centerAngle, dur:10, maxDur:10}});
+      hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
+      addFx({type:'maisilSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, centerAngle:B.centerAngle, dur:10, maxDur:10});
+      send({type:'fx', fx:{type:'maisilSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, centerAngle:B.centerAngle, dur:10, maxDur:10}});
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
 
@@ -4081,9 +4104,9 @@ const SKILLS = {
           if (dist < lmb.range + R.radius) {
             const toR = Math.atan2(R.y-L.y, R.x-L.x);
             const diff = Math.abs(((toR-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-            if (diff < lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:currentAngle+lmb.bias, range:lmb.range, halfAngle:lmb.halfAngle}, lmb.damage);
+            if (diff < lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:currentAngle+lmb.bias, range:augMeleeRange(lmb.range), halfAngle:lmb.halfAngle}, lmb.damage);
           }
-          hitCtxSpirit({x:L.x, y:L.y, angle:currentAngle+lmb.bias, range:lmb.range, halfAngle:lmb.halfAngle}, lmb.damage);
+          hitCtxSpirit({x:L.x, y:L.y, angle:currentAngle+lmb.bias, range:augMeleeRange(lmb.range), halfAngle:lmb.halfAngle}, lmb.damage);
           if (false) {
       }
           // 약간 전진 (현재 방향 기준)
@@ -4097,8 +4120,8 @@ const SKILLS = {
             resolveWall(L);
             if (t >= 1) clearInterval(di);
           }, FRAME_MS);
-          addFx({type:'reikaSwing', x:L.x, y:L.y, angle:swingAngle, range:lmb.range, halfAngle:lmb.halfAngle, dur:12, maxDur:12});
-          send({type:'fx', fx:{type:'reikaSwing', x:L.x, y:L.y, angle:swingAngle, range:lmb.range, halfAngle:lmb.halfAngle, dur:12, maxDur:12}});
+          addFx({type:'reikaSwing', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(lmb.range), halfAngle:lmb.halfAngle, dur:12, maxDur:12});
+          send({type:'fx', fx:{type:'reikaSwing', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(lmb.range), halfAngle:lmb.halfAngle, dur:12, maxDur:12}});
           L.lmbCooldown = lmb.cd; L.lastAttackTime = performance.now();
         }, B.lmb.predelay);
       }
@@ -4308,9 +4331,9 @@ const SKILLS = {
       const cos = Math.cos(angle), sin = Math.sin(angle);
       const dx = R.x - L.x, dy = R.y - L.y;
       const lx = dx*cos + dy*sin, ly = dx*(-sin) + dy*cos;
-      hitCtxAll({x:L.x, y:L.y, cos, sin, len:B.meleeRange, width:B.width}, B.damage);
-      addFx({type:'phasePunch', x:L.x, y:L.y, angle, len:B.meleeRange, width:B.width, dur:7, maxDur:7});
-      send({type:'fx', fx:{type:'phasePunch', x:L.x, y:L.y, angle, len:B.meleeRange, width:B.width, dur:7, maxDur:7}});
+      hitCtxAll({x:L.x, y:L.y, cos, sin, len:augMeleeRange(B.meleeRange), width:B.width}, B.damage);
+      addFx({type:'phasePunch', x:L.x, y:L.y, angle, len:augMeleeRange(B.meleeRange), width:B.width, dur:7, maxDur:7});
+      send({type:'fx', fx:{type:'phasePunch', x:L.x, y:L.y, angle, len:augMeleeRange(B.meleeRange), width:B.width, dur:7, maxDur:7}});
       // 체력 비율에 따라 쿨다운 감소 (낮을수록 빠름)
       const hpRatio = Math.max(0, L.health / L.maxHealth);
       L.lmbCooldown = Math.round(B.cdMin + (B.cdBase - B.cdMin) * hpRatio);
@@ -4364,7 +4387,7 @@ const SKILLS = {
         const dx2 = R.x - L.x, dy2 = R.y - L.y;
         const lx2 = dx2*cos2 + dy2*sin2, ly2 = dx2*(-sin2) + dy2*cos2;
         if (lx2 > -R.radius && lx2 < B.range + R.radius && Math.abs(ly2) < B.width + R.radius) {
-          hitCtxAll({x:L.x, y:L.y, cos:cos2, sin:sin2, len:B.range, width:B.width}, B.damage);
+          hitCtxAll({x:L.x, y:L.y, cos:cos2, sin:sin2, len:augMeleeRange(B.range), width:B.width}, B.damage);
           // 적을 끌어당김
           const dist2 = Math.hypot(dx2, dy2);
           const pullAngle = Math.atan2(L.y - R.y, L.x - R.x);
@@ -4395,15 +4418,15 @@ const SKILLS = {
         if (diff < B.halfAngle) {
           const gauge = L._kanGauge || 0;
           const dmg = Math.round(B.baseDamage + B.gaugeDamage * (gauge / BALANCE.kan.gaugeMax));
-          hitCtx({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, dmg);
+          hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, dmg);
           L._kanGauge = Math.min(BALANCE.kan.gaugeMax, gauge + B.gaugeGain);
           hit = true;
         }
       }
-      hitCtxSpirit({x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle}, B.baseDamage);
+      hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.baseDamage);
       const col = hit ? '80,220,120' : '40,160,80';
-      addFx({type:'kanSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col, dur:10, maxDur:10});
-      send({type:'fx', fx:{type:'kanSlash', x:L.x, y:L.y, angle, range:B.meleeRange, halfAngle:B.halfAngle, col, dur:10, maxDur:10}});
+      addFx({type:'kanSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, col, dur:10, maxDur:10});
+      send({type:'fx', fx:{type:'kanSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, col, dur:10, maxDur:10}});
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
 
@@ -4634,6 +4657,8 @@ function fireShotgun(angle, {pellets, spread, speed, radius, damage, maxRange, k
 function augBulletRadius(r) { return r * (1 + 0.60 * getAugCount('big_bullet')); }
 // 스피드샷 증강: 탄속 보정
 function augBulletSpeed(s) { return s * (1 + 0.20 * getAugCount('speed_shot')); }
+// 더 큰 무기: 근접 공격범위 +20% per 스택
+function augMeleeRange(r) { return r * (1 + 0.20 * getAugCount('big_weapon')); }
 
 function ruvuDash(tx, ty, dur) {
   const ds=performance.now(), sx=L.x, sy=L.y;
@@ -6322,11 +6347,11 @@ function drawPlayer(p, label) {
       augR += 5;
     }
 
-    // ── 피해량 증가 버프 (보라색) ──
+    // ── 피해량 증가 버프 (보라색) — 조건 충족 시만 표시 ──
     const peerAugCount = id => matchState.peerAugments.filter(x => x === id).length;
     const dmgIncActive =
-      (isLocal && (getAugCount('overpower') > 0 || (getAugCount('last_dance') > 0 && L.health < L.maxHealth * 0.3))) ||
-      (!isLocal && (peerAugCount('overpower') > 0 || (peerAugCount('last_dance') > 0 && R.health < R.maxHealth * 0.3)));
+      (isLocal && getAugCount('last_dance') > 0 && L.health < L.maxHealth * 0.3) ||
+      (!isLocal && peerAugCount('last_dance') > 0 && R.health < R.maxHealth * 0.3);
     if (dmgIncActive) {
       ctx.beginPath(); ctx.arc(p.x, p.y, augR, 0, Math.PI*2);
       ctx.strokeStyle=`rgba(160,80,255,${0.7+0.3*pulse})`;
@@ -7027,9 +7052,11 @@ function resetL() {
   L._attackPreview=null;
   L._cherityCharging=false; L._cherityChargeStart=0; L._cherityDrained=0; L._cherityFrozenT=null; L._smokeRevealSent=0;
   L._lastStandUses = getAugCount('last_stand'); // 스택당 1회씩 발동 가능
-  L._stunShotReady = getAugCount('stun_shot') > 0; // 스턴샷: 게임 시작 즉시 준비
-  L._fortressStillSince = null; L._fortressActive = false; // 절대방어
-  L._counterDefExpiry = 0; // 공격방어
+  L._stunShotReady = getAugCount('stun_shot') > 0;
+  L._fortressStillSince = null; L._fortressActive = false;
+  L._counterDefExpiry = 0;
+  L._rationUsed = false; L._rationHealing = false; L._rationTick = 0;
+  L._healingTick = 0;
   if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
