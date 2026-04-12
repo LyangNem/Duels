@@ -206,7 +206,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.2.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.3.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1143,6 +1143,62 @@ const BALANCE = {
       cd:             300,
     },
   },
+
+  // ── 헤르쟝 ────────────────────────────────────────────────
+  herjang: {
+    hp:     110,
+    speed:  4,
+    radius: 20,
+
+    lmb: {
+      cost:        20,
+      speed:       20,
+      radius:      10,
+      damage:      15,
+      range:       900,
+      recoilDist:  50,
+      cd:          480,
+    },
+    rmb: {
+      summonCost:  200,
+      placeDist:   90,
+      pickupRange: 65,
+      carrySpeed:  0.5,
+      burstCount:  3,
+      burstInterval: 180,
+      burstDamage: 10,
+      burstSpeed:  18,
+      burstRadius: 11,
+      burstRange:  1100,
+      burstCost:   30,       // 점사 스테미나 소모
+      slowDur:     1500,
+      cd:          800,
+    },
+    cannon: {
+      maxHp:       110,
+      radius:      22,
+      atkRange:    320,
+      damage:      18,
+      shotSpeed:   16,
+      shotRadius:  10,
+      shotRange:   650,
+      fireInterval:800,
+    },
+    counter: {
+      aoeRange:    130,
+      damage:      22,
+      knockbackPower: 520,
+      cd:          300,
+      miniMaxHp:   90,
+      miniRadius:  16,
+      miniAtkRange:250,
+      miniDamage:  12,
+      miniShotSpeed: 14,
+      miniShotRadius: 8,
+      miniShotRange: 520,
+      miniFireInterval: 900,
+    },
+  },
 };
 
 // ── 자주 쓰이는 시스템 수치 단축 참조 ──────────────────────
@@ -1439,7 +1495,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.cherity.hp,
     speed:     BALANCE.cherity.speed,
     radius:    BALANCE.cherity.radius,
-    statsText: [['체력','100'],['이동속도','보통'],['스타일','차징형 원거리 저격수']],
+    statsText: [['체력', String(BALANCE.cherity.hp)],['이동속도','보통'],['스타일','차징형 원거리 저격수']],
     desc:      '원거리에서 강한 한방으로 게임을 터뜨리는 캐릭터',
     skills: [
       { key:'LMB',     name:'저격',    cost:`${BALANCE.cherity.lmb.minCost}~${BALANCE.cherity.lmb.maxCost}`,
@@ -1458,15 +1514,34 @@ const CHARACTERS = {
     maxHealth: BALANCE.konyeong.hp,
     speed:     BALANCE.konyeong.speed,
     radius:    BALANCE.konyeong.radius,
-    statsText: [['체력','110'],['이동속도','빠름'],['스타일','범위형 근거리 딜러']],
+    statsText: [['체력', String(BALANCE.konyeong.hp)],['이동속도','빠름'],['스타일','거리조절형 중거리 딜러']],
     desc:      '마시멜로 창으로 사거리 끝의 적에게 강한 피해를 주는 캐릭터',
     skills: [
       { key:'LMB',     name:'마시멜로 창',      cost:BALANCE.konyeong.lmb.cost,
-        desc:`창을 찌릅니다. 사거리 끝 적중 시 피해량 2배 (${BALANCE.konyeong.lmb.damage}/${BALANCE.konyeong.lmb.tipDamage})` },
+        desc:`창을 찔러 사거리 끝 적중 시 피해량 2배 (${BALANCE.konyeong.lmb.damage}/${BALANCE.konyeong.lmb.tipDamage})` },
       { key:'RMB',     name:'뜨거운 마시멜로',  cost:BALANCE.konyeong.rmb.cost,
         desc:`전방을 내리쳐 피해와 넉백. 착탄 위치에 감속 지대 형성 (${BALANCE.konyeong.rmb.damage})` },
       { key:'L-Shift', name:'저리가!',           cost:0,
         desc:`마시멜로 창을 크게 휘둘러 원형 피해. 끝부분 적중 시 피해 2배, 넉백 및 감속 (${BALANCE.konyeong.counter.damage}/${BALANCE.konyeong.counter.tipDamage})` },
+    ],
+  },
+
+  herjang: {
+    id:        'herjang',
+    name:      '헤르쟝',
+    color:     '#00c897',
+    maxHealth: BALANCE.herjang.hp,
+    speed:     BALANCE.herjang.speed,
+    radius:    BALANCE.herjang.radius,
+    statsText: [['체력', String(BALANCE.herjang.hp)],['이동속도','보통'],['스타일','소환형 원거리 딜러']],
+    desc:      '이동형 대포를 운용해 전장을 지배하는 캐릭터',
+    skills: [
+      { key:'LMB',     name:'미니 대포',     cost:BALANCE.herjang.lmb.cost,
+        desc:`대포를 발사하고 반동으로 뒤로 넉백. (${BALANCE.herjang.lmb.damage})` },
+      { key:'RMB',     name:'이동형 대포',   cost:200,
+        desc:`전방에 대포 설치. 대포가 있으면 슬로우 포탄 3발 점사 지시 (${BALANCE.herjang.rmb.burstDamage}×3)` },
+      { key:'L-Shift', name:'간이 대포',     cost:0,
+        desc:`제자리에 간이 대포 생성 + 주변 넉백 피해. 간이 대포가 적을 자동 공격 (${BALANCE.herjang.counter.damage})` },
     ],
   },
 };
@@ -2747,6 +2822,145 @@ MINION_DEFS['elin_spirit'] = {
   },
 };
 
+
+// ── 헤르쟝 이동형 대포 ──────────────────────────────────────
+function _herCannonAutoFire(m, BS, now) {
+  if (m._carried) return;
+  const cd = m._stateData;
+  if (cd.fireCd && now < cd.fireCd) return;
+  // 가장 가까운 타겟 탐색 (R 플레이어 + peerMinions)
+  let nearest = null, nearDist = BS.atkRange;
+  const distR = Math.hypot(R.x - m.x, R.y - m.y);
+  if (distR <= BS.atkRange) { nearest = R; nearDist = distR; }
+  for (const pm of peerMinions) {
+    const d = Math.hypot(pm.x - m.x, pm.y - m.y);
+    if (d < nearDist) { nearest = pm; nearDist = d; }
+  }
+  if (!nearest) return;
+  const angle = Math.atan2(nearest.y - m.y, nearest.x - m.x);
+  const b = {id:uid(), x:m.x, y:m.y, radius:BS.shotRadius, speed:BS.shotSpeed,
+             dx:Math.cos(angle), dy:Math.sin(angle), damage:BS.damage,
+             maxRange:BS.shotRange, traveled:0, pierceWalls:true};
+  localBullets.push(b); send({type:'bullet', ...b});
+  addFx({type:'herCannonShot', x:m.x, y:m.y, angle, dur:6, maxDur:6});
+  send({type:'fx', fx:{type:'herCannonShot', x:m.x, y:m.y, angle, dur:6, maxDur:6}});
+  cd.fireCd = now + BS.fireInterval;
+}
+
+MINION_DEFS['herjang_cannon'] = {
+  radius: BALANCE.herjang.cannon.radius,
+  maxHp:  BALANCE.herjang.cannon.maxHp,
+  color:  '#00c897',
+  speed:  0,
+
+  tick(m, dt, physDt, now) {
+    if (m._stunEnd && now < m._stunEnd) return;
+    _herCannonAutoFire(m, BALANCE.herjang.cannon, now);
+  },
+
+  draw(m, ctx, isPeer) {
+    const pulse = 0.85 + 0.15*Math.sin(performance.now()*0.004);
+    ctx.save();
+    ctx.globalAlpha = isPeer ? 0.5 : 0.95;
+    // isPeer=false: 내 대포 → R 방향 / isPeer=true: 상대 대포 → L 방향
+    const barrelTarget = isPeer ? L : R;
+    const barrelAngle = Math.atan2(barrelTarget.y - m.y, barrelTarget.x - m.x);
+
+    ctx.beginPath(); ctx.arc(m.x, m.y, m.radius * pulse, 0, Math.PI*2);
+    ctx.fillStyle = isPeer ? 'rgba(38,198,218,0.25)' : 'rgba(38,198,218,0.55)';
+    ctx.fill();
+    ctx.strokeStyle = '#00c897'; ctx.lineWidth = 2.5;
+    ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+
+    // 포신 (양쪽 화면 모두 표시)
+    ctx.save();
+    ctx.translate(m.x, m.y); ctx.rotate(barrelAngle);
+    ctx.fillStyle = isPeer ? 'rgba(38,198,218,0.55)' : 'rgba(38,198,218,0.85)';
+    ctx.fillRect(m.radius*0.2, -5, m.radius*1.1, 10);
+    ctx.restore();
+
+    if (m._carried && !isPeer) {
+      ctx.fillStyle='rgba(255,220,80,0.9)'; ctx.font='bold 9px Courier New'; ctx.textAlign='center';
+      ctx.fillText('운반중', m.x, m.y - m.radius - 12);
+    }
+
+    ctx.globalAlpha = isPeer ? 0.5 : 1;
+    const bw=m.radius*2.8, bh=4, bx=m.x-bw/2, by=m.y-m.radius-18;
+    ctx.fillStyle='#111'; ctx.fillRect(bx,by,bw,bh);
+    const hr=Math.max(0,m.hp/m.maxHp);
+    ctx.fillStyle=hr>0.5?'#00c897':hr>0.25?'#fa0':'#f55';
+    ctx.fillRect(bx,by,bw*hr,bh);
+    ctx.strokeStyle='#334'; ctx.lineWidth=1; ctx.strokeRect(bx,by,bw,bh);
+    ctx.fillStyle=isPeer?'rgba(38,198,218,0.5)':'rgba(38,198,218,0.9)';
+    ctx.font='bold 9px Courier New'; ctx.textAlign='center';
+    ctx.fillText('대포', m.x, m.y-m.radius-24);
+    ctx.globalAlpha=1; ctx.restore();
+  },
+
+  onDeath(m) {
+    addFx({type:'rocketExplosion', x:m.x, y:m.y, r:0, maxR:m.radius*2, dur:14, maxDur:14});
+    send({type:'fx', fx:{type:'rocketExplosion', x:m.x, y:m.y, r:0, maxR:m.radius*2, dur:14, maxDur:14}});
+    if (L.charDef?.id==='herjang') { L._herCarrying=false; L._herCannon=null; }
+  },
+};
+
+MINION_DEFS['herjang_mini'] = {
+  radius: BALANCE.herjang.counter.miniRadius,
+  maxHp:  BALANCE.herjang.counter.miniMaxHp,
+  color:  '#00c897',
+  speed:  0,
+
+  tick(m, dt, physDt, now) {
+    if (m._stunEnd && now < m._stunEnd) return;
+    // 매초 maxHp의 1/20씩 체력 감소 (20초 유지)
+    if (!m._stateData.decayTick || now >= m._stateData.decayTick) {
+      m.hp = Math.max(0, m.hp - m.maxHp / 20);
+      m._stateData.decayTick = now + 1000;
+    }
+    if (m.hp <= 0) return;
+    _herCannonAutoFire(m, {
+      atkRange:     BALANCE.herjang.counter.miniAtkRange,
+      damage:       BALANCE.herjang.counter.miniDamage,
+      shotSpeed:    BALANCE.herjang.counter.miniShotSpeed,
+      shotRadius:   BALANCE.herjang.counter.miniShotRadius,
+      shotRange:    BALANCE.herjang.counter.miniShotRange,
+      fireInterval: BALANCE.herjang.counter.miniFireInterval,
+    }, now);
+  },
+
+  draw(m, ctx, isPeer) {
+    ctx.save();
+    ctx.globalAlpha = isPeer ? 0.45 : 0.9;
+    const pulse = 0.85+0.15*Math.sin(performance.now()*0.006);
+    ctx.beginPath(); ctx.arc(m.x, m.y, m.radius*pulse, 0, Math.PI*2);
+    ctx.fillStyle=isPeer?'rgba(38,198,218,0.2)':'rgba(38,198,218,0.45)'; ctx.fill();
+    ctx.strokeStyle='#5eead4'; ctx.lineWidth=2;
+    ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+
+    if (!isPeer) {
+      const angle = Math.atan2(R.y-m.y, R.x-m.x);
+      ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(angle);
+      ctx.fillStyle='rgba(38,198,218,0.7)'; ctx.fillRect(m.radius*0.3, -3.5, m.radius*1.0, 7);
+      ctx.restore();
+    }
+
+    ctx.globalAlpha=isPeer?0.5:1;
+    const bw=m.radius*2.4, bh=3, bx=m.x-bw/2, by=m.y-m.radius-14;
+    ctx.fillStyle='#111'; ctx.fillRect(bx,by,bw,bh);
+    ctx.fillStyle=Math.max(0,m.hp/m.maxHp)>0.4?'#5eead4':'#f55';
+    ctx.fillRect(bx,by,bw*Math.max(0,m.hp/m.maxHp),bh);
+    ctx.fillStyle=isPeer?'rgba(38,198,218,0.45)':'rgba(38,198,218,0.85)';
+    ctx.font='bold 8px Courier New'; ctx.textAlign='center';
+    ctx.fillText('간이대포', m.x, m.y-m.radius-19);
+    ctx.globalAlpha=1; ctx.restore();
+  },
+
+  onDeath(m) {
+    addFx({type:'bombBlast', x:m.x, y:m.y, r:0, maxR:m.radius*2, dur:12, maxDur:12});
+    send({type:'fx', fx:{type:'bombBlast', x:m.x, y:m.y, r:0, maxR:m.radius*2, dur:12, maxDur:12}});
+  },
+};
+
 // ── 소환수 생성 ─────────────────────────────────────────────
 function spawnMinion(charId, type, x, y, overrides = {}) {
   const def = MINION_DEFS[type];
@@ -3047,7 +3261,6 @@ function receiveKnockback(vx, vy) {
 function stunRemote(dur) {
   if (R.burrowing) return;
   send({type:'stunned', dur});
-  for (const pm of peerMinions) send({type:'minionHit', id:pm.id, damage:0, cc:{stunDur:dur}});
 }
 function receiveStun(dur) {
   if (!gameOn || L.burrowing) return;
@@ -3056,7 +3269,6 @@ function receiveStun(dur) {
 }
 function bindRemote(dur) {
   send({type:'bound', dur});
-  for (const pm of peerMinions) send({type:'minionHit', id:pm.id, damage:0, cc:{bindDur:dur}});
 }
 function receiveBind(dur) {
   if (!gameOn) return;
@@ -4046,7 +4258,16 @@ const SKILLS = {
           hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, dmg);
         }
       }
-      hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
+      // 소환수 조건부 피해 (중앙=centerDmg, 가장자리=damage)
+      for (const pm of peerMinions) {
+        const dpm = Math.hypot(pm.x - L.x, pm.y - L.y);
+        if (dpm >= augMeleeRange(B.meleeRange) + pm.radius) continue;
+        const topm = Math.atan2(pm.y - L.y, pm.x - L.x);
+        const diffpm = Math.abs(((topm - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
+        if (diffpm >= B.halfAngle) continue;
+        const pmDmg = diffpm < B.centerAngle ? B.centerDmg : B.damage;
+        send({ type: 'minionHit', id: pm.id, damage: pmDmg });
+      }
       addFx({type:'maisilSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, centerAngle:B.centerAngle, dur:10, maxDur:10});
       send({type:'fx', fx:{type:'maisilSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, centerAngle:B.centerAngle, dur:10, maxDur:10}});
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
@@ -4854,7 +5075,17 @@ const SKILLS = {
         const dmg = fwd >= tipThresh ? B.tipDamage : B.damage;
         hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.length), halfAngle:Math.PI/2}, dmg);
       }
-      hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.length), halfAngle:Math.PI/2}, B.damage);
+      // 소환수 조건부 피해 (끝부분=tipDamage, 일반=damage)
+      for (const pm of peerMinions) {
+        const pdx = pm.x - L.x, pdy = pm.y - L.y;
+        const pfwd  =  pdx * cos + pdy * sin;
+        const pperp = Math.abs(-pdx * sin + pdy * cos);
+        if (pfwd < 0 || pfwd > augMeleeRange(B.length) + pm.radius) continue;
+        if (pperp > B.width / 2 + pm.radius) continue;
+        const tipThresh = augMeleeRange(B.length) * B.tipRatio;
+        const pmDmg = pfwd >= tipThresh ? B.tipDamage : B.damage;
+        send({ type: 'minionHit', id: pm.id, damage: pmDmg });
+      }
       addFx({type:'konyeongStab', x:L.x, y:L.y, angle, len:augMeleeRange(B.length), width:B.width, dur:9, maxDur:9});
       send({type:'fx', fx:{type:'konyeongStab', x:L.x, y:L.y, angle, len:augMeleeRange(B.length), width:B.width, dur:9, maxDur:9}});
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
@@ -4869,7 +5100,9 @@ const SKILLS = {
 
       L.color = '#f5e6c8'; send({type:'colorChange', color:'#f5e6c8'});
       const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'rect', len: augMeleeRange(B.length), width: B.width }] };
       setTimeout(() => {
+        L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         const fireAngle = getAngle();
@@ -4920,6 +5153,121 @@ const SKILLS = {
         hitPeerMinionsInRange(L.x, L.y, B.aoeRange, B.damage);
         addFx({type:'konyeongSwing', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:18, maxDur:18});
         send({type:'fx', fx:{type:'konyeongSwing', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:18, maxDur:18}});
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
+    },
+  },
+
+  // ── 헤르쟝 ──────────────────────────────────────────────────
+  herjang: {
+    // LMB: 미니 대포 — 포탄 발사 + 반동
+    lmb(angle) {
+      const B = BALANCE.herjang.lmb;
+      if (L.lmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      // 대포 운반 중이면 내려놓기 — 공격 취소, 0.5초 딜레이
+      if (L._herCarrying && L._herCannon) {
+        L._herCarrying = false;
+        L._herPickupCooldown = performance.now() + 1000;
+        L.lmbCooldown = 500;
+        return;
+      }
+      const b = {
+        id:uid(), x:L.x, y:L.y,
+        radius: augBulletRadius(B.radius), speed: augBulletSpeed(B.speed),
+        dx: Math.cos(angle), dy: Math.sin(angle),
+        damage: B.damage, maxRange: B.range, traveled: 0,
+      };
+      localBullets.push(b); send({type:'bullet', ...b}); playShootSfx();
+      // 반동: 발사 반대 방향으로 넉백 (순간이동 아님)
+      const recoilPower = B.recoilDist * 6; // 속도 단위로 변환
+      L._kbVX = -Math.cos(angle) * recoilPower;
+      L._kbVY = -Math.sin(angle) * recoilPower;
+      L._kbFrames = 10;
+      addFx({type:'herCannonShot', x:L.x, y:L.y, angle, dur:8, maxDur:8});
+      send({type:'fx', fx:{type:'herCannonShot', x:L.x, y:L.y, angle, dur:8, maxDur:8}});
+      L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
+    },
+
+    // RMB: 이동형 대포 — 없으면 설치, 있으면 점사 지시
+    rmb(angle) {
+      const B = BALANCE.herjang.rmb;
+      if (L.rmbCooldown > 0) return;
+      const cannon = localMinions.find(m => m.type === 'herjang_cannon');
+
+      if (!cannon) {
+        // 대포 설치
+        if (!useStam(B.summonCost)) return;
+        const px = Math.max(22, Math.min(WORLD_W-22, L.x + Math.cos(angle)*B.placeDist));
+        const py = Math.max(22, Math.min(WORLD_H-22, L.y + Math.sin(angle)*B.placeDist));
+        const m = spawnMinion('herjang', 'herjang_cannon', px, py);
+        if (m) {
+          L._herCannon = m;
+          L._herCarrying = false;
+          addFx({type:'herCannonDeploy', x:px, y:py, r:0, maxR:40, dur:16, maxDur:16});
+          send({type:'fx', fx:{type:'herCannonDeploy', x:px, y:py, r:0, maxR:40, dur:16, maxDur:16}});
+        }
+        L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
+      } else {
+        // 점사 지시: 3발 연속 발사
+        if (L._herCarrying) {
+          L._herCarrying = false;
+          L._herPickupCooldown = performance.now() + 1000;
+          L.rmbCooldown = 500;
+          return;
+        }
+        if (!useStam(B.burstCost)) return;
+        const target = {x: R.x, y: R.y};
+        const fireAngle = Math.atan2(target.y - cannon.y, target.x - cannon.x);
+        for (let i = 0; i < B.burstCount; i++) {
+          setTimeout(() => {
+            if (!gameOn) return;
+            const bx = cannon.x, by = cannon.y;
+            const bl = {
+              id:uid(), x:bx, y:by,
+              radius: B.burstRadius, speed: B.burstSpeed,
+              dx: Math.cos(fireAngle), dy: Math.sin(fireAngle),
+              damage: B.burstDamage, maxRange: B.burstRange, traveled: 0,
+              _herBurst: true, _herSlowDur: B.slowDur, pierceWalls: true,
+            };
+            localBullets.push(bl); send({type:'bullet', ...bl});
+            addFx({type:'herCannonShot', x:bx, y:by, angle:fireAngle, dur:7, maxDur:7});
+            send({type:'fx', fx:{type:'herCannonShot', x:bx, y:by, angle:fireAngle, dur:7, maxDur:7}});
+          }, i * B.burstInterval);
+        }
+        L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
+      }
+    },
+
+    // Counter: 간이 대포 — AoE 넉백 + 간이 대포 소환
+    counter(angle) {
+      const B = BALANCE.herjang.counter;
+      if (!L.counterReady) return;
+      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
+      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
+      // 대포 운반 중이면 내려놓기 — 반격기 취소, 0.5초 딜레이
+      if (L._herCarrying) {
+        L._herCarrying = false;
+        L._herPickupCooldown = performance.now() + 1000;
+        L.lmbCooldown = 500; L.rmbCooldown = 500;
+        L.counterReady = true; // 반격기 소모 취소
+        return;
+      }
+      L.color = '#00c897'; send({type:'colorChange', color:'#00c897'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:28, maxR:28, dur:14, maxDur:14});
+      const tok = ++L._counterToken;
+      setTimeout(() => {
+        if (!gameOn || L._counterToken !== tok) return;
+        L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
+        // 간이 대포 소환
+        const mini = spawnMinion('herjang', 'herjang_mini', L.x, L.y);
+        // 주변 AoE 넉백 + 피해
+        if (hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage)) {
+          knockbackRemote(B.knockbackPower);
+        }
+        hitPeerMinionsInRange(L.x, L.y, B.aoeRange, B.damage);
+        addFx({type:'herMiniDeploy', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:18, maxDur:18});
+        send({type:'fx', fx:{type:'herMiniDeploy', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:18, maxDur:18}});
         L.lastAttackTime = performance.now();
       }, BALANCE.counter.delay);
     },
@@ -5306,7 +5654,15 @@ function moveBullets(dt=1) {
     } else {
       if (hitPeerMinion) { localBullets.splice(i,1); continue; }
       if (rangeOut||oob||hitWall) { localBullets.splice(i,1); continue; }
-      if (hitEnemy) { hitRemote(b.damage); if (b._kbRef && !b._kbRef.fired) { b._kbRef.fired=true; knockbackRemote(b._kbRef.power); } localBullets.splice(i,1); }
+      if (hitEnemy) {
+        hitRemote(b.damage);
+        if (b._kbRef && !b._kbRef.fired) { b._kbRef.fired=true; knockbackRemote(b._kbRef.power); }
+        if (b._herBurst && b._herSlowDur) {
+          R._slowEnd = Math.max(R._slowEnd||0, performance.now() + b._herSlowDur);
+          send({type:'slowPlayer', dur: b._herSlowDur});
+        }
+        localBullets.splice(i,1);
+      }
     }
   }
   for (let i=peerBullets.length-1; i>=0; i--) {
@@ -6026,9 +6382,35 @@ function draw() {
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rSwing), 0, Math.PI*2);
       ctx.fillStyle=`rgba(245,220,160,${a*0.18})`; ctx.fill();
       ctx.strokeStyle=`rgba(255,210,120,${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
-      // 안쪽 링
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rSwing*0.55), 0, Math.PI*2);
       ctx.strokeStyle=`rgba(255,180,60,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
+
+    } else if (f.type==='herCannonShot') {
+      // 헤르쟝 포탄 발사 — 짧은 선형 섬광
+      ctx.save();
+      ctx.translate(f.x, f.y); ctx.rotate(f.angle);
+      const fLen = 28 * (f.dur/f.maxDur);
+      ctx.fillStyle=`rgba(38,198,218,${a*0.9})`;
+      ctx.fillRect(0, -3, fLen, 6);
+      ctx.fillStyle=`rgba(255,255,255,${a*0.7})`;
+      ctx.fillRect(0, -1.5, fLen*0.6, 3);
+      ctx.restore();
+
+    } else if (f.type==='herCannonDeploy') {
+      // 대포 설치 — 청록 팽창 링
+      const rd = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rd), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(38,198,218,${a*0.2})`; ctx.fill();
+      ctx.strokeStyle=`rgba(38,198,218,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+
+    } else if (f.type==='herMiniDeploy') {
+      // 간이 대포 설치 + AoE — 팽창 충격파
+      const rm = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rm), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(38,198,218,${a*0.15})`; ctx.fill();
+      ctx.strokeStyle=`rgba(77,208,225,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rm*0.5), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(255,255,255,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
     } else if (f.type==='elinSpiritAtk') {
       // 유령 근접 공격 — 부채꼴 휘두르기
       if (f.halfAngle !== undefined) {
@@ -7395,6 +7777,7 @@ function resetL() {
   L._kanGauge=0;
   L._attackPreview=null;
   L._cherityCharging=false; L._cherityChargeStart=0; L._cherityDrained=0; L._cherityFrozenT=null; L._smokeRevealSent=0;
+  L._herCarrying=false; L._herCannon=null; L._herPickupCooldown=0; // 헤르쟝 대포 상태
   L._lastStandUses = getAugCount('last_stand'); // 스택당 1회씩 발동 가능
   L._stunShotReady = getAugCount('stun_shot') > 0;
   L._fortressStillSince = null; L._fortressActive = false;
@@ -7513,6 +7896,28 @@ function loop() {
   const inPeerSlow  = peerSlowZones.some(z => Math.hypot(L.x-z.x, L.y-z.y) < z.r);
   const inLocalSlow = localSlowZones.some(z => Math.hypot(R.tx-z.x, R.ty-z.y) < z.r);
   const directSlowed = L._slowEnd && now < L._slowEnd;
+  // 헤르쟝: 대포 픽업 감지 + 운반 중 속도 감소
+  const herCarryMult = (() => {
+    if (L.charDef?.id !== 'herjang') return 1;
+    const cannon = localMinions.find(m => m.type === 'herjang_cannon');
+    if (!cannon) { L._herCarrying = false; L._herCannon = null; return 1; }
+    if (!L._herCarrying) {
+      // 픽업 범위 진입 시 자동 픽업 (쿨타임 중이면 불가)
+      const pickupReady = !L._herPickupCooldown || performance.now() >= L._herPickupCooldown;
+      if (pickupReady && Math.hypot(L.x - cannon.x, L.y - cannon.y) < BALANCE.herjang.rmb.pickupRange) {
+        L._herCarrying = true; L._herCannon = cannon;
+      }
+    }
+    if (L._herCarrying) {
+      // 대포 위치를 L 뒤쪽 약간에 고정
+      cannon.x = L.x;
+      cannon.y = L.y;
+      cannon._carried = true;
+      return BALANCE.herjang.rmb.carrySpeed;
+    }
+    cannon._carried = false;
+    return 1;
+  })();
   const slowMult = (inPeerSlow || directSlowed) ? BALANCE.veleu.rmb.slowFactor : 1;
 
   // 엔소냐 버프 만료 체크
@@ -7527,7 +7932,7 @@ function loop() {
   const eSpeedMult = eStacks >= 1 ? BALANCE.nsonya.rmb.speedMult : 1;
   const ePredelay  = L._nsonyaPredelay || false;
 
-  const sp = L.speed * dt * slowMult * eSpeedMult * (ePredelay ? 0 : 1);
+  const sp = L.speed * dt * slowMult * eSpeedMult * herCarryMult * (ePredelay ? 0 : 1);
   const _prevX = L.x, _prevY = L.y;
   if (!stunned && !bound && !L.burrowing && !L._phaseJumping && !erapabiLaserLock && !L._reikaJumping && !L._reikaPreswing && !L._cherityCharging) {
     // 키보드 입력
@@ -7853,12 +8258,13 @@ function loop() {
           spiritInRope = true; break;
         }
       }
-      if ((proj>=-R.radius && proj<=len+R.radius && perp<28+R.radius) || spiritInRope) {
+      const playerInRope = proj>=-R.radius && proj<=len+R.radius && perp<28+R.radius;
+      if (playerInRope || spiritInRope) {
         L._mhOrb.hit=true;
         clearTimeout(L._mhOrbTimer); L._mhOrbTimer=null;
         const _ox=L._mhOrb?.x??ox, _oy=L._mhOrb?.y??oy; L._mhOrb=null;
         hitCtxAll({x:L.x+(ux*len*0.5), y:L.y+(uy*len*0.5), range:len*0.5+28}, BALANCE.mehugu.rmb.damage, {bindDur: BALANCE.mehugu.rmb.bindDur});
-        bindRemote(BALANCE.mehugu.rmb.bindDur);
+        if (playerInRope) bindRemote(BALANCE.mehugu.rmb.bindDur);
         addFx({type:'mhRopeLine', x:L.x, y:L.y, tx:ox, ty:oy, dur:14, maxDur:14});
         send({type:'fx', fx:{type:'mhRopeLine', x:L.x, y:L.y, tx:ox, ty:oy, dur:14, maxDur:14}});
       }
@@ -7878,7 +8284,7 @@ function loop() {
       const spiritTriggered = peerMinions.some(pm => Math.hypot(pm.x - trap.x, pm.y - trap.y) < BT.trapRadius + pm.radius);
       if (playerTriggered || spiritTriggered) {
         hitCtxAll({x:trap.x, y:trap.y, range:BT.trapRadius}, BT.damage, {stunDur: BT.stunDur});
-        stunRemote(BT.stunDur);
+        if (playerTriggered) stunRemote(BT.stunDur);
         addFx({type:'shairazTrapTrigger', x:trap.x, y:trap.y, r:0, maxR:55, dur:20, maxDur:20});
         send({type:'fx', fx:{type:'shairazTrapTrigger', x:trap.x, y:trap.y, r:0, maxR:55, dur:20, maxDur:20}});
         L._shairazTraps.splice(i, 1);
