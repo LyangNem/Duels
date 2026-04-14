@@ -206,7 +206,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.3.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.4.0</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1138,7 +1138,7 @@ const BALANCE = {
       damage:         20,
       tipDamage:      40,
       tipRatio:       0.65,
-      knockbackPower: 480,
+      knockbackPower: 420,
       slowDur:        2000,
       cd:             300,
     },
@@ -1177,31 +1177,62 @@ const BALANCE = {
     cannon: {
       maxHp:       110,
       radius:      22,
-      atkRange:    320,
+      atkRange:    520,
       damage:      18,
       shotSpeed:   16,
       shotRadius:  10,
-      shotRange:   650,
+      shotRange:   900,
       fireInterval:800,
     },
     counter: {
       aoeRange:    130,
       damage:      22,
-      knockbackPower: 520,
+      knockbackPower: 420,
       cd:          300,
       miniMaxHp:   90,
       miniRadius:  16,
-      miniAtkRange:250,
+      miniAtkRange:400,
       miniDamage:  12,
       miniShotSpeed: 14,
       miniShotRadius: 8,
-      miniShotRange: 520,
+      miniShotRange: 750,
       miniFireInterval: 900,
+    },
+  },
+  // ── 하츠하츠 ────────────────────────────────────────────────
+  hatsuhats: {
+    hp:     120,
+    speed:  4,
+    radius: 20,
+
+    lmb: {
+      cost:        30,
+      halfAngle:    Math.PI * 0.4,  // 최대 드래그 시 넓은 부채꼴
+      minHalfAngle: 0.12,           // 최소 드래그 시 좁은 부채꼴 (집중)
+      minRange:    80,
+      maxRange:    500,
+      minDamage:   8,
+      maxDamage:   35,
+      dragThreshold: 20,
+      maxDragDist: 350,
+      cd:          400,
+    },
+    rmb: {
+      cost:        80,
+      pathInterval: 8,    // 경로 샘플링 간격 (ms) — 촘촘하게
+      dashSpeed:   900,
+      reduction:   0.5,
+      cd:          900,
+    },
+    counter: {
+      range:       180,
+      damage:      30,
+      knockbackPower: 420,
+      cd:          300,
     },
   },
 };
 
-// ── 자주 쓰이는 시스템 수치 단축 참조 ──────────────────────
 const STAM_MAX   = BALANCE.stam.max;
 const STAM_DELAY = BALANCE.stam.regenDelay;
 const STAM_REGEN = BALANCE.stam.regenTime;
@@ -1378,7 +1409,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.nsonya.hp,
     speed:     BALANCE.nsonya.speed,
     radius:    BALANCE.nsonya.radius,
-    statsText: [['체력','100'],['이동속도','매우 빠름'],['스타일','기동형 중거리 서포터']],
+    statsText: [['체력',String(BALANCE.nsonya.hp)],['이동속도','매우 빠름'],['스타일','기동형 중거리 서포터']],
     desc:      '석궁 연사와 스피드 버프로 전장을 누비는 캐릭터',
     skills: [
       { key:'LMB',     name:'석궁 연사', cost:BALANCE.nsonya.lmb.cost,    desc:`빠른 석궁 화살 연사 (${BALANCE.nsonya.lmb.damage})` },
@@ -1394,7 +1425,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.maisil.hp,
     speed:     BALANCE.maisil.speed,
     radius:    BALANCE.maisil.radius,
-    statsText: [['체력','130'],['이동속도','빠름'],['스타일','조건형 근거리 딜러']],
+    statsText: [['체력',String(BALANCE.maisil.hp)],['이동속도','빠름'],['스타일','조건형 근거리 딜러']],
     desc:      '가위를 능숙하게 다루는 캐릭터',
     skills: [
       { key:'LMB',     name:'가위질',     cost:BALANCE.maisil.lmb.cost,     desc:`가위 잘라내기. 중앙은 2배 피해 (${BALANCE.maisil.lmb.damage}/${BALANCE.maisil.lmb.centerDmg})` },
@@ -1541,7 +1572,26 @@ const CHARACTERS = {
       { key:'RMB',     name:'이동형 대포',   cost:200,
         desc:`전방에 대포 설치. 대포가 있으면 슬로우 포탄 3발 점사 지시 (${BALANCE.herjang.rmb.burstDamage}×3)` },
       { key:'L-Shift', name:'간이 대포',     cost:0,
-        desc:`제자리에 간이 대포 생성 + 주변 넉백 피해. 간이 대포가 적을 자동 공격 (${BALANCE.herjang.counter.damage})` },
+        desc:`제자리에 간이 대포 생성 및 주변 넉백 피해. 간이 대포가 적을 자동 공격 (${BALANCE.herjang.counter.damage})` },
+    ],
+  },
+
+  hatsuhats: {
+    id:        'hatsuhats',
+    name:      '하츠하츠',
+    color:     '#aaff00',
+    maxHealth: BALANCE.hatsuhats.hp,
+    speed:     BALANCE.hatsuhats.speed,
+    radius:    BALANCE.hatsuhats.radius,
+    statsText: [['체력',String(BALANCE.hatsuhats.hp)],['이동속도','보통'],['스타일','드로잉형 중거리 암살자']],
+    desc:      '붓으로 공격 범위를 자유롭게 조절하는 캐릭터',
+    skills: [
+      { key:'LMB', name:'드로잉', cost:BALANCE.hatsuhats.lmb.cost,
+        desc:`드래그로 사거리와 피해량을 조절. 공격범위가 작을수록 피해량 상승. (${BALANCE.hatsuhats.lmb.minDamage}~${BALANCE.hatsuhats.lmb.maxDamage})` },
+      { key:'RMB', name:'캔버스 위 세상', cost:BALANCE.hatsuhats.rmb.cost,
+        desc:`드래그 경로대로 돌진. 돌진 중 받는 피해 50% 감소` },
+      { key:'L-Shift', name:'마음대로', cost:0,
+        desc:`주변 원형 공격. (${BALANCE.hatsuhats.counter.damage})` },
     ],
   },
 };
@@ -2377,6 +2427,8 @@ function receiveHit(dmg) {
   if (L.charDef?.id === 'erapabi') {
     L._erapabiStoredDmg = (L._erapabiStoredDmg || 0) + dmg;
   }
+  // 하츠하츠: 돌진 중 피해 50% 감소
+  if (L.charDef?.id === 'hatsuhats' && L._hatsDashForgiving) dmg = dmg * BALANCE.hatsuhats.rmb.reduction;
   // 받는 피해 감소: 보호·공격방어·절대방어 중 최고값만 적용
   const dmgReductions = [];
   const protCount = getAugCount('protection');
@@ -3253,8 +3305,10 @@ function receiveKnockback(vx, vy) {
   if (L._tauDashInterval) { clearInterval(L._tauDashInterval); L._tauDashInterval = null; }
   // 리안 방패 돌진 윈도우 취소
   if (L._shieldDashReady) { L._shieldDashReady = false; }
-  // 체리티 저격 차징 취소
-  if (L._cherityCharging) { L._cherityCharging = false; }
+  // 하츠하츠 돌진/드래그 취소
+  if (L._hatsDrawing) { L._hatsDrawing = false; }
+  if (L._hatsRmbDrawing) { L._hatsRmbDrawing = false; }
+  if (L._hatsDashing) { L._hatsDashing = false; L._hatsDashForgiving = false; }
   // 속박 해제
   L.bindEnd = 0;
 }
@@ -3297,8 +3351,8 @@ function tryDodge() {
   // 리안: 회피 전 위치 저장
   if (L.charDef?.id==='lian') L._backupPos = {x:L.x, y:L.y, expiry: performance.now() + BALANCE.lian.rmb.window};
 
-  // 체리티 저격 차징 취소
-  if (L._cherityCharging) { L._cherityCharging = false; }
+  // 하츠하츠 RMB 드래그 취소 (LMB 드래그는 유지)
+  if (L._hatsRmbDrawing) { L._hatsRmbDrawing = false; }
   L.justCheck = {x:L.x, y:L.y, radius:L.radius+12, frames:5};
   L.lastAttackTime = performance.now();
   // inv_extend 증강: 무적 시간 +50ms
@@ -4951,7 +5005,11 @@ const SKILLS = {
       // 동결 상태(스테미나 소진으로 동결)면 이미 전부 소모 → 추가 차감 없이 발동
       if (frozenT === null || frozenT === undefined) {
         const remaining = Math.max(0, cost - drained);
-        if (remaining > 0 && !useStam(remaining)) return;
+        // 스테미나 부족해도 발사 허용 (가능한 만큼만 차감)
+        if (remaining > 0) {
+          L.stamina = Math.max(0, L.stamina - remaining);
+          L.staminaUseTime = performance.now();
+        }
       }
       const damage      = Math.round(B.minDamage + (B.maxDamage - B.minDamage) * t);
       const speed       = B.minSpeed + (B.maxSpeed - B.minSpeed) * t;
@@ -5272,6 +5330,120 @@ const SKILLS = {
       }, BALANCE.counter.delay);
     },
   },
+
+  // ── 하츠하츠 ─────────────────────────────────────────────────
+  hatsuhats: {
+    // LMB: 드로잉 — mouseDown/mouseUp으로 드래그 거리 측정 → 부채꼴 공격
+    lmbStart() {
+      if (!gameOn || L.lmbCooldown > 0 || L._hatsDrawing) return;
+      if (L.stunEnd && performance.now() < L.stunEnd) return;
+      if (L.stamina <= 0) return; // 스테미나 없으면 시작 불가
+      L._hatsDrawing = true;
+      L._hatsDragStart = {x: mouseX, y: mouseY};
+      L._hatsDragMax = 0;
+      L._hatsDragTotalLen = 0;
+      L._hatsDragPath = [{x: mouseX, y: mouseY}]; // 경로 기록 시작
+    },
+
+    lmbRelease() {
+      if (!L._hatsDrawing) return;
+      L._hatsDrawing = false;
+      if (!gameOn || L.lmbCooldown > 0) return;
+
+      const B = BALANCE.hatsuhats.lmb;
+      // 드래그 길이 = 누적 경로 길이 (시작~끝 직선 거리 아님)
+      const dragLen = Math.min(L._hatsDragTotalLen || 0, B.maxDragDist);
+
+      // 드래그 거리가 너무 짧으면 취소
+      if (dragLen < B.dragThreshold) {
+        L._hatsDragPath = null; L._hatsDragFarthest = null; L._hatsFrozen = false;
+        return;
+      }
+      // 스테미나는 드래그 중에 이미 소모됨
+
+      // t: 0=짧게(멀리/약하게), 1=길게(가까이/강하게)
+      const t = (dragLen - B.dragThreshold) / (B.maxDragDist - B.dragThreshold);
+      const clampT = Math.max(0, Math.min(1, t));
+
+      const range     = B.maxRange - (B.maxRange - B.minRange) * clampT;
+      const halfAngle = B.minHalfAngle + (B.halfAngle - B.minHalfAngle) * clampT;
+      const damage    = Math.round(B.minDamage + (B.maxDamage - B.minDamage) * clampT);
+      const angle     = getAngle();
+      const finalRange = augMeleeRange(range);
+
+      // 부채꼴 즉발 히트스캔
+      if (Math.hypot(R.x - L.x, R.y - L.y) < finalRange + R.radius) {
+        const toR = Math.atan2(R.y - L.y, R.x - L.x);
+        const diff = Math.abs(((toR - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
+        if (diff < halfAngle) hitCtx({x:L.x, y:L.y, angle, range: finalRange, halfAngle}, damage);
+      }
+      hitCtxSpirit({x:L.x, y:L.y, angle, range: finalRange, halfAngle}, damage);
+      for (const pm of peerMinions) {
+        if (Math.hypot(pm.x - L.x, pm.y - L.y) < finalRange + pm.radius) {
+          const topm = Math.atan2(pm.y - L.y, pm.x - L.x);
+          const diffpm = Math.abs(((topm - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
+          if (diffpm < halfAngle) send({ type: 'minionHit', id: pm.id, damage });
+        }
+      }
+
+      addFx({type:'hatsSlash', x:L.x, y:L.y, angle, range: finalRange, halfAngle, dur:12, maxDur:12, t:clampT});
+      send({type:'fx', fx:{type:'hatsSlash', x:L.x, y:L.y, angle, range: finalRange, halfAngle, dur:12, maxDur:12, t:clampT}});
+      playHitSfx();
+      L._hatsDragPath = null; L._hatsDragFarthest = null; L._hatsFrozen = false;
+      L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
+    },
+
+    lmb(angle) {}, // mouseDown 루프 제외 처리용 (lmbStart/lmbRelease 방식)
+
+    // RMB: 캔버스 위 세상 — 드래그 경로대로 돌진
+    rmbStart() {
+      if (!gameOn || L.rmbCooldown > 0 || L._hatsDashing || L._hatsRmbDrawing) return;
+      if (L.stunEnd && performance.now() < L.stunEnd) return;
+      if (L.stamina <= 0) return;
+      L._hatsRmbDrawing = true;
+      L._hatsPath = [{x:L.x, y:L.y}];
+      L._hatsLastSample = performance.now();
+    },
+
+    rmbRelease() {
+      if (!L._hatsRmbDrawing) return;
+      L._hatsRmbDrawing = false; L._hatsRmbFrozen = false;
+      if (!gameOn || L.rmbCooldown > 0) return;
+      const B = BALANCE.hatsuhats.rmb;
+      const path = L._hatsPath || [];
+      if (path.length < 2) { L.rmbCooldown = B.cd; return; }
+
+      // 경로 전체를 그대로 사용 (단순화 없이 정확하게 따라감)
+      L._hatsDashPath = path.slice(1); // 시작점(현재 위치) 제외
+      L._hatsDashIdx  = 0;
+      L._hatsDashing  = true;
+      L._hatsDashForgiving = true;
+      L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
+    },
+
+    rmb(angle) {},
+
+    counter(angle) {
+      const B = BALANCE.hatsuhats.counter;
+      if (!L.counterReady) return;
+      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
+      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
+      L.color = '#aaff00'; send({type:'colorChange', color:'#aaff00'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:18, maxDur:18});
+      const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'circle', r: B.range }] };
+      setTimeout(() => {
+        L._attackPreview = null;
+        if (!gameOn || L._counterToken !== tok) return;
+        L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
+        if (hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage)) knockbackRemote(B.knockbackPower);
+        hitPeerMinionsInRange(L.x, L.y, B.range, B.damage);
+        addFx({type:'hatsSwing', x:L.x, y:L.y, r:0, maxR:B.range, dur:18, maxDur:18});
+        send({type:'fx', fx:{type:'hatsSwing', x:L.x, y:L.y, r:0, maxR:B.range, dur:18, maxDur:18}});
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
+    },
+  },
 };
 // ============================================================
 
@@ -5327,11 +5499,52 @@ function tauChainDash(tx, ty, dur) {
 
 CANVAS.addEventListener('mousemove', e => {
   const r = CANVAS.getBoundingClientRect();
-  // CSS 스케일 → 논리 좌표 변환
   const scaleX = CANVAS.width  / r.width;
   const scaleY = CANVAS.height / r.height;
   mouseScreenX = (e.clientX - r.left) * scaleX;
   mouseScreenY = (e.clientY - r.top)  * scaleY;
+  // 하츠하츠: 드래그 거리 / 경로 추적
+  if (gameOn && L.charDef?.id === 'hatsuhats') {
+    // 마우스 화면 이동 거리 (플레이어 이동 제외)
+    const prevSX = L._hatsPrevScreenX ?? mouseScreenX;
+    const prevSY = L._hatsPrevScreenY ?? mouseScreenY;
+    const screenMoved = Math.hypot(mouseScreenX - prevSX, mouseScreenY - prevSY);
+    L._hatsPrevScreenX = mouseScreenX;
+    L._hatsPrevScreenY = mouseScreenY;
+
+    if (L._hatsDrawing && L._hatsDragStart) {
+      const wx = mouseScreenX + cam.x, wy = mouseScreenY + cam.y;
+      if (!L._hatsDragPath) L._hatsDragPath = [{x: L._hatsDragStart.x, y: L._hatsDragStart.y}];
+      if (screenMoved > 4) {
+        if (L._hatsFrozen) {
+          L.staminaUseTime = performance.now();
+        } else {
+          const B = BALANCE.hatsuhats.lmb;
+          const alreadyMaxed = (L._hatsDragTotalLen || 0) >= B.maxDragDist;
+          const stamCost = alreadyMaxed ? 0 : screenMoved * (200 / 2500);
+          if (!alreadyMaxed && L.stamina <= 0) {
+            L._hatsFrozen = true;
+            L.staminaUseTime = performance.now();
+          } else {
+            if (!alreadyMaxed && stamCost > 0) {
+              L.stamina = Math.max(0, L.stamina - stamCost);
+              L.staminaUseTime = performance.now();
+            }
+            L._hatsDragPath.push({x:wx, y:wy});
+            L._hatsDragTotalLen = (L._hatsDragTotalLen || 0) + screenMoved;
+            const d = Math.hypot(wx - L._hatsDragStart.x, wy - L._hatsDragStart.y);
+            if (d > (L._hatsDragMax || 0)) {
+              L._hatsDragMax = d;
+              L._hatsDragFarthest = {x: wx, y: wy};
+            }
+          }
+        }
+      }
+    }
+    if (L._hatsRmbDrawing && L._hatsPath) {
+      // 스테미나 소모 및 경로 샘플링은 loop()에서 처리
+    }
+  }
 });
 CANVAS.addEventListener('mousedown', e => {
   _sfxCtx.state === 'suspended' && _sfxCtx.resume();
@@ -5344,11 +5557,17 @@ CANVAS.addEventListener('mousedown', e => {
       if (!(L.stunEnd && performance.now()<L.stunEnd)) SKILLS.mehugu.lmbStart();
     } else if (L.charDef?.id==='cherity') {
       SKILLS.cherity.lmbStart();
+    } else if (L.charDef?.id==='hatsuhats') {
+      SKILLS.hatsuhats.lmbStart();
     } else {
       doLMB();
     }
   }
-  else if (e.button===2) doRMB();
+  else if (e.button===2) {
+    if (L.charDef?.id==='hatsuhats') {
+      SKILLS.hatsuhats.rmbStart();
+    } else doRMB();
+  }
 });
 CANVAS.addEventListener('mouseup', e => {
   if (e.button===0) {
@@ -5356,14 +5575,22 @@ CANVAS.addEventListener('mouseup', e => {
     if (gameOn && L.charDef?.id==='mainmad') {
       if (!(L.stunEnd && performance.now()<L.stunEnd)) SKILLS.mainmad.lmbRelease(getAngle());
     } else if (gameOn && L.charDef?.id==='mehugu') {
-      // 메후구: 차징 해제 → 발동
       if (!(L.stunEnd && performance.now()<L.stunEnd)) SKILLS.mehugu.lmbRelease(getAngle());
     } else if (gameOn && L.charDef?.id==='cherity') {
       SKILLS.cherity.lmbRelease();
+    } else if (gameOn && L.charDef?.id==='hatsuhats') {
+      SKILLS.hatsuhats.lmbRelease();
     }
+  } else if (e.button===2) {
+    if (gameOn && L.charDef?.id==='hatsuhats') SKILLS.hatsuhats.rmbRelease();
   }
 });
 CANVAS.addEventListener('contextmenu', e => e.preventDefault());
+CANVAS.addEventListener('mouseleave', () => {
+  if (!gameOn || L.charDef?.id !== 'hatsuhats') return;
+  if (L._hatsDrawing) SKILLS.hatsuhats.lmbRelease();
+  if (L._hatsRmbDrawing) SKILLS.hatsuhats.rmbRelease();
+});
 document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('keydown', e => {
   _sfxCtx.state === 'suspended' && _sfxCtx.resume();
@@ -6377,13 +6604,56 @@ function draw() {
       ctx.restore();
 
     } else if (f.type==='konyeongSwing') {
-      // 저리가! 원형 휘두르기 — 팽창 원
       const rSwing = f.maxR * (1 - f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rSwing), 0, Math.PI*2);
       ctx.fillStyle=`rgba(245,220,160,${a*0.18})`; ctx.fill();
       ctx.strokeStyle=`rgba(255,210,120,${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rSwing*0.55), 0, Math.PI*2);
       ctx.strokeStyle=`rgba(255,180,60,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
+
+    } else if (f.type==='hatsBeam') {
+      // 히트스캔 빔 — 라임색 선 섬광
+      const tVal = f.t ?? 0.5;
+      const r0 = Math.round(100 - tVal*100), g0 = 255;
+      const w = 3 + (1 - tVal) * 3; // 짧을수록(멀리) 얇음, 길수록(가까이) 두꺼움
+      ctx.save();
+      ctx.globalAlpha = a;
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.lineTo(f.ex, f.ey);
+      ctx.strokeStyle = `rgba(${r0},${g0},0,0.9)`;
+      ctx.lineWidth = w;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      // 중심 흰색 코어
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.lineTo(f.ex, f.ey);
+      ctx.strokeStyle = `rgba(255,255,255,0.7)`;
+      ctx.lineWidth = w * 0.35;
+      ctx.stroke();
+      ctx.restore();
+
+    } else if (f.type==='hatsSlash') {
+      // 드로잉 부채꼴 — 라임색, 두께 t에 따라 색 변화
+      const tVal = f.t ?? 0.5;
+      // t가 클수록 좁고 강함: 노란→초록
+      const r0 = Math.round(100 - tVal*100), g0 = 255, b0 = Math.round(tVal*0);
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.arc(f.x, f.y, augMeleeRange(f.range), f.angle - f.halfAngle, f.angle + f.halfAngle);
+      ctx.closePath();
+      ctx.fillStyle=`rgba(${r0},${g0},${b0},${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(${r0},${g0},${b0},${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+
+    } else if (f.type==='hatsSwing') {
+      // 마음대로 원형 휘두르기 — 라임 팽창 원
+      const rS = f.maxR * (1 - f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rS), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(170,255,0,${a*0.18})`; ctx.fill();
+      ctx.strokeStyle=`rgba(170,255,0,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rS*0.55), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(255,255,100,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
 
     } else if (f.type==='herCannonShot') {
       // 헤르쟝 포탄 발사 — 짧은 선형 섬광
@@ -6763,6 +7033,61 @@ function draw() {
       ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 16, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(155,12,38,${pulse * 0.85})`; ctx.lineWidth = 2;
       ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+
+  // 하츠하츠 드래그 프리뷰
+  if (gameOn && L.charDef?.id === 'hatsuhats') {
+    const Bh = BALANCE.hatsuhats.lmb;
+    if (L._hatsDrawing && L._hatsDragStart) {
+      const path = L._hatsDragPath;
+      const dragLen = Math.min(L._hatsDragTotalLen || 0, Bh.maxDragDist);
+      const ct = dragLen < Bh.dragThreshold ? 0 : Math.max(0, Math.min(1, (dragLen - Bh.dragThreshold) / (Bh.maxDragDist - Bh.dragThreshold)));
+      const range     = Bh.maxRange - (Bh.maxRange - Bh.minRange) * ct;
+      const halfAngle = Bh.minHalfAngle + (Bh.halfAngle - Bh.minHalfAngle) * ct;
+      const fireAng   = getAngle();
+      const r0 = Math.round(100 - ct*100), g0 = 255;
+      // 드래그 경로 표시
+      if (path?.length > 0) {
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        for (let i=1;i<path.length;i++) ctx.lineTo(path[i].x, path[i].y);
+        // 마지막 샘플 → 현재 마우스 실시간 연결
+        ctx.lineTo(mouseX, mouseY);
+        ctx.strokeStyle = dragLen < Bh.dragThreshold ? 'rgba(170,255,0,0.3)' : 'rgba(170,255,0,0.85)';
+        ctx.lineWidth = 2.5; ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.beginPath(); ctx.arc(path[0].x, path[0].y, 5, 0, Math.PI*2);
+        ctx.fillStyle='rgba(170,255,0,0.7)'; ctx.fill();
+        ctx.beginPath(); ctx.arc(mouseX, mouseY, 4, 0, Math.PI*2);
+        ctx.fillStyle='rgba(255,255,100,0.9)'; ctx.fill();
+      }
+      // 부채꼴 프리뷰
+      if (dragLen >= Bh.dragThreshold) {
+        ctx.beginPath();
+        ctx.moveTo(L.x, L.y);
+        ctx.arc(L.x, L.y, range, fireAng - halfAngle, fireAng + halfAngle);
+        ctx.closePath();
+        ctx.fillStyle=`rgba(${r0},${g0},0,0.13)`; ctx.fill();
+        ctx.strokeStyle=`rgba(${r0},${g0},0,0.6)`; ctx.lineWidth=1.5;
+        ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+    // 돌진 경로 미리보기
+    if (L._hatsRmbDrawing && L._hatsPath?.length > 0) {
+      ctx.beginPath();
+      ctx.moveTo(L._hatsPath[0].x, L._hatsPath[0].y);
+      for (let i=1;i<L._hatsPath.length;i++) ctx.lineTo(L._hatsPath[i].x, L._hatsPath[i].y);
+      // 마지막 샘플 점 → 현재 마우스 위치까지 실시간 연결
+      ctx.lineTo(mouseX, mouseY);
+      ctx.strokeStyle='rgba(170,255,0,0.5)'; ctx.lineWidth=2.5;
+      ctx.setLineDash([8,4]); ctx.stroke(); ctx.setLineDash([]);
+    }
+    // 돌진 중 경로 표시
+    if (L._hatsDashing && L._hatsDashPath?.length > 0) {
+      ctx.beginPath(); ctx.moveTo(L.x, L.y);
+      for (let i=L._hatsDashIdx;i<L._hatsDashPath.length;i++) ctx.lineTo(L._hatsDashPath[i].x, L._hatsDashPath[i].y);
+      ctx.strokeStyle='rgba(170,255,0,0.35)'; ctx.lineWidth=2;
+      ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
     }
   }
 
@@ -7778,6 +8103,11 @@ function resetL() {
   L._attackPreview=null;
   L._cherityCharging=false; L._cherityChargeStart=0; L._cherityDrained=0; L._cherityFrozenT=null; L._smokeRevealSent=0;
   L._herCarrying=false; L._herCannon=null; L._herPickupCooldown=0; // 헤르쟝 대포 상태
+  L._hatsDrawing=false; L._hatsDragStart=null; L._hatsDragMax=0; L._hatsDragPath=null; L._hatsDragFarthest=null; L._hatsDragTotalLen=0; L._hatsDragFarthest=null;
+  L._hatsRmbDrawing=false; L._hatsPath=null; L._hatsLastSample=0; // 하츠하츠 스킬
+  L._hatsDashing=false; L._hatsDashPath=null; L._hatsDashIdx=0; L._hatsDashForgiving=false;
+  L._hatsPrevScreenX=null; L._hatsPrevScreenY=null;
+  L._hatsFrozen=false; L._hatsRmbFrozen=false;
   L._lastStandUses = getAugCount('last_stand'); // 스택당 1회씩 발동 가능
   L._stunShotReady = getAugCount('stun_shot') > 0;
   L._fortressStillSince = null; L._fortressActive = false;
@@ -7879,6 +8209,34 @@ function loop() {
   mouseX = mouseScreenX + cam.x;
   mouseY = mouseScreenY + cam.y;
 
+  // 하츠하츠 RMB: loop에서도 경로 샘플링 (마우스 미이동 시 대비)
+  if (gameOn && L.charDef?.id === 'hatsuhats') {
+    // 드래그 중(LMB/RMB) 마우스 정지 시에도 스테미나 회복 차단
+    if (L._hatsDrawing || L._hatsRmbDrawing) {
+      L.staminaUseTime = now;
+    }
+    if (L._hatsRmbDrawing && L._hatsPath && !L._hatsRmbFrozen) {
+      if (now - (L._hatsLastSample||0) > BALANCE.hatsuhats.rmb.pathInterval) {
+        L._hatsLastSample = now;
+        const path = L._hatsPath;
+        const last = path[path.length - 1];
+        const segDist = Math.hypot(mouseX - last.x, mouseY - last.y);
+        // 경로 길이(세계 좌표)에 비례 스테미나 소모: 총 1500px = 스테미나 200
+        const stamCost = segDist * (200 / 1500);
+        if (stamCost > 0 && L.stamina < stamCost) {
+          // 스테미나 부족: 선 안 그어짐
+          L._hatsRmbFrozen = true;
+        } else {
+          if (stamCost > 0) {
+            L.stamina = Math.max(0, L.stamina - stamCost);
+            L.staminaUseTime = now;
+          }
+          path.push({x: mouseX, y: mouseY});
+        }
+      }
+    }
+  }
+
   const stunned = L.stunEnd && now < L.stunEnd;
   const bound = L.bindEnd && now < L.bindEnd;
   const erapabiLaserLock = L.charDef?.id === 'erapabi' && (L._erapabiLaserActive || L._erapabiLaserCharging);
@@ -7934,7 +8292,32 @@ function loop() {
 
   const sp = L.speed * dt * slowMult * eSpeedMult * herCarryMult * (ePredelay ? 0 : 1);
   const _prevX = L.x, _prevY = L.y;
-  if (!stunned && !bound && !L.burrowing && !L._phaseJumping && !erapabiLaserLock && !L._reikaJumping && !L._reikaPreswing && !L._cherityCharging) {
+
+  // 하츠하츠 돌진 처리 (벽 무시, 일정 속도)
+  if (L.charDef?.id === 'hatsuhats' && L._hatsDashing && L._hatsDashPath?.length > 0) {
+    const B = BALANCE.hatsuhats.rmb;
+    let remaining = B.dashSpeed * (physDt / 1000); // 이번 프레임에 이동할 거리
+    while (remaining > 0 && L._hatsDashIdx < L._hatsDashPath.length) {
+      const target = L._hatsDashPath[L._hatsDashIdx];
+      const dx = target.x - L.x, dy = target.y - L.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist <= remaining) {
+        L.x = Math.max(L.radius, Math.min(WORLD_W-L.radius, target.x));
+        L.y = Math.max(L.radius, Math.min(WORLD_H-L.radius, target.y));
+        remaining -= dist;
+        L._hatsDashIdx++;
+      } else {
+        L.x = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + (dx/dist)*remaining));
+        L.y = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + (dy/dist)*remaining));
+        remaining = 0;
+      }
+    }
+    if (L._hatsDashIdx >= L._hatsDashPath.length) {
+      L._hatsDashing = false;
+      L._hatsDashForgiving = false;
+      L._hatsDashPath = null;
+    }
+  } else if (!stunned && !bound && !L.burrowing && !L._phaseJumping && !erapabiLaserLock && !L._reikaJumping && !L._reikaPreswing && !L._cherityCharging && !L._hatsRmbDrawing) {
     // 키보드 입력
     if (keys['w']) L.y=Math.max(L.radius, L.y-sp);
     if (keys['s']) L.y=Math.min(WORLD_H-L.radius, L.y+sp);
@@ -7966,7 +8349,11 @@ function loop() {
     if (L.hitFlash<=0) L._preFlashColor=null;
   }
 
-  if (mouseDown && !stunned && !L.burrowing && !ePredelay && L.charDef?.id !== 'mainmad' && L.charDef?.id !== 'veleu' && L.charDef?.id !== 'tau' && L.charDef?.id !== 'lian' && L.charDef?.id !== 'mehugu' && L.charDef?.id !== 'maisil' && L.charDef?.id !== 'erapabi' && L.charDef?.id !== 'reika' && L.charDef?.id !== 'cherity') doLMB();
+  if (mouseDown && !stunned && !L.burrowing && !ePredelay && L.charDef?.id !== 'mainmad' && L.charDef?.id !== 'veleu' && L.charDef?.id !== 'tau' && L.charDef?.id !== 'lian' && L.charDef?.id !== 'mehugu' && L.charDef?.id !== 'maisil' && L.charDef?.id !== 'erapabi' && L.charDef?.id !== 'reika' && L.charDef?.id !== 'cherity' && L.charDef?.id !== 'hatsuhats') doLMB();
+  // 체리티: 마우스 누른 채 쿨다운 해제 시 자동으로 차징 시작
+  if (mouseDown && gameOn && L.charDef?.id === 'cherity' && !L._cherityCharging && L.lmbCooldown <= 0) {
+    SKILLS.cherity.lmbStart();
+  }
 
   // 넉백 이동
   if (L._kbFrames > 0) {
