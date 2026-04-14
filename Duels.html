@@ -206,7 +206,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.4.2</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.4.3</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1074,7 +1074,7 @@ const BALANCE = {
 
     lmb: {
       chargeTime:      1000,   // 최대 차징 시간 (ms)
-      chargeDrainRate:   48,   // 차징 중 스테미나 소모/초
+      chargeDrainRate:   80,   // 차징 중 스테미나 소모/초 (1초 풀차징 = maxCost)
       minDamage:  10,
       maxDamage:  90,
       minSpeed:   18,
@@ -1361,7 +1361,7 @@ const CHARACTERS = {
     statsText: [['체력', String(BALANCE.tau.hp)],['이동속도','매우 빠름'],['스타일','콤보형 근거리 암살자']],
     desc:      '스파크 낫과 체인으로 빠른 접근 후 암살을 가능하게 하는 캐릭터',
     skills: [
-      { key:'LMB',     name:'스파크 낫',   cost:BALANCE.tau.lmb.cost,  desc:`낫을 휘두르기. 3번 적중 시 다음 공격이 최대체력 ${BALANCE.tau.lmb.overchargeRatio*100}% 추가 피해 (${BALANCE.tau.lmb.damage})` },
+      { key:'LMB',     name:'스파크 낫',   cost:BALANCE.tau.lmb.cost,  desc:`낫을 휘두르기. 거리에 따라 피해 변동. 3번 적중 시 다음 공격이 최대체력 ${BALANCE.tau.lmb.overchargeRatio*100}% 추가 피해 (${BALANCE.tau.lmb.minDamage}~${BALANCE.tau.lmb.maxDamage})` },
       { key:'RMB',     name:'스파크 체인', cost:BALANCE.tau.rmb.cost,  desc:`낫을 던져 적중 시 해당 위치로 고속 돌진 후 피해. 미적중 시 효과 없음 (${BALANCE.tau.rmb.damage})` },
       { key:'L-Shift', name:'스파크 웨이브', cost:0, desc:`낫을 한 바퀴 돌려 주변 광역 피해 및 다음 평타가 최대체력 비례 추가 피해 (${BALANCE.tau.counter.aoeDamage})` },
     ],
@@ -1378,7 +1378,7 @@ const CHARACTERS = {
     desc:      '로켓포로 게임을 끝장내는 캐릭터',
     skills: [
       { key:'LMB',     name:'초콜릿 쌍권총',    cost:BALANCE.veleu.lmb.cost, desc:`쌍권총 3발 발사 (탄당 ${BALANCE.veleu.lmb.damage}).` },
-      { key:'RMB',     name:'초콜릿 로켓포',    cost:200, desc:`스테미나 130 소모. 강력한 초콜릿 로켓 발사. 폭발 범위 내 피해 및 발사 지점에 ${BALANCE.veleu.rmb.slowDur/1000}초 슬로우 지대, 근접 적중 시 기절 (${BALANCE.veleu.rmb.explosionDamage})` },
+      { key:'RMB',     name:'초콜릿 로켓포',    cost:130, desc:`강력한 초콜릿 로켓 발사. 폭발 범위 내 피해 및 발사 지점에 ${BALANCE.veleu.rmb.slowDur/1000}초 슬로우 지대, 근접 적중 시 기절 (${BALANCE.veleu.rmb.explosionDamage})` },
       { key:'L-Shift', name:'초콜릿 폭탄 투척', cost:0, desc:`전방에 초콜릿 폭탄 ${BALANCE.veleu.counter.count}개를 일렬로 투척 (탄당 ${BALANCE.veleu.counter.damage})` },
     ],
   },
@@ -1396,7 +1396,7 @@ const CHARACTERS = {
       { key:'LMB', name:'유령구체', cost: BALANCE.elin.lmb.cost,
         desc:`벽과 적을 관통하는 구체 발사. 탄착지점에서 폭발해 피해. 범위 내 유령은 ${BALANCE.elin.lmb.healAmount} 체력 회복(${BALANCE.elin.lmb.damage})` },
       { key:'RMB', name:'유령친구', cost: '200/20',
-        desc:`스테미나 200 소모해 유령 소환. 유령이 있으면 스테미나 20 소모로 가장 가까운 적에게 돌진 명령 (${BALANCE.elin.spirit.dashDamage})` },
+        desc:`스테미나 200 소모해 유령 소환. 유령이 있으면 가장 가까운 적에게 돌진 명령 (${BALANCE.elin.spirit.dashDamage})` },
       { key:'L-Shift', name:'죽지말아줘!', cost: 0,
         desc:`유령을 향해 투사체 발사. 도달 시 유령 ${BALANCE.elin.counter.healAmount} 회복. 유령 및 엘린 위치 폭발 및 넉백 (${BALANCE.elin.counter.damage})` },
     ],
@@ -1441,7 +1441,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.erapabi.hp,
     speed:     BALANCE.erapabi.speed,
     radius:    BALANCE.erapabi.radius,
-    statsText: [['체력','180'],['이동속도','빠름'],['스타일','파워형 원거리 탱커']],
+    statsText: [['체력', String(BALANCE.erapabi.hp)],['이동속도','빠름'],['스타일','파워형 원거리 탱커']],
     desc:      '차지 타입 아머로 받은 피해를 축적해 궁극 레이저로 터뜨리는 캐릭터',
     skills: [
       { key:'LMB',     name:'레이저 연사',   cost:BALANCE.erapabi.lmb.cost,  desc:`레이저를 2발씩 2회 발사 (탄당 ${BALANCE.erapabi.lmb.damage})` },
@@ -1530,7 +1530,7 @@ const CHARACTERS = {
     desc:      '원거리에서 강한 한방으로 게임을 터뜨리는 캐릭터',
     skills: [
       { key:'LMB',     name:'저격',    cost:`${BALANCE.cherity.lmb.minCost}~${BALANCE.cherity.lmb.maxCost}`,
-        desc:`이동을 정지하며 차징. 길게 차징할수록 피해 및 탄속 증가. 최대 차징 시 벽 관통 (${BALANCE.cherity.lmb.minDamage}~${BALANCE.cherity.lmb.maxDamage})` },
+        desc:`이동을 정지하며 차징. 길게 차징할수록 피해 및 탄속 증가. 70% 이상 차징 시 벽 관통 (${BALANCE.cherity.lmb.minDamage}~${BALANCE.cherity.lmb.maxDamage})` },
       { key:'RMB',     name:'물러서!', cost:BALANCE.cherity.rmb.cost,
         desc:`후방으로 슬라이딩 후 근거리 대응 산탄 발사. 적중 시 강한 넉백 (탄당 ${BALANCE.cherity.rmb.damage})` },
       { key:'L-Shift', name:'연막탄',  cost:0,
@@ -1551,7 +1551,7 @@ const CHARACTERS = {
       { key:'LMB',     name:'마시멜로 창',      cost:BALANCE.konyeong.lmb.cost,
         desc:`창을 찔러 사거리 끝 적중 시 피해량 2배 (${BALANCE.konyeong.lmb.damage}/${BALANCE.konyeong.lmb.tipDamage})` },
       { key:'RMB',     name:'뜨거운 마시멜로',  cost:BALANCE.konyeong.rmb.cost,
-        desc:`전방을 내리쳐 피해와 넉백. 착탄 위치에 감속 지대 형성 (${BALANCE.konyeong.rmb.damage})` },
+        desc:`전방을 내리쳐 피해와 넉백. 사거리 끝에 감속 지대 형성 (${BALANCE.konyeong.rmb.damage})` },
       { key:'L-Shift', name:'저리가!',           cost:0,
         desc:`마시멜로 창을 크게 휘둘러 원형 피해. 끝부분 적중 시 피해 2배, 넉백 및 감속 (${BALANCE.konyeong.counter.damage}/${BALANCE.konyeong.counter.tipDamage})` },
     ],
@@ -1564,13 +1564,13 @@ const CHARACTERS = {
     maxHealth: BALANCE.herjang.hp,
     speed:     BALANCE.herjang.speed,
     radius:    BALANCE.herjang.radius,
-    statsText: [['체력', String(BALANCE.herjang.hp)],['이동속도','보통'],['스타일','소환형 원거리 딜러']],
+    statsText: [['체력', String(BALANCE.herjang.hp)],['이동속도','보통'],['스타일','소환형 원거리 저격수']],
     desc:      '이동형 대포를 운용해 전장을 지배하는 캐릭터',
     skills: [
       { key:'LMB',     name:'미니 대포',     cost:BALANCE.herjang.lmb.cost,
         desc:`대포를 발사하고 반동으로 뒤로 넉백. (${BALANCE.herjang.lmb.damage})` },
-      { key:'RMB',     name:'이동형 대포',   cost:200,
-        desc:`전방에 대포 설치. 대포가 있으면 슬로우 포탄 3발 점사 지시 (${BALANCE.herjang.rmb.burstDamage}×3)` },
+      { key:'RMB',     name:'이동형 대포',   cost:'200/30',
+        desc:`전방에 대포 설치. 대포가 있으면 슬로우 포탄 3발 점사 지시. 대포에 가까이 가서 대포 위치 이동 가능 및 이동을 제외한 다른 행동으로 대포 내려놓기. (탄당 ${BALANCE.herjang.rmb.burstDamage})` },
       { key:'L-Shift', name:'간이 대포',     cost:0,
         desc:`제자리에 간이 대포 생성 및 주변 넉백 피해. 간이 대포가 적을 자동 공격 (${BALANCE.herjang.counter.damage})` },
     ],
