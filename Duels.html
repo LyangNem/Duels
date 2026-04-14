@@ -206,7 +206,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.4.0</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.4.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -3307,7 +3307,7 @@ function receiveKnockback(vx, vy) {
   if (L._shieldDashReady) { L._shieldDashReady = false; }
   // 하츠하츠 돌진/드래그 취소
   if (L._hatsDrawing) { L._hatsDrawing = false; }
-  if (L._hatsRmbDrawing) { L._hatsRmbDrawing = false; }
+  if (L._hatsRmbDrawing || L._hatsRmbPending) { L._hatsRmbDrawing = false; L._hatsRmbPending = false; }
   if (L._hatsDashing) { L._hatsDashing = false; L._hatsDashForgiving = false; }
   // 속박 해제
   L.bindEnd = 0;
@@ -3352,7 +3352,7 @@ function tryDodge() {
   if (L.charDef?.id==='lian') L._backupPos = {x:L.x, y:L.y, expiry: performance.now() + BALANCE.lian.rmb.window};
 
   // 하츠하츠 RMB 드래그 취소 (LMB 드래그는 유지)
-  if (L._hatsRmbDrawing) { L._hatsRmbDrawing = false; }
+  if (L._hatsRmbDrawing || L._hatsRmbPending) { L._hatsRmbDrawing = false; L._hatsRmbPending = false; }
   L.justCheck = {x:L.x, y:L.y, radius:L.radius+12, frames:5};
   L.lastAttackTime = performance.now();
   // inv_extend 증강: 무적 시간 +50ms
@@ -5397,21 +5397,22 @@ const SKILLS = {
 
     // RMB: 캔버스 위 세상 — 드래그 경로대로 돌진
     rmbStart() {
-      if (!gameOn || L.rmbCooldown > 0 || L._hatsDashing || L._hatsRmbDrawing) return;
+      if (!gameOn || L.rmbCooldown > 0 || L._hatsDashing || L._hatsRmbDrawing || L._hatsRmbPending) return;
       if (L.stunEnd && performance.now() < L.stunEnd) return;
       if (L.stamina <= 0) return;
-      L._hatsRmbDrawing = true;
+      L._hatsRmbPending = true; // 대기 상태: 이동은 아직 허용
+      L._hatsRmbDrawing = false;
       L._hatsPath = [{x:L.x, y:L.y}];
       L._hatsLastSample = performance.now();
     },
 
     rmbRelease() {
-      if (!L._hatsRmbDrawing) return;
-      L._hatsRmbDrawing = false; L._hatsRmbFrozen = false;
+      if (!L._hatsRmbDrawing && !L._hatsRmbPending && !L._hatsRmbFrozen) return;
+      L._hatsRmbDrawing = false; L._hatsRmbPending = false; L._hatsRmbFrozen = false;
       if (!gameOn || L.rmbCooldown > 0) return;
       const B = BALANCE.hatsuhats.rmb;
       const path = L._hatsPath || [];
-      if (path.length < 2) { L.rmbCooldown = B.cd; return; }
+      if (path.length < 2) { return; } // 경로 미생성 → 쿨다운/스테미나 소모 없이 취소
 
       // 경로 전체를 그대로 사용 (단순화 없이 정확하게 따라감)
       L._hatsDashPath = path.slice(1); // 시작점(현재 위치) 제외
@@ -5589,7 +5590,7 @@ CANVAS.addEventListener('contextmenu', e => e.preventDefault());
 CANVAS.addEventListener('mouseleave', () => {
   if (!gameOn || L.charDef?.id !== 'hatsuhats') return;
   if (L._hatsDrawing) SKILLS.hatsuhats.lmbRelease();
-  if (L._hatsRmbDrawing) SKILLS.hatsuhats.rmbRelease();
+  if (L._hatsRmbDrawing || L._hatsRmbPending || L._hatsRmbFrozen) SKILLS.hatsuhats.rmbRelease();
 });
 document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('keydown', e => {
@@ -7073,7 +7074,7 @@ function draw() {
       }
     }
     // 돌진 경로 미리보기
-    if (L._hatsRmbDrawing && L._hatsPath?.length > 0) {
+    if ((L._hatsRmbDrawing || L._hatsRmbFrozen) && L._hatsPath?.length > 0) {
       ctx.beginPath();
       ctx.moveTo(L._hatsPath[0].x, L._hatsPath[0].y);
       for (let i=1;i<L._hatsPath.length;i++) ctx.lineTo(L._hatsPath[i].x, L._hatsPath[i].y);
@@ -8104,7 +8105,7 @@ function resetL() {
   L._cherityCharging=false; L._cherityChargeStart=0; L._cherityDrained=0; L._cherityFrozenT=null; L._smokeRevealSent=0;
   L._herCarrying=false; L._herCannon=null; L._herPickupCooldown=0; // 헤르쟝 대포 상태
   L._hatsDrawing=false; L._hatsDragStart=null; L._hatsDragMax=0; L._hatsDragPath=null; L._hatsDragFarthest=null; L._hatsDragTotalLen=0; L._hatsDragFarthest=null;
-  L._hatsRmbDrawing=false; L._hatsPath=null; L._hatsLastSample=0; // 하츠하츠 스킬
+  L._hatsRmbDrawing=false; L._hatsRmbPending=false; L._hatsPath=null; L._hatsLastSample=0; // 하츠하츠 스킬
   L._hatsDashing=false; L._hatsDashPath=null; L._hatsDashIdx=0; L._hatsDashForgiving=false;
   L._hatsPrevScreenX=null; L._hatsPrevScreenY=null;
   L._hatsFrozen=false; L._hatsRmbFrozen=false;
@@ -8212,20 +8213,42 @@ function loop() {
   // 하츠하츠 RMB: loop에서도 경로 샘플링 (마우스 미이동 시 대비)
   if (gameOn && L.charDef?.id === 'hatsuhats') {
     // 드래그 중(LMB/RMB) 마우스 정지 시에도 스테미나 회복 차단
-    if (L._hatsDrawing || L._hatsRmbDrawing) {
+    if (L._hatsDrawing || L._hatsRmbDrawing || L._hatsRmbFrozen) {
       L.staminaUseTime = now;
     }
-    if (L._hatsRmbDrawing && L._hatsPath && !L._hatsRmbFrozen) {
+    // RMB 대기 상태: 첫 구간 스테미나 확인 후 이동 차단 여부 결정
+    if (L._hatsRmbPending && L._hatsPath && !L._hatsRmbFrozen) {
       if (now - (L._hatsLastSample||0) > BALANCE.hatsuhats.rmb.pathInterval) {
         L._hatsLastSample = now;
         const path = L._hatsPath;
         const last = path[path.length - 1];
         const segDist = Math.hypot(mouseX - last.x, mouseY - last.y);
-        // 경로 길이(세계 좌표)에 비례 스테미나 소모: 총 1500px = 스테미나 200
         const stamCost = segDist * (200 / 1500);
         if (stamCost > 0 && L.stamina < stamCost) {
-          // 스테미나 부족: 선 안 그어짐
+          // 스테미나 부족 → 완전 취소 (이동/회복 영향 없음)
+          L._hatsRmbPending = false;
           L._hatsRmbFrozen = true;
+        } else {
+          // 스테미나 충분 → 이동 차단 + drawing 모드 승격
+          if (stamCost > 0) {
+            L.stamina = Math.max(0, L.stamina - stamCost);
+            L.staminaUseTime = now;
+          }
+          path.push({x: mouseX, y: mouseY});
+          L._hatsRmbPending = false;
+          L._hatsRmbDrawing = true;
+        }
+      }
+    } else if (L._hatsRmbDrawing && L._hatsPath && !L._hatsRmbFrozen) {
+      if (now - (L._hatsLastSample||0) > BALANCE.hatsuhats.rmb.pathInterval) {
+        L._hatsLastSample = now;
+        const path = L._hatsPath;
+        const last = path[path.length - 1];
+        const segDist = Math.hypot(mouseX - last.x, mouseY - last.y);
+        const stamCost = segDist * (200 / 1500);
+        if (stamCost > 0 && L.stamina < stamCost) {
+          L._hatsRmbFrozen = true;
+          L._hatsRmbDrawing = false; // 이동 차단 해제 (경로는 유지, 마우스 떼면 실행)
         } else {
           if (stamCost > 0) {
             L.stamina = Math.max(0, L.stamina - stamCost);
