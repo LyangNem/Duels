@@ -206,7 +206,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.4.4</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.5.0</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1199,6 +1199,49 @@ const BALANCE = {
       miniFireInterval: 900,
     },
   },
+  // ── 프릴 ───────────────────────────────────────────────────
+  prill: {
+    hp:     120,
+    speed:  4,
+    radius: 20,
+
+    lmb: {
+      cost:           20,
+      swingRange:     165,
+      swingHalfAngle: Math.PI * 0.52,
+      swingDamage:    10,
+      thrustLength:   210,
+      thrustWidth:    52,
+      thrustDamage:   20,
+      thrustKbPower:  340,
+      comboWindow:    800,
+      cd:             320,
+    },
+
+    rmb: {
+      cost:            150,
+      predelay:        500,
+      hitInterval:     700,
+      hitCount:        5,
+      length:          900,
+      width:           440,
+      damage:          10,
+      zoneDamageBoost: 0.5,
+      zoneBoostDur:    7000,
+      cd:              1800,
+    },
+
+    counter: {
+      range:          185,
+      halfAngle:      Math.PI * 0.55,
+      damage:         20,
+      boostMult:      0.5,
+      boostDur:       5000,
+      knockbackPower: 420,
+      cd:             300,
+    },
+  },
+
   // ── 하츠하츠 ────────────────────────────────────────────────
   hatsuhats: {
     hp:     120,
@@ -1573,6 +1616,25 @@ const CHARACTERS = {
         desc:`전방에 대포 설치. 대포가 있으면 슬로우 포탄 3발 점사 지시. 대포에 가까이 가서 대포 위치 이동 가능 및 이동을 제외한 다른 행동으로 대포 내려놓기. (탄당 ${BALANCE.herjang.rmb.burstDamage})` },
       { key:'L-Shift', name:'간이 대포',     cost:0,
         desc:`제자리에 간이 대포 생성 및 주변 넉백 피해. 간이 대포가 적을 자동 공격 (${BALANCE.herjang.counter.damage})` },
+    ],
+  },
+
+  prill: {
+    id:        'prill',
+    name:      '프릴',
+    color:     '#ff69b4',
+    maxHealth: BALANCE.prill.hp,
+    speed:     BALANCE.prill.speed,
+    radius:    BALANCE.prill.radius,
+    statsText: [['체력', String(BALANCE.prill.hp)], ['이동속도', '보통'], ['스타일', '콤보형 근거리 서포터']],
+    desc:      '빗자루로 청소하며 전투하는 캐릭터',
+    skills: [
+      { key:'LMB', name:'빗자루질', cost:BALANCE.prill.lmb.cost,
+        desc:`좌스윙, 우스윙, 전방 밀쳐내기 3타 콤보. ${BALANCE.prill.lmb.comboWindow/1000}초 내 재공격 시 콤보 유지 (${BALANCE.prill.lmb.swingDamage}/${BALANCE.prill.lmb.thrustDamage})`},
+      { key:'RMB', name:'청소 구역', cost:BALANCE.prill.rmb.cost,
+        desc:`이동 제한 후 전방 구역 표시. ${BALANCE.prill.rmb.hitInterval/1000}초마다 구역청소 총 ${BALANCE.prill.rmb.hitCount}회. 재사용 시 취소 및 청소 구역 위에서 피해 증가 +${BALANCE.prill.rmb.zoneDamageBoost*100}% (${BALANCE.prill.rmb.damage})` },
+      { key:'L-Shift', name:'빗자루 올려치기', cost:0,
+        desc:`전방 넓은 부채꼴 올려치기(${BALANCE.prill.counter.damage}). 적중 시 ${BALANCE.prill.counter.boostDur/1000}초간 피해 증가 +${BALANCE.prill.counter.boostMult*100}%` },
     ],
   },
 
@@ -2097,6 +2159,7 @@ function onData(d) {
       R.bindEnd = d.bindRemaining > 0 ? performance.now() + d.bindRemaining : 0;
       R.burrowEntry=d.burrowEntry??null;
       R.erapabiFortify=d.erapabiFortify??false;
+      R.prillZone=d.prillZone??null;
       R.nsonyaStacks=d.nsonyaStacks??0;
       R.reikaBlessed=d.reikaBlessed??false;
       R.fortressActive=d.fortressActive??false;
@@ -2366,6 +2429,11 @@ function useStam(amt) {
   return true;
 }
 function tickStamina(now, physDt) {
+  // 프릴 우클릭 활성 중 스테미나 회복 차단
+  if (L.charDef?.id==='prill' && (L._prillZoneActive || L._prillZonePredelaying)) {
+    L.staminaUseTime = now;
+    return;
+  }
   const stamMax = L._augStamMax ?? STAM_MAX;
   if (L.stamina >= stamMax) return;
   if (now - L.staminaUseTime < STAM_DELAY) return;
@@ -3203,11 +3271,12 @@ function hitRemoteRaw(dmg) {
 
 // ── 스턴샷: 4초마다 다음 평타 0.5초 기절 ────────────────────
 function applyStunShot() {
+  // 평타(LMB)에서만 발동 — L._lmbAttacking 플래그로 구분
   if (getAugCount('stun_shot') <= 0) return;
   if (!L._stunShotReady) return;
+  if (!L._lmbAttacking) return;  // LMB 공격이 아니면 발동 안 함
   L._stunShotReady = false;
   stunRemote(500);
-  // 4초 후 다시 준비
   setTimeout(() => { if (gameOn) L._stunShotReady = true; }, 4000);
 }
 
@@ -3309,6 +3378,16 @@ function receiveKnockback(vx, vy) {
   if (L._hatsDrawing) { L._hatsDrawing = false; }
   if (L._hatsRmbDrawing || L._hatsRmbPending) { L._hatsRmbDrawing = false; L._hatsRmbPending = false; }
   if (L._hatsDashing) { L._hatsDashing = false; L._hatsDashForgiving = false; }
+  // 프릴 우클릭 강제 중단
+  if (L._prillZoneActive || L._prillZonePredelaying) {
+    const _elap = performance.now() - (L._prillZoneStartTime||performance.now());
+    const _bDur = Math.max(500, _elap * 2);
+    if (L._prillZoneInterval) { clearInterval(L._prillZoneInterval); L._prillZoneInterval=null; }
+  L._prillZonePredelaying=false; L._prillZoneStartTime=0;
+    L._prillZoneActive = false; L._prillZonePredelaying = false;
+    L.staminaUseTime = -99999;
+    if (L._prillZonePos) { L._prillZoneBoosted=true; L._prillZoneExpiry=performance.now()+_bDur; }
+  }
   // 속박 해제
   L.bindEnd = 0;
 }
@@ -3340,6 +3419,7 @@ function tryDodge() {
   if (!gameOn || L.dodging) return;
   if (L.stunEnd && performance.now() < L.stunEnd) return;
   if (L.bindEnd && performance.now() < L.bindEnd) return;  // 속박 중 회피 불가
+  if (L.charDef?.id==='prill' && (L._prillZoneActive||L._prillZonePredelaying)) return;  // 프릴 우클릭 중 회피 불가
   if (!useStam(DODGE_COST)) return;
 
   let dx = (keys['d']?1:0) - (keys['a']?1:0);
@@ -5331,6 +5411,141 @@ const SKILLS = {
     },
   },
 
+  // ── 프릴 ───────────────────────────────────────────────────
+  prill: {
+    lmb(angle) {
+      const B = BALANCE.prill.lmb, now = performance.now();
+      if (L.lmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      if ((L._prillCombo||0) > 0 && now - (L._prillLastHit||0) > B.comboWindow) L._prillCombo = 0;
+      const step = L._prillCombo || 0;
+      if (step < 2) {
+        const swing = angle + (step === 0 ? -0.28 : 0.28);
+        const dmg   = prillApplyBoosts(B.swingDamage);
+        hitCtxAll({x:L.x, y:L.y, angle:swing, range:augMeleeRange(B.swingRange), halfAngle:B.swingHalfAngle}, dmg);
+        const ft = step===0 ? 'prillSwingL' : 'prillSwingR';
+        addFx({type:ft, x:L.x, y:L.y, angle:swing, range:augMeleeRange(B.swingRange), halfAngle:B.swingHalfAngle, dur:10, maxDur:10});
+        send({type:'fx', fx:{type:ft, x:L.x, y:L.y, angle:swing, range:augMeleeRange(B.swingRange), halfAngle:B.swingHalfAngle, dur:10, maxDur:10}});
+        L._prillCombo = step + 1;
+      } else {
+        const cos=Math.cos(angle), sin=Math.sin(angle);
+        const dmg = prillApplyBoosts(B.thrustDamage);
+        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:augMeleeRange(B.thrustLength), width:B.thrustWidth}, dmg)) knockbackRemote(B.thrustKbPower);
+        addFx({type:'prillThrust', x:L.x, y:L.y, angle, len:augMeleeRange(B.thrustLength), width:B.thrustWidth, dur:12, maxDur:12});
+        send({type:'fx', fx:{type:'prillThrust', x:L.x, y:L.y, angle, len:augMeleeRange(B.thrustLength), width:B.thrustWidth, dur:12, maxDur:12}});
+        L._prillCombo = 0;
+      }
+      L._prillLastHit = now; L.lmbCooldown = B.cd; L.lastAttackTime = now;
+    },
+
+    rmb(angle) {
+      const B = BALANCE.prill.rmb, now = performance.now();
+
+      // ── 재사용: 구역 취소 → 부스트 전환 ──
+      if (L._prillZoneActive || L._prillZonePredelaying) {
+        // 유지시간 계산: 발동~현재까지의 경과시간의 2배 = 부스트 지속시간
+        const elapsed = now - (L._prillZoneStartTime || now);
+        const boostDur = Math.max(1000, elapsed * 2);
+        // 선딜 중 취소 시
+        if (L._prillZonePredelaying) L._prillZonePredelaying = false;
+        // 공격 인터벌 취소
+        if (L._prillZoneInterval) { clearInterval(L._prillZoneInterval); L._prillZoneInterval = null; }
+        L._prillZoneActive = false;
+        L.staminaUseTime = -99999; // 스테미나 회복 재개
+        if (L._prillZonePos) {
+          L._prillZoneBoosted = true;
+          L._prillZoneExpiry  = now + boostDur;
+          addFx({type:'prillZoneActivate', x:L._prillZonePos.x, y:L._prillZonePos.y, angle:L._prillZonePos.angle, len:B.length, width:B.width, dur:22, maxDur:22});
+          send({type:'fx', fx:{type:'prillZoneActivate', x:L._prillZonePos.x, y:L._prillZonePos.y, angle:L._prillZonePos.angle, len:B.length, width:B.width, dur:22, maxDur:22}});
+        }
+        return;
+      }
+
+      if (L.rmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+
+      // ── 방향은 초기 각도에서 ±30도까지만 허용 ──
+      const baseAngle = angle;
+      const maxAngleDrift = Math.PI / 6; // 30도
+      const clampAngle = (a) => {
+        let diff = ((a - baseAngle) + Math.PI*3) % (Math.PI*2) - Math.PI;
+        diff = Math.max(-maxAngleDrift, Math.min(maxAngleDrift, diff));
+        return baseAngle + diff;
+      };
+
+      const cos0=Math.cos(angle), sin0=Math.sin(angle);
+      L._prillZoneActive      = true;
+      L._prillZonePredelaying = true;
+      L._prillZoneBoosted     = false;
+      L._prillZoneExpiry      = 0;
+      L._prillZonePos         = {x:L.x, y:L.y, angle:baseAngle, cos:cos0, sin:sin0, baseAngle};
+      L._prillZoneHitsLeft    = B.hitCount;
+      L._prillZoneStartTime   = now;
+      const zoneToken = ++L._prillZoneToken;
+
+      addFx({type:'prillZonePrep', x:L.x, y:L.y, angle:baseAngle, len:B.length, width:B.width, dur:Math.round(B.predelay/FRAME_MS), maxDur:Math.round(B.predelay/FRAME_MS)});
+      send({type:'fx', fx:{type:'prillZonePrep', x:L.x, y:L.y, angle:baseAngle, len:B.length, width:B.width, dur:Math.round(B.predelay/FRAME_MS), maxDur:Math.round(B.predelay/FRAME_MS)}});
+
+      setTimeout(() => {
+        if (!gameOn || L._prillZoneToken!==zoneToken) return;
+        L._prillZonePredelaying = false;
+        if (!L._prillZoneActive) return; // 선딜 중 취소됨
+
+        const zp = L._prillZonePos;
+        const endZone = () => {
+          if (L._prillZoneInterval) { clearInterval(L._prillZoneInterval); L._prillZoneInterval=null; }
+          L._prillZoneActive = false;
+          L.staminaUseTime = -99999; // 스테미나 회복 재개
+          // 재사용 없이 5회 완료: 유지시간 * 2
+          const elapsed2 = performance.now() - L._prillZoneStartTime;
+          L._prillZoneBoosted = true;
+          L._prillZoneExpiry  = performance.now() + elapsed2 * 2;
+        };
+        const fireZoneHit = () => {
+          if (!gameOn || !L._prillZoneActive || L._prillZoneHitsLeft<=0) { endZone(); return; }
+          // 방향 실시간 업데이트 (±30도 제한)
+          const curAngle = clampAngle(getAngle());
+          zp.angle = curAngle; zp.cos = Math.cos(curAngle); zp.sin = Math.sin(curAngle);
+          // 피해: 자신이 구역 위에 있으면 부스트 적용 (구역 위치=발동 지점 고정)
+          hitCtxAll({x:zp.x, y:zp.y, cos:zp.cos, sin:zp.sin, len:B.length, width:B.width/2}, B.damage);
+          addFx({type:'prillZoneHit', x:zp.x, y:zp.y, angle:zp.angle, len:B.length, width:B.width, dur:12, maxDur:12});
+          send({type:'fx', fx:{type:'prillZoneHit', x:zp.x, y:zp.y, angle:zp.angle, len:B.length, width:B.width, dur:12, maxDur:12}});
+          L.lastAttackTime = performance.now();
+          L._prillZoneHitsLeft--;
+          if (L._prillZoneHitsLeft<=0) endZone();
+        };
+        fireZoneHit();
+        if (L._prillZoneHitsLeft>0) L._prillZoneInterval=setInterval(fireZoneHit, B.hitInterval);
+      }, B.predelay);
+
+      L.rmbCooldown=B.cd; L.lastAttackTime=now;
+    },
+
+    counter(angle) {
+      const B=BALANCE.prill.counter, now=performance.now();
+      if (!L.counterReady) return;
+      if (L.lmbCooldown>0||L.rmbCooldown>0) return;
+      L.counterReady=false; L.lmbCooldown=B.cd; L.rmbCooldown=B.cd;
+      L.color='#ffd700'; send({type:'colorChange', color:'#ffd700'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:18, maxDur:18});
+      const tok=++L._counterToken;
+      L._attackPreview={shapes:[{type:'sector', range:B.range, halfAngle:B.halfAngle}]};
+      setTimeout(() => {
+        L._attackPreview=null;
+        if (!gameOn||L._counterToken!==tok) return;
+        L.color=L.defaultColor; L._preFlashColor=null; send({type:'colorChange', color:L.defaultColor});
+        const fa=getAngle();
+        if (hitCtxAll({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), halfAngle:B.halfAngle}, B.damage)) {
+          knockbackRemote(B.knockbackPower);
+          L._prillBoostExpiry = performance.now() + B.boostDur;
+        }
+        addFx({type:'prillUppercut', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), halfAngle:B.halfAngle, dur:14, maxDur:14});
+        send({type:'fx', fx:{type:'prillUppercut', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), halfAngle:B.halfAngle, dur:14, maxDur:14}});
+        L.lastAttackTime=now;
+      }, BALANCE.counter.delay);
+    },
+  },
+
   // ── 하츠하츠 ─────────────────────────────────────────────────
   hatsuhats: {
     // LMB: 드로잉 — mouseDown/mouseUp으로 드래그 거리 측정 → 부채꼴 공격
@@ -5447,6 +5662,24 @@ const SKILLS = {
   },
 };
 // ============================================================
+
+// ── 프릴 피해 부스트 헬퍼 ──────────────────────────────────
+function prillApplyBoosts(dmg) {
+  // applyDmgAugs는 hitCtx 내부에서 처리되므로 여기선 순수 배율만 계산
+  if (L.charDef?.id !== 'prill') return dmg;
+  let m = 1;
+  // 반격기 피해 부스트
+  if (L._prillBoostExpiry && performance.now() < L._prillBoostExpiry)
+    m += BALANCE.prill.counter.boostMult;
+  // 청소구역 피해 부스트 — 자신(L)이 구역 위에 있을 때만 적용
+  if (L._prillZoneBoosted && performance.now() < (L._prillZoneExpiry||0) && L._prillZonePos) {
+    const _zp = L._prillZonePos, _BZ = BALANCE.prill.rmb;
+    // L이 구역 직사각형 안에 있는지 체크
+    if (intersectsCtx({x:_zp.x, y:_zp.y, cos:_zp.cos, sin:_zp.sin, len:_BZ.length, width:_BZ.width/2}, L.x, L.y, L.radius))
+      m += _BZ.zoneDamageBoost;
+  }
+  return Math.round(dmg * m);
+}
 
 function fireShotgun(angle, {pellets, spread, speed, radius, damage, maxRange, knockbackPower}) {
   playShootSfx();
@@ -5599,15 +5832,15 @@ document.addEventListener('keydown', e => {
   if (e.code==='Space') { e.preventDefault(); tryDodge(); }
   if (e.code==='ShiftLeft' && gameOn) {
     e.preventDefault();
-    if (!(L.stunEnd && performance.now() < L.stunEnd))
+    if (!(L.stunEnd && performance.now() < L.stunEnd) && !(L.charDef?.id==='prill' && (L._prillZoneActive||L._prillZonePredelaying)))
       SKILLS[L.charDef?.id]?.counter(Math.atan2(mouseY-L.y, mouseX-L.x));
   }
 });
 document.addEventListener('keyup', e => { keys[e.key.toLowerCase()]=false; });
 
 const getAngle = () => Math.atan2(mouseY-L.y, mouseX-L.x);
-function doLMB() { if (!gameOn||L.lmbCooldown>0) return; if (L.stunEnd && performance.now()<L.stunEnd) return; SKILLS[L.charDef?.id]?.lmb(getAngle()); }
-function doRMB() { if (!gameOn||L.rmbCooldown>0) return; if (L.stunEnd && performance.now()<L.stunEnd) return; SKILLS[L.charDef?.id]?.rmb(getAngle()); }
+function doLMB() { if (!gameOn||L.lmbCooldown>0) return; if (L.stunEnd && performance.now()<L.stunEnd) return; if (L.charDef?.id==='prill' && (L._prillZoneActive||L._prillZonePredelaying)) return; L._lmbAttacking=true; SKILLS[L.charDef?.id]?.lmb(getAngle()); L._lmbAttacking=false; }
+function doRMB() { if (!gameOn) return; if (L.stunEnd && performance.now()<L.stunEnd) return; if (L.charDef?.id==='prill' && L._prillZoneActive) { SKILLS.prill.rmb(getAngle()); return; } if (L.rmbCooldown>0) return; SKILLS[L.charDef?.id]?.rmb(getAngle()); }
 
 // ============================================================
 // physics.js
@@ -6715,6 +6948,81 @@ function draw() {
       ctx.fillStyle=`rgba(200,216,240,${a*0.2})`; ctx.fill();
       ctx.strokeStyle=`rgba(200,216,240,${a*0.9})`; ctx.lineWidth=2;
       ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+    } else if (f.type==='prillSwingL' || f.type==='prillSwingR') {
+      // 빗자루 스윙 — 분홍 부채꼴 스윕 애니메이션
+      const swT = 1 - f.dur/f.maxDur;          // 0→1 진행도
+      const isL = f.type==='prillSwingL';
+      const swCol = isL ? '255,105,180' : '255,150,205';
+      const startA = isL ? f.angle - f.halfAngle : f.angle + f.halfAngle;
+      const sweep  = f.halfAngle * 2 * Math.min(1, swT * 1.6);  // 1.6배속 스윙
+      const endA   = isL ? startA + sweep : startA - sweep;
+      const ccw    = !isL;
+      ctx.beginPath(); ctx.moveTo(f.x, f.y);
+      ctx.arc(f.x, f.y, f.range, startA, endA, ccw);
+      ctx.closePath();
+      ctx.fillStyle=`rgba(${swCol},${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(${swCol},${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+      // 스윙 선단 강조선
+      ctx.beginPath(); ctx.moveTo(f.x, f.y);
+      ctx.lineTo(f.x+Math.cos(endA)*f.range, f.y+Math.sin(endA)*f.range);
+      ctx.strokeStyle=`rgba(255,240,250,${a*0.7})`; ctx.lineWidth=2.5; ctx.stroke();
+
+    } else if (f.type==='prillThrust') {
+      // 전방 일자 밀쳐내기 — 분홍 직사각형
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.angle);
+      const thrT2 = 1-f.dur/f.maxDur;
+      const curL2 = f.len * Math.min(1, thrT2*2.2);
+      ctx.fillStyle=`rgba(255,105,180,${a*0.22})`; ctx.fillRect(0, -f.width/2, curL2, f.width);
+      ctx.strokeStyle=`rgba(255,200,225,${a*0.9})`; ctx.lineWidth=2.5;
+      ctx.strokeRect(0, -f.width/2, curL2, f.width);
+      ctx.beginPath(); ctx.moveTo(curL2,-f.width/2); ctx.lineTo(curL2,f.width/2);
+      ctx.strokeStyle=`rgba(255,240,248,${a*0.7})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.restore();
+
+    } else if (f.type==='prillUppercut') {
+      // 빗자루 올려치기 — 넓은 분홍 부채꼴
+      ctx.beginPath(); ctx.moveTo(f.x, f.y);
+      ctx.arc(f.x, f.y, f.range, f.angle-f.halfAngle, f.angle+f.halfAngle);
+      ctx.closePath();
+      ctx.fillStyle=`rgba(255,105,180,${a*0.28})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,210,230,${a*0.95})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(f.x, f.y);
+      ctx.arc(f.x, f.y, f.range*0.52, f.angle-f.halfAngle, f.angle+f.halfAngle);
+      ctx.closePath();
+      ctx.strokeStyle=`rgba(255,255,255,${a*0.35})`; ctx.lineWidth=1.5; ctx.stroke();
+
+    } else if (f.type==='prillZonePrep') {
+      // 청소구역 선딜 경고 — 점선 박스
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.angle);
+      const pp2 = 1-f.dur/f.maxDur;
+      ctx.fillStyle=`rgba(255,105,180,${a*(0.06+pp2*0.06)})`; ctx.fillRect(0, -f.width/2, f.len, f.width);
+      ctx.strokeStyle=`rgba(255,140,200,${a*0.65})`; ctx.lineWidth=2;
+      ctx.setLineDash([8,5]); ctx.strokeRect(0, -f.width/2, f.len, f.width); ctx.setLineDash([]);
+      ctx.restore();
+
+    } else if (f.type==='prillZoneHit') {
+      // 청소구역 타격 — 스윕 애니메이션 (원점에서 끝으로 확장)
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.angle);
+      const zhT = 1 - f.dur/f.maxDur;
+      const zhLen = f.len * Math.min(1, zhT * 2.2);
+      ctx.fillStyle=`rgba(255,105,180,${a*0.28})`; ctx.fillRect(0, -f.width/2, zhLen, f.width);
+      ctx.strokeStyle=`rgba(255,220,238,${a*0.9})`; ctx.lineWidth=2.5;
+      ctx.strokeRect(0, -f.width/2, zhLen, f.width);
+      // 선단 글로우
+      ctx.beginPath(); ctx.moveTo(zhLen,-f.width/2); ctx.lineTo(zhLen,f.width/2);
+      ctx.strokeStyle=`rgba(255,255,255,${a*0.9})`; ctx.lineWidth=4.5; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(zhLen, 0);
+      ctx.strokeStyle=`rgba(255,255,255,${a*0.35})`; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.restore();
+
+    } else if (f.type==='prillZoneActivate') {
+      // 구역 부스트 전환 섬광
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.angle);
+      const za2 = 1-f.dur/f.maxDur;
+      ctx.fillStyle=`rgba(255,105,180,${a*(0.35-za2*0.28)})`; ctx.fillRect(0, -f.width/2, f.len, f.width);
+      ctx.strokeStyle=`rgba(255,200,225,${a*(0.9-za2*0.5)})`; ctx.lineWidth=2.5;
+      ctx.setLineDash([6,4]); ctx.strokeRect(0, -f.width/2, f.len, f.width); ctx.setLineDash([]);
+      ctx.restore();
     }
   });
 
@@ -6764,6 +7072,66 @@ function draw() {
       ctx.fillStyle = `rgba(220,160,0,${armed ? alpha * 2.5 : 0.9})`; ctx.font = 'bold 9px Courier New'; ctx.textAlign = 'center';
       ctx.fillText(String(idx+1), trap.x, trap.y - BALANCE.shairaz.rmb.trapRadius - 4);
     });
+  }
+
+
+  // 프릴 청소구역 (지속 표시)
+  if (gameOn && L.charDef?.id==='prill' && L._prillZonePos) {
+    const zp = L._prillZonePos, BZ2 = BALANCE.prill.rmb, nowDZ = performance.now();
+    const isCasting = L._prillZoneActive;
+    const isBoosted = L._prillZoneBoosted && nowDZ < (L._prillZoneExpiry||0);
+    if (isCasting || isBoosted) {
+      ctx.save(); ctx.translate(zp.x, zp.y); ctx.rotate(zp.angle);
+      if (isCasting) {
+        const pulseZ = 0.6+0.4*Math.sin(nowDZ*0.012);
+        ctx.fillStyle=`rgba(255,105,180,${0.08*pulseZ})`; ctx.fillRect(0,-BZ2.width/2,BZ2.length,BZ2.width);
+        ctx.strokeStyle=`rgba(255,105,180,${0.7*pulseZ})`; ctx.lineWidth=2.5;
+        ctx.setLineDash([8,5]); ctx.strokeRect(0,-BZ2.width/2,BZ2.length,BZ2.width); ctx.setLineDash([]);
+        ctx.restore();
+        ctx.fillStyle='rgba(255,200,225,0.9)'; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
+        const labelX = zp.x + Math.cos(zp.angle)*BZ2.length/2;
+        const labelY = zp.y + Math.sin(zp.angle)*BZ2.length/2 - BZ2.width/2 - 8;
+        ctx.fillText('×'+L._prillZoneHitsLeft, labelX, labelY);
+      } else if (isBoosted) {
+        const timeLeft = Math.max(0,(L._prillZoneExpiry-nowDZ)/BZ2.zoneBoostDur);
+        const pulseZ2 = 0.5+0.5*Math.sin(nowDZ*0.008);
+        ctx.fillStyle=`rgba(255,105,180,${0.04+0.03*pulseZ2})`; ctx.fillRect(0,-BZ2.width/2,BZ2.length,BZ2.width);
+        ctx.strokeStyle=`rgba(255,180,215,${(0.35+0.2*pulseZ2)*timeLeft})`; ctx.lineWidth=2;
+        ctx.setLineDash([5,6]); ctx.strokeRect(0,-BZ2.width/2,BZ2.length,BZ2.width); ctx.setLineDash([]);
+        ctx.restore();
+        ctx.fillStyle=`rgba(255,180,215,${0.75*timeLeft})`; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+        const lx2 = zp.x + Math.cos(zp.angle)*BZ2.length/2;
+        const ly2 = zp.y + Math.sin(zp.angle)*BZ2.length/2 - BZ2.width/2 - 8;
+        ctx.fillText('+50%', lx2, ly2);
+      } else { ctx.restore(); }
+    }
+  }
+
+  // 상대방(피어) 프릴 청소구역 표시
+  if (gameOn && peerCharId==='prill' && R.prillZone) {
+    const rpz = R.prillZone, BZR = BALANCE.prill.rmb, nowRP = performance.now();
+    ctx.save(); ctx.translate(rpz.x, rpz.y); ctx.rotate(rpz.angle);
+    if (rpz.active) {
+      // 상대방이 구역 발동 중 — 빨간 경고 점선
+      const pulseRP = 0.6+0.4*Math.sin(nowRP*0.012);
+      ctx.fillStyle=`rgba(255,80,80,${0.06*pulseRP})`; ctx.fillRect(0,-BZR.width/2,BZR.length,BZR.width);
+      ctx.strokeStyle=`rgba(255,100,100,${0.65*pulseRP})`; ctx.lineWidth=2.5;
+      ctx.setLineDash([8,5]); ctx.strokeRect(0,-BZR.width/2,BZR.length,BZR.width); ctx.setLineDash([]);
+      ctx.restore();
+      if (rpz.hitsLeft > 0) {
+        const lxRP = rpz.x + Math.cos(rpz.angle)*BZR.length/2;
+        const lyRP = rpz.y + Math.sin(rpz.angle)*BZR.length/2 - BZR.width/2 - 8;
+        ctx.fillStyle='rgba(255,180,180,0.85)'; ctx.font='bold 12px Courier New'; ctx.textAlign='center';
+        ctx.fillText('×'+rpz.hitsLeft, lxRP, lyRP);
+      }
+    } else if (rpz.boosted) {
+      // 상대방 구역 부스트 중 — 연한 빨강 반투명
+      const pulseRP2 = 0.5+0.5*Math.sin(nowRP*0.008);
+      ctx.fillStyle=`rgba(255,80,80,${0.04+0.02*pulseRP2})`; ctx.fillRect(0,-BZR.width/2,BZR.length,BZR.width);
+      ctx.strokeStyle=`rgba(255,120,120,${0.28*pulseRP2})`; ctx.lineWidth=1.5;
+      ctx.setLineDash([5,7]); ctx.strokeRect(0,-BZR.width/2,BZR.length,BZR.width); ctx.setLineDash([]);
+      ctx.restore();
+    } else { ctx.restore(); }
   }
 
   // 메이실 반격 구체 렌더링
@@ -7279,6 +7647,26 @@ function drawPlayer(p, label) {
   ctx.fillStyle='#111'; ctx.fillRect(sbx,sby,sbw,sbh);
   ctx.fillStyle=stPct>0.4?'#fa0':'#f64'; ctx.fillRect(sbx,sby,sbw*stPct,sbh);
 
+  // 프릴 콤보 유지 게이지 — 스테미나 바 아래
+  if (p===L && L.charDef?.id==='prill' && (L._prillCombo||0) > 0) {
+    const _cNow = performance.now();
+    const _elapsed = _cNow - (L._prillLastHit||_cNow);
+    const _cWindow = BALANCE.prill.lmb.comboWindow;
+    const _cPct = Math.max(0, 1 - _elapsed / _cWindow);
+    if (_cPct > 0) {
+      const cbw=sbw, cbh=4, cbx=sbx, cby=sby+sbh+3;
+      // 배경
+      ctx.fillStyle='#111'; ctx.fillRect(cbx, cby, cbw, cbh);
+      // 게이지 (남은 시간 비율, 분홍색 → 빨강 경고)
+      const cCol = _cPct > 0.4 ? 'rgba(255,105,180,0.95)' : 'rgba(255,60,100,0.95)';
+      ctx.fillStyle=cCol; ctx.fillRect(cbx, cby, cbw*_cPct, cbh);
+      // 콤보 단계 점 (● ●●)
+      ctx.font='bold 9px Courier New'; ctx.textAlign='center';
+      ctx.fillStyle='rgba(255,200,225,0.9)';
+      ctx.fillText('●'.repeat(L._prillCombo), p.x, cby+cbh+10);
+    }
+  }
+
   // 타우 스택/오버차지 — 스테미나 바 아래
   if (p===L && L.charDef?.id==='tau') {
     ctx.font='bold 11px Courier New'; ctx.textAlign='center';
@@ -7341,7 +7729,27 @@ function drawPlayer(p, label) {
       ctx.strokeStyle=`rgba(255,255,255,${0.8+0.2*pulse3})`; ctx.lineWidth=4; ctx.stroke();
     }
   }
-  // ── 증강 상태 표시 (통일된 점선 호, 기존 캐릭터 링 바깥에 동적 배치) ──
+  // 프릴: 피해 부스트 링 표시
+  if (p===L && L.charDef?.id==='prill') {
+    const _pNow = performance.now();
+    // 구역 부스트 활성 여부
+    const _zBoostedRaw = L._prillZoneBoosted && _pNow < (L._prillZoneExpiry||0);
+    // 반격기 부스트 활성 여부
+    const _cBoosted = L._prillBoostExpiry && _pNow < L._prillBoostExpiry;
+    // 보라 링 조건: (구역 부스트 + 자신이 구역 위) OR (반격기 부스트)
+    const _onZone = _zBoostedRaw && L._prillZonePos && (() => {
+      const _zp = L._prillZonePos, _BZ = BALANCE.prill.rmb;
+      return intersectsCtx({x:_zp.x, y:_zp.y, cos:_zp.cos, sin:_zp.sin, len:_BZ.length, width:_BZ.width/2}, L.x, L.y, L.radius);
+    })();
+    const _showPurple = _onZone || _cBoosted;
+    if (_showPurple) {
+      const pulseV = 0.6+0.4*Math.sin(_pNow*0.013);
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.radius+13,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(180,100,255,${0.75+0.25*pulseV})`; ctx.lineWidth=3;
+      ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+    // ── 증강 상태 표시 (통일된 점선 호, 기존 캐릭터 링 바깥에 동적 배치) ──
   {
     const now2 = performance.now();
     const pulse = 0.6 + 0.4 * Math.sin(now2 * 0.012);
@@ -8115,7 +8523,12 @@ function resetL() {
   L._counterDefExpiry = 0;
   L._rationUsed = false; L._rationHealing = false; L._rationTick = 0;
   L._healingTick = 0;
-  if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
+  L._prillCombo=0; L._prillLastHit=0; L._prillBoostExpiry=0; L._lmbAttacking=false;
+  L._prillZoneActive=false; L._prillZoneBoosted=false; L._prillZoneExpiry=0;
+  L._prillZonePos=null; L._prillZoneHitsLeft=0;
+  if (L._prillZoneInterval) { clearInterval(L._prillZoneInterval); L._prillZoneInterval=null; }
+  L._prillZoneToken=0;
+    if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
 function startGame() {
@@ -8164,6 +8577,12 @@ function startGame() {
           nsonyaStacks: (L.charDef?.id==='nsonya') ? (L._nsonyaStacks||0) : 0,
           reikaBlessed: (L.charDef?.id==='reika') ? !!(L._reikaBlessed && performance.now() < (L._reikaBlessedExpiry||0)) : false,
           fortressActive: L._fortressActive ?? false,
+          prillZone: (L.charDef?.id==='prill' && L._prillZonePos && (L._prillZoneActive || (L._prillZoneBoosted && performance.now() < (L._prillZoneExpiry||0))))
+            ? { x:L._prillZonePos.x, y:L._prillZonePos.y, angle:L._prillZonePos.angle,
+                cos:L._prillZonePos.cos, sin:L._prillZonePos.sin,
+                active:L._prillZoneActive, boosted:L._prillZoneBoosted,
+                hitsLeft:L._prillZoneHitsLeft }
+            : null,
           // 소환수 상태 동기화
           minions: localMinions.map(m => ({
             id: m.id, type: m.type, charId: m.charId,
@@ -8340,7 +8759,7 @@ function loop() {
       L._hatsDashForgiving = false;
       L._hatsDashPath = null;
     }
-  } else if (!stunned && !bound && !L.burrowing && !L._phaseJumping && !erapabiLaserLock && !L._reikaJumping && !L._reikaPreswing && !L._cherityCharging && !L._hatsRmbDrawing) {
+  } else if (!stunned && !bound && !L.burrowing && !L._phaseJumping && !erapabiLaserLock && !L._reikaJumping && !L._reikaPreswing && !L._cherityCharging && !L._hatsRmbDrawing && !L._prillZoneActive) {
     // 키보드 입력
     if (keys['w']) L.y=Math.max(L.radius, L.y-sp);
     if (keys['s']) L.y=Math.min(WORLD_H-L.radius, L.y+sp);
@@ -8700,6 +9119,21 @@ function loop() {
         L._shairazTraps.splice(i, 1);
       }
     }
+  }
+
+
+  // ── 프릴 청소구역 방향 실시간 업데이트 ──────────────────
+  if (L.charDef?.id === 'prill' && L._prillZonePos &&
+      (L._prillZoneActive || L._prillZonePredelaying)) {
+    const _zp = L._prillZonePos;
+    const _rawAngle = getAngle();
+    // ±30도 제한
+    let _diff = ((_rawAngle - _zp.baseAngle) + Math.PI*3) % (Math.PI*2) - Math.PI;
+    _diff = Math.max(-Math.PI/6, Math.min(Math.PI/6, _diff));
+    const _clamped = _zp.baseAngle + _diff;
+    _zp.angle = _clamped;
+    _zp.cos   = Math.cos(_clamped);
+    _zp.sin   = Math.sin(_clamped);
   }
 
   // ── 칸 악식 게이지 드레인 처리 ─────────────────────────
