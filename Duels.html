@@ -183,6 +183,9 @@ input[type=text]:focus{border-color:#4af;}
     <button class="btn big" onclick="hostGame()">방 만들기</button>
     <button class="btn big" onclick="showJoin()">방 참가하기</button>
   </div>
+  <div style="margin-top:10px;">
+    <button class="btn" onclick="showTraining()" style="color:#a8f;border-color:#4a3a6a;">⚔ 훈련장</button>
+  </div>
   <p class="status" id="lobby-err"></p>
 
   <!-- 조작키 알아보기 -->
@@ -206,7 +209,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.5.7</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.6.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -250,7 +253,13 @@ input[type=text]:focus{border-color:#4af;}
   <h2>캐릭터 선택</h2>
   <div class="char-grid" id="char-grid"></div>
   <div id="confirm-wrap" class="pad-10-0">
-    <button class="btn big" id="confirm-btn" onclick="confirmSelect()">선택 완료</button>
+    <div id="confirm-pvp-wrap">
+      <button class="btn big" id="confirm-btn" onclick="confirmSelect()">선택 완료</button>
+    </div>
+    <div id="confirm-training-wrap" style="display:none;">
+      <button class="btn big" id="training-confirm-btn" onclick="confirmTraining()">훈련장 입장</button>
+      <button class="btn" onclick="backToLobby()" style="margin-left:8px;">뒤로</button>
+    </div>
     <p class="status" id="sel-status"></p>
   </div>
 </div>
@@ -1677,6 +1686,9 @@ const m4 = ws=>{const r=[];ws.forEach(w=>{r.push(w,W(2000-w.x-w.w,w.y,w.w,w.h),W
 
 const MAPS = [
   { name:'공터', type:'오픈', walls:[] },
+  { name:'훈련장', type:'훈련', isTraining:true, walls:[
+    W(400,400,50,600), W(1600,400,50,600)  // 좌우 기둥
+  ] },
   { name:'중앙 기둥', type:'오픈', walls:[ W(950,540,100,320) ] },
   { name:'쌍 기둥', type:'오픈', walls: mH([ W(620,380,110,640) ]) },
   { name:'4기둥', type:'오픈', walls: m4([ W(570,340,130,130) ]) },
@@ -2148,7 +2160,15 @@ function copyCode() {
     setTimeout(() => { btn.textContent='코드 복사'; btn.style.borderColor=''; btn.style.color=''; }, 2000);
   });
 }
-function backToLobby() { peer?.destroy(); peer=null; conn=null; showScr('scr-lobby'); }
+function backToLobby() {
+  peer?.destroy(); peer=null; conn=null;
+  _trainingMode = false;
+  document.getElementById('confirm-pvp-wrap').style.display = '';
+  document.getElementById('confirm-training-wrap').style.display = 'none';
+  const h2 = document.getElementById('scr-select')?.querySelector('h2');
+  if (h2) h2.textContent = '캐릭터 선택';
+  showScr('scr-lobby');
+}
 
 // ============================================================
 // ④ P2P 메시지 수신
@@ -2427,6 +2447,237 @@ document.addEventListener('DOMContentLoaded', () => {
     grid.appendChild(card);
   });
 });
+
+let _trainingMode = false;
+let _trainingBots  = [];  // 훈련장 봇 목록
+let _botBullets    = [];  // 봇 투사체
+let _trainingSettings = {
+  killable:        false,  // 봇 처치 가능
+  infiniteHp:      false,  // 체력 무한
+  infiniteStam:    false,  // 스테미나 무한
+  showCooldownBar: true,   // 쿨타임 바 표시
+};
+
+
+function showTraining() {
+  _trainingMode = true;
+  document.getElementById('confirm-pvp-wrap').style.display = 'none';
+  document.getElementById('confirm-training-wrap').style.display = '';
+  document.getElementById('scr-select').querySelector('h2').textContent = '훈련장 — 캐릭터 선택';
+  showScr('scr-select');
+}
+
+function confirmTraining() {
+  if (!selCharId) { setStatus('sel-status','캐릭터를 선택해주세요!','err'); return; }
+  currentMap = MAPS.find(m => m.isTraining) || MAPS[0];
+  startTraining();
+}
+
+function startTraining() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById('hud').style.display = 'flex';
+  matchState.localAugments = []; matchState.peerAugments = [];
+
+  // L 초기화
+  resetL();
+  L.x = WORLD_W * 0.25; L.y = WORLD_H / 2;
+
+  // R (네트워크 상대) = 비활성
+  R.color = '#000'; R.defaultColor = '#000';
+  R.maxHealth = 999999; R.health = 999999; R.radius = 0;
+  R.x = -9999; R.y = -9999; R.tx = -9999; R.ty = -9999;
+
+  // 봇 초기화
+  _trainingBots = []; _botBullets = [];
+  _initTrainingBots();
+
+  localBullets = []; peerBullets = []; fxList = [];
+  _firedBurstKb = new Set();
+  localSlowZones = []; peerSlowZones = []; globalSmokeZones = [];
+  resetMinions();
+  updateLocalHud(); updateRemoteHud();
+  gameOn = true; lastLoopTime = 0;
+  document.getElementById('round-score').style.display = 'none';
+  renderAugHud();
+  _buildTrainingHud();
+
+  window._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const TICK_S = FRAME_MS / 1000;
+  let nextTick = window._audioCtx.currentTime;
+  function scheduleLoop() {
+    if (!gameOn) return;
+    const ct = window._audioCtx.currentTime;
+    if (ct >= nextTick) { loop(); nextTick = ct + TICK_S; }
+    window._gameTimer = setTimeout(scheduleLoop, 0);
+  }
+  window._audioCtx.resume().then(() => scheduleLoop());
+}
+
+function _initTrainingBots() {
+  // 플레이어: x=500, y=700
+  // 근거리/원거리 봇: 오른쪽 구역 (x≈850)
+  // 더미 봇: 다른 구역 (왼쪽, x≈300)
+  const _mkBot = (type, x, y, color, hp=200) => ({
+    type, x, y, baseX: x, baseY: y,
+    hp, maxHp: hp, radius: 20, color,
+    charName: type==='melee'?'근거리 봇':type==='ranged'?'원거리 봇':'더미 봇',
+    isAlive: true, respawnTimer: 0,
+    // 근거리 봇: 공격 사이클 인덱스
+    atkIdx: 0, phaseTimer: type==='melee'?1500:type==='ranged'?2000:0,
+    hidden: false,
+  });
+  _trainingBots = [
+    _mkBot('melee',  1500, 520, '#ff6644'),
+    _mkBot('ranged', 1500, 880, '#44aaff'),
+    _mkBot('dummy',  300,  700, '#888888', 1000),
+  ];
+}
+
+
+
+// ── 훈련장 봇: 고정 패턴 ──────────────────────────────────
+function _tickBotFixed(bot, now, dt) {
+  // 이동 없음 — 봇은 항상 제자리
+  if (bot.type === 'melee') {
+    // 3종 공격 순환: 0=일자, 1=부채꼴, 2=선딜 일자 (1.5초마다)
+    bot.phaseTimer -= dt * FRAME_MS;
+    if (bot.phaseTimer <= 0) {
+      const ATK = bot.atkIdx % 3;
+      bot.atkIdx++;
+      const len = 200, dmg = 18;
+      const ang = Math.PI; // 항상 왼쪽(-x) 방향 고정
+
+      if (ATK === 0) {
+        // 일자 공격
+        bot.phaseTimer = 1500;
+        const cos = Math.cos(ang), sin = Math.sin(ang);
+        addFx({type:'drillHit', x:bot.x, y:bot.y, angle:ang, len, width:50, col:'255,80,40', dur:10, maxDur:10});
+        // 히트 체크: 봇 → 왼쪽 사각형 내 L
+        const dx = L.x-bot.x, dy = L.y-bot.y;
+        const lx = dx*cos+dy*sin, ly = Math.abs(dx*-sin+dy*cos);
+        if (lx > -L.radius && lx < len+L.radius && ly < 25+L.radius) receiveHit(dmg);
+
+      } else if (ATK === 1) {
+        // 부채꼴 공격
+        bot.phaseTimer = 1800;
+        const halfA = 1.1;
+        addFx({type:'swing', x:bot.x, y:bot.y, angle:ang, range:len*0.6, halfAngle:halfA, dur:14, maxDur:14, col:'255,80,50'});
+        const dist = Math.hypot(L.x-bot.x, L.y-bot.y);
+        if (dist < len*0.6+L.radius) {
+          const toL2 = Math.atan2(L.y-bot.y, L.x-bot.x);
+          const diff = Math.abs(((toL2-ang)+Math.PI*3)%(Math.PI*2)-Math.PI);
+          if (diff < halfA) receiveHit(dmg);
+        }
+
+      } else {
+        // 선딜레이 있는 일자 (0.5초 후 발동)
+        bot.phaseTimer = 2200;
+        addFx({type:'counterCharge', x:bot.x, y:bot.y, r:0, maxR:40, dur:16, maxDur:16});
+        setTimeout(() => {
+          if (!gameOn || !bot.isAlive) return;
+          const cos2 = Math.cos(ang), sin2 = Math.sin(ang);
+          addFx({type:'drillHit', x:bot.x, y:bot.y, angle:ang, len:len*1.4, width:40, col:'255,200,40', dur:12, maxDur:12});
+          const dx2 = L.x-bot.x, dy2 = L.y-bot.y;
+          const lx2 = dx2*cos2+dy2*sin2, ly2 = Math.abs(dx2*-sin2+dy2*cos2);
+          if (lx2 > -L.radius && lx2 < len*1.4+L.radius && ly2 < 20+L.radius) receiveHit(dmg*1.5);
+        }, 500);
+      }
+    }
+
+  } else if (bot.type === 'ranged') {
+    bot.phaseTimer -= dt * FRAME_MS;
+    if (bot.phaseTimer <= 0) {
+      bot.phaseTimer = 2000;
+      _botBullets.push({ x:bot.x, y:bot.y, dx:-1, dy:0,
+        speed:12, damage:12, radius:8, traveled:0, maxRange:700, color:bot.color });
+    }
+  }
+}
+
+
+
+function _buildTrainingHud() {
+  let th = document.getElementById('training-hud');
+  if (th) th.remove();
+  th = document.createElement('div');
+  th.id = 'training-hud';
+  th.style.cssText = 'position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:200;';
+  th.innerHTML = `
+    <button onclick="openTrainingSettings()" style="background:#111;border:1px solid #4a3a6a;color:#a8f;padding:7px 18px;font-family:Courier New,monospace;font-size:12px;letter-spacing:2px;cursor:pointer;border-radius:2px;">⚙ 훈련장 설정</button>
+    <button onclick="openTrainingCharSelect()" style="background:#111;border:1px solid #2a4a3a;color:#6fa;padding:7px 18px;font-family:Courier New,monospace;font-size:12px;letter-spacing:2px;cursor:pointer;border-radius:2px;">👤 캐릭터 변경</button>
+    <button onclick="exitTraining()" style="background:#111;border:1px solid #3a2a2a;color:#f86;padding:7px 18px;font-family:Courier New,monospace;font-size:12px;letter-spacing:2px;cursor:pointer;border-radius:2px;">✕ 메인화면</button>
+  `;
+  document.body.appendChild(th);
+}
+
+
+function openTrainingCharSelect() {
+  let sp = document.getElementById('training-char-panel');
+  if (sp) { sp.remove(); return; }
+  sp = document.createElement('div');
+  sp.id = 'training-char-panel';
+  sp.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#0d1520;border:1px solid #2a4a3a;padding:16px 20px;z-index:300;font-family:Courier New,monospace;font-size:12px;color:#aaa;letter-spacing:1px;border-radius:3px;max-width:680px;';
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;max-height:300px;overflow-y:auto;';
+  Object.values(CHARACTERS).forEach(ch => {
+    const btn = document.createElement('button');
+    btn.textContent = ch.name;
+    btn.style.cssText = `background:#111;border:1px solid ${ch.color||'#334'};color:${ch.color||'#aaa'};padding:5px 12px;cursor:pointer;font-family:Courier New,monospace;font-size:11px;border-radius:2px;`;
+    btn.onclick = () => {
+      selCharId = ch.id;
+      resetL();
+      sp.remove();
+    };
+    grid.appendChild(btn);
+  });
+  const title = document.createElement('div');
+  title.style.cssText = 'color:#6fa;letter-spacing:3px;font-size:11px;margin-bottom:6px;';
+  title.textContent = '── 캐릭터 변경 ──';
+  sp.appendChild(title);
+  sp.appendChild(grid);
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '닫기';
+  closeBtn.style.cssText = 'margin-top:10px;background:#111;border:1px solid #334;color:#778;padding:4px 12px;cursor:pointer;font-family:Courier New,monospace;font-size:11px;';
+  closeBtn.onclick = () => sp.remove();
+  sp.appendChild(closeBtn);
+  document.body.appendChild(sp);
+}
+
+function exitTraining() {
+  gameOn = false;
+  _trainingMode = false; _trainingBots = []; _botBullets = [];
+  const th = document.getElementById('training-hud');
+  if (th) th.remove();
+  const sp = document.getElementById('training-settings-panel');
+  if (sp) sp.remove();
+  document.getElementById('confirm-pvp-wrap').style.display = '';
+  document.getElementById('confirm-training-wrap').style.display = 'none';
+  const h2 = document.getElementById('scr-select')?.querySelector('h2');
+  if (h2) h2.textContent = '캐릭터 선택';
+  document.getElementById('hud').style.display = 'none';
+  showScr('scr-lobby');
+}
+
+function openTrainingSettings() {
+  let sp = document.getElementById('training-settings-panel');
+  if (sp) { sp.remove(); return; }
+  sp = document.createElement('div');
+  sp.id = 'training-settings-panel';
+  sp.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#0d1520;border:1px solid #2a3a5a;padding:18px 24px;z-index:300;font-family:Courier New,monospace;font-size:12px;color:#aaa;letter-spacing:1px;min-width:320px;border-radius:3px;';
+  const ts = _trainingSettings;
+  sp.innerHTML = `
+    <div style="color:#a8f;letter-spacing:3px;font-size:11px;margin-bottom:12px;">── 훈련장 설정 ──</div>
+    <div style="margin-bottom:6px;"><label><input type="checkbox" id="ts-cdbar" onchange="_trainingSettings.showCooldownBar=this.checked" ${ts.showCooldownBar?'checked':''}> 쿨타임 바 표시</label></div>
+    <div style="margin-bottom:6px;"><label><input type="checkbox" id="ts-killable" onchange="_trainingSettings.killable=this.checked" ${ts.killable?'checked':''}> 봇 처치 가능 (3초 후 부활)</label></div>
+    <div style="margin-bottom:6px;"><label><input type="checkbox" id="ts-inf-hp" onchange="_trainingSettings.infiniteHp=this.checked" ${ts.infiniteHp?'checked':''}> 체력 무한</label></div>
+    <div style="margin-bottom:6px;"><label><input type="checkbox" id="ts-inf-stam" onchange="_trainingSettings.infiniteStam=this.checked" ${ts.infiniteStam?'checked':''}> 스테미나 무한</label></div>
+    <div style="margin-top:12px;text-align:right;"><button onclick="document.getElementById('training-settings-panel').remove()" style="background:#111;border:1px solid #334;color:#778;padding:4px 12px;cursor:pointer;font-family:Courier New,monospace;font-size:11px;">닫기</button></div>
+  `;
+  document.body.appendChild(sp);
+  // 선택값 복원
+}
+
+
 function confirmSelect() {
   if (!selCharId) { setStatus('sel-status','캐릭터를 선택해주세요!','err'); return; }
   localReady=true; setStatus('sel-status','상대방 대기 중...','');
@@ -2473,6 +2724,56 @@ function tickStamina(now, physDt) {
   const augMult = 1 + 0.20 * getAugCount('swift_regen');
   L.stamina = Math.min(stamMax, L.stamina + (stamMax / STAM_REGEN) * physDt * regenMult * augMult);
 }
+
+// ──────────────────────────────────────────────────────────────
+// 훈련장 봇 업데이트
+// ──────────────────────────────────────────────────────────────
+function _tickTrainingBots(now, dt) {
+  if (!_trainingMode) return;
+
+  // 스테미나 무한
+  if (_trainingSettings.infiniteStam) {
+    L.stamina = STAM_MAX;
+  }
+
+  // 체력 무한: 0.3초 미피격 시 빠른 회복
+  if (_trainingSettings.infiniteHp) {
+    if (now - (L.lastHitTime||0) > 300) {
+      L.health = Math.min(L.maxHealth, L.health + 5);
+      if (L.health <= 0) L.health = L.maxHealth; // 즉시 부활
+    }
+  }
+
+  for (const bot of _trainingBots) {
+    if (bot.hidden) continue;
+    if (!bot.isAlive) {
+      bot.respawnTimer -= dt * FRAME_MS;
+      if (bot.respawnTimer <= 0) {
+        bot.isAlive = true; bot.hp = bot.maxHp;
+        bot.x = bot.baseX; bot.y = bot.baseY;
+      }
+      continue;
+    }
+    _tickBotFixed(bot, now, dt);
+  }
+
+
+  // 봇 투사체 이동 + L 충돌
+  for (let i = _botBullets.length - 1; i >= 0; i--) {
+    const bb = _botBullets[i];
+    bb.x += bb.dx * bb.speed * dt;
+    bb.y += bb.dy * bb.speed * dt;
+    bb.traveled += bb.speed * dt;
+    if (bb.traveled >= bb.maxRange || bb.x<0||bb.x>WORLD_W||bb.y<0||bb.y>WORLD_H) {
+      _botBullets.splice(i, 1); continue;
+    }
+    if (Math.hypot(bb.x - L.x, bb.y - L.y) < bb.radius + L.radius) {
+      receiveHit(bb.damage);
+      _botBullets.splice(i, 1);
+    }
+  }
+}
+
 function tickRegen(now) {
   // 힐링: 매 초마다 체력 2 × 스택 회복 (전투 여부 무관)
   const healCount = getAugCount('healing');
@@ -2564,7 +2865,7 @@ function receiveHit(dmg) {
   }
   addShake(Math.min(6 + dmg * 0.18, 16), 20);
   playHitSfx();
-  if (L.health <= 0) { send({type:'dead'}); endGame(false); }
+  if (L.health <= 0) { if (_trainingMode) { L.health = L.maxHealth; } else { send({type:'dead'}); endGame(false); } }
 }
 // ============================================================
 // 통합 타겟 시스템
@@ -2595,7 +2896,32 @@ function intersectsCtx(ctx, tx, ty, tr) {
 }
 
 // ── R(플레이어)만 판정. 반환값: 명중 여부 ─────────────────
+// 봇 데미지 공통 처리
+function _applyBotDamage(bot, dmg) {
+  if (_trainingSettings.killable) {
+    bot.hp = Math.max(0, bot.hp - dmg);
+    if (bot.hp <= 0) {
+      bot.isAlive = false; bot.respawnTimer = 3000;
+      addFx({type:'bombBlast', x:bot.x, y:bot.y, r:0, maxR:40, dur:14, maxDur:14});
+    }
+  } else {
+    bot.hp = Math.max(1, bot.hp - dmg);
+  }
+}
+
 function hitCtx(ctx, dmg) {
+  if (_trainingMode) {
+    let _thit = false;
+    for (const bot of _trainingBots) {
+      if (bot.hidden || !bot.isAlive) continue;
+      if (intersectsCtx(ctx, bot.x, bot.y, bot.radius)) {
+        _applyBotDamage(bot, applyDmgAugs(dmg));
+        addShake(2, 6); playHitSfx(); _thit = true;
+        // break 제거: 여러 봇이 범위 안에 있으면 모두 피해
+      }
+    }
+    return _thit;
+  }
   if (R.burrowing) return false;
   if (!intersectsCtx(ctx, R.x, R.y, R.radius)) return false;
   dmg = applyDmgAugs(dmg);
@@ -2628,6 +2954,16 @@ function hitCtxSpirit(ctx, dmg, cc) {
     if (intersectsCtx(ctx, pm.x, pm.y, pm.radius)) {
       send({ type: 'minionHit', id: pm.id, damage: dmg, ...(cc ? {cc} : {}) });
       hit = true;
+    }
+  }
+  // 훈련장: spirit도 봇 체크
+  if (_trainingMode) {
+    for (const bot of _trainingBots) {
+      if (bot.hidden || !bot.isAlive) continue;
+      if (intersectsCtx(ctx, bot.x, bot.y, bot.radius)) {
+        _applyBotDamage(bot, applyDmgAugs(dmg));
+        addShake(2, 6); hit = true;
+      }
     }
   }
   return hit;
@@ -2937,9 +3273,9 @@ MINION_DEFS['elin_spirit'] = {
     if (m._bindEnd && now < m._bindEnd) {
       const p = 0.5+0.5*Math.sin(now*0.012);
       ctx.beginPath(); ctx.arc(m.x, m.y, m.radius+8, 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(56,189,248,${0.7+0.3*p})`; ctx.lineWidth=2.5;
+      ctx.strokeStyle=`rgba(255,215,0,${0.7+0.3*p})`; ctx.lineWidth=2.5;
       ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle='rgba(56,189,248,0.9)'; ctx.font='bold 9px Courier New'; ctx.textAlign='center';
+      ctx.fillStyle='rgba(255,215,0,0.9)'; ctx.font='bold 9px Courier New'; ctx.textAlign='center';
       ctx.fillText('BIND', m.x, m.y - m.radius - 12);
     }
     if (m._burnEnd && now < m._burnEnd) {
@@ -3363,6 +3699,16 @@ function applyDmgAugs(dmg) {
 
 // 플레이어 직접 타격 (투사체 루프 등 좌표 없이 확정 명중 시)
 function hitRemote(dmg) {
+  if (_trainingMode) {
+    let best=null, bd=Infinity;
+    for (const bot of _trainingBots) {
+      if (bot.hidden||!bot.isAlive) continue;
+      const d=Math.hypot(R.x-bot.x, R.y-bot.y);
+      if(d<bd){bd=d;best=bot;}
+    }
+    if(best){ _applyBotDamage(best, applyDmgAugs(dmg)); addShake(2,6); playHitSfx(); }
+    return;
+  }
   if (R.burrowing) return;
   dmg = applyDmgAugs(dmg);
   R.health = Math.max(0, R.health - dmg);
@@ -3709,8 +4055,8 @@ const SKILLS = {
         const toR  = Math.atan2(R.y - L.y, R.x - L.x);
         const diff = Math.abs(((toR - angle) + Math.PI * 3) % (Math.PI * 2) - Math.PI);
         if (diff < B.halfAngle) hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.meleeDamage);
-        addFx({type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9});
-        send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9}});
+        addFx({type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9, col:'255,0,170'});
+        send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9, col:'255,0,170'}});
       } else {
         const b = {id:uid(), x:L.x, y:L.y, radius:B.throwRadius, speed:B.throwSpeed,
                    dx:Math.cos(angle), dy:Math.sin(angle), damage:B.throwDamage, maxRange:B.throwRange, traveled:0};
@@ -5059,9 +5405,7 @@ const SKILLS = {
           const dmg = Math.round(B.baseDamage + B.gaugeDamage * (gauge / BALANCE.kan.gaugeMax));
           hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, dmg);
           L._kanGauge = Math.min(BALANCE.kan.gaugeMax, gauge + B.gaugeGain);
-          // 악식 게이지 비례 흡혈 (최대 35%)
-          const _kanLsRate = (gauge / BALANCE.kan.gaugeMax) * 0.35;
-          if (_kanLsRate > 0) L.health = Math.min(L.maxHealth, L.health + dmg * _kanLsRate);
+
           hit = true;
         }
       }
@@ -5321,7 +5665,7 @@ const SKILLS = {
       if (!useStam(B.cost)) return;
       L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
 
-      L.color = '#f5e6c8'; send({type:'colorChange', color:'#f5e6c8'});
+      L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       const tok = ++L._counterToken;
       L._attackPreview = { shapes: [{ type: 'rect', len: augMeleeRange(B.length), width: B.width }] };
       setTimeout(() => {
@@ -5476,7 +5820,7 @@ const SKILLS = {
         L.counterReady = true; // 반격기 소모 취소
         return;
       }
-      L.color = '#00c897'; send({type:'colorChange', color:'#00c897'});
+      L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:28, maxR:28, dur:14, maxDur:14});
       const tok = ++L._counterToken;
       setTimeout(() => {
@@ -6042,7 +6386,22 @@ function moveBullets(dt=1) {
     b.x+=b.dx*b.speed*dt; b.y+=b.dy*b.speed*dt; b.traveled+=b.speed*dt;
     const oob = b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H;
     const hitWall = bulletHitsWall(b) && !b.pierceWalls;
-    const hitEnemy = Math.hypot(b.x-R.x, b.y-R.y)<b.radius+R.radius;
+    const _rRad = _trainingMode ? (R._botRadius||20) : R.radius;
+    const hitEnemy = Math.hypot(b.x-R.x, b.y-R.y)<b.radius+_rRad;
+    // 훈련장: 모든 봇에 대해 충돌 체크 (hitEnemy 와 독립적으로)
+    if (_trainingMode && !b.isElinHeal) {
+      for (const _tbot of _trainingBots) {
+        if (_tbot.hidden || !_tbot.isAlive) continue;
+        if (Math.hypot(b.x - _tbot.x, b.y - _tbot.y) < b.radius + _tbot.radius) {
+          _applyBotDamage(_tbot, applyDmgAugs(b.damage) || 0);
+          addShake(2, 6); playHitSfx();
+          addFx({type:'bombBlast', x:b.x, y:b.y, r:0, maxR:b.radius*1.8, dur:8, maxDur:8});
+          if (!b.pierceEnemies) localBullets.splice(i, 1);
+          break;
+        }
+      }
+      if (i >= localBullets.length || localBullets[i] !== b) continue; // 이미 제거됨
+    }
     const rangeOut = b.traveled>=b.maxRange;
 
     // 상대 소환수 명중 판정 — 명중 시 minionHit 패킷 전송 후 탄환 제거
@@ -6208,16 +6567,9 @@ function moveBullets(dt=1) {
         if (b.isHatsBolt && b.hatsBurstId) {
           if (!_firedBurstKb.has(b.hatsBurstId)) {
             _firedBurstKb.add(b.hatsBurstId);
-            const _hDmg = applyDmgAugs(b.damage);
-            R.health = Math.max(0, R.health - _hDmg);
-            send({type:'hitMe', damage:_hDmg});
-            addShake(Math.min(4+_hDmg*0.12,10), 14);
-            playHitSfx();
-            applyLifesteal(_hDmg);
-            applyPoison(_hDmg);
+            hitRemote(b.damage); // 훈련장/일반 모두 hitRemote로 통일
             L._lmbAttacking = true; applyStunShot(); L._lmbAttacking = false;
           }
-          // 버스트 전체 제거 (투사체처럼 적에서 멈춤)
           localBullets.splice(i, 1); continue;
         }
         // 체리티 산탄: 탄별 개별 피해 (중첩), 관통 없음
@@ -6330,8 +6682,8 @@ function draw() {
       // 공격방어 피해감소 — 청록 방패 링
       const rr = f.maxR * (1 - f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,rr),0,Math.PI*2);
-      ctx.strokeStyle=`rgba(56,189,248,${a*1.0})`; ctx.lineWidth=3.5; ctx.stroke();
-      ctx.fillStyle=`rgba(56,189,248,${a*0.18})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,215,0,${a*1.0})`; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.fillStyle=`rgba(255,215,0,${a*0.18})`; ctx.fill();
     } else if (f.type==='counter') {
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,f.r),0,Math.PI*2);
       ctx.strokeStyle=`rgba(255,215,0,${a*.9})`; ctx.lineWidth=3; ctx.stroke();
@@ -6374,7 +6726,7 @@ function draw() {
       for (let ri = 0; ri < 3; ri++) {
         const rr = Math.max(1, curR - ri * 18);
         ctx.beginPath(); ctx.arc(f.x, f.y, rr, 0, Math.PI*2);
-        ctx.strokeStyle = `rgba(56,189,248,${(0.9 - ri*0.25) * a})`; ctx.lineWidth = 3 - ri*0.7; ctx.stroke();
+        ctx.strokeStyle = `rgba(255,215,0,${(0.9 - ri*0.18) * a})`; ctx.lineWidth = 3 - ri*0.7; ctx.stroke();
       }
       // 중심 빛남
       const coreR = 8 + 14 * prog * pulse;
@@ -6385,7 +6737,7 @@ function draw() {
       // 버티기 — 하늘색 보호막 링
       const pulse = 0.5 + 0.5*Math.sin(performance.now()*0.008);
       ctx.beginPath(); ctx.arc(f.x, f.y, 32 + pulse*4, 0, Math.PI*2);
-      ctx.fillStyle=`rgba(56,189,248,${a*0.12})`; ctx.fill();
+      ctx.fillStyle=`rgba(255,215,0,${a*0.12})`; ctx.fill();
       ctx.strokeStyle=`rgba(125,211,252,${a*(0.7+0.3*pulse)})`; ctx.lineWidth=3;
       ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
     } else if (f.type==='erapabiMegaLaser') {
@@ -6396,11 +6748,11 @@ function draw() {
       const px = -sin * hw, py = cos * hw;
       // 외곽 글로우
       const grd = ctx.createLinearGradient(f.x, f.y, ex, ey);
-      grd.addColorStop(0, 'rgba(56,189,248,0.9)');
+      grd.addColorStop(0, 'rgba(255,215,0,0.9)');
       grd.addColorStop(0.15, 'rgba(186,230,253,0.95)');
       grd.addColorStop(0.5, 'rgba(255,255,255,1.0)');
       grd.addColorStop(0.85, 'rgba(186,230,253,0.95)');
-      grd.addColorStop(1, 'rgba(56,189,248,0.9)');
+      grd.addColorStop(1, 'rgba(255,215,0,0.9)');
       // 빔 코어
       ctx.beginPath();
       ctx.moveTo(f.x + px, f.y + py);
@@ -6418,7 +6770,7 @@ function draw() {
       ctx.lineTo(ex - px*2, ey - py*2);
       ctx.lineTo(f.x - px*2, f.y - py*2);
       ctx.closePath();
-      ctx.fillStyle = 'rgba(56,189,248,0.3)'; ctx.fill();
+      ctx.fillStyle = 'rgba(255,215,0,0.3)'; ctx.fill();
       ctx.restore();
       // 중심선 (밝은 흰색)
       ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(ex, ey);
@@ -6428,8 +6780,8 @@ function draw() {
       ctx.beginPath(); ctx.moveTo(f.x, f.y);
       ctx.arc(f.x, f.y, f.range, f.angle - f.halfAngle, f.angle + f.halfAngle);
       ctx.closePath();
-      ctx.fillStyle = `rgba(56,189,248,${a*0.25})`; ctx.fill();
-      ctx.strokeStyle = `rgba(125,211,252,${a*0.95})`; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.fillStyle = `rgba(56,189,248,${a*0.18})`; ctx.fill();
+      ctx.strokeStyle = `rgba(56,189,248,${a*0.9})`; ctx.lineWidth = 2.5; ctx.stroke();
       // 호 강조선
       const ex1 = f.x + Math.cos(f.angle - f.halfAngle)*f.range;
       const ey1 = f.y + Math.sin(f.angle - f.halfAngle)*f.range;
@@ -6462,7 +6814,8 @@ function draw() {
       ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(ex2, ey2);
       ctx.strokeStyle = `rgba(255,240,80,${a * 0.9})`; ctx.lineWidth = 2.5; ctx.stroke();
     } else if (f.type==='swordSlash') {
-      // 루뷰 올려치기 — 노란 일자 직사각형 + 중심선
+      // 일자 직사각형 — col 파라미터로 색상 지정 (기본: 루뷰 파란색)
+      const _ssCol = f.col || '0,170,255';
       const cos = Math.cos(f.angle), sin = Math.sin(f.angle);
       const w = f.width;
       ctx.beginPath();
@@ -6471,27 +6824,25 @@ function draw() {
       ctx.lineTo(f.x + cos*f.len  - sin*(w),  f.y + sin*f.len  + cos*(w));
       ctx.lineTo(f.x + cos*0      - sin*(w),  f.y + sin*0      + cos*(w));
       ctx.closePath();
-      ctx.fillStyle   = `rgba(255,215,0,${a*0.18})`; ctx.fill();
-      ctx.strokeStyle = `rgba(255,215,0,${a*0.92})`; ctx.lineWidth = 2.5; ctx.stroke();
-      // 중심 강조선
+      ctx.fillStyle   = `rgba(${_ssCol},${a*0.18})`; ctx.fill();
+      ctx.strokeStyle = `rgba(${_ssCol},${a*0.92})`; ctx.lineWidth = 2.5; ctx.stroke();
       const ex = f.x + cos*f.len, ey = f.y + sin*f.len;
       ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(ex, ey);
-      ctx.strokeStyle = `rgba(255,240,80,${a*0.95})`; ctx.lineWidth = 2; ctx.stroke();
-      // 끝부분 강조
+      ctx.strokeStyle = `rgba(${_ssCol},${a*0.95})`; ctx.lineWidth = 2; ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(f.x + cos*f.len - sin*(-w), f.y + sin*f.len + cos*(-w));
       ctx.lineTo(f.x + cos*f.len - sin*(w),  f.y + sin*f.len + cos*(w));
-      ctx.strokeStyle = `rgba(255,240,80,${a*0.9})`; ctx.lineWidth = 4; ctx.stroke();
+      ctx.strokeStyle = `rgba(${_ssCol},${a*0.9})`; ctx.lineWidth = 4; ctx.stroke();
     } else if (f.type==='dash') {
       ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(f.tx,f.ty);
       ctx.strokeStyle=`rgba(100,200,255,${a*.4})`; ctx.lineWidth=6; ctx.stroke();
     } else if (f.type==='aoe') {
       // 미아루키 반격: 즉시 풀사이즈 원 → 페이드아웃
       ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
-      ctx.fillStyle=`rgba(255,215,0,${a*0.15})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,215,0,${a*0.95})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle=`rgba(255,20,147,${a*0.18})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,100,180,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, f.r*0.6, 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(255,240,120,${a*0.4})`; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.strokeStyle=`rgba(255,150,200,${a*0.4})`; ctx.lineWidth=1.5; ctx.stroke();
     } else if (f.type==='drillHit') {
       // 드릴 건틀렛 타격 FX — 일자 직사각형
       const cos = Math.cos(f.angle), sin = Math.sin(f.angle);
@@ -6521,18 +6872,19 @@ function draw() {
     } else if (f.type==='smash') {
       // 내려치기 — 파동 두 겹
       ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
-      ctx.fillStyle=`rgba(255,220,0,${a*0.12})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,220,0,${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.fillStyle=`rgba(121,85,72,${a*0.25})`; ctx.fill();
+      ctx.strokeStyle=`rgba(161,115,102,${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, f.r*0.55, 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(255,255,180,${a*0.5})`; ctx.lineWidth=2; ctx.stroke();
+      ctx.strokeStyle=`rgba(200,160,140,${a*0.5})`; ctx.lineWidth=2; ctx.stroke();
     } else if (f.type==='slash' || f.type==='swing') {
-      // 미아루키 부채꼴 휘두르기 FX
+      // 부채꼴 근접 FX — 노란색 통일 (반격기 포함)
+      const _swCol = f.col || '255,0,170';
       ctx.beginPath();
       ctx.moveTo(f.x, f.y);
       ctx.arc(f.x, f.y, f.range, f.angle - f.halfAngle, f.angle + f.halfAngle);
       ctx.closePath();
-      ctx.fillStyle=`rgba(255,0,170,${a*0.22})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,0,170,${a*0.85})`; ctx.lineWidth=2.5; ctx.stroke();
+      ctx.fillStyle=`rgba(${_swCol},${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(${_swCol},${a*0.85})`; ctx.lineWidth=2.5; ctx.stroke();
     } else if (f.type==='rocketExplosion') {
       // 로켓 폭발 — 팽창 원형 충격파
       const rr = f.maxR * (1 - f.dur/f.maxDur);
@@ -6546,14 +6898,14 @@ function draw() {
       // 폭탄 폭발 — 소형 오렌지 폭발
       const rr = f.maxR * (1 - f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rr), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(255,140,0,${a*0.4})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,200,50,${a*0.85})`; ctx.lineWidth=2.5; ctx.stroke();
+      ctx.fillStyle=`rgba(${f.col||'255,140,0'},${a*0.4})`; ctx.fill();
+      ctx.strokeStyle=`rgba(${f.col||'255,200,50'},${a*0.85})`; ctx.lineWidth=2.5; ctx.stroke();
     } else if (f.type==='elinExplosion') {
       // 엘린 유령구체 폭발 — 캐릭터 색(#c8d8f0) 충격파
       const rr = f.maxR * (1 - f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rr), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(200,216,240,${a*0.22})`; ctx.fill();
-      ctx.strokeStyle=`rgba(200,216,240,${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.fillStyle=`rgba(${f.col||'200,216,240'},${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(${f.col||'200,216,240'},${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rr*0.45), 0, Math.PI*2);
       ctx.fillStyle=`rgba(220,235,255,${a*0.3})`; ctx.fill();
       ctx.strokeStyle=`rgba(230,242,255,${a*0.6})`; ctx.lineWidth=2; ctx.stroke();
@@ -6586,16 +6938,16 @@ function draw() {
       // 스파크 웨이브 — 민트 팽창 파동
       const rr = f.maxR * (1 - f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(0,255,255,${a*0.18})`; ctx.fill();
-      ctx.strokeStyle=`rgba(0,255,255,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle=`rgba(0,255,220,${a*0.15})`; ctx.fill();
+      ctx.strokeStyle=`rgba(0,255,220,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr*0.5), 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(180,255,255,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.strokeStyle=`rgba(255,240,120,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
     } else if (f.type==='tauOveleuchargeHit') {
       // 오버차지 적중 — 황금→민트 충격파
       const rr = f.maxR * (1 - f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
       ctx.fillStyle=`rgba(255,255,0,${a*0.3})`; ctx.fill();
-      ctx.strokeStyle=`rgba(0,255,255,${a*0.95})`; ctx.lineWidth=4; ctx.stroke();
+      ctx.strokeStyle=`rgba(255,215,0,${a*0.95})`; ctx.lineWidth=4; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr*0.55), 0, Math.PI*2);
       ctx.strokeStyle=`rgba(255,255,180,${a*0.6})`; ctx.lineWidth=2; ctx.stroke();
     } else if (f.type==='shieldSwing') {
@@ -6621,8 +6973,8 @@ function draw() {
       ctx.moveTo(f.x+px,f.y+py); ctx.lineTo(ex+px,ey+py);
       ctx.lineTo(ex-px,ey-py); ctx.lineTo(f.x-px,f.y-py);
       ctx.closePath();
-      ctx.fillStyle=`rgba(255,180,50,${a*0.22})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,160,50,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle=`rgba(255,34,68,${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,80,100,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
     } else if (f.type==='parry') {
       const rr=f.maxR*(1-f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,rr),0,Math.PI*2);
@@ -6874,7 +7226,7 @@ function draw() {
       const gt = f.gaugeT ?? 0;
       const g1 = Math.round(107 + 93*gt), g2 = Math.round(160 + 60*gt);
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rs), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(26,${g1},53,${a*(0.15+0.15*gt)})`; ctx.fill();
+      ctx.fillStyle=`rgba(26,${g1},53,${a*(0.12+0.1*gt)})`; ctx.fill();
       ctx.strokeStyle=`rgba(40,${g2},80,${a*0.95})`; ctx.lineWidth=3+2*gt; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rs*0.55), 0, Math.PI*2);
       ctx.strokeStyle=`rgba(120,240,150,${a*(0.4+0.3*gt)})`; ctx.lineWidth=2; ctx.stroke();
@@ -6912,7 +7264,7 @@ function draw() {
       // 연막 확산 — 회색 팽창 원
       const rs2 = f.maxR * (1 - f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rs2), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(200,200,200,${a*0.35})`; ctx.fill();
+      ctx.fillStyle=`rgba(200,200,200,${a*0.22})`; ctx.fill();
       ctx.strokeStyle=`rgba(220,220,220,${a*0.85})`; ctx.lineWidth=3; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rs2*0.5), 0, Math.PI*2);
       ctx.strokeStyle=`rgba(240,240,240,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
@@ -6950,10 +7302,10 @@ function draw() {
     } else if (f.type==='konyeongSwing') {
       const rSwing = f.maxR * (1 - f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rSwing), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(245,220,160,${a*0.18})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,210,120,${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.fillStyle=`rgba(245,190,80,${a*0.18})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,210,100,${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rSwing*0.55), 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(255,180,60,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.strokeStyle=`rgba(255,230,120,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
 
     } else if (f.type==='hatsBeam') {
       // 히트스캔 빔 — 라임색 선 섬광
@@ -6997,7 +7349,7 @@ function draw() {
       ctx.fillStyle=`rgba(170,255,0,${a*0.18})`; ctx.fill();
       ctx.strokeStyle=`rgba(170,255,0,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rS*0.55), 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(255,255,100,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.strokeStyle=`rgba(255,240,120,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
 
     } else if (f.type==='herCannonShot') {
       // 헤르쟝 포탄 발사 — 짧은 선형 섬광
@@ -7082,7 +7434,7 @@ function draw() {
       ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.angle);
       const thrT2 = 1-f.dur/f.maxDur;
       const curL2 = f.len * Math.min(1, thrT2*2.2);
-      ctx.fillStyle=`rgba(255,105,180,${a*0.22})`; ctx.fillRect(0, -f.width/2, curL2, f.width);
+      ctx.fillStyle=`rgba(255,215,0,${a*0.22})`; ctx.fillRect(0, -f.width/2, curL2, f.width);
       ctx.strokeStyle=`rgba(255,200,225,${a*0.9})`; ctx.lineWidth=2.5;
       ctx.strokeRect(0, -f.width/2, curL2, f.width);
       ctx.beginPath(); ctx.moveTo(curL2,-f.width/2); ctx.lineTo(curL2,f.width/2);
@@ -7094,8 +7446,8 @@ function draw() {
       ctx.beginPath(); ctx.moveTo(f.x, f.y);
       ctx.arc(f.x, f.y, f.range, f.angle-f.halfAngle, f.angle+f.halfAngle);
       ctx.closePath();
-      ctx.fillStyle=`rgba(255,105,180,${a*0.28})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,210,230,${a*0.95})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle=`rgba(255,105,180,${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,182,218,${a*0.95})`; ctx.lineWidth=3; ctx.stroke();
       ctx.beginPath(); ctx.moveTo(f.x, f.y);
       ctx.arc(f.x, f.y, f.range*0.52, f.angle-f.halfAngle, f.angle+f.halfAngle);
       ctx.closePath();
@@ -7105,7 +7457,7 @@ function draw() {
       // 청소구역 선딜 경고 — 점선 박스
       ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.angle);
       const pp2 = 1-f.dur/f.maxDur;
-      ctx.fillStyle=`rgba(255,105,180,${a*(0.06+pp2*0.06)})`; ctx.fillRect(0, -f.width/2, f.len, f.width);
+      ctx.fillStyle=`rgba(255,215,0,${a*(0.06+pp2*0.06)})`; ctx.fillRect(0, -f.width/2, f.len, f.width);
       ctx.strokeStyle=`rgba(255,140,200,${a*0.65})`; ctx.lineWidth=2;
       ctx.setLineDash([8,5]); ctx.strokeRect(0, -f.width/2, f.len, f.width); ctx.setLineDash([]);
       ctx.restore();
@@ -7115,7 +7467,7 @@ function draw() {
       ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.angle);
       const zhT = 1 - f.dur/f.maxDur;
       const zhLen = f.len * Math.min(1, zhT * 2.2);
-      ctx.fillStyle=`rgba(255,105,180,${a*0.28})`; ctx.fillRect(0, -f.width/2, zhLen, f.width);
+      ctx.fillStyle=`rgba(255,215,0,${a*0.18})`; ctx.fillRect(0, -f.width/2, zhLen, f.width);
       ctx.strokeStyle=`rgba(255,220,238,${a*0.9})`; ctx.lineWidth=2.5;
       ctx.strokeRect(0, -f.width/2, zhLen, f.width);
       // 선단 글로우
@@ -7129,7 +7481,7 @@ function draw() {
       // 구역 부스트 전환 섬광
       ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.angle);
       const za2 = 1-f.dur/f.maxDur;
-      ctx.fillStyle=`rgba(255,105,180,${a*(0.35-za2*0.28)})`; ctx.fillRect(0, -f.width/2, f.len, f.width);
+      ctx.fillStyle=`rgba(255,215,0,${a*(0.35-za2*0.18)})`; ctx.fillRect(0, -f.width/2, f.len, f.width);
       ctx.strokeStyle=`rgba(255,200,225,${a*(0.9-za2*0.5)})`; ctx.lineWidth=2.5;
       ctx.setLineDash([6,4]); ctx.strokeRect(0, -f.width/2, f.len, f.width); ctx.setLineDash([]);
       ctx.restore();
@@ -7194,8 +7546,8 @@ function draw() {
       ctx.save(); ctx.translate(zp.x, zp.y); ctx.rotate(zp.angle);
       if (isCasting) {
         const pulseZ = 0.6+0.4*Math.sin(nowDZ*0.012);
-        ctx.fillStyle=`rgba(255,105,180,${0.08*pulseZ})`; ctx.fillRect(0,-BZ2.width/2,BZ2.length,BZ2.width);
-        ctx.strokeStyle=`rgba(255,105,180,${0.7*pulseZ})`; ctx.lineWidth=2.5;
+        ctx.fillStyle=`rgba(255,215,0,${0.08*pulseZ})`; ctx.fillRect(0,-BZ2.width/2,BZ2.length,BZ2.width);
+        ctx.strokeStyle=`rgba(255,215,0,${0.7*pulseZ})`; ctx.lineWidth=2.5;
         ctx.setLineDash([8,5]); ctx.strokeRect(0,-BZ2.width/2,BZ2.length,BZ2.width); ctx.setLineDash([]);
         ctx.restore();
         ctx.fillStyle='rgba(255,200,225,0.9)'; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
@@ -7205,7 +7557,7 @@ function draw() {
       } else if (isBoosted) {
         const timeLeft = Math.max(0,(L._prillZoneExpiry-nowDZ)/BZ2.zoneBoostDur);
         const pulseZ2 = 0.5+0.5*Math.sin(nowDZ*0.008);
-        ctx.fillStyle=`rgba(255,105,180,${0.04+0.03*pulseZ2})`; ctx.fillRect(0,-BZ2.width/2,BZ2.length,BZ2.width);
+        ctx.fillStyle=`rgba(255,215,0,${0.04+0.03*pulseZ2})`; ctx.fillRect(0,-BZ2.width/2,BZ2.length,BZ2.width);
         ctx.strokeStyle=`rgba(255,180,215,${(0.35+0.2*pulseZ2)*timeLeft})`; ctx.lineWidth=2;
         ctx.setLineDash([5,6]); ctx.strokeRect(0,-BZ2.width/2,BZ2.length,BZ2.width); ctx.setLineDash([]);
         ctx.restore();
@@ -7426,12 +7778,12 @@ function draw() {
       if (bullet.isTauSickle) {
         // 타우 낫: 민트 원 + 회전 꼬리
         ctx.beginPath(); ctx.arc(bullet.x,bullet.y,bullet.radius+2,0,Math.PI*2);
-        ctx.fillStyle=`rgba(0,255,255,${a*0.3})`; ctx.fill();
-        ctx.strokeStyle=`rgba(0,255,255,${a})`; ctx.lineWidth=2.5; ctx.stroke();
+        ctx.fillStyle=`rgba(255,215,0,${a*0.3})`; ctx.fill();
+        ctx.strokeStyle=`rgba(255,215,0,${a})`; ctx.lineWidth=2.5; ctx.stroke();
         // 꼬리 선
         const tx2=bullet.x-bullet.dx*18, ty2=bullet.y-bullet.dy*18;
         ctx.beginPath(); ctx.moveTo(bullet.x,bullet.y); ctx.lineTo(tx2,ty2);
-        ctx.strokeStyle=`rgba(180,255,255,${a*0.7})`; ctx.lineWidth=3; ctx.stroke();
+        ctx.strokeStyle=`rgba(18255,215,0,${a*0.7})`; ctx.lineWidth=3; ctx.stroke();
       } else if (bullet.isRocket) {
         ctx.beginPath(); ctx.arc(bullet.x,bullet.y,bullet.radius,0,Math.PI*2);
         ctx.fillStyle=`rgba(255,140,0,${a})`; ctx.fill();
@@ -7500,7 +7852,7 @@ function draw() {
         // 파비 레이저 — 하늘색 짧은 빔
         const bx2 = bullet.x - bullet.dx * 18, by2 = bullet.y - bullet.dy * 18;
         ctx.beginPath(); ctx.moveTo(bullet.x, bullet.y); ctx.lineTo(bx2, by2);
-        ctx.strokeStyle = `rgba(56,189,248,${a})`; ctx.lineWidth = 4; ctx.stroke();
+        ctx.strokeStyle = `rgba(255,215,0,${a})`; ctx.lineWidth = 4; ctx.stroke();
         ctx.beginPath(); ctx.moveTo(bullet.x, bullet.y); ctx.lineTo(bx2, by2);
         ctx.strokeStyle = `rgba(255,255,255,${a*0.7})`; ctx.lineWidth = 1.5; ctx.stroke();
         ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius+1, 0, Math.PI*2);
@@ -7595,10 +7947,10 @@ function draw() {
         for (let i=1;i<path.length;i++) ctx.lineTo(path[i].x, path[i].y);
         // 마지막 샘플 → 현재 마우스 실시간 연결
         ctx.lineTo(mouseX, mouseY);
-        ctx.strokeStyle = dragLen < Bh.dragThreshold ? 'rgba(170,255,0,0.3)' : 'rgba(170,255,0,0.85)';
+        ctx.strokeStyle = dragLen < Bh.dragThreshold ? 'rgba(255,215,0,0.3)' : 'rgba(255,215,0,0.85)';
         ctx.lineWidth = 2.5; ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
         ctx.beginPath(); ctx.arc(path[0].x, path[0].y, 5, 0, Math.PI*2);
-        ctx.fillStyle='rgba(170,255,0,0.7)'; ctx.fill();
+        ctx.fillStyle='rgba(255,215,0,0.7)'; ctx.fill();
         ctx.beginPath(); ctx.arc(mouseX, mouseY, 4, 0, Math.PI*2);
         ctx.fillStyle='rgba(255,255,100,0.9)'; ctx.fill();
       }
@@ -7620,14 +7972,14 @@ function draw() {
       for (let i=1;i<L._hatsPath.length;i++) ctx.lineTo(L._hatsPath[i].x, L._hatsPath[i].y);
       // 마지막 샘플 점 → 현재 마우스 위치까지 실시간 연결
       ctx.lineTo(mouseX, mouseY);
-      ctx.strokeStyle='rgba(170,255,0,0.5)'; ctx.lineWidth=2.5;
+      ctx.strokeStyle='rgba(255,215,0,0.5)'; ctx.lineWidth=2.5;
       ctx.setLineDash([8,4]); ctx.stroke(); ctx.setLineDash([]);
     }
     // 돌진 중 경로 표시
     if (L._hatsDashing && L._hatsDashPath?.length > 0) {
       ctx.beginPath(); ctx.moveTo(L.x, L.y);
       for (let i=L._hatsDashIdx;i<L._hatsDashPath.length;i++) ctx.lineTo(L._hatsDashPath[i].x, L._hatsDashPath[i].y);
-      ctx.strokeStyle='rgba(170,255,0,0.35)'; ctx.lineWidth=2;
+      ctx.strokeStyle='rgba(255,215,0,0.35)'; ctx.lineWidth=2;
       ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
     }
   }
@@ -7655,7 +8007,7 @@ function draw() {
         }
       }
     }
-    if (_rAlpha > 0.01) {
+    if (_rAlpha > 0.01 && !_trainingMode) {
       if (_rInSmoke) { ctx.save(); ctx.globalAlpha = _rAlpha; }
       drawPlayer(R,'상대');
       if (_rInSmoke) ctx.restore();
@@ -7664,6 +8016,39 @@ function draw() {
   drawAttackPreview(L._attackPreview);
   drawMinions();
   drawPlayer(L,'나');
+
+  // 훈련장 봇 렌더링 (반드시 ctx.restore() 전, 월드-스페이스)
+  if (_trainingMode) {
+    for (const bot of _trainingBots) {
+      if (bot.hidden || !bot.isAlive) continue;
+      ctx.beginPath(); ctx.arc(bot.x, bot.y, bot.radius, 0, Math.PI*2);
+      ctx.fillStyle = bot.color + '44'; ctx.fill();
+      ctx.strokeStyle = bot.color; ctx.lineWidth = 2.5; ctx.stroke();
+      // 캐릭터 이름 레이블
+      ctx.fillStyle = bot.color; ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'center';
+      const _bCharName = bot.charName || (bot.type==='melee'?'근거리':bot.type==='ranged'?'원거리':'더미');
+      ctx.fillText(_bCharName, bot.x, bot.y - bot.radius - 6);
+      // HP 바
+      const _bw = bot.radius * 2, _bhh = 4;
+      const _bx2 = bot.x - bot.radius, _by2 = bot.y - bot.radius - 16;
+      ctx.fillStyle = '#222'; ctx.fillRect(_bx2, _by2, _bw, _bhh);
+      ctx.fillStyle = bot.color; ctx.fillRect(_bx2, _by2, _bw * (bot.hp / bot.maxHp), _bhh);
+      // 쿨타임 바 — 봇 아래
+      if (_trainingSettings.showCooldownBar && bot.type !== 'dummy') {
+        const _cdMax = bot.type==='melee' ? (bot.atkIdx%3===0?1500:bot.atkIdx%3===1?1800:2200) : 2000;
+        const _cdRatio = bot.phaseTimer > 0 ? Math.min(1, bot.phaseTimer / _cdMax) : 0;
+        const _cdy2 = bot.y + bot.radius + 4;
+        ctx.fillStyle = '#222'; ctx.fillRect(bot.x - bot.radius, _cdy2, _bw, 4);
+        ctx.fillStyle = _cdRatio > 0.3 ? '#fa6' : '#f44';
+        ctx.fillRect(bot.x - bot.radius, _cdy2, _bw * (1 - _cdRatio), 4);
+      }
+    }
+    for (const bb of _botBullets) {
+      ctx.beginPath(); ctx.arc(bb.x, bb.y, bb.radius, 0, Math.PI*2);
+      ctx.fillStyle = bb.color + '88'; ctx.fill();
+      ctx.strokeStyle = bb.color; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+  }
 
   ctx.restore();
 
@@ -7746,9 +8131,9 @@ function drawPlayer(p, label) {
   if (isBound) {
     const pulse=0.5+0.5*Math.sin(performance.now()*0.01);
     ctx.beginPath(); ctx.arc(p.x,p.y,p.radius+10,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(56,189,248,${0.7+0.3*pulse})`; ctx.lineWidth=3.5;
+    ctx.strokeStyle=`rgba(255,215,0,${0.7+0.3*pulse})`; ctx.lineWidth=3.5;
     ctx.setLineDash([6,3]); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle='rgba(56,189,248,0.9)'; ctx.font='bold 14px Courier New'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,215,0,0.9)'; ctx.font='bold 14px Courier New'; ctx.textAlign='center';
     ctx.fillText('BIND', p.x, p.y-p.radius-16);
   }
 
@@ -7802,7 +8187,7 @@ function drawPlayer(p, label) {
   if (p===L && L.charDef?.id==='tau' && L._tauOveleucharge) {
     const pulse=0.5+0.5*Math.sin(performance.now()*0.014);
     ctx.beginPath(); ctx.arc(p.x,p.y,p.radius+14,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(0,255,255,${0.7+0.3*pulse})`; ctx.lineWidth=3;
+    ctx.strokeStyle=`rgba(255,215,0,${0.7+0.3*pulse})`; ctx.lineWidth=3;
     ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
   }
 
@@ -7830,7 +8215,7 @@ function drawPlayer(p, label) {
       // 배경
       ctx.fillStyle='#111'; ctx.fillRect(cbx, cby, cbw, cbh);
       // 게이지 (남은 시간 비율, 분홍색 → 빨강 경고)
-      const cCol = _cPct > 0.4 ? 'rgba(255,105,180,0.95)' : 'rgba(255,60,100,0.95)';
+      const cCol = _cPct > 0.4 ? 'rgba(255,215,0,0.9)' : 'rgba(255,60,100,0.9)';
       ctx.fillStyle=cCol; ctx.fillRect(cbx, cby, cbw*_cPct, cbh);
       // 콤보 단계 점 (● ●●)
       ctx.font='bold 9px Courier New'; ctx.textAlign='center';
@@ -7853,7 +8238,7 @@ function drawPlayer(p, label) {
   // 스턴샷 준비 — 스테미나 바 아래 분홍 텍스트
   if (p===L && L._stunShotReady) {
     ctx.font='bold 10px Courier New'; ctx.textAlign='center';
-    ctx.fillStyle='rgba(255,105,180,0.95)';
+    ctx.fillStyle='rgba(255,215,0,0.9)';
     ctx.fillText('⚡스턴 준비', p.x, sby+sbh+25);
   }
 
@@ -7883,14 +8268,14 @@ function drawPlayer(p, label) {
     if (stored > 0) {
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.radius+14, -Math.PI/2, -Math.PI/2 + Math.PI*2*stored);
-      ctx.strokeStyle = stored >= 1 ? 'rgba(56,189,248,1.0)' : 'rgba(56,189,248,0.7)';
+      ctx.strokeStyle = stored >= 1 ? 'rgba(255,215,0,1.0)' : 'rgba(255,215,0,0.7)';
       ctx.lineWidth = 3.5; ctx.stroke();
       if (stored >= 1) {
         const pulse = 0.6+0.4*Math.sin(performance.now()*0.012);
         ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+18, 0, Math.PI*2);
         ctx.strokeStyle = `rgba(186,230,253,${pulse*0.8})`; ctx.lineWidth=2;
         ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle='rgba(56,189,248,0.95)'; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+        ctx.fillStyle='rgba(255,215,0,0.95)'; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
         ctx.fillText('LASER', p.x, sby+sbh+13);
       }
     }
@@ -8188,6 +8573,7 @@ function updateRemoteHud() {
 
 function endGame(won) {
   if (!gameOn) return;
+  if (_trainingMode) { /* 훈련장: 종료 없음 — L.health 복원 */ L.health=L.maxHealth; return; }
   gameOn=false;
   clearTimeout(window._gameTimer);
   if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
@@ -8816,6 +9202,29 @@ function loop() {
   lastLoopTime = now;
   tickShake(dt);
 
+  // 훈련장: 매 프레임 시작 시 R을 마우스 방향 가장 가까운 봇으로 설정
+  // 이렇게 하면 모든 기존 공격 판정이 자동으로 봇을 적중
+  if (_trainingMode) {
+    // 마우스 방향 기준 가장 가까운 봇을 R로 설정
+    const _mwx = mouseScreenX + cam.x, _mwy = mouseScreenY + cam.y;
+    let _bestBot = null, _bestDist = Infinity;
+    for (const bot of _trainingBots) {
+      if (bot.hidden || !bot.isAlive) continue;
+      const _d = Math.hypot(bot.x - _mwx, bot.y - _mwy);
+      if (_d < _bestDist) { _bestDist = _d; _bestBot = bot; }
+    }
+    if (_bestBot) {
+      R.x = _bestBot.x; R.y = _bestBot.y;
+      // radius를 크게 설정해 사전 체크(dist < range + R.radius)가
+      // 더 쉽게 통과되도록 (실제 피해는 hitCtx에서 bot 직접 체크)
+      R.radius = 9999; // 사전 체크 항상 통과
+      R._botRadius = _bestBot.radius; // 실제 봇 radius (투사체 판정용)
+      R.maxHealth = _bestBot.maxHp;
+      R.health = _bestBot.hp;
+      R.burrowing = false; R.stunEnd = 0; R.bindEnd = 0;
+    }
+  }
+
   // 적 타겟 목록 갱신 (플레이어 + 소환수)
   refreshEnemyTargets();
 
@@ -9045,6 +9454,7 @@ function loop() {
   }
 
   tickStamina(now, physDt);
+  _tickTrainingBots(now, dt);
   tickRegen(now);
 
   // 리안 백업 만료 정리
