@@ -209,7 +209,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.7.0</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.7.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1267,21 +1267,22 @@ const BALANCE = {
     lmb: {
       cost:       30,
       damage:     25,
-      speed:      9,
+      speed:      13,
       radius:     10,
       range:      650,
       cd:         380,
-      homingMin:  0.3,   // 이 비율 이후 호밍 시작
-      homingMax:  0.065, // 사거리 끝에서 최대 호밍 강도 (rad/frame)
+      homingMin:  0.15,  // 이 비율 이후 호밍 시작
+      homingMax:  0.14,  // 사거리 끝에서 최대 호밍 강도 (rad/frame)
     },
     rmb: {
       cost:         60,
-      damage:       10,   // 매 초 피해
+      damage:       10,  // 매 초 피해
+      slowDur:      800,  // ms
       tickInterval: 1000,
       speed:        2.5,
       radius:       100,
-      range:        1400,
-      cd:           500,
+      range:        820,
+      cd:           1100,
     },
     counter: {
       diveDist:       340,
@@ -6570,14 +6571,23 @@ function moveBullets(dt=1) {
       }
     }
     // ── 다즈빈 파동 구체: 틱 피해 ──
+    if (b.isDazWave) {
+      // 범위 안 적에게 항상 슬로우 부여
+      const _waveDist=Math.hypot(R.x-b.x, R.y-b.y);
+      if (_waveDist<b.radius+R.radius) {
+        const _sdurA=BALANCE.dazbin.rmb.slowDur||800;
+        R._slowEnd=Math.max(R._slowEnd||0, performance.now()+_sdurA);
+        send({type:'slowPlayer', dur:_sdurA});
+      }
+    }
     if (b.isDazWave && performance.now()-b._lastTick>=BALANCE.dazbin.rmb.tickInterval) {
       b._lastTick=performance.now();
-      // 파동 구체: invincible(회피) 무시, 틱 타이밍에만 피해 (구체는 사라지지 않음)
       const _waveDist=Math.hypot(R.x-b.x, R.y-b.y);
       if (_waveDist<b.radius+R.radius) {
         const _wd=applyDmgAugs(b.damage);
         R.health=Math.max(0,R.health-_wd);
         send({type:'dazWaveTick', damage:_wd}); // 장판 피해 — 저스트닷지 불가
+
         addShake(2,8); playHitSfx();
         applyLifesteal(_wd); applyPoison(_wd);
       }
