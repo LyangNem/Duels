@@ -209,7 +209,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.6.2</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.7.0</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1259,6 +1259,42 @@ const BALANCE = {
     },
   },
 
+  // ── 다즈빈 ─────────────────────────────────────────────────
+  dazbin: {
+    hp:     100,
+    speed:  3.75,
+    radius: 20,
+    lmb: {
+      cost:       30,
+      damage:     25,
+      speed:      9,
+      radius:     10,
+      range:      650,
+      cd:         380,
+      homingMin:  0.3,   // 이 비율 이후 호밍 시작
+      homingMax:  0.065, // 사거리 끝에서 최대 호밍 강도 (rad/frame)
+    },
+    rmb: {
+      cost:         60,
+      damage:       10,   // 매 초 피해
+      tickInterval: 1000,
+      speed:        2.5,
+      radius:       100,
+      range:        1400,
+      cd:           500,
+    },
+    counter: {
+      diveDist:       340,
+      diveDur:        420,     // ms 잠수 이동
+      damage:         20,
+      knockbackPower: 360,
+      aoeRange:       90,
+      portalRadius:   42,
+      portalDur:      20000,   // 20초
+      cd:             300,
+    },
+  },
+
   // ── 하츠하츠 ────────────────────────────────────────────────
   hatsuhats: {
     hp:     120,
@@ -1651,7 +1687,26 @@ const CHARACTERS = {
       { key:'RMB', name:'청소 구역', cost:BALANCE.prill.rmb.cost,
         desc:`이동 제한 후 청소 구역 표시. ${BALANCE.prill.rmb.hitInterval/1000}초마다 청소구역 청소 총 ${BALANCE.prill.rmb.hitCount}회. 재사용 시 취소 및 구역 내에서 피해 증가 +${BALANCE.prill.rmb.zoneDamageBoost*100}% (${BALANCE.prill.rmb.damage})` },
       { key:'L-Shift', name:'빗자루 올려치기', cost:0,
-        desc:`전방 넓은 부채꼴 올려치기(${BALANCE.prill.counter.damage}). 적중 시 ${BALANCE.prill.counter.boostDur/1000}초간 피해 증가 +${BALANCE.prill.counter.boostMult*100}%` },
+        desc:`전방 넓은 부채꼴 올려치기. 적중 시 ${BALANCE.prill.counter.boostDur/1000}초간 피해 증가 +${BALANCE.prill.counter.boostMult*100}% (${BALANCE.prill.counter.damage})` },
+    ],
+  },
+
+  dazbin: {
+    id:        'dazbin',
+    name:      '다즈빈',
+    color:     '#3355ff',
+    maxHealth: BALANCE.dazbin.hp,
+    speed:     BALANCE.dazbin.speed,
+    radius:    BALANCE.dazbin.radius,
+    statsText: [['체력',String(BALANCE.dazbin.hp)],['이동속도','빠름'],['스타일','압박형 원거리 컨트롤러']],
+    desc:      '물의 정령과 파동으로 적을 압박하는 캐릭터',
+    skills: [
+      { key:'LMB', name:'물의 정령', cost:BALANCE.dazbin.lmb.cost,
+        desc:`물의 정령 발사. 적을 향해 유도 (${BALANCE.dazbin.lmb.damage})` },
+      { key:'RMB', name:'파동 구체', cost:BALANCE.dazbin.rmb.cost,
+        desc:`벽과 적 관통 파동 구체 발사. (${BALANCE.dazbin.rmb.damage}/s)` },
+      { key:'L-Shift', name:'잠수', cost:0,
+        desc:`원형 피해를 입히며 잠수 후 이동, 재출수 후 원형피해. 양 지점에 물구덩이 생성. (${BALANCE.dazbin.counter.damage})` },
     ],
   },
 
@@ -2247,6 +2302,27 @@ function onData(d) {
       peerBullets.push({...d}); break;
     case 'hitMe':
       receiveHit(d.damage); break;
+    case 'dazWaveTick':
+      // 파동 구체 틱 피해: 회피 중이면 저스트닷지, 아니면 피해
+      if (gameOn && !L.burrowing) {
+        if (L.invincible > 0 && L.dodging && !L._counterPending) {
+          // 저스트닷지 성공
+          L._counterPending = true;
+          L.stamina = Math.min(L._augStamMax??STAM_MAX, L.stamina + DODGE_COST * 0.5);
+          L.invincible = 8;
+          addFx({type:'justdodge', x:L.x, y:L.y, r:0, maxR:65, dur:22, maxDur:22});
+          send({type:'fx', fx:{type:'justdodge', x:L.x, y:L.y, r:0, maxR:65, dur:22, maxDur:22}});
+        } else if (L.invincible <= 0) {
+          // 회피 중이 아닐 때만 피해
+          const _wdR = Math.max(1, Math.round(d.damage));
+          L.health = Math.max(0, L.health - _wdR);
+          L.lastHitTime = performance.now();
+          addShake(2,8);
+          if (L.health <= 0) { send({type:'dead'}); endGame(false); }
+          updateLocalHud();
+        }
+      }
+      break;
 
 
     case 'ready':
@@ -3867,6 +3943,7 @@ function processJustCheck(dt=1) {
   if (jp.frames < 0) { L.justCheck=null; return; }
   for (let i=peerBullets.length-1; i>=0; i--) {
     const b = peerBullets[i];
+    if (b.isDazWave) continue; // 파동 구체: 장판 판정 — 저스트닷지 불가
     if (Math.hypot(b.x-jp.x, b.y-jp.y) < jp.radius+b.radius) {
       peerBullets.splice(i,1);
       L.stamina    = Math.min(L._augStamMax??STAM_MAX, L.stamina+DODGE_COST*0.5);
@@ -5975,6 +6052,98 @@ const SKILLS = {
     },
   },
 
+
+  // ── 다즈빈 ─────────────────────────────────────────────────
+  dazbin: {
+    lmb(angle) {
+      const B = BALANCE.dazbin.lmb;
+      if (L.lmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      const b = {
+        id:uid(), x:L.x, y:L.y,
+        radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
+        dx:Math.cos(angle), dy:Math.sin(angle),
+        damage:B.damage, maxRange:B.range, traveled:0,
+        isDazWater:true,
+      };
+      localBullets.push(b); send({type:'bullet',...b});
+      addFx({type:'dazWaterShot', x:L.x, y:L.y, angle, dur:6, maxDur:6});
+      send({type:'fx', fx:{type:'dazWaterShot', x:L.x, y:L.y, angle, dur:6, maxDur:6}});
+      L.lmbCooldown=B.cd; L.lastAttackTime=performance.now();
+      playShootSfx();
+    },
+
+    rmb(angle) {
+      const B = BALANCE.dazbin.rmb;
+      if (L.rmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      const b = {
+        id:uid(), x:L.x, y:L.y,
+        radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
+        dx:Math.cos(angle), dy:Math.sin(angle),
+        damage:B.damage, maxRange:B.range, traveled:0,
+        isDazWave:true, pierceWalls:true, pierceEnemies:true,
+        _lastTick:performance.now(),
+      };
+      localBullets.push(b); send({type:'bullet',...b});
+      addFx({type:'dazWaveShot', x:L.x, y:L.y, dur:8, maxDur:8});
+      send({type:'fx', fx:{type:'dazWaveShot', x:L.x, y:L.y, dur:8, maxDur:8}});
+      L.rmbCooldown=B.cd; L.lastAttackTime=performance.now();
+      playShootSfx();
+    },
+
+    counter(angle) {
+      const B = BALANCE.dazbin.counter;
+      if (!L.counterReady) return;
+      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
+      L.counterReady=false; L.lmbCooldown=B.cd; L.rmbCooldown=B.cd;
+      const tok=++L._counterToken;
+      L.color='#ffd700'; send({type:'colorChange', color:'#ffd700'});
+      const startX=L.x, startY=L.y;
+      const ang=getAngle(), cos=Math.cos(ang), sin=Math.sin(ang);
+      const tx=Math.max(L.radius, Math.min(WORLD_W-L.radius, startX+cos*B.diveDist));
+      const ty=Math.max(L.radius, Math.min(WORLD_H-L.radius, startY+sin*B.diveDist));
+
+      addFx({type:'dazDiveEnter', x:startX, y:startY, r:0, maxR:55, dur:14, maxDur:14});
+      send({type:'fx', fx:{type:'dazDiveEnter', x:startX, y:startY, r:0, maxR:55, dur:14, maxDur:14}});
+      // 잠수 진입 피해
+      hitCtxAll({x:startX, y:startY, range:B.aoeRange}, B.damage);
+      knockbackRemote(B.knockbackPower);
+      L.lastAttackTime=performance.now();
+      L.burrowing=true;
+      L.color=L.defaultColor; send({type:'colorChange', color:L.defaultColor});
+
+      let elapsed=0;
+      const _tok=tok;
+      const _mvInt=setInterval(()=>{
+        if (!gameOn||L._counterToken!==_tok){ clearInterval(_mvInt); L.burrowing=false; return; }
+        elapsed+=FRAME_MS;
+        const t=Math.min(1, elapsed/B.diveDur);
+        L.x=startX+(tx-startX)*t;
+        L.y=startY+(ty-startY)*t;
+        if (t>=1){
+          clearInterval(_mvInt);
+          L.burrowing=false;
+          hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage);
+          knockbackRemote(B.knockbackPower);
+          L.lastAttackTime=performance.now();
+          addFx({type:'dazDiveExit', x:L.x, y:L.y, r:0, maxR:60, dur:16, maxDur:16});
+          send({type:'fx', fx:{type:'dazDiveExit', x:L.x, y:L.y, r:0, maxR:60, dur:16, maxDur:16}});
+          if (!L._dazPortals) L._dazPortals=[];
+          const expiry=performance.now()+B.portalDur;
+          const _now2=performance.now();
+          // 포탈 생성 후 2초 딜레이 (회피 직후 즉시 귀환 방지)
+          L._dazPortals.push({ax:startX, ay:startY, bx:L.x, by:L.y, expiry, _lastUsed:_now2+2000});
+          // 포탈 FX — 로컬 + 상대에게 send
+          addFx({type:'dazPortal', x:startX, y:startY, dur:B.portalDur/FRAME_MS, maxDur:B.portalDur/FRAME_MS});
+          addFx({type:'dazPortal', x:L.x, y:L.y, dur:B.portalDur/FRAME_MS, maxDur:B.portalDur/FRAME_MS});
+          send({type:'fx', fx:{type:'dazPortal', x:startX, y:startY, dur:B.portalDur/FRAME_MS, maxDur:B.portalDur/FRAME_MS}});
+          send({type:'fx', fx:{type:'dazPortal', x:L.x, y:L.y, dur:B.portalDur/FRAME_MS, maxDur:B.portalDur/FRAME_MS}});
+        }
+      }, FRAME_MS);
+    },
+  },
+
   // ── 하츠하츠 ─────────────────────────────────────────────────
   hatsuhats: {
     // LMB: 드로잉 — mouseDown/mouseUp으로 드래그 거리 측정 → 부채꼴 공격
@@ -6385,6 +6554,43 @@ function moveBullets(dt=1) {
     const b=localBullets[i];
 
     b.x+=b.dx*b.speed*dt; b.y+=b.dy*b.speed*dt; b.traveled+=b.speed*dt;
+
+    // ── 다즈빈 평타: 호밍 처리 ──
+    if (b.isDazWater) {
+      const B=BALANCE.dazbin.lmb;
+      const ratio=b.traveled/B.range;
+      if (ratio>B.homingMin) {
+        const str=(ratio-B.homingMin)/(1-B.homingMin)*B.homingMax;
+        const toRx=R.x-b.x, toRy=R.y-b.y;
+        const toRlen=Math.hypot(toRx,toRy)||1;
+        const tx2=toRx/toRlen, ty2=toRy/toRlen;
+        b.dx+=(tx2-b.dx)*str; b.dy+=(ty2-b.dy)*str;
+        const len2=Math.hypot(b.dx,b.dy)||1;
+        b.dx/=len2; b.dy/=len2;
+      }
+    }
+    // ── 다즈빈 파동 구체: 틱 피해 ──
+    if (b.isDazWave && performance.now()-b._lastTick>=BALANCE.dazbin.rmb.tickInterval) {
+      b._lastTick=performance.now();
+      // 파동 구체: invincible(회피) 무시, 틱 타이밍에만 피해 (구체는 사라지지 않음)
+      const _waveDist=Math.hypot(R.x-b.x, R.y-b.y);
+      if (_waveDist<b.radius+R.radius) {
+        const _wd=applyDmgAugs(b.damage);
+        R.health=Math.max(0,R.health-_wd);
+        send({type:'dazWaveTick', damage:_wd}); // 장판 피해 — 저스트닷지 불가
+        addShake(2,8); playHitSfx();
+        applyLifesteal(_wd); applyPoison(_wd);
+      }
+      // 훈련장 봇 틱 피해
+      if (_trainingMode) {
+        for (const _wb of _trainingBots) {
+          if (_wb.hidden||!_wb.isAlive) continue;
+          if (Math.hypot(b.x-_wb.x, b.y-_wb.y)<b.radius+_wb.radius)
+            _applyBotDamage(_wb, applyDmgAugs(b.damage));
+        }
+      }
+      addFx({type:'dazWavePulse', x:b.x, y:b.y, r:0, maxR:b.radius*1.5, dur:12, maxDur:12});
+    }
     const oob = b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H;
     const hitWall = bulletHitsWall(b) && !b.pierceWalls;
     const hitEnemy = Math.hypot(b.x-R.x, b.y-R.y)<b.radius+R.radius;
@@ -6400,7 +6606,7 @@ function moveBullets(dt=1) {
             addShake(2, 6); playHitSfx();
             addFx({type:'bombBlast', x:b.x, y:b.y, r:0, maxR:b.radius*1.8, dur:8, maxDur:8});
           }
-          if (!b.pierceEnemies) { localBullets.splice(i, 1); break; }
+          if (!b.pierceEnemies && !b.isDazWave) { localBullets.splice(i, 1); break; }
           break;
         }
       }
@@ -6564,6 +6770,11 @@ function moveBullets(dt=1) {
       // 벽·적 관통 (hitWall / hitEnemy 무시)
 
     } else {
+      // 다즈빈 파동 구체: 관통 탄 — 틱 피해만, 충돌로 제거 안 함
+      if (b.isDazWave) {
+        if (rangeOut||oob) { localBullets.splice(i,1); }
+        continue;
+      }
       if (hitPeerMinion) { localBullets.splice(i,1); continue; }
       if (rangeOut||oob||hitWall) { localBullets.splice(i,1); continue; }
       if (hitEnemy) {
@@ -6596,7 +6807,22 @@ function moveBullets(dt=1) {
     const b=peerBullets[i];
     b.x+=b.dx*b.speed*dt; b.y+=b.dy*b.speed*dt; b.traveled+=b.speed*dt;
 
-
+    // ── 다즈빈 평타 호밍 (상대 화면: L 방향으로) ──
+    if (b.isDazWater) {
+      const _B=BALANCE.dazbin.lmb;
+      const _ratio=b.traveled/_B.range;
+      if (_ratio>_B.homingMin) {
+        const _str=(_ratio-_B.homingMin)/(1-_B.homingMin)*_B.homingMax;
+        const _tlx=L.x-b.x, _tly=L.y-b.y;
+        const _tll=Math.hypot(_tlx,_tly)||1;
+        b.dx+=(_tlx/_tll-b.dx)*_str; b.dy+=(_tly/_tll-b.dy)*_str;
+        const _ll=Math.hypot(b.dx,b.dy)||1;
+        b.dx/=_ll; b.dy/=_ll;
+      }
+    }
+    // ── 다즈빈 파동 구체 틱 피해 (상대 화면) ──
+    // 회피 불가: invincible 무시, 틱 타이밍에만 피해. 맞아도 구체 사라지지 않음
+    // isDazWave: 피해는 localBullets→dazWaveTick 패킷으로만 처리 (중복 방지)
 
     // 메이실 귀환 구체(상대): 전진 후 귀환, 로컬 명중 처리
     if (b.isMaisilOrb) {
@@ -6616,9 +6842,14 @@ function moveBullets(dt=1) {
       b._hitLocal = b._hitLocal || (Math.hypot(b.x-L.x, b.y-L.y) < b.radius+L.radius);
       continue;
     }
+    // 다즈빈 파동 구체(상대): rangeOut/oob에서만 제거, 벽 무시
+    if (b.isDazWave) {
+      if (b.traveled>=b.maxRange||b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H) { peerBullets.splice(i,1); }
+      continue;
+    }
     if (b.traveled>=b.maxRange||b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H||(bulletHitsWall(b)&&!b.pierceWalls)) { peerBullets.splice(i,1); continue; }
     if (Math.hypot(b.x-L.x, b.y-L.y)<b.radius+L.radius) {
-      if (!b.pierceEnemies && !b.isHatsBolt) b._hitLocal = true;
+      if (!b.pierceEnemies && !b.isHatsBolt && !b.isDazWave) b._hitLocal = true;
       if (b.knockbackPower && b.burstId && !_firedBurstKb.has(b.burstId)) {
         _firedBurstKb.add(b.burstId);
         const ang = Math.atan2(L.y - b.y, L.x - b.x);
@@ -6917,10 +7148,10 @@ function draw() {
       // 슬로우 지대 — 지속 렌더링 (dur이 매우 큼)
       const pulse = 0.5 + 0.5*Math.sin(performance.now()*0.004);
       ctx.beginPath(); ctx.arc(f.x, f.y, f.r ?? 150, 0, Math.PI*2);
-      ctx.fillStyle=`rgba(0,180,255,${a*0.08*(0.7+0.3*pulse)})`; ctx.fill();
-      ctx.strokeStyle=`rgba(0,200,255,${a*0.6})`; ctx.lineWidth=2;
+      ctx.fillStyle=`rgba(51,80,240,${a*0.08*(0.7+0.3*pulse)})`; ctx.fill();
+      ctx.strokeStyle=`rgba(51,100,255,${a*0.6})`; ctx.lineWidth=2;
       ctx.setLineDash([8,6]); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle=`rgba(0,200,255,${a*0.65})`; ctx.font='bold 12px Courier New'; ctx.textAlign='center';
+      ctx.fillStyle=`rgba(51,100,255,${a*0.65})`; ctx.font='bold 12px Courier New'; ctx.textAlign='center';
       ctx.fillText('SLOW', f.x, f.y+4);
     } else if (f.type==='tauSlash') {
       // 타우 낫 — 민트(오버차지 시 황금) 부채꼴
@@ -7481,6 +7712,80 @@ function draw() {
       ctx.strokeStyle=`rgba(255,255,255,${a*0.35})`; ctx.lineWidth=1.5; ctx.stroke();
       ctx.restore();
 
+    } else if (f.type==='dazWaterShot') {
+      // 물의 정령 발사 이펙트 — 청록 섬광
+      const dsp = 1-f.dur/f.maxDur;
+      ctx.beginPath(); ctx.arc(f.x, f.y, 8+dsp*6, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(51,120,255,${a*0.5})`; ctx.fill();
+      ctx.strokeStyle=`rgba(160,200,255,${a*0.9})`; ctx.lineWidth=2; ctx.stroke();
+
+    } else if (f.type==='dazWaveShot') {
+      // 파동 구체 발사 이펙트 — 팽창 링
+      const dwr=f.maxR*(1-f.dur/f.maxDur)*0.6;
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,dwr), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(51,100,255,${a*0.18})`; ctx.fill();
+      ctx.strokeStyle=`rgba(80,140,255,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+
+    } else if (f.type==='dazWavePulse') {
+      // 파동 구체 틱 이펙트
+      const wpr=f.maxR*(1-f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,wpr), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(51,100,255,${a*0.15})`; ctx.fill();
+      ctx.strokeStyle=`rgba(0,240,255,${a*0.7})`; ctx.lineWidth=2; ctx.stroke();
+
+    } else if (f.type==='dazDiveEnter') {
+      // 잠수 이펙트 — 청록 파문
+      const der=f.maxR*(1-f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,der), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(51,120,255,${a*0.18})`; ctx.fill();
+      ctx.strokeStyle=`rgba(51,120,255,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,der*0.55), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(160,200,255,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
+
+    } else if (f.type==='dazDiveExit') {
+      // 재출수 이펙트 — 강한 파문
+      const exr=f.maxR*(1-f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,exr), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(51,120,255,${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(51,120,255,${a})`; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,exr*0.5), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(160,200,255,${a*0.6})`; ctx.lineWidth=2; ctx.stroke();
+
+    } else if (f.type==='dazPortal') {
+      // 포탈 흔적 — 점선 파란 링 (지속)
+      const _ppulse=0.55+0.45*Math.sin(performance.now()*0.007+f.x);
+      ctx.beginPath(); ctx.arc(f.x, f.y, 33, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(51,120,255,${a*_ppulse*0.9})`; ctx.lineWidth=2.5;
+      ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(f.x, f.y, 15, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(51,100,255,${a*_ppulse*0.3})`; ctx.fill();
+   // 쿨타임 원형 게이지 — 항상 표시
+      if (L.charDef?.id==='dazbin' && L._dazPortals?.length) {
+        const _pnowD=performance.now();
+        for (const _pp of L._dazPortals) {
+          const _matchA=Math.hypot(f.x-_pp.ax, f.y-_pp.ay)<2;
+          const _matchB=Math.hypot(f.x-_pp.bx, f.y-_pp.by)<2;
+          if (_matchA || _matchB) {
+            const _cd=2000, _elapsed2=Math.min(_cd, Math.max(0, _pnowD-_pp._lastUsed));
+            const _ratio=Math.max(0, Math.min(1, _elapsed2/_cd));
+            ctx.beginPath(); ctx.arc(f.x, f.y, 38, 0, Math.PI*2);
+            ctx.strokeStyle=`rgba(80,100,180,${a*0.3})`; ctx.lineWidth=3; ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, 38, -Math.PI/2, -Math.PI/2+Math.PI*2*_ratio);
+            ctx.strokeStyle=_ratio>=1?`rgba(100,200,255,${a*0.95})`:`rgba(180,220,255,${a*0.85})`;
+            ctx.lineWidth=3; ctx.stroke();
+            break;
+          }
+        }
+      }
+
+    } else if (f.type==='dazPortalUse') {
+      // 포탈 사용 이펙트
+      const pur=f.maxR*(1-f.dur/f.maxDur);
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,pur), 0, Math.PI*2);
+      ctx.fillStyle=`rgba(51,120,255,${a*0.3})`; ctx.fill();
+      ctx.strokeStyle=`rgba(160,200,255,${a*0.9})`; ctx.lineWidth=2; ctx.stroke();
+
     } else if (f.type==='prillZoneActivate') {
       // 구역 부스트 전환 섬광
       ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.angle);
@@ -7804,6 +8109,28 @@ function draw() {
         ctx.beginPath(); ctx.arc(bullet.x,bullet.y,bullet.radius,0,Math.PI*2);
         ctx.fillStyle=`rgba(40,20,0,${a})`; ctx.fill();
         ctx.strokeStyle=`rgba(255,140,0,${a})`; ctx.lineWidth=2; ctx.stroke();
+      } else if (bullet.isDazWater) {
+        // 물의 정령: 물방울 모양 — 후반부로 갈수록 페이드아웃
+        const _hprog = bullet.traveled / BALANCE.dazbin.lmb.range;
+        const _hfade = _hprog > 0.6 ? 1 - (_hprog - 0.6) / 0.4 : 1;
+        const _halpha = Math.max(0.05, _hfade);
+        ctx.globalAlpha = _halpha;
+        ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI*2);
+        ctx.fillStyle='rgba(51,120,255,0.9)'; ctx.fill();
+        ctx.strokeStyle='rgba(160,200,255,0.8)'; ctx.lineWidth=1.5; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(bullet.x, bullet.y);
+        ctx.lineTo(bullet.x-bullet.dx*16, bullet.y-bullet.dy*16);
+        ctx.strokeStyle='rgba(40,80,255,0.35)'; ctx.lineWidth=bullet.radius*1.5; ctx.stroke();
+        ctx.globalAlpha = 1;
+            } else if (bullet.isDazWave) {
+        // 파동 구체: 동심원 구체
+        const _wpulse=0.5+0.5*Math.sin(performance.now()*0.012);
+        ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI*2);
+        ctx.fillStyle=`rgba(51,80,240,${0.25+0.1*_wpulse})`; ctx.fill();
+        ctx.strokeStyle=`rgba(80,140,255,${0.8+0.2*_wpulse})`; ctx.lineWidth=2.5; ctx.stroke();
+        ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius*0.5, 0, Math.PI*2);
+        ctx.strokeStyle=`rgba(150,180,255,${0.6*_wpulse})`; ctx.lineWidth=1.5; ctx.stroke();
+
       } else if (bullet.isHatsBolt) {
         // 하츠하츠 볼트 — 정마름모, 사거리 기반 정확한 페이드
         const _ct = bullet.clampT ?? 0.5;
@@ -9104,6 +9431,7 @@ function resetL() {
   L._prillZonePos=null; L._prillZoneHitsLeft=0;
   if (L._prillZoneInterval) { clearInterval(L._prillZoneInterval); L._prillZoneInterval=null; }
   L._prillZoneToken=0;
+  L._dazPortals=[]; // 다즈빈 포탈 초기화
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
@@ -9457,6 +9785,26 @@ function loop() {
 
   tickStamina(now, physDt);
   _tickTrainingBots(now, dt);
+
+  // ── 다즈빈: 포탈 이용 ──
+  if (gameOn && L.charDef?.id==='dazbin' && L._dazPortals?.length && !L.burrowing) {
+    const _pnow=performance.now();
+    L._dazPortals=L._dazPortals.filter(p=>_pnow<p.expiry);
+    for (const _por of L._dazPortals) {
+      if (_pnow-_por._lastUsed<2000) continue;
+      if (Math.hypot(L.x-_por.ax, L.y-_por.ay)<BALANCE.dazbin.counter.portalRadius+L.radius) {
+        L.x=_por.bx; L.y=_por.by; _por._lastUsed=_pnow;
+        addFx({type:'dazPortalUse', x:_por.bx, y:_por.by, r:0, maxR:45, dur:10, maxDur:10});
+        send({type:'fx', fx:{type:'dazPortalUse', x:_por.bx, y:_por.by, r:0, maxR:45, dur:10, maxDur:10}});
+        break;
+      } else if (Math.hypot(L.x-_por.bx, L.y-_por.by)<BALANCE.dazbin.counter.portalRadius+L.radius) {
+        L.x=_por.ax; L.y=_por.ay; _por._lastUsed=_pnow;
+        addFx({type:'dazPortalUse', x:_por.ax, y:_por.ay, r:0, maxR:45, dur:10, maxDur:10});
+        send({type:'fx', fx:{type:'dazPortalUse', x:_por.ax, y:_por.ay, r:0, maxR:45, dur:10, maxDur:10}});
+        break;
+      }
+    }
+  }
   tickRegen(now);
 
   // 리안 백업 만료 정리
