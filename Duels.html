@@ -2347,6 +2347,8 @@ function backToLobby() {
 function onData(d) {
   switch (d.type) {
     case 'state':
+      // 상대 클럭 오프셋 추정 (네트워크 지연 무시, 단순 차이)
+      if (d.sendTime) R._clockOffset = performance.now() - d.sendTime;
       R.tx=d.x; R.ty=d.y; R.health=d.health; R.stamina=d.stamina;
       if (d.maxHealth) R.maxHealth = d.maxHealth;
       R.dodging=d.dodging; R.counterReady=d.counterReady??false;
@@ -2376,6 +2378,20 @@ function onData(d) {
       R.nsonyaStacks=d.nsonyaStacks??0;
       R.reikaBlessed=d.reikaBlessed??false;
       R.fortressActive=d.fortressActive??false;
+      // 펠루나 회전 망치 위치 동기화
+      R._pelunaHammers = d.pelunaHammers ?? null;
+      // 펠루나 모루/강화지대 동기화
+      if (d.pelunaAnvil) {
+        const _offset = R._clockOffset ?? 0;
+        const _newExpiry = d.pelunaAnvil.createdAt + _offset + d.pelunaAnvil.duration;
+        if (!R._pelunaAnvil || R._pelunaAnvil.x !== d.pelunaAnvil.x || R._pelunaAnvil.y !== d.pelunaAnvil.y) {
+          R._pelunaAnvil = { x:d.pelunaAnvil.x, y:d.pelunaAnvil.y,
+                             radius:d.pelunaAnvil.radius,
+                             expiry: _newExpiry };
+        }
+      } else {
+        R._pelunaAnvil = null;
+      }
       R._slowEnd = d.slowRemaining > 0
         ? Math.max(R._slowEnd||0, performance.now() + d.slowRemaining)
         : (R._slowEnd||0); // slowRemaining=0이어도 기존값 유지
@@ -8962,12 +8978,6 @@ function draw() {
         const tx2=bullet.x-bullet.dx*18, ty2=bullet.y-bullet.dy*18;
         ctx.beginPath(); ctx.moveTo(bullet.x,bullet.y); ctx.lineTo(tx2,ty2);
         ctx.strokeStyle=`rgba(0,220,200,${a*0.7})`; ctx.lineWidth=3; ctx.stroke();
-      } else if (bullet.isPelunaHammer) {
-        // 펠루나 망치 — 회색 원 + 펄스 외곽
-        const _hpulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.02);
-        ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(120,120,130,${a*0.28})`; ctx.fill();
-        ctx.strokeStyle = `rgba(180,180,190,${a*(0.4+0.6*_hpulse)})`; ctx.lineWidth = 2 + _hpulse*2; ctx.stroke();
       } else if (bullet.isPelunaAnvil) {
         // 모루 — 회색 사각형 + 회전
         ctx.save();
@@ -9112,6 +9122,51 @@ function draw() {
       ctx.strokeStyle='rgba(180,180,190,0.9)'; ctx.lineWidth=1.5;
       ctx.strokeRect(_a.x-12, _a.y-10, 24, 20);
       ctx.globalAlpha = 1;
+    }
+  }
+
+  // 펠루나 회전 망치 렌더링 (로컬) — 시간 기반 독립 계산
+  if (gameOn && L.charDef?.id === 'peluna' && L._pelunaSpinStart) {
+    const _now = performance.now();
+    const _spinSpeed = 0.004; // rad/ms (loop과 동일)
+    const _curAng = (_now - L._pelunaSpinStart) * _spinSpeed;
+    const _PB = BALANCE.peluna.lmb;
+    const _hpulse = 0.5 + 0.5 * Math.sin(_now * 0.02);
+    for (let _hi=0; _hi<2; _hi++) {
+      const _ang = _curAng + _hi * Math.PI;
+      const _rx = L.x + Math.cos(_ang) * _PB.spinRange;
+      const _ry = L.y + Math.sin(_ang) * _PB.spinRange;
+      ctx.beginPath(); ctx.arc(_rx, _ry, 22, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(120,120,130,0.28)`; ctx.fill();
+      ctx.strokeStyle = `rgba(180,180,190,${0.4+0.6*_hpulse})`; ctx.lineWidth = 2 + _hpulse*2; ctx.stroke();
+    }
+  }
+
+  // 상대 펠루나 강화지대 렌더링 (L과 동일한 색/투명도)
+  if (R._pelunaAnvil) {
+    const _ra = R._pelunaAnvil;
+    const _tleft = Math.max(0, _ra.expiry - performance.now()) / 8000;
+    if (_tleft > 0) {
+      ctx.globalAlpha = Math.min(1, _tleft);
+      ctx.beginPath(); ctx.arc(_ra.x, _ra.y, _ra.radius, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,180,80,0.08)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(255,180,80,0.7)'; ctx.lineWidth = 2.5;
+      ctx.setLineDash([10,6]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='rgba(60,60,70,0.9)';
+      ctx.fillRect(_ra.x-12, _ra.y-10, 24, 20);
+      ctx.strokeStyle='rgba(180,180,190,0.9)'; ctx.lineWidth=1.5;
+      ctx.strokeRect(_ra.x-12, _ra.y-10, 24, 20);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // 상대 펠루나 회전 망치 렌더링
+  if (R._pelunaHammers && R._pelunaHammers.length > 0) {
+    const _hpulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.02);
+    for (const _rh of R._pelunaHammers) {
+      ctx.beginPath(); ctx.arc(_rh.x, _rh.y, _rh.radius, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(120,120,130,0.28)`; ctx.fill();
+      ctx.strokeStyle = `rgba(180,180,190,${0.4+0.6*_hpulse})`; ctx.lineWidth = 2 + _hpulse*2; ctx.stroke();
     }
   }
 
@@ -10404,7 +10459,8 @@ function resetL() {
   L._prillZoneToken=0;
   L._dazPortals=[]; // 다즈빈 포탈 초기화
   L._yuiHistory=[]; L._yuiLastSample=0; // 유이 히스토리 초기화
-  L._pelunaAnvils=[]; L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0; L._pelunaSpinLastTick=0; L._pelunaSpinAngle=0;
+  L._pelunaAnvils=[]; L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0; L._pelunaSpinStart=null; L._spinHitCooldown=new Map();
+  R._pelunaAnvil=null; R._pelunaHammers=null;
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
@@ -10438,7 +10494,7 @@ function startGame() {
   if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
   _stateInterval = setInterval(() => {
     if (!gameOn) return;
-    send({type:'state', x:L.x, y:L.y, health:L.health, maxHealth:L.maxHealth, stamina:L.stamina,
+    send({type:'state', sendTime: performance.now(), x:L.x, y:L.y, health:L.health, maxHealth:L.maxHealth, stamina:L.stamina,
           dodging:L.dodging, counterReady:L.counterReady,
           toolbox: (L.charDef?.id==='miaruky' && L.orb && !L.orb.returning)
                    ? {x:L.orb.x, y:L.orb.y} : null,
@@ -10466,6 +10522,18 @@ function startGame() {
                 cos:L._prillZonePos.cos, sin:L._prillZonePos.sin,
                 active:L._prillZoneActive, boosted:L._prillZoneBoosted,
                 hitsLeft:L._prillZoneHitsLeft }
+            : null,
+          pelunaHammers: (L.charDef?.id==='peluna' && L._pelunaSpinStart)
+            ? [0,1].map(_i => {
+                const _a = (performance.now()-L._pelunaSpinStart)*0.004 + _i*Math.PI;
+                return {x: L.x+Math.cos(_a)*BALANCE.peluna.lmb.spinRange, y: L.y+Math.sin(_a)*BALANCE.peluna.lmb.spinRange, radius:22};
+              })
+            : null,
+          pelunaAnvil: (L.charDef?.id==='peluna' && L._pelunaAnvils?.length)
+            ? { x:L._pelunaAnvils[0].x, y:L._pelunaAnvils[0].y,
+                radius:L._pelunaAnvils[0].radius,
+                duration: 8000,
+                createdAt: L._pelunaAnvils[0].expiry - 8000 }
             : null,
           // 소환수 상태 동기화
           minions: localMinions.map(m => ({
@@ -10535,41 +10603,35 @@ function loop() {
   // 적 타겟 목록 갱신 (플레이어 + 소환수)
   refreshEnemyTargets();
 
-  // 펠루나 자동 회전 공격 — 2개의 망치 탄환 (180도 대칭)
+  // 펠루나 자동 회전 공격 — 완전 시간 기반, 상태 최소화
   if (gameOn && L.charDef?.id === 'peluna') {
     const PB = BALANCE.peluna.lmb;
     const _pnow = performance.now();
-    if (_pnow - (L.lastAttackTime||0) >= PB.idleTrigger) {
-      if (!L._pelunaSpinAngle) L._pelunaSpinAngle = 0;
-      L._pelunaSpinAngle += 0.12;
-      const _angles = [L._pelunaSpinAngle, L._pelunaSpinAngle + Math.PI];
-      let _hammers = localBullets.filter(b => b.isPelunaHammer);
-      while (_hammers.length < 2) {
-        const _new = {
-          id:uid(), x:L.x, y:L.y,
-          radius: 22, speed: 0, dx: 0, dy: 0,
-          damage: PB.spinDamage, maxRange: 999999, traveled: 0,
-          isPelunaHammer: true, pierceWalls: true, pierceEnemies: true,
-          _hitCooldown: new Map(),
-        };
-        localBullets.push(_new);
-        _hammers.push(_new);
+    const _idle = _pnow - (L.lastAttackTime||0) >= PB.idleTrigger;
+    if (_idle) {
+      if (!L._pelunaSpinStart) L._pelunaSpinStart = _pnow;
+      if (!L._spinHitCooldown) L._spinHitCooldown = new Map();
+      // 이전 버전 localBullets 잔재 제거
+      for (let _ci=localBullets.length-1; _ci>=0; _ci--) {
+        if (localBullets[_ci].isPelunaHammer) localBullets.splice(_ci,1);
       }
+      // 현재 시각 기준 각도
+      const _spinSpeed = 0.004; // rad/ms
+      const _curAng = (_pnow - L._pelunaSpinStart) * _spinSpeed;
+      const _shcd = L._spinHitCooldown;
+      // 피해 판정 2번 (망치 2개)
       for (let _hi=0; _hi<2; _hi++) {
-        const _h = _hammers[_hi];
-        const _ang = _angles[_hi];
+        const _ang = _curAng + _hi * Math.PI;
         const _hx = L.x + Math.cos(_ang) * PB.spinRange;
         const _hy = L.y + Math.sin(_ang) * PB.spinRange;
-        _h.x = _hx; _h.y = _hy;
-        _h.dx = -Math.sin(_ang); _h.dy = Math.cos(_ang);
-        const _hitR = _h.radius;
+        const _hitR = 22;
         if (_trainingMode) {
           for (const _sb of _trainingBots) {
             if (_sb.hidden||!_sb.isAlive) continue;
             if (Math.hypot(_sb.x-_hx, _sb.y-_hy) < _hitR+_sb.radius) {
-              const _cd = _h._hitCooldown.get(_sb.id) || 0;
+              const _cd = _shcd.get(_sb.id+'_'+_hi) || 0;
               if (_pnow >= _cd) {
-                _h._hitCooldown.set(_sb.id, _pnow + 300);
+                _shcd.set(_sb.id+'_'+_hi, _pnow + 300);
                 _applyBotDamage(_sb, applyDmgAugs(PB.spinDamage));
                 addShake(3, 8); playHitSfx();
               }
@@ -10577,27 +10639,27 @@ function loop() {
           }
         } else {
           if (Math.hypot(R.x-_hx, R.y-_hy) < _hitR+R.radius) {
-            const _cd = _h._hitCooldown.get('R') || 0;
+            const _cd = _shcd.get('R_'+_hi) || 0;
             if (_pnow >= _cd) {
-              _h._hitCooldown.set('R', _pnow + 300);
+              _shcd.set('R_'+_hi, _pnow + 300);
               hitRemote(PB.spinDamage);
               addShake(3, 8);
             }
           }
           for (const pm of peerMinions) {
             if (Math.hypot(pm.x-_hx, pm.y-_hy) < _hitR+pm.radius) {
-              const _cd = _h._hitCooldown.get('pm_'+pm.id) || 0;
+              const _cd = _shcd.get('pm_'+pm.id+'_'+_hi) || 0;
               if (_pnow >= _cd) {
-                _h._hitCooldown.set('pm_'+pm.id, _pnow + 300);
+                _shcd.set('pm_'+pm.id+'_'+_hi, _pnow + 300);
                 send({type:'minionHit', id:pm.id, damage:PB.spinDamage});
               }
             }
           }
         }
       }
-      addFx({type:'pelunaSpinOrbit', x:L.x, y:L.y, r:PB.spinRange, angle:L._pelunaSpinAngle, dur:2, maxDur:2});
     } else {
-      L._pelunaSpinAngle = 0;
+      L._pelunaSpinStart = null;
+      if (L._spinHitCooldown) L._spinHitCooldown.clear();
       for (let _i=localBullets.length-1; _i>=0; _i--) {
         if (localBullets[_i].isPelunaHammer) localBullets.splice(_i, 1);
       }
