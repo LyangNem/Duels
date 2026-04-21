@@ -2724,6 +2724,14 @@ function startTraining() {
     window._gameTimer = setTimeout(scheduleLoop, 0);
   }
   window._audioCtx.resume().then(() => scheduleLoop());
+  // draw rAF 루프 (중복 방지)
+  if (!window._rafRunning) {
+    window._rafRunning = true;
+    (function rafLoop() {
+      if (gameOn) draw();
+      requestAnimationFrame(rafLoop);
+    })();
+  }
 }
 
 function _initTrainingBots() {
@@ -10548,11 +10556,14 @@ function startGame() {
     window._gameTimer=setTimeout(scheduleLoop, 0);
   }
   window._audioCtx.resume().then(() => scheduleLoop());
-  // draw는 rAF로 분리 — 모니터 주사율과 동기화
-  (function rafLoop() {
-    if (gameOn) draw();
-    requestAnimationFrame(rafLoop);
-  })();
+  // draw rAF 루프 (중복 방지)
+  if (!window._rafRunning) {
+    window._rafRunning = true;
+    (function rafLoop() {
+      if (gameOn) draw();
+      requestAnimationFrame(rafLoop);
+    })();
+  }
 }
 
 // ============================================================
