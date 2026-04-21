@@ -209,7 +209,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.9.5</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.9.6</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -2998,16 +2998,19 @@ function tickRegen(now) {
       L.health = Math.min(L.maxHealth, L.health + 2 * healCount);
     }
   }
-  // 비상식량: 라운드당 1회, HP 50% 이하 시 최대체력까지 매초 10 회복
+  // 비상식량: 라운드당 최대 5회(중첩당 +5), HP 50% 이하 시 발동, 5틱 회복 후 종료
   if ((L._rationUsesLeft ?? 0) > 0 && !L._rationHealing && L.health < L.maxHealth * 0.5) {
     L._rationUsesLeft--;
     L._rationHealing = true;
+    L._rationTicksLeft = 5; // 5틱 고정
   }
   if (L._rationHealing) {
-    if (L.health >= L.maxHealth) {
+    if (L._rationTicksLeft <= 0 || L.health >= L.maxHealth) {
       L._rationHealing = false;
+      L._rationTicksLeft = 0;
     } else if (now - (L._rationTick||0) >= 1000) {
       L._rationTick = now;
+      L._rationTicksLeft--;
       L.health = Math.min(L.maxHealth, L.health + 10);
     }
   }
@@ -10442,7 +10445,7 @@ function resetL() {
   L._stunShotReady = getAugCount('stun_shot') > 0;
   L._fortressStillSince = null; L._fortressActive = false;
   L._counterDefExpiry = 0;
-  L._rationUsed = false; L._rationHealing = false; L._rationTick = 0;
+  L._rationUsed = false; L._rationHealing = false; L._rationTick = 0; L._rationTicksLeft = 0;
   L._rationUsesLeft = getAugCount('ration') * 5; // 중첩당 5회
   L._healingTick = 0;
   L._prillCombo=0; L._prillLastHit=0; L._prillBoostExpiry=0; L._lmbAttacking=false;
