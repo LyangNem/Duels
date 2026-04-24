@@ -1774,6 +1774,25 @@ const CHARACTERS = {
     ],
   },
 
+  hatsuhats: {
+    id:        'hatsuhats',
+    name:      '하츠하츠',
+    color:     '#aaff00',
+    maxHealth: BALANCE.hatsuhats.hp,
+    speed:     BALANCE.hatsuhats.speed,
+    radius:    BALANCE.hatsuhats.radius,
+    statsText: [['체력',String(BALANCE.hatsuhats.hp)],['이동속도','보통'],['스타일','드로잉형 중거리 암살자']],
+    desc:      '붓으로 공격 범위를 자유롭게 조절하는 캐릭터',
+    skills: [
+      { key:'LMB', name:'드로잉', cost:BALANCE.hatsuhats.lmb.cost,
+        desc:`드래그로 사거리와 피해량을 조절. 공격범위가 작을수록 피해량 상승. (${BALANCE.hatsuhats.lmb.minDamage}~${BALANCE.hatsuhats.lmb.maxDamage})` },
+      { key:'RMB', name:'캔버스 위 세상', cost:BALANCE.hatsuhats.rmb.cost,
+        desc:`드래그 경로대로 돌진. 돌진 중 받는 피해 50% 감소` },
+      { key:'L-Shift', name:'마음대로', cost:0,
+        desc:`주변 원형 공격. (${BALANCE.hatsuhats.counter.damage})` },
+    ],
+  },
+
   prill: {
     id:        'prill',
     name:      '프릴',
@@ -1857,7 +1876,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.sherina.hp,
     speed:     BALANCE.sherina.speed,
     radius:    BALANCE.sherina.radius,
-    statsText: [['체력',String(BALANCE.sherina.hp)],['이동속도','느림'],['스타일','잔향 트랩형 원거리']],
+    statsText: [['체력',String(BALANCE.sherina.hp)],['이동속도','느림'],['스타일','범위 장악형 원거리 저격수']],
     desc:      '에코의 잔향을 이용해 공간을 장악하는 음파 사수',
     skills: [
       { key:'LMB', name:'소리의 활', cost:BALANCE.sherina.lmb.cost,
@@ -1866,25 +1885,6 @@ const CHARACTERS = {
         desc:`최근 에코 경로 ${BALANCE.sherina.rmb.maxPaths}개에 파장을 보내 확장 공격` },
       { key:'L-Shift', name:'백스텝', cost:0,
         desc:`부채꼴로 에코를 발사하며 뒤로 이동 (${BALANCE.sherina.counter.damage})` },
-    ],
-  },
-
-  hatsuhats: {
-    id:        'hatsuhats',
-    name:      '하츠하츠',
-    color:     '#aaff00',
-    maxHealth: BALANCE.hatsuhats.hp,
-    speed:     BALANCE.hatsuhats.speed,
-    radius:    BALANCE.hatsuhats.radius,
-    statsText: [['체력',String(BALANCE.hatsuhats.hp)],['이동속도','보통'],['스타일','드로잉형 중거리 암살자']],
-    desc:      '붓으로 공격 범위를 자유롭게 조절하는 캐릭터',
-    skills: [
-      { key:'LMB', name:'드로잉', cost:BALANCE.hatsuhats.lmb.cost,
-        desc:`드래그로 사거리와 피해량을 조절. 공격범위가 작을수록 피해량 상승. (${BALANCE.hatsuhats.lmb.minDamage}~${BALANCE.hatsuhats.lmb.maxDamage})` },
-      { key:'RMB', name:'캔버스 위 세상', cost:BALANCE.hatsuhats.rmb.cost,
-        desc:`드래그 경로대로 돌진. 돌진 중 받는 피해 50% 감소` },
-      { key:'L-Shift', name:'마음대로', cost:0,
-        desc:`주변 원형 공격. (${BALANCE.hatsuhats.counter.damage})` },
     ],
   },
 };
