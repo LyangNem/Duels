@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.11.4</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.11.5</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -255,11 +255,11 @@ input[type=text]:focus{border-color:#4af;}
 <div id="scr-select" class="screen hidden">
   <h2>캐릭터 선택</h2>
   <div class="char-grid" id="char-grid"></div>
-  <div id="confirm-wrap" class="pad-10-0">
-    <div id="confirm-pvp-wrap">
+  <div id="confirm-wrap" class="pad-10-0" style="text-align:center;">
+    <div id="confirm-pvp-wrap" style="display:flex;justify-content:center;align-items:center;">
       <button class="btn" id="random-btn" onclick="selectRandomChar()" style="margin-right:8px;">🎲 랜덤</button><button class="btn big" id="confirm-btn" onclick="confirmSelect()">선택 완료</button>
     </div>
-    <div id="confirm-training-wrap" style="display:none;">
+    <div id="confirm-training-wrap" style="display:none;justify-content:center;align-items:center;">
       <button class="btn big" id="training-confirm-btn" onclick="confirmTraining()">훈련장 입장</button>
       <button class="btn" onclick="backToLobby()" style="margin-left:8px;">뒤로</button>
     </div>
@@ -12042,7 +12042,7 @@ function loop() {
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '✕';
     closeBtn.style.cssText = 'background:none;border:1px solid #555;color:#888;cursor:pointer;padding:2px 8px;font-family:Courier New,monospace;border-radius:3px;';
-    closeBtn.onclick = () => { panel.remove(); };
+    closeBtn.onclick = () => { panel.remove(); window._devPanelWasOpen = false; };
     hdr.appendChild(closeBtn);
     panel.appendChild(hdr);
 
