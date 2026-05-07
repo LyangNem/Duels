@@ -2110,7 +2110,7 @@ const AUGMENTS = [
   { id:'big_weapon',  name:'더 큰 무기',   emoji:'⚔️', rarity:'rare',   desc:'근접 무기 공격범위 +20%' },
   { id:'healing',     name:'힐링',         emoji:'💚', rarity:'common', desc:'매 초마다 체력 2 회복' },
   { id:'light_step',  name:'가벼운 걸음',  emoji:'🌬', rarity:'common', desc:'회피 거리 +40%' },
-  { id:'ration',      name:'비상식량',     emoji:'🍖', rarity:'hero',   desc:'HP 50% 이하 시 최대체력의 10%씩 회복' },
+  { id:'ration',      name:'비상식량',     emoji:'🍖', rarity:'hero',   desc:'HP 50% 이하 시 최대체력의 10%씩 7회 회복' },
   { id:'swift_regen', name:'배속',         emoji:'🔋', rarity:'common', desc:'스테미나 회복 속도 +20%' },
   { id:'heal_dodge',  name:'치유회피',     emoji:'🍀', rarity:'common',   desc:'저스트 회피 시 체력 20% 회복' },
   { id:'thorn_armor', name:'가시갑옷',     emoji:'🌵', rarity:'common',   desc:'적이 가까이 오면 피해를 줍니다' },
@@ -3189,6 +3189,11 @@ function receiveHit(dmg) {
   if (L.invincible > 0) {
     if (L.dodging && !L._counterPending) {
       L._counterPending = true;
+      // 치유회피: 저스트닷지 경로
+      if (getAugCount('heal_dodge') > 0) {
+        L.health = Math.min(L.maxHealth, L.health + L.maxHealth * 0.20 * getAugCount('heal_dodge'));
+        addFx({type:'healPulse', x:L.x, y:L.y, r:0, maxR:30, dur:14, maxDur:14});
+      }
       addFx({type:'justdodge', x:L.x, y:L.y, r:0, maxR:65, dur:22, maxDur:22});
       send({type:'fx', fx:{type:'justdodge', x:L.x, y:L.y, r:0, maxR:65, dur:22, maxDur:22}});
     }
@@ -4284,7 +4289,8 @@ function processJustCheck(dt=1) {
       L._counterPending = true;
       // 치유회피: 저스트 회피 성공 시 체력 20% 회복
       if (getAugCount('heal_dodge') > 0) {
-        L.health = Math.min(L.maxHealth, L.health + L.maxHealth * 0.20);
+        L.health = Math.min(L.maxHealth, L.health + L.maxHealth * 0.20 * getAugCount('heal_dodge'));
+        addFx({type:'healPulse', x:jp.x, y:jp.y, r:0, maxR:30, dur:14, maxDur:14});
       }
       addFx({type:'justdodge', x:jp.x, y:jp.y, r:0, maxR:65, dur:22, maxDur:22});
       send({type:'justDodge', x:jp.x, y:jp.y, cancelId:b.id});
@@ -7118,11 +7124,11 @@ function fireShotgun(angle, {pellets, spread, speed, radius, damage, maxRange, k
 // 거대 총알 증강: 일반 투사체 생성 시 반경 보정
 function augBulletRadius(r) { return r * (1 + 0.45 * getAugCount('big_bullet')); }
 function applyPierceShot(b) {
-  // 관통샷 적용: 탄환 발사 시 pierceWalls 설정
+  // 관통샷: 같은 발사 이벤트의 모든 탄환에 적용
+  // _pierceShotReady는 이번 프레임 발사 종료 후 loop에서 false로 변경
   if (getAugCount('pierce_shot') > 0 && L._pierceShotReady && !b.isTauSickle && !b.isPelunaHammer && !b.isPelunaAnvil) {
     b.pierceWalls = true; b._isPierceShot = true;
-    L._pierceShotReady = false;
-    L._pierceShotCd = performance.now() + 3000;
+    L._pierceShotUsed = true; // 이번 발사에 사용됨 표시 (ready는 다음 프레임에 false)
   }
 }
 // 스피드샷 증강: 탄속 보정
@@ -7939,6 +7945,11 @@ function draw() {
     } else if (f.type==='devModeAlert') {
       // 상대가 개발자 모드 진입 - 1회만 alert
       if (!window._devAlertShown) { window._devAlertShown=true; setTimeout(()=>{window._devAlertShown=false;},5000); alert('상대방이 개발자 모드에 진입했습니다.'); }
+    } else if (f.type==='healPulse') {
+      // 치유회피 — 초록 링
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, f.r), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(80,255,120,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+      ctx.fillStyle=`rgba(80,255,120,${a*0.15})`; ctx.fill();
     } else if (f.type==='counterDefBlock') {
       // 공격방어 피해감소 — 청록 방패 링
       const rr = f.maxR * (1 - f.dur/f.maxDur);
@@ -8905,22 +8916,26 @@ function draw() {
       // 셰리나 잔향 (상대 화면에도 표시)
       if (!f.angle) return;
       const _t2 = 1 - f.dur/f.maxDur;
-      const GROW=0.35, HOLD=0.30, FADE_START=0.65;
-      let _curLen2;
-      if (_t2 < GROW) _curLen2 = f.fullLen * (_t2/GROW);
-      else if (_t2 < GROW+HOLD) _curLen2 = f.fullLen;
-      else { const _sh2=(_t2-GROW-HOLD)/(1-GROW-HOLD); _curLen2=f.fullLen*(1-_sh2); }
+      // 즉시 전체 표시, 후반 끝점부터 사라짐
+      const FADE_START_FX = 0.75;
+      let _curLen2, _offset2;
+      if (_t2 < FADE_START_FX) {
+        _curLen2 = f.fullLen; _offset2 = 0;
+      } else {
+        const _sh2 = (_t2 - FADE_START_FX) / (1 - FADE_START_FX);
+        _curLen2 = f.fullLen * (1 - _sh2); _offset2 = f.fullLen * _sh2;
+      }
       _curLen2 = Math.max(4, _curLen2);
-      const _ea2 = _t2 > FADE_START ? (1-(_t2-FADE_START)/(1-FADE_START))*0.75 : 0.75;
+      const _ea2 = (_t2 > FADE_START_FX ? (1 - (_t2 - FADE_START_FX) / (1 - FADE_START_FX)) : 1) * 0.75;
       const _hw2 = f.halfW ?? 12;
       ctx.save();
       ctx.globalAlpha = _ea2;
       const _fsx = f.sx ?? f.cx, _fsy = f.sy ?? f.cy;
       ctx.translate(_fsx, _fsy);
       ctx.rotate(f.angle);
-      ctx.fillStyle='rgba(120,0,200,0.2)'; ctx.fillRect(0,-_hw2,_curLen2,_hw2*2);
+      ctx.fillStyle='rgba(120,0,200,0.2)'; ctx.fillRect(_offset2,-_hw2,_curLen2,_hw2*2);
       ctx.strokeStyle='rgba(180,80,255,0.9)'; ctx.lineWidth=1.5;
-      ctx.strokeRect(0,-_hw2,_curLen2,_hw2*2);
+      ctx.strokeRect(_offset2,-_hw2,_curLen2,_hw2*2);
       ctx.restore();
 
     } else if (f.type==='sherinaDoubling') {
@@ -9556,33 +9571,18 @@ function draw() {
       if (!_ez.createdAt) continue;
       const _elapsed = _now4 - _ez.createdAt;
       const _t = Math.min(1, _elapsed / _ez.totalDur);
-      const GROW=0.35, HOLD=0.30, FADE_START=0.65;
-      const _isRmb = !!_ez.isRmb;
-      // 우클릭: 바로 풀길이 페이드인, 일반: 자라남
+      // 즉시 전체 표시, 후반 끝점부터 사라짐
+      const FADE_START = 0.75;
       let _curLen, _offset;
-      if (_isRmb) {
-        // 바로 풀길이, 후반 사라짐
-        _curLen = _ez.fullLen;
-        _offset = 0;
-      } else if (_t < GROW) {
-        // 자라남: 시작점에서 끝점으로
-        _curLen = _ez.fullLen * (_t / GROW);
-        _offset = 0;
-      } else if (_t < GROW + HOLD) {
-        // 유지
-        _curLen = _ez.fullLen;
-        _offset = 0;
+      if (_t < FADE_START) {
+        _curLen = _ez.fullLen; _offset = 0;
       } else {
-        // 사라짐: 끝점부터 줄어듦 (시작점 쪽 남음)
-        const _shrink = (_t - GROW - HOLD) / (1 - GROW - HOLD);
+        const _shrink = (_t - FADE_START) / (1 - FADE_START);
         _curLen = _ez.fullLen * (1 - _shrink);
-        _offset = _ez.fullLen * _shrink; // 시작 offset 이동
+        _offset = _ez.fullLen * _shrink;
       }
       _curLen = Math.max(4, _curLen);
-      // alpha
-      const _ea = _isRmb
-        ? (_t < 0.1 ? _t/0.1 : _t > FADE_START ? (1-(_t-FADE_START)/(1-FADE_START)) : 1) * 0.75
-        : (_t > FADE_START ? (1-(_t-FADE_START)/(1-FADE_START)) : 1) * 0.75;
+      const _ea = (_t > FADE_START ? (1 - (_t - FADE_START) / (1 - FADE_START)) : 1) * 0.75;
       const _startX = _ez.sx ?? _ez.cx, _startY = _ez.sy ?? _ez.cy;
       ctx.save();
       ctx.globalAlpha = _ea;
@@ -10205,8 +10205,8 @@ function drawPlayer(p, label) {
     // ── 피해량 증가 버프 (보라색) — 조건 충족 시만 표시 ──
     const peerAugCount = id => matchState.peerAugments.filter(x => x === id).length;
     const dmgIncActive =
-      (isLocal && getAugCount('last_dance') > 0 && L.health < L.maxHealth * 0.3) ||
-      (!isLocal && peerAugCount('last_dance') > 0 && R.health < R.maxHealth * 0.3);
+      (isLocal && getAugCount('last_dance') > 0 && L.health < L.maxHealth * 0.2) ||
+      (!isLocal && peerAugCount('last_dance') > 0 && R.health < R.maxHealth * 0.2);
     if (dmgIncActive) {
       ctx.beginPath(); ctx.arc(p.x, p.y, augR, 0, Math.PI*2);
       ctx.strokeStyle=`rgba(160,80,255,${0.7+0.3*pulse})`;
@@ -10945,7 +10945,7 @@ function resetL() {
   L._prillZoneToken=0;
   L._dazPortals=[]; // 다즈빈 포탈 초기화
   L._yuiHistory=[]; L._yuiLastSample=0; // 유이 히스토리 초기화
-  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0
+  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0
   R._pelunaAnvil=null;
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
@@ -11594,14 +11594,13 @@ function loop() {
     if (!L._sherinaGlobalHitCd) L._sherinaGlobalHitCd = new Map();
     const _getEchoBounds = (_z) => {
       if (!_z.createdAt) return { offset: 0, len: _z.fullLen ?? _z.len ?? 1 };
+      // 즉시 전체, 후반 사라짐
       const _el = Math.min(1, (performance.now()-_z.createdAt)/_z.totalDur);
-      const GROW=0.35, HOLD=0.30;
       const _full = _z.fullLen ?? 1;
-      if (_z.isRmb) return { offset: 0, len: _full };
-      if (_el < GROW) return { offset: 0, len: _full * (_el/GROW) };
-      if (_el < GROW+HOLD) return { offset: 0, len: _full };
-      const _sh = (_el-GROW-HOLD)/(1-GROW-HOLD);
-      return { offset: _full*_sh, len: _full*(1-_sh) };
+      const _FS = 0.75;
+      if (_el < _FS) return { offset: 0, len: _full };
+      const _sh = (_el - _FS) / (1 - _FS);
+      return { offset: _full * _sh, len: _full * (1 - _sh) };
     };
     const _inRect = (_z, tx, ty, tr) => {
       const _cos = Math.cos(_z.angle), _sin = Math.sin(_z.angle);
@@ -11962,6 +11961,12 @@ function loop() {
 
   // 관통샷: 3초마다 _pierceShotReady
   if (gameOn && getAugCount('pierce_shot') > 0) {
+    if (L._pierceShotUsed) {
+      // 이번 프레임 발사 완료 → 쿨다운 시작
+      L._pierceShotReady = false;
+      L._pierceShotCd = now + 3000;
+      L._pierceShotUsed = false;
+    }
     if (!L._pierceShotReady && (!L._pierceShotCd || now >= L._pierceShotCd)) {
       L._pierceShotReady = true;
     }
