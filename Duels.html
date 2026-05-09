@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.25.0</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.25.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1934,9 +1934,9 @@ const CHARACTERS = {
     desc:      '은신으로 기습하고 빙결로 제압하는 캐릭터',
     skills: [
       { key:'LMB',     name:'대낫베기',  cost:BALANCE.sya.lmb.cost,
-        desc:`부채꼴 횡베기. 공격속도 느림 (${BALANCE.sya.lmb.damage})` },
+        desc:`대낫으로 부채꼴 횡베기. (${BALANCE.sya.lmb.damage})` },
       { key:'RMB',     name:'은신',      cost:0,
-        desc:`최대 ${BALANCE.sya.rmb.maxDur/1000}초 은신+이속 +40%. 적 접근 시 해제 및 ${BALANCE.sya.rmb.freezeDur/1000}초 빙결, 다음 3회 공속 대폭 상승` },
+        desc:`최대 ${BALANCE.sya.rmb.maxDur/1000}초 은신+이속 +40%. 적 접근 시 해제 및 ${BALANCE.sya.rmb.freezeDur/1000}초 빙결, 다음 3회 공격속도 대폭 상승` },
       { key:'L-Shift', name:'원형 베기', cost:0,
         desc:`주변 원형 베기. 적중 시 ${BALANCE.sya.counter.freezeDur/1000}초 빙결 (${BALANCE.sya.counter.damage})` },
     ],
