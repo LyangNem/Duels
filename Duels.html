@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.25.3</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.25.4</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1407,14 +1407,14 @@ const BALANCE = {
     radius: 20,
     lmb: {
       cost:       30,
-      damage:     20,      // 에코 직격 피해
+      damage:     25,      // 에코 직격 피해
       radius:     10,
       speed:      20,
       range:      600,
       cd:         350,
-      echoDur:    1500,    // 잔향 지속 ms
+      echoDur:    2500,    // 잔향 지속 ms (+1초)
       echoRadius: 18,      // 잔향 판정 반경
-      echoDamage: 10,      // 잔향 통과 피해
+      echoDamage: 15,      // 잔향 통과 피해
       echoTickInterval: 500, // 잔향 피해 간격 ms (0.5초)
     },
     rmb: {
@@ -1447,8 +1447,8 @@ const BALANCE = {
       cd:          600,
     },
     rmb: {
-      activationCost: 35,  // 발동 즉시 소모
-      staminaDrain: 10,
+      activationCost: 40,  // 발동 즉시 소모
+      staminaDrain: 15,
       maxDur:      5000,
       speedBoost:  1.4,
       detectRange: 80,
@@ -1918,7 +1918,7 @@ const CHARACTERS = {
       { key:'LMB', name:'소리의 활', cost:BALANCE.sherina.lmb.cost,
         desc:`에코 발사. 경로에 ${BALANCE.sherina.lmb.echoDur/1000}초 잔향 남김 (${BALANCE.sherina.lmb.damage}/${BALANCE.sherina.lmb.echoDamage})` },
       { key:'RMB', name:'더블링', cost:BALANCE.sherina.rmb.cost,
-        desc:`최근 에코 경로 ${BALANCE.sherina.rmb.maxPaths}개에 파장을 보내 확장 공격` },
+        desc:`최근 에코 경로 ${BALANCE.sherina.rmb.maxPaths}개에 파장을 보내 확장 공격. 주변 적을 넉백시킴` },
       { key:'L-Shift', name:'백스텝', cost:0,
         desc:`부채꼴로 에코를 발사하며 뒤로 이동 (${BALANCE.sherina.counter.damage})` },
     ],
@@ -5114,7 +5114,7 @@ const SKILLS = {
       if (L.lmbCooldown>0||L.rmbCooldown>0) return;
       L.counterReady=false; L.lmbCooldown=B.cd; L.rmbCooldown=B.cd;
       L.color='#ffd700'; send({type:'colorChange',color:'#ffd700'});
-      addFx({type:'counterCharge',x:L.x,y:L.y,r:32,maxR:32,dur:18,maxDur:18});
+      addFx({type:'counterCharge',x:L.x,y:L.y,r:32,maxR:32,dur:18,maxDur:18,col:'255,119,0'});
       const fa=angle, tok=++L._counterToken;
       L._attackPreview = { shapes: [{ type: 'rect', len: B.length, width: B.width }] };
       setTimeout(()=>{
@@ -6703,6 +6703,7 @@ const SKILLS = {
         if (t>=1){
           clearInterval(_mvInt);
           L.burrowing=false;
+          L.color=L.defaultColor; send({type:'colorChange',color:L.defaultColor});
           hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage);
           if (Math.hypot(R.x-L.x,R.y-L.y)<(B.knockbackRange||B.aoeRange)+R.radius) knockbackRemote(B.knockbackPower);
           L.lastAttackTime=performance.now();
@@ -6967,6 +6968,8 @@ const SKILLS = {
       addFx({type:'sherinaDoubling', x:L.x, y:L.y, paths, dur:20, maxDur:20});
       send({type:'fx', fx:{type:'sherinaDoubling', x:L.x, y:L.y, dur:20, maxDur:20}});
       L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
+      // 넉백: FX 범위(반경 90px) 이내 적에게만
+      if (!_trainingMode && Math.hypot(R.x-L.x, R.y-L.y) < 150+R.radius) knockbackRemote(800);
     },
 
     counter(angle) {
@@ -7193,35 +7196,39 @@ const SKILLS = {
     counter(angle) {
       const B = BALANCE.sya.counter;
       if (!L.counterReady) return;
-      // 은신 중 반격기 사용 시 은신 해제
       if (L._syaInvisible) { L._syaHitRevealEnd = performance.now() + 600; send({type:'syaHitReveal', dur:600}); }
       L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = Math.min(L.rmbCooldown, B.cd);
-      // 원형 히트스캔
-      let _hit = false;
-      if (_trainingMode) {
-        for (const _cb of _trainingBots) {
-          if (_cb.hidden||!_cb.isAlive) continue;
-          if (Math.hypot(_cb.x-L.x, _cb.y-L.y) < B.range+_cb.radius) {
-            _applyBotDamage(_cb, applyDmgAugs(B.damage));
-            addShake(3,8); playHitSfx(); _hit = true;
+      L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:B.range*0.5, maxR:B.range*0.5, dur:BALANCE.counter.delay/FRAME_MS, maxDur:BALANCE.counter.delay/FRAME_MS});
+      L._attackPreview = { shapes: [{ type:'circle', r:B.range }] };
+      const _syaTok = ++L._counterToken;
+      setTimeout(() => {
+        L._attackPreview = null;
+        if (!gameOn || L._counterToken !== _syaTok) return;
+        L.color = L.defaultColor; send({type:'colorChange', color:L.defaultColor});
+        let _hit = false;
+        if (_trainingMode) {
+          for (const _cb of _trainingBots) {
+            if (_cb.hidden||!_cb.isAlive) continue;
+            if (Math.hypot(_cb.x-L.x, _cb.y-L.y) < B.range+_cb.radius) {
+              _applyBotDamage(_cb, applyDmgAugs(B.damage));
+              addShake(3,8); playHitSfx(); _hit = true;
+            }
           }
+        } else {
+          if (Math.hypot(R.x-L.x, R.y-L.y) < B.range+R.radius) {
+            hitRemote(B.damage); freezeRemote(B.freezeDur); _hit = true;
+          }
+          hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI}, B.damage);
         }
-      } else {
-        if (Math.hypot(R.x-L.x, R.y-L.y) < B.range+R.radius) {
-          hitRemote(B.damage);
-          freezeRemote(B.freezeDur);
-          _hit = true;
+        addFx({type:'syaSwing', x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI, dur:16, maxDur:16, col:'40,80,255'});
+        send({type:'fx', fx:{type:'syaSwing', x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI, dur:16, maxDur:16, col:'40,80,255'}});
+        if (_hit) {
+          addFx({type:'freeze', x:L.x, y:L.y, r:0, maxR:B.range*1.2, dur:12, maxDur:12});
+          send({type:'fx', fx:{type:'freeze', x:L.x, y:L.y, r:0, maxR:B.range*1.2, dur:12, maxDur:12}});
         }
-        hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI}, B.damage);
-      }
-      // 원형 회전 베기 FX
-      addFx({type:'syaSwing', x:L.x, y:L.y, angle:angle, range:B.range, halfAngle:Math.PI, dur:16, maxDur:16, col:'40,80,255'});
-      send({type:'fx', fx:{type:'syaSwing', x:L.x, y:L.y, angle:angle, range:B.range, halfAngle:Math.PI, dur:16, maxDur:16, col:'40,80,255'}});
-      if (_hit) {
-        addFx({type:'freeze', x:L.x, y:L.y, r:0, maxR:B.range*1.2, dur:12, maxDur:12});
-        send({type:'fx', fx:{type:'freeze', x:L.x, y:L.y, r:0, maxR:B.range*1.2, dur:12, maxDur:12}});
-      }
-      L.lastAttackTime = performance.now();
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
     },
   },
 };
@@ -8120,8 +8127,9 @@ function draw() {
       ctx.beginPath(); ctx.arc(f.x,f.y,f.radius||28,0,Math.PI*2);
       ctx.strokeStyle=`rgba(200,220,255,${a*.75})`; ctx.lineWidth=2.5; ctx.stroke();
     } else if (f.type==='counterCharge') {
+      const _ccCol = f.col || '255,200,0';
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,f.r),0,Math.PI*2);
-      ctx.strokeStyle=`rgba(255,200,0,${a*.8})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.strokeStyle=`rgba(${_ccCol},${a*.8})`; ctx.lineWidth=3; ctx.stroke();
       ctx.fillStyle=`rgba(255,200,0,${a*.15})`; ctx.fill();
     } else if (f.type==='maisilSlash') {
       // 외곽 부채꼴 (120°)
@@ -8425,8 +8433,8 @@ function draw() {
       ctx.moveTo(f.x+px,f.y+py); ctx.lineTo(ex+px,ey+py);
       ctx.lineTo(ex-px,ey-py); ctx.lineTo(f.x-px,f.y-py);
       ctx.closePath();
-      ctx.fillStyle=`rgba(255,34,68,${a*0.22})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,80,100,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle=`rgba(255,165,0,${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,180,50,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
     } else if (f.type==='parry') {
       const rr=f.maxR*(1-f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,rr),0,Math.PI*2);
@@ -9139,9 +9147,9 @@ function draw() {
     } else if (f.type==='sherinaDoubling') {
       // 더블링 — 방사형 파장 폭발
       const _dlt = 1 - f.dur/f.maxDur;
-      ctx.beginPath(); ctx.arc(f.x, f.y, 30+_dlt*60, 0, Math.PI*2);
+      ctx.beginPath(); ctx.arc(f.x, f.y, 30+_dlt*120, 0, Math.PI*2);
       ctx.strokeStyle=`rgba(100,0,180,${a*(1-_dlt)})`; ctx.lineWidth=2.5; ctx.stroke();
-      ctx.beginPath(); ctx.arc(f.x, f.y, 10+_dlt*30, 0, Math.PI*2);
+      ctx.beginPath(); ctx.arc(f.x, f.y, 10+_dlt*60, 0, Math.PI*2);
       ctx.fillStyle=`rgba(80,0,150,${a*0.2*(1-_dlt)})`; ctx.fill();
 
     } else if (f.type==='yuiSlash') {
@@ -11875,7 +11883,12 @@ function loop() {
         const _cd = L._sherinaGlobalHitCd.get('R')||0;
         if (_now3 > _cd) {
           L._sherinaGlobalHitCd.set('R', _now3+_interval);
-          hitRemote(L._sherinaEchoZones.find(_z=>_inRect(_z,R.x,R.y,R.radius))?.damage || 0);
+          const _hitZone = L._sherinaEchoZones.find(_z=>_inRect(_z,R.x,R.y,R.radius));
+          // 스킬 잔향(isRmb)에는 스턴샷 적용 안 함
+          const _wasLmbSt = L._lmbAttacking;
+          if (_hitZone?.isRmb) L._lmbAttacking = false;
+          hitRemote(_hitZone?.damage || 0);
+          if (_hitZone?.isRmb) L._lmbAttacking = _wasLmbSt;
         }
       }
     }
