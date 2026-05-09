@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 1.11.5</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.25.0</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1433,6 +1433,36 @@ const BALANCE = {
       cd:         300,
     },
   },
+
+  // ── 스야 ──────────────────────────────────────────────────
+  sya: {
+    hp:     90,
+    speed:  4.5,
+    radius: 20,
+    lmb: {
+      cost:        25,
+      damage:      20,
+      range:       180,
+      halfAngle:   1.15,
+      cd:          600,
+    },
+    rmb: {
+      staminaDrain: 20,
+      maxDur:      5000,
+      speedBoost:  1.4,
+      detectRange: 80,
+      freezeDur:   750,
+      attackBoostCount: 3,
+      attackCdMult: 0.35,
+      cd:          8000,
+    },
+    counter: {
+      damage:      30,
+      range:       260,
+      freezeDur:   600,
+      cd:          300,
+    },
+  },
 };
 
 
@@ -1892,6 +1922,25 @@ const CHARACTERS = {
         desc:`부채꼴로 에코를 발사하며 뒤로 이동 (${BALANCE.sherina.counter.damage})` },
     ],
   },
+
+  sya: {
+    id:        'sya',
+    name:      '스야',
+    color:     '#0000ad',
+    maxHealth: BALANCE.sya.hp,
+    speed:     BALANCE.sya.speed,
+    radius:    BALANCE.sya.radius,
+    statsText: [['체력',String(BALANCE.sya.hp)],['이동속도','매우 빠름'],['스타일','기습형 암살자']],
+    desc:      '은신으로 기습하고 빙결로 제압하는 암살자',
+    skills: [
+      { key:'LMB',     name:'대낫베기',  cost:BALANCE.sya.lmb.cost,
+        desc:`부채꼴 횡베기. 공격속도 느림 (${BALANCE.sya.lmb.damage})` },
+      { key:'RMB',     name:'은신',      cost:0,
+        desc:`최대 ${BALANCE.sya.rmb.maxDur/1000}초 은신+이속 +40%. 적 접근 시 해제 및 ${BALANCE.sya.rmb.freezeDur/1000}초 빙결, 다음 3회 공속 대폭 상승` },
+      { key:'L-Shift', name:'원형 베기', cost:0,
+        desc:`주변 원형 베기. 적중 시 ${BALANCE.sya.counter.freezeDur/1000}초 빙결 (${BALANCE.sya.counter.damage})` },
+    ],
+  },
 };
 
 // ============================================================
@@ -2302,7 +2351,7 @@ resizeCanvas();
 // ============================================================
 // network.js — PeerJS 연결 관리 (호스트/참가/메시지 수신)
 // ============================================================
-let peer = null, conn = null, isHost = false;
+var peer = null, conn = null, isHost = false;
 let localReady = false, peerReady = false, peerCharId = null;
 let _stateInterval = null; // 상태 동기화 인터벌 ID
 let uidN = 0;
@@ -2566,6 +2615,8 @@ function onData(d) {
       addFx({...d.fx}); break;
     case 'devAlert':
       alert('상대방이 개발자 모드에 진입했습니다.'); break;
+    case 'syaInvis':
+      R._syaInvisible = d.v; break;
     case 'charChange':
       peerCharId=d.charId;
       R.color=d.color; R.defaultColor=d.color; R.radius=d.radius??20;
@@ -2730,7 +2781,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-let _trainingMode = false;
+var _trainingMode = false;
 let _trainingBots  = [];  // 훈련장 봇 목록
 let _botBullets    = [];  // 봇 투사체
 let _trainingSettings = {
@@ -3077,9 +3128,13 @@ function useStam(amt) {
   return true;
 }
 function tickStamina(now, physDt) {
-  // 프릴 우클릭 활성 중 스테미나 회복 차단
+  // 프릴/스야 은신 중 스테미나 회복 차단
   if (L.charDef?.id==='prill' && (L._prillZoneActive || L._prillZonePredelaying)) {
     L.staminaUseTime = now;
+    return;
+  }
+  if (L.charDef?.id==='sya' && L._syaInvisible) {
+    L.staminaUseTime = now; // 회복 딜레이 리셋 (회복 차단)
     return;
   }
   const stamMax = L._augStamMax ?? STAM_MAX;
@@ -3097,8 +3152,8 @@ function tickStamina(now, physDt) {
 function _tickTrainingBots(now, dt) {
   if (!_trainingMode) return;
 
-  // 스테미나 무한
-  if (_trainingSettings.infiniteStam) {
+  // 스테미나 무한 (스야 은신 중엔 적용 안 함)
+  if (_trainingSettings.infiniteStam && !(L.charDef?.id==='sya' && L._syaInvisible)) {
     L.stamina = STAM_MAX;
   }
 
@@ -4189,6 +4244,7 @@ function receiveKnockback(vx, vy) {
   // 속박 해제
   L.bindEnd = 0;
 }
+function freezeRemote(dur) { stunRemote(dur); }
 function stunRemote(dur) {
   if (R.burrowing) return;
   send({type:'stunned', dur});
@@ -4214,6 +4270,8 @@ function receiveBind(dur) {
 // dodge.js — 회피(dodge) · 저스트 카운터 · 이펙트(fx)
 // ============================================================
 function tryDodge() {
+  // 스야 은신 중 회피 시 해제
+  if (L.charDef?.id === 'sya' && L._syaInvisible) { L._syaInvisible=false; send({type:'syaInvis',v:false}); }
   if (!gameOn || L.dodging) return;
   if (L.stunEnd && performance.now() < L.stunEnd) return;
   if (L.bindEnd && performance.now() < L.bindEnd) return;  // 속박 중 회피 불가
@@ -4761,8 +4819,8 @@ const SKILLS = {
         if (Math.hypot(R.x-L.x,R.y-L.y)<B.aoeRange+R.radius) knockbackRemote(B.knockbackPower);
         L._tauOveleucharge = true;
         L._tauHitStack = 0;
-        addFx({type:'tauWave', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:22, maxDur:22});
-        send({type:'fx', fx:{type:'tauWave', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:22, maxDur:22}});
+        addFx({type:'tauRing', x:L.x, y:L.y, r:B.aoeRange, angle:getAngle(), dur:22, maxDur:22});
+        send({type:'fx', fx:{type:'tauRing', x:L.x, y:L.y, r:B.aoeRange, angle:getAngle(), dur:22, maxDur:22}});
         L.lastAttackTime = performance.now();
       }, BALANCE.counter.delay);
     },
@@ -5570,7 +5628,7 @@ const SKILLS = {
           for (const _rkb of _trainingBots) {
             if (_rkb.hidden || !_rkb.isAlive) continue;
             const _rd = Math.hypot(_rkb.x-L.x, _rkb.y-L.y);
-            if (_rd >= bl.range+_rkb.radius) continue;
+            if (_rd >= augMeleeRange(bl.range)+_rkb.radius) continue;
             const _rt = Math.atan2(_rkb.y-L.y, _rkb.x-L.x);
             const _rdf = Math.abs(((_rt-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
             if (_rdf >= bl.halfAngle) continue;
@@ -5579,13 +5637,13 @@ const SKILLS = {
           }
         } else {
           const dist = Math.hypot(R.x-L.x, R.y-L.y);
-          if (dist < bl.range + R.radius) {
+          if (dist < augMeleeRange(bl.range) + R.radius) {
             const toR = Math.atan2(R.y-L.y, R.x-L.x);
             const diff = Math.abs(((toR-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-            if (diff < bl.halfAngle) { hitCtx({x:L.x, y:L.y, angle:angle+bl.bias, range:bl.range, halfAngle:bl.halfAngle}, bl.damage); reikaApplyBurn(bl.burnDur); }
+            if (diff < bl.halfAngle) { hitCtx({x:L.x, y:L.y, angle:angle+bl.bias, range:augMeleeRange(bl.range), halfAngle:bl.halfAngle}, bl.damage); reikaApplyBurn(bl.burnDur); }
           }
         }
-        hitCtxSpirit({x:L.x, y:L.y, angle:angle+bl.bias, range:bl.range, halfAngle:bl.halfAngle}, bl.damage);
+        hitCtxSpirit({x:L.x, y:L.y, angle:angle+bl.bias, range:augMeleeRange(bl.range), halfAngle:bl.halfAngle}, bl.damage);
         if (false) {
       }
         // 파동 원형 범위
@@ -5594,8 +5652,8 @@ const SKILLS = {
         }
         // 파동 소환수 피해
         hitPeerMinionsInRange(L.x, L.y, bl.waveRange, 5);
-        addFx({type:'reikaSwingBlessed', x:L.x, y:L.y, angle:swingAngle, range:bl.range, halfAngle:bl.halfAngle, dur:11, maxDur:11});
-        send({type:'fx', fx:{type:'reikaSwingBlessed', x:L.x, y:L.y, angle:swingAngle, range:bl.range, halfAngle:bl.halfAngle, dur:11, maxDur:11}});
+        addFx({type:'reikaSwingBlessed', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(bl.range), halfAngle:bl.halfAngle, dur:11, maxDur:11});
+        send({type:'fx', fx:{type:'reikaSwingBlessed', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(bl.range), halfAngle:bl.halfAngle, dur:11, maxDur:11}});
         addFx({type:'reikaSolarWave', x:L.x, y:L.y, r:0, maxR:bl.waveRange, dur:18, maxDur:18});
         send({type:'fx', fx:{type:'reikaSolarWave', x:L.x, y:L.y, r:0, maxR:bl.waveRange, dur:18, maxDur:18}});
         L.lmbCooldown = bl.cd; L.lastAttackTime = now;
@@ -6850,7 +6908,7 @@ const SKILLS = {
       const _id = uid();
       const b = {
         id:_id, x:L.x, y:L.y,
-        radius: B.radius, speed: B.speed,
+        radius: augBulletRadius(B.radius), speed: augBulletSpeed(B.speed),
         dx: Math.cos(angle), dy: Math.sin(angle),
         damage: B.damage, maxRange: B.range, traveled:0,
         isSherinaEcho: true,
@@ -7072,6 +7130,87 @@ const SKILLS = {
       }, BALANCE.counter.delay);
     },
   },
+
+  // ── 스야 ──────────────────────────────────────────────────
+  sya: {
+    lmb(angle) {
+      const B = BALANCE.sya.lmb;
+      if (L.lmbCooldown > 0 || L._syaInvisible) return;
+      if (!useStam(B.cost)) return;
+      const _cd = L._syaAttackBoost > 0 ? B.cd * BALANCE.sya.rmb.attackCdMult : B.cd;
+      if (_trainingMode) {
+        for (const _b of _trainingBots) {
+          if (_b.hidden||!_b.isAlive) continue;
+          const _d = Math.hypot(_b.x-L.x, _b.y-L.y);
+          if (_d > augMeleeRange(B.range)+_b.radius) continue;
+          const _a = Math.atan2(_b.y-L.y, _b.x-L.x);
+          const _df = Math.abs(((_a-angle)+Math.PI*3)%(Math.PI*2)-Math.PI);
+          if (_df >= B.halfAngle) continue;
+          _applyBotDamage(_b, applyDmgAugs(B.damage));
+          addShake(3,8); playHitSfx();
+        }
+      } else {
+        hitCtxAll({x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle}, B.damage);
+        hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle}, B.damage);
+      }
+      if (L._syaAttackBoost > 0) L._syaAttackBoost--;
+      addFx({type:'syaSwing', x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle, dur:10, maxDur:10, col:'40,80,255'});
+      send({type:'fx', fx:{type:'syaSwing', x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle, dur:10, maxDur:10, col:'40,80,255'}});
+      L.lmbCooldown = _cd; L.lastAttackTime = performance.now();
+    },
+
+    rmb(angle) {
+      // 우클릭: 은신 중이면 즉시 해제, 아니면 발동
+      if (L._syaInvisible) {
+        L._syaInvisible = false;
+        L.rmbCooldown = 300; // 최소 쿨타임 0.3초
+        send({type:'syaInvis', v:false});
+        return;
+      }
+      const B = BALANCE.sya.rmb;
+      if (L.rmbCooldown > 0) return;
+      L._syaInvisible = true;
+      L._syaInvisStart = performance.now();
+      L._syaInvisEndAt = performance.now() + B.maxDur;
+      L._syaAttackBoost = 0;
+      L.rmbCooldown = B.cd;
+      L.lastAttackTime = performance.now();
+      send({type:'syaInvis', v:true});
+      addFx({type:'dodge', x:L.x, y:L.y, radius:35, dur:12, maxDur:12});
+    },
+
+    counter(angle) {
+      const B = BALANCE.sya.counter;
+      if (!L.counterReady) return;
+      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = Math.min(L.rmbCooldown, B.cd);
+      // 원형 히트스캔
+      let _hit = false;
+      if (_trainingMode) {
+        for (const _cb of _trainingBots) {
+          if (_cb.hidden||!_cb.isAlive) continue;
+          if (Math.hypot(_cb.x-L.x, _cb.y-L.y) < B.range+_cb.radius) {
+            _applyBotDamage(_cb, applyDmgAugs(B.damage));
+            addShake(3,8); playHitSfx(); _hit = true;
+          }
+        }
+      } else {
+        if (Math.hypot(R.x-L.x, R.y-L.y) < B.range+R.radius) {
+          hitRemote(B.damage);
+          freezeRemote(B.freezeDur);
+          _hit = true;
+        }
+        hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI}, B.damage);
+      }
+      // 원형 회전 베기 FX
+      addFx({type:'syaSwing', x:L.x, y:L.y, angle:angle, range:B.range, halfAngle:Math.PI, dur:16, maxDur:16, col:'40,80,255'});
+      send({type:'fx', fx:{type:'syaSwing', x:L.x, y:L.y, angle:angle, range:B.range, halfAngle:Math.PI, dur:16, maxDur:16, col:'40,80,255'}});
+      if (_hit) {
+        addFx({type:'freeze', x:L.x, y:L.y, r:0, maxR:B.range*1.2, dur:12, maxDur:12});
+        send({type:'fx', fx:{type:'freeze', x:L.x, y:L.y, r:0, maxR:B.range*1.2, dur:12, maxDur:12}});
+      }
+      L.lastAttackTime = performance.now();
+    },
+  },
 };
 // ============================================================
 
@@ -7240,6 +7379,8 @@ CANVAS.addEventListener('mousedown', e => {
   else if (e.button===2) {
     if (L.charDef?.id==='hatsuhats') {
       SKILLS.hatsuhats.rmbStart();
+    } else if (L.charDef?.id==='sya' && L._syaInvisible) {
+      SKILLS.sya.rmb(getAngle()); // 은신 중 우클릭 → 즉시 해제
     } else doRMB();
   }
 });
@@ -7267,6 +7408,7 @@ CANVAS.addEventListener('mouseleave', () => {
   if (L._hatsRmbDrawing || L._hatsRmbPending || L._hatsRmbFrozen) SKILLS.hatsuhats.rmbRelease();
 });
 document.addEventListener('contextmenu', e => e.preventDefault());
+
 document.addEventListener('mouseup', e => {
   if (e.button===2) {
     _rmbHeld = true;
@@ -7289,7 +7431,7 @@ document.addEventListener('keyup', e => { keys[e.key.toLowerCase()]=false; });
 
 const getAngle = () => Math.atan2(mouseY-L.y, mouseX-L.x);
 function doLMB() { if (!gameOn||L.lmbCooldown>0) return; if (L.stunEnd && performance.now()<L.stunEnd) return; if (L.charDef?.id==='prill' && (L._prillZoneActive||L._prillZonePredelaying)) return; L._lmbAttacking=true; L._lmbFireTime=performance.now(); SKILLS[L.charDef?.id]?.lmb(getAngle()); L._lmbAttacking=false; }
-function doRMB() { if (!gameOn) return; if (L.stunEnd && performance.now()<L.stunEnd) return; if (L.charDef?.id==='prill' && L._prillZoneActive) { SKILLS.prill.rmb(getAngle()); return; } if (L.rmbCooldown>0) return; SKILLS[L.charDef?.id]?.rmb(getAngle()); }
+function doRMB() { if (!gameOn) return; if (L.stunEnd && performance.now()<L.stunEnd) return; if (L.charDef?.id==='prill' && L._prillZoneActive) { SKILLS.prill.rmb(getAngle()); return; } if (L.charDef?.id==='sya' && L._syaInvisible) { SKILLS.sya.rmb(getAngle()); return; } if (L.rmbCooldown>0) return; SKILLS[L.charDef?.id]?.rmb(getAngle()); }
 
 // ============================================================
 // physics.js
@@ -7956,6 +8098,7 @@ function draw() {
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,rr),0,Math.PI*2);
       ctx.strokeStyle=`rgba(255,215,0,${a*1.0})`; ctx.lineWidth=3.5; ctx.stroke();
       ctx.fillStyle=`rgba(255,215,0,${a*0.18})`; ctx.fill();
+
     } else if (f.type==='counter') {
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,f.r),0,Math.PI*2);
       ctx.strokeStyle=`rgba(255,69,0,${a*.9})`; ctx.lineWidth=3; ctx.stroke();
@@ -8152,6 +8295,26 @@ function draw() {
       ctx.strokeStyle=`rgba(161,115,102,${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, f.r*0.55, 0, Math.PI*2);
       ctx.strokeStyle=`rgba(200,160,140,${a*0.5})`; ctx.lineWidth=2; ctx.stroke();
+    } else if (f.type==='syaSwing') {
+      // 스야 전용 스윕 애니메이션: 시작각→끝각으로 부채꼴이 그려짐
+      const _t = 1 - f.dur / f.maxDur; // 0→1
+      const _col = f.col || '40,80,255';
+      const _startA = f.angle - f.halfAngle;
+      const _endA   = f.angle + f.halfAngle;
+      const _curEnd = _startA + (_endA - _startA) * _t; // 현재 그려진 끝각
+      // 현재까지 그려진 부채꼴
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.arc(f.x, f.y, f.range, _startA, _curEnd, false);
+      ctx.closePath();
+      ctx.fillStyle   = `rgba(${_col},${a * 0.28})`; ctx.fill();
+      ctx.strokeStyle = `rgba(${_col},${a * 1.0})`;  ctx.lineWidth = 3; ctx.stroke();
+      // 선행 엣지(현재 그리는 경계선) 강조
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.lineTo(f.x + Math.cos(_curEnd) * f.range, f.y + Math.sin(_curEnd) * f.range);
+      ctx.strokeStyle = `rgba(${_col},${a * 0.9})`; ctx.lineWidth = 2.5; ctx.stroke();
+
     } else if (f.type==='slash' || f.type==='swing') {
       // 부채꼴 근접 FX — 노란색 통일 (반격기 포함)
       const _swCol = f.col || '255,0,170';
@@ -8159,8 +8322,8 @@ function draw() {
       ctx.moveTo(f.x, f.y);
       ctx.arc(f.x, f.y, f.range, f.angle - f.halfAngle, f.angle + f.halfAngle);
       ctx.closePath();
-      ctx.fillStyle=`rgba(${_swCol},${a*0.22})`; ctx.fill();
-      ctx.strokeStyle=`rgba(${_swCol},${a*0.85})`; ctx.lineWidth=2.5; ctx.stroke();
+      ctx.fillStyle=`rgba(${_swCol},${a*0.30})`; ctx.fill();
+      ctx.strokeStyle=`rgba(${_swCol},${a*1.0})`; ctx.lineWidth=3; ctx.stroke();
     } else if (f.type==='rocketExplosion') {
       // 로켓 폭발 — 팽창 원형 충격파
       const rr = f.maxR * (1 - f.dur/f.maxDur);
@@ -8828,6 +8991,27 @@ function draw() {
       ctx.strokeStyle=`rgba(150,150,160,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(2,_pr*0.5), 0, Math.PI*2);
       ctx.fillStyle=`rgba(100,100,110,${a*0.4})`; ctx.fill();
+    } else if (f.type==='tauRing') {
+      // 타우 반격기 — 펠루나 강화평타와 동일: 반원 두 개가 스윕
+      const _t = 1 - f.dur/f.maxDur;
+      const _col = '0,220,220';   // 타우 청록색
+      const _sweep = Math.min(1, _t / 0.55);
+      const _fade  = _t > 0.55 ? Math.pow(1-(_t-0.55)/0.45, 1.5) : 1;
+      const _ro = f.r;
+      const _ang = f.angle ?? -Math.PI/2;
+
+      for (let _si = 0; _si < 2; _si++) {
+        const _baseAng = _ang + _si * Math.PI;
+        const _startA  = _baseAng;
+        const _endA    = _baseAng + Math.PI * _sweep;
+        // 바깥 링 (피해 범위)
+        ctx.beginPath(); ctx.moveTo(f.x, f.y);
+        ctx.arc(f.x, f.y, _ro, _startA, _endA, false);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(${_col},${a * _fade * 0.18})`; ctx.fill();
+        ctx.strokeStyle = `rgba(${_col},${a * _fade * 0.85})`; ctx.lineWidth = 2.5; ctx.stroke();
+      }
+
     } else if (f.type==='pelunaRing') {
       // 망치 평타 — 공격 방향 기준 두 반원이 같은 방향(반시계)으로 스윕
       const _t = 1 - f.dur/f.maxDur;
@@ -9876,6 +10060,9 @@ function drawVignette() {
 }
 
 function drawPlayer(p, label) {
+  // 스야 은신: 상대에게 완전히 안 보임
+  if (p === R && R.charDef?.id === 'sya' && R._syaInvisible) return;
+
   const isBurrowing = p===L ? L.burrowing : R.burrowing;
   const isStunned   = p===L ? (L.stunEnd && performance.now()<L.stunEnd)
                              : (R.stunEnd  && performance.now()<R.stunEnd);
@@ -9891,6 +10078,10 @@ function drawPlayer(p, label) {
     ctx.strokeStyle=p.color; ctx.lineWidth=1.5; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
     return; // HP바·이름 등 생략
   }
+
+  // 스야 은신 중 본인은 반투명
+  const _syaInvisSelf = (p === L && L.charDef?.id === 'sya' && L._syaInvisible);
+  if (_syaInvisSelf) ctx.globalAlpha = 0.3;
 
   ctx.beginPath(); ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);
   ctx.fillStyle=p.color; ctx.fill();
@@ -10013,6 +10204,8 @@ function drawPlayer(p, label) {
     ctx.fillText('⚒', L.x, L.y - L.radius - 12);
     ctx.restore();
   }
+
+
 
   // 유이: 3초 전 위치 마커 (본인만 보임)
   if (p === L && L.charDef?.id === 'yui' && L._yuiHistory && L._yuiHistory.length >= 2) {
@@ -10947,7 +11140,7 @@ function resetL() {
   L._prillZoneToken=0;
   L._dazPortals=[]; // 다즈빈 포탈 초기화
   L._yuiHistory=[]; L._yuiLastSample=0; // 유이 히스토리 초기화
-  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0
+  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0
   R._pelunaAnvil=null;
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
@@ -11229,8 +11422,10 @@ function loop() {
   const eSpeedMult = eStacks >= 1 ? BALANCE.nsonya.rmb.speedMult : 1;
   const ePredelay  = L._nsonyaPredelay || false;
 
+  const _syaSpdMult = (L.charDef?.id==='sya' && L._syaInvisible) ? BALANCE.sya.rmb.speedBoost : 1;
   const _boostCnt = getAugCount('start_boost');
   const _boostSpd = (_boostCnt>0 && L._startBoostEnd && performance.now()<L._startBoostEnd) ? (1 + 0.4*_boostCnt) : 1;
+  const _sp = L.speed * dt * slowMult * eSpeedMult * herCarryMult * (ePredelay ? 0 : 1) * _boostSpd * _syaSpdMult;
   const sp = L.speed * dt * slowMult * eSpeedMult * herCarryMult * (ePredelay ? 0 : 1) * _boostSpd;
   const _prevX = L.x, _prevY = L.y;
 
@@ -11646,6 +11841,69 @@ function loop() {
     }
   }
 
+  // 스야 은신 처리
+  if (gameOn && L.charDef?.id === 'sya' && L._syaInvisible) {
+    const B = BALANCE.sya.rmb;
+    const _now_sya = performance.now();
+    // 스테미나 실시간 소모
+    L.stamina = Math.max(0, L.stamina - B.staminaDrain * (physDt/1000));
+    // 시간 초과 또는 스테미나 소진
+    if (_now_sya >= L._syaInvisEndAt || L.stamina <= 0) {
+      L._syaInvisible = false;
+      send({type:'syaInvis', v:false});
+    } else if (!_trainingMode) {
+      // 적 감지: 가까이 오면 은신 해제 + 빙결
+      if (Math.hypot(R.x-L.x, R.y-L.y) < B.detectRange+R.radius) {
+        L._syaInvisible = false;
+        send({type:'syaInvis', v:false});
+        freezeRemote(B.freezeDur);
+        L._syaAttackBoost = B.attackBoostCount;
+        addFx({type:'justdodge', x:L.x, y:L.y, r:0, maxR:60, dur:18, maxDur:18});
+        send({type:'fx', fx:{type:'justdodge', x:L.x, y:L.y, r:0, maxR:60, dur:18, maxDur:18}});
+      }
+    } else {
+      // 훈련장: 봇 감지
+      for (const _sb of _trainingBots) {
+        if (_sb.hidden||!_sb.isAlive) continue;
+        if (Math.hypot(_sb.x-L.x, _sb.y-L.y) < B.detectRange+_sb.radius) {
+          L._syaInvisible = false;
+          send({type:'syaInvis', v:false});
+          // 봇 빙결 (stunEnd 사용)
+          _sb.stunEnd = performance.now() + B.freezeDur;
+          L._syaAttackBoost = B.attackBoostCount;
+          addFx({type:'justdodge', x:L.x, y:L.y, r:0, maxR:60, dur:18, maxDur:18});
+          break;
+        }
+      }
+    }
+  }
+
+  // 스야 은신 처리
+  if (gameOn && L.charDef?.id === 'sya' && L._syaInvisible) {
+    const _Bsya = BALANCE.sya.rmb;
+    if (!_trainingMode) {
+      if (Math.hypot(R.x-L.x, R.y-L.y) < _Bsya.detectRange+R.radius) {
+        L._syaInvisible = false; send({type:'syaInvis', v:false});
+        freezeRemote(_Bsya.freezeDur);
+        L._syaAttackBoost = _Bsya.attackBoostCount;
+        addFx({type:'justdodge', x:L.x, y:L.y, r:0, maxR:70, dur:18, maxDur:18});
+        send({type:'fx', fx:{type:'justdodge', x:L.x, y:L.y, r:0, maxR:70, dur:18, maxDur:18}});
+      }
+    } else {
+      for (const _sb of _trainingBots) {
+        if (_sb.hidden||!_sb.isAlive) continue;
+        if (Math.hypot(_sb.x-L.x, _sb.y-L.y) < _Bsya.detectRange+_sb.radius) {
+          L._syaInvisible = false; send({type:'syaInvis', v:false});
+          _sb.stunEnd = performance.now() + _Bsya.freezeDur;
+          L._syaAttackBoost = _Bsya.attackBoostCount;
+          addFx({type:'justdodge', x:L.x, y:L.y, r:0, maxR:70, dur:18, maxDur:18});
+          break;
+        }
+      }
+    }
+  }
+
+  // 스야 은신 처리
   // 가시갑옷: 근접 시 적에게 피해 (0.5초당 10, 중첩당 +10)
   if (gameOn && getAugCount('thorn_armor') > 0) {
     const _thornCount = getAugCount('thorn_armor');
@@ -11957,6 +12215,7 @@ function loop() {
     const f=fxList[i];
     f.dur-=dt;
     if (f.type==='justdodge'||f.type==='counter') f.r=f.maxR*(1-f.dur/f.maxDur);
+
     if (f.type==='counterCharge'||f.type==='erapabiRmbCharge') f.r=f.maxR*(f.dur/f.maxDur);
     if (f.dur<=0) fxList.splice(i,1);
   }
