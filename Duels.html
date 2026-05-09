@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.25.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.25.2</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1447,6 +1447,7 @@ const BALANCE = {
       cd:          600,
     },
     rmb: {
+      activationCost: 50,  // 발동 즉시 소모
       staminaDrain: 20,
       maxDur:      5000,
       speedBoost:  1.4,
@@ -1454,7 +1455,7 @@ const BALANCE = {
       freezeDur:   750,
       attackBoostCount: 2,
       attackCdMult: 0.35,
-      cd:          8000,
+      cd:          300,
     },
     counter: {
       damage:      30,
@@ -1935,9 +1936,9 @@ const CHARACTERS = {
     skills: [
       { key:'LMB',     name:'대낫베기',  cost:BALANCE.sya.lmb.cost,
         desc:`대낫으로 부채꼴 횡베기. (${BALANCE.sya.lmb.damage})` },
-      { key:'RMB',     name:'은신',      cost:0,
+      { key:'RMB',     name:'서리안개 은신',      cost:`${BALANCE.sya.rmb.activationCost}~${BALANCE.sya.rmb.activationCost + BALANCE.sya.rmb.staminaDrain * (BALANCE.sya.rmb.maxDur/1000)}`,
         desc:`최대 ${BALANCE.sya.rmb.maxDur/1000}초 은신+이속 +40%. 적 접근 시 해제 및 ${BALANCE.sya.rmb.freezeDur/1000}초 빙결, 다음 3회 공격속도 대폭 상승` },
-      { key:'L-Shift', name:'원형 베기', cost:0,
+      { key:'L-Shift', name:'서리폭풍 베기', cost:0,
         desc:`주변 원형 베기. 적중 시 ${BALANCE.sya.counter.freezeDur/1000}초 빙결 (${BALANCE.sya.counter.damage})` },
     ],
   },
@@ -2617,6 +2618,8 @@ function onData(d) {
       alert('상대방이 개발자 모드에 진입했습니다.'); break;
     case 'syaInvis':
       R._syaInvisible = d.v; break;
+    case 'syaHitReveal':
+      R._syaHitRevealEnd = performance.now() + d.dur; break;
     case 'charChange':
       peerCharId=d.charId;
       R.color=d.color; R.defaultColor=d.color; R.radius=d.radius??20;
@@ -3241,6 +3244,11 @@ function tickRegen(now) {
 
 function receiveHit(dmg) {
   if (!gameOn || L.burrowing) return;
+  // 스야 은신 중 피해 시 일시 위치 노출
+  if (L.charDef?.id === 'sya' && L._syaInvisible) {
+    L._syaHitRevealEnd = performance.now() + 800;
+    send({type:'syaHitReveal', dur:800});
+  }
   if (L.invincible > 0) {
     if (L.dodging && !L._counterPending) {
       L._counterPending = true;
@@ -4271,7 +4279,7 @@ function receiveBind(dur) {
 // ============================================================
 function tryDodge() {
   // 스야 은신 중 회피 시 해제
-  if (L.charDef?.id === 'sya' && L._syaInvisible) { L._syaInvisible=false; send({type:'syaInvis',v:false}); }
+  if (L.charDef?.id === 'sya' && L._syaInvisible) { L._syaHitRevealEnd = performance.now() + 600; send({type:'syaHitReveal', dur:600}); }
   if (!gameOn || L.dodging) return;
   if (L.stunEnd && performance.now() < L.stunEnd) return;
   if (L.bindEnd && performance.now() < L.bindEnd) return;  // 속박 중 회피 불가
@@ -7135,7 +7143,9 @@ const SKILLS = {
   sya: {
     lmb(angle) {
       const B = BALANCE.sya.lmb;
-      if (L.lmbCooldown > 0 || L._syaInvisible) return;
+      if (L.lmbCooldown > 0) return;
+      // 은신 중 공격 시 은신 해제
+      if (L._syaInvisible) { L._syaHitRevealEnd = performance.now() + 600; send({type:'syaHitReveal', dur:600}); }
       if (!useStam(B.cost)) return;
       const _cd = L._syaAttackBoost > 0 ? B.cd * BALANCE.sya.rmb.attackCdMult : B.cd;
       if (_trainingMode) {
@@ -7169,6 +7179,7 @@ const SKILLS = {
       }
       const B = BALANCE.sya.rmb;
       if (L.rmbCooldown > 0) return;
+      if (!useStam(B.activationCost)) return; // 발동 즉시 50 소모
       L._syaInvisible = true;
       L._syaInvisStart = performance.now();
       L._syaInvisEndAt = performance.now() + B.maxDur;
@@ -7182,6 +7193,8 @@ const SKILLS = {
     counter(angle) {
       const B = BALANCE.sya.counter;
       if (!L.counterReady) return;
+      // 은신 중 반격기 사용 시 은신 해제
+      if (L._syaInvisible) { L._syaHitRevealEnd = performance.now() + 600; send({type:'syaHitReveal', dur:600}); }
       L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = Math.min(L.rmbCooldown, B.cd);
       // 원형 히트스캔
       let _hit = false;
@@ -10060,8 +10073,22 @@ function drawVignette() {
 }
 
 function drawPlayer(p, label) {
-  // 스야 은신: 상대에게 완전히 안 보임
-  if (p === R && R.charDef?.id === 'sya' && R._syaInvisible) return;
+  // 스야 은신: 상대에게 완전히 안 보임 (피해 시 잠깐 노출)
+  if (p === R && R.charDef?.id === 'sya' && R._syaInvisible) {
+    const _rNow = performance.now();
+    if (R._syaHitRevealEnd && _rNow < R._syaHitRevealEnd) {
+      // 피해 받은 직후: 사인파로 깜빡이며 반투명 표시
+      const _rProg = (_rNow - (R._syaHitRevealEnd - 800)) / 800;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.sin(Math.PI * _rProg)) * 0.6;
+      // 원만 그리기 (체력바 등 생략)
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+      ctx.fillStyle = p.color; ctx.fill();
+      ctx.strokeStyle = p.color; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.restore();
+    }
+    return;
+  }
 
   const isBurrowing = p===L ? L.burrowing : R.burrowing;
   const isStunned   = p===L ? (L.stunEnd && performance.now()<L.stunEnd)
@@ -10546,17 +10573,31 @@ function drawMinimap() {
   }
   ctx.strokeStyle='rgba(255,255,255,.12)';
   ctx.strokeRect(mx+cam.x*sx, my+cam.y*sy, CANVAS.width*sx, CANVAS.height*sy);
-  // 미니맵: 연막 안 상대 숨기기
+  // 미니맵: 연막/은신 중 상대 숨기기
   [[L,3],[R,3]].forEach(([p,r2]) => {
+    const nowMm = performance.now();
     if (p === R) {
-      const nowMm = performance.now();
+      // 스야 은신 중: reveal 타이머 있으면 희미하게, 없으면 숨김
+      if (R.charDef?.id === 'sya' && R._syaInvisible) {
+        if (R._syaHitRevealEnd && nowMm < R._syaHitRevealEnd) {
+          const _rProg = (nowMm - (R._syaHitRevealEnd - 800)) / 800;
+          const mmAlpha = Math.max(0, Math.sin(Math.PI * _rProg)) * 0.5;
+          if (mmAlpha > 0.01) {
+            ctx.globalAlpha = mmAlpha;
+            ctx.beginPath(); ctx.arc(mx+p.x*sx, my+p.y*sy, r2, 0, Math.PI*2);
+            ctx.fillStyle=p.color; ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+        }
+        return; // 은신 중 기본 숨김
+      }
+      // 연막 안 숨기기
       const smokingSmoke = globalSmokeZones.find(s =>
         nowMm < s.expiry
         && Math.hypot(p.x - s.x, p.y - s.y) < s.r
         && Math.hypot(L.x - p.x, L.y - p.y) > s.visionRange
       );
       if (smokingSmoke) {
-        // reveal 중이면 미니맵도 희미하게 표시
         if (R.smokeRevealStart && nowMm - R.smokeRevealStart < (R.smokeRevealDur||0)) {
           const prog = (nowMm - R.smokeRevealStart) / (R.smokeRevealDur||1);
           const mmAlpha = Math.max(0, Math.sin(Math.PI * prog)) * 0.6;
@@ -11140,7 +11181,7 @@ function resetL() {
   L._prillZoneToken=0;
   L._dazPortals=[]; // 다즈빈 포탈 초기화
   L._yuiHistory=[]; L._yuiLastSample=0; // 유이 히스토리 초기화
-  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0
+  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._syaHitRevealEnd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0
   R._pelunaAnvil=null;
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
@@ -11425,8 +11466,7 @@ function loop() {
   const _syaSpdMult = (L.charDef?.id==='sya' && L._syaInvisible) ? BALANCE.sya.rmb.speedBoost : 1;
   const _boostCnt = getAugCount('start_boost');
   const _boostSpd = (_boostCnt>0 && L._startBoostEnd && performance.now()<L._startBoostEnd) ? (1 + 0.4*_boostCnt) : 1;
-  const _sp = L.speed * dt * slowMult * eSpeedMult * herCarryMult * (ePredelay ? 0 : 1) * _boostSpd * _syaSpdMult;
-  const sp = L.speed * dt * slowMult * eSpeedMult * herCarryMult * (ePredelay ? 0 : 1) * _boostSpd;
+  const sp = L.speed * dt * slowMult * eSpeedMult * herCarryMult * (ePredelay ? 0 : 1) * _boostSpd * _syaSpdMult;
   const _prevX = L.x, _prevY = L.y;
 
   // 하츠하츠 돌진 처리 (벽 무시, 일정 속도)
@@ -11855,6 +11895,7 @@ function loop() {
       // 적 감지: 가까이 오면 은신 해제 + 빙결
       if (Math.hypot(R.x-L.x, R.y-L.y) < B.detectRange+R.radius) {
         L._syaInvisible = false;
+        L.rmbCooldown = 300; // 발각 해제 시 짧은 쿨
         send({type:'syaInvis', v:false});
         freezeRemote(B.freezeDur);
         L._syaAttackBoost = B.attackBoostCount;
@@ -11867,8 +11908,8 @@ function loop() {
         if (_sb.hidden||!_sb.isAlive) continue;
         if (Math.hypot(_sb.x-L.x, _sb.y-L.y) < B.detectRange+_sb.radius) {
           L._syaInvisible = false;
+          L.rmbCooldown = 300; // 발각 해제 시 짧은 쿨
           send({type:'syaInvis', v:false});
-          // 봇 빙결 (stunEnd 사용)
           _sb.stunEnd = performance.now() + B.freezeDur;
           L._syaAttackBoost = B.attackBoostCount;
           addFx({type:'justdodge', x:L.x, y:L.y, r:0, maxR:60, dur:18, maxDur:18});
@@ -11883,7 +11924,8 @@ function loop() {
     const _Bsya = BALANCE.sya.rmb;
     if (!_trainingMode) {
       if (Math.hypot(R.x-L.x, R.y-L.y) < _Bsya.detectRange+R.radius) {
-        L._syaInvisible = false; send({type:'syaInvis', v:false});
+        L._syaInvisible = false; L.rmbCooldown = 300;
+        send({type:'syaInvis', v:false});
         freezeRemote(_Bsya.freezeDur);
         L._syaAttackBoost = _Bsya.attackBoostCount;
         addFx({type:'justdodge', x:L.x, y:L.y, r:0, maxR:70, dur:18, maxDur:18});
@@ -11893,7 +11935,8 @@ function loop() {
       for (const _sb of _trainingBots) {
         if (_sb.hidden||!_sb.isAlive) continue;
         if (Math.hypot(_sb.x-L.x, _sb.y-L.y) < _Bsya.detectRange+_sb.radius) {
-          L._syaInvisible = false; send({type:'syaInvis', v:false});
+          L._syaInvisible = false; L.rmbCooldown = 300;
+          send({type:'syaInvis', v:false});
           _sb.stunEnd = performance.now() + _Bsya.freezeDur;
           L._syaAttackBoost = _Bsya.attackBoostCount;
           addFx({type:'justdodge', x:L.x, y:L.y, r:0, maxR:70, dur:18, maxDur:18});
