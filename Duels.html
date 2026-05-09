@@ -1452,7 +1452,7 @@ const BALANCE = {
       speedBoost:  1.4,
       detectRange: 80,
       freezeDur:   750,
-      attackBoostCount: 3,
+      attackBoostCount: 2,
       attackCdMult: 0.35,
       cd:          8000,
     },
@@ -1678,7 +1678,7 @@ const CHARACTERS = {
     desc:      '차지 타입 아머로 받은 피해를 축적해 궁극 레이저로 터뜨리는 캐릭터',
     skills: [
       { key:'LMB',     name:'레이저 연사',   cost:BALANCE.erapabi.lmb.cost,  desc:`레이저를 2발씩 2회 발사 (탄당 ${BALANCE.erapabi.lmb.damage})` },
-      { key:'RMB',     name:'버티기/파비 레이저', cost:BALANCE.erapabi.rmb.cost, desc:`3초간 피해 50% 감소 (30 스테미나). 받은 피해를 일정량 이상 저장 시 파비 레이저로 변경 (100 스테미나)` },
+      { key:'RMB',     name:'버티기/파비 레이저', cost:`${BALANCE.erapabi.rmb.cost}/${BALANCE.reika.rmbBlessed.cost}`, desc:`3초간 피해 50% 감소. 받은 피해를 일정량 이상 저장 시 파비 레이저로 변경` },
       { key:'L-Shift', name:'한바퀴 회전',   cost:0,  desc:`가로축 회전으로 앞뒤 피해 및 넉백 (${BALANCE.erapabi.counter.damage})` },
     ],
   },
@@ -1873,7 +1873,7 @@ const CHARACTERS = {
     maxHealth: BALANCE.yui.hp,
     speed:     BALANCE.yui.speed,
     radius:    BALANCE.yui.radius,
-    statsText: [['체력',String(BALANCE.yui.hp)],['이동속도','빠름'],['스타일','순간이동 근접 암살자']],
+    statsText: [['체력',String(BALANCE.yui.hp)],['이동속도','빠름'],['스타일','순간이동형 근거리 암살자']],
     desc:      '텔레포트와 시간 되감기로 싸우는 캐릭터',
     skills: [
       { key:'LMB', name:'텔레포트 단검', cost:BALANCE.yui.lmb.cost,
@@ -1892,8 +1892,8 @@ const CHARACTERS = {
     maxHealth: BALANCE.peluna.hp,
     speed:     BALANCE.peluna.speed,
     radius:    BALANCE.peluna.radius,
-    statsText: [['체력',String(BALANCE.peluna.hp)],['이동속도','빠름'],['스타일','평타강화형 근접 탱커']],
-    desc:      '모루로 자신의 망치를 강화하는 대장장이',
+    statsText: [['체력',String(BALANCE.peluna.hp)],['이동속도','빠름'],['스타일','평타강화형 근거리 탱커']],
+    desc:      '모루로 자신의 망치를 강화하는 캐릭터',
     skills: [
       { key:'LMB', name:'망치질', cost:BALANCE.peluna.lmb.cost,
         desc:`0.3초 선딜레이 후 원주 범위 피해 (${BALANCE.peluna.lmb.damage})` },
@@ -1912,7 +1912,7 @@ const CHARACTERS = {
     speed:     BALANCE.sherina.speed,
     radius:    BALANCE.sherina.radius,
     statsText: [['체력',String(BALANCE.sherina.hp)],['이동속도','느림'],['스타일','범위장악형 원거리 저격수']],
-    desc:      '에코의 잔향을 이용해 공간을 장악하는 음파 사수',
+    desc:      '에코의 잔향을 이용해 공간을 장악하는 캐릭터',
     skills: [
       { key:'LMB', name:'소리의 활', cost:BALANCE.sherina.lmb.cost,
         desc:`에코 발사. 경로에 ${BALANCE.sherina.lmb.echoDur/1000}초 잔향 남김 (${BALANCE.sherina.lmb.damage}/${BALANCE.sherina.lmb.echoDamage})` },
@@ -1930,8 +1930,8 @@ const CHARACTERS = {
     maxHealth: BALANCE.sya.hp,
     speed:     BALANCE.sya.speed,
     radius:    BALANCE.sya.radius,
-    statsText: [['체력',String(BALANCE.sya.hp)],['이동속도','매우 빠름'],['스타일','기습형 암살자']],
-    desc:      '은신으로 기습하고 빙결로 제압하는 암살자',
+    statsText: [['체력',String(BALANCE.sya.hp)],['이동속도','매우 빠름'],['스타일','기습형 근거리 암살자']],
+    desc:      '은신으로 기습하고 빙결로 제압하는 캐릭터',
     skills: [
       { key:'LMB',     name:'대낫베기',  cost:BALANCE.sya.lmb.cost,
         desc:`부채꼴 횡베기. 공격속도 느림 (${BALANCE.sya.lmb.damage})` },
