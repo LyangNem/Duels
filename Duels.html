@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.25.4</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.25.5</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -999,7 +999,7 @@ const BALANCE = {
       cost:       100,
       trapRange:  450,
       damage:     35,
-      stunDur:    1200,
+      stunDur:    1500,
       maxTraps:   3,
       trapRadius: 28,
       cd:         400,
@@ -1061,7 +1061,7 @@ const BALANCE = {
       cost:        20,
       meleeRange:  130,
       halfAngle:   0.75,
-      baseDamage:  10,
+      baseDamage:  15,
       gaugeDamage: 20,    // 게이지 100%시 추가 최대 피해
       gaugeGain:   15,    // 적중시 게이지 상승
       cd:          350,
@@ -1095,7 +1095,7 @@ const BALANCE = {
     lmb: {
       chargeTime:      1000,   // 최대 차징 시간 (ms)
       chargeDrainRate:   80,   // 차징 중 스테미나 소모/초 (1초 풀차징 = maxCost)
-      minDamage:  10,
+      minDamage:  30,
       maxDamage:  90,
       minSpeed:   18,
       maxSpeed:   44,
@@ -1269,13 +1269,13 @@ const BALANCE = {
     radius: 20,
     lmb: {
       cost:       30,
-      damage:     25,
+      damage:     30,
       speed:      13,
       radius:     10,
       range:      650,
       cd:         380,
-      homingMin:  0.3,   // 이 비율 이후 호밍 시작
-      homingMax:  0.07,  // 사거리 끝에서 최대 호밍 강도 (rad/frame)
+      homingMin:  0.25,  // 이 비율 이후 호밍 시작
+      homingMax:  0.11,  // 사거리 끝에서 최대 호밍 강도 (rad/frame)
     },
     rmb: {
       cost:         60,
@@ -1450,9 +1450,9 @@ const BALANCE = {
       activationCost: 40,  // 발동 즉시 소모
       staminaDrain: 15,
       maxDur:      5000,
-      speedBoost:  1.4,
+      speedBoost:  1.3,
       detectRange: 80,
-      freezeDur:   750,
+      freezeDur:   500,
       attackBoostCount: 2,
       attackCdMult: 0.35,
       cd:          300,
@@ -1460,7 +1460,7 @@ const BALANCE = {
     counter: {
       damage:      30,
       range:       260,
-      freezeDur:   600,
+      freezeDur:   500,
       cd:          300,
     },
   },
@@ -1937,7 +1937,7 @@ const CHARACTERS = {
       { key:'LMB',     name:'대낫베기',  cost:BALANCE.sya.lmb.cost,
         desc:`대낫으로 부채꼴 횡베기. (${BALANCE.sya.lmb.damage})` },
       { key:'RMB',     name:'서리안개 은신',      cost:`${BALANCE.sya.rmb.activationCost}~${BALANCE.sya.rmb.activationCost + BALANCE.sya.rmb.staminaDrain * (BALANCE.sya.rmb.maxDur/1000)}`,
-        desc:`최대 ${BALANCE.sya.rmb.maxDur/1000}초 은신+이속 +40%. 적 접근 시 해제 및 ${BALANCE.sya.rmb.freezeDur/1000}초 빙결, 다음 3회 공격속도 대폭 상승` },
+        desc:`최대 ${BALANCE.sya.rmb.maxDur/1000}초 은신+이속 +${Math.round((BALANCE.sya.rmb.speedBoost-1)*100)}%. 적 접근 시 해제 및 ${BALANCE.sya.rmb.freezeDur/1000}초 빙결, 다음 3회 공격속도 대폭 상승` },
       { key:'L-Shift', name:'서리폭풍 베기', cost:0,
         desc:`주변 원형 베기. 적중 시 ${BALANCE.sya.counter.freezeDur/1000}초 빙결 (${BALANCE.sya.counter.damage})` },
     ],
@@ -2144,8 +2144,8 @@ let gameOn      = false;
 const AUGMENTS = [
   { id:'tank',       name:'탱크',         emoji:'🛡️', rarity:'rare',   desc:'최대 체력 +20%' },
   { id:'big_bullet', name:'거대 총알',    emoji:'🔴', rarity:'common', desc:'탄환 크기 +45%' },
-  { id:'last_dance', name:'라스트 댄스',  emoji:'💃', rarity:'rare',   desc:'체력 20% 이하 시 피해량 +40%' },
-  { id:'movement',   name:'무브먼트',     emoji:'💨', rarity:'rare',   desc:'이동속도 +20%' },
+  { id:'last_dance', name:'라스트 댄스',  emoji:'💃', rarity:'rare',   desc:'체력 35% 이하 시 피해량 +40%' },
+  { id:'movement',   name:'무브먼트',     emoji:'💨', rarity:'rare',   desc:'이동속도 +15%' },
   { id:'last_stand', name:'최후의 발악',  emoji:'💀', rarity:'hero',   desc:'사망할 피해를 받을 때 체력 1을 남기고 버티며 주변 적 강한 넉백' },
   { id:'lifesteal',   name:'흡혈',         emoji:'🩸', rarity:'rare',   desc:'피해량의 15%만큼 체력 회복' },
   { id:'endurance',   name:'지구력',       emoji:'⚡', rarity:'common', desc:'최대 스테미나 +25%' },
@@ -2617,7 +2617,10 @@ function onData(d) {
     case 'devAlert':
       alert('상대방이 개발자 모드에 진입했습니다.'); break;
     case 'syaInvis':
-      R._syaInvisible = d.v; break;
+      R._syaInvisible = d.v;
+      if (d.v) { R._syaInvisStart = performance.now(); } // 수신 시각 기준
+      else { R._syaInvisStart = 0; }
+      break;
     case 'syaHitReveal':
       R._syaHitRevealEnd = performance.now() + d.dur; break;
     case 'charChange':
@@ -3146,7 +3149,7 @@ function tickStamina(now, physDt) {
   const regenMult = (L.charDef?.id === 'nsonya' && (L._nsonyaStacks||0) >= 2)
     ? BALANCE.nsonya.rmb.stamRegenMult : 1;
   const augMult = 1 + 0.20 * getAugCount('swift_regen');
-  L.stamina = Math.min(stamMax, L.stamina + (stamMax / STAM_REGEN) * physDt * regenMult * augMult);
+  L.stamina = Math.min(stamMax, L.stamina + (STAM_MAX / STAM_REGEN) * physDt * regenMult * augMult);
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -3349,6 +3352,7 @@ function intersectsCtx(ctx, tx, ty, tr) {
 // ── R(플레이어)만 판정. 반환값: 명중 여부 ─────────────────
 // 봇 데미지 공통 처리
 function _applyBotDamage(bot, dmg) {
+  if (L.burrowing) return; // 잠수 중 피해 차단 (다즈빈)
   // 가드 회피: 회피 중 피해 40% 감소
   if (L.dodging && getAugCount('guard_dodge') > 0) dmg *= 0.60;
   if (dmg <= 0) return;
@@ -4163,7 +4167,7 @@ function applyDmgAugs(dmg) {
   }
   // 라스트 댄스: 체력 30% 이하 시 기본 피해의 +20% per 스택 (가산)
   const ldCount = getAugCount('last_dance');
-  if (ldCount > 0 && L.health < L.maxHealth * 0.2) {
+  if (ldCount > 0 && L.health < L.maxHealth * 0.35) {
     dmg = Math.round(dmg * (1 + 0.40 * ldCount)); // 중첩당 40% 증가
   }
   // 오버파워: 피해량 +10% per 스택
@@ -4670,8 +4674,8 @@ const SKILLS = {
         if (remaining > 0 && !useStam(remaining)) return;
       }
 
-      // 차징 비례 선딜레이 (최대 0.5초)
-      const _drillPreDelay = Math.round(t * 500);
+      // 선딜레이 삭제
+      const _drillPreDelay = 0;
       const _drillLen = len, _drillDmg = damage;
       L._drillToken = (L._drillToken || 0) + 1;
       const _drillTok = L._drillToken;
@@ -6064,7 +6068,7 @@ const SKILLS = {
 
       // 쌍방 행동불능
       L.stunEnd = performance.now() + B.lockDur;
-      stunRemote(B.lockDur);
+      stunRemote(B.lockDur + B.knockbackStunDur + 50); // 전체 기절 선 예약
 
       addFx({type:'kanGrab', x:L.x, y:L.y, r:0, maxR:B.pullRange*0.6, dur:12, maxDur:12});
       send({type:'fx', fx:{type:'kanGrab', x:L.x, y:L.y, r:0, maxR:B.pullRange*0.6, dur:12, maxDur:12}});
@@ -6077,7 +6081,6 @@ const SKILLS = {
           R.tx = Math.max(R.radius, Math.min(WORLD_W-R.radius, R.tx + kbVX * 0.35));
           R.ty = Math.max(R.radius, Math.min(WORLD_H-R.radius, R.ty + kbVY * 0.35));
         }
-        stunRemote(B.knockbackStunDur);
         addFx({type:'kanThrow', x:L.x, y:L.y, r:0, maxR:60, dur:14, maxDur:14});
         send({type:'fx', fx:{type:'kanThrow', x:L.x, y:L.y, r:0, maxR:60, dur:14, maxDur:14}});
         L.lastAttackTime = performance.now();
@@ -6609,7 +6612,7 @@ const SKILLS = {
       if (L.lmbCooldown>0||L.rmbCooldown>0) return;
       L.counterReady=false; L.lmbCooldown=B.cd; L.rmbCooldown=B.cd;
       addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:18, maxDur:18});
-      const tok=++L._counterToken;
+      const fa=angle, tok=++L._counterToken;
       L._attackPreview={shapes:[{type:'sector', range:B.range, halfAngle:B.halfAngle}]};
       setTimeout(() => {
         L._attackPreview=null;
@@ -7199,7 +7202,7 @@ const SKILLS = {
       if (L._syaInvisible) { L._syaHitRevealEnd = performance.now() + 600; send({type:'syaHitReveal', dur:600}); }
       L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = Math.min(L.rmbCooldown, B.cd);
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
-      addFx({type:'counterCharge', x:L.x, y:L.y, r:B.range*0.5, maxR:B.range*0.5, dur:BALANCE.counter.delay/FRAME_MS, maxDur:BALANCE.counter.delay/FRAME_MS});
+
       L._attackPreview = { shapes: [{ type:'circle', r:B.range }] };
       const _syaTok = ++L._counterToken;
       setTimeout(() => {
@@ -10084,12 +10087,17 @@ function drawPlayer(p, label) {
   // 스야 은신: 상대에게 완전히 안 보임 (피해 시 잠깐 노출)
   if (p === R && R.charDef?.id === 'sya' && R._syaInvisible) {
     const _rNow = performance.now();
+    const _elapsed = R._syaInvisStart ? (_rNow - R._syaInvisStart) : 99999;
+    const _fadeAlpha = Math.max(0, 1 - _elapsed / 700); // 700ms 후 완전 투명
+    // 노출 중이면 깜빡임 alpha 사용
+    let _drawAlpha = _fadeAlpha;
     if (R._syaHitRevealEnd && _rNow < R._syaHitRevealEnd) {
-      // 피해 받은 직후: 사인파로 깜빡이며 반투명 표시
-      const _rProg = (_rNow - (R._syaHitRevealEnd - 800)) / 800;
+      const _p = (_rNow - (R._syaHitRevealEnd - 800)) / 800;
+      _drawAlpha = Math.max(_fadeAlpha, Math.max(0, Math.sin(Math.PI * _p)) * 0.6);
+    }
+    if (_drawAlpha > 0.01) {
       ctx.save();
-      ctx.globalAlpha = Math.max(0, Math.sin(Math.PI * _rProg)) * 0.6;
-      // 원만 그리기 (체력바 등 생략)
+      ctx.globalAlpha = _drawAlpha;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
       ctx.fillStyle = p.color; ctx.fill();
       ctx.strokeStyle = p.color; ctx.lineWidth = 2.5; ctx.stroke();
@@ -10116,7 +10124,11 @@ function drawPlayer(p, label) {
 
   // 스야 은신 중 본인은 반투명
   const _syaInvisSelf = (p === L && L.charDef?.id === 'sya' && L._syaInvisible);
-  if (_syaInvisSelf) ctx.globalAlpha = 0.3;
+  // 선딜레이(노란색) 중엔 완전 불투명 — 아닐 때만 반투명
+  if (_syaInvisSelf && L.color !== '#ffd700') {
+    const _syaFadeT = Math.min(1, (performance.now() - (L._syaInvisStart||0)) / 800);
+    ctx.globalAlpha = 1.0 - _syaFadeT * 0.75; // 1.0 → 0.25으로 서서히 투명
+  }
 
   ctx.beginPath(); ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);
   ctx.fillStyle=p.color; ctx.fill();
@@ -10435,8 +10447,8 @@ function drawPlayer(p, label) {
     // ── 피해량 증가 버프 (보라색) — 조건 충족 시만 표시 ──
     const peerAugCount = id => matchState.peerAugments.filter(x => x === id).length;
     const dmgIncActive =
-      (isLocal && getAugCount('last_dance') > 0 && L.health < L.maxHealth * 0.2) ||
-      (!isLocal && peerAugCount('last_dance') > 0 && R.health < R.maxHealth * 0.2);
+      (isLocal && getAugCount('last_dance') > 0 && L.health < L.maxHealth * 0.35) ||
+      (!isLocal && peerAugCount('last_dance') > 0 && R.health < R.maxHealth * 0.35);
     if (dmgIncActive) {
       ctx.beginPath(); ctx.arc(p.x, p.y, augR, 0, Math.PI*2);
       ctx.strokeStyle=`rgba(160,80,255,${0.7+0.3*pulse})`;
@@ -11074,6 +11086,7 @@ function doRematch() {
   R.health=100; R.stamina=STAM_MAX; R.dodging=false; R.counterReady=false;
   R.burrowing=false; R.stunEnd=0; R.bindEnd=0; R.burnEnd=0;
   R.elinSpirit=null; R.ropeOrb=null; R.toolbox=null;
+  R._syaInvisible=false; R._syaHitRevealEnd=0; // 라운드 시작 시 스야 은신 해제
   R.erapabiFortify=false; R.nsonyaStacks=0; R.burrowEntry=null; R._ruvuHammer=null;
   R.smokeRevealStart=0; R.smokeRevealDur=0;
   L.orb=null;
@@ -11134,7 +11147,7 @@ function resetL() {
   L.maxHealth = lc.maxHealth * (1 + 0.20 * getAugCount('tank'));
   L.health    = L.maxHealth;
   // 이동속도: 무브먼트(15%×stack)와 오버파워(10%×stack) 중 최고값만 적용
-  const speedBonusMovement = 0.20 * getAugCount('movement');
+  const speedBonusMovement = 0.15 * getAugCount('movement');
   const speedBonusOverpower = 0.10 * getAugCount('overpower');
   L.speed     = lc.speed * (1 + Math.max(speedBonusMovement, speedBonusOverpower));
   L.radius    = lc.radius??20;
@@ -11898,6 +11911,8 @@ function loop() {
   if (gameOn && L.charDef?.id === 'sya' && L._syaInvisible) {
     const B = BALANCE.sya.rmb;
     const _now_sya = performance.now();
+    // 라운드 시작 직후 endAt이 0이면 즉시 해제 (버그 방지)
+    if (!L._syaInvisEndAt) { L._syaInvisible = false; send({type:'syaInvis', v:false}); }
     // 스테미나 실시간 소모
     L.stamina = Math.max(0, L.stamina - B.staminaDrain * (physDt/1000));
     // 시간 초과 또는 스테미나 소진
