@@ -7478,11 +7478,10 @@ const SKILLS = {
         L._attackPreview = null;
         if (!gameOn||L._counterToken!==_tok) return;
         L.color = L.defaultColor; send({type:'colorChange', color:L.defaultColor});
-        playShootSfx(); // 바람마법 시전 소리
-        // 바람: 두 단계
-        // 1단계: FX가 전진하며 적 탐색
-        // 2단계: 적중 후 적의 현재 위치에서 방향대로 남은 거리만큼 밀기
-        const _bAngle = angle;
+        playShootSfx();
+        // 발사 시점의 위치와 방향 고정 (선딜레이 중 이동해도 발사 시점 기준)
+        const _bAngle = Math.atan2(mouseY-L.y, mouseX-L.x);
+        const _bOriginX = L.x, _bOriginY = L.y;
         const _bDx = Math.cos(_bAngle), _bDy = Math.sin(_bAngle);
         const _windWidth = augBulletRadius(B.width); // 거대총알 증강 적용
         let _wDist = 0, _wHit = false, _wBot = null;
@@ -7490,8 +7489,8 @@ const SKILLS = {
         const _wInt = setInterval(() => {
           if (!gameOn) { clearInterval(_wInt); return; }
           _wDist += _wSpd;
-          // FX는 항상 발사자 기준 직선 경로
-          const _wx = L.x + _bDx*_wDist, _wy = L.y + _bDy*_wDist;
+          // FX는 발사 시점 위치 기준 직선 경로
+          const _wx = _bOriginX + _bDx*_wDist, _wy = _bOriginY + _bDy*_wDist;
           // 벽(맵 경계 + 내부 벽) 도달 시 중단
           if (_wx < 0||_wx > WORLD_W||_wy < 0||_wy > WORLD_H) { clearInterval(_wInt); return; }
           if (bulletHitsWall({x:_wx, y:_wy, radius:_windWidth})) { clearInterval(_wInt); return; }
