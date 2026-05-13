@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.26.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.27.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1509,6 +1509,47 @@ const BALANCE = {
       cd:         300,
     },
   },
+
+  // ── 로온 ──────────────────────────────────────────────────
+  roon: {
+    hp:     130,
+    speed:  4.25,
+    radius: 20,
+    lmb: {
+      cost:       12,
+      damage:     15,
+      radius:     14,
+      speed:      13,
+      range:      400,
+      cd:         380,       // 2연타 쿨
+      shotsPerCombo: 2,      // 연속 2발
+      slushPerHit:   1,      // 적중당 빙수 게이지 증가
+      slushMax:      6,      // 최대 6회
+      freezeDur:     1000,   // 빙결 시간 ms
+    },
+    rmb: {
+      cost:       50,
+      damage:     15,
+      radius:     30,
+      speed:      11,
+      range:      550,
+      zoneDur:    5000,      // 빙수지대 지속
+      zoneRadius: 200,       // 지대 반경
+      slushPerTick: 0,       // 지대 내 자동 게이지 비활성
+      slushInZone:  2,       // 지대 내 평타 적중 추가 게이지
+      tickInterval: 600,
+      cd:         4500,
+    },
+    counter: {
+      cost:       0,
+      damage:     20,
+      range:      160,
+      halfAngle:  1.1,
+      freezeDur:  800,
+      slushFill:  3,         // 게이지 절반
+      cd:         400,
+    },
+  }
 };
 
 
@@ -2004,6 +2045,25 @@ const CHARACTERS = {
 desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클릭+좌클릭 : 빙결 (${BALANCE.runef.rmb.iceDamage}) / 우클릭+우클릭 : 낙뢰 3타 (${BALANCE.runef.rmb.lightningDamage}×3)` },
       { key:'L-Shift', name:'바람마법', cost:0,
         desc:`전방으로 토네이도 생성. 적을 사거리 끝까지 밀어냄 (${BALANCE.runef.counter.damage})` },
+    ],
+  },
+
+  roon: {
+    id:        'roon',
+    name:      '로온',
+    color:     '#A5F9A6',
+    maxHealth: BALANCE.roon.hp,
+    speed:     BALANCE.roon.speed,
+    radius:    BALANCE.roon.radius,
+    statsText: [['체력',String(BALANCE.roon.hp)],['이동속도','빠름'],['스타일','빙결 제어형']],
+    desc:      '얼린 멜론으로 빙수 게이지를 채워 적을 얼리는 캐릭터',
+    skills: [
+      { key:'LMB', name:'얼린 멜론', cost:BALANCE.roon.lmb.cost,
+        desc:`얼린 멜론 2개 투척. 6회 적중 시 1초 빙결. (${BALANCE.roon.lmb.damage})` },
+      { key:'RMB', name:'빙수 지대', cost:BALANCE.roon.rmb.cost,
+        desc:`커다란 빙수 투척. 적중 시 빙수 지대 중앙으로 이동. 지대 안의 적은 빠져나가지 못하며 게이지가 빠르게 증가. (${BALANCE.roon.rmb.damage})` },
+      { key:'L-Shift', name:'급속 냉동', cost:0,
+        desc:`한기를 내보냄. 즉시 빙결 및 게이지 절반 충전. (${BALANCE.roon.counter.damage})` },
     ],
   },
 };
@@ -2688,6 +2748,13 @@ function onData(d) {
       addFx({...d.fx}); break;
     case 'devAlert':
       alert('상대방이 개발자 모드에 진입했습니다.'); break;
+    case 'roonSlush': // 빙수 게이지 수신
+      L._roonSlush = d.v;
+      break;
+    case 'roonZone': // 빙수지대 수신
+      if (!L._roonIncomingZones) L._roonIncomingZones=[];
+      L._roonIncomingZones.push({x:d.x,y:d.y,r:d.r,expiry:performance.now()+d.dur,lastTick:performance.now()});
+      break;
     case 'windPush':
       if (!L.burrowing && !L.dodging) {
         const _wpNx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x+d.vx));
@@ -7531,6 +7598,116 @@ const SKILLS = {
       }, BALANCE.counter.delay);
     },
   },
+  // ── 로온 ──────────────────────────────────────────────────
+  roon: {
+    // 빙수 게이지 증가 헬퍼
+    _addSlush(amt, isBot, bot) {
+      const B = BALANCE.roon.lmb;
+      if (isBot && bot) {
+        bot._slush = Math.min(B.slushMax, (bot._slush||0) + amt);
+        if (bot._slush >= B.slushMax) {
+          bot._slush = 0;
+          bot.stunEnd = performance.now() + B.freezeDur;
+        }
+      } else {
+        R._roonSlush = Math.min(B.slushMax, (R._roonSlush||0) + amt);
+        send({type:'roonSlush', v:R._roonSlush});
+        if (R._roonSlush >= B.slushMax) {
+          R._roonSlush = 0;
+          send({type:'roonSlush', v:0});
+          freezeRemote(B.freezeDur);
+        }
+      }
+    },
+
+    lmb(angle) {
+      const B = BALANCE.roon.lmb;
+      if (L.lmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      // 2연타: 첫 번째 탄 즉시, 두 번째 탄 짧은 딜레이
+      const _shoot = (dx, dy) => {
+        const b = {
+          id:uid(), x:L.x, y:L.y,
+          radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
+          dx, dy, damage:B.damage, maxRange:augMeleeRange(B.range), traveled:0,
+          isRoonMelon:true, color:'#A5F9A6',
+        };
+        applyPierceShot(b);
+        localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
+      };
+      // 1발 즉시
+      _shoot(Math.cos(angle), Math.sin(angle));
+      // 2발: 동일 방향
+      setTimeout(() => {
+        if (!gameOn) return;
+        _shoot(Math.cos(angle), Math.sin(angle));
+      }, 150);
+      L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
+    },
+
+    rmb(angle) {
+      const B = BALANCE.roon.rmb;
+      if (L.rmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      const b = {
+        id:uid(), x:L.x, y:L.y,
+        radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
+        dx:Math.cos(angle), dy:Math.sin(angle),
+        damage:B.damage, maxRange:augMeleeRange(B.range), traveled:0,
+        isRoonBlizzard:true, color:'#7aeeff',
+      };
+      localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
+      L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
+    },
+
+    counter(angle) {
+      const B = BALANCE.roon.counter;
+      if (!L.counterReady) return;
+      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
+      L.color = '#7aeeff'; send({type:'colorChange', color:'#7aeeff'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:B.range*0.6, maxR:B.range*0.6, dur:BALANCE.counter.delay/FRAME_MS, maxDur:BALANCE.counter.delay/FRAME_MS, col:'165,249,166'});
+      L._roonCounterActive = true;
+      L._attackPreview = {shapes:[{type:'sector', range:B.range, halfAngle:B.halfAngle}]};
+      const _tok = ++L._counterToken;
+      setTimeout(() => {
+        L._attackPreview = null; L._roonCounterActive = false;
+        if (!gameOn||L._counterToken!==_tok) return;
+        L.color = L.defaultColor; send({type:'colorChange', color:L.defaultColor});
+        // 부채꼴 판정 (발사 시점 마우스 방향)
+        const angle = Math.atan2(mouseY-L.y, mouseX-L.x);
+        let _hit = false;
+        const _check = (tx, ty, radius) => {
+          const d = Math.hypot(tx-L.x, ty-L.y);
+          if (d > B.range+radius) return false;
+          const a = Math.atan2(ty-L.y, tx-L.x);
+          return Math.abs(((a-angle)+Math.PI*3)%(Math.PI*2)-Math.PI) < B.halfAngle;
+        };
+        if (_trainingMode) {
+          for (const _tb of _trainingBots) {
+            if (!_tb.isAlive||_tb.hidden||!_check(_tb.x,_tb.y,_tb.radius)) continue;
+            _applyBotDamage(_tb, applyDmgAugs(B.damage));
+            _tb.stunEnd = performance.now() + B.freezeDur;
+            SKILLS.roon._addSlush(B.slushFill, true, _tb);
+            _hit = true;
+          }
+        } else {
+          if (_check(R.x, R.y, R.radius)) {
+            hitRemote(B.damage); freezeRemote(B.freezeDur);
+            SKILLS.roon._addSlush(B.slushFill, false, null);
+            _hit = true;
+          }
+          hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:B.halfAngle}, B.damage);
+        }
+        addFx({type:'swing', x:L.x, y:L.y, angle, range:B.range, halfAngle:B.halfAngle, dur:14, maxDur:14, col:'165,249,166'});
+        send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:B.range, halfAngle:B.halfAngle, dur:14, maxDur:14, col:'165,249,166'}});
+        if (_hit) {
+          addFx({type:'freeze', x:L.x, y:L.y, r:0, maxR:B.range*1.2, dur:12, maxDur:12});
+          send({type:'fx', fx:{type:'freeze', x:L.x, y:L.y, r:0, maxR:B.range*1.2, dur:12, maxDur:12}});
+        }
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
+    },
+  },
 };
 // ============================================================
 
@@ -8239,6 +8416,62 @@ function moveBullets(dt=1) {
       }
     } else {
       // 다즈빈 파동 구체: 관통 탄 — 틱 피해만, 충돌로 제거 안 함
+      // 로온 얼린 멜론: 적중 시 빙수 게이지
+      if (b.isRoonMelon) {
+        if (hitEnemy||rangeOut||oob||hitWall) {
+          if (hitEnemy) {
+            if (!_trainingMode) {
+              hitRemote(b.damage);
+              // 지대 내부면 추가 게이지
+              const _inZone = (L._roonZones||[]).some(z=>Math.hypot(R.x-z.x,R.y-z.y)<z.r);
+              SKILLS.roon._addSlush(_inZone?BALANCE.roon.rmb.slushInZone:1,false,null);
+              playHitSfx();
+            } else {
+              for(const _rb of _trainingBots) if(_rb.isAlive&&!_rb.hidden&&Math.hypot(_rb.x-b.x,_rb.y-b.y)<b.radius+_rb.radius) {
+                _applyBotDamage(_rb,applyDmgAugs(b.damage));
+                const _inZ=(L._roonZones||[]).some(z=>Math.hypot(_rb.x-z.x,_rb.y-z.y)<z.r);
+                SKILLS.roon._addSlush(_inZ?BALANCE.roon.rmb.slushInZone:1,true,_rb);
+                playHitSfx();
+              }
+            }
+          }
+          localBullets.splice(i,1);
+        }
+        continue;
+      }
+      // 로온 빙수 투사체: 적중 시 지대 중앙으로 끌고 가둠
+      if (b.isRoonBlizzard) {
+        if (hitEnemy||rangeOut||oob||hitWall) {
+          if (hitEnemy) {
+            const _rBz = BALANCE.roon.rmb;
+            const _zx = b.x, _zy = b.y;
+            if (!_trainingMode) {
+              hitRemote(b.damage);
+              // 내가 지대 중앙으로 이동
+              const _mvToX=Math.max(L.radius,Math.min(WORLD_W-L.radius,_zx));
+              const _mvToY=Math.max(L.radius,Math.min(WORLD_H-L.radius,_zy));
+              L.x=_mvToX; L.y=_mvToY; L.tx=_mvToX; L.ty=_mvToY;
+              // 빙수지대 생성
+              if (!L._roonZones) L._roonZones = [];
+              const _zone = {x:_zx, y:_zy, r:_rBz.zoneRadius, expiry:performance.now()+_rBz.zoneDur, lastTick:performance.now()};
+              L._roonZones.push(_zone);
+              send({type:'roonZone', x:_zx, y:_zy, r:_rBz.zoneRadius, dur:_rBz.zoneDur});
+              addFx({type:'roonBlizzardZone', x:_zx, y:_zy, r:_rBz.zoneRadius, dur:Math.round(_rBz.zoneDur/FRAME_MS), maxDur:Math.round(_rBz.zoneDur/FRAME_MS)});
+              send({type:'fx', fx:{type:'roonBlizzardZone', x:_zx, y:_zy, r:_rBz.zoneRadius, dur:Math.round(_rBz.zoneDur/FRAME_MS), maxDur:Math.round(_rBz.zoneDur/FRAME_MS)}});
+            } else {
+              for(const _rb of _trainingBots) if(_rb.isAlive&&!_rb.hidden&&Math.hypot(_rb.x-b.x,_rb.y-b.y)<b.radius+_rb.radius) {
+                _applyBotDamage(_rb,applyDmgAugs(b.damage));
+                if (!L._roonZones) L._roonZones=[];
+                L._roonZones.push({x:_zx,y:_zy,r:_rBz.zoneRadius,expiry:performance.now()+_rBz.zoneDur,lastTick:performance.now(),_bot:_rb});
+                addFx({type:'roonBlizzardZone',x:_zx,y:_zy,r:_rBz.zoneRadius,dur:Math.round(_rBz.zoneDur/FRAME_MS),maxDur:Math.round(_rBz.zoneDur/FRAME_MS)});
+              }
+            }
+            playHitSfx();
+          }
+          localBullets.splice(i,1);
+        }
+        continue;
+      }
       // 루네프 파이어볼
       if (b.isRunefFire) {
         if (rangeOut||oob||hitWall||hitEnemy) {
@@ -8435,6 +8668,15 @@ function draw() {
       ctx.fillStyle=`rgba(0,180,50,${a*0.2})`; ctx.fill();
       ctx.beginPath(); ctx.arc(f.x,f.y,(f.width||50)*0.55,0,Math.PI*2);
       ctx.strokeStyle=`rgba(100,255,120,${a*0.5})`; ctx.lineWidth=2; ctx.stroke();
+    } else if (f.type==='roonBlizzardZone') {
+      // 빙수지대 — 민트색 원형
+      const _rt = 1-f.dur/f.maxDur;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(122,238,255,${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(165,249,166,${a*0.8})`; ctx.lineWidth=3; ctx.stroke();
+      // 내부 링
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r*0.6, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(200,255,255,${a*0.35})`; ctx.lineWidth=1.5; ctx.stroke();
     } else if (f.type==='healPulse') {
       // 치유회피 — 초록 링
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, f.r), 0, Math.PI*2);
@@ -10089,6 +10331,14 @@ function draw() {
         if (isPierce) {
           ctx.strokeStyle = `rgba(200,110,140,${a*0.7})`; ctx.lineWidth = 1.5; ctx.stroke();
         }
+      } else if (bullet.isRoonMelon) {
+        ctx.beginPath(); ctx.arc(bullet.x,bullet.y,bullet.radius,0,Math.PI*2);
+        ctx.fillStyle=`rgba(165,249,166,${a})`; ctx.fill();
+        ctx.strokeStyle=`rgba(255,255,255,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
+      } else if (bullet.isRoonBlizzard) {
+        ctx.beginPath(); ctx.arc(bullet.x,bullet.y,bullet.radius,0,Math.PI*2);
+        ctx.fillStyle=`rgba(100,220,255,${a})`; ctx.fill();
+        ctx.strokeStyle=`rgba(200,255,255,${a*0.6})`; ctx.lineWidth=2; ctx.stroke();
       } else if (bullet.isRunefFire) {
         const _rftx=bullet.x-bullet.dx*20, _rfty=bullet.y-bullet.dy*20;
         const _rfg=ctx.createLinearGradient(bullet.x,bullet.y,_rftx,_rfty);
@@ -10322,6 +10572,17 @@ function draw() {
       R.x=_rRealX; R.y=_rRealY;
       if (_rInSmoke) ctx.restore();
     }
+  }
+  // 로온 빙수지대 렌더
+  const _allRoonZones = [...(L.charDef?.id==='roon'?L._roonZones||[]:[]), ...(L._roonIncomingZones||[])];
+  for (const _rz of _allRoonZones) {
+    if (performance.now()>=_rz.expiry) continue;
+    const _rza=Math.max(0,Math.min(1,(_rz.expiry-performance.now())/1000));
+    ctx.beginPath(); ctx.arc(_rz.x,_rz.y,_rz.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(122,238,255,${_rza*0.18})`; ctx.fill();
+    ctx.strokeStyle=`rgba(165,249,166,${_rza*0.6})`; ctx.lineWidth=2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(_rz.x,_rz.y,_rz.r*0.5,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(200,255,255,${_rza*0.3})`; ctx.lineWidth=1; ctx.stroke();
   }
   drawAttackPreview(L._attackPreview);
   // 소환수 시각 위치 임시 적용
@@ -10883,6 +11144,28 @@ function drawPlayer(p, label) {
     }
   }
 
+  // 로온 빙수 게이지 표시 (적 체력바 우측 — 상대 화면에서 R의 게이지)
+  if (p === R && (R._roonSlush||0) > 0) {
+    const _slushMax = BALANCE.roon.lmb.slushMax;
+    const _slushPct = (R._roonSlush||0) / _slushMax;
+    const _gx = p.x + p.radius + 6, _gy = p.y;
+    const _gh = 28, _gw = 6;
+    ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fillRect(_gx, _gy-_gh/2, _gw, _gh);
+    ctx.fillStyle='rgba(122,238,255,0.85)';
+    ctx.fillRect(_gx, _gy+_gh/2-_gh*_slushPct, _gw, _gh*_slushPct);
+    ctx.strokeStyle='rgba(200,255,255,0.7)'; ctx.lineWidth=1; ctx.strokeRect(_gx,_gy-_gh/2,_gw,_gh);
+  }
+  // 본인 화면에서 L의 게이지도 표시
+  if (p === L && (L._roonSlush||0) > 0) {
+    const _slushMax2 = BALANCE.roon.lmb.slushMax;
+    const _sp2 = (L._roonSlush||0) / _slushMax2;
+    const _gx2 = p.x + p.radius + 6, _gy2 = p.y;
+    const _gh2 = 28, _gw2 = 6;
+    ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fillRect(_gx2,_gy2-_gh2/2,_gw2,_gh2);
+    ctx.fillStyle='rgba(122,238,255,0.85)';
+    ctx.fillRect(_gx2,_gy2+_gh2/2-_gh2*_sp2,_gw2,_gh2*_sp2);
+    ctx.strokeStyle='rgba(200,255,255,0.7)'; ctx.lineWidth=1; ctx.strokeRect(_gx2,_gy2-_gh2/2,_gw2,_gh2);
+  }
   // 루네프 선딜레이 게이지
   if (p===L && L.charDef?.id==='runef' && L._runefRmbActive && L._runefRmbStart) {
     const _rPct = Math.min(1, (performance.now()-L._runefRmbStart)/BALANCE.runef.rmb.window);
@@ -11544,7 +11827,7 @@ function resetL() {
   L._prillZoneToken=0;
   L._dazPortals=[]; // 다즈빈 포탈 초기화
   L._yuiHistory=[]; L._yuiLastSample=0; // 유이 히스토리 초기화
-  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._runefRmbActive=false; L._runefShot1=false; L._runefNextSpell='fire'; clearTimeout(L._runefRmbTimer); clearTimeout(L._runefShot1Timer); L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._syaHitRevealEnd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0
+  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._roonSlush=0; L._roonZones=[]; L._roonIncomingZones=[]; R._roonSlush=0; L._runefRmbActive=false; L._runefShot1=false; L._runefNextSpell='fire'; clearTimeout(L._runefRmbTimer); clearTimeout(L._runefShot1Timer); L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._syaHitRevealEnd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0
   R._pelunaAnvil=null;
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
@@ -12250,6 +12533,78 @@ function loop() {
   }
 
   // 스야 은신 처리
+  // 로온 빙수 지대 처리 (내가 만든 존)
+  if (gameOn && L.charDef?.id==='roon' && L._roonZones) {
+    const _rnow = performance.now();
+    L._roonZones = L._roonZones.filter(z=>_rnow<z.expiry);
+    const _rB = BALANCE.roon.rmb;
+    for (const _rz of L._roonZones) {
+      if (_rz._bot) {
+        // 훈련장: 봇 가둠
+        const _bd = Math.hypot(_rz._bot.x-_rz.x, _rz._bot.y-_rz.y);
+        if (_bd > _rz.r - _rz._bot.radius) {
+          const _ba = Math.atan2(_rz._bot.y-_rz.y, _rz._bot.x-_rz.x);
+          _rz._bot.x = _rz.x+Math.cos(_ba)*(_rz.r-_rz._bot.radius);
+          _rz._bot.y = _rz.y+Math.sin(_ba)*(_rz.r-_rz._bot.radius);
+        }
+        if (_rnow-(_rz.lastTick||0)>_rB.tickInterval) { SKILLS.roon._addSlush(_rB.slushPerTick,true,_rz._bot); _rz.lastTick=_rnow; }
+      } else {
+        // 멀티: 상대 가둠 + 틱
+        const _rd = Math.hypot(R.tx-_rz.x, R.ty-_rz.y);
+        if (_rd > _rz.r-R.radius) {
+          const _ra = Math.atan2(R.ty-_rz.y, R.tx-_rz.x);
+          const _nx = _rz.x+Math.cos(_ra)*(_rz.r-R.radius);
+          const _ny = _rz.y+Math.sin(_ra)*(_rz.r-R.radius);
+          send({type:'pull', tx:_nx, ty:_ny, dur:80});
+          R.tx=_nx; R.ty=_ny;
+        }
+        if (_rnow-(_rz.lastTick||0)>_rB.tickInterval) { SKILLS.roon._addSlush(_rB.slushPerTick,false,null); _rz.lastTick=_rnow; }
+      }
+    }
+  }
+  // 상대 빙수지대(내가 받은) 처리 — 나를 가둠
+  if (gameOn && L._roonIncomingZones) {
+    const _rnow2 = performance.now();
+    L._roonIncomingZones = L._roonIncomingZones.filter(z=>_rnow2<z.expiry);
+    for (const _iz of L._roonIncomingZones) {
+      const _id = Math.hypot(L.x-_iz.x, L.y-_iz.y);
+      if (_id > _iz.r-L.radius) {
+        const _ia = Math.atan2(L.y-_iz.y, L.x-_iz.x);
+        L.x = _iz.x+Math.cos(_ia)*(_iz.r-L.radius);
+        L.y = _iz.y+Math.sin(_ia)*(_iz.r-L.radius);
+        L.tx = L.x; L.ty = L.y;
+      }
+    }
+  }
+  // 로온 빙수 지대 처리
+  if (gameOn && L.charDef?.id==='roon' && L._roonZones) {
+    const _rnow=performance.now(); L._roonZones=L._roonZones.filter(z=>_rnow<z.expiry);
+    const _rB=BALANCE.roon.rmb;
+    for (const _rz of L._roonZones) {
+      if (_rz._bot) {
+        const _bd=Math.hypot(_rz._bot.x-_rz.x,_rz._bot.y-_rz.y);
+        if (_bd>_rz.r-_rz._bot.radius){const _ba=Math.atan2(_rz._bot.y-_rz.y,_rz._bot.x-_rz.x);_rz._bot.x=_rz.x+Math.cos(_ba)*(_rz.r-_rz._bot.radius);_rz._bot.y=_rz.y+Math.sin(_ba)*(_rz.r-_rz._bot.radius);}
+        // 자동 게이지 없음 (slushPerTick=0)
+      } else {
+        const _rd=Math.hypot(R.tx-_rz.x,R.ty-_rz.y);
+        if (_rd>_rz.r-R.radius){const _ra=Math.atan2(R.ty-_rz.y,R.tx-_rz.x);const _nx=_rz.x+Math.cos(_ra)*(_rz.r-R.radius);const _ny=_rz.y+Math.sin(_ra)*(_rz.r-R.radius);send({type:'pull',tx:_nx,ty:_ny,dur:80});R.tx=_nx;R.ty=_ny;}
+        // 자동 게이지 없음 (slushPerTick=0)
+      }
+    }
+  }
+  if (gameOn && L._roonIncomingZones) {
+    const _rnow2=performance.now(); L._roonIncomingZones=L._roonIncomingZones.filter(z=>_rnow2<z.expiry);
+    for (const _iz of L._roonIncomingZones) {
+      const _id=Math.hypot(L.x-_iz.x,L.y-_iz.y);
+      if (_id>_iz.r-L.radius){const _ia=Math.atan2(L.y-_iz.y,L.x-_iz.x);L.x=_iz.x+Math.cos(_ia)*(_iz.r-L.radius);L.y=_iz.y+Math.sin(_ia)*(_iz.r-L.radius);L.tx=L.x;L.ty=L.y;}
+    }
+  }
+  // 로온 반격기 선딜레이 중 방향 갱신
+  if (gameOn && L.charDef?.id==='roon' && L._counterToken && L._roonCounterActive) {
+    const _rca = Math.atan2(mouseY-L.y, mouseX-L.x);
+    const _rcB = BALANCE.roon.counter;
+    L._attackPreview = {shapes:[{type:'sector', range:_rcB.range, halfAngle:_rcB.halfAngle, _angle:_rca}]};
+  }
   if (gameOn && L.charDef?.id==='runef' && L._runefRmbActive) {
     L._runefRmbAngle = getAngle();
     const Brf=BALANCE.runef.rmb, spell=L._runefNextSpell||'fire';
