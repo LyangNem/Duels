@@ -1517,7 +1517,7 @@ const BALANCE = {
     speed:  4.25,
     radius: 20,
     lmb: {
-      cost:       12,
+      cost:       30,
       damage:     15,
       radius:     14,
       speed:      13,
@@ -1529,7 +1529,7 @@ const BALANCE = {
       freezeDur:     1000,   // 빙결 시간 ms
     },
     rmb: {
-      cost:       50,
+      cost:       70,
       damage:     15,
       radius:     30,
       speed:      11,
@@ -2109,11 +2109,11 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     desc:      '얼린 멜론으로 빙수 게이지를 채워 적을 얼리는 캐릭터',
     skills: [
       { key:'LMB', name:'얼린 멜론', cost:BALANCE.roon.lmb.cost,
-        desc:`얼린 멜론 2개 투척. 6회 적중 시 1초 빙결. (${BALANCE.roon.lmb.damage})` },
+        desc:`얼린 멜론 2개 투척. ${BALANCE.roon.lmb.slushMax}회 적중 시 ${BALANCE.roon.lmb.freezeDur/1000}초 빙결. (${BALANCE.roon.lmb.damage})` },
       { key:'RMB', name:'빙수 지대', cost:BALANCE.roon.rmb.cost,
-        desc:`커다란 빙수 투척. 적중 시 빙수 지대 중앙으로 이동. 지대 안의 적은 빠져나가지 못하며 게이지가 빠르게 증가. (${BALANCE.roon.rmb.damage})` },
+        desc:`커다란 빙수 투척. 적중 시 지대 중앙으로 이동. 지대 안의 적은 빠져나가지 못하며 게이지 빠르게 증가. (${BALANCE.roon.rmb.damage})` },
       { key:'L-Shift', name:'급속 냉동', cost:0,
-        desc:`한기를 내보냄. 즉시 빙결 및 게이지 절반 충전. (${BALANCE.roon.counter.damage})` },
+        desc:`한기를 내보냄. 즉시 빙결 및 게이지 ${BALANCE.roon.counter.slushFill} 충전. (${BALANCE.roon.counter.damage})` },
     ],
   },
 
