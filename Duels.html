@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.28.0</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.28.2</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1520,9 +1520,9 @@ const BALANCE = {
       cost:       30,
       damage:     15,
       radius:     14,
-      speed:      13,
+      speed:      17,
       range:      400,
-      cd:         380,       // 2연타 쿨
+      cd:         500,       // 2연타 쿨
       shotsPerCombo: 2,      // 연속 2발
       slushPerHit:   1,      // 적중당 빙수 게이지 증가
       slushMax:      6,      // 최대 6회
@@ -1534,10 +1534,10 @@ const BALANCE = {
       radius:     30,
       speed:      11,
       range:      550,
-      zoneDur:    5000,      // 빙수지대 지속
-      zoneRadius: 200,       // 지대 반경
-      slushPerTick: 0,       // 지대 내 자동 게이지 비활성
-      slushInZone:  2,       // 지대 내 평타 적중 추가 게이지
+      zoneDur:    5000,
+      zoneRadius: 200,
+      slushPerTick: 0,
+      slushInZone:  2,
       tickInterval: 600,
       cd:         4500,
     },
@@ -1587,7 +1587,7 @@ const BALANCE = {
       cost:   0,
       damage: 55,
       radius: 7,
-      speed:  28,
+      speed:  38,
       range:  1200,
       cd:     400,
     },
@@ -2092,7 +2092,7 @@ const CHARACTERS = {
       { key:'LMB', name:'마법탄', cost:BALANCE.runef.lmb.cost,
         desc:`최대 2회 연사 가능. 이 경우 다음 마법탄의 피해 증가. (${BALANCE.runef.lmb.damage}/${BALANCE.runef.lmb.damage2})` },
       { key:'RMB', name:'속성마법', cost:BALANCE.runef.rmb.cost,
-desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클릭+좌클릭 : 빙결 (${BALANCE.runef.rmb.iceDamage}) / 우클릭+우클릭 : 낙뢰 3타 (${BALANCE.runef.rmb.lightningDamage}×3)` },
+desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클릭+좌클릭 : 빙결 (${BALANCE.runef.rmb.iceDamage}) / 우클릭+우클릭 : 낙뢰 3타 (${BALANCE.runef.rmb.lightningDamage})` },
       { key:'L-Shift', name:'바람마법', cost:0,
         desc:`전방으로 토네이도 생성. 적을 사거리 끝까지 밀어냄 (${BALANCE.runef.counter.damage})` },
     ],
@@ -2357,7 +2357,7 @@ const AUGMENTS = [
   { id:'swift_regen', name:'배속',         emoji:'🔋', rarity:'common', desc:'스테미나 회복 속도 +20%' },
   { id:'heal_dodge',  name:'치유회피',     emoji:'🍀', rarity:'common',   desc:'저스트 회피 시 체력 20% 회복' },
   { id:'thorn_armor', name:'가시갑옷',     emoji:'🌵', rarity:'common',   desc:'적이 가까이 오면 피해를 줍니다' },
-  { id:'pierce_shot', name:'관통샷',       emoji:'🏹', rarity:'common',   desc:'3초마다 다음 탄환 공격이 벽을 관통합니다' },
+  { id:'pierce_shot', name:'관통샷',       emoji:'🏹', rarity:'common',   desc:'3초마다 다음 평타가 벽을 관통합니다' },
   { id:'start_boost', name:'스타트 부스터', emoji:'⭐', rarity:'hero',   desc:'라운드 시작 8초간 이동속도 +40%, 피해량 +30%' },
   { id:'guard_dodge', name:'가드 회피',    emoji:'🔰', rarity:'rare',   desc:'회피 도중 받는 피해 40% 감소' },
 ];
@@ -7498,6 +7498,7 @@ const SKILLS = {
         damage:dmg, maxRange:B.range, traveled:0, color:'#a070ff',
       };
       applyPierceShot(b); localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
+      L._lmbAttacking = true; applyStunShot(); L._lmbAttacking = false;
       L.lastAttackTime = performance.now();
       if (!L._runefShot1) {
         L._runefShot1 = true; L.lmbCooldown = B.cd1;
@@ -7714,6 +7715,7 @@ const SKILLS = {
       // 2발: 동일 방향
       setTimeout(() => {
         if (!gameOn) return;
+        L._pierceShotReady = getAugCount('pierce_shot')>0 && !L._pierceShotUsed; // 관통샷 재적용
         _shoot(Math.cos(angle), Math.sin(angle));
       }, 150);
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
@@ -7728,10 +7730,11 @@ const SKILLS = {
         radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
         dx:Math.cos(angle), dy:Math.sin(angle),
         damage:B.damage, maxRange:augMeleeRange(B.range), traveled:0,
-        isRoonBlizzard:true, color:'#7aeeff',
+        isRoonBlizzard:true, color:'#7aeeff', pierceWalls:true,
       };
       localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
-      L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
+      L.rmbCooldown = 99999; // 탄환 처리에서 적중/미적중 쿨 결정
+      L.lastAttackTime = performance.now();
     },
 
     counter(angle) {
@@ -8649,6 +8652,8 @@ function moveBullets(dt=1) {
           if (hitEnemy) {
             const _rBz = BALANCE.roon.rmb;
             const _zx = b.x, _zy = b.y;
+            // 적중 시 쿨다운: zoneDur + 1초
+            L.rmbCooldown = _rBz.zoneDur + 1000;
             if (!_trainingMode) {
               hitRemote(b.damage);
               // 내가 지대 중앙으로 이동
@@ -8672,6 +8677,7 @@ function moveBullets(dt=1) {
             }
             playHitSfx();
           }
+          if (!hitEnemy) L.rmbCooldown = 1000; // 미적중 시 1초 쿨
           localBullets.splice(i,1);
         }
         continue;
@@ -12848,6 +12854,7 @@ function loop() {
   if (gameOn && L._roonIncomingZones) {
     const _rnow2=performance.now(); L._roonIncomingZones=L._roonIncomingZones.filter(z=>_rnow2<z.expiry);
     for (const _iz of L._roonIncomingZones) {
+      if (L.dodging || L.burrowing) continue; // 저스트 회피/잠수 중엔 갇힘 면역
       const _id=Math.hypot(L.x-_iz.x,L.y-_iz.y);
       if (_id>_iz.r-L.radius){const _ia=Math.atan2(L.y-_iz.y,L.x-_iz.x);L.x=_iz.x+Math.cos(_ia)*(_iz.r-L.radius);L.y=_iz.y+Math.sin(_ia)*(_iz.r-L.radius);L.tx=L.x;L.ty=L.y;}
     }
