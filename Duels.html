@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.28.3</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.28.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -865,7 +865,7 @@ const BALANCE = {
       cd:         380,
     },
     rmb: {
-      cost:           100,
+      cost:           30,
       predelay:       400,    // 선딜레이 (ms)
       duration:       3000,
       reduction:      0.5,
@@ -1532,7 +1532,7 @@ const BALANCE = {
       cost:       70,
       damage:     15,
       radius:     30,
-      speed:      17,
+      speed:      11,
       range:      550,
       zoneDur:    5000,
       zoneRadius: 200,
@@ -1580,7 +1580,7 @@ const BALANCE = {
       speed:  15,
       range:  200,
       spread: 0.35,      // 퍼짐 각도
-      cd:     450,
+      cd:     600,
     },
     // 저격총 (반격기)
     sniper: {
@@ -2092,7 +2092,7 @@ const CHARACTERS = {
       { key:'LMB', name:'마법탄', cost:BALANCE.runef.lmb.cost,
         desc:`최대 2회 연사 가능. 이 경우 다음 마법탄의 피해 증가. (${BALANCE.runef.lmb.damage}/${BALANCE.runef.lmb.damage2})` },
       { key:'RMB', name:'속성마법', cost:BALANCE.runef.rmb.cost,
-desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클릭+좌클릭 : 빙결 (${BALANCE.runef.rmb.iceDamage}) / 우클릭+우클릭 : 낙뢰 3타 (${BALANCE.runef.rmb.lightningDamage})` },
+desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클릭+좌클릭 : 빙결 (${BALANCE.runef.rmb.iceDamage}) / 우클릭+우클릭 : 낙뢰 3타 (${BALANCE.runef.rmb.lightningDamage}×3)` },
       { key:'L-Shift', name:'바람마법', cost:0,
         desc:`전방으로 토네이도 생성. 적을 사거리 끝까지 밀어냄 (${BALANCE.runef.counter.damage})` },
     ],
@@ -2127,9 +2127,9 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     statsText: [['체력',String(BALANCE.intu.hp)],['이동속도','빠름'],['스타일','무기전환형 원거리 딜러']],
     desc:      '권총·산탄총·저격총을 상황에 맞게 사용하는 캐릭터',
     skills: [
-      { key:'LMB', name:'총기', cost:1,
+      { key:'LMB', name:'총기', cost:`${BALANCE.intu.pistol.cost}/${BALANCE.intu.shotgun.cost}`,
         desc:`권총(${BALANCE.intu.pistol.damage}) / 산탄총(${BALANCE.intu.shotgun.damage}). 탄창 ${BALANCE.intu.magMax}발, 소진 시 ${BALANCE.intu.reloadTime/1000}초 재장전` },
-      { key:'RMB', name:'무기 스왑', cost:0,
+      { key:'RMB', name:'무기 스왑', cost:`${BALANCE.intu.pistol.cost}/${BALANCE.intu.shotgun.cost}`,
         desc:`권총↔산탄총 전환 후 즉시 발사` },
       { key:'L-Shift', name:'저격총', cost:0,
         desc:`관통 저격. 벽과 적 관통 (${BALANCE.intu.sniper.damage})` },
@@ -5089,6 +5089,8 @@ const SKILLS = {
       playShootSfx();
       const signs = L._veleuPhase === 0 ? [1, -1, 1] : [-1, 1, -1];
       L._veleuPhase = 1 - L._veleuPhase;
+      const _veleuPierce = getAugCount('pierce_shot')>0 && L._pierceShotReady;
+      if (_veleuPierce) { L._pierceShotReady=false; L._pierceShotCd=performance.now()+3000; L._pierceShotUsed=true; }
       signs.forEach((sign, idx) => {
         setTimeout(() => {
           if (!gameOn) return;
@@ -5099,7 +5101,8 @@ const SKILLS = {
           const b = {id:uid(), x:ox, y:oy, radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
                      dx:Math.cos(a2), dy:Math.sin(a2),
                      damage:B.damage, maxRange:B.range, traveled:0};
-          applyPierceShot(b); localBullets.push(b); send({type:'bullet', ...b});
+          if (_veleuPierce) { b.pierceWalls=true; b._isPierceShot=true; }
+          else applyPierceShot(b); localBullets.push(b); send({type:'bullet', ...b});
         }, idx * B.fireDelay);
       });
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
@@ -5740,6 +5743,8 @@ const SKILLS = {
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
       playShootSfx();
       // 2발씩 2회 발사
+      const _eraPierce = getAugCount('pierce_shot')>0 && L._pierceShotReady;
+      if (_eraPierce) { L._pierceShotReady=false; L._pierceShotCd=performance.now()+3000; L._pierceShotUsed=true; }
       const firePair = (delay) => {
         setTimeout(() => {
           if (!gameOn) return;
@@ -5752,7 +5757,7 @@ const SKILLS = {
                         dx:Math.cos(a), dy:Math.sin(a),
                         damage:B.damage, maxRange:B.range, traveled:0,
                         iserapabiLaser:true };
-            applyPierceShot(b); localBullets.push(b); send({type:'bullet', ...b});
+            if (_eraPierce) { b.pierceWalls=true; b._isPierceShot=true; } else applyPierceShot(b); localBullets.push(b); send({type:'bullet', ...b});
           });
         }, delay);
       };
@@ -5796,7 +5801,7 @@ const SKILLS = {
 
       // 일반: 버티기
       if (L.rmbCooldown > 0 || L._erapabiPredelay) return;
-      if (!useStam(30)) return;
+      if (!useStam(B.rmb.cost)) return;
       L._erapabiPredelay = true;
       L.rmbCooldown = B.rmb.cd;
       L.lastAttackTime = now;
@@ -7497,8 +7502,8 @@ const SKILLS = {
         speed:augBulletSpeed(B.speed), dx:Math.cos(angle), dy:Math.sin(angle),
         damage:dmg, maxRange:B.range, traveled:0, color:'#a070ff',
       };
+      b._lmbAttack = true; // 스턴샷: 적중 시 처리
       applyPierceShot(b); localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
-      L._lmbAttacking = true; applyStunShot(); L._lmbAttacking = false;
       L.lastAttackTime = performance.now();
       if (!L._runefShot1) {
         L._runefShot1 = true; L.lmbCooldown = B.cd1;
@@ -7710,12 +7715,13 @@ const SKILLS = {
         applyPierceShot(b);
         localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
       };
+      const _roonPierce = getAugCount('pierce_shot')>0 && L._pierceShotReady;
       // 1발 즉시
       _shoot(Math.cos(angle), Math.sin(angle));
-      // 2발: 동일 방향
+      // 2발: 동일 방향 (pierce 동일 적용)
       setTimeout(() => {
         if (!gameOn) return;
-        L._pierceShotReady = getAugCount('pierce_shot')>0 && !L._pierceShotUsed; // 관통샷 재적용
+        if (_roonPierce) { L._pierceShotReady=true; } // 2번째 탄에도 pierce 재적용
         _shoot(Math.cos(angle), Math.sin(angle));
       }, 150);
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
@@ -7724,6 +7730,7 @@ const SKILLS = {
     rmb(angle) {
       const B = BALANCE.roon.rmb;
       if (L.rmbCooldown > 0) return;
+      if (L._roonBallInFlight) return; // 탄환 비행 중엔 재발사 불가
       if (!useStam(B.cost)) return;
       const b = {
         id:uid(), x:L.x, y:L.y,
@@ -7732,8 +7739,9 @@ const SKILLS = {
         damage:B.damage, maxRange:augMeleeRange(B.range), traveled:0,
         isRoonBlizzard:true, color:'#7aeeff', pierceWalls:true,
       };
+      L._roonBallInFlight = true;
       localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
-      L.rmbCooldown = 99999; // 탄환 처리에서 적중/미적중 쿨 결정
+      L.rmbCooldown = 200;
       L.lastAttackTime = performance.now();
     },
 
@@ -8648,8 +8656,11 @@ function moveBullets(dt=1) {
       }
       // 로온 빙수 투사체: 적중 시 지대 중앙으로 끌고 가둠
       if (b.isRoonBlizzard) {
-        if (hitEnemy||rangeOut||oob||hitWall) {
-          if (hitEnemy) {
+        // 훈련장에서 봇 적중도 hitEnemy로 처리
+
+        const _hitEnemyEff = hitEnemy || (_trainingMode && _trainingBots.some(_rtb=>_rtb.isAlive&&!_rtb.hidden&&Math.hypot(_rtb.x-b.x,_rtb.y-b.y)<b.radius+_rtb.radius));
+        if (_hitEnemyEff||rangeOut||oob||hitWall) {
+          if (_hitEnemyEff) {
             const _rBz = BALANCE.roon.rmb;
             const _zx = b.x, _zy = b.y;
             // 적중 시 쿨다운: zoneDur + 1초
@@ -8677,7 +8688,8 @@ function moveBullets(dt=1) {
             }
             playHitSfx();
           }
-          if (!hitEnemy) L.rmbCooldown = 1000; // 미적중 시 1초 쿨
+          if (!_hitEnemyEff) L.rmbCooldown = 1000;
+          L._roonBallInFlight = false;
           localBullets.splice(i,1);
         }
         continue;
@@ -8720,6 +8732,7 @@ function moveBullets(dt=1) {
           if (!b._sniperHit) { b._sniperHit=true; hitRemote(b.damage); knockbackRemote(BALANCE.intu.counter.knockbackPower); playHitSfx(); }
           continue; // 제거 안 함
         }
+        if (b._lmbAttack) { L._lmbAttacking=true; applyStunShot(); L._lmbAttacking=false; }
         hitRemote(b.damage);
         if (b._kbRef && !b._kbRef.fired) { b._kbRef.fired=true; knockbackRemote(b._kbRef.power); }
         if (b._herBurst && b._herSlowDur) {
@@ -11629,7 +11642,7 @@ function startBetweenRound(iWon) {
     function weightedAugPick(pool, exclude) {
       const _noRepeat = ['fortress','last_stand','pierce_shot'];
       const avail = pool.filter(a => !exclude.includes(a.id) &&
-        !(_noRepeat.includes(a.id) && matchState.localAugments.includes(a.id)));
+        !(_noRepeat.includes(a.id) && (matchState.localAugments||[]).includes(a.id)));
       if (!avail.length) return pool[Math.floor(Math.random()*pool.length)];
       const total = avail.reduce((s, a) => s + RARITY_WEIGHT[a.rarity], 0);
       let r = Math.random() * total;
@@ -12082,7 +12095,7 @@ function resetL() {
   L._prillZoneToken=0;
   L._dazPortals=[]; // 다즈빈 포탈 초기화
   L._yuiHistory=[]; L._yuiLastSample=0; // 유이 히스토리 초기화
-  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._intuAmmo=12; L._intuWeapon='pistol'; L._intuReloading=false; L._intuLastSync=''; L._intuReloadEnd=0; L._roonSlush=0; L._roonZones=[]; L._roonIncomingZones=[]; R._roonSlush=0; L._runefRmbActive=false; L._runefShot1=false; L._runefNextSpell='fire'; clearTimeout(L._runefRmbTimer); clearTimeout(L._runefShot1Timer); L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._syaHitRevealEnd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0
+  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._intuAmmo=12; L._intuWeapon='pistol'; L._intuReloading=false; L._intuLastSync=''; L._intuReloadEnd=0; L._roonSlush=0; L._roonZones=[]; L._roonIncomingZones=[]; L._roonBallInFlight=false; R._roonSlush=0; L._runefRmbActive=false; L._runefShot1=false; L._runefNextSpell='fire'; clearTimeout(L._runefRmbTimer); clearTimeout(L._runefShot1Timer); L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._syaHitRevealEnd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0
   R._pelunaAnvil=null;
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
@@ -12810,10 +12823,10 @@ function loop() {
       } else {
         // 멀티: 상대 가둠 + 틱
         const _rd = Math.hypot(R.tx-_rz.x, R.ty-_rz.y);
-        if (_rd > _rz.r-R.radius) {
+        if (_rd > _rz.r-R.radius-4) { // 4px 여유로 가장자리 고착 방지
           const _ra = Math.atan2(R.ty-_rz.y, R.tx-_rz.x);
-          const _nx = _rz.x+Math.cos(_ra)*(_rz.r-R.radius);
-          const _ny = _rz.y+Math.sin(_ra)*(_rz.r-R.radius);
+          const _nx = _rz.x+Math.cos(_ra)*(_rz.r-R.radius-6);
+          const _ny = _rz.y+Math.sin(_ra)*(_rz.r-R.radius-6);
           send({type:'pull', tx:_nx, ty:_ny, dur:80});
           R.tx=_nx; R.ty=_ny;
         }
