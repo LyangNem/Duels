@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.0</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -743,8 +743,8 @@ const BALANCE = {
     speed:  4.5,
     radius: 20,
     lmb: {
-      cost:           6,
-      damage:         10,
+      cost:           4,
+      damage:         12,
       speed:          44,
       radius:         9,
       range:          600,
@@ -753,7 +753,7 @@ const BALANCE = {
       knockbackPower: 180,   // 넉백 세기 (근접 시만)
     },
     rmb: {
-      cost:           40,
+      cost:           30,
       predelay:       200,
       dur1:           7000,
       dur2:           7500,
@@ -768,7 +768,7 @@ const BALANCE = {
       spread:    Math.PI * 0.55,
       speed:     24,
       radius:    9,
-      damage:    10,
+      damage:    14,
       range:     550,
       fireDelay: 55,
       knockbackPower: 420,
@@ -1599,6 +1599,8 @@ const BALANCE = {
     },
     rmb: {
       cost:       50,
+      damage:     0,       // 투사체 자체 피해 (지대 도착 시)
+      tickDamage: 10,      // 영역 내 초당 피해
       shotSpeed:  18,      // 덩굴 투사체 속도
       shotRange:  550,     // 투사체 최대 사거리
       zoneRadius: 180,
@@ -2191,7 +2193,7 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     desc:      '권총·산탄총·저격총을 상황에 맞게 사용하는 캐릭터',
     skills: [
       { key:'LMB', name:'총기', cost:`${BALANCE.intu.pistol.cost}/${BALANCE.intu.shotgun.cost}`,
-        desc:`권총(${BALANCE.intu.pistol.damage}) / 산탄총(${BALANCE.intu.shotgun.damage}). 탄창 ${BALANCE.intu.magMax}발, 소진 시 ${BALANCE.intu.reloadTime/1000}초 재장전` },
+        desc:`권총(${BALANCE.intu.pistol.damage}) / 산탄총(발당 ${BALANCE.intu.shotgun.damage}). 탄창 ${BALANCE.intu.magMax}발, 소진 시 ${BALANCE.intu.reloadTime/1000}초 재장전` },
       { key:'RMB', name:'무기 스왑', cost:`${BALANCE.intu.pistol.cost}/${BALANCE.intu.shotgun.cost}`,
         desc:`권총↔산탄총 전환 후 즉시 발사` },
       { key:'L-Shift', name:'저격총', cost:0,
@@ -2218,7 +2220,7 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
   tadta: {
     id:        'tadta',
     name:      '타다타',
-    color:     '#002e08',
+    color:     '#205228',
     maxHealth: BALANCE.tadta.hp,
     speed:     BALANCE.tadta.speed,
     radius:    BALANCE.tadta.radius,
@@ -2228,9 +2230,9 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
       { key:'LMB',     name:'덩굴 씨앗', cost:BALANCE.tadta.lmb.cost,
         desc:`덩굴 씨앗 9발 연사 (발당 ${BALANCE.tadta.lmb.damage})` },
       { key:'RMB',     name:'덩굴 지대', cost:BALANCE.tadta.rmb.cost,
-        desc:`전방에 덩굴 지대 생성. 적을 감속시키며, 평타로 지대 위 적 타격 시 ${BALANCE.tadta.rmb.bindDur/1000}초 속박` },
+        desc:`덩굴 지대 생성. 적을 감속시키며, 지대 위 적 타격 시 ${BALANCE.tadta.rmb.bindDur/1000}초 속박 (${BALANCE.tadta.rmb.tickDamage})` },
       { key:'L-Shift', name:'덩굴 묶기', cost:0,
-        desc:`덩굴을 크게 2회 휘둘러 피해. 1타 감속, 2타 감속된 적 적중 시 ${BALANCE.tadta.counter.bindDur/1000}초 속박 (타당 ${BALANCE.tadta.counter.damage})` },
+        desc:`덩굴을 크게 2회 휘둘러 피해. 1타 감속, 2타 감속된 적 타격 시 ${BALANCE.tadta.counter.bindDur/1000}초 속박 (타당 ${BALANCE.tadta.counter.damage})` },
     ],
   },
 };
@@ -2454,8 +2456,8 @@ const AUGMENTS = [
   { id:'ration',      name:'비상식량',     emoji:'🍖', rarity:'hero',   desc:'HP 50% 이하 시 최대체력의 10%씩 7회 회복' },
   { id:'swift_regen', name:'배속',         emoji:'🔋', rarity:'common', desc:'스테미나 회복 속도 +20%' },
   { id:'heal_dodge',  name:'치유회피',     emoji:'🍀', rarity:'common',   desc:'저스트 회피 시 체력 20% 회복' },
-  { id:'thorn_armor', name:'가시갑옷',     emoji:'🌵', rarity:'common',   desc:'적이 가까이 오면 피해를 줍니다' },
-  { id:'pierce_shot', name:'관통샷',       emoji:'🏹', rarity:'common',   desc:'3초마다 다음 평타가 벽을 관통합니다' },
+  { id:'thorn_armor', name:'가시갑옷',     emoji:'🌵', rarity:'common',   desc:'피해를 받을 시 피해량의 30%를 주변에 반사' },
+  { id:'pierce_shot', name:'관통샷',       emoji:'🏹', rarity:'common',   desc:'3초마다 다음 평타가 벽을 관통' },
   { id:'start_boost', name:'스타트 부스터', emoji:'⭐', rarity:'hero',   desc:'라운드 시작 8초간 이동속도 +40%, 피해량 +30%' },
   { id:'guard_dodge', name:'가드 회피',    emoji:'🔰', rarity:'rare',   desc:'회피 도중 받는 피해 40% 감소' },
 ];
@@ -2854,7 +2856,9 @@ function onData(d) {
     case 'bullet':
       peerBullets.push({...d}); break;
     case 'hitMe':
-      receiveHit(d.damage); break;
+      if (d.fromThorn) { L._suppressThorn = true; receiveHit(d.damage); L._suppressThorn = false; }
+      else receiveHit(d.damage);
+      break;
     case 'dazWaveTick':
       // 파동 구체 틱 피해: 회피 중이면 저스트닷지, 아니면 피해
       if (gameOn && !L.burrowing) {
@@ -3652,6 +3656,35 @@ function receiveHit(dmg) {
     for (const pm of peerMinions) send({type:'minionHit', id:pm.id, damage:0, cc:{knockbackPower:700, knockbackAngle:Math.atan2(pm.y-L.y, pm.x-L.x)}});
   }
   L.health = Math.max(0, L.health - dmg);
+  // 가시갑옷: 피해 받을 시 피해량의 30% × 스택 수를 주변에 반사
+  const _thornCount = getAugCount('thorn_armor');
+  if (_thornCount > 0 && !L._suppressThorn) {
+    const _thornReflect = Math.round(dmg * 0.30 * _thornCount);
+    const _thornRange = 102;  // 120 * 0.85
+    if (_thornReflect > 0) {
+      if (_trainingMode) {
+        for (const _tb of _trainingBots) {
+          if (_tb.hidden || !_tb.isAlive) continue;
+          if (Math.hypot(_tb.x-L.x, _tb.y-L.y) < _thornRange+_tb.radius)
+            _applyBotDamage(_tb, _thornReflect);
+        }
+      } else {
+        // fromThorn 플래그로 가시갑옷 체인 방지
+        if (R.radius > 0 && Math.hypot(R.x-L.x, R.y-L.y) < _thornRange+R.radius) {
+          R.health = Math.max(0, R.health - _thornReflect);
+          send({type:'hitMe', damage:_thornReflect, fromThorn:true});
+          _addDmgNum('dealt', Math.round(_thornReflect), R.x, R.y-R.radius-10);
+          addShake(Math.min(4+_thornReflect*0.12,10), 8);
+          playHitSfx();
+        }
+      }
+      // 캐릭터 색으로 FX
+      const _thornHex = (L.charDef?.color || L.defaultColor || '#ffffff').replace('#','');
+      const _thornCol = `${parseInt(_thornHex.slice(0,2),16)},${parseInt(_thornHex.slice(2,4),16)},${parseInt(_thornHex.slice(4,6),16)}`;
+      addFx({type:'aoe', x:L.x, y:L.y, r:_thornRange, col:_thornCol, dur:10, maxDur:10});
+      send({type:'fx', fx:{type:'aoe', x:L.x, y:L.y, r:_thornRange, col:_thornCol, dur:10, maxDur:10}});
+    }
+  }
   // 버서커: 피해 입을 때 스테미나 회복 (4피해 : 1스테미나, 중첩당 +1)
   const bersCount = getAugCount('berserker');
   if (bersCount > 0) {
@@ -13616,7 +13649,7 @@ function loop() {
     if (now - L._tadtaVineTick >= 1000) {
       L._tadtaVineTick = now;
       if (Math.hypot(R.x - L._tadtaVineZone.x, R.y - L._tadtaVineZone.y) < L._tadtaVineZone.r + R.radius) {
-        hitRemote(10);
+        hitRemote(BALANCE.tadta.rmb.tickDamage);
       }
     }
   }
@@ -14095,26 +14128,8 @@ function loop() {
   }
 
   // 스야 은신 처리
-  // 가시갑옷: 근접 시 적에게 피해 (0.5초당 10, 중첩당 +10)
-  if (gameOn && getAugCount('thorn_armor') > 0) {
-    const _thornCount = getAugCount('thorn_armor');
-    const _thornDmg = 10 * _thornCount;
-    const _thornRange = 60;
-    if (!L._thornLastTick || now - L._thornLastTick >= 500) {
-      if (_trainingMode) {
-        for (const _tb of _trainingBots) {
-          if (_tb.hidden || !_tb.isAlive) continue;
-          if (Math.hypot(_tb.x-L.x, _tb.y-L.y) < _thornRange+_tb.radius)
-            _applyBotDamage(_tb, _thornDmg);
-        }
-      } else {
-        if (Math.hypot(R.x-L.x, R.y-L.y) < _thornRange+R.radius) {
-          hitRemote(_thornDmg);
-        }
-      }
-      L._thornLastTick = now;
-    }
-  }
+  // 가시갑옷: 피해를 받을 시 피해량의 30%를 주변에 반사 (loop에서 반사 FX 처리)
+  // 실제 반사 피해는 receiveHit에서 처리됨
 
   // 파비 보호막 만료 체크
   if (L.charDef?.id==='erapabi' && L._erapabiFortify && L._erapabiFortifyExpiry && performance.now() >= L._erapabiFortifyExpiry) {
