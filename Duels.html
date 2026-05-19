@@ -1590,6 +1590,7 @@ const BALANCE = {
     lmb: {
       cost:       40,      // 스테미나 (전체 버스트)
       damage:     5,       // 발당 피해
+      shotCount:  9,       // 발사 수
       spread:     0.17,    // 좌우 확산 각도
       fireDelay:  50,      // ms 발사 간격
       radius:     7,
@@ -2228,9 +2229,9 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     desc:      '타락한 덩굴의 정령에게 잠식당한 캐릭터',
     skills: [
       { key:'LMB',     name:'덩굴 씨앗', cost:BALANCE.tadta.lmb.cost,
-        desc:`덩굴 씨앗 9발 연사 (발당 ${BALANCE.tadta.lmb.damage})` },
+        desc:`덩굴 씨앗 ${BALANCE.tadta.lmb.shotCount}발 연사 (발당 ${BALANCE.tadta.lmb.damage}). 덩굴 지대 위 적중 시 ${BALANCE.tadta.rmb.bindDur/1000}초 속박` },
       { key:'RMB',     name:'덩굴 지대', cost:BALANCE.tadta.rmb.cost,
-        desc:`덩굴 지대 생성. 적을 감속시키며, 지대 위 적 타격 시 ${BALANCE.tadta.rmb.bindDur/1000}초 속박 (${BALANCE.tadta.rmb.tickDamage})` },
+        desc:`덩굴 지대 생성. 초당 ${BALANCE.tadta.rmb.tickDamage} 피해 및 감속. 지대 위 적 타격 시 ${BALANCE.tadta.rmb.bindDur/1000}초 속박` },
       { key:'L-Shift', name:'덩굴 묶기', cost:0,
         desc:`덩굴을 크게 2회 휘둘러 피해. 1타 감속, 2타 감속된 적 타격 시 ${BALANCE.tadta.counter.bindDur/1000}초 속박 (타당 ${BALANCE.tadta.counter.damage})` },
     ],
@@ -8391,10 +8392,10 @@ const SKILLS = {
       const B = BALANCE.tadta.lmb;
       if (L.lmbCooldown > 0) return;
       if (!useStam(B.cost)) return;
-      // 중앙 좌 중앙 우 중앙 좌 중앙 우 중앙 순서 (9발) — 발사 방향 고정
-      const _lockedAngle = angle; // 발사 시작 시 각도 고정 (마우스 이동 무시)
+      // 중앙 좌 중앙 우 중앙 좌 중앙 우 중앙 순서 — 발사 방향 고정
+      const _lockedAngle = angle;
       const pattern = [0, -1, 0, 1, 0, -1, 0, 1, 0];
-      for (let i = 0; i < 9; i++) {
+      for (let i = 0; i < B.shotCount; i++) {
         setTimeout(() => {
           if (!gameOn) return;
           const fireAngle = _lockedAngle + pattern[i] * B.spread;
