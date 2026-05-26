@@ -2543,12 +2543,12 @@ const R = {
 // hitCtx / hitCtxAll 등 판정 함수는 내부적으로 Rs()를 순회.
 // 상대 소환수도 R과 동일한 판정 경로를 따름.
 function Rs() {
-  // 훈련장: 살아있는 봇 반환 (R에 가장 가까운 봇이 R로 동기화됨)
-  if (_trainingMode) {
-    return _trainingBots.filter(b => b.isAlive && !b.hidden);
-  }
   const targets = [];
   if (!R.burrowing && R.radius > 0) targets.push(R);
+  // 훈련장 공격봇도 타격 가능
+  if (_trainingMode) {
+    for (const b of _trainingBots) { if (b.isAlive && !b.hidden) targets.push(b); }
+  }
   for (const pm of peerMinions) targets.push(pm);
   return targets;
 }
@@ -2676,7 +2676,27 @@ let localReady = false, peerReady = false, peerCharId = null;
 let _stateInterval = null; // 상태 동기화 인터벌 ID
 let uidN = 0;
 const uid  = () => `${Date.now()}_${uidN++}`;
-const send = d => { try { if (conn?.open) conn.send(d); } catch(e){} };
+const _netSend = d => { try { if (conn?.open) conn.send(d); } catch(e){} };
+function send(d) {
+  if (_trainingMode) {
+    switch(d.type) {
+      case 'hitMe':    break; // hitCtx에서 R.health 이미 차감
+      case 'knockback':
+        if (R.burrowing) break;
+        R._kbVX = d.vx; R._kbVY = d.vy; R._kbFrames = 12; break;
+      case 'bound':
+        R.bindEnd = Math.max(R.bindEnd||0, performance.now() + d.dur); break;
+      case 'stunned':
+        if (R.burrowing) break;
+        R.stunEnd = Math.max(R.stunEnd||0, performance.now() + d.dur); break;
+      case 'slowPlayer':
+        R._slowEnd = Math.max(R._slowEnd||0, performance.now() + d.dur); break;
+      default: _netSend(d); break;
+    }
+    return;
+  }
+  _netSend(d);
+}
 
 // PeerJS 공통 ICE 설정 (STUN 서버 다중화로 모바일 NAT 통과율 향상)
 const PEER_CONFIG = {
@@ -3131,11 +3151,20 @@ let _trainingMode = false;
 let _trainingBots  = [];  // 훈련장 봇 목록
 let _botBullets    = [];  // 봇 투사체
 let _trainingSettings = {
-  killable:        false,  // 봇 처치 가능
-  infiniteHp:      false,  // 체력 무한
-  infiniteStam:    false,  // 스테미나 무한
-  showCooldownBar: true,   // 쿨타임 바 표시
+  // 더미 설정
+  dummyHp:      'infinite',  // 'infinite' | 'killable'
+  // 플레이어 설정
+  infiniteHp:   false,
+  infiniteStam: false,
+  // 공격봇
+  hasMelee:     false,
+  hasRanged:    false,
+  // 표시
+  showCooldown: true,
+  showDps:      true,
 };
+// 훈련 통계 (내부용)
+let _tStats = { totalDmg:0, session:[], comboHits:0, lastHit:0 };
 
 
 function showTraining() {
@@ -3161,12 +3190,18 @@ function startTraining() {
   resetL();
   L.x = WORLD_W * 0.25; L.y = WORLD_H / 2;
 
-  // R (네트워크 상대) = 비활성
-  R.color = '#000'; R.defaultColor = '#000';
-  R.maxHealth = 999999; R.health = 999999; R.radius = 0;
-  R.x = -9999; R.y = -9999; R.tx = -9999; R.ty = -9999;
+  // 훈련장 더미: R = 조작자 없는 플레이어
+  R.color = '#888'; R.defaultColor = '#888';
+  R.maxHealth = 1000; R.health = 1000; R.radius = 20;
+  R.x = WORLD_W*0.5; R.y = WORLD_H/2;
+  R.tx = R.x; R.ty = R.y; R._vx = R.x; R._vy = R.y;
+  R.burrowing = false; R.dodging = false; R.invincible = 0;
+  R.stunEnd = 0; R.bindEnd = 0; R._slowEnd = 0;
+  R._kbVX = 0; R._kbVY = 0; R._kbFrames = 0;
+  R.charDef = null; R.stamina = 0; R.augments = [];
 
-  // 봇 초기화
+  // 통계/봇 초기화
+  _tStats = {totalDmg:0, session:[], comboHits:0, lastHit:0};
   _trainingBots = []; _botBullets = [];
   _initTrainingBots();
 
@@ -3208,16 +3243,14 @@ function _initTrainingBots() {
     type, x, y, baseX: x, baseY: y,
     hp, maxHp: hp, radius: 20, color,
     charName: type==='melee'?'근거리 봇':type==='ranged'?'원거리 봇':'더미 봇',
-    isAlive: true, respawnTimer: 0,
+    isAlive: true, respawnTimer: 0, isBot: true,
     // 근거리 봇: 공격 사이클 인덱스
     atkIdx: 0, phaseTimer: type==='melee'?1500:type==='ranged'?2000:0,
     hidden: false,
   });
-  _trainingBots = [
-    _mkBot('melee',  1500, 520, '#ff6644'),
-    _mkBot('ranged', 1500, 880, '#44aaff'),
-    _mkBot('dummy',  300,  700, '#888888', 1000),
-  ];
+  _trainingBots = [];
+  if (_trainingSettings.hasMelee)  _trainingBots.push(_mkBot('melee',  1000, 500, '#ff6644'));
+  if (_trainingSettings.hasRanged) _trainingBots.push(_mkBot('ranged', 1000, 900, '#44aaff'));
 }
 function _tickBotFixed(bot, now, dt) {
   // 이동 없음 — 봇은 항상 제자리
@@ -3280,20 +3313,48 @@ function _tickBotFixed(bot, now, dt) {
 
 
 function _buildTrainingHud() {
-  let th = document.getElementById('training-hud');
-  if (th) th.remove();
-  th = document.createElement('div');
+  document.getElementById('training-hud')?.remove();
+  const th = document.createElement('div');
   th.id = 'training-hud';
-  th.style.cssText = 'position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:200;';
-  th.innerHTML = `<div style="color:#554;font-size:9px;letter-spacing:1px;text-align:center;pointer-events:none;">⚠ 훈련장은 파악이 되지 않은 버그가 많습니다. 참고용으로만 이용하세요.</div>
-  <div style="display:flex;gap:10px;">
-    <button onclick="openTrainingSettings()" style="background:#111;border:1px solid #4a3a6a;color:#a8f;padding:7px 18px;font-family:Courier New,monospace;font-size:12px;letter-spacing:2px;cursor:pointer;border-radius:2px;">⚙ 훈련장 설정</button>
-    <button onclick="openTrainingCharSelect()" style="background:#111;border:1px solid #2a4a3a;color:#6fa;padding:7px 18px;font-family:Courier New,monospace;font-size:12px;letter-spacing:2px;cursor:pointer;border-radius:2px;">👤 캐릭터 변경</button>
-    <button onclick="openTrainingAugPanel()" style="background:#111;border:1px solid #4a3a1a;color:#fa8;padding:7px 18px;font-family:Courier New,monospace;font-size:12px;letter-spacing:2px;cursor:pointer;border-radius:2px;">🎁 증강 획득</button>
-    <button onclick="exitTraining()" style="background:#111;border:1px solid #3a2a2a;color:#f86;padding:7px 18px;font-family:Courier New,monospace;font-size:12px;letter-spacing:2px;cursor:pointer;border-radius:2px;">✕ 메인화면</button>
-  </div>`;
+  th.style.cssText = 'position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:200;align-items:center;';
+  const btn = (label, color, fn) => {
+    const b = document.createElement('button');
+    b.innerHTML = label;
+    b.style.cssText = `background:#0d1118;border:1px solid ${color};color:${color};padding:6px 14px;font-family:Courier New,monospace;font-size:11px;letter-spacing:1px;cursor:pointer;border-radius:2px;`;
+    b.onmouseenter = () => b.style.background = color + '22';
+    b.onmouseleave = () => b.style.background = '#0d1118';
+    b.onclick = fn;
+    return b;
+  };
+  th.appendChild(btn('⚙ 설정', '#a8f', openTrainingSettings));
+  th.appendChild(btn('👤 캐릭터', '#6fa', openTrainingCharSelect));
+  th.appendChild(btn('🎁 증강', '#fa8', openTrainingAugPanel));
+  th.appendChild(btn('↺ 리셋', '#88f', _trainingReset));
+  th.appendChild(btn('✕ 나가기', '#f86', exitTraining));
   document.body.appendChild(th);
+  // 통계 HUD
+  document.getElementById('training-stats')?.remove();
+  const sv = document.createElement('div');
+  sv.id = 'training-stats';
+  sv.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);color:#aaa;font-family:Courier New,monospace;font-size:11px;text-align:center;letter-spacing:1px;pointer-events:none;z-index:150;';
+  document.body.appendChild(sv);
 }
+
+function _trainingReset() {
+  // 플레이어 위치 리셋
+  L.x = WORLD_W * 0.25; L.y = WORLD_H / 2;
+  L.health = L.maxHealth; L.stamina = L._augStamMax ?? STAM_MAX;
+  // 더미 리셋
+  R.x = WORLD_W * 0.5; R.y = WORLD_H / 2;
+  R.health = R.maxHealth; R._kbVX=0; R._kbVY=0; R._kbFrames=0;
+  R.stunEnd=0; R.bindEnd=0; R._slowEnd=0; R._deadAt=0;
+  // 통계 리셋
+  _tStats = {totalDmg:0, session:[], comboHits:0, lastHit:0};
+  localBullets=[]; _botBullets=[];
+  addFx({type:'justdodge', x:R.x, y:R.y, r:0, maxR:40, dur:12, maxDur:12});
+}
+
+
 function openTrainingCharSelect() {
   let sp = document.getElementById('training-char-panel');
   if (sp) { sp.remove(); return; }
@@ -3407,23 +3468,71 @@ function exitTraining() {
 }
 
 function openTrainingSettings() {
-  let sp = document.getElementById('training-settings-panel');
-  if (sp) { sp.remove(); return; }
-  sp = document.createElement('div');
-  sp.id = 'training-settings-panel';
-  sp.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#0d1520;border:1px solid #2a3a5a;padding:18px 24px;z-index:300;font-family:Courier New,monospace;font-size:12px;color:#aaa;letter-spacing:1px;min-width:320px;border-radius:3px;';
+  const existing = document.getElementById('training-settings-panel');
+  if (existing) { existing.remove(); return; }
   const ts = _trainingSettings;
-  sp.innerHTML = `
-    <div style="color:#a8f;letter-spacing:3px;font-size:11px;margin-bottom:12px;">── 훈련장 설정 ──</div>
-    <div style="margin-bottom:6px;"><label><input type="checkbox" id="ts-cdbar" onchange="_trainingSettings.showCooldownBar=this.checked" ${ts.showCooldownBar?'checked':''}> 쿨타임 바 표시</label></div>
-    <div style="margin-bottom:6px;"><label><input type="checkbox" id="ts-killable" onchange="_trainingSettings.killable=this.checked" ${ts.killable?'checked':''}> 봇 처치 가능 (3초 후 부활)</label></div>
-    <div style="margin-bottom:6px;"><label><input type="checkbox" id="ts-inf-hp" onchange="_trainingSettings.infiniteHp=this.checked" ${ts.infiniteHp?'checked':''}> 체력 무한</label></div>
-    <div style="margin-bottom:6px;"><label><input type="checkbox" id="ts-inf-stam" onchange="_trainingSettings.infiniteStam=this.checked" ${ts.infiniteStam?'checked':''}> 스테미나 무한</label></div>
-    <div style="margin-top:12px;text-align:right;"><button onclick="document.getElementById('training-settings-panel').remove()" style="background:#111;border:1px solid #334;color:#778;padding:4px 12px;cursor:pointer;font-family:Courier New,monospace;font-size:11px;">닫기</button></div>
-  `;
+  const sp = document.createElement('div');
+  sp.id = 'training-settings-panel';
+  sp.style.cssText = 'position:fixed;bottom:55px;left:50%;transform:translateX(-50%);background:#0a0d14;border:1px solid #2a3a5a;border-radius:4px;padding:16px 20px;z-index:300;font-family:Courier New,monospace;font-size:12px;color:#aaa;letter-spacing:1px;min-width:340px;';
+
+  const row = (label, el) => {
+    const d = document.createElement('div');
+    d.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+    const l = document.createElement('span'); l.textContent = label;
+    d.append(l, el); return d;
+  };
+  const chk = (val, fn) => {
+    const i = document.createElement('input'); i.type='checkbox'; i.checked=val;
+    i.onchange = e => fn(e.target.checked); return i;
+  };
+  const sel = (opts, cur, fn) => {
+    const s = document.createElement('select');
+    s.style.cssText = 'background:#111;border:1px solid #334;color:#aaa;padding:2px 6px;font-family:Courier New;font-size:11px;';
+    opts.forEach(([v,t]) => { const o=document.createElement('option'); o.value=v; o.textContent=t; if(v===cur)o.selected=true; s.appendChild(o); });
+    s.onchange = e => fn(e.target.value); return s;
+  };
+  const sect = (title) => {
+    const d = document.createElement('div');
+    d.style.cssText = 'color:#556;font-size:10px;letter-spacing:2px;margin:10px 0 6px;border-top:1px solid #1a2030;padding-top:8px;';
+    d.textContent = '── ' + title + ' ──'; return d;
+  };
+
+  const title = document.createElement('div');
+  title.style.cssText = 'color:#a8f;letter-spacing:3px;font-size:11px;margin-bottom:12px;display:flex;justify-content:space-between;';
+  title.innerHTML = '<span>── 훈련장 설정 ──</span>';
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕'; closeBtn.style.cssText = 'background:none;border:none;color:#666;cursor:pointer;font-size:13px;';
+  closeBtn.onclick = () => sp.remove();
+  title.appendChild(closeBtn);
+  sp.appendChild(title);
+
+  // 더미 설정
+  sp.appendChild(sect('더미'));
+  sp.appendChild(row('체력', sel(
+    [['infinite','무한'],['killable','처치 가능 (3초 부활)']],
+    ts.dummyHp, v => _trainingSettings.dummyHp = v
+  )));
+
+
+  // 공격봇
+  sp.appendChild(sect('공격봇 (플레이어 공격)'));
+  sp.appendChild(row('근거리 봇', chk(ts.hasMelee, v => { _trainingSettings.hasMelee=v; _initTrainingBots(); })));
+  sp.appendChild(row('원거리 봇', chk(ts.hasRanged, v => { _trainingSettings.hasRanged=v; _initTrainingBots(); })));
+
+  // 플레이어
+  sp.appendChild(sect('플레이어'));
+  sp.appendChild(row('체력 무한', chk(ts.infiniteHp, v => _trainingSettings.infiniteHp=v)));
+  sp.appendChild(row('스테미나 무한', chk(ts.infiniteStam, v => _trainingSettings.infiniteStam=v)));
+
+  // 표시
+  sp.appendChild(sect('표시'));
+  sp.appendChild(row('쿨타임 바', chk(ts.showCooldown, v => _trainingSettings.showCooldown=v)));
+  sp.appendChild(row('DPS 표시', chk(ts.showDps, v => _trainingSettings.showDps=v)));
+
   document.body.appendChild(sp);
-  // 선택값 복원
 }
+
+
 
 
 function selectRandomChar() {
@@ -3737,18 +3846,27 @@ function intersectsCtx(ctx, tx, ty, tr) {
 // ── R(플레이어)만 판정. 반환값: 명중 여부 ─────────────────
 // 봇 데미지 공통 처리
 function _applyBotDamage(bot, dmg) {
-  if (L.burrowing) return; // 잠수 중 피해 차단 (다즈빈)
-  // 가드 회피: 회피 중 피해 40% 감소
+  if (!bot) bot = R; // 봇 없으면 더미(R)에 적용
+  if (L.burrowing) return;
   if (L.dodging && getAugCount('guard_dodge') > 0) dmg *= 0.60;
   if (dmg <= 0) return;
-  if (_trainingSettings.killable) {
-    bot.hp = Math.max(0, bot.hp - dmg);
-    if (bot.hp <= 0) {
-      bot.isAlive = false; bot.respawnTimer = 3000;
-      addFx({type:'bombBlast', x:bot.x, y:bot.y, r:0, maxR:40, dur:14, maxDur:14});
+  // R(더미)이면 health 필드 사용, 공격봇이면 hp 필드 사용
+  if (bot === R) {
+    if (_trainingSettings.dummyHp !== 'infinite') {
+      R.health = Math.max(_trainingSettings.dummyHp==='killable'?0:1, R.health - dmg);
+      if (R.health <= 0 && _trainingSettings.dummyHp==='killable' && !R._deadAt) R._deadAt = performance.now();
     }
+    // 통계
+    _tStats.totalDmg += Math.round(dmg);
+    _tStats.session.push({t:performance.now(), d:dmg});
+    _tStats.comboHits++; _tStats.lastHit = performance.now();
   } else {
-    bot.hp = Math.max(1, bot.hp - dmg);
+    if (_trainingSettings.killable) {
+      bot.hp = Math.max(0, bot.hp - dmg);
+      if (bot.hp <= 0) { bot.isAlive = false; bot.respawnTimer = 3000; addFx({type:'bombBlast', x:bot.x, y:bot.y, r:0, maxR:40, dur:14, maxDur:14}); }
+    } else {
+      bot.hp = Math.max(1, bot.hp - dmg);
+    }
   }
   _addDmgNum('dealt', Math.round(dmg), bot.x+(Math.random()-0.5)*20, bot.y-bot.radius-10);
 }
@@ -3760,14 +3878,22 @@ function hitCtx(ctx, dmg) {
   const _dmg = applyDmgAugs(dmg);
   for (const t of Rs()) {
     if (!intersectsCtx(ctx, t.x, t.y, t.radius)) continue;
-    if (t === R && _trainingMode) {
-      const bot = window._activeBot;
-      if (bot) _applyBotDamage(bot, _dmg);
-      hitTarget = t;
-    } else if (t === R) {
+    if (t === R) {
       R.health = Math.max(0, R.health - _dmg);
       send({type:'hitMe', damage:_dmg});
       _addDmgNum('dealt', Math.round(_dmg), R.x, R.y-R.radius-10);
+      hitTarget = t;
+      // 훈련장 통계
+      if (_trainingMode && _dmg > 0) {
+        _tStats.totalDmg += Math.round(_dmg);
+        _tStats.session.push({t:performance.now(), d:_dmg});
+        _tStats.comboHits++;
+        _tStats.lastHit = performance.now();
+      }
+    } else if (_trainingMode && t.isBot) {
+      // 훈련장 공격봇
+      _applyBotDamage(t, _dmg);
+      window._hitTarget = t;
       hitTarget = t;
     } else {
       send({type:'minionHit', id:t.id, damage:_dmg});
@@ -4640,16 +4766,16 @@ function hitInRange(cx, cy, range, dmg) {
 function hitRemote(dmg) {
   dmg = applyDmgAugs(dmg);
   const t = (window._hitTarget != null) ? window._hitTarget : R;
-  if (_trainingMode) {
-    // 훈련장: 봇에 직접 피해
-    _applyBotDamage(t, dmg);
-    return;
-  }
+
   if (t === R) {
     if (R.radius <= 0) return;
     R.health = Math.max(0, R.health - dmg);
     send({type:'hitMe', damage:dmg});
     _addDmgNum('dealt', Math.round(dmg), R.x, R.y-R.radius-10);
+    window._lastHitWasMinion = false; window._lastHitMinion = null;
+  } else if (_trainingMode && t.isBot) {
+    // 훈련장 공격봇
+    _applyBotDamage(t, dmg);
     window._lastHitWasMinion = false; window._lastHitMinion = null;
   } else {
     window._lastHitWasMinion = true; window._lastHitMinion = t;
@@ -4662,7 +4788,6 @@ function hitRemote(dmg) {
 
 
 function knockbackRemote(power) {
-  if (_trainingMode) return;
   if (window._lastHitWasMinion) {
     const _pm = window._lastHitMinion;
     if (_pm) {
@@ -4724,7 +4849,6 @@ function receiveKnockback(vx, vy) {
 }
 function freezeRemote(dur) { stunRemote(dur); }
 function stunRemote(dur) {
-  if (_trainingMode) return;
   if (window._lastHitWasMinion) {
     // 소환수 명중: minionHit cc로 기절 전송
     const _pm = window._lastHitMinion;
@@ -4740,7 +4864,6 @@ function receiveStun(dur) {
   L.stunEnd = performance.now() + dur;
 }
 function bindRemote(dur) {
-  if (_trainingMode) return;
   if (window._lastHitWasMinion) {
     const _pm = window._lastHitMinion;
     if (_pm) send({type:'minionHit', id:_pm.id, damage:0, cc:{bindDur:dur}});
@@ -9052,15 +9175,18 @@ function moveBullets(dt=1) {
     }
     const oob = b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H;
     const hitWall = bulletHitsWall(b) && !b.pierceWalls;
-    // hitEnemy: R + 상대 소환수 통합 체크
+    // hitEnemy: Rs() 전체 순회 — 모든 타겟에 피해
     let hitEnemy = false;
-    let _hitTarget = null;  // 명중한 타겟
+    let _hitTarget = null;
+    const _hitTargets = [];
     for (const _rt of Rs()) {
       if (Math.hypot(b.x-_rt.x, b.y-_rt.y) < b.radius+_rt.radius) {
-        hitEnemy = true; _hitTarget = _rt; break;
+        hitEnemy = true;
+        _hitTargets.push(_rt);
+        if (_hitTarget === null) _hitTarget = _rt;
       }
     }
-    window._hitTarget = _hitTarget;  // hitRemote에서 참조
+    window._hitTarget = _hitTarget;
     // 훈련장: 모든 봇에 대해 충돌 체크 (hitEnemy 와 독립적으로)
 
     const rangeOut = b.traveled>=b.maxRange;
@@ -9097,7 +9223,12 @@ function moveBullets(dt=1) {
       // 적중/벽/oob/정령 → 돌진. 사거리 도달은 그냥 제거
       if (hitEnemy || hitWall || oob || hitSpirit) {
         if (hitEnemy) {
-          hitRemote(b.damage);
+          // 모든 명중 타겟에 피해 적용
+          for (const _ht of _hitTargets) {
+            window._hitTarget = _ht;
+            hitRemote(b.damage);
+          }
+          window._hitTarget = _hitTarget; // CC는 첫 타겟 기준
           if (b.bindDur) bindRemote(b.bindDur);
         }
 
@@ -11637,6 +11768,10 @@ function draw() {
       R.x=_rRealX; R.y=_rRealY;
       if (_rInSmoke) ctx.restore();
     }
+    // 훈련장 더미(R): drawPlayer로 렌더 (CC 점선 등 기존 표기 그대로)
+    if (_trainingMode && R.radius > 0) {
+      drawPlayer(R, '더미');
+    }
   }
   // 로온 빙수지대 렌더
   const _allRoonZones = [...(L.charDef?.id==='roon'?L._roonZones||[]:[]), ...(L._roonIncomingZones||[])];
@@ -11659,7 +11794,7 @@ function draw() {
 
   if (_trainingMode) {
     for (const bot of _trainingBots) {
-      if (bot.hidden || !bot.isAlive) continue;
+      if (bot.hidden || !bot.isAlive || bot.type==='dummy') continue;
       ctx.beginPath(); ctx.arc(bot.x, bot.y, bot.radius, 0, Math.PI*2);
       ctx.fillStyle = bot.color + '44'; ctx.fill();
       ctx.strokeStyle = bot.color; ctx.lineWidth = 2.5; ctx.stroke();
@@ -11673,7 +11808,7 @@ function draw() {
       ctx.fillStyle = '#222'; ctx.fillRect(_bx2, _by2, _bw, _bhh);
       ctx.fillStyle = bot.color; ctx.fillRect(_bx2, _by2, _bw * (bot.hp / bot.maxHp), _bhh);
       // 쿨타임 바 — 봇 아래
-      if (_trainingSettings.showCooldownBar && bot.type !== 'dummy') {
+      if (_trainingSettings.showCooldown && bot.type !== 'dummy') {
         const _cdMax = bot.type==='melee' ? (bot.atkIdx%3===0?1500:bot.atkIdx%3===1?1800:2200) : 2000;
         const _cdRatio = bot.phaseTimer > 0 ? Math.min(1, bot.phaseTimer / _cdMax) : 0;
         const _cdy2 = bot.y + bot.radius + 4;
@@ -11691,6 +11826,8 @@ function draw() {
   }
 
   ctx.restore();
+
+  // 훈련장 통계는 updateLocalHud에서 처리
 
   ctx.save();
   ctx.font='12px Courier New';
@@ -12418,6 +12555,18 @@ function updateLocalHud() {
   const cTxt=L.counterReady
     ?`  |  ⚡반격 가능 (${Math.max(0,Math.ceil((L.counterExpiry-performance.now())/1000))}초)`:'' ;
   document.getElementById('hud-mid').textContent=`스테미나: ${Math.round(L.stamina)} / ${Math.round(stamMax)}${cTxt}`;
+  // 훈련장 통계 업데이트
+  if (_trainingMode) {
+    const _sv = document.getElementById('training-stats');
+    if (_sv && _trainingSettings.showDps) {
+      const _now = performance.now();
+      _tStats.session = (_tStats.session||[]).filter(e => _now - e.t < 5000);
+      const _dps = Math.round(_tStats.session.reduce((s,e)=>s+e.d,0)/5);
+      const _combo = (_tStats.comboHits||0) > 1 && _now - (_tStats.lastHit||0) < 2000
+        ? ` ★ ${_tStats.comboHits}콤보` : '';
+      _sv.textContent = `누적: ${(_tStats.totalDmg||0).toLocaleString()}  |  DPS: ${_dps}${_combo}`;
+    }
+  }
 }
 function updateRemoteHud() {
   const hp=Math.max(0,R.health);
@@ -12985,137 +13134,6 @@ function resetL() {
 // ============================================================
 
 
-function startTraining() {
-  if (!selCharId) { alert('캐릭터를 선택하세요'); return; }
-  _trainingMode = true;
-  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
-  document.getElementById('hud').style.display = 'flex';
-  matchState.localAugments = [];
-  resetL();
-  L.x = WORLD_W*0.25; L.y = WORLD_H/2;
-
-  // R = 비활성 (훈련장 전용 판정 사용)
-  R.color='#000'; R.defaultColor='#000';
-  R.maxHealth=999999; R.health=999999; R.radius=0;
-  R.x=-9999; R.y=-9999; R.tx=-9999; R.ty=-9999;
-
-  _trainingBots = []; _botBullets = [];
-  _initTrainingBots();
-
-  localBullets=[]; peerBullets=[]; fxList=[];
-  _firedBurstKb=new Set();
-  localSlowZones=[]; peerSlowZones=[]; globalSmokeZones=[];
-  resetMinions();
-  updateLocalHud();
-  gameOn=true; lastLoopTime=0;
-  window._rafRunning=false;
-  const ctx2=new (window.AudioContext||window.webkitAudioContext)();
-  window._audioCtx=ctx2;
-  const TICK_S=FRAME_MS/1000;
-  let _lastT=0;
-  function scheduleLoop(){
-    if(!gameOn){return;}
-    const ct=window._audioCtx.currentTime;
-    const drift=ct-(_lastT||ct);
-    _lastT=ct;
-    window._gameTimer=setTimeout(scheduleLoop,Math.max(0,FRAME_MS-(drift*1000||0)));
-    loop();
-  }
-  if(!window._rafRunning){
-    window._rafRunning=true;
-    (function rafLoop(){if(gameOn)draw();requestAnimationFrame(rafLoop);})();
-  }
-  window._audioCtx.resume().then(()=>{_lastT=window._audioCtx.currentTime;scheduleLoop();});
-  _buildTrainingHud();
-}
-
-function _initTrainingBots() {
-  const cx=WORLD_W/2, cy=WORLD_H/2;
-  _trainingBots = [
-    // 더미 봇 (체력 1000)
-    {type:'dummy', x:cx+200, y:cy-100, baseX:cx+200, baseY:cy-100,
-     hp:1000, maxHp:1000, health:1000, maxHealth:1000, radius:20, color:'#888888', defaultColor:'#888888',
-     charName:'더미 봇', isAlive:true, hidden:false, respawnTimer:0,
-     burrowing:false, dodging:false, stunEnd:0, freezeEnd:0,
-     tx:cx+200, ty:cy-100, _vx:cx+200, _vy:cy-100, augments:[],
-     _syaInvisible:false, counterReady:false, invincible:0,},
-    // 근거리 봇 (체력 200)
-    {type:'melee', x:cx+400, y:cy-150, baseX:cx+400, baseY:cy-150,
-     hp:200, maxHp:200, health:200, maxHealth:200, radius:20, color:'#ff6644', defaultColor:'#ff6644',
-     charName:'근거리 봇', isAlive:true, hidden:false, respawnTimer:0,
-     burrowing:false, dodging:false, stunEnd:0, freezeEnd:0,
-     tx:cx+400, ty:cy-150, _vx:cx+400, _vy:cy-150, augments:[],
-     _syaInvisible:false, counterReady:false, invincible:0, atkCooldown:0,},
-    // 원거리 봇 (체력 150)
-    {type:'ranged', x:cx+400, y:cy+150, baseX:cx+400, baseY:cy+150,
-     hp:150, maxHp:150, health:150, maxHealth:150, radius:20, color:'#44aaff', defaultColor:'#44aaff',
-     charName:'원거리 봇', isAlive:true, hidden:false, respawnTimer:0,
-     burrowing:false, dodging:false, stunEnd:0, freezeEnd:0,
-     tx:cx+400, ty:cy+150, _vx:cx+400, _vy:cy+150, augments:[],
-     _syaInvisible:false, counterReady:false, invincible:0, shootCooldown:0,},
-  ];
-  // 봇을 R에 동기화 (판정 공유)
-  _syncNearestBotToR();
-}
-
-
-function _tickBotFixed(bot, now, dt) {
-  // 이동 없음 — 봇은 항상 제자리
-  if (bot.type === 'melee') {
-    // 3종 공격 순환: 0=일자, 1=부채꼴, 2=선딜 일자
-    bot.phaseTimer -= dt * FRAME_MS;
-    if (bot.phaseTimer <= 0) {
-      const ATK = bot.atkIdx % 3;
-      bot.atkIdx++;
-      const len = 200, dmg = 18;
-      const ang = Math.PI; // 항상 왼쪽(-x) 방향 고정
-
-      if (ATK === 0) {
-        // 일자 공격
-        bot.phaseTimer = 1500;
-        const cos = Math.cos(ang), sin = Math.sin(ang);
-        addFx({type:'drillHit', x:bot.x, y:bot.y, angle:ang, len, width:50, col:'255,80,40', dur:10, maxDur:10});
-        const dx = L.x-bot.x, dy = L.y-bot.y;
-        const lx = dx*cos+dy*sin, ly = Math.abs(dx*-sin+dy*cos);
-        if (lx > -L.radius && lx < len+L.radius && ly < 25+L.radius) receiveHit(dmg);
-
-      } else if (ATK === 1) {
-        // 부채꼴 공격
-        bot.phaseTimer = 1800;
-        const halfA = 1.1;
-        addFx({type:'swing', x:bot.x, y:bot.y, angle:ang, range:len*0.6, halfAngle:halfA, dur:14, maxDur:14, col:'255,80,50'});
-        const dist = Math.hypot(L.x-bot.x, L.y-bot.y);
-        if (dist < len*0.6+L.radius) {
-          const toL2 = Math.atan2(L.y-bot.y, L.x-bot.x);
-          const diff = Math.abs(((toL2-ang)+Math.PI*3)%(Math.PI*2)-Math.PI);
-          if (diff < halfA) receiveHit(dmg);
-        }
-
-      } else {
-        // 선딜레이 있는 일자 (0.5초 후 발동)
-        bot.phaseTimer = 2200;
-        addFx({type:'counterCharge', x:bot.x, y:bot.y, r:0, maxR:40, dur:16, maxDur:16});
-        setTimeout(() => {
-          if (!gameOn || !bot.isAlive) return;
-          const cos2 = Math.cos(ang), sin2 = Math.sin(ang);
-          addFx({type:'drillHit', x:bot.x, y:bot.y, angle:ang, len:len*1.4, width:40, col:'255,200,40', dur:12, maxDur:12});
-          const dx2 = L.x-bot.x, dy2 = L.y-bot.y;
-          const lx2 = dx2*cos2+dy2*sin2, ly2 = Math.abs(dx2*-sin2+dy2*cos2);
-          if (lx2 > -L.radius && lx2 < len*1.4+L.radius && ly2 < 20+L.radius) receiveHit(dmg*1.5);
-        }, 500);
-      }
-    }
-
-  } else if (bot.type === 'ranged') {
-    bot.phaseTimer -= dt * FRAME_MS;
-    if (bot.phaseTimer <= 0) {
-      bot.phaseTimer = 2000;
-      _botBullets.push({ x:bot.x, y:bot.y, dx:-1, dy:0,
-        speed:12, damage:12, radius:8, traveled:0, maxRange:700, color:bot.color });
-    }
-  }
-}
-
 function _applyBotDamage(bot, dmg) {
   if (!bot.isAlive) return;
   bot.hp = Math.max(0, bot.hp-dmg);
@@ -13123,20 +13141,6 @@ function _applyBotDamage(bot, dmg) {
   _addDmgNum('dealt', Math.round(dmg), bot.x, bot.y-bot.radius-8);
   addShake(2,6); playHitSfx();
   if (bot.hp<=0) { bot.isAlive=false; bot.hp=0; bot.health=0; }
-}
-
-function _buildTrainingHud() {
-  let th=document.getElementById('training-hud');
-  if (th) th.remove();
-  th=document.createElement('div');
-  th.id='training-hud';
-  th.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);'
-    +'display:flex;gap:10px;z-index:200;';
-  th.innerHTML=`
-    <button onclick="openTrainingCharSelect()" style="background:#111;border:1px solid #2a4a3a;color:#6fa;padding:7px 16px;font-family:Courier New,monospace;font-size:12px;cursor:pointer;border-radius:2px;">👤 캐릭터 변경</button>
-    <button onclick="openTrainingAugPanel()" style="background:#111;border:1px solid #4a3a1a;color:#fa8;padding:7px 16px;font-family:Courier New,monospace;font-size:12px;cursor:pointer;border-radius:2px;">🎁 증강 획득</button>
-    <button onclick="exitTraining()" style="background:#111;border:1px solid #3a2a2a;color:#f86;padding:7px 16px;font-family:Courier New,monospace;font-size:12px;cursor:pointer;border-radius:2px;">✕ 메인화면</button>`;
-  document.body.appendChild(th);
 }
 
 function openTrainingCharSelect() {
@@ -13343,26 +13347,44 @@ function loop() {
   // 훈련장: 매 프레임 시작 시 R을 마우스 방향 가장 가까운 봇으로 설정
   // 이렇게 하면 모든 기존 공격 판정이 자동으로 봇을 적중
   if (_trainingMode) {
-    // R = L에서 마우스 방향 1px 오프셋 (사전체크/각도체크 통과용)
-    // R.radius = 실제 봇 radius → hitEnemy/망치 등 정상
-    const _mwx = mouseScreenX + cam.x, _mwy = mouseScreenY + cam.y;
-    const _aimAng = Math.atan2(_mwy - L.y, _mwx - L.x);
-    let _bestBot = null, _bestDist = Infinity;
-    for (const bot of _trainingBots) {
-      if (bot.hidden || !bot.isAlive) continue;
-      const _d = Math.hypot(bot.x - _mwx, bot.y - _mwy);
-      if (_d < _bestDist) { _bestDist = _d; _bestBot = bot; }
+    const _ts = _trainingSettings, _now = now;
+
+    // ── 더미(R) 넉백 이동 ──────────────────────────────────
+    if (R._kbFrames > 0) {
+      R.x = Math.max(R.radius, Math.min(WORLD_W-R.radius, R.x + R._kbVX*(physDt/1000)));
+      R.y = Math.max(R.radius, Math.min(WORLD_H-R.radius, R.y + R._kbVY*(physDt/1000)));
+      R._kbVX *= 0.75; R._kbVY *= 0.75; R._kbFrames--;
     }
-    // 사전체크/각도체크용: L에서 1px 오프셋 (마우스 방향)
-    R.x = L.x + Math.cos(_aimAng);
-    R.y = L.y + Math.sin(_aimAng);
-    R.radius = _bestBot ? _bestBot.radius : 20;
-    R.maxHealth = _bestBot ? _bestBot.maxHp : 200;
-    R.health = _bestBot ? _bestBot.hp : 200;
-    R.burrowing = false; R.stunEnd = 0; R.bindEnd = 0;
-    // 호밍용 타겟: 마우스에 가장 가까운 봇의 실제 위치
-    R._homingX = _bestBot ? _bestBot.x : R.x;
-    R._homingY = _bestBot ? _bestBot.y : R.y;
+
+    // ── 더미 행동 패턴 ─────────────────────────────────────
+
+
+    // ── 더미 HP 처리 ───────────────────────────────────────
+    if (_ts.dummyHp === 'infinite') R.health = R.maxHealth;
+    else if (R.health <= 0) { // killable: 3초 후 리스폰
+      if (!R._deadAt) R._deadAt = _now;
+      if (_now - R._deadAt > 3000) {
+        R.health = R.maxHealth; R._deadAt = 0;
+        R.x = WORLD_W*0.5; R.y = WORLD_H/2; R.radius = 20;
+        addFx({type:'justdodge', x:R.x, y:R.y, r:0, maxR:30, dur:10, maxDur:10});
+      }
+    }
+
+    // ── 플레이어 무한 HP/스테미나 ──────────────────────────
+    if (_ts.infiniteHp && _now - (L.lastHitTime||0) > 200) L.health = L.maxHealth;
+    if (_ts.infiniteStam) L.stamina = L._augStamMax ?? STAM_MAX;
+
+    // ── 보간 타겟 동기화 ────────────────────────────────────
+    R.tx = R.x; R.ty = R.y; R._vx = R.x; R._vy = R.y;
+    window._activeBot = R;  // 더미봇 = R
+
+    // ── DPS 통계 ──────────────────────────────────────────
+    _tStats.session = _tStats.session.filter(e => _now - e.t < 5000);
+    const _dps = _tStats.session.reduce((s, e) => s + e.d, 0) / 5;
+    R._trainingDps = Math.round(_dps);
+
+    // ── 콤보 만료 ─────────────────────────────────────────
+    if (_now - _tStats.lastHit > 2000) _tStats.comboHits = 0;
   }
 
   // 적 타겟 목록 갱신 (플레이어 + 소환수)
