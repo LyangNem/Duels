@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.3</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -512,21 +512,21 @@ const BALANCE = {
     radius: 20,
 
     lmb: {
-      cost:         25,
+      cost:         20,
       meleeRange:   130,
       halfAngle:    1.309,
-      meleeDamage:  20,
+      meleeDamage:  25,
       throwSpeed:   18,
       throwRadius:  15,
-      throwDamage:  15,
+      throwDamage:  20,
       throwRange:   700,
       cd:           450,
     },
     rmb: {
-      cost:         35,
-      healRadius:   200,
-      healAmount:   8,
-      healInterval: 800,
+      cost:         25,
+      healRadius:   275,
+      healAmount:   4,
+      healInterval: 400,
       cd:           300,
       cdRecall:     200,
     },
@@ -664,17 +664,17 @@ const BALANCE = {
       cd:          350,
     },
     lmbCharge: {
-      cost:        30,
+      cost:        20,
       length:      220,
-      width:       30,
+      width:       40,
       damage:      25,
       bindDur:     500,    // 속박 지속 (ms)
-      chargeTime:  600,     // 차징 완료까지 (ms)
+      chargeTime:  400,     // 차징 완료까지 (ms)
       cd:          700,
     },
     rmb: {
       cost:        70,
-      orbDur:      8000,    // 구체 유지 시간 (ms)
+      orbDur:      12000,    // 구체 유지 시간 (ms)
       damage:      20,
       bindDur:     1000,
       cd:          1200,
@@ -744,7 +744,7 @@ const BALANCE = {
     radius: 20,
     lmb: {
       cost:           4,
-      damage:         12,
+      damage:         10,
       speed:          44,
       radius:         9,
       range:          600,
@@ -766,9 +766,9 @@ const BALANCE = {
     counter: {
       pellets:   8,
       spread:    Math.PI * 0.55,
-      speed:     24,
+      speed:     44,
       radius:    9,
-      damage:    14,
+      damage:    10,
       range:     550,
       fireDelay: 55,
       knockbackPower: 420,
@@ -783,10 +783,10 @@ const BALANCE = {
     radius: 20,
 
     lmb: {
-      cost:        30,
+      cost:        25,
       meleeRange:  200,
       halfAngle:   Math.PI / 3,   // 60° 양쪽 = 120° 총 범위
-      damage:      10,            // 가장자리 피해
+      damage:      15,            // 가장자리 피해
       centerDmg:   30,            // 중앙(30° 이내) 2배
       centerAngle: Math.PI / 30,   // 중앙 판정 각도
       cd:          380,
@@ -1351,12 +1351,12 @@ const BALANCE = {
       empoweredDamage:   35,
     },
     rmb: {
-      cost:           120,
+      cost:           100,
       speed:          14,
       radius:         16,
       damage:         30,         // 모루 직격 피해
       range:          500,
-      anvilRadius:    160,        // 강화지대 반경
+      anvilRadius:    240,        // 강화지대 반경
       anvilDuration:  8000,       // 모루 지속 (ms)
       cd:             500,
     },
@@ -1606,15 +1606,15 @@ const BALANCE = {
       shotRange:  550,     // 투사체 최대 사거리
       zoneRadius: 180,
       zoneDur:    4500,    // 지대 지속 ms (4.5초)
-      bindDur:    750,     // 지대 위 타격 시 속박 ms (0.75초)
+      bindDur:    500,     // 지대 위 타격 시 속박 ms (0.75초)
       cd:         1000,
     },
     counter: {
       damage:     20,
       range:      170,
-      slowDur:    1500,    // 첫타 감속 ms
-      bindDur:    1500,    // 두타 속박 ms (1.5초)
-      swingDelay: 400,     // 두 번째 휘두르기 딜레이 ms
+      slowDur:    1000,    // 첫타 감속 ms
+      bindDur:    1000,    // 두타 속박 ms (1.5초)
+      swingDelay: 300,     // 두 번째 휘두르기 딜레이 ms
       cd:         700,
     },
   },
@@ -1628,7 +1628,7 @@ const BALANCE = {
     reloadTime: 2500,    // 재장전 시간 ms
     // 권총 (LMB 기본)
     pistol: {
-      cost:   20,        // 스테미나 소모
+      cost:   15,        // 스테미나 소모
       ammo:   1,         // 탄환 소모
       damage: 20,
       radius: 10,
@@ -1638,13 +1638,13 @@ const BALANCE = {
     },
     // 산탄총 (LMB 기본 or RMB)
     shotgun: {
-      cost:   40,        // 스테미나 소모
+      cost:   30,        // 스테미나 소모
       ammo:   4,         // 탄환 소모
       pellets: 4,
       damage: 10,        // 탄당
       radius: 8,
-      speed:  15,
-      range:  200,
+      speed:  20,
+      range:  300,
       spread: 0.35,      // 퍼짐 각도
       cd:     600,
     },
