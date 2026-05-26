@@ -1562,9 +1562,10 @@ const BALANCE = {
     lmb: {
       cost:        15,
       damage:      20,
-      cd:           450,   // 기본 쿨다운
-      cdFast:       240,   // 3단계/반격기 공속 버프 쿨다운
-      range:        450,   // 기본 사거리
+      bulletSpeed: 28,     // 탄속
+      cd:           350,   // 기본 쿨다운
+      cdFast:       150,   // 3단계/반격기 공속 버프 쿨다운
+      range:        550,   // 기본 사거리
       rangeBonus:   350,   // 1단계 추가 사거리
     },
     rmb: {
@@ -1577,7 +1578,7 @@ const BALANCE = {
     },
     counter: {
       damage:       20,
-      range:        160,
+      range:        200,
       tempStageDur: 3000,  // 임시 단계↑ 지속 ms
       cd:           400,
     },
@@ -1590,7 +1591,6 @@ const BALANCE = {
     lmb: {
       cost:       40,      // 스테미나 (전체 버스트)
       damage:     5,       // 발당 피해
-      shotCount:  9,       // 발사 수
       spread:     0.17,    // 좌우 확산 각도
       fireDelay:  50,      // ms 발사 간격
       radius:     7,
@@ -2202,6 +2202,8 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     ],
   },
 
+
+
   meramona: {
     id:        'meramona',
     name:      '메라 모나',
@@ -2221,7 +2223,7 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
   tadta: {
     id:        'tadta',
     name:      '타다타',
-    color:     '#2d9e3a',
+    color:     '#205228',
     maxHealth: BALANCE.tadta.hp,
     speed:     BALANCE.tadta.speed,
     radius:    BALANCE.tadta.radius,
@@ -2229,9 +2231,9 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     desc:      '타락한 덩굴의 정령에게 잠식당한 캐릭터',
     skills: [
       { key:'LMB',     name:'덩굴 씨앗', cost:BALANCE.tadta.lmb.cost,
-        desc:`덩굴 씨앗 ${BALANCE.tadta.lmb.shotCount}발 연사 (발당 ${BALANCE.tadta.lmb.damage}). 덩굴 지대 위 적중 시 ${BALANCE.tadta.rmb.bindDur/1000}초 속박` },
+        desc:`덩굴 씨앗 9발 연사 (발당 ${BALANCE.tadta.lmb.damage})` },
       { key:'RMB',     name:'덩굴 지대', cost:BALANCE.tadta.rmb.cost,
-        desc:`덩굴 지대 생성. 초당 ${BALANCE.tadta.rmb.tickDamage} 피해 및 감속. 지대 위 적 타격 시 ${BALANCE.tadta.rmb.bindDur/1000}초 속박` },
+        desc:`덩굴 지대 생성. 적을 감속시키며, 지대 위 적 타격 시 ${BALANCE.tadta.rmb.bindDur/1000}초 속박 (${BALANCE.tadta.rmb.tickDamage})` },
       { key:'L-Shift', name:'덩굴 묶기', cost:0,
         desc:`덩굴을 크게 2회 휘둘러 피해. 1타 감속, 2타 감속된 적 타격 시 ${BALANCE.tadta.counter.bindDur/1000}초 속박 (타당 ${BALANCE.tadta.counter.damage})` },
     ],
@@ -7069,7 +7071,11 @@ const SKILLS = {
         damage: B.damage, maxRange: B.range, traveled: 0,
       };
       applyPierceShot(b); localBullets.push(b); send({type:'bullet', ...b}); playShootSfx();
-      // 반동: 가벼운 시각적 효과만 (이동 없음)
+      // 반동: 발사 반대 방향으로 넉백
+      const _recoil = B.recoilDist * 8;
+      L._kbVX = -Math.cos(angle) * _recoil;
+      L._kbVY = -Math.sin(angle) * _recoil;
+      L._kbFrames = 10;
       addFx({type:'justdodge', x:L.x-Math.cos(angle)*10, y:L.y-Math.sin(angle)*10,
              r:0, maxR:15, dur:6, maxDur:6});
       addFx({type:'herCannonShot', x:L.x, y:L.y, angle, dur:8, maxDur:8});
@@ -8240,6 +8246,8 @@ const SKILLS = {
     },
   },
   // ── 인투 ──────────────────────────────────────────────────
+
+
   // ── 메라 모나 ────────────────────────────────────────────────
   meramona: {
     _stage:   0,   // 영구 단계 (0~4)
@@ -8303,7 +8311,7 @@ const SKILLS = {
       if (stage < 4) {
         const b = {
           id:uid(), x:L.x, y:L.y,
-          radius:8, speed:augBulletSpeed(22),
+          radius:8, speed:augBulletSpeed(B.bulletSpeed),
           dx:Math.cos(angle), dy:Math.sin(angle),
           damage:B.damage, maxRange:actualDist, traveled:0,
           color:'#ff88ee', isMerRay:true, pierceWalls:false,
@@ -8392,10 +8400,10 @@ const SKILLS = {
       const B = BALANCE.tadta.lmb;
       if (L.lmbCooldown > 0) return;
       if (!useStam(B.cost)) return;
-      // 중앙 좌 중앙 우 중앙 좌 중앙 우 중앙 순서 — 발사 방향 고정
-      const _lockedAngle = angle;
+      // 중앙 좌 중앙 우 중앙 좌 중앙 우 중앙 순서 (9발) — 발사 방향 고정
+      const _lockedAngle = angle; // 발사 시작 시 각도 고정 (마우스 이동 무시)
       const pattern = [0, -1, 0, 1, 0, -1, 0, 1, 0];
-      for (let i = 0; i < B.shotCount; i++) {
+      for (let i = 0; i < 9; i++) {
         setTimeout(() => {
           if (!gameOn) return;
           const fireAngle = _lockedAngle + pattern[i] * B.spread;
@@ -11648,7 +11656,6 @@ function draw() {
   peerMinions.forEach((pm,i) => { pm.x=_pmSnaps[i].rx; pm.y=_pmSnaps[i].ry; });
   drawPlayer(L,'나');
 
-  // 훈련장 봇 렌더링 (반드시 ctx.restore() 전, 월드-스페이스)
   if (_trainingMode) {
     for (const bot of _trainingBots) {
       if (bot.hidden || !bot.isAlive) continue;
