@@ -1568,6 +1568,7 @@ const BALANCE = {
       range:        550,   // 기본 사거리
       rangeBonus:   350,   // 1단계 추가 사거리
     },
+    speedBonus:   1.25,  // 2단계 이상 이동속도 배율
     rmb: {
       cost:        30,     // 스테미나 소모
       hitsRequired: 3,     // 평타 n회 적중마다 변신 가능
@@ -13503,7 +13504,9 @@ function loop() {
   const _syaSpdMult = (L.charDef?.id==='sya' && L._syaInvisible) ? BALANCE.sya.rmb.speedBoost : 1;
   const _boostCnt = getAugCount('start_boost');
   const _boostSpd = (_boostCnt>0 && L._startBoostEnd && performance.now()<L._startBoostEnd) ? (1 + 0.4*_boostCnt) : 1;
-  const sp = L.speed * dt * slowMult * eSpeedMult * herCarryMult * (ePredelay ? 0 : 1) * _boostSpd * _syaSpdMult;
+  const _merSpdMult = (L.charDef?.id==='meramona' && SKILLS.meramona._eff() >= 2)
+    ? BALANCE.meramona.speedBonus : 1;
+  const sp = L.speed * dt * slowMult * eSpeedMult * herCarryMult * (ePredelay ? 0 : 1) * _boostSpd * _syaSpdMult * _merSpdMult;
   const _prevX = L.x, _prevY = L.y;
 
   // 하츠하츠 돌진 처리 (벽 무시, 일정 속도)
