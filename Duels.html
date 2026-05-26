@@ -2460,7 +2460,7 @@ const AUGMENTS = [
   { id:'ration',      name:'비상식량',     emoji:'🍖', rarity:'hero',   desc:'HP 50% 이하 시 최대체력의 10%씩 7회 회복' },
   { id:'swift_regen', name:'배속',         emoji:'🔋', rarity:'common', desc:'스테미나 회복 속도 +20%' },
   { id:'heal_dodge',  name:'치유회피',     emoji:'🍀', rarity:'common',   desc:'저스트 회피 시 체력 20% 회복' },
-  { id:'thorn_armor', name:'가시갑옷',     emoji:'🌵', rarity:'common',   desc:'피해를 받을 시 피해량의 30%를 주변에 반사' },
+  { id:'thorn_armor', name:'가시갑옷',     emoji:'🌵', rarity:'common',   desc:'피해를 받을 시 피해량의 40%를 주변에 반사. 중첩당 +40%' },
   { id:'pierce_shot', name:'관통샷',       emoji:'🏹', rarity:'common',   desc:'3초마다 다음 평타가 벽을 관통' },
   { id:'start_boost', name:'스타트 부스터', emoji:'⭐', rarity:'hero',   desc:'라운드 시작 8초간 이동속도 +40%, 피해량 +30%' },
   { id:'guard_dodge', name:'가드 회피',    emoji:'🔰', rarity:'rare',   desc:'회피 도중 받는 피해 40% 감소' },
@@ -3663,8 +3663,8 @@ function receiveHit(dmg) {
   // 가시갑옷: 피해 받을 시 피해량의 30% × 스택 수를 주변에 반사
   const _thornCount = getAugCount('thorn_armor');
   if (_thornCount > 0 && !L._suppressThorn) {
-    const _thornReflect = Math.round(dmg * 0.30 * _thornCount);
-    const _thornRange = 102;  // 120 * 0.85
+    const _thornReflect = Math.round(dmg * 0.40 * _thornCount);
+    const _thornRange = 163;  // 102 * 1.6
     if (_thornReflect > 0) {
       if (_trainingMode) {
         for (const _tb of _trainingBots) {
