@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.4</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.5</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1598,6 +1598,7 @@ const BALANCE = {
       speed:      22,
       range:      480,
       cd:         800,     // 0.8초 쿨다운
+      shotCount:  9,       // 발사 수
     },
     rmb: {
       cost:       50,
@@ -4689,13 +4690,10 @@ function hitRemoteRaw(dmg) {
 
 // ── 스턴샷: 4초마다 다음 평타 0.5초 기절 ────────────────────
 function applyStunShot() {
-  // 평타(LMB)에서만 발동 — 동기 플래그 OR 최근 3초 이내 LMB 발사 (투사체 딜레이 대응)
   if (getAugCount('stun_shot') <= 0) return;
   if (!L._stunShotReady) return;
-  // 평타 동기 플래그만 체크 — 시간 기반 조건 제거 (rmb 등에서 오발 방지)
-  if (!L._lmbAttacking) return;
   L._stunShotReady = false;
-  const _stunDur = 300 * getAugCount('stun_shot'); // 중첩당 0.3초
+  const _stunDur = 300 * getAugCount('stun_shot');
   stunRemote(_stunDur);
   setTimeout(() => { if (gameOn) L._stunShotReady = true; }, 4000);
 }
@@ -5853,25 +5851,14 @@ const SKILLS = {
       // 일반 방패 스윙
       if (!useStam(B.lmb.cost)) return;
       const _lianCos = Math.cos(angle), _lianSin = Math.sin(angle);
-      if (_trainingMode) {
-        for (const _lb of _trainingBots) {
-          if (_lb.hidden || !_lb.isAlive) continue;
-          const _ldist = Math.hypot(_lb.x-L.x, _lb.y-L.y);
-          if (_ldist >= augMeleeRange(B.lmb.meleeRange)+_lb.radius) continue;
-          const _lto = Math.atan2(_lb.y-L.y, _lb.x-L.x);
-          const _ldiff = Math.abs(((_lto-angle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-          if (_ldiff >= B.lmb.halfAngle) continue;
-          _applyBotDamage(_lb, applyDmgAugs(B.lmb.damage));
-          addShake(2,6); playHitSfx();
-        }
-      } else {
+      
         const dist=Math.hypot(R.x-L.x,R.y-L.y);
         if (dist < B.lmb.meleeRange+R.radius) {
           const toR=Math.atan2(R.y-L.y,R.x-L.x);
           const diff=Math.abs(((toR-angle)+Math.PI*3)%(Math.PI*2)-Math.PI);
           if (diff < B.lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
         }
-      }
+      
       hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
       if (false) {
       }
@@ -6171,19 +6158,7 @@ const SKILLS = {
       if (!useStam(B.cost)) return;
 
       // 훈련장: 봇 직접 체크
-      if (_trainingMode) {
-        for (const _mb of _trainingBots) {
-          if (_mb.hidden || !_mb.isAlive) continue;
-          const _mdist = Math.hypot(_mb.x - L.x, _mb.y - L.y);
-          if (_mdist >= augMeleeRange(B.meleeRange) + _mb.radius) continue;
-          const _mto = Math.atan2(_mb.y - L.y, _mb.x - L.x);
-          const _mdiff = Math.abs(((_mto - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
-          if (_mdiff >= B.halfAngle) continue;
-          const _mdmg = _mdiff < B.centerAngle ? B.centerDmg : B.damage;
-          _applyBotDamage(_mb, applyDmgAugs(_mdmg));
-          addShake(2,6); playHitSfx();
-        }
-      } else {
+      
         const dist = Math.hypot(R.x - L.x, R.y - L.y);
         if (dist < B.meleeRange + R.radius) {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
@@ -6194,7 +6169,7 @@ const SKILLS = {
             hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, dmg);
           }
         }
-      }
+      
       // 소환수 조건부 피해 (중앙=centerDmg, 가장자리=damage)
       for (const pm of peerMinions) {
         const dpm = Math.hypot(pm.x - L.x, pm.y - L.y);
@@ -6223,21 +6198,7 @@ const SKILLS = {
       const cos = Math.cos(angle), sin = Math.sin(angle);
       const baseSpread = B.range * 0.12;
       // 훈련장: 봇 직접 체크
-      if (_trainingMode) {
-        for (const _msb of _trainingBots) {
-          if (_msb.hidden || !_msb.isAlive) continue;
-          const _mdx = _msb.x - L.x, _mdy = _msb.y - L.y;
-          const _mfwd = _mdx*cos + _mdy*sin;
-          const _mperp = -_mdx*sin + _mdy*cos;
-          const _wAt = baseSpread * (1 - _mfwd/B.range);
-          const _mhit = _mfwd >= 0 && _mfwd <= B.range+_msb.radius && Math.abs(_mperp) <= _wAt+_msb.radius;
-          if (_mhit) {
-            _applyBotDamage(_msb, applyDmgAugs(10));
-            addShake(2,6); playHitSfx();
-          }
-        }
-        return;
-      }
+      
       const dx = R.x - L.x, dy = R.y - L.y;
       const fwd  =  dx * cos + dy * sin;
       const perp = -dx * sin + dy * cos;
@@ -6439,25 +6400,14 @@ const SKILLS = {
         if (!useStam(B.lmbBlessed.cost)) return;
         const bl = B.lmbBlessed;
         const swingAngle = angle + bl.bias;
-        if (_trainingMode) {
-          for (const _rkb of _trainingBots) {
-            if (_rkb.hidden || !_rkb.isAlive) continue;
-            const _rd = Math.hypot(_rkb.x-L.x, _rkb.y-L.y);
-            if (_rd >= augMeleeRange(bl.range)+_rkb.radius) continue;
-            const _rt = Math.atan2(_rkb.y-L.y, _rkb.x-L.x);
-            const _rdf = Math.abs(((_rt-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-            if (_rdf >= bl.halfAngle) continue;
-            _applyBotDamage(_rkb, applyDmgAugs(bl.damage));
-            addShake(2,6); playHitSfx();
-          }
-        } else {
+        
           const dist = Math.hypot(R.x-L.x, R.y-L.y);
           if (dist < augMeleeRange(bl.range) + R.radius) {
             const toR = Math.atan2(R.y-L.y, R.x-L.x);
             const diff = Math.abs(((toR-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
             if (diff < bl.halfAngle) { hitCtx({x:L.x, y:L.y, angle:angle+bl.bias, range:augMeleeRange(bl.range), halfAngle:bl.halfAngle}, bl.damage); reikaApplyBurn(bl.burnDur); }
           }
-        }
+        
         hitCtxSpirit({x:L.x, y:L.y, angle:angle+bl.bias, range:augMeleeRange(bl.range), halfAngle:bl.halfAngle}, bl.damage);
         if (false) {
       }
@@ -6817,22 +6767,7 @@ const SKILLS = {
       if (!useStam(B.cost)) return;
       let hit = false;
       const gauge = L._kanGauge || 0;
-      if (_trainingMode) {
-        // 훈련장: 봇 직접 체크
-        for (const _kb of _trainingBots) {
-          if (_kb.hidden||!_kb.isAlive) continue;
-          const _kd = Math.hypot(_kb.x-L.x, _kb.y-L.y);
-          if (_kd >= augMeleeRange(B.meleeRange)+_kb.radius) continue;
-          const _kto = Math.atan2(_kb.y-L.y, _kb.x-L.x);
-          const _kdiff = Math.abs(((_kto-angle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-          if (_kdiff >= B.halfAngle) continue;
-          const dmg = Math.round(B.baseDamage + B.gaugeDamage * (gauge / BALANCE.kan.gaugeMax));
-          _applyBotDamage(_kb, applyDmgAugs(dmg));
-          addShake(2,6); playHitSfx();
-          L._kanGauge = Math.min(BALANCE.kan.gaugeMax, gauge + B.gaugeGain);
-          hit = true;
-        }
-      } else {
+      
         const dist = Math.hypot(R.x - L.x, R.y - L.y);
         if (dist < B.meleeRange + R.radius) {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
@@ -6845,7 +6780,7 @@ const SKILLS = {
           }
         }
         hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.baseDamage);
-      }
+      
       const col = hit ? '80,220,120' : '40,160,80';
       addFx({type:'kanSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, col, dur:10, maxDur:10});
       send({type:'fx', fx:{type:'kanSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, col, dur:10, maxDur:10}});
@@ -7068,19 +7003,7 @@ const SKILLS = {
 
       const cos = Math.cos(angle), sin = Math.sin(angle);
       // 훈련장: 봇 직접 체크
-      if (_trainingMode) {
-        for (const _kb of _trainingBots) {
-          if (_kb.hidden || !_kb.isAlive) continue;
-          const _kdx=_kb.x-L.x, _kdy=_kb.y-L.y;
-          const _kfwd=_kdx*cos+_kdy*sin;
-          const _kperp=Math.abs(-_kdx*sin+_kdy*cos);
-          if (_kfwd<0||_kfwd>augMeleeRange(B.length)+_kb.radius) continue;
-          if (_kperp>B.width/2+_kb.radius) continue;
-          const _ktip=augMeleeRange(B.length)*B.tipRatio;
-          _applyBotDamage(_kb, applyDmgAugs(_kfwd>=_ktip?B.tipDamage:B.damage));
-          addShake(2,6); playHitSfx();
-        }
-      } else {
+      
         const dx = R.x - L.x, dy = R.y - L.y;
         const fwd  =  dx * cos + dy * sin;
         const perp = Math.abs(-dx * sin + dy * cos);
@@ -7091,7 +7014,7 @@ const SKILLS = {
           const dmg = fwd >= tipThresh ? B.tipDamage : B.damage;
           hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.length), halfAngle:Math.PI/2}, dmg);
         }
-      }
+      
       // 소환수 조건부 피해 (끝부분=tipDamage, 일반=damage)
       for (const pm of peerMinions) {
         const pdx = pm.x - L.x, pdy = pm.y - L.y;
@@ -7237,15 +7160,7 @@ const SKILLS = {
         if (!useStam(B.burstCost)) return;
         // 훈련장: 가장 가까운 봇을 타겟으로
         let target = {x: R.x, y: R.y};
-        if (_trainingMode) {
-          let _bd = Infinity, _bt = null;
-          for (const _cb of _trainingBots) {
-            if (_cb.hidden || !_cb.isAlive) continue;
-            const _cd = Math.hypot(_cb.x-cannon.x, _cb.y-cannon.y);
-            if (_cd < _bd) { _bd = _cd; _bt = _cb; }
-          }
-          if (_bt) target = {x:_bt.x, y:_bt.y};
-        }
+        
         const fireAngle = Math.atan2(target.y - cannon.y, target.x - cannon.x);
         for (let i = 0; i < B.burstCount; i++) {
           setTimeout(() => {
@@ -7633,16 +7548,7 @@ const SKILLS = {
         L._pelunaPreswing = false;
         if (!gameOn || L._pelunaToken !== tok) return;
         // 원주 범위 피해 (ringInner ~ ringOuter)
-        if (_trainingMode) {
-          for (const _pb of _trainingBots) {
-            if (_pb.hidden||!_pb.isAlive) continue;
-            const _pd = Math.hypot(_pb.x-L.x, _pb.y-L.y);
-            if (_pd > B.ringOuter+_pb.radius) continue;
-            if (_pd < _inner-_pb.radius) continue;
-            _applyBotDamage(_pb, applyDmgAugs(_dmg));
-            addShake(2,6); playHitSfx();
-          }
-        } else {
+        
           const _rd = Math.hypot(R.x-L.x, R.y-L.y);
           if (_rd <= B.ringOuter+R.radius && _rd >= _inner-R.radius) {
             hitCtxAll({x:L.x, y:L.y, range:B.ringOuter}, _dmg);
@@ -7655,7 +7561,7 @@ const SKILLS = {
               send({type:'minionHit', id:pm.id, damage:_dmg});
             }
           }
-        }
+        
         addFx({type:'pelunaRing', x:L.x, y:L.y, inner:_inner, outer:B.ringOuter, dur:22, maxDur:22, empow:_empow, angle:angle, halfAngle:Math.PI});
         send({type:'fx', fx:{type:'pelunaRing', x:L.x, y:L.y, inner:_inner, outer:B.ringOuter, dur:22, maxDur:22, empow:_empow, angle:angle, halfAngle:Math.PI}});
         L.lmbCooldown = B.cd;
@@ -7691,13 +7597,7 @@ const SKILLS = {
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         // 범위 내 적 피해 + 끌어당김 (인력)
-        if (_trainingMode) {
-          for (const _cb of _trainingBots) {
-            if (_cb.hidden||!_cb.isAlive) continue;
-            if (Math.hypot(_cb.x-L.x, _cb.y-L.y) < B.pullRange+_cb.radius)
-              _applyBotDamage(_cb, applyDmgAugs(B.damage));
-          }
-        } else {
+        
           if (Math.hypot(R.x-L.x, R.y-L.y) < B.pullRange+R.radius) {
             hitCtxAll({x:L.x, y:L.y, range:B.pullRange}, B.damage);
             // 인력: 플레이어 쪽으로 당김
@@ -7705,7 +7605,7 @@ const SKILLS = {
             send({type:'knockback', vx:Math.cos(_pa)*B.pullPower, vy:Math.sin(_pa)*B.pullPower});
           }
           hitPeerMinionsInRange(L.x, L.y, B.pullRange, B.damage);
-        }
+        
         // 평타 강화 상태
         L._pelunaEmpowerExpiry = performance.now() + B.empowerDur;
         addShake(5, 14); playHitSfx();
@@ -7794,19 +7694,9 @@ const SKILLS = {
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         const fireAngle = getAngle();
-        if (_trainingMode) {
-          for (const _cb of _trainingBots) {
-            if (_cb.hidden||!_cb.isAlive) continue;
-            if (Math.hypot(_cb.x-L.x, _cb.y-L.y) > B.range+_cb.radius) continue;
-            const _cto = Math.atan2(_cb.y-L.y, _cb.x-L.x);
-            const _cdiff = Math.abs(((_cto-fireAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-            if (_cdiff >= B.halfAngle) continue;
-            _applyBotDamage(_cb, applyDmgAugs(B.damage));
-            addShake(2,6); playHitSfx();
-          }
-        } else {
+        
           hitCtxAll({x:L.x, y:L.y, angle:fireAngle, range:B.range, halfAngle:B.halfAngle}, B.damage);
-        }
+        
         // 한방에 그려지는 FX (dur 짧게)
         addFx({type:'sherinaSlash', x:L.x, y:L.y, angle:fireAngle, range:B.range, halfAngle:B.halfAngle, dur:14, maxDur:14});
         send({type:'fx', fx:{type:'sherinaSlash', x:L.x, y:L.y, angle:fireAngle, range:B.range, halfAngle:B.halfAngle, dur:14, maxDur:14}});
@@ -7959,21 +7849,10 @@ const SKILLS = {
       if (L._syaInvisible) { L._syaHitRevealEnd = performance.now() + 600; send({type:'syaHitReveal', dur:600}); }
       if (!useStam(B.cost)) return;
       const _cd = L._syaAttackBoost > 0 ? B.cd * BALANCE.sya.rmb.attackCdMult : B.cd;
-      if (_trainingMode) {
-        for (const _b of _trainingBots) {
-          if (_b.hidden||!_b.isAlive) continue;
-          const _d = Math.hypot(_b.x-L.x, _b.y-L.y);
-          if (_d > augMeleeRange(B.range)+_b.radius) continue;
-          const _a = Math.atan2(_b.y-L.y, _b.x-L.x);
-          const _df = Math.abs(((_a-angle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-          if (_df >= B.halfAngle) continue;
-          _applyBotDamage(_b, applyDmgAugs(B.damage));
-          addShake(3,8); playHitSfx();
-        }
-      } else {
+      
         hitCtxAll({x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle}, B.damage);
         hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle}, B.damage);
-      }
+      
       if (L._syaAttackBoost > 0) L._syaAttackBoost--;
       addFx({type:'syaSwing', x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle, dur:10, maxDur:10, col:'40,80,255'});
       send({type:'fx', fx:{type:'syaSwing', x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle, dur:10, maxDur:10, col:'40,80,255'}});
@@ -8015,20 +7894,12 @@ const SKILLS = {
         if (!gameOn || L._counterToken !== _syaTok) return;
         L.color = L.defaultColor; send({type:'colorChange', color:L.defaultColor});
         let _hit = false;
-        if (_trainingMode) {
-          for (const _cb of _trainingBots) {
-            if (_cb.hidden||!_cb.isAlive) continue;
-            if (Math.hypot(_cb.x-L.x, _cb.y-L.y) < B.range+_cb.radius) {
-              _applyBotDamage(_cb, applyDmgAugs(B.damage));
-              addShake(3,8); playHitSfx(); _hit = true;
-            }
-          }
-        } else {
+        
           if (Math.hypot(R.x-L.x, R.y-L.y) < B.range+R.radius) {
             hitRemote(B.damage); freezeRemote(B.freezeDur); _hit = true;
           }
           hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI}, B.damage);
-        }
+        
         addFx({type:'syaSwing', x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI, dur:16, maxDur:16, col:'40,80,255'});
         send({type:'fx', fx:{type:'syaSwing', x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI, dur:16, maxDur:16, col:'40,80,255'}});
         if (_hit) {
@@ -8119,21 +7990,12 @@ const SKILLS = {
       L._runefRmbActive = false; L._attackPreview = null;
       clearTimeout(L._runefRmbTimer); L.rmbCooldown = B.cd;
       const _sx = sx ?? L.x, _sy = sy ?? L.y;
-      if (_trainingMode) {
-        for (const _ib of _trainingBots) {
-          if (_ib.hidden||!_ib.isAlive||Math.hypot(_ib.x-_sx,_ib.y-_sy)>augMeleeRange(B.iceRange)+_ib.radius) continue;
-          const _ia = Math.atan2(_ib.y-_sy, _ib.x-_sx);
-          if (Math.abs(((_ia-angle)+Math.PI*3)%(Math.PI*2)-Math.PI) < B.iceHalfAngle)
-            { _applyBotDamage(_ib, applyDmgAugs(B.iceDamage)); playHitSfx(); }
-        }
-      } else {
-        if (Math.hypot(R.x-_sx,R.y-_sy) < augMeleeRange(B.iceRange)+R.radius) {
-          const _ia = Math.atan2(R.y-_sy, R.x-_sx);
-          if (Math.abs(((_ia-angle)+Math.PI*3)%(Math.PI*2)-Math.PI) < B.iceHalfAngle)
-            { hitRemote(B.iceDamage); freezeRemote(B.iceFreezeDur); playHitSfx(); }
+      
+        if (hitCtx({x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle}, B.iceDamage)) {
+          freezeRemote(B.iceFreezeDur);
         }
         hitCtxSpirit({x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle}, B.iceDamage);
-      }
+      
       addFx({type:'swing', x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle, dur:12, maxDur:12, col:'100,200,255'});
       send({type:'fx', fx:{type:'swing', x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle, dur:12, maxDur:12, col:'100,200,255'}});
       addFx({type:'freeze', x:_sx, y:_sy, r:0, maxR:augMeleeRange(B.iceRange), dur:10, maxDur:10});
@@ -8155,11 +8017,7 @@ const SKILLS = {
         const _tx = _cx + Math.cos(_tang)*_ldist, _ty = _cy + Math.sin(_tang)*_ldist;
         addFx({type:'runefLightning', x:_tx, y:_ty, r:B.lightningRadius, dur:8, maxDur:8});
         send({type:'fx', fx:{type:'runefLightning', x:_tx, y:_ty, r:B.lightningRadius, dur:8, maxDur:8}});
-        if (_trainingMode) {
-          for (const _lb of _trainingBots)
-            if (_lb.isAlive&&!_lb.hidden&&Math.hypot(_lb.x-_tx,_lb.y-_ty)<B.lightningRadius+_lb.radius)
-              { _applyBotDamage(_lb, applyDmgAugs(B.lightningDamage)); playHitSfx(); }
-        } else if (Math.hypot(R.x-_tx,R.y-_ty)<B.lightningRadius+R.radius) { hitRemote(B.lightningDamage); playHitSfx(); }
+         hitCtx({x:_tx, y:_ty, type:'circle', r:B.lightningRadius}, B.lightningDamage);
       };
       // 첫 타 즉시 발동
       _fireLightning();
@@ -8335,15 +8193,7 @@ const SKILLS = {
           const a = Math.atan2(ty-L.y, tx-L.x);
           return Math.abs(((a-angle)+Math.PI*3)%(Math.PI*2)-Math.PI) < B.halfAngle;
         };
-        if (_trainingMode) {
-          for (const _tb of _trainingBots) {
-            if (!_tb.isAlive||_tb.hidden||!_check(_tb.x,_tb.y,_tb.radius)) continue;
-            _applyBotDamage(_tb, applyDmgAugs(B.damage));
-            _tb.stunEnd = performance.now() + B.freezeDur;
-            SKILLS.roon._addSlush(B.slushFill, true, _tb);
-            _hit = true;
-          }
-        } else {
+        
           if (_check(R.x, R.y, R.radius)) {
             hitRemote(B.damage); freezeRemote(B.freezeDur);
             SKILLS.roon._addSlush(B.slushFill, false, null);
@@ -8358,7 +8208,7 @@ const SKILLS = {
             _hit = true;
           }
           hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:B.halfAngle}, 0);
-        }
+        
         addFx({type:'swing', x:L.x, y:L.y, angle, range:B.range, halfAngle:B.halfAngle, dur:14, maxDur:14, col:'165,249,166'});
         send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:B.range, halfAngle:B.halfAngle, dur:14, maxDur:14, col:'165,249,166'}});
         if (_hit) {
@@ -8524,10 +8374,12 @@ const SKILLS = {
       const B = BALANCE.tadta.lmb;
       if (L.lmbCooldown > 0) return;
       if (!useStam(B.cost)) return;
-      // 중앙 좌 중앙 우 중앙 좌 중앙 우 중앙 순서 (9발) — 발사 방향 고정
-      const _lockedAngle = angle; // 발사 시작 시 각도 고정 (마우스 이동 무시)
+      // pierce 상태 발사 시점에 저장 (setTimeout 딜레이 동안 변경되므로)
+      const _pierceNow = getAugCount('pierce_shot') > 0 && L._pierceShotReady;
+      if (_pierceNow) { L._pierceShotReady = false; L._pierceShotCd = performance.now() + 3000; }
+      const _lockedAngle = angle;
       const pattern = [0, -1, 0, 1, 0, -1, 0, 1, 0];
-      for (let i = 0; i < 9; i++) {
+      for (let i = 0; i < B.shotCount; i++) {
         setTimeout(() => {
           if (!gameOn) return;
           const fireAngle = _lockedAngle + pattern[i] * B.spread;
@@ -8539,8 +8391,9 @@ const SKILLS = {
             damage: B.damage, maxRange: B.range, traveled: 0,
             color: '#22aa44',
             isTadtaSeed: true,
+            _lmbAttack: true,
           };
-          applyPierceShot(b);
+          if (_pierceNow) { b.pierceWalls = true; b._isPierceShot = true; }
           localBullets.push(b);
           send({type: 'bullet', ...b});
           if (i === 0) playShootSfx();
@@ -9229,6 +9082,8 @@ function moveBullets(dt=1) {
             hitRemote(b.damage);
           }
           window._hitTarget = _hitTarget; // CC는 첫 타겟 기준
+          // 스턴샷: 탄환 명중 시 발동 (b._lmbAttack 무관)
+          applyStunShot();
           if (b.bindDur) bindRemote(b.bindDur);
         }
 
@@ -9435,7 +9290,7 @@ function moveBullets(dt=1) {
               SKILLS.roon._addSlush(_inZone?BALANCE.roon.rmb.slushInZone:1, false, null);
             }
             addShake(3,10); playHitSfx();
-            applyLifesteal(_dmgRoon); applyPoison(_dmgRoon);
+            applyLifesteal(_dmgRoon); applyPoison(_dmgRoon); applyStunShot();
           }
           localBullets.splice(i,1);
         }
@@ -13929,19 +13784,7 @@ function loop() {
       if (_now3 > L._sherinaEchoZones[_zi].expiry) L._sherinaEchoZones.splice(_zi, 1);
     }
     const _interval = BALANCE.sherina.lmb.echoTickInterval;
-    if (_trainingMode) {
-      for (const _zb of _trainingBots) {
-        if (_zb.hidden||!_zb.isAlive) continue;
-        const _inAny = L._sherinaEchoZones.some(_z => _inRect(_z, _zb.x, _zb.y, _zb.radius));
-        if (_inAny) {
-          const _cd = L._sherinaGlobalHitCd.get(_zb.id)||0;
-          if (_now3 > _cd) {
-            L._sherinaGlobalHitCd.set(_zb.id, _now3+_interval);
-            _applyBotDamage(_zb, applyDmgAugs(L._sherinaEchoZones.find(_z=>_inRect(_z,_zb.x,_zb.y,_zb.radius))?.damage || 0));
-          }
-        }
-      }
-    } else {
+    
       // Rs() 전체 순회 → R + peerMinions 동일 처리
       for (const _et of Rs()) {
         const _etKey = _et === R ? 'R' : _et.id;
@@ -13964,7 +13807,7 @@ function loop() {
           addShake(2,6); playHitSfx(); applyLifesteal(applyDmgAugs(_dmgVal));
         }
       }
-    }
+    
   }
 
   // 스야 은신 처리
@@ -14192,16 +14035,7 @@ function loop() {
       }
       const playerInRope = !_trainingMode && proj>=-R.radius && proj<=len+R.radius && perp<28+R.radius;
       let botInRope = false;
-      if (_trainingMode) {
-        for (const _rb of _trainingBots) {
-          if (_rb.hidden || !_rb.isAlive) continue;
-          const _rex=_rb.x-L.x, _rey=_rb.y-L.y;
-          const _rproj=_rex*ux+_rey*uy, _rperp=Math.abs(_rex*(-uy)+_rey*ux);
-          if (_rproj>=-_rb.radius && _rproj<=len+_rb.radius && _rperp<28+_rb.radius) {
-            botInRope = true; break;
-          }
-        }
-      }
+      
       if (playerInRope || spiritInRope || botInRope) {
         L._mhOrb.hit=true;
         clearTimeout(L._mhOrbTimer); L._mhOrbTimer=null;
@@ -14224,14 +14058,7 @@ function loop() {
       if (nowT - trap.placedAt < 500) continue;
       // 훈련장: 봇만 발동 (자신 L 위치가 R과 동일하므로 R 체크 제외)
       let botTriggered = null;
-      if (_trainingMode) {
-        for (const _tb of _trainingBots) {
-          if (_tb.hidden || !_tb.isAlive) continue;
-          if (Math.hypot(_tb.x-trap.x, _tb.y-trap.y) < BT.trapRadius+_tb.radius) {
-            botTriggered = _tb; break;
-          }
-        }
-      }
+      
       const playerTriggered = !_trainingMode && Math.hypot(R.x - trap.x, R.y - trap.y) < BT.trapRadius + R.radius;
       const spiritTriggered = peerMinions.some(pm => Math.hypot(pm.x - trap.x, pm.y - trap.y) < BT.trapRadius + pm.radius);
       if (playerTriggered || spiritTriggered || botTriggered) {
@@ -14362,23 +14189,12 @@ function loop() {
         _h.traveled += _h.speed * dt;
         // 적 관통 명중: 피해만, 멈추지 않고 계속
         const _HR = BALANCE.ruvu.rmb.hammerRadius;
-        if (_trainingMode) {
-          for (const _hb of _trainingBots) {
-            if (_hb.hidden || !_hb.isAlive) continue;
-            if (!_h._hitBots) _h._hitBots = new Set();
-            if (!_h._hitBots.has(_hb.id) && Math.hypot(_hb.x-_h.x, _hb.y-_h.y) < _HR + _hb.radius) {
-              _h._hitBots.add(_hb.id);
-              _applyBotDamage(_hb, BALANCE.ruvu.rmb.hammerDamage);
-              addShake(2,6); playHitSfx();
-              addFx({type:'bombBlast', x:_h.x, y:_h.y, r:0, maxR:_HR*1.5, dur:10, maxDur:10});
-            }
-          }
-        } else if (!_h._hitR && Math.hypot(R.x-_h.x, R.y-_h.y) < _HR + R.radius) {
+        
           _h._hitR = true;
           hitRemote(BALANCE.ruvu.rmb.hammerDamage);
           addFx({type:'bombBlast', x:_h.x, y:_h.y, r:0, maxR:_HR*1.5, dur:10, maxDur:10});
           send({type:'fx', fx:{type:'bombBlast', x:_h.x, y:_h.y, r:0, maxR:_HR*1.5, dur:10, maxDur:10}});
-        }
+        
         // 최대 사거리 도달 → 탄착 위치에 멈춤, 타이머가 1.5초 후 귀환
         if (_h.traveled >= _h.maxRange || _h.x<0||_h.x>WORLD_W||_h.y<0||_h.y>WORLD_H) {
           _h.x = Math.max(0, Math.min(WORLD_W, _h.x));
