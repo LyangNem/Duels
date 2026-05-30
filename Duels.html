@@ -185,7 +185,7 @@ input[type=text]:focus{border-color:#4af;}
   display:flex; flex-direction:column; gap:4px;
   margin-bottom:8px;
   max-height:220px; overflow-y:auto;
-  pointer-events:all;
+  pointer-events:none;
 }
 #chat-log::-webkit-scrollbar{width:4px;}
 #chat-log::-webkit-scrollbar-track{background:transparent;}
@@ -251,7 +251,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.7</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.6</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -8078,7 +8078,7 @@ const SKILLS = {
         const _tx = _cx + Math.cos(_tang)*_ldist, _ty = _cy + Math.sin(_tang)*_ldist;
         addFx({type:'runefLightning', x:_tx, y:_ty, r:B.lightningRadius, dur:8, maxDur:8});
         send({type:'fx', fx:{type:'runefLightning', x:_tx, y:_ty, r:B.lightningRadius, dur:8, maxDur:8}});
-         hitCtx({x:_tx, y:_ty, type:'circle', r:B.lightningRadius}, B.lightningDamage);
+         hitCtx({x:_tx, y:_ty, range:B.lightningRadius}, B.lightningDamage);
       };
       // 첫 타 즉시 발동
       _fireLightning();
@@ -8900,9 +8900,11 @@ function _addChatMsg(name, text, isMine) {
   div.className = 'chat-msg ' + (isMine ? 'mine' : 'peer');
   div.textContent = (isMine ? '나' : (name||'상대')) + ': ' + text;
   log.appendChild(div);
-  // 화면에는 5개만
-  while (log.children.length > 5) log.removeChild(log.firstChild);
-  setTimeout(() => div.remove(), 8000);
+  // 실시간 메시지(data-hist 없는 것)가 5개 초과 시 가장 오래된 것 제거
+  const live = [...log.children].filter(el => !el.dataset.hist);
+  while (live.length > 5) live.shift().remove();
+  // 5초 후 사라짐
+  setTimeout(() => { if (div.parentNode) div.remove(); }, 5000);
 }
 
 function _openChat() {
@@ -8914,13 +8916,18 @@ function _openChat() {
   // 히스토리 표시
   const log = document.getElementById('chat-log');
   if (log) {
-    log.innerHTML = '';
+    log.style.pointerEvents = 'all';
+    // 기존 히스토리 항목만 제거 (실시간 메시지는 유지)
+    log.querySelectorAll('[data-hist]').forEach(el => el.remove());
+    // 히스토리를 실시간 메시지들 앞에 삽입
+    const liveFirst = log.firstChild;
     _chatHistory.forEach(h => {
       const d = document.createElement('div');
       d.className = 'chat-msg ' + (h.isMine ? 'mine' : 'peer');
       d.style.cssText = 'animation:none;opacity:1;';
+      d.dataset.hist = '1';
       d.textContent = h.name + ': ' + h.text;
-      log.appendChild(d);
+      log.insertBefore(d, liveFirst);
     });
   }
   if (log) setTimeout(() => { log.scrollTop = log.scrollHeight; }, 0);
@@ -8933,19 +8940,8 @@ function _closeChat() {
   _chatOpen = false;
   const wrap = document.getElementById('chat-input-wrap');
   if (wrap) wrap.style.display = 'none';
-  // 최근 5개만 남기고 fade 복원
   const log = document.getElementById('chat-log');
-  if (log) {
-    log.innerHTML = '';
-    const recent = _chatHistory.slice(-5);
-    recent.forEach(h => {
-      const d = document.createElement('div');
-      d.className = 'chat-msg ' + (h.isMine ? 'mine' : 'peer');
-      d.textContent = h.name + ': ' + h.text;
-      log.appendChild(d);
-      setTimeout(() => d.remove(), 8000);
-    });
-  }
+  if (log) { log.querySelectorAll('[data-hist]').forEach(el => el.remove()); log.style.pointerEvents = 'none'; }
   send({type:'chatTyping', typing:false});
 }
 
@@ -8970,6 +8966,11 @@ document.addEventListener('DOMContentLoaded', () => {
     e.stopPropagation();
     if (e.key === 'Enter') { e.preventDefault(); _sendChat(); }
     if (e.key === 'Escape') { _closeChat(); }
+  });
+  document.addEventListener('mousedown', e => {
+    if (!_chatOpen) return;
+    const wrap = document.getElementById('chat-input-wrap');
+    if (wrap && !wrap.contains(e.target)) _closeChat();
   });
 });
 
