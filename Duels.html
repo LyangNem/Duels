@@ -174,6 +174,40 @@ input[type=text]:focus{border-color:#4af;}
 
 
 
+
+/* ── 채팅 ─────────────────────────────────── */
+#chat-wrap {
+  position:fixed; bottom:80px; left:50%;
+  transform:translateX(-50%);
+  width:480px; pointer-events:none; z-index:500;
+}
+#chat-log {
+  display:flex; flex-direction:column; gap:4px;
+  margin-bottom:8px;
+}
+.chat-msg {
+  font-family:'Courier New',monospace; font-size:14px;
+  color:#eee; background:rgba(0,0,0,0.65);
+  padding:5px 12px; border-radius:4px;
+  letter-spacing:.5px; max-width:100%;
+  word-break:break-all;
+  animation: chat-fade 8s forwards;
+}
+.chat-msg.mine { color:#c8a0ff; border-left:3px solid #c8a0ff; }
+.chat-msg.peer { color:#ffb870; border-left:3px solid #ffb870; }
+@keyframes chat-fade {
+  0%{opacity:1} 70%{opacity:1} 100%{opacity:0}
+}
+#chat-input-wrap {
+  pointer-events:all; display:none;
+}
+#chat-input {
+  width:100%; box-sizing:border-box;
+  background:rgba(0,0,0,0.82); border:1px solid #666;
+  color:#eee; font-family:'Courier New',monospace; font-size:14px;
+  padding:7px 12px; border-radius:4px; outline:none;
+  letter-spacing:.5px;
+}
 </style>
 </head>
 <body>
@@ -212,7 +246,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.4</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.6</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -281,7 +315,15 @@ input[type=text]:focus{border-color:#4af;}
     <div class="bar-bg"><div class="bar-fill bar-hp-remote" id="remote-hp"></div></div>
     <div class="bar-bg"><div class="bar-fill bar-st-remote" id="remote-st"></div></div>
   </div>
+</div
+<!-- 채팅 -->
+<div id="chat-wrap">
+  <div id="chat-log"></div>
+  <div id="chat-input-wrap">
+    <input id="chat-input" type="text" maxlength="80" placeholder="메시지 입력...">
+  </div>
 </div>
+>
 
 <!-- 결과 화면 -->
 <div id="result-oveleulay">
@@ -2686,7 +2728,8 @@ const _netSend = d => { try { if (conn?.open) conn.send(d); } catch(e){} };
 function send(d) {
   if (_trainingMode) {
     switch(d.type) {
-      case 'hitMe':    break; // hitCtx에서 R.health 이미 차감
+            case 'hitMe':    break; // hitCtx에서 R.health 이미 차감
+      case 'chatTyping': break; // 훈련장: 무시
       case 'knockback':
         if (R.burrowing) break;
         if (!window._hitTargetTime || performance.now() - window._hitTargetTime > 100) break;
@@ -3072,6 +3115,10 @@ function onData(d) {
       R._ruvuHammer = { x:d.x, y:d.y, dx:d.dx, dy:d.dy, speed:d.speed, maxRange:d.maxRange,
                         traveled:0, returning:false, returnStart:0, returnSX:d.x, returnSY:d.y };
       break;
+    case 'chat':
+      _addChatMsg('상대', d.text, false); break;
+    case 'chatTyping':
+      _showTyping(d.typing); break;
     case 'ruvuHammerClear':
       R._ruvuHammer = null;
       break;
@@ -8827,9 +8874,95 @@ document.addEventListener('mouseup', e => {
       SKILLS.hatsuhats.rmbRelease();
   }
 });
+
+// ── 채팅 시스템 ────────────────────────────────────────────
+let _chatOpen = false;
+
+let _chatTypingEl = null;
+function _showTyping(show) {
+  const log = document.getElementById('chat-log');
+  if (!log) return;
+  if (show && !_chatTypingEl) {
+    _chatTypingEl = document.createElement('div');
+    _chatTypingEl.className = 'chat-msg peer';
+    _chatTypingEl.id = 'chat-typing-indicator';
+    _chatTypingEl.style.animation = 'none';
+    _chatTypingEl.style.opacity = '1';
+    _chatTypingEl.textContent = '상대 입력 중...';
+    log.appendChild(_chatTypingEl);
+  } else if (!show && _chatTypingEl) {
+    _chatTypingEl.remove();
+    _chatTypingEl = null;
+  }
+}
+
+function _addChatMsg(name, text, isMine) {
+  const log = document.getElementById('chat-log');
+  if (!log) return;
+  // 상대 메시지 수신 시 typing indicator 제거
+  if (!isMine && _chatTypingEl) { _chatTypingEl.remove(); _chatTypingEl = null; }
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + (isMine ? 'mine' : 'peer');
+  div.textContent = (isMine ? '나' : (name||'상대')) + ': ' + text;
+  log.appendChild(div);
+  // 최대 5개 유지
+  while (log.children.length > 5) log.removeChild(log.firstChild);
+  // 8초 후 제거
+  setTimeout(() => div.remove(), 8000);
+}
+
+function _openChat() {
+  _chatOpen = true;
+  const wrap = document.getElementById('chat-input-wrap');
+  const inp  = document.getElementById('chat-input');
+  if (!wrap || !inp) return;
+  wrap.style.display = 'block';
+  inp.focus();
+  inp.select();
+  send({type:'chatTyping', typing:true});
+}
+
+function _closeChat() {
+  _chatOpen = false;
+  const wrap = document.getElementById('chat-input-wrap');
+  if (wrap) wrap.style.display = 'none';
+  send({type:'chatTyping', typing:false});
+}
+
+function _sendChat() {
+  const inp = document.getElementById('chat-input');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) { _closeChat(); return; }
+  // 내 채팅 직접 표시 (send 인터셉터 우회)
+  _addChatMsg('나', text, true);
+  send({type:'chat', name: L.charDef?.name || '나', text});
+  _closeChat();
+}
+
+// 채팅 입력창 Enter/Escape 처리
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('chat-input');
+  if (!inp) return;
+  inp.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); _sendChat(); }
+    if (e.key === 'Escape') { _closeChat(); }
+  });
+});
+
 document.addEventListener('keydown', e => {
   _sfxCtx.state === 'suspended' && _sfxCtx.resume();
   keys[e.key.toLowerCase()]=true;
+
+  if (e.key === 'Enter' && !_chatOpen) {
+    const _activeScr = ['scr-select','scr-between'].some(
+      id => !document.getElementById(id)?.classList.contains('hidden')
+    );
+    if (gameOn || _activeScr) {
+      e.preventDefault(); _openChat();
+    }
+  }
   if (e.code==='Space') { e.preventDefault(); tryDodge(); }
   if (e.code==='ShiftLeft' && gameOn) {
     e.preventDefault();
@@ -14192,12 +14325,12 @@ function loop() {
         _h.traveled += _h.speed * dt;
         // 적 관통 명중: 피해만, 멈추지 않고 계속
         const _HR = BALANCE.ruvu.rmb.hammerRadius;
-        
+        if (!_h._hitR && Math.hypot(R.x-_h.x, R.y-_h.y) < _HR + R.radius) {
           _h._hitR = true;
           hitRemote(BALANCE.ruvu.rmb.hammerDamage);
           addFx({type:'bombBlast', x:_h.x, y:_h.y, r:0, maxR:_HR*1.5, dur:10, maxDur:10});
           send({type:'fx', fx:{type:'bombBlast', x:_h.x, y:_h.y, r:0, maxR:_HR*1.5, dur:10, maxDur:10}});
-        
+        }
         // 최대 사거리 도달 → 탄착 위치에 멈춤, 타이머가 1.5초 후 귀환
         if (_h.traveled >= _h.maxRange || _h.x<0||_h.x>WORLD_W||_h.y<0||_h.y>WORLD_H) {
           _h.x = Math.max(0, Math.min(WORLD_W, _h.x));
