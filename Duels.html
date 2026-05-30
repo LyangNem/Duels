@@ -8914,24 +8914,23 @@ function _openChat() {
   const inp  = document.getElementById('chat-input');
   if (!wrap || !inp) return;
   wrap.style.display = 'block';
-  // 히스토리 표시
   const log = document.getElementById('chat-log');
   if (log) {
     log.style.pointerEvents = 'all';
-    // 기존 히스토리 항목만 제거 (실시간 메시지는 유지)
+    // 실시간 메시지 임시 숨김
+    [...log.children].filter(el => !el.dataset.hist).forEach(el => { el.dataset.live = '1'; el.style.display = 'none'; });
+    // 기존 히스토리 항목 제거 후 재삽입
     log.querySelectorAll('[data-hist]').forEach(el => el.remove());
-    // 히스토리를 실시간 메시지들 앞에 삽입
-    const liveFirst = log.firstChild;
     _chatHistory.forEach(h => {
       const d = document.createElement('div');
       d.className = 'chat-msg ' + (h.isMine ? 'mine' : 'peer');
       d.style.cssText = 'animation:none;opacity:1;';
       d.dataset.hist = '1';
       d.textContent = h.name + ': ' + h.text;
-      log.insertBefore(d, liveFirst);
+      log.appendChild(d);
     });
+    setTimeout(() => { log.scrollTop = log.scrollHeight; }, 0);
   }
-  if (log) setTimeout(() => { log.scrollTop = log.scrollHeight; }, 0);
   inp.focus();
   inp.select();
   send({type:'chatTyping', typing:true});
@@ -8942,7 +8941,12 @@ function _closeChat() {
   const wrap = document.getElementById('chat-input-wrap');
   if (wrap) wrap.style.display = 'none';
   const log = document.getElementById('chat-log');
-  if (log) { log.querySelectorAll('[data-hist]').forEach(el => el.remove()); log.style.pointerEvents = 'none'; }
+  if (log) {
+    log.querySelectorAll('[data-hist]').forEach(el => el.remove());
+    // 숨겼던 실시간 메시지 복원
+    [...log.children].filter(el => el.dataset.live).forEach(el => { delete el.dataset.live; el.style.display = ''; });
+    log.style.pointerEvents = 'none';
+  }
   send({type:'chatTyping', typing:false});
 }
 
