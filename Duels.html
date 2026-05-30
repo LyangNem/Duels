@@ -212,7 +212,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.5</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.4</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -273,7 +273,7 @@ input[type=text]:focus{border-color:#4af;}
     <div class="hplabel" id="local-label">나: 100 / 100</div>
     <div class="bar-bg"><div class="bar-fill bar-hp-local"  id="local-hp"></div></div>
     <div class="bar-bg"><div class="bar-fill bar-st-local" id="local-st"></div></div>
-  </div></div>
+  </div>
   <div class="hpcenter" id="hud-mid">스테미나: 200 / 200</div>
 
   <div class="hpwrap text-right">
@@ -1554,32 +1554,6 @@ const BALANCE = {
   },
 
 
-  // ── 레테 ─────────────────────────────────────────────────
-  rete: {
-    hp:     90,
-    speed:  3.75,
-    radius: 20,
-    lmb: {
-      cost:    15,   damage:   6,
-      count:    4,   spread: 0.06,
-      delay:  110,   bRadius:  7,
-      speed:   17,   range:  560,
-      cd:     400,
-    },
-    rmb: {
-      cost:     50,   placeRange: 220,
-      boxHp:    90,   boxR:        18,
-      maxMail:  40,   autoRange:  400,
-      autoDmg:   6,   autoMs:     300,
-      tickDmg:  10,   cd:         300,
-    },
-    counter: {
-      swingDmg: 18, swingRange: 160, swingHA: 1.1,
-      shots:     4, shotDmg:      8, shotSpread: 0.30,
-      kb:      420, cd:         800,
-    },
-  },
-
   // ── 메라 모나 ──────────────────────────────────────────────────
   meramona: {
     hp:     110,
@@ -2231,6 +2205,12 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     ],
   },
 
+
+
+
+
+
+
   meramona: {
     id:        'meramona',
     name:      '메라 모나',
@@ -2263,21 +2243,6 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
         desc:`덩굴 지대 생성. 적을 감속시키며, 지대 위 적 타격 시 ${BALANCE.tadta.rmb.bindDur/1000}초 속박 (${BALANCE.tadta.rmb.tickDamage})` },
       { key:'L-Shift', name:'덩굴 묶기', cost:0,
         desc:`덩굴을 크게 2회 휘둘러 피해. 1타 감속, 2타 감속된 적 타격 시 ${BALANCE.tadta.counter.bindDur/1000}초 속박 (타당 ${BALANCE.tadta.counter.damage})` },
-    ],
-  },
-
-  rete: {
-    id: 'rete', name: '레테', color: '#A7B0A4',
-    maxHealth: BALANCE.rete.hp, speed: BALANCE.rete.speed, radius: BALANCE.rete.radius,
-    statsText: [['체력', String(BALANCE.rete.hp)], ['이동속도','느림'], ['스타일','충전형 중거리 딜러']],
-    desc: '도착하지 못한 편지들의 한이 모여 탄생한 분실된 편지의 정령',
-    skills: [
-      { key:'LMB', name:'우편이야.', cost: BALANCE.rete.lmb.cost,
-        desc: `우편 ${BALANCE.rete.lmb.count}개 연사. 빗맞힌 우편은 우편함에 자동 충전 (발당 ${BALANCE.rete.lmb.damage}).` },
-      { key:'RMB', name:'한서린 우편함', cost: BALANCE.rete.rmb.cost,
-        desc: `메고있던 우편함을 내려놓기 및 우편함은 항상 자동공격(${BALANCE.rete.rmb.autoDmg}). 우편함을 공격해 우편 2개씩 충전. 재사용 시 회수` },
-      { key:'L-Shift', name:'우편함도 무기', cost: 0,
-        desc: `휘두르기(${BALANCE.rete.counter.swingDmg}) + 우편${BALANCE.rete.counter.shots}발. 설치 중이면 우편만` },
     ],
   },
 };
@@ -2724,9 +2689,8 @@ function send(d) {
       case 'hitMe':    break; // hitCtx에서 R.health 이미 차감
       case 'knockback':
         if (R.burrowing) break;
-        // 훈련장: R이 실제 공격 가능 거리 내에 있어야 넉백
-        if (Math.hypot(R.x - L.x, R.y - L.y) > 700 + R.radius) break;
-        R._kbVX = d.vx * 2.5; R._kbVY = d.vy * 2.5; R._kbFrames = 18; break;
+        if (!window._hitTargetTime || performance.now() - window._hitTargetTime > 100) break;
+        R._kbVX = d.vx; R._kbVY = d.vy; R._kbFrames = 12; break;
       case 'bound':
         R.bindEnd = Math.max(R.bindEnd||0, performance.now() + d.dur); break;
       case 'stunned':
@@ -3952,8 +3916,7 @@ function hitCtx(ctx, dmg) {
     window._lastHitWasMinion = (hitTarget !== R);
     window._lastHitMinion = (hitTarget !== R) ? hitTarget : null;
     window._hitTarget = hitTarget;
-    window._hitTargetTime = performance.now();
-    if (_trainingMode) window._rHitNow = (hitTarget === R);
+    if (_trainingMode && hitTarget === R) window._hitTargetTime = performance.now();
     applyStunShot();  // stun_shot 증강: R 명중 시만 발동
   }
   return hitTarget !== null;
@@ -4815,7 +4778,7 @@ function hitRemote(dmg) {
     send({type:'hitMe', damage:dmg});
     _addDmgNum('dealt', Math.round(dmg), R.x, R.y-R.radius-10);
     window._lastHitWasMinion = false; window._lastHitMinion = null;
-    if (_trainingMode) { window._hitTarget = R; window._hitTargetTime = performance.now(); window._rHitNow = true; }
+    if (_trainingMode) window._hitTargetTime = performance.now();
   } else if (_trainingMode && t.isBot) {
     // 훈련장 공격봇
     _applyBotDamage(t, dmg);
@@ -4841,12 +4804,9 @@ function knockbackRemote(power) {
     return;
   }
   if (R.burrowing) return;
-  // 훈련장: hitCtx/hitRemote가 방금(100ms 이내) R을 명중한 경우에만
-  if (_trainingMode) {
-    if (!window._hitTargetTime || performance.now() - window._hitTargetTime > 100) return;
-  }
   const ang = Math.atan2(R.y - L.y, R.x - L.x);
   send({type:'knockback', vx: Math.cos(ang)*power, vy: Math.sin(ang)*power});
+  // 로컬 R 보간 위치도 밀기
   R.tx = Math.max(R.radius, Math.min(WORLD_W-R.radius, R.tx + Math.cos(ang)*power*0.35));
   R.ty = Math.max(R.radius, Math.min(WORLD_H-R.radius, R.ty + Math.sin(ang)*power*0.35));
 }
@@ -8271,111 +8231,6 @@ const SKILLS = {
 
 
 
-  // ── 레테 ────────────────────────────────────────────────
-  rete: {
-    lmb(angle) {
-      const B = BALANCE.rete.lmb;
-      if (L.lmbCooldown > 0) return;
-      if (!useStam(B.cost)) return;
-      if (L._mail == null) L._mail = 0;
-      const a0 = angle, pat = [0, -1, 1, 0];
-      const pierceNow = getAugCount('pierce_shot') > 0 && L._pierceShotReady;
-      if (pierceNow) { L._pierceShotReady = false; L._pierceShotCd = performance.now() + 3000; }
-      for (let i = 0; i < B.count; i++) {
-        setTimeout(() => {
-          if (!gameOn) return;
-          const fa = getAngle() + pat[i]*B.spread;
-          const b = {
-            id: uid(), x: L.x, y: L.y,
-            radius: augBulletRadius(B.bRadius), speed: augBulletSpeed(B.speed),
-            dx: Math.cos(fa), dy: Math.sin(fa),
-            damage: B.damage, maxRange: B.range, traveled: 0,
-            color: '#C8D0C6', _reteLmb: true, _lmbAttack: true,
-          };
-          if (pierceNow) { b.pierceWalls = true; b._isPierceShot = true; }
-          localBullets.push(b); send({type:'bullet',...b});
-          if (i === 0) playShootSfx();
-        }, i * B.delay);
-      }
-      L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
-    },
-
-    rmb(angle) {
-      const B = BALANCE.rete.rmb;
-      if (L.rmbCooldown > 0) return;
-      if (L._mailBox) { // 회수
-        L._mailBox = null;
-        L.rmbCooldown = B.cd;
-        playShootSfx(); return;
-      }
-      if (!useStam(B.cost)) return;
-      if (L._mail == null) L._mail = 0;
-      const d = Math.min(B.placeRange, Math.hypot(mouseX-L.x, mouseY-L.y)||1);
-      const bx = Math.max(B.boxR, Math.min(WORLD_W-B.boxR, L.x + Math.cos(angle)*d));
-      const by = Math.max(B.boxR, Math.min(WORLD_H-B.boxR, L.y + Math.sin(angle)*d));
-      L._mailBox = { x:bx, y:by, hp:B.boxHp, maxHp:B.boxHp };
-      L._mailAutoNext = 0;
-      addFx({type:'counterCharge',x:bx,y:by,r:0,maxR:B.boxR,col:'167,176,164',dur:10,maxDur:10});
-      send({type:'fx',fx:{type:'counterCharge',x:bx,y:by,r:0,maxR:B.boxR,col:'167,176,164',dur:10,maxDur:10}});
-      playShootSfx();
-      L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
-    },
-
-    counter(angle) {
-      const B = BALANCE.rete.counter;
-      if (!L.counterReady) return;
-      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
-      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
-      if (L._mail == null) L._mail = 0;
-      L.color = '#ffd700'; send({type:'colorChange',color:'#ffd700'});
-      if (!L._mailBox) L._attackPreview = {shapes:[{type:'sector', range:B.swingRange, halfAngle:B.swingHA}]};
-      const tok = ++L._counterToken;
-      setTimeout(() => {
-        L._attackPreview = null;
-        if (!gameOn || L._counterToken !== tok) return;
-        L.color = L.defaultColor; send({type:'colorChange',color:L.defaultColor});
-        const ang = getAngle();
-        let _swingHit = false;
-
-        // 1. 우편함 없으면 근거리 휘두르기
-        if (!L._mailBox) {
-          _swingHit = hitCtxAll({x:L.x, y:L.y, range:B.swingRange}, B.swingDmg);
-          if (_swingHit) {
-            // 근거리 명중 → 넉백
-            if (_trainingMode) {
-              const _ka = Math.atan2(R.y - L.y, R.x - L.x);
-              R._kbVX = Math.cos(_ka) * B.kb * 2.5;
-              R._kbVY = Math.sin(_ka) * B.kb * 2.5;
-              R._kbFrames = 18;
-            } else {
-              knockbackRemote(B.kb);
-            }
-          }
-          addFx({type:'syaSwing',x:L.x,y:L.y,col:'167,176,164',angle:ang,range:B.swingRange,halfAngle:B.swingHA,dur:10,maxDur:10});
-          send({type:'fx',fx:{type:'syaSwing',x:L.x,y:L.y,col:'167,176,164',angle:ang,range:B.swingRange,halfAngle:B.swingHA,dur:10,maxDur:10}});
-        }
-
-        // 2. 우편 발사 (근거리 미명중 시 또는 항상)
-        const use = Math.min(B.shots, L._mail);
-        const _mailKb = !_swingHit; // 근거리 안 맞았을 때만 우편 넉백
-        for (let i = 0; i < B.shots; i++) {
-          const off = B.shots > 1 ? (i-(B.shots-1)/2)*(B.shotSpread/(B.shots-1)) : 0;
-          const mb = {
-            id:uid(), x:L.x, y:L.y, radius:8, speed:augBulletSpeed(16),
-            dx:Math.cos(ang+off), dy:Math.sin(ang+off),
-            damage: i < use ? B.shotDmg : 0,
-            maxRange:BALANCE.rete.lmb.range, traveled:0,
-            color:'#C8D0C6',
-            _reteShot:true,
-            _hasKb: false,
-          };
-          localBullets.push(mb); send({type:'bullet',...mb});
-        }
-        L._mail = Math.max(0, L._mail - use);
-        L.lastAttackTime = performance.now();
-      }, BALANCE.counter?.delay ?? 200);
-    },
-  },
 
   // ── 메라 모나 ────────────────────────────────────────────────
   meramona: {
@@ -9199,19 +9054,8 @@ function moveBullets(dt=1) {
 
     const rangeOut = b.traveled>=b.maxRange;
 
-    // 레테 평타 — 빗맞힘→+1, 우편함 직격→+2
-    if (b._reteLmb && L.charDef?.id === 'rete') {
-      const bx = L._mailBox;
-      if (!hitEnemy && bx && Math.hypot(b.x-bx.x, b.y-bx.y) < b.radius + BALANCE.rete.rmb.boxR) {
-        L._mail = Math.min(BALANCE.rete.rmb.maxMail, (L._mail||0) + 2);
-        addFx({type:'justdodge', x:bx.x, y:bx.y, r:0, maxR:BALANCE.rete.rmb.boxR+6, dur:7, maxDur:7});
-        localBullets.splice(i,1); continue;
-      }
-      if (!hitEnemy && (rangeOut || hitWall)) {
-        L._mail = Math.min(BALANCE.rete.rmb.maxMail, (L._mail||0) + 1);
-        localBullets.splice(i,1); continue;
-      }
-    }
+
+
     // 타다타 덩굴 투사체: 벽·플레이어 무시, 사거리 도달 시 덩굴 지대 생성
     if (b.isTadtaVine) {
       if (rangeOut || oob) {
@@ -9547,16 +9391,6 @@ function moveBullets(dt=1) {
         }
         if (b._lmbAttack) { L._lmbAttacking=true; applyStunShot(); L._lmbAttacking=false; }
         hitRemote(b.damage);
-        if (b._reteShot && b._hasKb) {
-          if (_trainingMode) {
-            const _ka = Math.atan2(R.y - L.y, R.x - L.x);
-            R._kbVX = Math.cos(_ka) * BALANCE.rete.counter.kb * 2.5;
-            R._kbVY = Math.sin(_ka) * BALANCE.rete.counter.kb * 2.5;
-            R._kbFrames = 18;
-          } else {
-            knockbackRemote(BALANCE.rete.counter.kb);
-          }
-        }
         if (b._kbRef && !b._kbRef.fired) { b._kbRef.fired=true; knockbackRemote(b._kbRef.power); }
         // 메라 모나 광선 탄환 적중 스택
         if (b.isMerRay && L.charDef?.id==='meramona' && SKILLS.meramona._stage < 4) {
@@ -11825,33 +11659,6 @@ function draw() {
   peerMinions.forEach((pm,i) => { pm.x=_pmSnaps[i].rx; pm.y=_pmSnaps[i].ry; });
   drawPlayer(L,'나');
 
-  // 레테 우편함 (헤르쟝 대포 스타일)
-  if (L.charDef?.id === 'rete' && L._mailBox) {
-    const bx = L._mailBox, br = BALANCE.rete.rmb.boxR, col = '#A7B0A4';
-    const p = 0.88 + 0.12*Math.sin(performance.now()*0.004);
-    ctx.save(); ctx.globalAlpha = 0.9;
-    ctx.beginPath(); ctx.arc(bx.x, bx.y, br*p, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(167,176,164,0.45)'; ctx.fill();
-    ctx.strokeStyle = col; ctx.lineWidth = 2;
-    ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
-    // HP바 (캐릭터 색 기반)
-    const bw=br*2.8, bh=4, bpx=bx.x-bw/2, bpy=bx.y-br-18;
-    ctx.fillStyle='#111'; ctx.fillRect(bpx,bpy,bw,bh);
-    const hr=Math.max(0,bx.hp/bx.maxHp);
-    ctx.fillStyle = hr>0.5?col:hr>0.25?'#fa0':'#f55';
-    ctx.fillRect(bpx,bpy,bw*hr,bh);
-    ctx.strokeStyle='#334'; ctx.lineWidth=1; ctx.strokeRect(bpx,bpy,bw,bh);
-    ctx.fillStyle=col; ctx.font='bold 9px Courier New'; ctx.textAlign='center';
-    ctx.fillText('우편함', bx.x, bx.y-br-24);
-    // 우편 게이지
-    const mw=br*2.6, mh=4, mx=bx.x-mw/2, my=bx.y+br+5;
-    ctx.fillStyle='#1a1a1a'; ctx.fillRect(mx,my,mw,mh);
-    ctx.fillStyle=col; ctx.fillRect(mx,my,mw*Math.min(1,(L._mail||0)/BALANCE.rete.rmb.maxMail),mh);
-    ctx.fillStyle='#dde'; ctx.font='bold 9px Courier New'; ctx.textAlign='center';
-    ctx.fillText('✉ '+(L._mail||0), bx.x, my+13);
-    ctx.globalAlpha=1; ctx.restore();
-  }
-
 
   if (_trainingMode) {
     for (const bot of _trainingBots) {
@@ -12090,13 +11897,6 @@ function drawPlayer(p, label) {
     ctx.fillStyle=_iReload?'#ffd97a':(_iSG?'#c4aa88':'#a18a8a');
     ctx.fillRect(ibx,iby,ibw*_iPct,ibh);
     ctx.textAlign='center';
-  }
-  // 레테 우편 게이지 — 스테미나 바 아래 (인투 탄창과 동일 스타일)
-  if (p.charDef?.id === 'rete') {
-    const ibw=sbw, ibh=4, ibx=sbx, iby=sby+sbh+3;
-    const _mp = Math.min(1, (p===L?(p._mail||0):0) / BALANCE.rete.rmb.maxMail);
-    ctx.fillStyle='#111'; ctx.fillRect(ibx,iby,ibw,ibh);
-    ctx.fillStyle='#A7B0A4'; ctx.fillRect(ibx,iby,ibw*_mp,ibh);
   }
   // 프릴 콤보 유지 게이지 — 스테미나 바 아래
   if (p===L && L.charDef?.id==='prill' && (L._prillCombo||0) > 0) {
@@ -12624,18 +12424,6 @@ function updateLocalHud() {
     ?`  |  ⚡반격 가능 (${Math.max(0,Math.ceil((L.counterExpiry-performance.now())/1000))}초)`:'' ;
   document.getElementById('hud-mid').textContent=`스테미나: ${Math.round(L.stamina)} / ${Math.round(stamMax)}${cTxt}`;
 
-    // 훈련장 통계 업데이트
-  if (_trainingMode) {
-    const _sv = document.getElementById('training-stats');
-    if (_sv && _trainingSettings.showDps) {
-      const _now = performance.now();
-      _tStats.session = (_tStats.session||[]).filter(e => _now - e.t < 5000);
-      const _dps = Math.round(_tStats.session.reduce((s,e)=>s+e.d,0)/5);
-      const _combo = (_tStats.comboHits||0) > 1 && _now - (_tStats.lastHit||0) < 2000
-        ? ` ★ ${_tStats.comboHits}콤보` : '';
-      _sv.textContent = `누적: ${(_tStats.totalDmg||0).toLocaleString()}  |  DPS: ${_dps}${_combo}`;
-    }
-  }
 }
 function updateRemoteHud() {
   const hp=Math.max(0,R.health);
@@ -13416,7 +13204,6 @@ function loop() {
   // 훈련장: 매 프레임 시작 시 R을 마우스 방향 가장 가까운 봇으로 설정
   // 이렇게 하면 모든 기존 공격 판정이 자동으로 봇을 적중
   if (_trainingMode) {
-    window._rHitNow = false; // 매 프레임 초기화 (이전 공격 잔류 방지)
     const _ts = _trainingSettings, _now = now;
 
     // ── 더미(R) 넉백 이동 ──────────────────────────────────
@@ -13757,53 +13544,6 @@ function loop() {
     }
   }
   if (L._backupPos && L._backupPos.expiry < now) L._backupPos = null;
-
-  // ── 레테 자동공격 ─────────────────────────────────────────
-  if (gameOn && L.charDef?.id === 'rete') {
-    if (L._mail == null) L._mail = 0;
-    if (!L._mailAutoNext) L._mailAutoNext = 0;
-    const RB = BALANCE.rete.rmb, bx = L._mailBox;
-
-    // 우편함 피격
-    if (bx) for (let i = peerBullets.length-1; i >= 0; i--) {
-      const pb = peerBullets[i];
-      if (Math.hypot(pb.x-bx.x, pb.y-bx.y) < (pb.radius||6) + RB.boxR) {
-        bx.hp -= pb.damage||0; peerBullets.splice(i,1);
-        addFx({type:'aoe',x:bx.x,y:bx.y,r:RB.boxR+4,col:'167,176,164',dur:6,maxDur:6});
-        if (bx.hp <= 0) { L._mailBox = null; L._mail = 0; break; }
-      }
-    }
-
-    // 자동공격
-    if (L._mail > 0 && now >= L._mailAutoNext) {
-      const ox = bx ? bx.x : L.x, oy = bx ? bx.y : L.y;
-      // LOS 체크
-      const los = (tx, ty) => {
-        for (let s = 1; s < 8; s++) {
-          const t = s/8;
-          if (bulletHitsWall({x:ox+(tx-ox)*t, y:oy+(ty-oy)*t, radius:3})) return false;
-        }
-        return true;
-      };
-      let tgt = null, best = RB.autoRange + 999;
-      for (const rt of Rs()) {
-        const d = Math.hypot(rt.x-ox, rt.y-oy);
-        if (d < RB.autoRange + (rt.radius||20) && d < best && los(rt.x, rt.y)) { best=d; tgt=rt; }
-      }
-      if (tgt) {
-        L._mailAutoNext = now + RB.autoMs;
-        L._mail--;
-        const ta = Math.atan2(tgt.y-oy, tgt.x-ox);
-        const ab = {
-          id:uid(), x:ox, y:oy, radius:6, speed:15,
-          dx:Math.cos(ta), dy:Math.sin(ta),
-          damage:RB.autoDmg, maxRange:Math.hypot(tgt.x-ox,tgt.y-oy)+80, traveled:0,
-          color:'#C0C8BE', _reteAuto:true,
-        };
-        localBullets.push(ab); send({type:'bullet',...ab});
-      }
-    }
-  }
 
 
   // ── 엘린 정령 처리
