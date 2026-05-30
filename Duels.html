@@ -184,7 +184,12 @@ input[type=text]:focus{border-color:#4af;}
 #chat-log {
   display:flex; flex-direction:column; gap:4px;
   margin-bottom:8px;
+  max-height:220px; overflow-y:auto;
+  pointer-events:all;
 }
+#chat-log::-webkit-scrollbar{width:4px;}
+#chat-log::-webkit-scrollbar-track{background:transparent;}
+#chat-log::-webkit-scrollbar-thumb{background:#334;border-radius:2px;}
 .chat-msg {
   font-family:'Courier New',monospace; font-size:14px;
   color:#eee; background:rgba(0,0,0,0.65);
@@ -246,7 +251,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.6</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.7</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -319,6 +324,7 @@ input[type=text]:focus{border-color:#4af;}
 <!-- 채팅 -->
 <div id="chat-wrap">
   <div id="chat-log"></div>
+  <div id="chat-typing-wrap" style="display:none;font-family:'Courier New',monospace;font-size:13px;color:#ffb870;padding:2px 4px;opacity:0.85;">상대 입력 중...</div>
   <div id="chat-input-wrap">
     <input id="chat-input" type="text" maxlength="80" placeholder="메시지 입력...">
   </div>
@@ -8878,36 +8884,24 @@ document.addEventListener('mouseup', e => {
 // ── 채팅 시스템 ────────────────────────────────────────────
 let _chatOpen = false;
 
-let _chatTypingEl = null;
 function _showTyping(show) {
-  const log = document.getElementById('chat-log');
-  if (!log) return;
-  if (show && !_chatTypingEl) {
-    _chatTypingEl = document.createElement('div');
-    _chatTypingEl.className = 'chat-msg peer';
-    _chatTypingEl.id = 'chat-typing-indicator';
-    _chatTypingEl.style.animation = 'none';
-    _chatTypingEl.style.opacity = '1';
-    _chatTypingEl.textContent = '상대 입력 중...';
-    log.appendChild(_chatTypingEl);
-  } else if (!show && _chatTypingEl) {
-    _chatTypingEl.remove();
-    _chatTypingEl = null;
-  }
+  const tw = document.getElementById('chat-typing-wrap');
+  if (tw) tw.style.display = show ? 'block' : 'none';
 }
 
+let _chatHistory = [];
 function _addChatMsg(name, text, isMine) {
   const log = document.getElementById('chat-log');
   if (!log) return;
-  // 상대 메시지 수신 시 typing indicator 제거
-  if (!isMine && _chatTypingEl) { _chatTypingEl.remove(); _chatTypingEl = null; }
+  // 30개 기록
+  _chatHistory.push({name: isMine ? '나' : (name||'상대'), text, isMine});
+  if (_chatHistory.length > 30) _chatHistory.shift();
   const div = document.createElement('div');
   div.className = 'chat-msg ' + (isMine ? 'mine' : 'peer');
   div.textContent = (isMine ? '나' : (name||'상대')) + ': ' + text;
   log.appendChild(div);
-  // 최대 5개 유지
+  // 화면에는 5개만
   while (log.children.length > 5) log.removeChild(log.firstChild);
-  // 8초 후 제거
   setTimeout(() => div.remove(), 8000);
 }
 
@@ -8917,6 +8911,19 @@ function _openChat() {
   const inp  = document.getElementById('chat-input');
   if (!wrap || !inp) return;
   wrap.style.display = 'block';
+  // 히스토리 표시
+  const log = document.getElementById('chat-log');
+  if (log) {
+    log.innerHTML = '';
+    _chatHistory.forEach(h => {
+      const d = document.createElement('div');
+      d.className = 'chat-msg ' + (h.isMine ? 'mine' : 'peer');
+      d.style.cssText = 'animation:none;opacity:1;';
+      d.textContent = h.name + ': ' + h.text;
+      log.appendChild(d);
+    });
+  }
+  if (log) setTimeout(() => { log.scrollTop = log.scrollHeight; }, 0);
   inp.focus();
   inp.select();
   send({type:'chatTyping', typing:true});
@@ -8926,6 +8933,19 @@ function _closeChat() {
   _chatOpen = false;
   const wrap = document.getElementById('chat-input-wrap');
   if (wrap) wrap.style.display = 'none';
+  // 최근 5개만 남기고 fade 복원
+  const log = document.getElementById('chat-log');
+  if (log) {
+    log.innerHTML = '';
+    const recent = _chatHistory.slice(-5);
+    recent.forEach(h => {
+      const d = document.createElement('div');
+      d.className = 'chat-msg ' + (h.isMine ? 'mine' : 'peer');
+      d.textContent = h.name + ': ' + h.text;
+      log.appendChild(d);
+      setTimeout(() => d.remove(), 8000);
+    });
+  }
   send({type:'chatTyping', typing:false});
 }
 
@@ -8945,6 +8965,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const inp = document.getElementById('chat-input');
   if (!inp) return;
   inp.addEventListener('keydown', e => {
+    _devBuf = (_devBuf + e.key).slice(-_devSeq.length);
+    if (_devBuf === _devSeq) { _devBuf = ''; openDevPanel(); }
     e.stopPropagation();
     if (e.key === 'Enter') { e.preventDefault(); _sendChat(); }
     if (e.key === 'Escape') { _closeChat(); }
@@ -12574,15 +12596,14 @@ function endGame(won) {
   if (_trainingMode) { L.health=L.maxHealth; return; }
   // FX가 한 프레임 더 렌더되고 나서 종료 (히트스캔 등 사망 원인 시각화)
   if (!won) {
-    // 패배: FX를 1프레임 유지 후 종료
+    gameOn = false; // 즉시 false로 — 추가 피해 차단
     setTimeout(() => _doEndGame(false), 80);
     return;
   }
   _doEndGame(true);
 }
 function _doEndGame(won) {
-  if (!gameOn && won) return; // 이미 처리됨 방어
-  gameOn=false;
+  if (gameOn) gameOn = false; // 혹시 아직 true면 false로
   clearTimeout(window._gameTimer);
   if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
   if (_poisonTimer) { _poisonTimer.forEach(t => clearTimeout(t)); _poisonTimer=null; }
@@ -12940,6 +12961,31 @@ function renderAugHud() {
   const el = document.getElementById('aug-hud');
   if (el) {
     el.innerHTML = '';
+    if (typeof L !== 'undefined' && L.charDef) {
+      const _lc = document.createElement('div');
+      _lc.className = 'aug-icon';
+      _lc.style.cssText = `background:${L.charDef.color}22;border-color:${L.charDef.color};font-size:16px;`;
+      _lc.textContent = (L.charDef.id||L.charDef.name||'?')[0].toUpperCase();
+      _lc.addEventListener('mouseenter', () => {
+        let tt = document.getElementById('_hud_ctt');
+        if (!tt) { tt=document.createElement('div'); tt.id='_hud_ctt'; tt.className='char-tooltip'; document.body.appendChild(tt); }
+        const cd = L.charDef;
+        const body = `${cd.desc}<br><br>` + cd.skills.map(s =>
+          `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
+          (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`)
+        ).join('<br>');
+        tt.innerHTML = `<b style="color:${cd.color}">${cd.name}</b><br>${body}`;
+        tt.style.display='block';
+      });
+      _lc.addEventListener('mousemove', e => {
+        const tt=document.getElementById('_hud_ctt');
+        if(tt){tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY+14)+'px';}
+      });
+      _lc.addEventListener('mouseleave', () => {
+        const tt=document.getElementById('_hud_ctt'); if(tt)tt.style.display='none';
+      });
+      el.appendChild(_lc);
+    }
     matchState.localAugments.forEach(aid => {
       const aug = AUGMENTS.find(a => a.id === aid);
       if (!aug) return;
@@ -12952,6 +12998,31 @@ function renderAugHud() {
   const pel = document.getElementById('peer-aug-hud');
   if (pel) {
     pel.innerHTML = '';
+    if (typeof R !== 'undefined' && R.charDef) {
+      const _rc = document.createElement('div');
+      _rc.className = 'aug-icon peer-aug';
+      _rc.style.cssText = `background:${R.charDef.color}22;border-color:${R.charDef.color};font-size:16px;`;
+      _rc.textContent = (R.charDef.id||R.charDef.name||'?')[0].toUpperCase();
+      _rc.addEventListener('mouseenter', () => {
+        let tt = document.getElementById('_hud_ctt');
+        if (!tt) { tt=document.createElement('div'); tt.id='_hud_ctt'; tt.className='char-tooltip'; document.body.appendChild(tt); }
+        const cd = R.charDef;
+        const body = `${cd.desc}<br><br>` + cd.skills.map(s =>
+          `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
+          (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`)
+        ).join('<br>');
+        tt.innerHTML = `<b style="color:${cd.color}">${cd.name}</b><br>${body}`;
+        tt.style.display='block';
+      });
+      _rc.addEventListener('mousemove', e => {
+        const tt=document.getElementById('_hud_ctt');
+        if(tt){tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY+14)+'px';}
+      });
+      _rc.addEventListener('mouseleave', () => {
+        const tt=document.getElementById('_hud_ctt'); if(tt)tt.style.display='none';
+      });
+      pel.appendChild(_rc);
+    }
     matchState.peerAugments.forEach(aid => {
       const aug = AUGMENTS.find(a => a.id === aid);
       if (!aug) return;
