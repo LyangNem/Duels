@@ -246,7 +246,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.32.2</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.32.3</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -567,7 +567,7 @@ const BALANCE = {
     rmb: {
       cost:         25,
       healRadius:   275,
-      healAmount:   4,
+      healAmount:   5,
       healInterval: 400,
       cd:           300,
       cdRecall:     200,
@@ -1722,7 +1722,7 @@ const BALANCE = {
       meleeRange: 110,
       halfAngle:  1.1,
       cd:         500,
-      chargeTime: 500,       // 0.5초 차징
+      chargeTime: 300,       // 0.3초 차징
       drainRate:  40,        // (미사용)
       throwCost:  25,        // 차징 투사체 스테미나
       throwDamage:20,
@@ -1752,19 +1752,20 @@ const BALANCE = {
     speed:  4.25,
     radius: 20,
     lmb: {
-      maxWindow:   1500,
+      maxWindow:   1500,     // 1.5초 경과 시 충전 동결(상태는 유지, 더는 증가 안 함)
       maxClicks:   15,
       minDamage:   10,
-      maxDamage:   80,
+      maxDamage:   100,
       meleeRange:  120,
       width:       70,
+      sizeMaxMult: 1.6,      // 최대충전 시 공격 판정 크기 배율
       knockbackPower: 560,
-      clickCost:   5,
+      clickCost:   3,
       cd:          300,
     },
     rmb: {
-      cost:      70,
-      dist:      220,
+      cost:      45,
+      dist:      280,
       dur:       220,
       stunDur:   1000,
       landRange: 55,
@@ -2358,12 +2359,12 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     speed:     BALANCE.nanamnang.speed,
     radius:    BALANCE.nanamnang.radius,
     statsText: [['체력', String(BALANCE.nanamnang.hp)],['이동속도','느림'],['스타일','회복형 중거리 탱커']],
-    desc:      '자는것이 좋은 소녀 캐릭터.',
+    desc:      '자는것이 좋은 소녀 캐릭터',
     skills: [
       { key:'LMB',     name:'베개싸움', cost:BALANCE.nanamnang.lmb.cost,
         desc:`배게 휘두르기. 차징 시 베개를 날림. 적중 시 잃은 체력의 ${Math.round(BALANCE.nanamnang.lmb.healRatio*100)}% 회복 (${BALANCE.nanamnang.lmb.damage}/${BALANCE.nanamnang.lmb.throwDamage})` },
       { key:'RMB',     name:'잘 자요',  cost:BALANCE.nanamnang.rmb.cost,
-        desc:`${BALANCE.nanamnang.rmb.stunDur/1000}초 행동불능 후 잃은 체력의 ${Math.round(BALANCE.nanamnang.rmb.healRatio*100)}% 회복` },
+        desc:`${BALANCE.nanamnang.rmb.stunDur/1000}초 수면(피격당하면 해제) 후 잃은 체력의 ${Math.round(BALANCE.nanamnang.rmb.healRatio*100)}% 회복` },
       { key:'L-Shift', name:'깊은 잠',  cost:0,
         desc:`베개를 단거리에 내려쳐 적중한 적을 ${BALANCE.nanamnang.counter.sleepDur/1000}초간 재움 (${BALANCE.nanamnang.counter.damage})` },
     ],
@@ -2377,14 +2378,14 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     speed:     BALANCE.raise.speed,
     radius:    BALANCE.raise.radius,
     statsText: [['체력', String(BALANCE.raise.hp)],['이동속도','빠름'],['스타일','차징형 근거리 딜러']],
-    desc:      '기계팔을 충전시켜 강력한 공격을 구사하는 캐릭터.',
+    desc:      '기계팔을 충전시켜 강력한 공격을 구사하는 캐릭터',
     skills: [
       { key:'LMB',     name:'파워 펀치', cost:BALANCE.raise.lmb.clickCost,
-        desc:`연타 시 최대 ${BALANCE.raise.lmb.maxClicks}클릭까지 피해 증가, 최대 ${BALANCE.raise.lmb.maxWindow/1000}초 충전 가능. 최대충전 시 넉백 (${BALANCE.raise.lmb.minDamage}~${BALANCE.raise.lmb.maxDamage})` },
+        desc:`${BALANCE.raise.lmb.maxWindow/1000}초간 연타 시 최대 ${BALANCE.raise.lmb.maxClicks}클릭까지 피해 증가 및 연타를 멈추면 발동. 최대충전 시 넉백 (${BALANCE.raise.lmb.minDamage}~${BALANCE.raise.lmb.maxDamage})` },
       { key:'RMB',     name:'내려찍기',  cost:BALANCE.raise.rmb.cost,
         desc:`빠르게 점프 후 내려치며 낙하해 범위 내 ${BALANCE.raise.rmb.stunDur/1000}초 기절` },
       { key:'L-Shift', name:'방출',      cost:0,
-        desc:`원형 피해. 다음 파워 펀치 최대충전 고정 (${BALANCE.raise.counter.damage})` },
+        desc:`원형 피해. 다음 파워 펀치가 33% 충전된 상태로 시작 (${BALANCE.raise.counter.damage})` },
     ],
   },
 };
@@ -2839,6 +2840,9 @@ function send(d) {
       case 'stunned':
         if (R.burrowing) break;
         R.stunEnd = Math.max(R.stunEnd||0, performance.now() + d.dur); break;
+      case 'asleep':
+        if (R.burrowing) break;
+        R.stunEnd = Math.max(R.stunEnd||0, performance.now() + d.dur); break;
       case 'slowPlayer':
         R._slowEnd = Math.max(R._slowEnd||0, performance.now() + d.dur); break;
       default: _netSend(d); break;
@@ -2955,6 +2959,7 @@ function onData(d) {
       R.ropeOrb=d.ropeOrb??null;
       R.burrowing=d.burrowing??false;
       R.stunEnd = d.stunRemaining > 0 ? performance.now() + d.stunRemaining : 0;
+      R._asleep = !!d.asleep;
       R.bindEnd = d.bindRemaining > 0 ? performance.now() + d.bindRemaining : 0;
       R.burrowEntry=d.burrowEntry??null;
       R.erapabiFortify=d.erapabiFortify??false;
@@ -3141,6 +3146,8 @@ function onData(d) {
       R.color=d.color; break;
     case 'stunned':
       receiveStun(d.dur); break;
+    case 'asleep':
+      receiveSleep(d.dur); break;
     case 'bound':
       receiveBind(d.dur); break;
     case 'knockback':
@@ -3501,7 +3508,7 @@ function _trainingReset() {
   // 더미 리셋
   R.x = WORLD_W * 0.5; R.y = WORLD_H / 2;
   R.health = R.maxHealth; R._kbVX=0; R._kbVY=0; R._kbFrames=0;
-  R.stunEnd=0; R.bindEnd=0; R._slowEnd=0; R._deadAt=0;
+  R.stunEnd=0; R.bindEnd=0; R._slowEnd=0; R._deadAt=0; R._asleep=false;
   // 통계 리셋
   _tStats = {totalDmg:0, session:[], comboHits:0, lastHit:0};
   localBullets=[]; _botBullets=[];
@@ -3888,6 +3895,15 @@ function receiveHit(dmg) {
       send({type:'fx', fx:{type:'justdodge', x:L.x, y:L.y, r:0, maxR:65, dur:22, maxDur:22}});
     }
     return;
+  }
+  // 수면 상태: 피격 시 즉시 깨어남 (나남낭 본인 우클릭 중이면 캔슬)
+  if (L._asleep) {
+    L._asleep = false;
+    L.stunEnd = 0;
+    if (L.charDef?.id === 'nanamnang' && L._nanRmbActive) {
+      L._nanRmbActive = false;
+      L._counterToken++; // 대기 중인 RMB setTimeout 무효화 → 회복 캔슬
+    }
   }
   // 가드 회피: 회피 도중 받는 피해 40% 감소
   if (L.dodging && getAugCount('guard_dodge') > 0) dmg = dmg * 0.60;
@@ -5006,6 +5022,22 @@ function receiveKnockback(vx, vy) {
   L.bindEnd = 0;
 }
 function freezeRemote(dur) { stunRemote(dur); }
+function sleepRemote(dur) {
+  // 수면: 일반 기절과 달리 피격 시 즉시 깨어남
+  if (window._lastHitWasMinion) {
+    const _pm = window._lastHitMinion;
+    if (_pm) send({type:'minionHit', id:_pm.id, damage:0, cc:{stunDur:dur}});
+    return;
+  }
+  if (R.burrowing) return;
+  send({type:'asleep', dur});
+}
+function receiveSleep(dur) {
+  if (!gameOn || L.burrowing) return;
+  if (L.invincible > 0) return; // 무적 중 CC 무효
+  L.stunEnd = performance.now() + dur;
+  L._asleep = true;
+}
 function stunRemote(dur) {
   if (window._lastHitWasMinion) {
     // 소환수 명중: minionHit cc로 기절 전송
@@ -8651,12 +8683,12 @@ const SKILLS = {
       if (!gameOn || L.lmbCooldown > 0 || L._raiseCharging) return;
       if (L.stunEnd && performance.now() < L.stunEnd) return;
       const B = BALANCE.raise.lmb;
-      // 방출 버프: 스테미나 소모 없이 즉시 최대충전
+      // 방출 버프: 스테미나 소모 없이 즉시 33% 충전 상태로 시작
       if (L._raiseBoosted) {
         L._raiseBoosted = false;
         L._raiseCharging = true;
         L._raiseChargeStart = performance.now();
-        L._raiseClicks = B.maxClicks;
+        L._raiseClicks = Math.max(1, Math.min(B.maxClicks, Math.round(1 + 0.33 * (B.maxClicks - 1))));
         L._raiseLastClickTime = performance.now();
         return;
       }
@@ -8673,6 +8705,8 @@ const SKILLS = {
       const B = BALANCE.raise.lmb;
       L._raiseLastClickTime = performance.now();
       if (L._raiseClicks >= B.maxClicks) return;
+      // 2초 경과 시 더 이상 충전되지 않음 (상태는 유지, 자동발동 없음 — 연타를 멈춰야 발동)
+      if (performance.now() - (L._raiseChargeStart||0) >= B.maxWindow) return;
       if (!useStam(B.clickCost)) return; // 스테미나 부족 시 차징 증가 안 함
       L._raiseClicks = Math.min(B.maxClicks, (L._raiseClicks || 1) + 1);
     },
@@ -8687,18 +8721,20 @@ const SKILLS = {
       const t = (clicks - 1) / (B.maxClicks - 1);
       const damage = Math.round(B.minDamage + (B.maxDamage - B.minDamage) * t);
       const isMax = clicks >= B.maxClicks;
+      const sizeMult = 1 + (B.sizeMaxMult - 1) * t; // 차징 비례 크기 증가
 
-      // 일자형 공격 (직사각형 판정)
+      // 일자형 공격 (직사각형 판정) — 차징 시간에 비례해 크기 증가
       const cos = Math.cos(angle), sin = Math.sin(angle);
-      const len = augMeleeRange(B.meleeRange);
-      const shape = { x: L.x, y: L.y, cos, sin, len, width: B.width / 2 };
+      const len = augMeleeRange(B.meleeRange) * sizeMult;
+      const halfW = (B.width / 2) * sizeMult;
+      const shape = { x: L.x, y: L.y, cos, sin, len, width: halfW };
       const hit = hitCtx(shape, damage);
       if (hit && isMax) knockbackRemote(B.knockbackPower);
       hitCtxSpirit(shape, damage);
 
       const col = isMax ? '255,180,20' : '191,161,54';
-      addFx({type:'drillHit', x:L.x, y:L.y, angle, len, width:B.width/2, dur:10, maxDur:10, col});
-      send({type:'fx', fx:{type:'drillHit', x:L.x, y:L.y, angle, len, width:B.width/2, dur:10, maxDur:10, col}});
+      addFx({type:'drillHit', x:L.x, y:L.y, angle, len, width:halfW, dur:10, maxDur:10, col});
+      send({type:'fx', fx:{type:'drillHit', x:L.x, y:L.y, angle, len, width:halfW, dur:10, maxDur:10, col}});
       L.lmbCooldown = B.cd;
       L._raiseClicks = 0;
       L.lastAttackTime = performance.now();
@@ -8761,7 +8797,7 @@ const SKILLS = {
         hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI}, B.damage);
         addFx({type:'aoe', x:L.x, y:L.y, r:B.range, dur:18, maxDur:18, col:'191,161,54'});
         send({type:'fx', fx:{type:'aoe', x:L.x, y:L.y, r:B.range, dur:18, maxDur:18, col:'191,161,54'}});
-        // 버프: 다음 파워 펀치 최대충전
+        // 버프: 다음 파워 펀치 33% 충전 상태로 시작
         L._raiseBoosted = true;
         L.lastAttackTime = performance.now();
       }, BALANCE.counter.delay);
@@ -8813,6 +8849,7 @@ const SKILLS = {
           damage:B.throwDamage, maxRange:B.throwRange, traveled:0,
           isNanPillow: true,
         };
+        applyPierceShot(b);
         localBullets.push(b); send({type:'bullet', ...b}); playShootSfx();
         addFx({type:'counterCharge', x:L.x, y:L.y, r:0, maxR:28, col:'251,180,255', dur:8, maxDur:8});
         send({type:'fx', fx:{type:'counterCharge', x:L.x, y:L.y, r:0, maxR:28, col:'251,180,255', dur:8, maxDur:8}});
@@ -8827,8 +8864,9 @@ const SKILLS = {
       const B = BALANCE.nanamnang.rmb;
       if (L.rmbCooldown > 0) return;
       if (!useStam(B.cost)) return;
-      // 선딜레이: 1초 행동불능 후 회복 (넉백 등 하드CC 수신 시 tok 불일치로 취소)
+      // 선딜레이: 1초 수면(행동불능) 후 회복 (피격 시 즉시 깨어나며 캔슬)
       L.stunEnd = performance.now() + B.stunDur;
+      L._asleep = true;
       L._nanRmbActive = true;
       L.staminaUseTime = performance.now();
       addFx({type:'dodge', x:L.x, y:L.y, radius:36, dur:18, maxDur:18});
@@ -8836,7 +8874,8 @@ const SKILLS = {
       const tok = ++L._counterToken;
       setTimeout(() => {
         L._nanRmbActive = false;
-        // tok 불일치 = 하드CC로 중단 → 행동불능 즉시 해제, 회복 없음
+        L._asleep = false;
+        // tok 불일치 = 하드CC/피격으로 중단 → 행동불능 즉시 해제, 회복 없음
         if (!gameOn || L._counterToken !== tok) {
           L.stunEnd = 0;
           return;
@@ -8870,7 +8909,7 @@ const SKILLS = {
           const diff = Math.abs(((toR - fa) + Math.PI*3) % (Math.PI*2) - Math.PI);
           if (diff < B.halfAngle) {
             hitCtx({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
-            freezeRemote(B.sleepDur);
+            sleepRemote(B.sleepDur);
           }
         }
         hitCtxSpirit({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
@@ -11650,7 +11689,16 @@ function draw() {
   if (gameOn && L.charDef?.id==='raise' && (L._raiseCharging || L._raiseBoosted)) {
     const _RB = BALANCE.raise.lmb;
     const _rclicks = Math.min(_RB.maxClicks, L._raiseClicks || 1);
-    const _rt = L._raiseBoosted ? 1 : (_rclicks - 1) / (_RB.maxClicks - 1);
+    const _rt = L._raiseBoosted ? 0.33 : (_rclicks - 1) / (_RB.maxClicks - 1);
+    // 시간 게이지 (1.5초 카운트) — 흰색 호, 클릭 게이지와 정확히 같은 위치(아래에 깔림), 1.5초 후 사라짐
+    if (L._raiseCharging) {
+      const _rTimeT = Math.min(1, (performance.now() - (L._raiseChargeStart||0)) / _RB.maxWindow);
+      if (_rTimeT < 1) {
+        ctx.beginPath();
+        ctx.arc(L.x, L.y, L.radius + 8, -Math.PI/2, -Math.PI/2 + Math.PI*2*_rTimeT);
+        ctx.strokeStyle = `rgba(80,110,160,0.95)`; ctx.lineWidth = 3; ctx.stroke();
+      }
+    }
     ctx.beginPath();
     ctx.arc(L.x, L.y, L.radius + 8, -Math.PI/2, -Math.PI/2 + Math.PI*2*_rt);
     ctx.strokeStyle = `rgba(191,161,54,0.9)`; ctx.lineWidth = 3; ctx.stroke();
@@ -12057,9 +12105,6 @@ function draw() {
                ? L._cherityFrozenT
                : Math.min(1, (performance.now() - L._cherityChargeStart) / Bc.chargeTime);
     const fireAng = getAngle();
-    // ❶ 배경 트랙 링 (항상 가시적 — tc=0 시에도 표시)
-    ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 9, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(60,0,15,0.45)'; ctx.lineWidth = 3.5; ctx.stroke();
     // ❷ 조준선
     const lineAlpha = 0.2 + 0.5 * tc;
     const lineCol = tc >= 1 ? `rgba(140,10,35,${lineAlpha})` : `rgba(110,5,25,${lineAlpha})`;
@@ -12069,13 +12114,13 @@ function draw() {
     ctx.setLineDash([10, 8]); ctx.stroke(); ctx.setLineDash([]);
     // ❸ 차징 진행 호 (tc > 0 이면 항상 보임)
     const sweepAngle = Math.max(0.05, Math.PI * 2 * tc); // 최소 호 보장
-    ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 9, -Math.PI / 2, -Math.PI / 2 + sweepAngle);
+    ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 8, -Math.PI / 2, -Math.PI / 2 + sweepAngle);
     ctx.strokeStyle = tc >= 1 ? 'rgba(175,20,48,1)' : `rgba(145,8,35,${0.75 + 0.25 * tc})`;
     ctx.lineWidth = 3.5; ctx.stroke();
     // ❹ 70% 이상 차징 시 벽관통 강조
     if (tc >= 0.7) {
       const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.025);
-      ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 16, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 12, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(155,12,38,${pulse * 0.85})`; ctx.lineWidth = 2;
       ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
     }
@@ -12341,17 +12386,19 @@ function drawPlayer(p, label) {
     ctx.strokeStyle=`rgba(255,215,0,${0.7+0.3*pulse})`; ctx.lineWidth=3.5;
     ctx.setLineDash([6,3]); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle='rgba(255,215,0,0.9)'; ctx.font='bold 14px Courier New'; ctx.textAlign='center';
-    ctx.fillText('BIND', p.x, p.y-p.radius-16);
+    ctx.fillText('BIND', p.x, p.y-p.radius-38);
   }
 
-  // 기절 표시: 노랑 점선 링 + STUN 텍스트
+  // 기절 표시: 노랑 점선 링 + STUN 텍스트 (수면 상태이면 분홍색 + SLEEP)
   if (isStunned) {
+    const _asleepNow = p===L ? !!L._asleep : !!R._asleep;
     const pulse=0.5+0.5*Math.sin(performance.now()*0.012);
+    const _ccCol = _asleepNow ? '255,105,180' : '239,68,68';
     ctx.beginPath(); ctx.arc(p.x,p.y,p.radius+10,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(239,68,68,${0.7+0.3*pulse})`; ctx.lineWidth=3.5;
+    ctx.strokeStyle=`rgba(${_ccCol},${0.7+0.3*pulse})`; ctx.lineWidth=3.5;
     ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle='rgba(239,68,68,0.9)'; ctx.font='bold 14px Courier New'; ctx.textAlign='center';
-    ctx.fillText('STUN', p.x, p.y-p.radius-16);
+    ctx.fillStyle=`rgba(${_ccCol},0.9)`; ctx.font='bold 14px Courier New'; ctx.textAlign='center';
+    ctx.fillText(_asleepNow ? 'SLEEP' : 'STUN', p.x, p.y-p.radius-38);
   }
 
   // 화염(연소) 표시
@@ -12364,7 +12411,7 @@ function drawPlayer(p, label) {
     ctx.strokeStyle=`rgba(255,150,0,${0.7+0.3*pulseF})`; ctx.lineWidth=3;
     ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle='rgba(255,165,0,0.95)'; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
-    ctx.fillText('BURN', p.x, p.y-p.radius-16);
+    ctx.fillText('BURN', p.x, p.y-p.radius-38);
   }
 
   // 슬로우 표시
@@ -12376,7 +12423,7 @@ function drawPlayer(p, label) {
     ctx.strokeStyle=`rgba(100,190,255,${0.7+0.3*pulseS})`; ctx.lineWidth=3;
     ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle='rgba(130,210,255,0.95)'; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
-    ctx.fillText('SLOW', p.x, p.y-p.radius-30);
+    ctx.fillText('SLOW', p.x, p.y-p.radius-46);
   }
 
   if (p.dodging) {
@@ -12566,12 +12613,12 @@ function drawPlayer(p, label) {
     // 저장량 게이지 (파란 호)
     if (stored > 0) {
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius+14, -Math.PI/2, -Math.PI/2 + Math.PI*2*stored);
+      ctx.arc(p.x, p.y, p.radius+8, -Math.PI/2, -Math.PI/2 + Math.PI*2*stored);
       ctx.strokeStyle = stored >= 1 ? 'rgba(56,189,248,1.0)' : 'rgba(56,189,248,0.7)';
       ctx.lineWidth = 3.5; ctx.stroke();
       if (stored >= 1) {
         const pulse = 0.6+0.4*Math.sin(performance.now()*0.012);
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+18, 0, Math.PI*2);
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+12, 0, Math.PI*2);
         ctx.strokeStyle = `rgba(186,230,253,${pulse*0.8})`; ctx.lineWidth=2;
         ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
         ctx.fillStyle='rgba(56,189,248,0.95)'; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
@@ -12618,18 +12665,16 @@ function drawPlayer(p, label) {
     if (isLocal) {
       // 타우 오버차지 링: radius+14
       if (cid === 'tau' && L._tauOveleucharge) baseR = Math.max(baseR, p.radius + 16);
-      // 칸 게이지 링: radius+14 (게이지 > 0일 때만)
-      if (cid === 'kan' && (L._kanGauge||0) > 0) baseR = Math.max(baseR, p.radius + 16);
-      // 파비 게이지: radius+14, LASER 준비 시 radius+18
+      // 칸 게이지 링: radius+8, MAX 시 radius+12
+      if (cid === 'kan' && (L._kanGauge||0) > 0) baseR = Math.max(baseR, p.radius + 12);
+      // 파비 게이지: radius+8, LASER 준비 시 radius+12
       if (cid === 'erapabi') {
         const thr = L.maxHealth * BALANCE.erapabi.damageThreshold;
         const stored = (L._erapabiStoredDmg||0) / thr;
-        if (stored > 0) baseR = Math.max(baseR, p.radius + 16);
-        if (stored >= 1) baseR = Math.max(baseR, p.radius + 20);
+        if (stored >= 1) baseR = Math.max(baseR, p.radius + 12);
       }
-      // 레이카 솔라 게이지: radius+14, 가호 링: radius+20+7=27
+      // 레이카 솔라 게이지: radius+8, 가호 링: radius+23
       if (cid === 'reika') {
-        if ((L._reikaEnergy||0) > 0) baseR = Math.max(baseR, p.radius + 16);
         if (L._reikaBlessed && now2 < (L._reikaBlessedExpiry||0)) baseR = Math.max(baseR, p.radius + 23);
       }
       // 엔소냐 스택 링: radius+7~17 (스택 있을 때만)
@@ -12702,13 +12747,13 @@ function drawPlayer(p, label) {
     // 원형 솔라 게이지
     if (ePct > 0) {
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius+14, -Math.PI/2, -Math.PI/2 + Math.PI*2*ePct);
+      ctx.arc(p.x, p.y, p.radius+8, -Math.PI/2, -Math.PI/2 + Math.PI*2*ePct);
       ctx.strokeStyle = ePct >= threshold ? 'rgba(255,122,0,1.0)' : 'rgba(180,70,0,0.65)';
       ctx.lineWidth = 3.5; ctx.stroke();
       // 준비 완료 펄스 링
       if (ePct >= threshold) {
         const pulseE = 0.5+0.4*Math.sin(performance.now()*0.012);
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+18, 0, Math.PI*2);
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+12, 0, Math.PI*2);
         ctx.strokeStyle=`rgba(255,180,0,${pulseE*0.7})`; ctx.lineWidth=1.5;
         ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
         ctx.fillStyle='rgba(255,160,0,0.9)'; ctx.font='bold 10px Courier New'; ctx.textAlign='center';
@@ -12752,12 +12797,12 @@ function drawPlayer(p, label) {
     const gPct = Math.min(1, (L._kanGauge||0) / BALANCE.kan.gaugeMax);
     if (gPct > 0) {
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius+14, -Math.PI/2, -Math.PI/2 + Math.PI*2*gPct);
+      ctx.arc(p.x, p.y, p.radius+8, -Math.PI/2, -Math.PI/2 + Math.PI*2*gPct);
       ctx.strokeStyle = gPct >= 1 ? 'rgba(40,200,80,1.0)' : 'rgba(26,107,53,0.8)';
       ctx.lineWidth = 3.5; ctx.stroke();
       if (gPct >= 1) {
         const pulseK = 0.5+0.4*Math.sin(performance.now()*0.014);
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+18, 0, Math.PI*2);
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+12, 0, Math.PI*2);
         ctx.strokeStyle=`rgba(80,220,120,${pulseK*0.7})`; ctx.lineWidth=1.5;
         ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
         ctx.fillStyle='rgba(40,200,80,0.9)'; ctx.font='bold 10px Courier New'; ctx.textAlign='center';
@@ -12833,7 +12878,7 @@ function drawPlayer(p, label) {
       }
       // 호 게이지: 스택 있을 때만 (4단계에도 표시)
       if (_isMerL && _hs > 0) {
-        const _ar = p.radius + 9;
+        const _ar = p.radius + 8;
         ctx.beginPath();
         ctx.arc(p.x, p.y, _ar, -Math.PI/2, -Math.PI/2 + (_hs/_hReq)*Math.PI*2);
         ctx.strokeStyle = '#ff21da'; ctx.lineWidth = 3; ctx.stroke();
@@ -12845,7 +12890,7 @@ function drawPlayer(p, label) {
   if (p===L && L.charDef?.id==='runef' && L._runefRmbActive && L._runefRmbStart) {
     const _rPct = Math.min(1, (performance.now()-L._runefRmbStart)/BALANCE.runef.rmb.window);
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius+6, -Math.PI/2, -Math.PI/2+Math.PI*2*_rPct);
+    ctx.arc(p.x, p.y, p.radius+8, -Math.PI/2, -Math.PI/2+Math.PI*2*_rPct);
     ctx.strokeStyle = L.charDef.color; ctx.lineWidth=3; ctx.stroke();
   }
 
@@ -13426,7 +13471,7 @@ function doRematch() {
   if (_poisonTimer) { _poisonTimer.forEach(t => clearTimeout(t)); _poisonTimer=null; }
   // R 상태 초기화
   R.health=100; R.stamina=STAM_MAX; R.dodging=false; R.counterReady=false;
-  R.burrowing=false; R.stunEnd=0; R.bindEnd=0; R.burnEnd=0;
+  R.burrowing=false; R.stunEnd=0; R.bindEnd=0; R.burnEnd=0; R._asleep=false;
   R.elinSpirit=null; R.ropeOrb=null; R.toolbox=null;
   R._syaInvisible=false; R._syaHitRevealEnd=0; // 라운드 시작 시 스야 은신 해제
   R.erapabiFortify=false; R.nsonyaStacks=0; R.burrowEntry=null; R._ruvuHammer=null;
@@ -13502,7 +13547,7 @@ function resetL() {
   L.lastHitTime=0; L.lastAttackTime=0; L.lastRegenTick=performance.now();
   L.invincible=0; L.hitFlash=0; L._preFlashColor=null;
   L.dodging=false; L.justCheck=null; L.orb=null; L._toolboxHealTick=0;
-  L.burrowing=false; L.burrowEntry=null; L.stunEnd=0;
+  L.burrowing=false; L.burrowEntry=null; L.stunEnd=0; L._asleep=false;
   L._drillCharging=false; L._drillChargeStart=0; L._drillDrained=0; L._drillFrozenT=null;
   L._veleuPhase=0;
   L._tauHitStack=0; L._tauOveleucharge=false; L._tauDashInterval=null;
@@ -13658,7 +13703,7 @@ function startGame() {
   R.color=rc.color; R.defaultColor=rc.color; R.charDef=rc;
   R.maxHealth=rc.maxHealth; R.health=rc.maxHealth;
   R.radius=rc.radius??20; R.stamina=STAM_MAX; R.dodging=false; R.counterReady=false;
-  R.burrowing=false; R.stunEnd=0; R.bindEnd=0; R.burnEnd=0;
+  R.burrowing=false; R.stunEnd=0; R.bindEnd=0; R.burnEnd=0; R._asleep=false;
   R.elinSpirit=null; R.ropeOrb=null; R.toolbox=null;
   R.erapabiFortify=false; R.nsonyaStacks=0; R.burrowEntry=null;
   R.smokeRevealStart=0; R.smokeRevealDur=0;
@@ -13688,6 +13733,7 @@ function startGame() {
           elinSpirit: (L.charDef?.id==='elin' && L._elinSpirit)
                    ? {x:L._elinSpirit.x, y:L._elinSpirit.y, hp:L._elinSpirit.hp, maxHp:L._elinSpirit.maxHp} : null,
           stunRemaining: (L.stunEnd && L.stunEnd > performance.now()) ? L.stunEnd - performance.now() : 0,
+          asleep: !!L._asleep,
           bindRemaining: (L.bindEnd && L.bindEnd > performance.now()) ? L.bindEnd - performance.now() : 0,
           slowRemaining: (L._slowEnd && L._slowEnd > performance.now()) ? L._slowEnd - performance.now() : 0,
           burrowEntry: L.burrowEntry??null,
@@ -14074,23 +14120,23 @@ function loop() {
   }
 
   tickStamina(now, physDt);
-  // 레이즈 평타 차징: 스테미나 회복 차단 + 끊김/스테미나고갈 감지 (프레임 기반)
+  // 레이즈 평타 차징: 스테미나 회복 차단 + 연타 끊김 감지 + 실시간 미리보기 (프레임 기반)
   if (gameOn && L.charDef?.id==='raise' && L._raiseCharging) {
     const _rB = BALANCE.raise.lmb;
     L.staminaUseTime = now; // 차징 중 스테미나 회복 차단
-    if (L._raiseClicks < _rB.maxClicks && L.stamina < _rB.clickCost) {
-      // 스테미나 부족으로 더 이상 충전 불가 → 0.2초 후 자동 발동
-      if (!L._raiseStaminaStarvedAt) L._raiseStaminaStarvedAt = now;
-      if (now - L._raiseStaminaStarvedAt >= 200) {
-        SKILLS.raise.lmbRelease(getAngle());
-      }
-    } else {
-      L._raiseStaminaStarvedAt = 0;
-    }
-    if (gameOn && L._raiseCharging &&
-        (now - (L._raiseLastClickTime||0) > 200 || now - (L._raiseChargeStart||0) > _rB.maxWindow)) {
+    // 스테미나가 없어도 연타만 계속하면 자동발동하지 않음 — 차징 상태가 유지될 뿐 더는 증가하지 않음
+    // 연타 끊김(0.2초 무클릭) 시에만 발동
+    if (now - (L._raiseLastClickTime||0) > 200) {
       SKILLS.raise.lmbRelease(getAngle());
+    } else {
+      // 실시간 차징 미리보기 (다른 캐릭터들과 동일한 표준 시스템 사용)
+      const _rclicks = Math.min(_rB.maxClicks, L._raiseClicks || 1);
+      const _rt = (_rclicks - 1) / (_rB.maxClicks - 1);
+      const _rSizeMult = 1 + (_rB.sizeMaxMult - 1) * _rt;
+      L._attackPreview = { shapes: [{ type: 'rect', len: augMeleeRange(_rB.meleeRange) * _rSizeMult, width: (_rB.width/2) * _rSizeMult }] };
     }
+  } else if (L.charDef?.id==='raise' && L._attackPreview) {
+    L._attackPreview = null;
   }
   // 나남낭 풀차징 시 표준 공격 미리보기 시스템 사용
   if (gameOn && L.charDef?.id==='nanamnang' && L._nanCharging) {
