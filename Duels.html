@@ -246,7 +246,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.32.3</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.32.4</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -972,7 +972,7 @@ const BALANCE = {
     rmb: {
       cost:          0,
       energyCost:    60,
-      predelay:      500,
+      predelay:      350,
       explosionRange:180,
       damage:        50,
       burnDur:       3000,
@@ -981,14 +981,14 @@ const BALANCE = {
     },
     rmbBlessed: {
       cost:             40,  // 공중강하 스테미나 비용
-      jumpDur:          450,   // 공중 대기
-      weaponTravelDur:  200,   // 무기 이동 시간
+      jumpDur:          220,   // 공중 대기
+      weaponTravelDur:  100,   // 무기 이동 시간
       slamRange:        90,
       slamDamage:       35,
       landRange:        70,
       landDamage:       20,
-      slamDelay:        100,   // 무기 착지→레이카 이동 간격
-      travelDur:        280,   // 레이카 이동 시간
+      slamDelay:        50,    // 무기 착지→레이카 이동 간격
+      travelDur:        140,   // 레이카 이동 시간
       knockbackPower:   100,
       cd:               750,
     },
@@ -1044,7 +1044,7 @@ const BALANCE = {
       damage:     35,
       stunDur:    1500,
       maxTraps:   3,
-      trapRadius: 28,
+      trapRadius: 39,
       cd:         400,
     },
     counter: {
@@ -1217,7 +1217,7 @@ const BALANCE = {
       cost:        20,
       speed:       20,
       radius:      10,
-      damage:      15,
+      damage:      20,
       range:       900,
       recoilDist:  50,
       cd:          480,
@@ -1250,7 +1250,7 @@ const BALANCE = {
     },
     counter: {
       aoeRange:    130,
-      damage:      22,
+      damage:      20,
       knockbackPower: 420,
       cd:          300,
       miniMaxHp:   90,
@@ -1323,14 +1323,14 @@ const BALANCE = {
     },
     rmb: {
       cost:         60,
-      damage:       10,  // 매 초 피해
+      damage:       10,  // 0.5초마다 피해
       slowDur:      800,  // ms
-      tickInterval: 1000,
+      tickInterval: 500,
       speed:        7,    // 기본 탄속
       speedSlow:    2.0,  // 적 감지 시 탄속
-      radius:       100,
+      radius:       125,  // 크기 25% 증가
       range:        820,
-      cd:           1100,
+      cd:           400,
     },
     counter: {
       diveDist:       340,
@@ -1406,7 +1406,7 @@ const BALANCE = {
       pullRange:      220,        // 끌어당기는 반경
       pullPower:      450,
       damage:         25,         // 반격기 피해
-      empowerDur:     3000,       // 평타 강화 지속 (ms)
+      empowerDur:     5000,       // 평타 강화 지속 (ms)
       cd:             300,
     },
   },
@@ -1451,7 +1451,7 @@ const BALANCE = {
     radius: 20,
     lmb: {
       cost:       30,
-      damage:     25,      // 에코 직격 피해
+      damage:     20,      // 에코 직격 피해
       radius:     10,
       speed:      20,
       range:      600,
@@ -1696,7 +1696,7 @@ const BALANCE = {
     // 저격총 (반격기)
     sniper: {
       cost:   0,
-      damage: 55,
+      damage: 65,
       radius: 7,
       speed:  38,
       range:  1200,
@@ -1727,7 +1727,7 @@ const BALANCE = {
       throwCost:  25,        // 차징 투사체 스테미나
       throwDamage:20,
       throwRadius:14,
-      throwSpeed: 18,
+      throwSpeed: 26,
       throwRange: 600,
       throwCd:    900,
       healRatio:  0.20,
@@ -1755,7 +1755,7 @@ const BALANCE = {
       maxWindow:   1500,     // 1.5초 경과 시 충전 동결(상태는 유지, 더는 증가 안 함)
       maxClicks:   15,
       minDamage:   10,
-      maxDamage:   100,
+      maxDamage:   90,
       meleeRange:  120,
       width:       70,
       sizeMaxMult: 1.6,      // 최대충전 시 공격 판정 크기 배율
@@ -2335,7 +2335,7 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
   tadta: {
     id:        'tadta',
     name:      '타다타',
-    color:     '#205228',
+    color:     '#16391c',
     maxHealth: BALANCE.tadta.hp,
     speed:     BALANCE.tadta.speed,
     radius:    BALANCE.tadta.radius,
@@ -2359,12 +2359,12 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     speed:     BALANCE.nanamnang.speed,
     radius:    BALANCE.nanamnang.radius,
     statsText: [['체력', String(BALANCE.nanamnang.hp)],['이동속도','느림'],['스타일','회복형 중거리 탱커']],
-    desc:      '자는것이 좋은 소녀 캐릭터',
+    desc:      '자는것이 좋은 소녀 캐릭터.',
     skills: [
       { key:'LMB',     name:'베개싸움', cost:BALANCE.nanamnang.lmb.cost,
         desc:`배게 휘두르기. 차징 시 베개를 날림. 적중 시 잃은 체력의 ${Math.round(BALANCE.nanamnang.lmb.healRatio*100)}% 회복 (${BALANCE.nanamnang.lmb.damage}/${BALANCE.nanamnang.lmb.throwDamage})` },
       { key:'RMB',     name:'잘 자요',  cost:BALANCE.nanamnang.rmb.cost,
-        desc:`${BALANCE.nanamnang.rmb.stunDur/1000}초 수면(피격당하면 해제) 후 잃은 체력의 ${Math.round(BALANCE.nanamnang.rmb.healRatio*100)}% 회복` },
+        desc:`${BALANCE.nanamnang.rmb.stunDur/1000}초 행동불능 후 잃은 체력의 ${Math.round(BALANCE.nanamnang.rmb.healRatio*100)}% 회복` },
       { key:'L-Shift', name:'깊은 잠',  cost:0,
         desc:`베개를 단거리에 내려쳐 적중한 적을 ${BALANCE.nanamnang.counter.sleepDur/1000}초간 재움 (${BALANCE.nanamnang.counter.damage})` },
     ],
@@ -2378,10 +2378,10 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     speed:     BALANCE.raise.speed,
     radius:    BALANCE.raise.radius,
     statsText: [['체력', String(BALANCE.raise.hp)],['이동속도','빠름'],['스타일','차징형 근거리 딜러']],
-    desc:      '기계팔을 충전시켜 강력한 공격을 구사하는 캐릭터',
+    desc:      '기계팔을 충전시켜 강력한 공격을 구사하는 캐릭터.',
     skills: [
       { key:'LMB',     name:'파워 펀치', cost:BALANCE.raise.lmb.clickCost,
-        desc:`${BALANCE.raise.lmb.maxWindow/1000}초간 연타 시 최대 ${BALANCE.raise.lmb.maxClicks}클릭까지 피해 증가 및 연타를 멈추면 발동. 최대충전 시 넉백 (${BALANCE.raise.lmb.minDamage}~${BALANCE.raise.lmb.maxDamage})` },
+        desc:`연타 시 최대 ${BALANCE.raise.lmb.maxClicks}클릭까지 피해 증가, 최대 ${BALANCE.raise.lmb.maxWindow/1000}초까지 충전(이후엔 연타 유지 시 상태만 유지). 연타를 멈추면 발동. 최대충전 시 넉백 (${BALANCE.raise.lmb.minDamage}~${BALANCE.raise.lmb.maxDamage})` },
       { key:'RMB',     name:'내려찍기',  cost:BALANCE.raise.rmb.cost,
         desc:`빠르게 점프 후 내려치며 낙하해 범위 내 ${BALANCE.raise.rmb.stunDur/1000}초 기절` },
       { key:'L-Shift', name:'방출',      cost:0,
@@ -2609,7 +2609,7 @@ const AUGMENTS = [
   { id:'ration',      name:'비상식량',     emoji:'🍖', rarity:'hero',   desc:'HP 50% 이하 시 최대체력의 10%씩 7회 회복' },
   { id:'swift_regen', name:'배속',         emoji:'🔋', rarity:'common', desc:'스테미나 회복 속도 +20%' },
   { id:'heal_dodge',  name:'치유회피',     emoji:'🍀', rarity:'common',   desc:'저스트 회피 시 체력 20% 회복' },
-  { id:'thorn_armor', name:'가시갑옷',     emoji:'🌵', rarity:'common',   desc:'피해를 받을 시 피해량의 40%를 주변에 반사. 중첩당 +40%' },
+  { id:'thorn_armor', name:'가시갑옷',     emoji:'🌵', rarity:'common',   desc:'피해를 받을 시 피해량의 30%를 주변에 반사. 중첩당 +30%' },
   { id:'pierce_shot', name:'관통샷',       emoji:'🏹', rarity:'common',   desc:'3초마다 다음 평타가 벽을 관통' },
   { id:'start_boost', name:'스타트 부스터', emoji:'⭐', rarity:'hero',   desc:'라운드 시작 8초간 이동속도 +40%, 피해량 +30%' },
   { id:'guard_dodge', name:'가드 회피',    emoji:'🔰', rarity:'rare',   desc:'회피 도중 받는 피해 40% 감소' },
@@ -3947,8 +3947,8 @@ function receiveHit(dmg) {
   // 가시갑옷: 피해 받을 시 피해량의 30% × 스택 수를 주변에 반사
   const _thornCount = getAugCount('thorn_armor');
   if (_thornCount > 0 && !L._suppressThorn) {
-    const _thornReflect = Math.round(dmg * 0.40 * _thornCount);
-    const _thornRange = 163;  // 102 * 1.6
+    const _thornReflect = Math.round(dmg * 0.30 * _thornCount);
+    const _thornRange = 130;  // 102 * 1.6 * 0.8 (범위 20% 감소)
     if (_thornReflect > 0) {
       if (_trainingMode) {
         for (const _tb of _trainingBots) {
@@ -4863,10 +4863,12 @@ function hitRemoteRaw(dmg) {
   playHitSfx();
 }
 
-// ── 스턴샷: 4초마다 다음 평타 0.5초 기절 ────────────────────
+// ── 스턴샷: 4초마다 다음 평타 0.5초 기절 (평타에서만, 소환수 명중은 무시) ─────
 function applyStunShot() {
   if (getAugCount('stun_shot') <= 0) return;
   if (!L._stunShotReady) return;
+  if (!L._lmbAttacking) return; // 평타(LMB) 컨텍스트가 아니면 발동 안 함
+  if (window._hitTarget != null && window._hitTarget !== R) return; // 소환수 명중은 무시
   L._stunShotReady = false;
   const _stunDur = 300 * getAugCount('stun_shot');
   stunRemote(_stunDur);
@@ -5677,7 +5679,9 @@ const SKILLS = {
         if (!gameOn || L._drillToken !== _drillTok) return;
         const _fa = getAngle();
         const cos = Math.cos(_fa), sin = Math.sin(_fa);
+        L._lmbAttacking = true;
         hitCtxAll({x:L.x, y:L.y, cos, sin, len:_drillLen, width:B.width}, _drillDmg);
+        L._lmbAttacking = false;
         const col = t > 0.8 ? '210,140,60' : t > 0.4 ? '180,110,45' : '150,85,35';
         addFx({type:'drillHit', x:L.x, y:L.y, angle:_fa, len:_drillLen, width:B.width, col, dur:10, maxDur:10});
         send({type:'fx', fx:{type:'drillHit', x:L.x, y:L.y, angle:_fa, len:_drillLen, width:B.width, col, dur:10, maxDur:10}});
@@ -5928,9 +5932,11 @@ const SKILLS = {
         const cos = Math.cos(angle), sin = Math.sin(angle);
         const dx = R.x - L.x, dy = R.y - L.y;
         const lx = dx*cos + dy*sin, ly = dx*-sin + dy*cos;
+        L._lmbAttacking = true;
         if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:augMeleeRange(B.lmbCharge.length), width:B.lmbCharge.width}, B.lmbCharge.damage)) {
           bindRemote(B.lmbCharge.bindDur);
         }
+        L._lmbAttacking = false;
         addFx({type:'ropeSlam', x:L.x, y:L.y, angle, len:augMeleeRange(B.lmbCharge.length), width:B.lmbCharge.width, dur:12, maxDur:12});
         send({type:'fx', fx:{type:'ropeSlam', x:L.x, y:L.y, angle, len:augMeleeRange(B.lmbCharge.length), width:B.lmbCharge.width, dur:12, maxDur:12}});
         L.lmbCooldown = B.lmbCharge.cd; L.lastAttackTime = performance.now();
@@ -5939,12 +5945,14 @@ const SKILLS = {
         if (!useStam(B.lmb.cost)) return;
         const swingAngle = angle + B.lmb.bias;
         const dist = Math.hypot(R.x - L.x, R.y - L.y);
+        L._lmbAttacking = true;
         if (dist < B.lmb.meleeRange + R.radius) {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
           const diff = Math.abs(((toR - swingAngle) + Math.PI*3) % (Math.PI*2) - Math.PI);
           if (diff < B.lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
         }
         hitCtxSpirit({x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
+        L._lmbAttacking = false;
         if (false) {
       }
         addFx({type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle, dur:10, maxDur:10});
@@ -7096,8 +7104,10 @@ const SKILLS = {
         damage, maxRange: B.range, traveled: 0,
         pierceWalls, isCheritySniper: true, chargeT: t,
       };
+      L._lmbAttacking = true;
       applyPierceShot(b); localBullets.push(b);
       send({type: 'bullet', ...b}); playShootSfx();
+      L._lmbAttacking = false;
       addFx({type:'cherityShot', x:L.x, y:L.y, angle, t, dur:8, maxDur:8});
       send({type:'fx', fx:{type:'cherityShot', x:L.x, y:L.y, angle, t, dur:8, maxDur:8}});
       L.lmbCooldown = B.cd;
@@ -7574,7 +7584,7 @@ const SKILLS = {
         isDazWave:true, pierceWalls:true, pierceEnemies:true,
         _lastTick:performance.now(),
       };
-      applyPierceShot(b); localBullets.push(b); send({type:'bullet',...b});
+      localBullets.push(b); send({type:'bullet',...b});
       addFx({type:'dazWaveShot', x:L.x, y:L.y, dur:8, maxDur:8});
       send({type:'fx', fx:{type:'dazWaveShot', x:L.x, y:L.y, dur:8, maxDur:8}});
       L.rmbCooldown=B.cd; L.lastAttackTime=performance.now();
@@ -7957,6 +7967,7 @@ const SKILLS = {
       const _hatsBurstId = uid();
       const _hatsCount = 6;
       const _hatsSpd = augBulletSpeed(22); // 사거리 무관 고정 탄속 (버프)
+      L._lmbAttacking = true;
       for (let _hi = 0; _hi < _hatsCount; _hi++) {
         const _hSpread = halfAngle * 2 * (_hi / (_hatsCount - 1)) - halfAngle;
         const _hAngle = angle + _hSpread;
@@ -7973,6 +7984,7 @@ const SKILLS = {
         };
         applyPierceShot(b); localBullets.push(b); send({type:'bullet', ...b});
       }
+      L._lmbAttacking = false;
       L._lmbFireTime = performance.now();
       playHitSfx();
       L._hatsDragPath = null; L._hatsDragFarthest = null; L._hatsFrozen = false;
@@ -8182,12 +8194,10 @@ const SKILLS = {
       L._runefRmbActive = false; L._attackPreview = null;
       clearTimeout(L._runefRmbTimer); L.rmbCooldown = B.cd;
       const _sx = sx ?? L.x, _sy = sy ?? L.y;
-      
         if (hitCtx({x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle}, B.iceDamage)) {
           freezeRemote(B.iceFreezeDur);
         }
         hitCtxSpirit({x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle}, B.iceDamage);
-      
       addFx({type:'swing', x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle, dur:12, maxDur:12, col:'100,200,255'});
       send({type:'fx', fx:{type:'swing', x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle, dur:12, maxDur:12, col:'100,200,255'}});
       addFx({type:'freeze', x:_sx, y:_sy, r:0, maxR:augMeleeRange(B.iceRange), dur:10, maxDur:10});
@@ -8448,7 +8458,7 @@ const SKILLS = {
     _rayHit(ox, oy, angle, dist, dmg) {
       const dx = Math.cos(angle), dy = Math.sin(angle);
       const px = -dy, py = dx;
-      let hit = false;
+      let hit = false; let hitPlayer = false;
       for (const t of Rs()) {
         const tx = t.x-ox, ty = t.y-oy;
         const along = tx*dx + ty*dy;
@@ -8456,7 +8466,9 @@ const SKILLS = {
         if (along < 0 || along > dist + t.radius) continue;
         if (perp > t.radius + 6) continue;
         window._hitTarget = t; hitRemote(dmg); hit = true;
+        if (t === R) hitPlayer = true;
       }
+      SKILLS.meramona._lastRayHitPlayer = hitPlayer;
       return hit;
     },
 
@@ -8469,17 +8481,20 @@ const SKILLS = {
       const baseRange = stage >= 1 ? B.range + B.rangeBonus : B.range;
       const mouseDist = Math.hypot(mouseX - L.x, mouseY - L.y);
       const maxDist = augMeleeRange(stage >= 4 ? Math.min(mouseDist, baseRange) : baseRange);
-      const actualDist = SKILLS.meramona._raycast(L.x, L.y, angle, maxDist);
+      // 관통샷 활성 시 벽에 막히지 않고 최대 사거리까지 그대로 적용
+      const _pierceNow = getAugCount('pierce_shot') > 0 && L._pierceShotReady;
+      const actualDist = _pierceNow ? maxDist : SKILLS.meramona._raycast(L.x, L.y, angle, maxDist);
 
       let hit = false;
       if (stage >= 4) {
         hit = SKILLS.meramona._rayHit(L.x, L.y, angle, actualDist, B.damage);
+        if (_pierceNow) { L._pierceShotReady = false; L._pierceShotCd = performance.now() + 3000; L._pierceShotUsed = false; }
       }
 
       if (stage < 4) {
         const b = {
           id:uid(), x:L.x, y:L.y,
-          radius:8, speed:augBulletSpeed(B.bulletSpeed),
+          radius:augBulletRadius(8), speed:augBulletSpeed(B.bulletSpeed),
           dx:Math.cos(angle), dy:Math.sin(angle),
           damage:B.damage, maxRange:actualDist, traveled:0,
           color:'#ff88ee', isMerRay:true, pierceWalls:false,
@@ -8488,8 +8503,8 @@ const SKILLS = {
         playShootSfx();
       }
 
-      // 적중 스택: 영구 단계가 4 미만일 때만
-      if (hit) {
+      // 적중 스택: 영구 단계가 4 미만일 때만, 소환수 제외 본체 명중만 인정
+      if (stage >= 4 && SKILLS.meramona._lastRayHitPlayer) {
         SKILLS.meramona._hitStack = Math.min(
           BALANCE.meramona.rmb.hitsRequired,
           SKILLS.meramona._hitStack + 1
@@ -8728,9 +8743,11 @@ const SKILLS = {
       const len = augMeleeRange(B.meleeRange) * sizeMult;
       const halfW = (B.width / 2) * sizeMult;
       const shape = { x: L.x, y: L.y, cos, sin, len, width: halfW };
+      L._lmbAttacking = true;
       const hit = hitCtx(shape, damage);
       if (hit && isMax) knockbackRemote(B.knockbackPower);
       hitCtxSpirit(shape, damage);
+      L._lmbAttacking = false;
 
       const col = isMax ? '255,180,20' : '191,161,54';
       addFx({type:'drillHit', x:L.x, y:L.y, angle, len, width:halfW, dur:10, maxDur:10, col});
@@ -8826,6 +8843,7 @@ const SKILLS = {
         // 일반 스윙: 스테미나 소모
         if (!useStam(B.cost)) return;
         const dist = Math.hypot(R.x - L.x, R.y - L.y);
+        L._lmbAttacking = true;
         if (dist < B.meleeRange + R.radius) {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
           const diff = Math.abs(((toR - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
@@ -8836,6 +8854,7 @@ const SKILLS = {
           }
         }
         hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
+        L._lmbAttacking = false;
         addFx({type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9, col:'251,199,255'});
         send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9, col:'251,199,255'}});
         L.lmbCooldown = B.cd;
@@ -8849,8 +8868,10 @@ const SKILLS = {
           damage:B.throwDamage, maxRange:B.throwRange, traveled:0,
           isNanPillow: true,
         };
+        L._lmbAttacking = true;
         applyPierceShot(b);
         localBullets.push(b); send({type:'bullet', ...b}); playShootSfx();
+        L._lmbAttacking = false;
         addFx({type:'counterCharge', x:L.x, y:L.y, r:0, maxR:28, col:'251,180,255', dur:8, maxDur:8});
         send({type:'fx', fx:{type:'counterCharge', x:L.x, y:L.y, r:0, maxR:28, col:'251,180,255', dur:8, maxDur:8}});
         L.lmbCooldown = B.throwCd;
@@ -9102,9 +9123,12 @@ function fireShotgun(angle, {pellets, spread, speed, radius, damage, maxRange, k
 // 거대 총알 증강: 일반 투사체 생성 시 반경 보정
 function augBulletRadius(r) { return r * (1 + 0.45 * getAugCount('big_bullet')); }
 function applyPierceShot(b) {
-  // 관통샷: 같은 발사 이벤트의 모든 탄환에 적용
+  // 모든 투사체에 "평타 여부" 태그 부여 — 현재 L._lmbAttacking 컨텍스트로 자동 판별
+  // (doLMB()의 동기 호출 또는 lmbStart/lmbRelease 패턴 캐릭터의 명시적 wrap에서 true가 됨)
+  b._lmbAttack = !!L._lmbAttacking;
+  // 관통샷: 평타(LMB)에서만 적용, 같은 발사 이벤트의 모든 탄환에 적용
   // _pierceShotReady는 이번 프레임 발사 종료 후 loop에서 false로 변경
-  if (getAugCount('pierce_shot') > 0 && L._pierceShotReady && !b.isTauSickle && !b.isPelunaHammer && !b.isPelunaAnvil) {
+  if (L._lmbAttacking && getAugCount('pierce_shot') > 0 && L._pierceShotReady && !b.isTauSickle && !b.isPelunaHammer && !b.isPelunaAnvil) {
     b.pierceWalls = true; b._isPierceShot = true;
     L._pierceShotUsed = true; // 이번 발사에 사용됨 표시 (ready는 다음 프레임에 false)
   }
@@ -9634,7 +9658,7 @@ function moveBullets(dt=1) {
       if (hitWall || oob || hitEnemy || rangeOut || hitSpirit) {
         // 폭발 범위 내 피해
         if (Math.hypot(b.x-R.x, b.y-R.y) < b.explosionRange + R.radius) {
-          window._hitTarget = R; hitRemote(b.explosionDamage);
+          window._hitTarget = R;          hitRemote(b.explosionDamage);
         }
         // 폭발 범위 내 소환수 피해
         hitPeerMinionsInRange(b.x, b.y, b.explosionRange, b.explosionDamage);
@@ -9876,7 +9900,7 @@ function moveBullets(dt=1) {
         if (rangeOut||oob||hitWall||hitEnemy) {
           addFx({type:'runefFireExplosion',x:b.x,y:b.y,r:b.expRadius,dur:16,maxDur:16});
           send({type:'fx',fx:{type:'runefFireExplosion',x:b.x,y:b.y,r:b.expRadius,dur:16,maxDur:16}});
-          if (!_trainingMode&&Math.hypot(R.x-b.x,R.y-b.y)<b.expRadius+R.radius){hitRemote(b.expDamage);knockbackRemote(420);}
+          if (!_trainingMode&&Math.hypot(R.x-b.x,R.y-b.y)<b.expRadius+R.radius){window._hitTarget=R;hitRemote(b.expDamage);knockbackRemote(420);}
           else if(_trainingMode){for(const _fb of _trainingBots)if(_fb.isAlive&&!_fb.hidden&&Math.hypot(_fb.x-b.x,_fb.y-b.y)<b.expRadius+_fb.radius)_applyBotDamage(_fb,applyDmgAugs(b.expDamage));}
           localBullets.splice(i,1);
         }
@@ -9889,30 +9913,31 @@ function moveBullets(dt=1) {
 
       if (rangeOut||oob||hitWall) { localBullets.splice(i,1); continue; }
       if (hitEnemy) {
-        // 헤르쟝 대포탄: 일반 피해 (hitRemote로 처리됨)
-        // _herCannonShot은 아래 일반 경로로 처리
-                // 하츠하츠: 버스트당 1회 피해, 관통 (splice 없음)
+        // 하츠하츠: 버스트당 1회 피해, 관통 (splice 없음) — 평타 전용 스킬
         if (b.isHatsBolt && b.hatsBurstId) {
           if (!_firedBurstKb.has(b.hatsBurstId)) {
             _firedBurstKb.add(b.hatsBurstId);
+            L._lmbAttacking = true;
             hitRemote(b.damage);
-            L._lmbAttacking = true; applyStunShot(); L._lmbAttacking = false;
+            L._lmbAttacking = false;
           }
           continue; // 관통: 제거 안 함
         }
-        // 체리티 산탄: 탄별 개별 피해 (중첩), 관통 없음
+        // 체리티 산탄(우클릭): 탄별 개별 피해 (중첩), 관통 없음, 평타 아님
         if (b.isCherityBlast) {
+          L._lmbAttacking = false;
           hitRemote(b.damage);
           knockbackRemote(b.cherKbPower);
           localBullets.splice(i, 1); continue;
         }
-        // 저격탄: 1회만 피해+넉백, splice 안 함 (관통)
+        // 저격탄(반격기): 1회만 피해+넉백, splice 안 함 (관통), 평타 아님
         if (b.isIntuSniper) {
-          if (!b._sniperHit) { b._sniperHit=true; hitRemote(b.damage); knockbackRemote(BALANCE.intu.counter.knockbackPower); playHitSfx(); }
+          if (!b._sniperHit) { b._sniperHit=true; L._lmbAttacking=false; hitRemote(b.damage); knockbackRemote(BALANCE.intu.counter.knockbackPower); playHitSfx(); }
           continue; // 제거 안 함
         }
-        if (b._lmbAttack) { L._lmbAttacking=true; applyStunShot(); L._lmbAttacking=false; }
+        L._lmbAttacking = !!b._lmbAttack;
         hitRemote(b.damage);
+        L._lmbAttacking = false;
         if (b.isNanPillow) {
           const _nl = L.maxHealth - L.health;
           if (_nl > 0) L.health = Math.min(L.maxHealth, L.health + _nl * BALANCE.nanamnang.lmb.healRatio);
@@ -9920,8 +9945,8 @@ function moveBullets(dt=1) {
           send({type:'fx', fx:{type:'healPulse', x:L.x, y:L.y, r:0, maxR:35, dur:12, maxDur:12}});
         }
         if (b._kbRef && !b._kbRef.fired) { b._kbRef.fired=true; knockbackRemote(b._kbRef.power); }
-        // 메라 모나 광선 탄환 적중 스택
-        if (b.isMerRay && L.charDef?.id==='meramona' && SKILLS.meramona._stage < 4) {
+        // 메라 모나 광선 탄환 적중 스택 (소환수 타격은 제외, 본체만 인정)
+        if (b.isMerRay && L.charDef?.id==='meramona' && SKILLS.meramona._stage < 4 && _hitTarget === R) {
           SKILLS.meramona._hitStack = Math.min(
             BALANCE.meramona.rmb.hitsRequired,
             SKILLS.meramona._hitStack + 1
@@ -10001,6 +10026,11 @@ function moveBullets(dt=1) {
     }
     // 다즈빈 파동 구체(상대): rangeOut/oob에서만 제거, 벽 무시
     if (b.isDazWave) {
+      if (b.traveled>=b.maxRange||b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H) { peerBullets.splice(i,1); }
+      continue;
+    }
+    // 타다타 덩굴 투사체(상대): 벽·플레이어 완전 무시, 사거리 도달/맵 밖에서만 제거 (저격으로 제거 불가)
+    if (b.isTadtaVine) {
       if (b.traveled>=b.maxRange||b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H) { peerBullets.splice(i,1); }
       continue;
     }
@@ -11950,7 +11980,8 @@ function draw() {
         ctx.beginPath(); ctx.arc(bullet.x,bullet.y,bullet.radius,0,Math.PI*2);
         ctx.fillStyle=_sCol; ctx.fill();
       } else if (bullet.isMerRay) {
-        // 메라 모나 광선 탄환 — 마젠타 빔 스타일 (크게)
+        // 메라 모나 광선 탄환 — 마젠타 빔 스타일 (크게, 거대총알 증강 시 더 두껍게)
+        const _mScale = (bullet.radius || 8) / 8;
         // traveled로 꼬리 제한: 생성 직후 캐릭터 뒤에 안 보이게
         const _mLen = Math.min(40 + bullet.speed * 1.2, bullet.traveled + bullet.radius);
         const _mtx = bullet.x - bullet.dx*_mLen, _mty = bullet.y - bullet.dy*_mLen;
@@ -11960,18 +11991,18 @@ function draw() {
         _mgrd.addColorStop(1, 'rgba(255,33,218,0)');
         // 넓은 외곽 글로우
         ctx.beginPath(); ctx.moveTo(bullet.x,bullet.y); ctx.lineTo(_mtx,_mty);
-        ctx.strokeStyle=`rgba(255,0,200,${a*0.2})`; ctx.lineWidth=22; ctx.stroke();
+        ctx.strokeStyle=`rgba(255,0,200,${a*0.2})`; ctx.lineWidth=22*_mScale; ctx.stroke();
         // 중간 글로우
         ctx.beginPath(); ctx.moveTo(bullet.x,bullet.y); ctx.lineTo(_mtx,_mty);
-        ctx.strokeStyle=`rgba(255,33,218,${a*0.5})`; ctx.lineWidth=12; ctx.stroke();
+        ctx.strokeStyle=`rgba(255,33,218,${a*0.5})`; ctx.lineWidth=12*_mScale; ctx.stroke();
         // 빔 코어
         ctx.beginPath(); ctx.moveTo(bullet.x,bullet.y); ctx.lineTo(_mtx,_mty);
-        ctx.strokeStyle=_mgrd; ctx.lineWidth=5; ctx.stroke();
+        ctx.strokeStyle=_mgrd; ctx.lineWidth=5*_mScale; ctx.stroke();
         // 흰색 중심선
         ctx.beginPath(); ctx.moveTo(bullet.x,bullet.y); ctx.lineTo(_mtx,_mty);
-        ctx.strokeStyle=`rgba(255,220,255,${a*0.9})`; ctx.lineWidth=2; ctx.stroke();
+        ctx.strokeStyle=`rgba(255,220,255,${a*0.9})`; ctx.lineWidth=2*_mScale; ctx.stroke();
         // 선단 플레어
-        ctx.beginPath(); ctx.arc(bullet.x, bullet.y, 8*a, 0, Math.PI*2);
+        ctx.beginPath(); ctx.arc(bullet.x, bullet.y, 8*a*_mScale, 0, Math.PI*2);
         ctx.fillStyle=`rgba(255,33,218,${a*0.5})`; ctx.fill();
         ctx.beginPath(); ctx.arc(bullet.x, bullet.y, 4*a, 0, Math.PI*2);
         ctx.fillStyle=`rgba(255,255,255,${a})`; ctx.fill();
@@ -14126,7 +14157,7 @@ function loop() {
     L.staminaUseTime = now; // 차징 중 스테미나 회복 차단
     // 스테미나가 없어도 연타만 계속하면 자동발동하지 않음 — 차징 상태가 유지될 뿐 더는 증가하지 않음
     // 연타 끊김(0.2초 무클릭) 시에만 발동
-    if (now - (L._raiseLastClickTime||0) > 200) {
+    if (now - (L._raiseLastClickTime||0) > 300) {
       SKILLS.raise.lmbRelease(getAngle());
     } else {
       // 실시간 차징 미리보기 (다른 캐릭터들과 동일한 표준 시스템 사용)
@@ -14832,7 +14863,7 @@ function loop() {
         const _HR = BALANCE.ruvu.rmb.hammerRadius;
         if (!_h._hitR && Math.hypot(R.x-_h.x, R.y-_h.y) < _HR + R.radius) {
           _h._hitR = true;
-          hitRemote(BALANCE.ruvu.rmb.hammerDamage);
+          window._hitTarget = R;          hitRemote(BALANCE.ruvu.rmb.hammerDamage);
           addFx({type:'bombBlast', x:_h.x, y:_h.y, r:0, maxR:_HR*1.5, dur:10, maxDur:10});
           send({type:'fx', fx:{type:'bombBlast', x:_h.x, y:_h.y, r:0, maxR:_HR*1.5, dur:10, maxDur:10}});
         }
@@ -14864,7 +14895,7 @@ function loop() {
         if (!_trainingMode) {
           if (Math.hypot(R.x-_h.x, R.y-_h.y) < _hitR + R.radius) {
             _h._returnHit = true;
-            hitRemote(BALANCE.ruvu.rmb.hammerDamage);
+            window._hitTarget = R;            hitRemote(BALANCE.ruvu.rmb.hammerDamage);
             addFx({type:'counterCharge', x:_h.x, y:_h.y, r:_hitR, maxR:_hitR, dur:8, maxDur:8});
           }
         } else {
