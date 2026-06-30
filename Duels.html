@@ -184,18 +184,13 @@ input[type=text]:focus{border-color:#4af;}
 #chat-log {
   display:flex; flex-direction:column; gap:4px;
   margin-bottom:8px;
-  max-height:220px; overflow-y:auto;
-  pointer-events:none;
 }
-#chat-log::-webkit-scrollbar{width:4px;}
-#chat-log::-webkit-scrollbar-track{background:transparent;}
-#chat-log::-webkit-scrollbar-thumb{background:#334;border-radius:2px;}
 .chat-msg {
   font-family:'Courier New',monospace; font-size:14px;
   color:#eee; background:rgba(0,0,0,0.65);
   padding:5px 12px; border-radius:4px;
   letter-spacing:.5px; max-width:100%;
-  word-break:break-all; transition:opacity 0.5s;
+  word-break:break-all;
   animation: chat-fade 8s forwards;
 }
 .chat-msg.mine { color:#c8a0ff; border-left:3px solid #c8a0ff; }
@@ -251,7 +246,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.8</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.30.6</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -324,7 +319,6 @@ input[type=text]:focus{border-color:#4af;}
 <!-- 채팅 -->
 <div id="chat-wrap">
   <div id="chat-log"></div>
-  <div id="chat-typing-wrap" style="display:none;font-family:'Courier New',monospace;font-size:13px;color:#ffb870;padding:2px 4px;opacity:0.85;">상대 입력 중...</div>
   <div id="chat-input-wrap">
     <input id="chat-input" type="text" maxlength="80" placeholder="메시지 입력...">
   </div>
@@ -1542,7 +1536,7 @@ const BALANCE = {
       iceDamage:      20,
       iceRange:       180,
       iceHalfAngle:   0.9,
-      iceFreezeDur:   500,
+      iceFreezeDur:   1000,
       lightningDamage: 5,
       lightningRange:  400,
       lightningRadius: 90,
@@ -1716,7 +1710,73 @@ const BALANCE = {
       cd:             400,
       knockbackPower: 420,
     },
-  }
+  },
+
+  nanamnang: {
+    hp:     130,
+    speed:  3.75,
+    radius: 20,
+    lmb: {
+      cost:       25,        // 일반 스윙 스테미나
+      damage:     15,
+      meleeRange: 110,
+      halfAngle:  1.1,
+      cd:         700,
+      chargeTime: 500,       // 0.5초 차징
+      drainRate:  40,        // (미사용)
+      throwCost:  25,        // 차징 투사체 스테미나
+      throwDamage:20,
+      throwRadius:14,
+      throwSpeed: 18,
+      throwRange: 600,
+      throwCd:    900,
+      healRatio:  0.20,
+    },
+    rmb: {
+      cost:       100,       // 스테미나 100 소모
+      healRatio:  0.70,
+      stunDur:    1000,      // 1초 행동불능 (선딜레이)
+      cd:         1000,
+    },
+    counter: {
+      damage:     15,
+      meleeRange: 130,
+      halfAngle:  0.9,
+      sleepDur:   1000,
+      cd:         700,
+    },
+  },
+
+  raise: {
+    hp:     120,
+    speed:  4.25,
+    radius: 20,
+    lmb: {
+      maxWindow:   1500,
+      maxClicks:   15,
+      minDamage:   10,
+      maxDamage:   80,
+      meleeRange:  120,
+      width:       70,
+      knockbackPower: 560,
+      clickCost:   5,
+      cd:          300,
+    },
+    rmb: {
+      cost:      70,
+      dist:      220,
+      dur:       220,
+      stunDur:   1000,
+      landRange: 55,
+      cd:        900,
+    },
+    counter: {
+      range:   160,
+      damage:  20,
+      cd:      600,
+    },
+  },
+
 };
 
 
@@ -1740,6 +1800,8 @@ const REGEN_AMT  = BALANCE.regen.amount;
 // game-data.js — 캐릭터 정의(CHARACTERS) + 맵 정의(MAPS)
 //   ※ config.js 이후 실행 (BALANCE 필요)
 // ============================================================
+
+
 const CHARACTERS = {
 
   shubi: {
@@ -2253,12 +2315,6 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     ],
   },
 
-
-
-
-
-
-
   meramona: {
     id:        'meramona',
     name:      '메라 모나',
@@ -2291,6 +2347,44 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
         desc:`덩굴 지대 생성. 적을 감속시키며, 지대 위 적 타격 시 ${BALANCE.tadta.rmb.bindDur/1000}초 속박 (${BALANCE.tadta.rmb.tickDamage})` },
       { key:'L-Shift', name:'덩굴 묶기', cost:0,
         desc:`덩굴을 크게 2회 휘둘러 피해. 1타 감속, 2타 감속된 적 타격 시 ${BALANCE.tadta.counter.bindDur/1000}초 속박 (타당 ${BALANCE.tadta.counter.damage})` },
+    ],
+  },
+
+  nanamnang: {
+    id:        'nanamnang',
+    name:      '나남낭',
+    color:     '#fbc7ff',
+    maxHealth: BALANCE.nanamnang.hp,
+    speed:     BALANCE.nanamnang.speed,
+    radius:    BALANCE.nanamnang.radius,
+    statsText: [['체력', String(BALANCE.nanamnang.hp)],['이동속도','느림'],['스타일','회복형 중거리 탱커']],
+    desc:      '자는것이 좋은 소녀 캐릭터.',
+    skills: [
+      { key:'LMB',     name:'베개싸움', cost:BALANCE.nanamnang.lmb.cost,
+        desc:`배게 휘두르기. 차징 시 베개를 날림. 적중 시 잃은 체력의 20% 회복 (${BALANCE.nanamnang.lmb.damage}/${BALANCE.nanamnang.lmb.throwDamage})` },
+      { key:'RMB',     name:'잘 자요',  cost:BALANCE.nanamnang.rmb.cost,
+        desc:`1초 행동불능 후 잃은 체력의 70% 회복` },
+      { key:'L-Shift', name:'깊은 잠',  cost:0,
+        desc:`베개를 단거리에 내려쳐 적중한 적을 1초간 재움 (${BALANCE.nanamnang.counter.damage})` },
+    ],
+  },
+
+  raise: {
+    id:        'raise',
+    name:      '레이즈',
+    color:     '#bfa136',
+    maxHealth: BALANCE.raise.hp,
+    speed:     BALANCE.raise.speed,
+    radius:    BALANCE.raise.radius,
+    statsText: [['체력', String(BALANCE.raise.hp)],['이동속도','빠름'],['스타일','차징형 근거리 딜러']],
+    desc:      '기계팔을 충전시켜 강력한 공격을 구사하는 캐릭터.',
+    skills: [
+      { key:'LMB',     name:'파워 펀치', cost:BALANCE.raise.lmb.clickCost,
+        desc:`연타 시 최대 ${BALANCE.raise.lmb.maxClicks}클릭까지 피해 증가. 최대충전 시 넉백 (${BALANCE.raise.lmb.minDamage}~${BALANCE.raise.lmb.maxDamage})` },
+      { key:'RMB',     name:'내려찍기',  cost:BALANCE.raise.rmb.cost,
+        desc:`빠르게 점프 후 내려치며 낙하해 범위 내 1초 기절` },
+      { key:'L-Shift', name:'방출',      cost:0,
+        desc:`원형 피해. 다음 파워 펀치 최대충전 고정 (${BALANCE.raise.counter.damage})` },
     ],
   },
 };
@@ -3644,6 +3738,11 @@ function tickStamina(now, physDt) {
   }
   if (L.charDef?.id==='sya' && L._syaInvisible) {
     L.staminaUseTime = now; // 회복 딜레이 리셋 (회복 차단)
+    return;
+  }
+  // 나남낭 RMB 선딜레이 중 스테미나 회복 차단
+  if (L.charDef?.id==='nanamnang' && L._nanRmbActive) {
+    L.staminaUseTime = now;
     return;
   }
   const stamMax = L._augStamMax ?? STAM_MAX;
@@ -8078,7 +8177,7 @@ const SKILLS = {
         const _tx = _cx + Math.cos(_tang)*_ldist, _ty = _cy + Math.sin(_tang)*_ldist;
         addFx({type:'runefLightning', x:_tx, y:_ty, r:B.lightningRadius, dur:8, maxDur:8});
         send({type:'fx', fx:{type:'runefLightning', x:_tx, y:_ty, r:B.lightningRadius, dur:8, maxDur:8}});
-         hitCtx({x:_tx, y:_ty, range:B.lightningRadius}, B.lightningDamage);
+         hitCtx({x:_tx, y:_ty, type:'circle', r:B.lightningRadius}, B.lightningDamage);
       };
       // 첫 타 즉시 발동
       _fireLightning();
@@ -8401,8 +8500,7 @@ const SKILLS = {
         if (!gameOn) return;
         L._merTransforming = false;
         L.color = L.defaultColor; send({type:'colorChange', color:L.defaultColor});
-        hitInRange(L.x, L.y, B.emergeRange, B.emergeDamage);
-        knockbackRemote(700);
+        if (hitInRange(L.x, L.y, B.emergeRange, B.emergeDamage)) knockbackRemote(700);
         addFx({type:'merEmerge', x:L.x, y:L.y, r:0, maxR:B.emergeRange, dur:16, maxDur:16});
         send({type:'fx', fx:{type:'merEmerge', x:L.x, y:L.y, r:0, maxR:B.emergeRange, dur:16, maxDur:16}});
         L.lastAttackTime = performance.now();
@@ -8545,6 +8643,245 @@ const SKILLS = {
     },
   },
 
+
+  // ── 나남낭 ──────────────────────────────────────────────────
+  // ── 레이즈 ──────────────────────────────────────────────────
+  raise: {
+    lmbStart() {
+      if (!gameOn || L.lmbCooldown > 0 || L._raiseCharging) return;
+      if (L.stunEnd && performance.now() < L.stunEnd) return;
+      const B = BALANCE.raise.lmb;
+      // 방출 버프: 스테미나 소모 없이 즉시 최대충전
+      if (L._raiseBoosted) {
+        L._raiseBoosted = false;
+        L._raiseCharging = true;
+        L._raiseChargeStart = performance.now();
+        L._raiseClicks = B.maxClicks;
+        L._raiseLastClickTime = performance.now();
+        return;
+      }
+      if (!useStam(B.clickCost)) return; // 스테미나 부족 시 차징 시작 불가
+      L._raiseCharging = true;
+      L._raiseChargeStart = performance.now();
+      L._raiseClicks = 1; // 첫 mousedown = 1클릭
+      L._raiseLastClickTime = performance.now();
+    },
+
+    lmbClick() {
+      // 추가 클릭 (mousedown 반복) — 최대 maxClicks
+      if (!L._raiseCharging) return;
+      const B = BALANCE.raise.lmb;
+      L._raiseLastClickTime = performance.now();
+      if (L._raiseClicks >= B.maxClicks) return;
+      if (!useStam(B.clickCost)) return; // 스테미나 부족 시 차징 증가 안 함
+      L._raiseClicks = Math.min(B.maxClicks, (L._raiseClicks || 1) + 1);
+    },
+
+    lmbRelease(angle) {
+      if (!L._raiseCharging) return;
+      L._raiseCharging = false;
+      L._raiseStaminaStarvedAt = 0;
+      if (!gameOn) return;
+      const B = BALANCE.raise.lmb;
+      const clicks = Math.min(B.maxClicks, L._raiseClicks || 1);
+      const t = (clicks - 1) / (B.maxClicks - 1);
+      const damage = Math.round(B.minDamage + (B.maxDamage - B.minDamage) * t);
+      const isMax = clicks >= B.maxClicks;
+
+      // 일자형 공격 (직사각형 판정)
+      const cos = Math.cos(angle), sin = Math.sin(angle);
+      const len = augMeleeRange(B.meleeRange);
+      const shape = { x: L.x, y: L.y, cos, sin, len, width: B.width / 2 };
+      const hit = hitCtx(shape, damage);
+      if (hit && isMax) knockbackRemote(B.knockbackPower);
+      hitCtxSpirit(shape, damage);
+
+      const col = isMax ? '255,180,20' : '191,161,54';
+      addFx({type:'drillHit', x:L.x, y:L.y, angle, len, width:B.width/2, dur:10, maxDur:10, col});
+      send({type:'fx', fx:{type:'drillHit', x:L.x, y:L.y, angle, len, width:B.width/2, dur:10, maxDur:10, col}});
+      L.lmbCooldown = B.cd;
+      L._raiseClicks = 0;
+      L.lastAttackTime = performance.now();
+    },
+
+    lmb(angle) {}, // lmbStart/lmbRelease 방식
+
+    rmb(angle) {
+      const B = BALANCE.raise.rmb;
+      if (L.rmbCooldown > 0 || L._raiseJumping) return;
+      if (!useStam(B.cost)) return;
+      const ex = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(angle)*B.dist));
+      const ey = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(angle)*B.dist));
+      L._raiseJumping = true;
+      L.invincible = Math.max(L.invincible, B.dur / FRAME_MS);
+      const sx = L.x, sy = L.y, start = performance.now();
+      const ji = setInterval(() => {
+        if (!gameOn) { clearInterval(ji); L._raiseJumping = false; return; }
+        const t = Math.min(1, (performance.now() - start) / B.dur);
+        L.x = sx + (ex - sx) * (1-(1-t)*(1-t));
+        L.y = sy + (ey - sy) * (1-(1-t)*(1-t));
+        if (t >= 1) {
+          clearInterval(ji);
+          L._raiseJumping = false;
+          resolveWall(L);
+          // 착지 기절
+          if (Math.hypot(R.x-L.x, R.y-L.y) < B.landRange + R.radius) {
+            hitCtxAll({x:L.x, y:L.y, range:B.landRange}, 0);
+            stunRemote(B.stunDur);
+          }
+          addFx({type:'landWarning', x:L.x, y:L.y, r:B.landRange, dur:16, maxDur:16, col:'191,161,54'});
+          send({type:'fx', fx:{type:'landWarning', x:L.x, y:L.y, r:B.landRange, dur:16, maxDur:16, col:'191,161,54'}});
+          addFx({type:'smash', x:L.x, y:L.y, r:0, maxR:B.landRange, dur:18, maxDur:18});
+          send({type:'fx', fx:{type:'smash', x:L.x, y:L.y, r:0, maxR:B.landRange, dur:18, maxDur:18}});
+          L.lastAttackTime = performance.now();
+        }
+      }, FRAME_MS);
+      addFx({type:'phaseJump', x:L.x, y:L.y, tx:ex, ty:ey, dur:14, maxDur:14, col:'191,161,54', col2:'230,210,140'});
+      send({type:'fx', fx:{type:'phaseJump', x:L.x, y:L.y, tx:ex, ty:ey, dur:14, maxDur:14, col:'191,161,54', col2:'230,210,140'}});
+      L.rmbCooldown = B.cd;
+      L.lastAttackTime = performance.now();
+    },
+
+    counter(angle) {
+      const B = BALANCE.raise.counter;
+      if (!L.counterReady) return;
+      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
+      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
+      L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:35, maxR:35, dur:18, maxDur:18, col:'191,161,54'});
+      const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'circle', r: B.range }] };
+      setTimeout(() => {
+        L._attackPreview = null;
+        if (!gameOn || L._counterToken !== tok) return;
+        L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
+        if (hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage)) {
+          knockbackRemote(280);
+        }
+        hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI}, B.damage);
+        addFx({type:'aoe', x:L.x, y:L.y, r:B.range, dur:18, maxDur:18, col:'191,161,54'});
+        send({type:'fx', fx:{type:'aoe', x:L.x, y:L.y, r:B.range, dur:18, maxDur:18, col:'191,161,54'}});
+        // 버프: 다음 파워 펀치 최대충전
+        L._raiseBoosted = true;
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
+    },
+  },
+
+  nanamnang: {
+    lmbStart() {
+      if (!gameOn || L.lmbCooldown > 0 || L._nanCharging) return;
+      if (L.stunEnd && performance.now() < L.stunEnd) return;
+      L._nanCharging = true;
+      L._nanChargeStart = performance.now();
+    },
+
+    lmbRelease(angle) {
+      if (!L._nanCharging) return;
+      L._nanCharging = false;
+      L._attackPreview = null;
+      if (!gameOn || L.lmbCooldown > 0) return;
+      const B = BALANCE.nanamnang.lmb;
+      const held = performance.now() - L._nanChargeStart;
+      const t = Math.min(1, held / B.chargeTime);
+      const charged = t >= 1;
+
+      if (!charged) {
+        // 일반 스윙: 스테미나 소모
+        if (!useStam(B.cost)) return;
+        const dist = Math.hypot(R.x - L.x, R.y - L.y);
+        if (dist < B.meleeRange + R.radius) {
+          const toR = Math.atan2(R.y - L.y, R.x - L.x);
+          const diff = Math.abs(((toR - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
+          if (diff < B.halfAngle) {
+            hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
+            const lost = L.maxHealth - L.health;
+            if (lost > 0) L.health = Math.min(L.maxHealth, L.health + lost * B.healRatio);
+          }
+        }
+        hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
+        addFx({type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9, col:'251,199,255'});
+        send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9, col:'251,199,255'}});
+        L.lmbCooldown = B.cd;
+      } else {
+        // 차징 완료: 베개 투사체 (스테미나 소모)
+        if (!useStam(B.throwCost)) return;
+        const b = {
+          id:uid(), x:L.x, y:L.y,
+          radius:augBulletRadius(B.throwRadius), speed:augBulletSpeed(B.throwSpeed),
+          dx:Math.cos(angle), dy:Math.sin(angle),
+          damage:B.throwDamage, maxRange:B.throwRange, traveled:0,
+          isNanPillow: true,
+        };
+        localBullets.push(b); send({type:'bullet', ...b}); playShootSfx();
+        addFx({type:'counterCharge', x:L.x, y:L.y, r:0, maxR:28, col:'251,180,255', dur:8, maxDur:8});
+        send({type:'fx', fx:{type:'counterCharge', x:L.x, y:L.y, r:0, maxR:28, col:'251,180,255', dur:8, maxDur:8}});
+        L.lmbCooldown = B.throwCd;
+      }
+      L.lastAttackTime = performance.now();
+    },
+
+    lmb(angle) {}, // lmbStart/lmbRelease 방식
+
+    rmb(angle) {
+      const B = BALANCE.nanamnang.rmb;
+      if (L.rmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      // 선딜레이: 1초 행동불능 후 회복 (넉백 등 하드CC 수신 시 tok 불일치로 취소)
+      L.stunEnd = performance.now() + B.stunDur;
+      L._nanRmbActive = true;
+      L.staminaUseTime = performance.now();
+      addFx({type:'dodge', x:L.x, y:L.y, radius:36, dur:18, maxDur:18});
+      send({type:'fx', fx:{type:'dodge', x:L.x, y:L.y, radius:36, dur:18, maxDur:18}});
+      const tok = ++L._counterToken;
+      setTimeout(() => {
+        L._nanRmbActive = false;
+        // tok 불일치 = 하드CC로 중단 → 행동불능 즉시 해제, 회복 없음
+        if (!gameOn || L._counterToken !== tok) {
+          L.stunEnd = 0;
+          return;
+        }
+        const lost = L.maxHealth - L.health;
+        if (lost > 0) L.health = Math.min(L.maxHealth, L.health + lost * B.healRatio);
+        addFx({type:'healPulse', x:L.x, y:L.y, r:0, maxR:50, dur:18, maxDur:18});
+        send({type:'fx', fx:{type:'healPulse', x:L.x, y:L.y, r:0, maxR:50, dur:18, maxDur:18}});
+      }, B.stunDur);
+      L.rmbCooldown = B.cd;
+      L.lastAttackTime = performance.now();
+    },
+
+    counter(angle) {
+      const B = BALANCE.nanamnang.counter;
+      if (!L.counterReady) return;
+      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
+      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
+      L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:18, maxDur:18, col:'251,199,255'});
+      const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'sector', range: B.meleeRange, halfAngle: B.halfAngle }] };
+      setTimeout(() => {
+        L._attackPreview = null;
+        if (!gameOn || L._counterToken !== tok) return;
+        const fa = getAngle();
+        L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
+        const dist = Math.hypot(R.x - L.x, R.y - L.y);
+        if (dist < B.meleeRange + R.radius) {
+          const toR = Math.atan2(R.y - L.y, R.x - L.x);
+          const diff = Math.abs(((toR - fa) + Math.PI*3) % (Math.PI*2) - Math.PI);
+          if (diff < B.halfAngle) {
+            hitCtx({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
+            freezeRemote(B.sleepDur);
+          }
+        }
+        hitCtxSpirit({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
+        addFx({type:'swing', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:12, maxDur:12, col:'251,199,255'});
+        send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:12, maxDur:12, col:'251,199,255'}});
+        addFx({type:'freeze', x:L.x, y:L.y, r:0, maxR:B.meleeRange, dur:10, maxDur:10});
+        send({type:'fx', fx:{type:'freeze', x:L.x, y:L.y, r:0, maxR:B.meleeRange, dur:10, maxDur:10}});
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
+    },
+  },
 
   intu: {
     // 탄창 체크 및 재장전
@@ -8833,6 +9170,11 @@ CANVAS.addEventListener('mousedown', e => {
       if (!(L.stunEnd && performance.now()<L.stunEnd)) SKILLS.mehugu.lmbStart();
     } else if (L.charDef?.id==='cherity') {
       SKILLS.cherity.lmbStart();
+    } else if (L.charDef?.id==='nanamnang') {
+      SKILLS.nanamnang.lmbStart();
+    } else if (L.charDef?.id==='raise') {
+      if (L._raiseCharging) SKILLS.raise.lmbClick();
+      else SKILLS.raise.lmbStart();
     } else if (L.charDef?.id==='hatsuhats') {
       SKILLS.hatsuhats.lmbStart();
     } else {
@@ -8856,6 +9198,8 @@ CANVAS.addEventListener('mouseup', e => {
       if (!(L.stunEnd && performance.now()<L.stunEnd)) SKILLS.mehugu.lmbRelease(getAngle());
     } else if (gameOn && L.charDef?.id==='cherity') {
       SKILLS.cherity.lmbRelease();
+    } else if (gameOn && L.charDef?.id==='nanamnang') {
+      SKILLS.nanamnang.lmbRelease(getAngle());
     } else if (gameOn && L.charDef?.id==='hatsuhats') {
       SKILLS.hatsuhats.lmbRelease();
     }
@@ -8884,28 +9228,37 @@ document.addEventListener('mouseup', e => {
 // ── 채팅 시스템 ────────────────────────────────────────────
 let _chatOpen = false;
 
+let _chatTypingEl = null;
 function _showTyping(show) {
-  const tw = document.getElementById('chat-typing-wrap');
-  if (tw) tw.style.display = show ? 'block' : 'none';
+  const log = document.getElementById('chat-log');
+  if (!log) return;
+  if (show && !_chatTypingEl) {
+    _chatTypingEl = document.createElement('div');
+    _chatTypingEl.className = 'chat-msg peer';
+    _chatTypingEl.id = 'chat-typing-indicator';
+    _chatTypingEl.style.animation = 'none';
+    _chatTypingEl.style.opacity = '1';
+    _chatTypingEl.textContent = '상대 입력 중...';
+    log.appendChild(_chatTypingEl);
+  } else if (!show && _chatTypingEl) {
+    _chatTypingEl.remove();
+    _chatTypingEl = null;
+  }
 }
 
-let _chatHistory = [];
 function _addChatMsg(name, text, isMine) {
   const log = document.getElementById('chat-log');
   if (!log) return;
-  // 30개 기록
-  _chatHistory.push({name: isMine ? '나' : (name||'상대'), text, isMine});
-  if (_chatHistory.length > 30) _chatHistory.shift();
+  // 상대 메시지 수신 시 typing indicator 제거
+  if (!isMine && _chatTypingEl) { _chatTypingEl.remove(); _chatTypingEl = null; }
   const div = document.createElement('div');
   div.className = 'chat-msg ' + (isMine ? 'mine' : 'peer');
   div.textContent = (isMine ? '나' : (name||'상대')) + ': ' + text;
   log.appendChild(div);
-  // 실시간 메시지(data-hist 없는 것)가 5개 초과 시 가장 오래된 것 제거
-  const live = [...log.children].filter(el => !el.dataset.hist);
-  while (live.length > 5) live.shift().remove();
-  // 5초 후 fade out (제거하지 않음 - 기록 유지)
-  setTimeout(() => { if (div.parentNode) div.style.opacity = '0'; }, 5000);
-  setTimeout(() => { if (div.parentNode) div.remove(); }, 5500);
+  // 최대 5개 유지
+  while (log.children.length > 5) log.removeChild(log.firstChild);
+  // 8초 후 제거
+  setTimeout(() => div.remove(), 8000);
 }
 
 function _openChat() {
@@ -8914,23 +9267,6 @@ function _openChat() {
   const inp  = document.getElementById('chat-input');
   if (!wrap || !inp) return;
   wrap.style.display = 'block';
-  const log = document.getElementById('chat-log');
-  if (log) {
-    log.style.pointerEvents = 'all';
-    // 실시간 메시지 임시 숨김
-    [...log.children].filter(el => !el.dataset.hist).forEach(el => { el.dataset.live = '1'; el.style.display = 'none'; });
-    // 기존 히스토리 항목 제거 후 재삽입
-    log.querySelectorAll('[data-hist]').forEach(el => el.remove());
-    _chatHistory.forEach(h => {
-      const d = document.createElement('div');
-      d.className = 'chat-msg ' + (h.isMine ? 'mine' : 'peer');
-      d.style.cssText = 'animation:none;opacity:1;';
-      d.dataset.hist = '1';
-      d.textContent = h.name + ': ' + h.text;
-      log.appendChild(d);
-    });
-    setTimeout(() => { log.scrollTop = log.scrollHeight; }, 0);
-  }
   inp.focus();
   inp.select();
   send({type:'chatTyping', typing:true});
@@ -8940,13 +9276,6 @@ function _closeChat() {
   _chatOpen = false;
   const wrap = document.getElementById('chat-input-wrap');
   if (wrap) wrap.style.display = 'none';
-  const log = document.getElementById('chat-log');
-  if (log) {
-    log.querySelectorAll('[data-hist]').forEach(el => el.remove());
-    // 숨겼던 실시간 메시지 복원
-    [...log.children].filter(el => el.dataset.live).forEach(el => { delete el.dataset.live; el.style.display = ''; });
-    log.style.pointerEvents = 'none';
-  }
   send({type:'chatTyping', typing:false});
 }
 
@@ -8966,16 +9295,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const inp = document.getElementById('chat-input');
   if (!inp) return;
   inp.addEventListener('keydown', e => {
-    _devBuf = (_devBuf + e.key).slice(-_devSeq.length);
-    if (_devBuf === _devSeq) { _devBuf = ''; openDevPanel(); }
     e.stopPropagation();
     if (e.key === 'Enter') { e.preventDefault(); _sendChat(); }
     if (e.key === 'Escape') { _closeChat(); }
-  });
-  document.addEventListener('mousedown', e => {
-    if (!_chatOpen) return;
-    const wrap = document.getElementById('chat-input-wrap');
-    if (wrap && !wrap.contains(e.target)) _closeChat();
   });
 });
 
@@ -9552,6 +9874,12 @@ function moveBullets(dt=1) {
         }
         if (b._lmbAttack) { L._lmbAttacking=true; applyStunShot(); L._lmbAttacking=false; }
         hitRemote(b.damage);
+        if (b.isNanPillow) {
+          const _nl = L.maxHealth - L.health;
+          if (_nl > 0) L.health = Math.min(L.maxHealth, L.health + _nl * BALANCE.nanamnang.lmb.healRatio);
+          addFx({type:'healPulse', x:L.x, y:L.y, r:0, maxR:35, dur:12, maxDur:12});
+          send({type:'fx', fx:{type:'healPulse', x:L.x, y:L.y, r:0, maxR:35, dur:12, maxDur:12}});
+        }
         if (b._kbRef && !b._kbRef.fired) { b._kbRef.fired=true; knockbackRemote(b._kbRef.power); }
         // 메라 모나 광선 탄환 적중 스택
         if (b.isMerRay && L.charDef?.id==='meramona' && SKILLS.meramona._stage < 4) {
@@ -10146,10 +10474,12 @@ function draw() {
       ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x + cos*f.len, f.y + sin*f.len);
       ctx.strokeStyle = `rgba(220,180,255,${a*0.7})`; ctx.lineWidth = 2; ctx.stroke();
     } else if (f.type==='phaseJump') {
+      const _pjCol = f.col || '136,85,255';
+      const _pjCol2 = f.col2 || '220,180,255';
       ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.tx, f.ty);
-      ctx.strokeStyle = `rgba(136,85,255,${a*0.4})`; ctx.lineWidth = 10; ctx.stroke();
+      ctx.strokeStyle = `rgba(${_pjCol},${a*0.4})`; ctx.lineWidth = 10; ctx.stroke();
       ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.tx, f.ty);
-      ctx.strokeStyle = `rgba(220,180,255,${a*0.65})`; ctx.lineWidth = 3; ctx.stroke();
+      ctx.strokeStyle = `rgba(${_pjCol2},${a*0.65})`; ctx.lineWidth = 3; ctx.stroke();
     } else if (f.type==='phaseLand') {
       const rr = f.maxR * (1 - f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr), 0, Math.PI*2);
@@ -10276,6 +10606,17 @@ function draw() {
       ctx.closePath();
       ctx.fillStyle=`rgba(255,120,0,${a*0.22})`; ctx.fill();
       ctx.strokeStyle=`rgba(255,170,50,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+    } else if (f.type==='landWarning') {
+      // 착지 충격 범위 — 펄스형 충격파 (점선 아님)
+      const _lwCol = f.col || '200,140,0';
+      const _lwT = 1 - f.dur / f.maxDur;
+      const _lwPulse = 0.6 + 0.4 * Math.sin(performance.now() * 0.02);
+      const _lwR = f.r * (0.7 + 0.3 * _lwT);
+      ctx.beginPath(); ctx.arc(f.x, f.y, _lwR, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(${_lwCol},${a*0.22*_lwPulse})`; ctx.fill();
+      ctx.strokeStyle=`rgba(${_lwCol},${a*0.95})`; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(f.x, f.y, _lwR*0.55, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(255,230,160,${a*0.5*_lwPulse})`; ctx.lineWidth=1.5; ctx.stroke();
     } else if (f.type==='shairazTrapSet') {
       // 트랩 위치 — 0.5초간 점선 원 (오너+상대 모두 표시)
       ctx.beginPath(); ctx.arc(f.x, f.y, f.maxR, 0, Math.PI*2);
@@ -11301,6 +11642,37 @@ function draw() {
       const flash = 0.5+0.5*Math.sin(performance.now()*0.025);
       ctx.beginPath(); ctx.arc(L.x, L.y, L.radius+12, 0, Math.PI*2);
       ctx.strokeStyle=`rgba(200,120,50,${flash*0.8})`; ctx.lineWidth=2.5;
+      ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+
+  // 레이즈 차징 게이지 (클릭 기반 + 방출 버프 시 최대충전 표시)
+  if (gameOn && L.charDef?.id==='raise' && (L._raiseCharging || L._raiseBoosted)) {
+    const _RB = BALANCE.raise.lmb;
+    const _rclicks = Math.min(_RB.maxClicks, L._raiseClicks || 1);
+    const _rt = L._raiseBoosted ? 1 : (_rclicks - 1) / (_RB.maxClicks - 1);
+    ctx.beginPath();
+    ctx.arc(L.x, L.y, L.radius + 8, -Math.PI/2, -Math.PI/2 + Math.PI*2*_rt);
+    ctx.strokeStyle = `rgba(191,161,54,0.9)`; ctx.lineWidth = 3; ctx.stroke();
+    if (_rt >= 1) {
+      const _flash = 0.5 + 0.5*Math.sin(performance.now()*0.025);
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 12, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(255,180,20,${_flash*0.85})`; ctx.lineWidth = 2.5;
+      ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+
+  // 나남낭 차징 게이지
+  if (gameOn && L.charDef?.id==='nanamnang' && L._nanCharging) {
+    const _NB = BALANCE.nanamnang.lmb;
+    const _nt = Math.min(1, (performance.now() - L._nanChargeStart) / _NB.chargeTime);
+    ctx.beginPath();
+    ctx.arc(L.x, L.y, L.radius + 8, -Math.PI/2, -Math.PI/2 + Math.PI*2*_nt);
+    ctx.strokeStyle = `rgba(251,199,255,0.9)`; ctx.lineWidth = 3; ctx.stroke();
+    if (_nt >= 1) {
+      const _flash = 0.5 + 0.5*Math.sin(performance.now()*0.025);
+      ctx.beginPath(); ctx.arc(L.x, L.y, L.radius + 12, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(251,199,255,${_flash*0.8})`; ctx.lineWidth = 2.5;
       ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
     }
   }
@@ -12602,14 +12974,15 @@ function endGame(won) {
   if (_trainingMode) { L.health=L.maxHealth; return; }
   // FX가 한 프레임 더 렌더되고 나서 종료 (히트스캔 등 사망 원인 시각화)
   if (!won) {
-    gameOn = false; // 즉시 false로 — 추가 피해 차단
+    // 패배: FX를 1프레임 유지 후 종료
     setTimeout(() => _doEndGame(false), 80);
     return;
   }
   _doEndGame(true);
 }
 function _doEndGame(won) {
-  if (gameOn) gameOn = false; // 혹시 아직 true면 false로
+  if (!gameOn && won) return; // 이미 처리됨 방어
+  gameOn=false;
   clearTimeout(window._gameTimer);
   if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
   if (_poisonTimer) { _poisonTimer.forEach(t => clearTimeout(t)); _poisonTimer=null; }
@@ -12967,31 +13340,6 @@ function renderAugHud() {
   const el = document.getElementById('aug-hud');
   if (el) {
     el.innerHTML = '';
-    if (typeof L !== 'undefined' && L.charDef) {
-      const _lc = document.createElement('div');
-      _lc.className = 'aug-icon';
-      _lc.style.cssText = `background:${L.charDef.color}22;border-color:${L.charDef.color};font-size:16px;`;
-      _lc.textContent = (L.charDef.id||L.charDef.name||'?')[0].toUpperCase();
-      _lc.addEventListener('mouseenter', () => {
-        let tt = document.getElementById('_hud_ctt');
-        if (!tt) { tt=document.createElement('div'); tt.id='_hud_ctt'; tt.className='char-tooltip'; document.body.appendChild(tt); }
-        const cd = L.charDef;
-        const body = `${cd.desc}<br><br>` + cd.skills.map(s =>
-          `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
-          (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`)
-        ).join('<br>');
-        tt.innerHTML = `<b style="color:${cd.color}">${cd.name}</b><br>${body}`;
-        tt.style.display='block';
-      });
-      _lc.addEventListener('mousemove', e => {
-        const tt=document.getElementById('_hud_ctt');
-        if(tt){tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY+14)+'px';}
-      });
-      _lc.addEventListener('mouseleave', () => {
-        const tt=document.getElementById('_hud_ctt'); if(tt)tt.style.display='none';
-      });
-      el.appendChild(_lc);
-    }
     matchState.localAugments.forEach(aid => {
       const aug = AUGMENTS.find(a => a.id === aid);
       if (!aug) return;
@@ -13004,31 +13352,6 @@ function renderAugHud() {
   const pel = document.getElementById('peer-aug-hud');
   if (pel) {
     pel.innerHTML = '';
-    if (typeof R !== 'undefined' && R.charDef) {
-      const _rc = document.createElement('div');
-      _rc.className = 'aug-icon peer-aug';
-      _rc.style.cssText = `background:${R.charDef.color}22;border-color:${R.charDef.color};font-size:16px;`;
-      _rc.textContent = (R.charDef.id||R.charDef.name||'?')[0].toUpperCase();
-      _rc.addEventListener('mouseenter', () => {
-        let tt = document.getElementById('_hud_ctt');
-        if (!tt) { tt=document.createElement('div'); tt.id='_hud_ctt'; tt.className='char-tooltip'; document.body.appendChild(tt); }
-        const cd = R.charDef;
-        const body = `${cd.desc}<br><br>` + cd.skills.map(s =>
-          `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
-          (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`)
-        ).join('<br>');
-        tt.innerHTML = `<b style="color:${cd.color}">${cd.name}</b><br>${body}`;
-        tt.style.display='block';
-      });
-      _rc.addEventListener('mousemove', e => {
-        const tt=document.getElementById('_hud_ctt');
-        if(tt){tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY+14)+'px';}
-      });
-      _rc.addEventListener('mouseleave', () => {
-        const tt=document.getElementById('_hud_ctt'); if(tt)tt.style.display='none';
-      });
-      pel.appendChild(_rc);
-    }
     matchState.peerAugments.forEach(aid => {
       const aug = AUGMENTS.find(a => a.id === aid);
       if (!aug) return;
@@ -13193,6 +13516,7 @@ function resetL() {
   L._yuiHistory=[]; L._yuiLastSample=0; // 유이 히스토리 초기화
   L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._intuAmmo=12; L._intuWeapon='pistol'; L._intuReloading=false; L._intuLastSync=''; L._intuReloadEnd=0; L._roonSlush=0; L._roonZones=[]; L._roonIncomingZones=[]; L._roonBallInFlight=false; R._roonSlush=0; L._runefRmbActive=false; L._runefShot1=false; L._runefNextSpell='fire'; clearTimeout(L._runefRmbTimer); clearTimeout(L._runefShot1Timer); L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._syaHitRevealEnd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0; SKILLS.meramona._stage=0; SKILLS.meramona._tempEnd=0; SKILLS.meramona._hitStack=0
   R._pelunaAnvil=null;
+  L._raiseCharging=false; L._raiseClicks=0; L._raiseJumping=false; L._raiseBoosted=false; L._raiseStaminaStarvedAt=0;
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
@@ -13720,6 +14044,34 @@ function loop() {
   }
 
   tickStamina(now, physDt);
+  // 레이즈 평타 차징: 스테미나 회복 차단 + 끊김/스테미나고갈 감지 (프레임 기반)
+  if (gameOn && L.charDef?.id==='raise' && L._raiseCharging) {
+    const _rB = BALANCE.raise.lmb;
+    L.staminaUseTime = now; // 차징 중 스테미나 회복 차단
+    if (L._raiseClicks < _rB.maxClicks && L.stamina < _rB.clickCost) {
+      // 스테미나 부족으로 더 이상 충전 불가 → 0.2초 후 자동 발동
+      if (!L._raiseStaminaStarvedAt) L._raiseStaminaStarvedAt = now;
+      if (now - L._raiseStaminaStarvedAt >= 200) {
+        SKILLS.raise.lmbRelease(getAngle());
+      }
+    } else {
+      L._raiseStaminaStarvedAt = 0;
+    }
+    if (gameOn && L._raiseCharging &&
+        (now - (L._raiseLastClickTime||0) > 200 || now - (L._raiseChargeStart||0) > _rB.maxWindow)) {
+      SKILLS.raise.lmbRelease(getAngle());
+    }
+  }
+  // 나남낭 풀차징 시 표준 공격 미리보기 시스템 사용
+  if (gameOn && L.charDef?.id==='nanamnang' && L._nanCharging) {
+    const _NB = BALANCE.nanamnang.lmb;
+    const _nt = Math.min(1, (now - L._nanChargeStart) / _NB.chargeTime);
+    L._attackPreview = (_nt >= 1)
+      ? { shapes: [{ type: 'line', range: _NB.throwRange, width: _NB.throwRadius * 2 }] }
+      : null;
+  } else if (L.charDef?.id==='nanamnang' && L._attackPreview && !L._nanCharging) {
+    L._attackPreview = null;
+  }
   _tickTrainingBots(now, dt);
 
   // ── 다즈빈: 포탈 이용 ──
