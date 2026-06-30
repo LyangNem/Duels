@@ -246,7 +246,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.32.4</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.32.3</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1721,7 +1721,7 @@ const BALANCE = {
       damage:     15,
       meleeRange: 110,
       halfAngle:  1.1,
-      cd:         500,
+      cd:         350,
       chargeTime: 300,       // 0.3초 차징
       drainRate:  40,        // (미사용)
       throwCost:  25,        // 차징 투사체 스테미나
@@ -2359,12 +2359,12 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     speed:     BALANCE.nanamnang.speed,
     radius:    BALANCE.nanamnang.radius,
     statsText: [['체력', String(BALANCE.nanamnang.hp)],['이동속도','느림'],['스타일','회복형 중거리 탱커']],
-    desc:      '자는것이 좋은 소녀 캐릭터.',
+    desc:      '자는것이 좋은 소녀 캐릭터',
     skills: [
       { key:'LMB',     name:'베개싸움', cost:BALANCE.nanamnang.lmb.cost,
         desc:`배게 휘두르기. 차징 시 베개를 날림. 적중 시 잃은 체력의 ${Math.round(BALANCE.nanamnang.lmb.healRatio*100)}% 회복 (${BALANCE.nanamnang.lmb.damage}/${BALANCE.nanamnang.lmb.throwDamage})` },
       { key:'RMB',     name:'잘 자요',  cost:BALANCE.nanamnang.rmb.cost,
-        desc:`${BALANCE.nanamnang.rmb.stunDur/1000}초 행동불능 후 잃은 체력의 ${Math.round(BALANCE.nanamnang.rmb.healRatio*100)}% 회복` },
+        desc:`${BALANCE.nanamnang.rmb.stunDur/1000}초 수면(타격 시 깨어남) 후 잃은 체력의 ${Math.round(BALANCE.nanamnang.rmb.healRatio*100)}% 회복` },
       { key:'L-Shift', name:'깊은 잠',  cost:0,
         desc:`베개를 단거리에 내려쳐 적중한 적을 ${BALANCE.nanamnang.counter.sleepDur/1000}초간 재움 (${BALANCE.nanamnang.counter.damage})` },
     ],
@@ -2378,10 +2378,10 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     speed:     BALANCE.raise.speed,
     radius:    BALANCE.raise.radius,
     statsText: [['체력', String(BALANCE.raise.hp)],['이동속도','빠름'],['스타일','차징형 근거리 딜러']],
-    desc:      '기계팔을 충전시켜 강력한 공격을 구사하는 캐릭터.',
+    desc:      '기계팔을 충전시켜 강력한 공격을 구사하는 캐릭터',
     skills: [
       { key:'LMB',     name:'파워 펀치', cost:BALANCE.raise.lmb.clickCost,
-        desc:`연타 시 최대 ${BALANCE.raise.lmb.maxClicks}클릭까지 피해 증가, 최대 ${BALANCE.raise.lmb.maxWindow/1000}초까지 충전(이후엔 연타 유지 시 상태만 유지). 연타를 멈추면 발동. 최대충전 시 넉백 (${BALANCE.raise.lmb.minDamage}~${BALANCE.raise.lmb.maxDamage})` },
+        desc:`연타 시 최대 ${BALANCE.raise.lmb.maxClicks}클릭까지 피해 증가, 최대 ${BALANCE.raise.lmb.maxWindow/1000}초까지 충전. 연타를 멈추면 발동. 최대충전 시 넉백 (${BALANCE.raise.lmb.minDamage}~${BALANCE.raise.lmb.maxDamage})` },
       { key:'RMB',     name:'내려찍기',  cost:BALANCE.raise.rmb.cost,
         desc:`빠르게 점프 후 내려치며 낙하해 범위 내 ${BALANCE.raise.rmb.stunDur/1000}초 기절` },
       { key:'L-Shift', name:'방출',      cost:0,
@@ -5053,7 +5053,7 @@ function stunRemote(dur) {
 function receiveStun(dur) {
   if (!gameOn || L.burrowing) return;
   if (L.invincible > 0) return;  // 무적 중 CC 무효
-  L.stunEnd = performance.now() + dur;
+  L.stunEnd = Math.max(L.stunEnd || 0, performance.now() + dur);
 }
 function bindRemote(dur) {
   if (window._lastHitWasMinion) {
@@ -7006,6 +7006,7 @@ const SKILLS = {
 
       // 쌍방 행동불능
       L.stunEnd = performance.now() + B.lockDur;
+      window._lastHitWasMinion = false; // 플레이어 대상 스턴 보장
       stunRemote(B.lockDur + B.knockbackStunDur + 50); // 전체 기절 선 예약
 
       addFx({type:'kanGrab', x:L.x, y:L.y, r:0, maxR:B.pullRange*0.6, dur:12, maxDur:12});
@@ -8809,7 +8810,7 @@ const SKILLS = {
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         if (hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage)) {
-          knockbackRemote(280);
+          knockbackRemote(420);
         }
         hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI}, B.damage);
         addFx({type:'aoe', x:L.x, y:L.y, r:B.range, dur:18, maxDur:18, col:'191,161,54'});
@@ -8842,16 +8843,11 @@ const SKILLS = {
       if (!charged) {
         // 일반 스윙: 스테미나 소모
         if (!useStam(B.cost)) return;
-        const dist = Math.hypot(R.x - L.x, R.y - L.y);
         L._lmbAttacking = true;
-        if (dist < B.meleeRange + R.radius) {
-          const toR = Math.atan2(R.y - L.y, R.x - L.x);
-          const diff = Math.abs(((toR - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
-          if (diff < B.halfAngle) {
-            hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
-            const lost = L.maxHealth - L.health;
-            if (lost > 0) L.health = Math.min(L.maxHealth, L.health + lost * B.healRatio);
-          }
+        const _swingHit = hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
+        if (_swingHit) {
+          const lost = L.maxHealth - L.health;
+          if (lost > 0) L.health = Math.min(L.maxHealth, L.health + lost * B.healRatio);
         }
         hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
         L._lmbAttacking = false;
@@ -8924,14 +8920,8 @@ const SKILLS = {
         if (!gameOn || L._counterToken !== tok) return;
         const fa = getAngle();
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-        const dist = Math.hypot(R.x - L.x, R.y - L.y);
-        if (dist < B.meleeRange + R.radius) {
-          const toR = Math.atan2(R.y - L.y, R.x - L.x);
-          const diff = Math.abs(((toR - fa) + Math.PI*3) % (Math.PI*2) - Math.PI);
-          if (diff < B.halfAngle) {
-            hitCtx({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
-            sleepRemote(B.sleepDur);
-          }
+        if (hitCtx({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage)) {
+          sleepRemote(B.sleepDur);
         }
         hitCtxSpirit({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
         addFx({type:'swing', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:12, maxDur:12, col:'251,199,255'});
@@ -14164,9 +14154,9 @@ function loop() {
       const _rclicks = Math.min(_rB.maxClicks, L._raiseClicks || 1);
       const _rt = (_rclicks - 1) / (_rB.maxClicks - 1);
       const _rSizeMult = 1 + (_rB.sizeMaxMult - 1) * _rt;
-      L._attackPreview = { shapes: [{ type: 'rect', len: augMeleeRange(_rB.meleeRange) * _rSizeMult, width: (_rB.width/2) * _rSizeMult }] };
+      L._attackPreview = { shapes: [{ type: 'rect', len: augMeleeRange(_rB.meleeRange) * _rSizeMult, width: (_rB.width/2) * _rSizeMult }], _loopManaged: true };
     }
-  } else if (L.charDef?.id==='raise' && L._attackPreview) {
+  } else if (L.charDef?.id==='raise' && L._attackPreview?._loopManaged) {
     L._attackPreview = null;
   }
   // 나남낭 풀차징 시 표준 공격 미리보기 시스템 사용
@@ -14174,9 +14164,9 @@ function loop() {
     const _NB = BALANCE.nanamnang.lmb;
     const _nt = Math.min(1, (now - L._nanChargeStart) / _NB.chargeTime);
     L._attackPreview = (_nt >= 1)
-      ? { shapes: [{ type: 'line', range: _NB.throwRange, width: _NB.throwRadius * 2 }] }
+      ? { shapes: [{ type: 'line', range: _NB.throwRange, width: _NB.throwRadius * 2 }], _loopManaged: true }
       : null;
-  } else if (L.charDef?.id==='nanamnang' && L._attackPreview && !L._nanCharging) {
+  } else if (L.charDef?.id==='nanamnang' && L._attackPreview?._loopManaged) {
     L._attackPreview = null;
   }
   _tickTrainingBots(now, dt);
@@ -14469,10 +14459,11 @@ function loop() {
         L._sherinaGlobalHitCd.set(_etKey, _now3+_interval);
         if (_et === R) {
           const _wasLmbSt = L._lmbAttacking;
-          if (_hitZone?.isRmb) L._lmbAttacking = false;
+          // RMB 확장 존은 평타 아님, LMB 잔향 존은 평타
+          L._lmbAttacking = !_hitZone?.isRmb;
           window._hitTarget = R; window._lastHitWasMinion = false;
           hitRemote(_dmgVal);
-          if (_hitZone?.isRmb) L._lmbAttacking = _wasLmbSt;
+          L._lmbAttacking = _wasLmbSt;
         } else {
           // 소환수 피해
           send({type:'minionHit', id:_et.id, damage:applyDmgAugs(_dmgVal)});
