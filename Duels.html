@@ -2361,11 +2361,11 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     desc:      '자는것이 좋은 소녀 캐릭터.',
     skills: [
       { key:'LMB',     name:'베개싸움', cost:BALANCE.nanamnang.lmb.cost,
-        desc:`배게 휘두르기. 차징 시 베개를 날림. 적중 시 잃은 체력의 20% 회복 (${BALANCE.nanamnang.lmb.damage}/${BALANCE.nanamnang.lmb.throwDamage})` },
+        desc:`배게 휘두르기. 차징 시 베개를 날림. 적중 시 잃은 체력의 ${Math.round(BALANCE.nanamnang.lmb.healRatio*100)}% 회복 (${BALANCE.nanamnang.lmb.damage}/${BALANCE.nanamnang.lmb.throwDamage})` },
       { key:'RMB',     name:'잘 자요',  cost:BALANCE.nanamnang.rmb.cost,
-        desc:`1초 행동불능 후 잃은 체력의 70% 회복` },
+        desc:`${BALANCE.nanamnang.rmb.stunDur/1000}초 행동불능 후 잃은 체력의 ${Math.round(BALANCE.nanamnang.rmb.healRatio*100)}% 회복` },
       { key:'L-Shift', name:'깊은 잠',  cost:0,
-        desc:`베개를 단거리에 내려쳐 적중한 적을 1초간 재움 (${BALANCE.nanamnang.counter.damage})` },
+        desc:`베개를 단거리에 내려쳐 적중한 적을 ${BALANCE.nanamnang.counter.sleepDur/1000}초간 재움 (${BALANCE.nanamnang.counter.damage})` },
     ],
   },
 
@@ -2382,7 +2382,7 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
       { key:'LMB',     name:'파워 펀치', cost:BALANCE.raise.lmb.clickCost,
         desc:`연타 시 최대 ${BALANCE.raise.lmb.maxClicks}클릭까지 피해 증가. 최대충전 시 넉백 (${BALANCE.raise.lmb.minDamage}~${BALANCE.raise.lmb.maxDamage})` },
       { key:'RMB',     name:'내려찍기',  cost:BALANCE.raise.rmb.cost,
-        desc:`빠르게 점프 후 내려치며 낙하해 범위 내 1초 기절` },
+        desc:`빠르게 점프 후 내려치며 낙하해 범위 내 ${BALANCE.raise.rmb.stunDur/1000}초 기절` },
       { key:'L-Shift', name:'방출',      cost:0,
         desc:`원형 피해. 다음 파워 펀치 최대충전 고정 (${BALANCE.raise.counter.damage})` },
     ],
