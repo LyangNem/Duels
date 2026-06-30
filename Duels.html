@@ -246,7 +246,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.32.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.32.2</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1721,7 +1721,7 @@ const BALANCE = {
       damage:     15,
       meleeRange: 110,
       halfAngle:  1.1,
-      cd:         700,
+      cd:         500,
       chargeTime: 500,       // 0.5초 차징
       drainRate:  40,        // (미사용)
       throwCost:  25,        // 차징 투사체 스테미나
@@ -1734,7 +1734,7 @@ const BALANCE = {
     },
     rmb: {
       cost:       100,       // 스테미나 100 소모
-      healRatio:  0.70,
+      healRatio:  0.50,
       stunDur:    1000,      // 1초 행동불능 (선딜레이)
       cd:         1000,
     },
@@ -8177,7 +8177,7 @@ const SKILLS = {
         const _tx = _cx + Math.cos(_tang)*_ldist, _ty = _cy + Math.sin(_tang)*_ldist;
         addFx({type:'runefLightning', x:_tx, y:_ty, r:B.lightningRadius, dur:8, maxDur:8});
         send({type:'fx', fx:{type:'runefLightning', x:_tx, y:_ty, r:B.lightningRadius, dur:8, maxDur:8}});
-         hitCtx({x:_tx, y:_ty, type:'circle', r:B.lightningRadius}, B.lightningDamage);
+         hitCtx({x:_tx, y:_ty, range:B.lightningRadius}, B.lightningDamage);
       };
       // 첫 타 즉시 발동
       _fireLightning();
@@ -13336,10 +13336,39 @@ function updateRoundScoreDisplay() {
   el.style.display = 'block';
 }
 
+function _mkCharIcon(isRival) {
+  const div = document.createElement('div');
+  div.className = 'aug-icon' + (isRival ? ' peer-aug' : '');
+  const letterSpan = document.createElement('span');
+  letterSpan.style.fontWeight = 'bold';
+  const tip = document.createElement('div');
+  tip.className = 'char-tooltip';
+  tip.style.cssText += 'left:38px;top:0;display:none;';
+  div.appendChild(letterSpan);
+  div.appendChild(tip);
+  const refresh = () => {
+    const ch = isRival ? R.charDef : L.charDef;
+    if (!ch) return;
+    letterSpan.textContent = (ch.id || '?').charAt(0).toUpperCase();
+    div.style.color = ch.color || (isRival ? '#f88' : '#4af');
+    div.style.borderColor = ch.color || (isRival ? '#f44' : '#2a4a6a');
+    const skillsHtml = (ch.skills || []).map(s =>
+      `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
+      (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`)
+    ).join('<br>');
+    tip.innerHTML = `<b style="color:${ch.color}">${(isRival?'[상대] ':'') + ch.name}</b><br>${ch.desc}<br><br>${skillsHtml}`;
+  };
+  div.addEventListener('mouseenter', () => { refresh(); tip.style.display = 'block'; });
+  div.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  refresh();
+  return div;
+}
+
 function renderAugHud() {
   const el = document.getElementById('aug-hud');
   if (el) {
     el.innerHTML = '';
+    if (gameOn && L.charDef) el.appendChild(_mkCharIcon(false));
     matchState.localAugments.forEach(aid => {
       const aug = AUGMENTS.find(a => a.id === aid);
       if (!aug) return;
@@ -13352,6 +13381,7 @@ function renderAugHud() {
   const pel = document.getElementById('peer-aug-hud');
   if (pel) {
     pel.innerHTML = '';
+    if (gameOn && R.charDef) pel.appendChild(_mkCharIcon(true));
     matchState.peerAugments.forEach(aid => {
       const aug = AUGMENTS.find(a => a.id === aid);
       if (!aug) return;
