@@ -246,7 +246,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.33.0</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.33.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -3015,6 +3015,13 @@ function onData(d) {
       R.burrowing=d.burrowing??false;
       R.stunEnd = d.stunRemaining > 0 ? performance.now() + d.stunRemaining : 0;
       R._asleep = !!d.asleep;
+      // 레비나 창 상태 동기화
+      if (d.levinaSpear) {
+        if (!R._levinaSpear) R._levinaSpear = {_hitSeg:new Set(),_retHitSeg:new Set()};
+        Object.assign(R._levinaSpear, d.levinaSpear);
+      } else if (d.levinaSpear === null) {
+        R._levinaSpear = null;
+      }
       R.bindEnd = d.bindRemaining > 0 ? performance.now() + d.bindRemaining : 0;
       R.burrowEntry=d.burrowEntry??null;
       R.erapabiFortify=d.erapabiFortify??false;
@@ -3216,8 +3223,20 @@ function onData(d) {
     case 'levinaAddWP':
       if (R._levinaSpear) R._levinaSpear.waypoints.push({x:d.x, y:d.y, kind:d.kind||'lmb'}); break;
     case 'levinaSpearDir':
-      if (R._levinaSpear) { R._levinaSpear.dx=d.dx; R._levinaSpear.dy=d.dy;
-        R._levinaSpear.x=d.x; R._levinaSpear.y=d.y; R._levinaSpear.state=d.state||'flying'; } break;
+      if (!R._levinaSpear && d.type) {
+        // 초기 패킷 없이 dir 패킷만 도착 시 창 생성
+        R._levinaSpear = {x:d.x, y:d.y, dx:d.dx, dy:d.dy,
+          speed:d.speed||12, radius:d.radius||12, type:d.type||'lmb',
+          state:d.state||'flying', birthTime:d.birthTime||performance.now(),
+          pathRadius:d.pathRadius, knockbackPower:d.knockbackPower,
+          waypoints:[], _hitSeg:new Set(), _retHitSeg:new Set()};
+      }
+      if (R._levinaSpear) {
+        // 위치 보정 + 방향 업데이트 (데드 레커닝 수정)
+        R._levinaSpear.x = d.x; R._levinaSpear.y = d.y;
+        R._levinaSpear.dx = d.dx; R._levinaSpear.dy = d.dy;
+        R._levinaSpear.state = d.state||'flying';
+      } break;
     case 'levinaSpearClear':
       R._levinaSpear = null; break;
     case 'pull': {
@@ -10222,6 +10241,72 @@ function moveBullets(dt=1) {
 // ============================================================
 // draw.js — 전체 렌더링 (맵·플레이어·탄환·이펙트·미니맵)
 // ============================================================
+// 레비나 삼지창 렌더 — drawPlayer 밖에서 L/R 모두 표시
+function drawLevinaSpears() {
+  if (!gameOn) return;
+  // L이 레비나면 L 창, R._levinaSpear가 있으면 R 창 표시
+  const _owners = [];
+  if (L._levinaSpear) _owners.push(L);
+  if (R._levinaSpear) _owners.push(R);
+  for (const _levOwner of _owners) {
+    if (!_levOwner._levinaSpear) continue; // null 안전 체크
+
+    const _sp = _levOwner._levinaSpear;
+    const _isRmb = _sp.type === 'rmb';
+    const _isRet = _sp.state === 'returning';
+    const _isLocal = _levOwner === L;
+    const _spulse = 0.7 + 0.3 * Math.sin(performance.now() * 0.014);
+    const _alpha = _isRet ? 0.60 : 1.0;
+    const _r = _isRmb ? 18 : 15;
+    const _fCol = _isLocal ? 'rgba(107,16,8,0.30)' : 'rgba(220,60,50,0.28)';
+    const _sCol = _isLocal ? `rgba(107,16,8,${_alpha*_spulse})` : `rgba(255,150,140,${_alpha*_spulse})`;
+    const _xCol = _isLocal ? `rgba(180,80,60,${_alpha*0.9})` : `rgba(255,210,200,${_alpha*0.85})`;
+    // 외곽 글로우 (귀환 강조)
+    if (_isRet) {
+      const _gl = 0.5+0.5*Math.sin(performance.now()*0.02);
+      ctx.beginPath(); ctx.arc(_sp.x, _sp.y, _r+8, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(107,16,8,${_gl*0.15})`; ctx.fill();
+    }
+    // 메인 원
+    ctx.beginPath(); ctx.arc(_sp.x, _sp.y, _r, 0, Math.PI*2);
+    ctx.fillStyle = _fCol; ctx.fill();
+    ctx.strokeStyle = _sCol; ctx.lineWidth = 3.5; ctx.stroke();
+    // 십자선
+    ctx.strokeStyle = _xCol; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(_sp.x-10,_sp.y); ctx.lineTo(_sp.x+10,_sp.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(_sp.x,_sp.y-10); ctx.lineTo(_sp.x,_sp.y+10); ctx.stroke();
+
+    // 경유지 경로 (로컬 + 비행 중) — LMB=레비나색, RMB=황금색
+    if (_isLocal && !_isRet && _sp.waypoints) {
+      ctx.save();
+      // 세그먼트별 색상 (창 위치→WP0→WP1→...)
+      let _sx = _sp.x, _sy = _sp.y;
+      for (let _wi = 0; _wi < _sp.waypoints.length; _wi++) {
+        const _ww = _sp.waypoints[_wi];
+        const _pc = (_ww.kind||'lmb') === 'rmb' ? 'rgba(230,190,50,0.9)' : 'rgba(107,16,8,0.8)';
+        ctx.setLineDash([6,5]); ctx.strokeStyle = _pc; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(_sx, _sy); ctx.lineTo(_ww.x, _ww.y); ctx.stroke();
+        _sx = _ww.x; _sy = _ww.y;
+      }
+      ctx.setLineDash([]);
+      // 경유지 마커
+      for (let _wi = 0; _wi < _sp.waypoints.length; _wi++) {
+        const _ww = _sp.waypoints[_wi];
+        const _dc = (_ww.kind||'lmb') === 'rmb' ? 'rgba(255,220,80,1.0)' : 'rgba(107,16,8,0.9)';
+        ctx.beginPath(); ctx.arc(_ww.x, _ww.y, 10, 0, Math.PI*2);
+        ctx.strokeStyle = _dc; ctx.lineWidth = 2.5; ctx.stroke();
+        ctx.beginPath(); ctx.arc(_ww.x, _ww.y, 5, 0, Math.PI*2);
+        ctx.fillStyle = _dc; ctx.fill();
+        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.font='bold 10px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(String(_wi+1), _ww.x, _ww.y); ctx.restore();
+      }
+      ctx.restore();
+    } else if (_isLocal && !_isRet) {
+      // 경유지 없음: 전역 조준선이 창 위치를 커버하지 않으므로 별도 처리 불필요
+    }
+  }
+}
+
 function draw() {
   // ── 상대 시각 위치 보간 (draw 전용, 판정과 분리) ──
   const _drawNow = performance.now();
@@ -12442,6 +12527,7 @@ function draw() {
   drawMinions();
   peerMinions.forEach((pm,i) => { pm.x=_pmSnaps[i].rx; pm.y=_pmSnaps[i].ry; });
   drawPlayer(L,'나');
+  drawLevinaSpears();
 
 
   if (_trainingMode) {
@@ -12945,64 +13031,6 @@ function drawPlayer(p, label) {
     ctx.strokeStyle = 'rgba(136,85,255,0.9)'; ctx.lineWidth = 3;
     ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
     ctx.restore();
-  }
-  // 레비나 삼지창 렌더 (L 및 R 모두 표시) — 루뷰 망치 스타일
-  const _levOwner = (p === L && L.charDef?.id === 'levina') ? L :
-                    (p === R && R.charDef?.id === 'levina') ? R : null;
-  if (_levOwner && _levOwner._levinaSpear) {
-    const _sp = _levOwner._levinaSpear;
-    const _isRmb = _sp.type === 'rmb';
-    const _isRet = _sp.state === 'returning';
-    const _isLocal = _levOwner === L;
-    const _spulse = 0.7 + 0.3 * Math.sin(performance.now() * 0.014);
-    const _alpha = _isRet ? 0.60 : 1.0;
-    const _r = _isRmb ? 18 : 15;
-    const _fCol = _isLocal ? 'rgba(107,16,8,0.30)' : 'rgba(220,60,50,0.28)';
-    const _sCol = _isLocal ? `rgba(107,16,8,${_alpha*_spulse})` : `rgba(255,150,140,${_alpha*_spulse})`;
-    const _xCol = _isLocal ? `rgba(180,80,60,${_alpha*0.9})` : `rgba(255,210,200,${_alpha*0.85})`;
-    // 외곽 글로우 (귀환 강조)
-    if (_isRet) {
-      const _gl = 0.5+0.5*Math.sin(performance.now()*0.02);
-      ctx.beginPath(); ctx.arc(_sp.x, _sp.y, _r+8, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(107,16,8,${_gl*0.15})`; ctx.fill();
-    }
-    // 메인 원
-    ctx.beginPath(); ctx.arc(_sp.x, _sp.y, _r, 0, Math.PI*2);
-    ctx.fillStyle = _fCol; ctx.fill();
-    ctx.strokeStyle = _sCol; ctx.lineWidth = 3.5; ctx.stroke();
-    // 십자선
-    ctx.strokeStyle = _xCol; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.moveTo(_sp.x-10,_sp.y); ctx.lineTo(_sp.x+10,_sp.y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(_sp.x,_sp.y-10); ctx.lineTo(_sp.x,_sp.y+10); ctx.stroke();
-
-    // 경유지 경로 (로컬 + 비행 중) — LMB=레비나색, RMB=황금색
-    if (_isLocal && !_isRet && _sp.waypoints) {
-      ctx.save();
-      // 세그먼트별 색상 (창 위치→WP0→WP1→...)
-      let _sx = _sp.x, _sy = _sp.y;
-      for (let _wi = 0; _wi < _sp.waypoints.length; _wi++) {
-        const _ww = _sp.waypoints[_wi];
-        const _pc = (_ww.kind||'lmb') === 'rmb' ? 'rgba(230,190,50,0.9)' : 'rgba(107,16,8,0.8)';
-        ctx.setLineDash([6,5]); ctx.strokeStyle = _pc; ctx.lineWidth = 2.5;
-        ctx.beginPath(); ctx.moveTo(_sx, _sy); ctx.lineTo(_ww.x, _ww.y); ctx.stroke();
-        _sx = _ww.x; _sy = _ww.y;
-      }
-      ctx.setLineDash([]);
-      // 경유지 마커
-      for (let _wi = 0; _wi < _sp.waypoints.length; _wi++) {
-        const _ww = _sp.waypoints[_wi];
-        const _dc = (_ww.kind||'lmb') === 'rmb' ? 'rgba(255,220,80,1.0)' : 'rgba(107,16,8,0.9)';
-        ctx.beginPath(); ctx.arc(_ww.x, _ww.y, 10, 0, Math.PI*2);
-        ctx.strokeStyle = _dc; ctx.lineWidth = 2.5; ctx.stroke();
-        ctx.beginPath(); ctx.arc(_ww.x, _ww.y, 5, 0, Math.PI*2);
-        ctx.fillStyle = _dc; ctx.fill();
-        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.font='bold 10px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText(String(_wi+1), _ww.x, _ww.y); ctx.restore();
-      }
-      ctx.restore();
-    } else if (_isLocal && !_isRet) {
-      // 경유지 없음: 전역 조준선이 창 위치를 커버하지 않으므로 별도 처리 불필요
-    }
   }
   // 레이카 솔라 게이지 (원형 호) + 가호 링
   if (p===L && L.charDef?.id==='reika') {
@@ -14026,6 +14054,13 @@ function startGame() {
                 duration: 8000,
                 createdAt: L._pelunaAnvils[0].expiry - 8000 }
             : null,
+          levinaSpear: (L.charDef?.id==='levina' && L._levinaSpear)
+            ? { x:L._levinaSpear.x, y:L._levinaSpear.y, dx:L._levinaSpear.dx, dy:L._levinaSpear.dy,
+                speed:L._levinaSpear.speed, radius:L._levinaSpear.radius,
+                type:L._levinaSpear.type, state:L._levinaSpear.state,
+                birthTime:L._levinaSpear.birthTime,
+                pathRadius:L._levinaSpear.pathRadius, knockbackPower:L._levinaSpear.knockbackPower }
+            : null,
           // 소환수 상태 동기화
           minions: localMinions.map(m => ({
             id: m.id, type: m.type, charId: m.charId,
@@ -14492,10 +14527,28 @@ function loop() {
       }
     }
     if (!L._levinaSpearSyncTick) L._levinaSpearSyncTick = 0;
-    if (++L._levinaSpearSyncTick % 5 === 0 && L._levinaSpear) {
-      send({type:'levinaSpearDir', dx:_sp.dx, dy:_sp.dy, x:_sp.x, y:_sp.y, state:_sp.state});
+    if (++L._levinaSpearSyncTick % 2 === 0 && L._levinaSpear) {
+      send({type:'levinaSpearDir', dx:_sp.dx, dy:_sp.dy, x:_sp.x, y:_sp.y, state:_sp.state,
+        speed:_sp.speed, radius:_sp.radius, type:_sp.type,
+        birthTime:_sp.birthTime, pathRadius:_sp.pathRadius, knockbackPower:_sp.knockbackPower});
     }
   }
+  // 상대 레비나 창 데드 레커닝 (로컬 시뮬레이션 — 매 프레임 직접 이동)
+  if (R._levinaSpear && R._levinaSpear.state !== 'returning') {
+    const _rsp = R._levinaSpear;
+    if (_rsp.dx !== undefined && _rsp.dy !== undefined) {
+      _rsp.x += _rsp.dx * (_rsp.speed || 12);
+      _rsp.y += _rsp.dy * (_rsp.speed || 12);
+    }
+  } else if (R._levinaSpear && R._levinaSpear.state === 'returning') {
+    // 귀환 중: R 위치가 없으니 단순히 마지막 방향으로 이동
+    const _rsp = R._levinaSpear;
+    if (_rsp.dx !== undefined) {
+      _rsp.x += _rsp.dx * (_rsp.speed || 12);
+      _rsp.y += _rsp.dy * (_rsp.speed || 12);
+    }
+  }
+
   // 레비나 반격기 선딜레이 중 창 위치 실시간 미리보기
   if (gameOn && L.charDef?.id === 'levina' && L._levinaCounterActive) {
     const _B = BALANCE.levina.counter;
