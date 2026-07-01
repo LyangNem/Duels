@@ -185,6 +185,44 @@ input[type=text]:focus{border-color:#4af;}
   display:flex; flex-direction:column; gap:4px;
   margin-bottom:8px;
 }
+/* 채팅 기록 패널 (채팅창 열렸을 때) */
+#chat-history-panel {
+  display:none;
+  flex-direction:column;
+  background:rgba(0,0,0,0.82);
+  border:1px solid #444;
+  border-radius:6px;
+  margin-bottom:6px;
+  pointer-events:all;
+  max-height:220px;
+  overflow:hidden;
+}
+#chat-history-header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:5px 12px;
+  border-bottom:1px solid #333;
+  font-family:'Courier New',monospace; font-size:11px;
+  color:#556; letter-spacing:2px;
+  flex-shrink:0;
+}
+#chat-history-list {
+  display:flex; flex-direction:column; gap:3px;
+  padding:6px 8px;
+  overflow-y:auto;
+  max-height:180px;
+}
+#chat-history-list::-webkit-scrollbar { width:4px; }
+#chat-history-list::-webkit-scrollbar-track { background:transparent; }
+#chat-history-list::-webkit-scrollbar-thumb { background:#333; border-radius:2px; }
+.chat-history-msg {
+  font-family:'Courier New',monospace; font-size:13px;
+  padding:3px 8px; border-radius:3px;
+  letter-spacing:.5px; word-break:break-all;
+  background:rgba(255,255,255,0.04);
+}
+.chat-history-msg.mine { color:#c8a0ff; border-left:2px solid #c8a0ff; }
+.chat-history-msg.peer { color:#ffb870; border-left:2px solid #ffb870; }
+.chat-history-time { color:#445; font-size:10px; margin-left:6px; }
 .chat-msg {
   font-family:'Courier New',monospace; font-size:14px;
   color:#eee; background:rgba(0,0,0,0.65);
@@ -246,7 +284,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.33.2</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.33.4</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -319,6 +357,10 @@ input[type=text]:focus{border-color:#4af;}
 <!-- 채팅 -->
 <div id="chat-wrap">
   <div id="chat-log"></div>
+  <!-- 채팅 기록 패널 (채팅창 열릴 때만 표시) -->
+  <div id="chat-history-panel">
+    <div id="chat-history-list"></div>
+  </div>
   <div id="chat-input-wrap">
     <input id="chat-input" type="text" maxlength="80" placeholder="메시지 입력...">
   </div>
@@ -2438,7 +2480,7 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
       { key:'LMB',     name:'삼지창',       cost:BALANCE.levina.lmb.cost,
         desc:`창을 던짐. 재사용 시 경로 추가 가능 (${BALANCE.levina.lmb.minDamage}~${BALANCE.levina.lmb.maxDamage})`, wpCost:BALANCE.levina.lmb.wpCost },
       { key:'RMB',     name:'악마의 거래',   cost:BALANCE.levina.rmb.cost,
-        desc:`창을 던지며, 창이 더 빠르게 이동하며 벽 관통. 해당 경로에서 +${BALANCE.levina.rmb.rmbBonusDamage} 추가 피해 및 넉백`, wpCost:BALANCE.levina.rmb.wpCost },
+        desc:`창을 던지며, 창이 더 빠르게 이동하며 벽 관통. 해당 경로에서 ${BALANCE.levina.rmb.rmbBonusDamage} 추가 피해 및 넉백`, wpCost:BALANCE.levina.rmb.wpCost },
       { key:'L-Shift', name:'영혼의 계약',   cost:0,
         desc:`주변 피해 후 창 위치로 순간이동, 도착지 추가 피해 (${BALANCE.levina.counter.damage})` },
     ],
@@ -9476,6 +9518,35 @@ document.addEventListener('mouseup', e => {
 // ── 채팅 시스템 ────────────────────────────────────────────
 let _chatOpen = false;
 
+// 채팅 기록 저장 배열 (최대 100개)
+const _chatHistory = [];
+const _CHAT_HISTORY_MAX = 100;
+
+// 시간 포맷 (HH:MM)
+function _chatTimeStr() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+// 기록 패널 갱신
+function _refreshHistoryPanel() {
+  const list  = document.getElementById('chat-history-list');
+  const count = document.getElementById('chat-history-count');
+  if (!list) return;
+  list.innerHTML = '';
+  _chatHistory.forEach(entry => {
+    const div = document.createElement('div');
+    div.className = 'chat-history-msg ' + (entry.mine ? 'mine' : 'peer');
+    div.innerHTML =
+      (entry.mine ? '나' : (entry.name||'상대')) + ': ' + entry.text +
+      '<span class="chat-history-time">' + entry.time + '</span>';
+    list.appendChild(div);
+  });
+  // 스크롤 맨 아래
+  list.scrollTop = list.scrollHeight;
+  if (count) count.textContent = _chatHistory.length + '개';
+}
+
 let _chatTypingEl = null;
 function _showTyping(show) {
   const log = document.getElementById('chat-log');
@@ -9499,6 +9570,14 @@ function _addChatMsg(name, text, isMine) {
   if (!log) return;
   // 상대 메시지 수신 시 typing indicator 제거
   if (!isMine && _chatTypingEl) { _chatTypingEl.remove(); _chatTypingEl = null; }
+
+  // ── 기록에 저장 ──
+  _chatHistory.push({ name: name||'상대', text, mine: isMine, time: _chatTimeStr() });
+  if (_chatHistory.length > _CHAT_HISTORY_MAX) _chatHistory.shift();
+  // 패널 열려있으면 즉시 반영
+  if (_chatOpen) _refreshHistoryPanel();
+
+  // ── 인게임 플로팅 메시지 (기존 방식) ──
   const div = document.createElement('div');
   div.className = 'chat-msg ' + (isMine ? 'mine' : 'peer');
   div.textContent = (isMine ? '나' : (name||'상대')) + ': ' + text;
@@ -9511,9 +9590,18 @@ function _addChatMsg(name, text, isMine) {
 
 function _openChat() {
   _chatOpen = true;
-  const wrap = document.getElementById('chat-input-wrap');
-  const inp  = document.getElementById('chat-input');
+  const wrap    = document.getElementById('chat-input-wrap');
+  const inp     = document.getElementById('chat-input');
+  const panel   = document.getElementById('chat-history-panel');
+  const log     = document.getElementById('chat-log');
   if (!wrap || !inp) return;
+  // 플로팅 메시지 숨기기
+  if (log) log.style.display = 'none';
+  // 기록 패널 표시
+  if (panel) {
+    panel.style.display = 'flex';
+    _refreshHistoryPanel();
+  }
   wrap.style.display = 'block';
   inp.focus();
   inp.select();
@@ -9522,8 +9610,13 @@ function _openChat() {
 
 function _closeChat() {
   _chatOpen = false;
-  const wrap = document.getElementById('chat-input-wrap');
-  if (wrap) wrap.style.display = 'none';
+  const wrap  = document.getElementById('chat-input-wrap');
+  const panel = document.getElementById('chat-history-panel');
+  const log   = document.getElementById('chat-log');
+  if (wrap)  wrap.style.display  = 'none';
+  if (panel) panel.style.display = 'none';
+  // 플로팅 메시지 다시 보이기
+  if (log) log.style.display = 'flex';
   send({type:'chatTyping', typing:false});
 }
 
@@ -9547,7 +9640,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') { e.preventDefault(); _sendChat(); }
     if (e.key === 'Escape') { _closeChat(); }
   });
+  // 입력창 포커스 잃으면 닫기
+  inp.addEventListener('blur', () => {
+    if (_chatOpen) _closeChat();
+  });
 });
+
+// 채팅창 바깥 클릭 시 닫기
+document.addEventListener('mousedown', e => {
+  if (!_chatOpen) return;
+  const wrap = document.getElementById('chat-wrap');
+  if (wrap && !wrap.contains(e.target)) _closeChat();
+});
+
+// 캔버스 클릭(게임 조작) 시 닫기
+document.addEventListener('contextmenu', e => {
+  if (_chatOpen) _closeChat();
+}, true);
 
 document.addEventListener('keydown', e => {
   _sfxCtx.state === 'suspended' && _sfxCtx.resume();
