@@ -14454,7 +14454,15 @@ function loop() {
           window._hitTarget = _t; window._lastHitWasMinion = (_t !== R);
           if (_t === R) {
             L._lmbAttacking = true; hitRemote(_dmgVal); L._lmbAttacking = false;
-            if (_isRmbSeg) knockbackRemote(_kbPower);
+          if (_isRmbSeg) {
+            // 창 위치 기준 넉백
+            if (!window._lastHitWasMinion && !R.burrowing) {
+              const _kbAng = Math.atan2(R.y - _sp.y, R.x - _sp.x);
+              send({type:'knockback', vx:Math.cos(_kbAng)*_kbPower, vy:Math.sin(_kbAng)*_kbPower});
+              R.tx = Math.max(R.radius, Math.min(WORLD_W-R.radius, R.tx + Math.cos(_kbAng)*_kbPower*0.35));
+              R.ty = Math.max(R.radius, Math.min(WORLD_H-R.radius, R.ty + Math.sin(_kbAng)*_kbPower*0.35));
+            }
+          }
           } else if (_t.id) send({type:'minionHit', id:_t.id, damage:applyDmgAugs(_dmgVal)});
           else _applyBotDamage(_t, applyDmgAugs(_dmgVal));
         }
