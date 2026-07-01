@@ -246,7 +246,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.33.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.33.2</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -14451,6 +14451,11 @@ function loop() {
     const _segSpeed = _isRmbSeg ? _sp.speed * 1.5 : _sp.speed;
 
     if (_sp.state === 'flying') {
+      // 세그먼트 전환 처리: 직전 프레임에 예약된 경우 이 프레임 시작 시 초기화
+      if (_sp._clearHitSegPending) {
+        _sp._hitSeg = new Set();
+        _sp._clearHitSegPending = false;
+      }
       const _wp = _sp.waypoints[0];
       if (_wp) {
         const _dist = Math.hypot(_wp.x - _sp.x, _wp.y - _sp.y);
@@ -14462,11 +14467,11 @@ function loop() {
         if (!_isRmbSeg && !_sp.pierceShot && bulletHitsWall({x:_sp.x, y:_sp.y, radius:_sp.radius})) {
           _sp.waypoints = [];
           _sp.state = 'returning';
-          _sp._retHitSeg = new Set();
+          _sp._retHitSeg = new Set(_sp._hitSeg);
           send({type:'levinaSpearDir', dx:0, dy:0, x:_sp.x, y:_sp.y, state:'returning'});
         } else if (_dist <= _segSpeed) {
           _sp.waypoints.shift();
-          _sp._hitSeg = new Set(); // 세그먼트 완료 → 피격 목록 초기화
+          _sp._clearHitSegPending = true; // 다음 프레임 시작에 초기화 → 같은 프레임 이중 피해 방지
           // 관통샷: 경로 한 번 이동 완료 시 소모
           if (_sp.pierceShot && (_sp._pierceShotSegments||0) > 0) {
             _sp._pierceShotSegments--;
@@ -14474,12 +14479,13 @@ function loop() {
           }
         }
       } else {
+        // 경유지 소진 → 귀환 (이 프레임 flying 피격 건너뜀)
         _sp.state = 'returning';
-        _sp._retHitSeg = new Set();
+        _sp._retHitSeg = new Set(_sp._hitSeg); // 방금 맞은 적은 귀환 즉시 재타격 방지
         send({type:'levinaSpearDir', dx:0, dy:0, x:_sp.x, y:_sp.y, state:'returning'});
       }
-      // 비행 중 적 타격 (세그먼트당 1회)
-      for (const _t of Rs()) {
+      // 비행 중 적 타격 (세그먼트당 1회, state가 이미 returning으로 바뀌었으면 건너뜀)
+      if (_sp.state === 'flying') for (const _t of Rs()) {
         const _tkey = _t === R ? 'R' : (_t.id || 'bot');
         if (!_sp._hitSeg) _sp._hitSeg = new Set();
         if (_sp._hitSeg.has(_tkey)) continue;
