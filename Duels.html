@@ -246,7 +246,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.32.3</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.33.0</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1721,7 +1721,7 @@ const BALANCE = {
       damage:     15,
       meleeRange: 110,
       halfAngle:  1.1,
-      cd:         350,
+      cd:         500,
       chargeTime: 300,       // 0.3초 차징
       drainRate:  40,        // (미사용)
       throwCost:  25,        // 차징 투사체 스테미나
@@ -1778,6 +1778,42 @@ const BALANCE = {
     },
   },
 
+
+  levina: {
+    hp:     100,
+    speed:  4.5,
+    radius: 20,
+    lmb: {
+      cost:          20,
+      wpCost:        10,   // 경유지 추가 스테미나
+      wpDelay:       300,  // 경유지 추가 딜레이 (ms)
+      minDamage:     15,   // 최소 피해량 (생성 직후)
+      maxDamage:     35,   // 최대 피해량 (10초 이상 유지)
+      dmgScaleTime:  10000,// 최대 피해까지 걸리는 시간 (ms)
+      speed:         12,
+      radius:        12,
+      range:         700,
+      cd:            200,
+    },
+    rmb: {
+      cost:          40,
+      wpCost:        20,   // LMB보다 스테미나 2배
+      wpDelay:       300,
+      pathRadius:    18,
+      knockbackPower:260,
+      rmbBonusDamage: 15, // LMB 기본 피해에 추가되는 고정 피해
+      speed:         12,
+      radius:        12,
+      range:         700,
+      cd:            200,
+    },
+    counter: {
+      aoeRange:      120,
+      damage:        25,
+      knockbackPower:420,
+      cd:            600,
+    },
+  },
 };
 
 
@@ -2381,11 +2417,30 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     desc:      '기계팔을 충전시켜 강력한 공격을 구사하는 캐릭터',
     skills: [
       { key:'LMB',     name:'파워 펀치', cost:BALANCE.raise.lmb.clickCost,
-        desc:`연타 시 최대 ${BALANCE.raise.lmb.maxClicks}클릭까지 피해 증가, 최대 ${BALANCE.raise.lmb.maxWindow/1000}초까지 충전. 연타를 멈추면 발동. 최대충전 시 넉백 (${BALANCE.raise.lmb.minDamage}~${BALANCE.raise.lmb.maxDamage})` },
+        desc:`연타 시 최대 ${BALANCE.raise.lmb.maxClicks}클릭까지 피해 증가, 최대 ${BALANCE.raise.lmb.maxWindow/1000}초까지 충전(이후엔 연타 유지 시 상태만 유지). 연타를 멈추면 발동. 최대충전 시 넉백 (${BALANCE.raise.lmb.minDamage}~${BALANCE.raise.lmb.maxDamage})` },
       { key:'RMB',     name:'내려찍기',  cost:BALANCE.raise.rmb.cost,
         desc:`빠르게 점프 후 내려치며 낙하해 범위 내 ${BALANCE.raise.rmb.stunDur/1000}초 기절` },
       { key:'L-Shift', name:'방출',      cost:0,
         desc:`원형 피해. 다음 파워 펀치가 33% 충전된 상태로 시작 (${BALANCE.raise.counter.damage})` },
+    ],
+  },
+
+  levina: {
+    id:        'levina',
+    name:      '레비나',
+    color:     '#6b1008',
+    maxHealth: BALANCE.levina.hp,
+    speed:     BALANCE.levina.speed,
+    radius:    BALANCE.levina.radius,
+    statsText: [['체력', String(BALANCE.levina.hp)],['이동속도','매우 빠름'],['스타일','원거리 조종형']],
+    desc:      '악마의 삼지창을 조종해 적을 공격하는 캐릭터',
+    skills: [
+      { key:'LMB',     name:'삼지창',       cost:BALANCE.levina.lmb.cost,
+        desc:`창을 던짐. 재사용 시 경로 추가 가능 (${BALANCE.levina.lmb.minDamage}~${BALANCE.levina.lmb.maxDamage})`, wpCost:BALANCE.levina.lmb.wpCost },
+      { key:'RMB',     name:'악마의 거래',   cost:BALANCE.levina.rmb.cost,
+        desc:`창을 던지며, 창이 더 빠르게 이동하며 벽 관통. 해당 경로에서 +${BALANCE.levina.rmb.rmbBonusDamage} 추가 피해 및 넉백`, wpCost:BALANCE.levina.rmb.wpCost },
+      { key:'L-Shift', name:'영혼의 계약',   cost:0,
+        desc:`주변 피해 후 창 위치로 순간이동, 도착지 추가 피해 (${BALANCE.levina.counter.damage})` },
     ],
   },
 };
@@ -3152,6 +3207,19 @@ function onData(d) {
       receiveBind(d.dur); break;
     case 'knockback':
       receiveKnockback(d.vx, d.vy); break;
+    case 'levinaSpear':
+      R._levinaSpear = {x:d.x, y:d.y, dx:d.dx, dy:d.dy, speed:d.speed, radius:d.radius,
+        birthTime:d.birthTime||performance.now(),
+        pathRadius:d.pathRadius, knockbackPower:d.knockbackPower,
+        type:d.type, state:d.state||'flying',
+        waypoints:(d.waypoints||[]).map(w=>({x:w.x,y:w.y,kind:w.kind||'lmb'})), _hitCd:{}, _retHitCd:{}}; break;
+    case 'levinaAddWP':
+      if (R._levinaSpear) R._levinaSpear.waypoints.push({x:d.x, y:d.y, kind:d.kind||'lmb'}); break;
+    case 'levinaSpearDir':
+      if (R._levinaSpear) { R._levinaSpear.dx=d.dx; R._levinaSpear.dy=d.dy;
+        R._levinaSpear.x=d.x; R._levinaSpear.y=d.y; R._levinaSpear.state=d.state||'flying'; } break;
+    case 'levinaSpearClear':
+      R._levinaSpear = null; break;
     case 'pull': {
       // 메이실 끌어당기기 수신
       if (L.burrowing || L.dodging) break;
@@ -3261,7 +3329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statsHtml   = ch.statsText.map(([k,v]) => `<b>${k}</b>: ${v}`).join('<br>');
     const tooltipHtml = `${ch.desc}<br><br>` + ch.skills.map(s =>
       `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
-      (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`)
+      (s.wpCost ? ` / 스테미나 ${s.cost}/${s.wpCost}` : (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`))
     ).join('<br>');
     card.innerHTML = `
       <div class="char-tooltip">${tooltipHtml}</div>
@@ -4703,8 +4771,8 @@ function drawAttackPreview(preview) {
   ctx.setLineDash([7, 5]);
 
   for (const sh of preview.shapes) {
-    const cx = sh.offsetDist ? L.x + cos * sh.offsetDist : L.x;
-    const cy = sh.offsetDist ? L.y + sin * sh.offsetDist : L.y;
+    const cx = sh.offsetTx !== undefined ? sh.offsetTx : (sh.offsetDist ? L.x + cos * sh.offsetDist : L.x);
+    const cy = sh.offsetTy !== undefined ? sh.offsetTy : (sh.offsetDist ? L.y + sin * sh.offsetDist : L.y);
     const sa = sh.angleOffset !== undefined ? angle + sh.angleOffset : angle;
 
     // 외곽선: 흰색 기반 + 캐릭터 색 tint 으로 항상 가시
@@ -9061,6 +9129,108 @@ const SKILLS = {
       }, BALANCE.counter.delay);
     },
   },
+
+  // ── 레비나 ──────────────────────────────────────────────────
+  levina: {
+    // 시간 기반 피해량: minDamage→maxDamage (dmgScaleTime ms 이상 유지 시 최대)
+    _dmg(sp) {
+      const B = BALANCE.levina.lmb;
+      const _el = Math.min(B.dmgScaleTime, performance.now() - (sp.birthTime||performance.now()));
+      return Math.round(B.minDamage + (B.maxDamage - B.minDamage) * (_el / B.dmgScaleTime));
+    },
+
+    lmb(angle) {
+      const B = BALANCE.levina.lmb;
+      const sp = L._levinaSpear;
+      if (sp) {
+        // 창 존재 → LMB 경유지 추가
+        const _now = performance.now();
+        if ((_now - (L._levinaLmbWpCd||0)) < B.wpDelay) return;
+        if (!useStam(B.wpCost)) return;
+        L._levinaLmbWpCd = _now;
+        sp.waypoints.push({x: mouseX, y: mouseY, kind:'lmb'});
+        send({type:'levinaAddWP', x:mouseX, y:mouseY, kind:'lmb'});
+        return;
+      }
+      if (L.lmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      const _now = performance.now();
+      const _levPierce = getAugCount('pierce_shot') > 0 && L._pierceShotReady;
+      if (_levPierce) { L._pierceShotReady = false; L._pierceShotCd = _now + 3000; L._pierceShotUsed = true; }
+      const b = { x:L.x, y:L.y, dx:Math.cos(angle), dy:Math.sin(angle),
+        speed:B.speed, radius:B.radius, birthTime:_now,
+        type:'lmb', state:'flying', pierceShot:_levPierce,
+        waypoints:[{x: mouseX, y: mouseY, kind:'lmb'}],
+        _hitSeg: new Set(), _retHitSeg: new Set(), _pierceShotSegments: _levPierce ? 1 : 0 };
+      L._levinaSpear = b;
+      send({type:'levinaSpear', x:b.x, y:b.y, dx:b.dx, dy:b.dy,
+        speed:b.speed, radius:b.radius, birthTime:_now,
+        type:b.type, state:b.state, waypoints:b.waypoints});
+      L.lmbCooldown = B.cd; L.lastAttackTime = _now;
+    },
+
+    rmb(angle) {
+      const B = BALANCE.levina.rmb;
+      const sp = L._levinaSpear;
+      if (sp) {
+        // 창 존재 → RMB 경유지 추가 (스테미나 더 많이 소모)
+        const _now = performance.now();
+        if ((_now - (L._levinaRmbWpCd||0)) < B.wpDelay) return;
+        if (!useStam(B.wpCost)) return;
+        L._levinaRmbWpCd = _now;
+        sp.waypoints.push({x: mouseX, y: mouseY, kind:'rmb'});
+        send({type:'levinaAddWP', x:mouseX, y:mouseY, kind:'rmb'});
+        return;
+      }
+      if (L.rmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      const _now = performance.now();
+      const _levPierceR = getAugCount('pierce_shot') > 0 && L._pierceShotReady;
+      if (_levPierceR) { L._pierceShotReady = false; L._pierceShotCd = _now + 3000; L._pierceShotUsed = true; }
+      const b = { x:L.x, y:L.y, dx:Math.cos(angle), dy:Math.sin(angle),
+        speed:B.speed, radius:B.radius, birthTime:_now,
+        pathRadius:B.pathRadius, knockbackPower:B.knockbackPower,
+        type:'rmb', state:'flying', pierceShot:_levPierceR,
+        waypoints:[{x: mouseX, y: mouseY, kind:'rmb'}],
+        _hitSeg: new Set(), _retHitSeg: new Set(), _pierceShotSegments: _levPierceR ? 1 : 0 };
+      L._levinaSpear = b;
+      send({type:'levinaSpear', x:b.x, y:b.y, dx:b.dx, dy:b.dy,
+        speed:b.speed, radius:b.radius, birthTime:_now,
+        pathRadius:b.pathRadius, knockbackPower:b.knockbackPower,
+        type:b.type, state:b.state, waypoints:b.waypoints});
+      L.rmbCooldown = B.cd; L.lastAttackTime = _now;
+    },
+
+    counter(angle) {
+      const B = BALANCE.levina.counter;
+      if (!L.counterReady) return;
+      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
+      L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
+      const tok = ++L._counterToken;
+      // 선딜레이 중 미리보기는 loop()에서 매 프레임 갱신 (창이 움직이므로)
+      L._levinaCounterActive = true;
+      setTimeout(() => {
+        L._attackPreview = null;
+        L._levinaCounterActive = false;
+        if (!gameOn || L._counterToken !== tok) return;
+        L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
+        const sp = L._levinaSpear; // setTimeout 시점의 현재 창 위치
+        // 출발지 피해 + 넉백
+        if (hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage)) knockbackRemote(B.knockbackPower);
+        addFx({type:'aoe', x:L.x, y:L.y, r:B.aoeRange, dur:14, maxDur:14, col:'105,34,10'});
+        send({type:'fx', fx:{type:'aoe', x:L.x, y:L.y, r:B.aoeRange, dur:14, maxDur:14, col:'105,34,10'}});
+        if (sp) {
+          // 창 위치로 순간이동 (창은 유지)
+          L.x = sp.x; L.y = sp.y; resolveWall(L);
+          // 도착지 피해 + 넉백
+          if (hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage)) knockbackRemote(B.knockbackPower);
+          addFx({type:'aoe', x:L.x, y:L.y, r:B.aoeRange, dur:14, maxDur:14, col:'105,34,10'});
+          send({type:'fx', fx:{type:'aoe', x:L.x, y:L.y, r:B.aoeRange, dur:14, maxDur:14, col:'105,34,10'}});
+        }
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
+    },
+  },
 };
 // ============================================================
 
@@ -9228,6 +9398,9 @@ CANVAS.addEventListener('mousedown', e => {
     } else if (L.charDef?.id==='raise') {
       if (L._raiseCharging) SKILLS.raise.lmbClick();
       else SKILLS.raise.lmbStart();
+    } else if (L.charDef?.id==='levina') {
+      // 창이 이미 있으면 경유지 추가 (쿨다운 무시), 없으면 일반 발사
+      SKILLS.levina.lmb(getAngle());
     } else if (L.charDef?.id==='hatsuhats') {
       SKILLS.hatsuhats.lmbStart();
     } else {
@@ -9237,6 +9410,9 @@ CANVAS.addEventListener('mousedown', e => {
   else if (e.button===2) {
     if (L.charDef?.id==='hatsuhats') {
       SKILLS.hatsuhats.rmbStart();
+    } else if (L.charDef?.id==='levina') {
+      // 창이 이미 있으면 경유지 추가 시도 (쿨다운 무시), 없으면 일반 발사
+      SKILLS.levina.rmb(getAngle());
     } else if (L.charDef?.id==='sya' && L._syaInvisible) {
       SKILLS.sya.rmb(getAngle()); // 은신 중 우클릭 → 즉시 해제
     } else doRMB();
@@ -12202,10 +12378,19 @@ function draw() {
     }
   }
 
-  ctx.beginPath(); ctx.moveTo(L.x,L.y); ctx.lineTo(mouseX,mouseY);
-  ctx.strokeStyle = 'rgba(255,80,80,0.2)';
-  ctx.lineWidth   = 1.5;
-  ctx.stroke();
+  // 모든 캐릭터 마우스 조준선 — 레비나는 마지막 경유지에서 시작
+  {
+    const _aimX = (L.charDef?.id === 'levina' && L._levinaSpear && !L._levinaSpear.state?.startsWith?.('ret') && L._levinaSpear.state !== 'returning' && L._levinaSpear.waypoints?.length > 0)
+      ? L._levinaSpear.waypoints[L._levinaSpear.waypoints.length - 1].x
+      : L.x;
+    const _aimY = (L.charDef?.id === 'levina' && L._levinaSpear && L._levinaSpear.state !== 'returning' && L._levinaSpear.waypoints?.length > 0)
+      ? L._levinaSpear.waypoints[L._levinaSpear.waypoints.length - 1].y
+      : L.y;
+    ctx.beginPath(); ctx.moveTo(_aimX, _aimY); ctx.lineTo(mouseX, mouseY);
+    ctx.strokeStyle = 'rgba(255,80,80,0.2)';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+  }
 
   // ── 연막 가시성 + 페이드인아웃 처리 ────────────────────
   {
@@ -12761,6 +12946,64 @@ function drawPlayer(p, label) {
     ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
     ctx.restore();
   }
+  // 레비나 삼지창 렌더 (L 및 R 모두 표시) — 루뷰 망치 스타일
+  const _levOwner = (p === L && L.charDef?.id === 'levina') ? L :
+                    (p === R && R.charDef?.id === 'levina') ? R : null;
+  if (_levOwner && _levOwner._levinaSpear) {
+    const _sp = _levOwner._levinaSpear;
+    const _isRmb = _sp.type === 'rmb';
+    const _isRet = _sp.state === 'returning';
+    const _isLocal = _levOwner === L;
+    const _spulse = 0.7 + 0.3 * Math.sin(performance.now() * 0.014);
+    const _alpha = _isRet ? 0.60 : 1.0;
+    const _r = _isRmb ? 18 : 15;
+    const _fCol = _isLocal ? 'rgba(107,16,8,0.30)' : 'rgba(220,60,50,0.28)';
+    const _sCol = _isLocal ? `rgba(107,16,8,${_alpha*_spulse})` : `rgba(255,150,140,${_alpha*_spulse})`;
+    const _xCol = _isLocal ? `rgba(180,80,60,${_alpha*0.9})` : `rgba(255,210,200,${_alpha*0.85})`;
+    // 외곽 글로우 (귀환 강조)
+    if (_isRet) {
+      const _gl = 0.5+0.5*Math.sin(performance.now()*0.02);
+      ctx.beginPath(); ctx.arc(_sp.x, _sp.y, _r+8, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(107,16,8,${_gl*0.15})`; ctx.fill();
+    }
+    // 메인 원
+    ctx.beginPath(); ctx.arc(_sp.x, _sp.y, _r, 0, Math.PI*2);
+    ctx.fillStyle = _fCol; ctx.fill();
+    ctx.strokeStyle = _sCol; ctx.lineWidth = 3.5; ctx.stroke();
+    // 십자선
+    ctx.strokeStyle = _xCol; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(_sp.x-10,_sp.y); ctx.lineTo(_sp.x+10,_sp.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(_sp.x,_sp.y-10); ctx.lineTo(_sp.x,_sp.y+10); ctx.stroke();
+
+    // 경유지 경로 (로컬 + 비행 중) — LMB=레비나색, RMB=황금색
+    if (_isLocal && !_isRet && _sp.waypoints) {
+      ctx.save();
+      // 세그먼트별 색상 (창 위치→WP0→WP1→...)
+      let _sx = _sp.x, _sy = _sp.y;
+      for (let _wi = 0; _wi < _sp.waypoints.length; _wi++) {
+        const _ww = _sp.waypoints[_wi];
+        const _pc = (_ww.kind||'lmb') === 'rmb' ? 'rgba(230,190,50,0.9)' : 'rgba(107,16,8,0.8)';
+        ctx.setLineDash([6,5]); ctx.strokeStyle = _pc; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(_sx, _sy); ctx.lineTo(_ww.x, _ww.y); ctx.stroke();
+        _sx = _ww.x; _sy = _ww.y;
+      }
+      ctx.setLineDash([]);
+      // 경유지 마커
+      for (let _wi = 0; _wi < _sp.waypoints.length; _wi++) {
+        const _ww = _sp.waypoints[_wi];
+        const _dc = (_ww.kind||'lmb') === 'rmb' ? 'rgba(255,220,80,1.0)' : 'rgba(107,16,8,0.9)';
+        ctx.beginPath(); ctx.arc(_ww.x, _ww.y, 10, 0, Math.PI*2);
+        ctx.strokeStyle = _dc; ctx.lineWidth = 2.5; ctx.stroke();
+        ctx.beginPath(); ctx.arc(_ww.x, _ww.y, 5, 0, Math.PI*2);
+        ctx.fillStyle = _dc; ctx.fill();
+        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.font='bold 10px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(String(_wi+1), _ww.x, _ww.y); ctx.restore();
+      }
+      ctx.restore();
+    } else if (_isLocal && !_isRet) {
+      // 경유지 없음: 전역 조준선이 창 위치를 커버하지 않으므로 별도 처리 불필요
+    }
+  }
   // 레이카 솔라 게이지 (원형 호) + 가호 링
   if (p===L && L.charDef?.id==='reika') {
     const ePct = Math.min(1, (L._reikaEnergy||0) / BALANCE.reika.energyMax);
@@ -13196,7 +13439,7 @@ function showBetweenScreen() {
     if (!ch) return;
     const tooltipHtml = `${ch.desc}<br><br>` + ch.skills.map(s =>
       `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
-      (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`)
+      (s.wpCost ? ` / 스테미나 ${s.cost}/${s.wpCost}` : (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`))
     ).join('<br>');
     const card = document.createElement('div');
     card.className = 'char-mini-card';
@@ -13420,7 +13663,7 @@ function _mkCharIcon(isRival) {
     div.style.borderColor = ch.color || (isRival ? '#f44' : '#2a4a6a');
     const skillsHtml = (ch.skills || []).map(s =>
       `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
-      (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`)
+      (s.wpCost ? ` / 스테미나 ${s.cost}/${s.wpCost}` : (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`))
     ).join('<br>');
     tip.innerHTML = `<b style="color:${ch.color}">${(isRival?'[상대] ':'') + ch.name}</b><br>${ch.desc}<br><br>${skillsHtml}`;
   };
@@ -13613,6 +13856,8 @@ function resetL() {
   L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._intuAmmo=12; L._intuWeapon='pistol'; L._intuReloading=false; L._intuLastSync=''; L._intuReloadEnd=0; L._roonSlush=0; L._roonZones=[]; L._roonIncomingZones=[]; L._roonBallInFlight=false; R._roonSlush=0; L._runefRmbActive=false; L._runefShot1=false; L._runefNextSpell='fire'; clearTimeout(L._runefRmbTimer); clearTimeout(L._runefShot1Timer); L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._syaHitRevealEnd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0; SKILLS.meramona._stage=0; SKILLS.meramona._tempEnd=0; SKILLS.meramona._hitStack=0
   R._pelunaAnvil=null;
   L._raiseCharging=false; L._raiseClicks=0; L._raiseJumping=false; L._raiseBoosted=false; L._raiseStaminaStarvedAt=0;
+  L._levinaSpear=null; L._levinaSpearSyncTick=0; L._levinaLmbWpCd=0; L._levinaRmbWpCd=0;
+  R._levinaSpear=null;
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
@@ -14158,6 +14403,99 @@ function loop() {
     }
   } else if (L.charDef?.id==='raise' && L._attackPreview?._loopManaged) {
     L._attackPreview = null;
+  }
+  // 레비나 삼지창 틱 (경유지 기반)
+  if (gameOn && L.charDef?.id === 'levina' && L._levinaSpear) {
+    const _sp = L._levinaSpear;
+    const _now_sp = performance.now();
+    const _spDmg = SKILLS.levina._dmg(_sp); // 시간 기반 피해량
+    const _curKind = _sp.waypoints[0]?.kind || 'lmb'; // 현재 경유지 종류
+    const _isRmbSeg = _curKind === 'rmb';
+    const _kbPower = _sp.knockbackPower || BALANCE.levina.rmb.knockbackPower;
+    const _hitRad = _isRmbSeg ? (_sp.pathRadius||18) : _sp.radius;
+    const _segSpeed = _isRmbSeg ? _sp.speed * 1.5 : _sp.speed;
+
+    if (_sp.state === 'flying') {
+      const _wp = _sp.waypoints[0];
+      if (_wp) {
+        const _dist = Math.hypot(_wp.x - _sp.x, _wp.y - _sp.y);
+        const _mv = Math.min(_segSpeed, _dist);
+        const _ang = Math.atan2(_wp.y - _sp.y, _wp.x - _sp.x);
+        _sp.dx = Math.cos(_ang); _sp.dy = Math.sin(_ang);
+        _sp.x += _sp.dx * _mv; _sp.y += _sp.dy * _mv;
+        // LMB 경유지 세그먼트: 벽 충돌 시 즉시 귀환 (RMB 세그먼트 또는 관통샷 활성 시 관통)
+        if (!_isRmbSeg && !_sp.pierceShot && bulletHitsWall({x:_sp.x, y:_sp.y, radius:_sp.radius})) {
+          _sp.waypoints = [];
+          _sp.state = 'returning';
+          _sp._retHitSeg = new Set();
+          send({type:'levinaSpearDir', dx:0, dy:0, x:_sp.x, y:_sp.y, state:'returning'});
+        } else if (_dist <= _segSpeed) {
+          _sp.waypoints.shift();
+          _sp._hitSeg = new Set(); // 세그먼트 완료 → 피격 목록 초기화
+          // 관통샷: 경로 한 번 이동 완료 시 소모
+          if (_sp.pierceShot && (_sp._pierceShotSegments||0) > 0) {
+            _sp._pierceShotSegments--;
+            if (_sp._pierceShotSegments <= 0) _sp.pierceShot = false;
+          }
+        }
+      } else {
+        _sp.state = 'returning';
+        _sp._retHitSeg = new Set();
+        send({type:'levinaSpearDir', dx:0, dy:0, x:_sp.x, y:_sp.y, state:'returning'});
+      }
+      // 비행 중 적 타격 (세그먼트당 1회)
+      for (const _t of Rs()) {
+        const _tkey = _t === R ? 'R' : (_t.id || 'bot');
+        if (!_sp._hitSeg) _sp._hitSeg = new Set();
+        if (_sp._hitSeg.has(_tkey)) continue;
+        if (Math.hypot(_t.x - _sp.x, _t.y - _sp.y) < _hitRad + (_t.radius||20)) {
+          _sp._hitSeg.add(_tkey);
+          const _dmgVal = _isRmbSeg ? _spDmg + BALANCE.levina.rmb.rmbBonusDamage : _spDmg;
+          window._hitTarget = _t; window._lastHitWasMinion = (_t !== R);
+          if (_t === R) {
+            L._lmbAttacking = true; hitRemote(_dmgVal); L._lmbAttacking = false;
+            if (_isRmbSeg) knockbackRemote(_kbPower);
+          } else if (_t.id) send({type:'minionHit', id:_t.id, damage:applyDmgAugs(_dmgVal)});
+          else _applyBotDamage(_t, applyDmgAugs(_dmgVal));
+        }
+      }
+    } else if (_sp.state === 'returning') {
+      const _ang = Math.atan2(L.y - _sp.y, L.x - _sp.x);
+      _sp.dx = Math.cos(_ang); _sp.dy = Math.sin(_ang);
+      _sp.x += _sp.dx * _sp.speed; _sp.y += _sp.dy * _sp.speed;
+      // 귀환 중 타격
+      for (const _t of Rs()) {
+        const _tkey = _t === R ? 'R' : (_t.id || 'bot');
+        if (!_sp._retHitSeg) _sp._retHitSeg = new Set();
+        if (_sp._retHitSeg.has(_tkey)) continue;
+        if (Math.hypot(_t.x - _sp.x, _t.y - _sp.y) < (_sp.pathRadius||_sp.radius) + (_t.radius||20)) {
+          _sp._retHitSeg.add(_tkey);
+          window._hitTarget = _t; window._lastHitWasMinion = (_t !== R);
+          if (_t === R) {
+            L._lmbAttacking = true; hitRemote(_spDmg); L._lmbAttacking = false;
+            if (_sp.type === 'rmb') knockbackRemote(_kbPower);
+          } else if (_t.id) send({type:'minionHit', id:_t.id, damage:applyDmgAugs(_spDmg)});
+          else _applyBotDamage(_t, applyDmgAugs(_spDmg));
+        }
+      }
+      if (Math.hypot(L.x - _sp.x, L.y - _sp.y) < L.radius + _sp.radius) {
+        L._levinaSpear = null;
+        send({type:'levinaSpearClear'});
+      }
+    }
+    if (!L._levinaSpearSyncTick) L._levinaSpearSyncTick = 0;
+    if (++L._levinaSpearSyncTick % 5 === 0 && L._levinaSpear) {
+      send({type:'levinaSpearDir', dx:_sp.dx, dy:_sp.dy, x:_sp.x, y:_sp.y, state:_sp.state});
+    }
+  }
+  // 레비나 반격기 선딜레이 중 창 위치 실시간 미리보기
+  if (gameOn && L.charDef?.id === 'levina' && L._levinaCounterActive) {
+    const _B = BALANCE.levina.counter;
+    const _csp = L._levinaSpear;
+    L._attackPreview = { shapes: [
+      { type: 'circle', r: _B.aoeRange },
+      ...(_csp ? [{ type: 'circle', r: _B.aoeRange, offsetTx: _csp.x, offsetTy: _csp.y }] : []),
+    ]};
   }
   // 나남낭 풀차징 시 표준 공격 미리보기 시스템 사용
   if (gameOn && L.charDef?.id==='nanamnang' && L._nanCharging) {
