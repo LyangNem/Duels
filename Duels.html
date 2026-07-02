@@ -284,7 +284,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.33.4</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.33.5</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1360,7 +1360,7 @@ const BALANCE = {
       radius:     10,
       range:      650,
       cd:         380,
-      homingMin:  0.25,  // 이 비율 이후 호밍 시작
+      homingMin:  0.10,  // 이 비율 이후 호밍 시작
       homingMax:  0.11,  // 사거리 끝에서 최대 호밍 강도 (rad/frame)
     },
     rmb: {
@@ -1827,24 +1827,26 @@ const BALANCE = {
     radius: 20,
     lmb: {
       cost:          20,
-      wpCost:        10,   // 경유지 추가 스테미나
-      wpDelay:       300,  // 경유지 추가 딜레이 (ms)
-      minDamage:     15,   // 최소 피해량 (생성 직후)
-      maxDamage:     35,   // 최대 피해량 (10초 이상 유지)
-      dmgScaleTime:  10000,// 최대 피해까지 걸리는 시간 (ms)
+      wpCost:        10,
+      wpDelay:       300,
+      minDamage:     15,
+      maxDamage:     35,
+      dmgScaleTime:  10000,
       speed:         12,
+      retSpeed:      20,
       radius:        12,
       range:         700,
       cd:            200,
     },
     rmb: {
       cost:          40,
-      wpCost:        20,   // LMB보다 스테미나 2배
+      wpCost:        20,
       wpDelay:       300,
       pathRadius:    18,
       knockbackPower:260,
-      rmbBonusDamage: 15, // LMB 기본 피해에 추가되는 고정 피해
+      rmbBonusDamage: 15,
       speed:         12,
+      retSpeed:      20,
       radius:        12,
       range:         700,
       cd:            200,
@@ -3348,7 +3350,7 @@ function onData(d) {
     }
     case 'ruvuHammerThrow':
       // 상대의 망치 위치 추적용 (렌더링만)
-      R._ruvuHammer = { x:d.x, y:d.y, dx:d.dx, dy:d.dy, speed:d.speed, maxRange:d.maxRange,
+      R._ruvuHammer = { x:d.x, y:d.y, dx:d.dx, dy:d.dy, speed:d.speed, radius:d.radius, maxRange:d.maxRange,
                         traveled:0, returning:false, returnStart:0, returnSX:d.x, returnSY:d.y };
       break;
     case 'chat':
@@ -5632,7 +5634,8 @@ const SKILLS = {
       L._ruvuHammer = {
         x: L.x, y: L.y,
         dx, dy,
-        speed: B.hammerSpeed,
+        speed: augBulletSpeed(B.hammerSpeed),
+        radius: augBulletRadius(B.hammerRadius),
         maxRange: B.hammerRange,
         traveled: 0,
         returning: false,
@@ -5647,7 +5650,7 @@ const SKILLS = {
         L._ruvuHammer.returnSX = L._ruvuHammer.x;
         L._ruvuHammer.returnSY = L._ruvuHammer.y;
       }, B.window);
-      send({type:'ruvuHammerThrow', x:L.x, y:L.y, dx, dy, speed:B.hammerSpeed, maxRange:B.hammerRange});
+      send({type:'ruvuHammerThrow', x:L.x, y:L.y, dx, dy, speed:augBulletSpeed(B.hammerSpeed), radius:augBulletRadius(B.hammerRadius), maxRange:B.hammerRange});
       addFx({type:'ruvuHammerThrow', x:L.x, y:L.y, angle, dur:10, maxDur:10});
       send({type:'fx', fx:{type:'ruvuHammerThrow', x:L.x, y:L.y, angle, dur:10, maxDur:10}});
       L.rmbCooldown = B.cdPlace; L.lastAttackTime = now;
@@ -6824,7 +6827,7 @@ const SKILLS = {
           // Phase 2: 무기 도착 후 피해
           setTimeout(() => {
             if (!gameOn || L._counterToken !== tok) { L._reikaJumping = false; return; }
-            hitCtxAll({x:targetX, y:targetY, range:tb.slamRange}, tb.slamDamage);
+            hitCtxAll({x:targetX, y:targetY, range:augBulletRadius(tb.slamRange)}, tb.slamDamage);
             addFx({type:'reikaSlamWeapon', x:targetX, y:targetY, r:0, maxR:tb.slamRange, dur:14, maxDur:14});
             send({type:'fx', fx:{type:'reikaSlamWeapon', x:targetX, y:targetY, r:0, maxR:tb.slamRange, dur:14, maxDur:14}});
             // Phase 3: slamDelay 후 레이카 이동 시작
@@ -6841,8 +6844,8 @@ const SKILLS = {
                   clearInterval(di);
                   resolveWall(L);
                   L._reikaJumping = false;
-                  if (Math.hypot(R.x-L.x, R.y-L.y) < tb.landRange + R.radius) {
-                    hitCtxAll({x:L.x, y:L.y, range:tb.landRange}, tb.landDamage); knockbackRemote(tb.knockbackPower);
+                  if (Math.hypot(R.x-L.x, R.y-L.y) < augBulletRadius(tb.landRange) + R.radius) {
+                    hitCtxAll({x:L.x, y:L.y, range:augBulletRadius(tb.landRange)}, tb.landDamage); knockbackRemote(tb.knockbackPower);
                   }
                   addFx({type:'reikaLand', x:L.x, y:L.y, r:0, maxR:tb.landRange, dur:18, maxDur:18});
                   send({type:'fx', fx:{type:'reikaLand', x:L.x, y:L.y, r:0, maxR:tb.landRange, dur:18, maxDur:18}});
@@ -9219,7 +9222,7 @@ const SKILLS = {
       const _levPierce = getAugCount('pierce_shot') > 0 && L._pierceShotReady;
       if (_levPierce) { L._pierceShotReady = false; L._pierceShotCd = _now + 3000; L._pierceShotUsed = true; }
       const b = { x:L.x, y:L.y, dx:Math.cos(angle), dy:Math.sin(angle),
-        speed:B.speed, radius:B.radius, birthTime:_now,
+        speed:augBulletSpeed(B.speed), radius:augBulletRadius(B.radius), birthTime:_now,
         type:'lmb', state:'flying', pierceShot:_levPierce,
         waypoints:[{x: mouseX, y: mouseY, kind:'lmb'}],
         _hitSeg: new Set(), _retHitSeg: new Set(), _pierceShotSegments: _levPierce ? 1 : 0 };
@@ -9249,8 +9252,8 @@ const SKILLS = {
       const _levPierceR = getAugCount('pierce_shot') > 0 && L._pierceShotReady;
       if (_levPierceR) { L._pierceShotReady = false; L._pierceShotCd = _now + 3000; L._pierceShotUsed = true; }
       const b = { x:L.x, y:L.y, dx:Math.cos(angle), dy:Math.sin(angle),
-        speed:B.speed, radius:B.radius, birthTime:_now,
-        pathRadius:B.pathRadius, knockbackPower:B.knockbackPower,
+        speed:augBulletSpeed(B.speed), radius:augBulletRadius(B.radius), birthTime:_now,
+        pathRadius:augBulletRadius(B.pathRadius), knockbackPower:B.knockbackPower,
         type:'rmb', state:'flying', pierceShot:_levPierceR,
         waypoints:[{x: mouseX, y: mouseY, kind:'rmb'}],
         _hitSeg: new Set(), _retHitSeg: new Set(), _pierceShotSegments: _levPierceR ? 1 : 0 };
@@ -10366,7 +10369,8 @@ function drawLevinaSpears() {
     const _isLocal = _levOwner === L;
     const _spulse = 0.7 + 0.3 * Math.sin(performance.now() * 0.014);
     const _alpha = _isRet ? 0.60 : 1.0;
-    const _r = _isRmb ? 18 : 15;
+    const _baseR = 16;
+    const _r = _baseR * (_sp.radius / BALANCE.levina.lmb.radius);
     const _fCol = _isLocal ? 'rgba(107,16,8,0.30)' : 'rgba(220,60,50,0.28)';
     const _sCol = _isLocal ? `rgba(107,16,8,${_alpha*_spulse})` : `rgba(255,150,140,${_alpha*_spulse})`;
     const _xCol = _isLocal ? `rgba(180,80,60,${_alpha*0.9})` : `rgba(255,210,200,${_alpha*0.85})`;
@@ -10380,10 +10384,10 @@ function drawLevinaSpears() {
     ctx.beginPath(); ctx.arc(_sp.x, _sp.y, _r, 0, Math.PI*2);
     ctx.fillStyle = _fCol; ctx.fill();
     ctx.strokeStyle = _sCol; ctx.lineWidth = 3.5; ctx.stroke();
-    // 십자선
+    // 십자선 (고정 크기)
     ctx.strokeStyle = _xCol; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.moveTo(_sp.x-10,_sp.y); ctx.lineTo(_sp.x+10,_sp.y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(_sp.x,_sp.y-10); ctx.lineTo(_sp.x,_sp.y+10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(_sp.x-8,_sp.y); ctx.lineTo(_sp.x+8,_sp.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(_sp.x,_sp.y-8); ctx.lineTo(_sp.x,_sp.y+8); ctx.stroke();
 
     // 경유지 경로 (로컬 + 비행 중) — LMB=레비나색, RMB=황금색
     if (_isLocal && !_isRet && _sp.waypoints) {
@@ -10985,21 +10989,29 @@ function draw() {
       ctx.strokeStyle=`rgba(255,140,0,${a*(0.6+0.3*pulse)})`; ctx.lineWidth=3;
       ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
     } else if (f.type==='reikaSlamWeaponFly') {
-      // 무기 날아가는 FX
+      // 무기 날아가는 FX — 루뷰/레비나 스타일, 레이카 색상
       const tf = 1 - f.dur/f.maxDur;
       const wx = f.x + (f.tx-f.x)*tf;
       const wy = f.y + (f.ty-f.y)*tf;
+      const _spulse = 0.7 + 0.3*Math.sin(performance.now()*0.014);
+      const _r = 16;
+      // 글로우
+      ctx.beginPath(); ctx.arc(wx, wy, _r+8, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,122,0,${a*0.15})`; ctx.fill();
+      // 메인 원
+      ctx.beginPath(); ctx.arc(wx, wy, _r, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,122,0,${a*0.28})`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,150,50,${a*_spulse})`; ctx.lineWidth=3.5; ctx.stroke();
+      // 십자선 (고정 크기)
+      ctx.strokeStyle=`rgba(255,200,120,${a*0.9})`; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(wx-8,wy); ctx.lineTo(wx+8,wy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(wx,wy-8); ctx.lineTo(wx,wy+8); ctx.stroke();
       // 꼬리
-      const wx2 = f.x + (f.tx-f.x)*Math.max(0,tf-0.25);
-      const wy2 = f.y + (f.ty-f.y)*Math.max(0,tf-0.25);
+      const wx2 = f.x + (f.tx-f.x)*Math.max(0,tf-0.3);
+      const wy2 = f.y + (f.ty-f.y)*Math.max(0,tf-0.3);
       ctx.beginPath(); ctx.moveTo(wx2,wy2); ctx.lineTo(wx,wy);
-      ctx.strokeStyle=`rgba(255,180,0,${a*0.75})`; ctx.lineWidth=5; ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(wx2,wy2); ctx.lineTo(wx,wy);
-      ctx.strokeStyle=`rgba(255,240,100,${a*0.5})`; ctx.lineWidth=2; ctx.stroke();
-      // 무기 헤드
-      ctx.beginPath(); ctx.arc(wx, wy, 7, 0, Math.PI*2);
-      ctx.fillStyle=`rgba(255,220,50,${a*0.95})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,255,180,${a})`; ctx.lineWidth=2; ctx.stroke();
+      ctx.strokeStyle=`rgba(255,122,0,${a*0.35})`; ctx.lineWidth=3;
+      ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
     } else if (f.type==='reikaFireTrailGround') {
       // 화염자국 — 양쪽 모두 표시
       const pulse = 0.4+0.35*Math.sin(performance.now()*0.01 + f.x*0.008);
@@ -11986,7 +11998,8 @@ function draw() {
     const _hd = L._ruvuHammer;
     const _ha = _hd.returning ? 0.55 : 1.0;
     const _hpulse = 0.7+0.3*Math.sin(performance.now()*0.014);
-    ctx.beginPath(); ctx.arc(_hd.x, _hd.y, 16, 0, Math.PI*2);
+    const _hR = 16 * ((_hd.radius || BALANCE.ruvu.rmb.hammerRadius) / BALANCE.ruvu.rmb.hammerRadius);
+    ctx.beginPath(); ctx.arc(_hd.x, _hd.y, _hR, 0, Math.PI*2);
     ctx.fillStyle=`rgba(0,170,255,${_ha*0.28})`; ctx.fill();
     ctx.strokeStyle=`rgba(100,210,255,${_ha*_hpulse})`; ctx.lineWidth=3; ctx.stroke();
     ctx.strokeStyle=`rgba(180,230,255,${_ha*0.85})`; ctx.lineWidth=2.5;
@@ -12001,7 +12014,8 @@ function draw() {
     const _rhd = R._ruvuHammer;
     const _rha = _rhd.returning ? 0.55 : 1.0;
     const _rhpulse = 0.7+0.3*Math.sin(performance.now()*0.014);
-    ctx.beginPath(); ctx.arc(_rhd.x, _rhd.y, 16, 0, Math.PI*2);
+    const _rhR = 16 * ((_rhd.radius || BALANCE.ruvu.rmb.hammerRadius) / BALANCE.ruvu.rmb.hammerRadius);
+    ctx.beginPath(); ctx.arc(_rhd.x, _rhd.y, _rhR, 0, Math.PI*2);
     ctx.fillStyle=`rgba(255,80,80,${_rha*0.28})`; ctx.fill();
     ctx.strokeStyle=`rgba(255,150,150,${_rha*_rhpulse})`; ctx.lineWidth=3; ctx.stroke();
     ctx.strokeStyle=`rgba(255,200,200,${_rha*0.85})`; ctx.lineWidth=2.5;
@@ -14620,7 +14634,8 @@ function loop() {
     } else if (_sp.state === 'returning') {
       const _ang = Math.atan2(L.y - _sp.y, L.x - _sp.x);
       _sp.dx = Math.cos(_ang); _sp.dy = Math.sin(_ang);
-      _sp.x += _sp.dx * _sp.speed; _sp.y += _sp.dy * _sp.speed;
+      const _retSpd = BALANCE.levina[_sp.type]?.retSpeed || _sp.speed * 1.65;
+      _sp.x += _sp.dx * _retSpd; _sp.y += _sp.dy * _retSpd;
       // 귀환 중 타격
       for (const _t of Rs()) {
         const _tkey = _t === R ? 'R' : (_t.id || 'bot');
@@ -15365,7 +15380,7 @@ function loop() {
         _h.y += _h.dy * _h.speed * dt;
         _h.traveled += _h.speed * dt;
         // 적 관통 명중: 피해만, 멈추지 않고 계속
-        const _HR = BALANCE.ruvu.rmb.hammerRadius;
+        const _HR = _h.radius || BALANCE.ruvu.rmb.hammerRadius;
         if (!_h._hitR && Math.hypot(R.x-_h.x, R.y-_h.y) < _HR + R.radius) {
           _h._hitR = true;
           window._hitTarget = R;          hitRemote(BALANCE.ruvu.rmb.hammerDamage);
