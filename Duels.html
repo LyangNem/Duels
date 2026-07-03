@@ -284,7 +284,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.34.0</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.34.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1824,8 +1824,8 @@ const BALANCE = {
     speed:  4.25,
     radius: 20,
     lmb: {
-      cost:        15,
-      damage:      5,
+      cost:        30,
+      damage:      10,
       finalDamage: 15,
       meleeRange:  160,
       halfAngle:   0.85,
@@ -1836,23 +1836,23 @@ const BALANCE = {
       cd:          750,
     },
     rmb: {
-      cost:             60,
-      aoeRange:         460,
-      damageDelay:      500,
-      damage:           35,
-      activateDelay:    1000,
-      stamRecoverRatio: 0.30,
-      teleRange:        280,
-      cd:               1200,
+      cost:            50,
+      aoeRange:        552,   // 460 * 1.2
+      damageDelay:     500,
+      damage:          35,
+      activateDelay:   1000,
+      healRatio:       0.10,  // 최대 체력의 10% 회복
+      teleRange:       280,
+      cd:              1200,
     },
     counter: {
-      range:            120,
-      width:            70,
-      damage:           22,
-      teleBackDist:     220,
-      stamRecoverRatio: 0.30,
-      knockbackPower:   420,
-      cd:               500,
+      range:        120,
+      width:        70,
+      damage:       22,
+      teleBackDist: 220,
+      healRatio:    0.10,  // 최대 체력의 10% 회복
+      knockbackPower: 420,
+      cd:           500,
     },
   },
 
@@ -2537,11 +2537,11 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     desc:      '전설적인 도둑으로, 상대를 속이며 플레이하는 캐릭터',
     skills: [
       { key:'LMB',     name:'손기술',   cost:BALANCE.ki.lmb.cost,
-        desc:`근거리 3연타. 마지막 타격 적중 시 ${BALANCE.ki.lmb.teleWindow/1000}초 내 재입력으로 해당 방향 순간이동 (${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.finalDamage})` },
+        desc:`근거리 3연타. 마지막 타격 적중 시 ${BALANCE.ki.lmb.teleWindow/1000}초 내 재입력으로 해당 방향 순간이동 (${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.finalDamage})` },
       { key:'RMB',     name:'예고장',   cost:BALANCE.ki.rmb.cost,
-        desc:`광역 공격 예고 표시 생성. LMB: ${BALANCE.ki.rmb.damageDelay/1000}초 후 범위 내 피해. RMB: 지정 방향 순간이동 후 표시 소멸. 범위 내 상대가 저스트 회피가 아닌 회피 사용 시 스테미나 ${Math.round(BALANCE.ki.rmb.stamRecoverRatio*100)}% 회복 (${BALANCE.ki.rmb.damage})` },
+        desc:`광역 공격 예고 표시 생성. LMB: ${BALANCE.ki.rmb.damageDelay/1000}초 후 범위 내 피해. RMB: 지정 방향 순간이동 후 표시 소멸. 범위 내 일반 회피 시 최대체력 ${Math.round(BALANCE.ki.rmb.healRatio*100)}% 회복 (${BALANCE.ki.rmb.damage})` },
       { key:'L-Shift', name:'특수탈취', cost:0,
-        desc:`전방 일자 범위 피해 후 뒤로 순간이동, 스테미나 ${Math.round(BALANCE.ki.counter.stamRecoverRatio*100)}% 회복 (${BALANCE.ki.counter.damage})` },
+        desc:`전방 일자 범위 피해 후 뒤로 순간이동, 최대체력 ${Math.round(BALANCE.ki.counter.healRatio*100)}% 회복 (${BALANCE.ki.counter.damage})` },
     ],
   },
 };
@@ -3308,6 +3308,18 @@ function onData(d) {
       addFx({...d.fx, _receivedAt: performance.now()}); break;
     case 'devAlert':
       alert('상대방이 개발자 모드에 진입했습니다.'); break;
+    case 'devCmd':
+      // 상대방이 개발자 명령을 내 화면에 적용
+      window._devUnlocked = true;
+      if (d.cmd === 'infHP')    { window._devInfHP    = d.val; }
+      if (d.cmd === 'infST')    { window._devInfST    = d.val; }
+      if (d.cmd === 'freezeHP') { window._devFreezeHP = d.val; }
+      if (d.cmd === 'freezeST') { window._devFreezeST = d.val; }
+      if (d.cmd === 'counterOn'){ window._devCounterOn = d.val; }
+      if (d.cmd === 'teleport') { L.x = R.x + 40; L.y = R.y; }
+      if (d.cmd === 'setHP')    { L.health  = Math.max(0, Math.min(L.maxHealth, d.val)); }
+      if (d.cmd === 'setST')    { L.stamina = Math.max(0, Math.min(L._augStamMax??STAM_MAX, d.val)); }
+      break;
     case 'roonSlush': // 빙수 게이지 수신
       L._roonSlush = d.v;
       break;
@@ -4082,6 +4094,7 @@ function _tickTrainingBots(now, dt) {
   }
 }
 function tickRegen(now) {
+  if (window._devFreezeHP && gameOn) return; // 개발자: 체력 회복 정지
   // 힐링: 매 초마다 체력 2 × 스택 회복 (전투 여부 무관)
   const healCount = getAugCount('healing');
   if (healCount > 0 && L.health < L.maxHealth) {
@@ -9413,10 +9426,13 @@ const SKILLS = {
           const hit = hitCtx({x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle}, dmg);
           hitCtxSpirit({x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle}, dmg);
           if (isFinal && hit) L._kiFinalHit = performance.now();
-          const col = isFinal ? '180,190,230' : '195,201,222';
-          addFx({type:'swing', x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle, dur:10, maxDur:10, col});
-          send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle, dur:10, maxDur:10, col}});
-          if (isFinal) L.lastAttackTime = performance.now();
+          const col = isFinal ? '255,165,0' : '195,201,222';
+          const _swingRange = _range;
+          addFx({type:'swing', x:L.x, y:L.y, angle:_curAngle, range:_swingRange, halfAngle:B.halfAngle, dur:12, maxDur:12, col});
+          send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle:_curAngle, range:_swingRange, halfAngle:B.halfAngle, dur:12, maxDur:12, col}});
+          if (isFinal) {
+            L.lastAttackTime = performance.now();
+          }
         }, delay);
       });
 
@@ -9469,6 +9485,7 @@ const SKILLS = {
       L._kiRmbStart = 0; // 3초 타이머 무효화
       L._kiRmbLmbStart = performance.now(); // 선딜 게이지용
       L.rmbCooldown = B.cd;
+      L.lmbCooldown = 0; // 시전 즉시 평타 가능
       const kx = L._kiRmbX, ky = L._kiRmbY;
       addFx({type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
              dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)});
@@ -9497,6 +9514,7 @@ const SKILLS = {
       ++L._counterToken;
       L._kiRmbStart = 0; // 3초 타이머 무효화
       L.rmbCooldown = B.cd;
+      L.lmbCooldown = 0; // 시전 즉시 평타 가능
       // kiStrike FX
       addFx({type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
              dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)});
@@ -9551,9 +9569,10 @@ const SKILLS = {
         addFx({type:'phaseJump', x:L.x, y:L.y, tx:bx, ty:by, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'});
         send({type:'fx', fx:{type:'phaseJump', x:L.x, y:L.y, tx:bx, ty:by, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'}});
         L.x = bx; L.y = by; resolveWall(L);
-        // 스테미나 회복
-        const _sm = L._augStamMax ?? STAM_MAX;
-        L.stamina = Math.min(_sm, L.stamina + _sm * B.stamRecoverRatio);
+        // 코인이 상대에서 날아온 후 체력 회복
+        const _cHeal = L.maxHealth * B.healRatio;
+        addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_cHeal});
+        send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:bx, ty:by, dur:20, maxDur:20, healAmt:0}});
         L.lastAttackTime = performance.now();
       }, BALANCE.counter.delay);
     },
@@ -11426,34 +11445,25 @@ function draw() {
       ctx.closePath();
       ctx.fillStyle=`rgba(255,120,0,${a*0.22})`; ctx.fill();
       ctx.strokeStyle=`rgba(255,170,50,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
-    } else if (f.type==='kiStrike') {
-      // 예고장 선딜 — 원 안쪽으로 수렴하는 대각선 십자
-      const _kt = 1 - f.dur/f.maxDur; // 0→1
-      const _kr = f.r;
-      const _kOff = _kr * (1 - _kt); // 바깥에서 중심으로 수렴
-      ctx.strokeStyle=`rgba(195,201,222,${a*0.9})`; ctx.lineWidth=3;
-      // 대각선 4방향
-      for (let i = 0; i < 4; i++) {
-        const _ang = Math.PI/4 + i*Math.PI/2;
-        const _sx = f.x + Math.cos(_ang)*_kOff;
-        const _sy = f.y + Math.sin(_ang)*_kOff;
-        const _ex = f.x + Math.cos(_ang)*(_kOff + _kr*0.35);
-        const _ey = f.y + Math.sin(_ang)*(_kOff + _kr*0.35);
-        ctx.beginPath(); ctx.moveTo(_sx,_sy); ctx.lineTo(_ex,_ey); ctx.stroke();
-      }
-      // 수축하는 원
-      ctx.beginPath(); ctx.arc(f.x, f.y, _kr*(1-_kt*0.5), 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(195,201,222,${a*0.5})`; ctx.lineWidth=2;
-      ctx.setLineDash([6,5]); ctx.stroke(); ctx.setLineDash([]);
-      // 부채꼴 게이지 (선딜 진행도) — 상대방 화면에서만
-      if (L.charDef?.id !== 'ki') {
-        const _sA2 = -Math.PI/2, _eA2 = _sA2 + Math.PI*2*_kt;
-        ctx.beginPath(); ctx.moveTo(f.x, f.y);
-        ctx.arc(f.x, f.y, f.r, _sA2, _eA2); ctx.closePath();
-        ctx.fillStyle=`rgba(220,225,255,0.15)`; ctx.fill();
-        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, _sA2, _eA2);
-        ctx.strokeStyle=`rgba(220,225,255,0.7)`; ctx.lineWidth=3.5; ctx.setLineDash([]); ctx.stroke();
-      }
+    } else if (f.type==='kiCoin') {
+      // 코인: 레비나 창 스타일 응용 — 황금 원+C, 포물선 비행, 투명도 고정
+      const _t = 1 - f.dur/f.maxDur;
+      const _cx = f.sx + (f.tx - f.sx)*_t;
+      const _cy = f.sy + (f.ty - f.sy)*_t - Math.sin(_t*Math.PI)*60;
+      const _coinR = 14;
+      const _pulse = 0.7 + 0.3*Math.sin(performance.now()*0.02);
+      ctx.save();
+      ctx.beginPath(); ctx.arc(_cx, _cy, _coinR+6, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,200,0,${0.18*_pulse})`; ctx.fill();
+      ctx.beginPath(); ctx.arc(_cx, _cy, _coinR, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(200,150,0,0.35)`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,215,0,${_pulse})`; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.fillStyle=`rgba(255,240,100,0.95)`;
+      ctx.font=`bold ${Math.round(_coinR*1.4)}px serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('C', _cx, _cy);
+      ctx.textBaseline='alphabetic';
+      ctx.restore();
     } else if (f.type==='kiWarning') {
       // 키 예고장 경고 원
       const _kp = 0.5 + 0.5*Math.sin(performance.now()*0.01);
@@ -15078,9 +15088,10 @@ function loop() {
     if (R.dodging && !R._counterPending && !L._kiDodgeRecovered) {
       if (Math.hypot(R.x-L._kiRmbX, R.y-L._kiRmbY) < BALANCE.ki.rmb.aoeRange + R.radius) {
         L._kiDodgeRecovered = true;
-        const _sm = L._augStamMax ?? STAM_MAX;
-        L.stamina = Math.min(_sm, L.stamina + _sm * BALANCE.ki.rmb.stamRecoverRatio);
-        addFx({type:'healPulse', x:L.x, y:L.y, r:0, maxR:40, dur:12, maxDur:12});
+        const _healAmt = L.maxHealth * BALANCE.ki.rmb.healRatio;
+        addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_healAmt});
+        // 상대 화면: R=키(출발), L=상대(도착) → 동일 좌표로 전송
+        send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:0}});
       }
     }
     if (!R.dodging) L._kiDodgeRecovered = false;
@@ -15090,9 +15101,9 @@ function loop() {
     if (R.dodging && !R._counterPending && !L._kiAfterTeleDodge) {
       if (Math.hypot(R.x-L._kiRmbX, R.y-L._kiRmbY) < BALANCE.ki.rmb.aoeRange + R.radius) {
         L._kiAfterTeleDodge = true;
-        const _sm = L._augStamMax ?? STAM_MAX;
-        L.stamina = Math.min(_sm, L.stamina + _sm * BALANCE.ki.rmb.stamRecoverRatio);
-        addFx({type:'healPulse', x:L.x, y:L.y, r:0, maxR:40, dur:12, maxDur:12});
+        const _healAmt2 = L.maxHealth * BALANCE.ki.rmb.healRatio;
+        addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_healAmt2});
+        send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:0}});
       }
     }
   }
@@ -16030,8 +16041,17 @@ function loop() {
     const f=fxList[i];
     f.dur-=dt;
     if (f.type==='justdodge'||f.type==='counter') f.r=f.maxR*(1-f.dur/f.maxDur);
-
     if (f.type==='counterCharge'||f.type==='erapabiRmbCharge') f.r=f.maxR*(f.dur/f.maxDur);
+    // kiCoin: 내 화면에서만 목적지를 L 현재 위치로 실시간 갱신, 도착 시 체력 회복
+    if (f.type==='kiCoin') {
+      if (f.healAmt) { // 내 화면(키)에서만
+        f.tx = L.x; f.ty = L.y;
+        if (f.dur<=0) {
+          L.health = Math.min(L.maxHealth, L.health + f.healAmt);
+          addFx({type:'healPulse', x:L.x, y:L.y, r:0, maxR:30, dur:12, maxDur:12});
+        }
+      }
+    }
     if (f.dur<=0) fxList.splice(i,1);
   }
 
@@ -16048,9 +16068,11 @@ function loop() {
     }
   }
 
-  // 개발자 모드: 무한 체력/스테미나
+  // 개발자 모드: 무한 체력/스테미나, 회복 정지, 반격기 항상 활성화
   if (window._devInfHP && gameOn) L.health = L.maxHealth;
   if (window._devInfST && gameOn) L.stamina = L._augStamMax ?? STAM_MAX;
+  if (window._devFreezeST && gameOn) L.staminaUseTime = performance.now();
+  if (window._devCounterOn && gameOn) { L.counterReady = true; L.counterExpiry = performance.now() + 9999; }
   updateLocalHud();
 }
 
@@ -16066,8 +16088,14 @@ function loop() {
 const _devSeq = 'roqkfwkahem';
 let _devBuf = '';
 document.addEventListener('keydown', (e) => {
+  // Tab: 개발자 모드 1회 이상 열었으면 바로 토글
+  if (e.key === 'Tab' && window._devUnlocked) {
+    e.preventDefault();
+    openDevPanel();
+    return;
+  }
   _devBuf = (_devBuf + e.key).slice(-_devSeq.length);
-  if (_devBuf === _devSeq) { _devBuf = ''; openDevPanel(); }
+  if (_devBuf === _devSeq) { _devBuf = ''; window._devUnlocked = true; openDevPanel(); }
 });
 
   function buildAugCard(aug, onClose) {
@@ -16122,19 +16150,84 @@ document.addEventListener('keydown', (e) => {
     panel.appendChild(hdr);
 
     // ── 토글 버튼 ──
-    const mkBtn = (label, onclick, active) => {
+    const mkBtn = (label, onclick, active, devCmd, devVal) => {
       const b = document.createElement('button');
       b.textContent = label;
       b.style.cssText = `background:${active?'#2a1a00':'#111'};border:1px solid ${active?'#fa8':'#444'};color:${active?'#fa8':'#777'};padding:6px 14px;font-family:Courier New,monospace;font-size:10px;cursor:pointer;border-radius:3px;`;
       b.onclick = onclick;
+      // 우클릭 → 상대에게 적용
+      if (devCmd) {
+        b.title = '우클릭: 상대에게 적용';
+        b.oncontextmenu = (e) => {
+          e.preventDefault();
+          if (gameOn && typeof send === 'function') {
+            send({type:'devAlert'}); // 상대 개발자모드 알림
+            send({type:'devCmd', cmd:devCmd, val:devVal});
+          }
+        };
+      }
       return b;
     };
     const ctrl = document.createElement('div');
-    ctrl.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;';
-    ctrl.appendChild(mkBtn('♥ 무한체력 ' + (window._devInfHP?'ON':'OFF'), () => { window._devInfHP=!window._devInfHP; panel.remove(); document.removeEventListener('keydown',onEsc); openDevPanel(); }, window._devInfHP));
-    ctrl.appendChild(mkBtn('⚡ 무한스테미나 ' + (window._devInfST?'ON':'OFF'), () => { window._devInfST=!window._devInfST; panel.remove(); document.removeEventListener('keydown',onEsc); openDevPanel(); }, window._devInfST));
-    ctrl.appendChild(mkBtn('🎯 상대 위치로 순간이동', () => { if(gameOn){L.x=R.x+40;L.y=R.y;} }, false));
+    ctrl.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;';
+    ctrl.appendChild(mkBtn('♥ 무한체력 ' + (window._devInfHP?'ON':'OFF'), () => { window._devInfHP=!window._devInfHP; panel.remove(); openDevPanel(); }, window._devInfHP, 'infHP', !window._devInfHP));
+    ctrl.appendChild(mkBtn('⚡ 무한스테미나 ' + (window._devInfST?'ON':'OFF'), () => { window._devInfST=!window._devInfST; panel.remove(); openDevPanel(); }, window._devInfST, 'infST', !window._devInfST));
+    ctrl.appendChild(mkBtn('🩸 체력회복 정지 ' + (window._devFreezeHP?'ON':'OFF'), () => { window._devFreezeHP=!window._devFreezeHP; panel.remove(); openDevPanel(); }, window._devFreezeHP, 'freezeHP', !window._devFreezeHP));
+    ctrl.appendChild(mkBtn('🔋 스테미나회복 정지 ' + (window._devFreezeST?'ON':'OFF'), () => { window._devFreezeST=!window._devFreezeST; panel.remove(); openDevPanel(); }, window._devFreezeST, 'freezeST', !window._devFreezeST));
+    ctrl.appendChild(mkBtn('🛡 반격기 항상 활성 ' + (window._devCounterOn?'ON':'OFF'), () => { window._devCounterOn=!window._devCounterOn; panel.remove(); openDevPanel(); }, window._devCounterOn, 'counterOn', !window._devCounterOn));
+    ctrl.appendChild(mkBtn('🎯 상대 위치로 순간이동', () => { if(gameOn){L.x=R.x+40;L.y=R.y;} }, false, 'teleport', true));
     panel.appendChild(ctrl);
+    const hint = document.createElement('div');
+    hint.style.cssText = 'text-align:center;font-family:Courier New,monospace;font-size:9px;color:#555;margin-bottom:10px;';
+    hint.textContent = '※ 버튼 우클릭 시 상대에게 적용';
+    panel.appendChild(hint);
+
+    // ── 체력 / 스테미나 실시간 조작 ──
+    if (gameOn) {
+      const statHdr = document.createElement('div');
+      statHdr.style.cssText = 'color:#f88;font-family:Courier New,monospace;font-size:10px;letter-spacing:2px;text-align:center;margin-bottom:8px;';
+      statHdr.textContent = '── 수치 조작 ──';
+      panel.appendChild(statHdr);
+
+      const mkSlider = (label, color, getValue, getMax, onInput, peerCmd) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;justify-content:center;';
+        const lbl = document.createElement('span');
+        lbl.style.cssText = `font-family:Courier New,monospace;font-size:10px;color:${color};width:80px;text-align:right;`;
+        lbl.textContent = label;
+        const slider = document.createElement('input');
+        slider.type = 'range'; slider.min = 0; slider.max = Math.round(getMax());
+        slider.value = Math.round(getValue());
+        slider.style.cssText = 'width:160px;accent-color:'+color+';';
+        const valLbl = document.createElement('span');
+        valLbl.style.cssText = `font-family:Courier New,monospace;font-size:10px;color:${color};width:50px;`;
+        valLbl.textContent = Math.round(getValue()) + ' / ' + Math.round(getMax());
+        slider.oninput = () => { onInput(Number(slider.value)); valLbl.textContent = slider.value + ' / ' + Math.round(getMax()); };
+        // 우클릭 → 상대에게 적용
+        slider.oncontextmenu = (e) => {
+          e.preventDefault();
+          if (gameOn && typeof send === 'function' && peerCmd) {
+            send({type:'devCmd', cmd:peerCmd, val:Number(slider.value)});
+          }
+        };
+        slider.title = '우클릭: 상대에게 적용';
+        const _int = setInterval(() => {
+          if (!document.getElementById('dev-panel')) { clearInterval(_int); return; }
+          slider.max = Math.round(getMax());
+          slider.value = Math.round(getValue());
+          valLbl.textContent = Math.round(getValue()) + ' / ' + Math.round(getMax());
+        }, 100);
+        row.appendChild(lbl); row.appendChild(slider); row.appendChild(valLbl);
+        return row;
+      };
+
+      panel.appendChild(mkSlider('♥ 체력', '#f66',
+        () => L.health, () => L.maxHealth,
+        v => { L.health = Math.max(0, Math.min(L.maxHealth, v)); }, 'setHP'));
+      panel.appendChild(mkSlider('⚡ 스테미나', '#fa0',
+        () => L.stamina, () => L._augStamMax ?? STAM_MAX,
+        v => { L.stamina = Math.max(0, Math.min(L._augStamMax ?? STAM_MAX, v)); }, 'setST'));
+    }
 
     // ── 캐릭터 변경 ──
     const charHdr = document.createElement('div');
