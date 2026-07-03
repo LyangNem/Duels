@@ -1827,31 +1827,32 @@ const BALANCE = {
       cost:        30,
       damage:      10,
       finalDamage: 15,
-      meleeRange:  240,
+      meleeRange:  160,
       halfAngle:   0.85,
       teleRange:   150,
       teleWindow:  750,
       teleCost:    20,
       hitInterval: 170,
+      lmbHealRatio: 0.15,
       cd:          750,
     },
     rmb: {
       cost:            50,
-      aoeRange:        552,
-      summonDist:      180,   // 마우스 방향으로 소환 거리
-      damageDelay:     300,   // 선딜레이 0.3초
+      aoeRange:        386,   // 552 * 0.7
+      summonDist:      180,
+      damageDelay:     500,   // 선딜레이 0.5초
       damage:          80,
-      activateDelay:   500,   // 0.5초 선딜
-      healRatio:       0.30,
+      activateDelay:   500,
+      healRatio:       0.15,
       teleRange:       280,
       cd:              1200,
     },
     counter: {
       range:        180,
       width:        70,
-      damage:       22,
+      damage:       25,
       teleBackDist: 220,
-      healRatio:    0.30,
+      healRatio:    0.15,
       knockbackPower: 420,
       cd:           500,
     },
@@ -9428,8 +9429,9 @@ const SKILLS = {
           hitCtxSpirit({x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle}, dmg);
           if (isFinal && hit) {
             L._kiFinalHit = performance.now();
-            // 3타 적중 시 코인으로 체력 회복
-            const _lmbHeal = L.maxHealth * 0.05;
+            const _lmbHeal = L.maxHealth * B.lmbHealRatio;
+            const _stamHeal = (L._augStamMax ?? STAM_MAX) * 0.15;
+            L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + _stamHeal);
             addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_lmbHeal});
             send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:0}});
           } else if (isFinal) {
@@ -9499,10 +9501,11 @@ const SKILLS = {
       L.rmbCooldown = B.cd;
       L.lmbCooldown = 0; // 시전 즉시 평타 가능
       const kx = L._kiRmbX, ky = L._kiRmbY;
+      const _strikeStart = performance.now();
       addFx({type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
-             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)});
+             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS), startTime:_strikeStart, delayMs:B.damageDelay});
       send({type:'fx', fx:{type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
-             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)}});
+             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS), startTime:_strikeStart, delayMs:B.damageDelay}});
       setTimeout(() => {
         if (!gameOn) return;
         if (L._kiLmbToken !== myTok) return;
@@ -9528,10 +9531,11 @@ const SKILLS = {
       L.rmbCooldown = B.cd;
       L.lmbCooldown = 0;
       // kiStrike FX
+      const _strikeStart2 = performance.now();
       addFx({type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
-             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)});
+             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS), startTime:_strikeStart2, delayMs:B.damageDelay});
       send({type:'fx', fx:{type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
-             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)}});
+             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS), startTime:_strikeStart2, delayMs:B.damageDelay}});
       // 즉시 순간이동
       const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(angle)*B.teleRange));
       const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(angle)*B.teleRange));
@@ -9585,6 +9589,7 @@ const SKILLS = {
         // 적중 시에만 코인(체력 회복)
         if (_anyHit) {
           const _cHeal = L.maxHealth * B.healRatio;
+          L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + (L._augStamMax ?? STAM_MAX) * 0.15);
           addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:bx, ty:by, dur:20, maxDur:20, healAmt:_cHeal});
           send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:bx, ty:by, dur:20, maxDur:20, healAmt:0}});
         }
@@ -11461,11 +11466,11 @@ function draw() {
       ctx.fillStyle=`rgba(255,120,0,${a*0.22})`; ctx.fill();
       ctx.strokeStyle=`rgba(255,170,50,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
     } else if (f.type==='kiStrike') {
-      const _kt = 1 - f.dur/f.maxDur; // 0→1 진행도
+      const _kt = 1 - f.dur/f.maxDur;
       const _kr = f.r;
-      const _kOff = _kr * (1 - _kt); // 수렴 거리
+      const _kOff = _kr * (1 - _kt);
       ctx.save();
-      // X 모양 — 대각선 4방향, 굵기+길이+글로우
+      // X 모양 3중 레이어 글로우
       for (let i = 0; i < 4; i++) {
         const _ang = Math.PI/4 + i*Math.PI/2;
         const _len = _kr * 0.45;
@@ -11473,45 +11478,53 @@ function draw() {
         const _sy2 = f.y + Math.sin(_ang)*(_kOff + _len);
         const _ex2 = f.x + Math.cos(_ang)*Math.max(0, _kOff - _len*0.1);
         const _ey2 = f.y + Math.sin(_ang)*Math.max(0, _kOff - _len*0.1);
-        // 글로우 레이어
         ctx.beginPath(); ctx.moveTo(_sx2,_sy2); ctx.lineTo(_ex2,_ey2);
-        ctx.strokeStyle=`rgba(220,225,255,${a*0.35})`; ctx.lineWidth=9; ctx.stroke();
-        // 중간 레이어
+        ctx.strokeStyle=`rgba(220,225,255,${a*0.3})`; ctx.lineWidth=10; ctx.stroke();
         ctx.beginPath(); ctx.moveTo(_sx2,_sy2); ctx.lineTo(_ex2,_ey2);
-        ctx.strokeStyle=`rgba(195,201,222,${a*0.7})`; ctx.lineWidth=5; ctx.stroke();
-        // 코어
+        ctx.strokeStyle=`rgba(195,201,222,${a*0.75})`; ctx.lineWidth=5; ctx.stroke();
         ctx.beginPath(); ctx.moveTo(_sx2,_sy2); ctx.lineTo(_ex2,_ey2);
-        ctx.strokeStyle=`rgba(240,245,255,${a*0.95})`; ctx.lineWidth=2; ctx.stroke();
+        ctx.strokeStyle=`rgba(240,245,255,${a})`; ctx.lineWidth=2; ctx.stroke();
       }
-      // 수축 원 (점선)
+      // 회전하는 보조 X
+      const _rot = _kt * Math.PI * 0.5;
+      for (let i = 0; i < 4; i++) {
+        const _ang = _rot + i*Math.PI/2;
+        const _len2 = _kr * 0.25, _off2 = _kr * 0.3 * (1 - _kt);
+        ctx.beginPath();
+        ctx.moveTo(f.x+Math.cos(_ang)*(_off2+_len2), f.y+Math.sin(_ang)*(_off2+_len2));
+        ctx.lineTo(f.x+Math.cos(_ang)*_off2, f.y+Math.sin(_ang)*_off2);
+        ctx.strokeStyle=`rgba(200,210,255,${a*0.5})`; ctx.lineWidth=2; ctx.stroke();
+      }
+      // 수축 점선 원
       ctx.beginPath(); ctx.arc(f.x, f.y, _kr*(1-_kt*0.5), 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(195,201,222,${a*0.4})`; ctx.lineWidth=1.5;
+      ctx.strokeStyle=`rgba(195,201,222,${a*0.35})`; ctx.lineWidth=1.5;
       ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
-      // 중심 플래시 (막바지에 빛남)
-      if (_kt > 0.7) {
-        const _flashA = (_kt - 0.7) / 0.3;
-        ctx.beginPath(); ctx.arc(f.x, f.y, _kr*0.25*_flashA, 0, Math.PI*2);
-        ctx.fillStyle=`rgba(220,230,255,${a*_flashA*0.7})`; ctx.fill();
+      // 중심 플래시
+      if (_kt > 0.6) {
+        const _fa = (_kt-0.6)/0.4;
+        const _grd2 = ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,_kr*0.4*_fa);
+        _grd2.addColorStop(0, `rgba(240,245,255,${a*_fa*0.8})`);
+        _grd2.addColorStop(1, `rgba(195,201,222,0)`);
+        ctx.beginPath(); ctx.arc(f.x,f.y,_kr*0.4*_fa,0,Math.PI*2);
+        ctx.fillStyle=_grd2; ctx.fill();
       }
       ctx.restore();
-      // 코인: 레비나 창 스타일 응용 — 황금 원+C, 포물선 비행, 투명도 고정
-      const _t = 1 - f.dur/f.maxDur;
-      const _cx = f.sx + (f.tx - f.sx)*_t;
-      const _cy = f.sy + (f.ty - f.sy)*_t - Math.sin(_t*Math.PI)*60;
-      const _coinR = 14;
-      const _pulse = 0.7 + 0.3*Math.sin(performance.now()*0.02);
-      ctx.save();
-      ctx.beginPath(); ctx.arc(_cx, _cy, _coinR+6, 0, Math.PI*2);
-      ctx.fillStyle=`rgba(255,200,0,${0.18*_pulse})`; ctx.fill();
-      ctx.beginPath(); ctx.arc(_cx, _cy, _coinR, 0, Math.PI*2);
-      ctx.fillStyle=`rgba(200,150,0,0.35)`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,215,0,${_pulse})`; ctx.lineWidth=3.5; ctx.stroke();
-      ctx.fillStyle=`rgba(255,240,100,0.95)`;
-      ctx.font=`bold ${Math.round(_coinR*1.4)}px serif`;
-      ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText('C', _cx, _cy);
-      ctx.textBaseline='alphabetic';
-      ctx.restore();
+      // 부채꼴 게이지 (상대방 화면에서만, receivedAt 기준)
+      if (L.charDef?.id !== 'ki') {
+        const _gElapsed = f._receivedAt ? (performance.now()-f._receivedAt) : ((f.maxDur-f.dur)*FRAME_MS);
+        const _gTotal = f.delayMs || (f.maxDur*FRAME_MS);
+        const _gr = Math.min(1, _gElapsed/_gTotal);
+        if (_gr > 0) {
+          const _sA=-Math.PI/2, _eA=_sA+Math.PI*2*_gr;
+          ctx.save(); ctx.setLineDash([]);
+          ctx.beginPath(); ctx.moveTo(f.x,f.y);
+          ctx.arc(f.x,f.y,f.r,_sA,_eA); ctx.closePath();
+          ctx.fillStyle=`rgba(220,225,255,0.18)`; ctx.fill();
+          ctx.beginPath(); ctx.arc(f.x,f.y,f.r,_sA,_eA);
+          ctx.strokeStyle=`rgba(220,225,255,0.8)`; ctx.lineWidth=3.5; ctx.stroke();
+          ctx.restore();
+        }
+      }
     } else if (f.type==='kiCoin') {
       // 코인: 황금 원+C, 포물선 비행, 투명도 고정
       const _t = 1 - f.dur/f.maxDur;
@@ -15175,6 +15188,7 @@ function loop() {
       if (Math.hypot(R.x-L._kiRmbX, R.y-L._kiRmbY) < BALANCE.ki.rmb.aoeRange + R.radius) {
         L._kiDodgeRecovered = true;
         const _healAmt = L.maxHealth * BALANCE.ki.rmb.healRatio;
+        L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + (L._augStamMax ?? STAM_MAX) * 0.15);
         addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_healAmt});
         // 상대 화면: R=키(출발), L=상대(도착) → 동일 좌표로 전송
         send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:0}});
@@ -15188,6 +15202,7 @@ function loop() {
       if (Math.hypot(R.x-L._kiRmbX, R.y-L._kiRmbY) < BALANCE.ki.rmb.aoeRange + R.radius) {
         L._kiAfterTeleDodge = true;
         const _healAmt2 = L.maxHealth * BALANCE.ki.rmb.healRatio;
+        L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + (L._augStamMax ?? STAM_MAX) * 0.15);
         addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_healAmt2});
         send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:0}});
       }
