@@ -284,7 +284,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.34.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.34.2</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1827,7 +1827,7 @@ const BALANCE = {
       cost:        30,
       damage:      10,
       finalDamage: 15,
-      meleeRange:  160,
+      meleeRange:  240,
       halfAngle:   0.85,
       teleRange:   150,
       teleWindow:  750,
@@ -1837,20 +1837,21 @@ const BALANCE = {
     },
     rmb: {
       cost:            50,
-      aoeRange:        552,   // 460 * 1.2
-      damageDelay:     500,
-      damage:          35,
-      activateDelay:   1000,
-      healRatio:       0.10,  // 최대 체력의 10% 회복
+      aoeRange:        552,
+      summonDist:      180,   // 마우스 방향으로 소환 거리
+      damageDelay:     300,   // 선딜레이 0.3초
+      damage:          80,
+      activateDelay:   500,   // 0.5초 선딜
+      healRatio:       0.30,
       teleRange:       280,
       cd:              1200,
     },
     counter: {
-      range:        120,
+      range:        180,
       width:        70,
       damage:       22,
       teleBackDist: 220,
-      healRatio:    0.10,  // 최대 체력의 10% 회복
+      healRatio:    0.30,
       knockbackPower: 420,
       cd:           500,
     },
@@ -2534,14 +2535,14 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     speed:     BALANCE.ki.speed,
     radius:    BALANCE.ki.radius,
     statsText: [['체력', String(BALANCE.ki.hp)],['이동속도','빠름'],['스타일','기만형 근거리 딜러']],
-    desc:      '전설적인 도둑으로, 상대를 속이며 플레이하는 캐릭터',
+    desc:      '전설적인 도둑. 예고 후 기습하고 빠르게 이탈하며 상대의 허를 찌르는 캐릭터.',
     skills: [
       { key:'LMB',     name:'손기술',   cost:BALANCE.ki.lmb.cost,
-        desc:`근거리 3연타. 마지막 타격 적중 시 ${BALANCE.ki.lmb.teleWindow/1000}초 내 재입력으로 해당 방향 순간이동 (${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.finalDamage})` },
+        desc:`3연타 근거리 공격. 마지막 타격 적중 시 ${BALANCE.ki.lmb.teleWindow/1000}초 내 재입력으로 해당 방향 순간이동 (${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.finalDamage})` },
       { key:'RMB',     name:'예고장',   cost:BALANCE.ki.rmb.cost,
-        desc:`광역 공격 예고 표시 생성. LMB: ${BALANCE.ki.rmb.damageDelay/1000}초 후 범위 내 피해. RMB: 지정 방향 순간이동 후 표시 소멸. 범위 내 일반 회피 시 최대체력 ${Math.round(BALANCE.ki.rmb.healRatio*100)}% 회복 (${BALANCE.ki.rmb.damage})` },
+        desc:`마우스 방향 앞에 광역 예고 표시 생성 (${BALANCE.ki.rmb.activateDelay/1000}초 후 재입력 가능). LMB: ${BALANCE.ki.rmb.damageDelay/1000}초 선딜 후 범위 내 광역 피해. RMB: ${BALANCE.ki.rmb.damageDelay/1000}초 선딜 후 지정 방향 순간이동 및 표시 소멸. 표시 중 상대 일반 회피 시 최대체력 ${Math.round(BALANCE.ki.rmb.healRatio*100)}% 회복 (${BALANCE.ki.rmb.damage})` },
       { key:'L-Shift', name:'특수탈취', cost:0,
-        desc:`전방 일자 범위 피해 후 뒤로 순간이동, 최대체력 ${Math.round(BALANCE.ki.counter.healRatio*100)}% 회복 (${BALANCE.ki.counter.damage})` },
+        desc:`전방 일자 범위 공격 후 뒤로 순간이동. 적중 시 코인을 탈취해 최대체력 ${Math.round(BALANCE.ki.counter.healRatio*100)}% 회복 (${BALANCE.ki.counter.damage})` },
     ],
   },
 };
@@ -9425,7 +9426,15 @@ const SKILLS = {
           const dmg = isFinal ? B.finalDamage : B.damage;
           const hit = hitCtx({x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle}, dmg);
           hitCtxSpirit({x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle}, dmg);
-          if (isFinal && hit) L._kiFinalHit = performance.now();
+          if (isFinal && hit) {
+            L._kiFinalHit = performance.now();
+            // 3타 적중 시 코인으로 체력 회복
+            const _lmbHeal = L.maxHealth * 0.05;
+            addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_lmbHeal});
+            send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:0}});
+          } else if (isFinal) {
+            L._kiFinalHit = performance.now();
+          }
           const col = isFinal ? '255,165,0' : '195,201,222';
           const _swingRange = _range;
           addFx({type:'swing', x:L.x, y:L.y, angle:_curAngle, range:_swingRange, halfAngle:B.halfAngle, dur:12, maxDur:12, col});
@@ -9445,13 +9454,16 @@ const SKILLS = {
       if (L.rmbCooldown > 0 || L._kiRmbActive) return;
       if (!useStam(B.cost)) return;
       L._kiRmbActive = true;
-      L._kiRmbX = L.x; L._kiRmbY = L.y;
+      // 마우스 방향으로 summonDist 앞에 소환
+      const _sx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(angle)*B.summonDist));
+      const _sy = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(angle)*B.summonDist));
+      L._kiRmbX = _sx; L._kiRmbY = _sy;
       L._kiRmbReady = false;
       L._kiDodgeRecovered = false;
       L._kiRmbFadeEnd = 0;
-      L._kiRmbLmbStart = 0; // 이전 LMB/RMB 발동 게이지 초기화
+      L._kiRmbLmbStart = 0;
       const _myStart = performance.now();
-      L._kiRmbStart = _myStart; // 이 발동의 고유 타임스탬프
+      L._kiRmbStart = _myStart;
       setTimeout(() => {
         if (L._kiRmbActive && L._kiRmbStart === _myStart) {
           L._kiRmbReady = true;
@@ -9468,8 +9480,8 @@ const SKILLS = {
       const _warnDur = Math.round((B.activateDelay + 2000) / FRAME_MS); // 선딜 1초 + 3초 타이머 2초
       const _activateDur = Math.round(B.activateDelay/FRAME_MS);
       const _startTime = performance.now();
-      addFx({type:'kiWarning', x:L.x, y:L.y, r:B.aoeRange, dur:_warnDur, maxDur:_warnDur, activateDur:_activateDur, startTime:_startTime, activateMs:B.activateDelay});
-      send({type:'fx', fx:{type:'kiWarning', x:L.x, y:L.y, r:B.aoeRange, dur:_warnDur, maxDur:_warnDur, activateDur:_activateDur, startTime:_startTime, activateMs:B.activateDelay}});
+      addFx({type:'kiWarning', x:_sx, y:_sy, r:B.aoeRange, dur:_warnDur, maxDur:_warnDur, activateDur:_activateDur, startTime:_startTime, activateMs:B.activateDelay});
+      send({type:'fx', fx:{type:'kiWarning', x:_sx, y:_sy, r:B.aoeRange, dur:_warnDur, maxDur:_warnDur, activateDur:_activateDur, startTime:_startTime, activateMs:B.activateDelay}});
       L.rmbCooldown = B.activateDelay;
       L.lastAttackTime = performance.now();
     },
@@ -9506,34 +9518,32 @@ const SKILLS = {
       }, B.damageDelay);
     },
 
-    // 예고장 중 RMB 재입력 → kiStrike FX + 순간이동 + 범위 0.5초 유지
+    // 예고장 중 RMB 재입력 → kiStrike FX + 즉시 순간이동
     rmbRmb(angle) {
       const B = BALANCE.ki.rmb;
       if (!L._kiRmbActive || !L._kiRmbReady) return;
       const kx = L._kiRmbX, ky = L._kiRmbY;
       ++L._counterToken;
-      L._kiRmbStart = 0; // 3초 타이머 무효화
+      L._kiRmbStart = 0;
       L.rmbCooldown = B.cd;
-      L.lmbCooldown = 0; // 시전 즉시 평타 가능
+      L.lmbCooldown = 0;
       // kiStrike FX
       addFx({type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
              dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)});
       send({type:'fx', fx:{type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
              dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)}});
-      // 순간이동 출발 FX
+      // 즉시 순간이동
       const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(angle)*B.teleRange));
       const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(angle)*B.teleRange));
       addFx({type:'phaseJump', x:L.x, y:L.y, tx, ty, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'});
       send({type:'fx', fx:{type:'phaseJump', x:L.x, y:L.y, tx, ty, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'}});
       L.x = tx; L.y = ty; resolveWall(L);
-      // 도착지 FX
       addFx({type:'dodge', x:tx, y:ty, radius:L.radius+10, dur:10, maxDur:10});
       send({type:'fx', fx:{type:'dodge', x:tx, y:ty, radius:L.radius+10, dur:10, maxDur:10}});
-      // 활성 종료 + 0.5초 동안 범위 표시 + 회피 감지 유지
       L._kiRmbActive = false;
       L._kiRmbReady = false;
       L._kiRmbFadeEnd = performance.now() + 500;
-      L._kiRmbLmbStart = performance.now(); // 페이드 중 게이지 표시용
+      L._kiRmbLmbStart = performance.now();
       L._kiAfterTeleDodge = false;
       L.lastAttackTime = performance.now();
     },
@@ -9556,11 +9566,14 @@ const SKILLS = {
         const cos2 = Math.cos(fa), sin2 = Math.sin(fa);
         const dx2 = R.x - L.x, dy2 = R.y - L.y;
         const lx2 = dx2*cos2 + dy2*sin2, ly2 = dx2*(-sin2) + dy2*cos2;
-        if (lx2 > -R.radius && lx2 < augMeleeRange(B.range) + R.radius && Math.abs(ly2) < B.width + R.radius) {
+        const _inRange = augMeleeRange(B.range) + R.radius;
+        const _hit = lx2 > -R.radius && lx2 < _inRange && Math.abs(ly2) < B.width + R.radius;
+        const _spiritHit = hitCtxSpirit({x:L.x, y:L.y, cos:cos2, sin:sin2, len:augMeleeRange(B.range), width:B.width}, B.damage);
+        const _anyHit = _hit || _spiritHit;
+        if (_hit) {
           hitCtxAll({x:L.x, y:L.y, cos:cos2, sin:sin2, len:augMeleeRange(B.range), width:B.width}, B.damage);
           knockbackRemote(B.knockbackPower);
         }
-        hitCtxSpirit({x:L.x, y:L.y, cos:cos2, sin:sin2, len:augMeleeRange(B.range), width:B.width}, B.damage);
         addFx({type:'kiSlash', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), width:B.width, dur:16, maxDur:16});
         send({type:'fx', fx:{type:'kiSlash', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), width:B.width, dur:16, maxDur:16}});
         // 뒤로 순간이동
@@ -9569,10 +9582,12 @@ const SKILLS = {
         addFx({type:'phaseJump', x:L.x, y:L.y, tx:bx, ty:by, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'});
         send({type:'fx', fx:{type:'phaseJump', x:L.x, y:L.y, tx:bx, ty:by, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'}});
         L.x = bx; L.y = by; resolveWall(L);
-        // 코인이 상대에서 날아온 후 체력 회복
-        const _cHeal = L.maxHealth * B.healRatio;
-        addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_cHeal});
-        send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:bx, ty:by, dur:20, maxDur:20, healAmt:0}});
+        // 적중 시에만 코인(체력 회복)
+        if (_anyHit) {
+          const _cHeal = L.maxHealth * B.healRatio;
+          addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:bx, ty:by, dur:20, maxDur:20, healAmt:_cHeal});
+          send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:bx, ty:by, dur:20, maxDur:20, healAmt:0}});
+        }
         L.lastAttackTime = performance.now();
       }, BALANCE.counter.delay);
     },
@@ -11445,7 +11460,40 @@ function draw() {
       ctx.closePath();
       ctx.fillStyle=`rgba(255,120,0,${a*0.22})`; ctx.fill();
       ctx.strokeStyle=`rgba(255,170,50,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
-    } else if (f.type==='kiCoin') {
+    } else if (f.type==='kiStrike') {
+      const _kt = 1 - f.dur/f.maxDur; // 0→1 진행도
+      const _kr = f.r;
+      const _kOff = _kr * (1 - _kt); // 수렴 거리
+      ctx.save();
+      // X 모양 — 대각선 4방향, 굵기+길이+글로우
+      for (let i = 0; i < 4; i++) {
+        const _ang = Math.PI/4 + i*Math.PI/2;
+        const _len = _kr * 0.45;
+        const _sx2 = f.x + Math.cos(_ang)*(_kOff + _len);
+        const _sy2 = f.y + Math.sin(_ang)*(_kOff + _len);
+        const _ex2 = f.x + Math.cos(_ang)*Math.max(0, _kOff - _len*0.1);
+        const _ey2 = f.y + Math.sin(_ang)*Math.max(0, _kOff - _len*0.1);
+        // 글로우 레이어
+        ctx.beginPath(); ctx.moveTo(_sx2,_sy2); ctx.lineTo(_ex2,_ey2);
+        ctx.strokeStyle=`rgba(220,225,255,${a*0.35})`; ctx.lineWidth=9; ctx.stroke();
+        // 중간 레이어
+        ctx.beginPath(); ctx.moveTo(_sx2,_sy2); ctx.lineTo(_ex2,_ey2);
+        ctx.strokeStyle=`rgba(195,201,222,${a*0.7})`; ctx.lineWidth=5; ctx.stroke();
+        // 코어
+        ctx.beginPath(); ctx.moveTo(_sx2,_sy2); ctx.lineTo(_ex2,_ey2);
+        ctx.strokeStyle=`rgba(240,245,255,${a*0.95})`; ctx.lineWidth=2; ctx.stroke();
+      }
+      // 수축 원 (점선)
+      ctx.beginPath(); ctx.arc(f.x, f.y, _kr*(1-_kt*0.5), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(195,201,222,${a*0.4})`; ctx.lineWidth=1.5;
+      ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+      // 중심 플래시 (막바지에 빛남)
+      if (_kt > 0.7) {
+        const _flashA = (_kt - 0.7) / 0.3;
+        ctx.beginPath(); ctx.arc(f.x, f.y, _kr*0.25*_flashA, 0, Math.PI*2);
+        ctx.fillStyle=`rgba(220,230,255,${a*_flashA*0.7})`; ctx.fill();
+      }
+      ctx.restore();
       // 코인: 레비나 창 스타일 응용 — 황금 원+C, 포물선 비행, 투명도 고정
       const _t = 1 - f.dur/f.maxDur;
       const _cx = f.sx + (f.tx - f.sx)*_t;
@@ -11464,16 +11512,39 @@ function draw() {
       ctx.fillText('C', _cx, _cy);
       ctx.textBaseline='alphabetic';
       ctx.restore();
+    } else if (f.type==='kiCoin') {
+      // 코인: 황금 원+C, 포물선 비행, 투명도 고정
+      const _t = 1 - f.dur/f.maxDur;
+      const _cx = f.sx + (f.tx - f.sx)*_t;
+      const _cy = f.sy + (f.ty - f.sy)*_t - Math.sin(_t*Math.PI)*60;
+      const _coinR = 14;
+      const _pulse = 0.7 + 0.3*Math.sin(performance.now()*0.02);
+      ctx.save();
+      ctx.beginPath(); ctx.arc(_cx, _cy, _coinR+6, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(255,200,0,${0.18*_pulse})`; ctx.fill();
+      ctx.beginPath(); ctx.arc(_cx, _cy, _coinR, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(200,150,0,0.35)`; ctx.fill();
+      ctx.strokeStyle=`rgba(255,215,0,${_pulse})`; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.fillStyle=`rgba(255,240,100,0.95)`;
+      ctx.font=`bold ${Math.round(_coinR*1.4)}px serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('C', _cx, _cy);
+      ctx.textBaseline='alphabetic';
+      ctx.restore();
     } else if (f.type==='kiWarning') {
-      // 키 예고장 경고 원
-      const _kp = 0.5 + 0.5*Math.sin(performance.now()*0.01);
-      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
-      ctx.fillStyle=`rgba(195,201,222,${a*0.07})`; ctx.fill();
-      ctx.strokeStyle=`rgba(195,201,222,${a*(0.45+0.25*_kp)})`; ctx.lineWidth=2.5;
-      ctx.setLineDash([8,6]); ctx.stroke(); ctx.setLineDash([]);
-      ctx.strokeStyle=`rgba(220,225,240,${a*0.35})`; ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.moveTo(f.x-10,f.y); ctx.lineTo(f.x+10,f.y); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(f.x,f.y-10); ctx.lineTo(f.x,f.y+10); ctx.stroke();
+      // 키 예고장 경고 원 — 내 화면(키)에선 실시간 렌더러가 담당, 상대 화면에서만 FX로 표시
+      if (L.charDef?.id !== 'ki') {
+        const _kp = 0.5 + 0.5*Math.sin(performance.now()*0.01);
+        const _isReady = f.dur <= (f.maxDur - f.activateDur);
+        const _ka = _isReady ? (0.6+0.25*_kp) : (0.2+0.1*_kp);
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+        ctx.fillStyle=`rgba(195,201,222,${_ka*0.08})`; ctx.fill();
+        ctx.strokeStyle=`rgba(195,201,222,${_ka*(0.45+0.25*_kp)})`; ctx.lineWidth=2.5;
+        ctx.setLineDash([8,6]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle=`rgba(220,225,240,${_ka*0.35})`; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.moveTo(f.x-10,f.y); ctx.lineTo(f.x+10,f.y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(f.x,f.y-10); ctx.lineTo(f.x,f.y+10); ctx.stroke();
+      }
       // 선딜레이 구간 동안 부채꼴 게이지 (상대방 화면에서만)
       if (f.activateDur && f.dur > (f.maxDur - f.activateDur) && L.charDef?.id !== 'ki') {
         // 수신 시점(_receivedAt) 기준으로 경과 시간 계산 (startTime은 다른 클라이언트 기준이라 사용 불가)
@@ -12389,6 +12460,21 @@ function draw() {
     });
   }
 
+
+  // 키 예고장 소환 거리 표시 (선딜레이 중에만)
+  if (gameOn && L.charDef?.id==='ki' && L._kiRmbActive && !L._kiRmbReady) {
+    const _px = L._kiRmbX, _py = L._kiRmbY;
+    ctx.save();
+    // 캐릭터 → 소환 위치 점선
+    ctx.beginPath(); ctx.moveTo(L.x, L.y); ctx.lineTo(_px, _py);
+    ctx.strokeStyle='rgba(195,201,222,0.35)'; ctx.lineWidth=1.5;
+    ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+    // 소환 위치 원형 표시
+    ctx.beginPath(); ctx.arc(_px, _py, 10, 0, Math.PI*2);
+    ctx.strokeStyle='rgba(195,201,222,0.4)'; ctx.lineWidth=1.5;
+    ctx.setLineDash([3,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.restore();
+  }
 
   // 키 순간이동 가능 상태 — 플레이어 주변 호 게이지 (남은 시간 비례)
   if (gameOn && L.charDef?.id==='ki' && L._kiFinalHit) {
@@ -16161,7 +16247,6 @@ document.addEventListener('keydown', (e) => {
         b.oncontextmenu = (e) => {
           e.preventDefault();
           if (gameOn && typeof send === 'function') {
-            send({type:'devAlert'}); // 상대 개발자모드 알림
             send({type:'devCmd', cmd:devCmd, val:devVal});
           }
         };
@@ -16263,5 +16348,10 @@ document.addEventListener('keydown', (e) => {
 
 
 </script>
+
+<!-- ══════════════════════════════════════════════════
+     UI 커스터마이즈 — body 최하단에 두어 항상 최상위 렌더링
+     ══════════════════════════════════════════════════ -->
+       
 </body>
 </html>
