@@ -284,7 +284,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.33.6</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.34.0</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1819,6 +1819,44 @@ const BALANCE = {
   },
 
 
+  ki: {
+    hp:     120,
+    speed:  4.25,
+    radius: 20,
+    lmb: {
+      cost:        15,
+      damage:      5,
+      finalDamage: 15,
+      meleeRange:  160,
+      halfAngle:   0.85,
+      teleRange:   150,
+      teleWindow:  750,
+      teleCost:    20,
+      hitInterval: 170,
+      cd:          750,
+    },
+    rmb: {
+      cost:             60,
+      aoeRange:         460,
+      damageDelay:      500,
+      damage:           35,
+      activateDelay:    1000,
+      stamRecoverRatio: 0.30,
+      teleRange:        280,
+      cd:               1200,
+    },
+    counter: {
+      range:            120,
+      width:            70,
+      damage:           22,
+      teleBackDist:     220,
+      stamRecoverRatio: 0.30,
+      knockbackPower:   420,
+      cd:               500,
+    },
+  },
+
+
   levina: {
     hp:     100,
     speed:  4.5,
@@ -2485,6 +2523,25 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
         desc:`창을 던지며, 창이 더 빠르게 이동하며 벽 관통. 해당 경로에서 ${BALANCE.levina.rmb.rmbBonusDamage} 추가 피해 및 넉백`, wpCost:BALANCE.levina.rmb.wpCost },
       { key:'L-Shift', name:'영혼의 계약',   cost:0,
         desc:`주변 피해 후 창 위치로 순간이동, 도착지 추가 피해 (${BALANCE.levina.counter.damage})` },
+    ],
+  },
+
+  ki: {
+    id:        'ki',
+    name:      '키',
+    color:     '#c3c9de',
+    maxHealth: BALANCE.ki.hp,
+    speed:     BALANCE.ki.speed,
+    radius:    BALANCE.ki.radius,
+    statsText: [['체력', String(BALANCE.ki.hp)],['이동속도','빠름'],['스타일','기만형 근거리 딜러']],
+    desc:      '전설적인 도둑으로, 상대를 속이며 플레이하는 캐릭터',
+    skills: [
+      { key:'LMB',     name:'손기술',   cost:BALANCE.ki.lmb.cost,
+        desc:`근거리 3연타. 마지막 타격 적중 시 ${BALANCE.ki.lmb.teleWindow/1000}초 내 재입력으로 해당 방향 순간이동 (${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.finalDamage})` },
+      { key:'RMB',     name:'예고장',   cost:BALANCE.ki.rmb.cost,
+        desc:`광역 공격 예고 표시 생성. LMB: ${BALANCE.ki.rmb.damageDelay/1000}초 후 범위 내 피해. RMB: 지정 방향 순간이동 후 표시 소멸. 범위 내 상대가 저스트 회피가 아닌 회피 사용 시 스테미나 ${Math.round(BALANCE.ki.rmb.stamRecoverRatio*100)}% 회복 (${BALANCE.ki.rmb.damage})` },
+      { key:'L-Shift', name:'특수탈취', cost:0,
+        desc:`전방 일자 범위 피해 후 뒤로 순간이동, 스테미나 ${Math.round(BALANCE.ki.counter.stamRecoverRatio*100)}% 회복 (${BALANCE.ki.counter.damage})` },
     ],
   },
 };
@@ -3248,7 +3305,7 @@ function onData(d) {
     case 'matchOver':
       showMatchOver(false); break; // 내가 졌을 때 받음
     case 'fx':
-      addFx({...d.fx}); break;
+      addFx({...d.fx, _receivedAt: performance.now()}); break;
     case 'devAlert':
       alert('상대방이 개발자 모드에 진입했습니다.'); break;
     case 'roonSlush': // 빙수 게이지 수신
@@ -3936,6 +3993,11 @@ function tickStamina(now, physDt) {
   }
   // 나남낭 RMB 선딜레이 중 스테미나 회복 차단
   if (L.charDef?.id==='nanamnang' && L._nanRmbActive) {
+    L.staminaUseTime = now;
+    return;
+  }
+  // 키 예고장 활성 중 스테미나 회복 차단
+  if (L.charDef?.id==='ki' && L._kiRmbActive) {
     L.staminaUseTime = now;
     return;
   }
@@ -9315,6 +9377,188 @@ const SKILLS = {
     },
   },
 
+  // ── 키 ──────────────────────────────────────────────────────
+  ki: {
+    lmb(angle) {
+      const B = BALANCE.ki.lmb;
+      if (L._kiRmbActive) return; // 예고장 중 평타 불가
+      // 마지막 타격 후 순간이동 재입력 윈도우 (쿨타임 무시)
+      if (L._kiFinalHit && performance.now() - L._kiFinalHit < B.teleWindow) {
+        if (!useStam(B.teleCost)) return; // 스테미나 소모
+        L._kiFinalHit = 0;
+        ++L._counterToken; // 진행 중인 3연타 취소
+        L.lmbCooldown = B.cd; // 순간이동 후 바로 평타 못 쓰게
+        const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(angle)*B.teleRange));
+        const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(angle)*B.teleRange));
+        addFx({type:'phaseJump', x:L.x, y:L.y, tx, ty, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'});
+        send({type:'fx', fx:{type:'phaseJump', x:L.x, y:L.y, tx, ty, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'}});
+        L.x = tx; L.y = ty; resolveWall(L);
+        return;
+      }
+      if (L.lmbCooldown > 0) return;
+      L._kiFinalHit = 0;
+      if (!useStam(B.cost)) return;
+
+      // 평타 한 번에 3연타 순차 발동 (각 타격 시점의 마우스 방향 사용)
+      const _range = augMeleeRange(B.meleeRange);
+      const _delays = [0, B.hitInterval, B.hitInterval * 2];
+      const _tok = ++L._counterToken;
+
+      _delays.forEach((delay, i) => {
+        const isFinal = i === 2;
+        setTimeout(() => {
+          if (!gameOn || L._counterToken !== _tok) return;
+          const _curAngle = getAngle(); // 타격 시점 방향
+          const dmg = isFinal ? B.finalDamage : B.damage;
+          const hit = hitCtx({x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle}, dmg);
+          hitCtxSpirit({x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle}, dmg);
+          if (isFinal && hit) L._kiFinalHit = performance.now();
+          const col = isFinal ? '180,190,230' : '195,201,222';
+          addFx({type:'swing', x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle, dur:10, maxDur:10, col});
+          send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle, dur:10, maxDur:10, col}});
+          if (isFinal) L.lastAttackTime = performance.now();
+        }, delay);
+      });
+
+      L.lmbCooldown = B.cd;
+      L.lastAttackTime = performance.now();
+    },
+
+    rmb(angle) {
+      const B = BALANCE.ki.rmb;
+      if (L.rmbCooldown > 0 || L._kiRmbActive) return;
+      if (!useStam(B.cost)) return;
+      L._kiRmbActive = true;
+      L._kiRmbX = L.x; L._kiRmbY = L.y;
+      L._kiRmbReady = false;
+      L._kiDodgeRecovered = false;
+      L._kiRmbFadeEnd = 0;
+      L._kiRmbLmbStart = 0; // 이전 LMB/RMB 발동 게이지 초기화
+      const _myStart = performance.now();
+      L._kiRmbStart = _myStart; // 이 발동의 고유 타임스탬프
+      setTimeout(() => {
+        if (L._kiRmbActive && L._kiRmbStart === _myStart) {
+          L._kiRmbReady = true;
+          L._kiRmbReadyAt = performance.now();
+        }
+      }, B.activateDelay);
+      // 선딜 1초 + 2초 = 총 3초 후 자동 소멸
+      setTimeout(() => {
+        if (gameOn && L._kiRmbActive && L._kiRmbStart === _myStart) {
+          L._kiRmbActive = false;
+          L._kiRmbReady = false;
+        }
+      }, B.activateDelay + 2000);
+      const _warnDur = Math.round((B.activateDelay + 2000) / FRAME_MS); // 선딜 1초 + 3초 타이머 2초
+      const _activateDur = Math.round(B.activateDelay/FRAME_MS);
+      const _startTime = performance.now();
+      addFx({type:'kiWarning', x:L.x, y:L.y, r:B.aoeRange, dur:_warnDur, maxDur:_warnDur, activateDur:_activateDur, startTime:_startTime, activateMs:B.activateDelay});
+      send({type:'fx', fx:{type:'kiWarning', x:L.x, y:L.y, r:B.aoeRange, dur:_warnDur, maxDur:_warnDur, activateDur:_activateDur, startTime:_startTime, activateMs:B.activateDelay}});
+      L.rmbCooldown = B.activateDelay;
+      L.lastAttackTime = performance.now();
+    },
+
+    // 예고장 중 LMB 재입력 → 선딜 후 피해
+    rmbLmb() {
+      const B = BALANCE.ki.rmb;
+      if (!L._kiRmbActive || !L._kiRmbReady) return;
+      // 전용 토큰 — _counterToken과 무관하게 이 발동만 추적
+      L._kiLmbToken = (L._kiLmbToken||0) + 1;
+      const myTok = L._kiLmbToken;
+      L._kiRmbReady = false;
+      L._kiRmbStart = 0; // 3초 타이머 무효화
+      L._kiRmbLmbStart = performance.now(); // 선딜 게이지용
+      L.rmbCooldown = B.cd;
+      const kx = L._kiRmbX, ky = L._kiRmbY;
+      addFx({type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
+             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)});
+      send({type:'fx', fx:{type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
+             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)}});
+      setTimeout(() => {
+        if (!gameOn) return;
+        if (L._kiLmbToken !== myTok) return;
+        // _kiRmbStart가 0이 아니면 새 예고장이 생성된 것 → 종료하지 않음
+        if (L._kiRmbStart !== 0) return;
+        L._kiRmbActive = false;
+        L._kiRmbLmbStart = 0;
+        if (hitCtxAll({x:kx, y:ky, range:B.aoeRange}, B.damage)) {
+          addFx({type:'smash', x:kx, y:ky, r:0, maxR:B.aoeRange, dur:18, maxDur:18, col:'195,201,222'});
+          send({type:'fx', fx:{type:'smash', x:kx, y:ky, r:0, maxR:B.aoeRange, dur:18, maxDur:18, col:'195,201,222'}});
+        }
+        L.lastAttackTime = performance.now();
+      }, B.damageDelay);
+    },
+
+    // 예고장 중 RMB 재입력 → kiStrike FX + 순간이동 + 범위 0.5초 유지
+    rmbRmb(angle) {
+      const B = BALANCE.ki.rmb;
+      if (!L._kiRmbActive || !L._kiRmbReady) return;
+      const kx = L._kiRmbX, ky = L._kiRmbY;
+      ++L._counterToken;
+      L._kiRmbStart = 0; // 3초 타이머 무효화
+      L.rmbCooldown = B.cd;
+      // kiStrike FX
+      addFx({type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
+             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)});
+      send({type:'fx', fx:{type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
+             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS)}});
+      // 순간이동 출발 FX
+      const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(angle)*B.teleRange));
+      const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(angle)*B.teleRange));
+      addFx({type:'phaseJump', x:L.x, y:L.y, tx, ty, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'});
+      send({type:'fx', fx:{type:'phaseJump', x:L.x, y:L.y, tx, ty, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'}});
+      L.x = tx; L.y = ty; resolveWall(L);
+      // 도착지 FX
+      addFx({type:'dodge', x:tx, y:ty, radius:L.radius+10, dur:10, maxDur:10});
+      send({type:'fx', fx:{type:'dodge', x:tx, y:ty, radius:L.radius+10, dur:10, maxDur:10}});
+      // 활성 종료 + 0.5초 동안 범위 표시 + 회피 감지 유지
+      L._kiRmbActive = false;
+      L._kiRmbReady = false;
+      L._kiRmbFadeEnd = performance.now() + 500;
+      L._kiRmbLmbStart = performance.now(); // 페이드 중 게이지 표시용
+      L._kiAfterTeleDodge = false;
+      L.lastAttackTime = performance.now();
+    },
+
+    counter(angle) {
+      const B = BALANCE.ki.counter;
+      if (!L.counterReady) return;
+      if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
+      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
+      L.color = '#e8eaf6'; send({type:'colorChange', color:'#e8eaf6'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:12, maxDur:12, col:'195,201,222'});
+      const tok = ++L._counterToken;
+      L._attackPreview = { shapes: [{ type: 'rect', len: augMeleeRange(B.range), width: B.width }] };
+      setTimeout(() => {
+        L._attackPreview = null;
+        if (!gameOn || L._counterToken !== tok) return;
+        L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
+        const fa = getAngle();
+        // 페이즈형 일자 직사각형 판정
+        const cos2 = Math.cos(fa), sin2 = Math.sin(fa);
+        const dx2 = R.x - L.x, dy2 = R.y - L.y;
+        const lx2 = dx2*cos2 + dy2*sin2, ly2 = dx2*(-sin2) + dy2*cos2;
+        if (lx2 > -R.radius && lx2 < augMeleeRange(B.range) + R.radius && Math.abs(ly2) < B.width + R.radius) {
+          hitCtxAll({x:L.x, y:L.y, cos:cos2, sin:sin2, len:augMeleeRange(B.range), width:B.width}, B.damage);
+          knockbackRemote(B.knockbackPower);
+        }
+        hitCtxSpirit({x:L.x, y:L.y, cos:cos2, sin:sin2, len:augMeleeRange(B.range), width:B.width}, B.damage);
+        addFx({type:'kiSlash', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), width:B.width, dur:16, maxDur:16});
+        send({type:'fx', fx:{type:'kiSlash', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), width:B.width, dur:16, maxDur:16}});
+        // 뒤로 순간이동
+        const bx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(fa+Math.PI)*B.teleBackDist));
+        const by = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(fa+Math.PI)*B.teleBackDist));
+        addFx({type:'phaseJump', x:L.x, y:L.y, tx:bx, ty:by, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'});
+        send({type:'fx', fx:{type:'phaseJump', x:L.x, y:L.y, tx:bx, ty:by, dur:8, maxDur:8, col:'195,201,222', col2:'220,225,240'}});
+        L.x = bx; L.y = by; resolveWall(L);
+        // 스테미나 회복
+        const _sm = L._augStamMax ?? STAM_MAX;
+        L.stamina = Math.min(_sm, L.stamina + _sm * B.stamRecoverRatio);
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
+    },
+  },
+
   // ── 레비나 ──────────────────────────────────────────────────
   levina: {
     // 시간 기반 피해량: minDamage→maxDamage (dmgScaleTime ms 이상 유지 시 최대)
@@ -9586,6 +9830,10 @@ CANVAS.addEventListener('mousedown', e => {
     } else if (L.charDef?.id==='levina') {
       // 창이 이미 있으면 경유지 추가 (쿨다운 무시), 없으면 일반 발사
       SKILLS.levina.lmb(getAngle());
+    } else if (L.charDef?.id==='ki') {
+      // 예고장 활성+재입력 가능 → rmbLmb, 아니면 일반 평타
+      if (L._kiRmbActive && L._kiRmbReady) SKILLS.ki.rmbLmb();
+      else SKILLS.ki.lmb(getAngle());
     } else if (L.charDef?.id==='hatsuhats') {
       SKILLS.hatsuhats.lmbStart();
     } else {
@@ -9595,6 +9843,10 @@ CANVAS.addEventListener('mousedown', e => {
   else if (e.button===2) {
     if (L.charDef?.id==='hatsuhats') {
       SKILLS.hatsuhats.rmbStart();
+    } else if (L.charDef?.id==='ki') {
+      // 예고장 활성+재입력 가능 → rmbRmb, 아니면 예고장 발동
+      if (L._kiRmbActive && L._kiRmbReady) SKILLS.ki.rmbRmb(getAngle());
+      else SKILLS.ki.rmb(getAngle());
     } else if (L.charDef?.id==='levina') {
       // 창이 이미 있으면 경유지 추가 시도 (쿨다운 무시), 없으면 일반 발사
       SKILLS.levina.rmb(getAngle());
@@ -11174,6 +11426,61 @@ function draw() {
       ctx.closePath();
       ctx.fillStyle=`rgba(255,120,0,${a*0.22})`; ctx.fill();
       ctx.strokeStyle=`rgba(255,170,50,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+    } else if (f.type==='kiStrike') {
+      // 예고장 선딜 — 원 안쪽으로 수렴하는 대각선 십자
+      const _kt = 1 - f.dur/f.maxDur; // 0→1
+      const _kr = f.r;
+      const _kOff = _kr * (1 - _kt); // 바깥에서 중심으로 수렴
+      ctx.strokeStyle=`rgba(195,201,222,${a*0.9})`; ctx.lineWidth=3;
+      // 대각선 4방향
+      for (let i = 0; i < 4; i++) {
+        const _ang = Math.PI/4 + i*Math.PI/2;
+        const _sx = f.x + Math.cos(_ang)*_kOff;
+        const _sy = f.y + Math.sin(_ang)*_kOff;
+        const _ex = f.x + Math.cos(_ang)*(_kOff + _kr*0.35);
+        const _ey = f.y + Math.sin(_ang)*(_kOff + _kr*0.35);
+        ctx.beginPath(); ctx.moveTo(_sx,_sy); ctx.lineTo(_ex,_ey); ctx.stroke();
+      }
+      // 수축하는 원
+      ctx.beginPath(); ctx.arc(f.x, f.y, _kr*(1-_kt*0.5), 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(195,201,222,${a*0.5})`; ctx.lineWidth=2;
+      ctx.setLineDash([6,5]); ctx.stroke(); ctx.setLineDash([]);
+      // 부채꼴 게이지 (선딜 진행도) — 상대방 화면에서만
+      if (L.charDef?.id !== 'ki') {
+        const _sA2 = -Math.PI/2, _eA2 = _sA2 + Math.PI*2*_kt;
+        ctx.beginPath(); ctx.moveTo(f.x, f.y);
+        ctx.arc(f.x, f.y, f.r, _sA2, _eA2); ctx.closePath();
+        ctx.fillStyle=`rgba(220,225,255,0.15)`; ctx.fill();
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, _sA2, _eA2);
+        ctx.strokeStyle=`rgba(220,225,255,0.7)`; ctx.lineWidth=3.5; ctx.setLineDash([]); ctx.stroke();
+      }
+    } else if (f.type==='kiWarning') {
+      // 키 예고장 경고 원
+      const _kp = 0.5 + 0.5*Math.sin(performance.now()*0.01);
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(195,201,222,${a*0.07})`; ctx.fill();
+      ctx.strokeStyle=`rgba(195,201,222,${a*(0.45+0.25*_kp)})`; ctx.lineWidth=2.5;
+      ctx.setLineDash([8,6]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle=`rgba(220,225,240,${a*0.35})`; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(f.x-10,f.y); ctx.lineTo(f.x+10,f.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(f.x,f.y-10); ctx.lineTo(f.x,f.y+10); ctx.stroke();
+      // 선딜레이 구간 동안 부채꼴 게이지 (상대방 화면에서만)
+      if (f.activateDur && f.dur > (f.maxDur - f.activateDur) && L.charDef?.id !== 'ki') {
+        // 수신 시점(_receivedAt) 기준으로 경과 시간 계산 (startTime은 다른 클라이언트 기준이라 사용 불가)
+        const _gElapsed = f._receivedAt ? (performance.now() - f._receivedAt) : ((f.maxDur - f.dur) * FRAME_MS);
+        const _gTotal = f.activateMs || (f.activateDur * FRAME_MS);
+        const _gaugeRatio = Math.min(1, _gElapsed / _gTotal);
+        if (_gaugeRatio > 0) {
+          const _sA = -Math.PI/2, _eA = _sA + Math.PI*2*_gaugeRatio;
+          ctx.save(); ctx.setLineDash([]);
+          ctx.beginPath(); ctx.moveTo(f.x, f.y);
+          ctx.arc(f.x, f.y, f.r, _sA, _eA); ctx.closePath();
+          ctx.fillStyle=`rgba(220,225,255,0.22)`; ctx.fill();
+          ctx.beginPath(); ctx.arc(f.x, f.y, f.r, _sA, _eA);
+          ctx.strokeStyle=`rgba(220,225,255,0.85)`; ctx.lineWidth=3.5; ctx.stroke();
+          ctx.restore();
+        }
+      }
     } else if (f.type==='landWarning') {
       // 착지 충격 범위 — 펄스형 충격파 (점선 아님)
       const _lwCol = f.col || '200,140,0';
@@ -11200,6 +11507,29 @@ function draw() {
       ctx.strokeStyle = `rgba(150,180,196,${a*0.95})`; ctx.lineWidth = 3; ctx.stroke();
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr*0.5), 0, Math.PI*2);
       ctx.strokeStyle = `rgba(255,255,100,${a*0.6})`; ctx.lineWidth = 2; ctx.stroke();
+    } else if (f.type==='kiSlash') {
+      // 키 반격기 — 날카로운 사선형 일자 베기
+      const _ksc = Math.cos(f.angle), _kss = Math.sin(f.angle), _w = f.width;
+      // 직사각형 채우기
+      ctx.beginPath();
+      ctx.moveTo(f.x - _kss*(-_w), f.y + _ksc*(-_w));
+      ctx.lineTo(f.x + _ksc*f.range - _kss*(-_w), f.y + _kss*f.range + _ksc*(-_w));
+      ctx.lineTo(f.x + _ksc*f.range - _kss*_w, f.y + _kss*f.range + _ksc*_w);
+      ctx.lineTo(f.x - _kss*_w, f.y + _ksc*_w);
+      ctx.closePath();
+      ctx.fillStyle=`rgba(195,201,222,${a*0.18})`; ctx.fill();
+      ctx.strokeStyle=`rgba(220,225,245,${a*0.75})`; ctx.lineWidth=2; ctx.stroke();
+      // 중심 빔 (밝게)
+      ctx.beginPath(); ctx.moveTo(f.x, f.y);
+      ctx.lineTo(f.x + _ksc*f.range, f.y + _kss*f.range);
+      ctx.strokeStyle=`rgba(240,242,255,${a*0.95})`; ctx.lineWidth=3; ctx.stroke();
+      // 사선 강조 (두 개 평행선)
+      for (const _wo of [-_w*0.5, _w*0.5]) {
+        ctx.beginPath();
+        ctx.moveTo(f.x - _kss*_wo, f.y + _ksc*_wo);
+        ctx.lineTo(f.x + _ksc*f.range - _kss*_wo, f.y + _kss*f.range + _ksc*_wo);
+        ctx.strokeStyle=`rgba(195,201,222,${a*0.4})`; ctx.lineWidth=1; ctx.stroke();
+      }
     } else if (f.type==='phaseGrapple') {
       // 그래핑 — 직사각형 + 중심 빔
       const cosg = Math.cos(f.angle), sing = Math.sin(f.angle), wg = f.width;
@@ -12049,6 +12379,77 @@ function draw() {
     });
   }
 
+
+  // 키 순간이동 가능 상태 — 플레이어 주변 호 게이지 (남은 시간 비례)
+  if (gameOn && L.charDef?.id==='ki' && L._kiFinalHit) {
+    const _kB = BALANCE.ki.lmb;
+    const _elapsed = performance.now() - L._kiFinalHit;
+    const _ratio = Math.max(0, 1 - _elapsed / _kB.teleWindow);
+    if (_ratio > 0) {
+      ctx.save();
+      const _startA = -Math.PI / 2;
+      const _endA = _startA + Math.PI * 2 * _ratio;
+      ctx.beginPath();
+      ctx.arc(L.x, L.y, L.radius + 8, _startA, _endA);
+      ctx.strokeStyle = `rgba(220,225,255,0.9)`;
+      ctx.lineWidth = 3.5;
+      ctx.setLineDash([]);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // 키 예고장 활성 중 실시간 원 표시 (또는 RMB 이동 후 0.5초 페이드)
+  if (gameOn && L.charDef?.id==='ki' && (L._kiRmbActive || (L._kiRmbFadeEnd && performance.now() < L._kiRmbFadeEnd))) {
+    const _kB = BALANCE.ki.rmb;
+    const _now2 = performance.now();
+    const _isFading = !L._kiRmbActive && L._kiRmbFadeEnd;
+    const _fadeAlpha = _isFading ? Math.max(0, (L._kiRmbFadeEnd - _now2) / 500) : 1;
+    const _kp = 0.5 + 0.5*Math.sin(_now2*0.01);
+    const _ka = (_isFading ? 0.4 : (L._kiRmbReady ? (0.6+0.25*_kp) : (0.2+0.1*_kp))) * _fadeAlpha;
+    ctx.beginPath(); ctx.arc(L._kiRmbX, L._kiRmbY, _kB.aoeRange, 0, Math.PI*2);
+    ctx.fillStyle=`rgba(195,201,222,${_ka*0.08})`; ctx.fill();
+    ctx.strokeStyle=`rgba(195,201,222,${_ka})`; ctx.lineWidth=2.5;
+    ctx.setLineDash([8,6]); ctx.stroke(); ctx.setLineDash([]);
+    // 게이지 (선딜 1초 또는 LMB 선딜 0.5초)
+    const _gStart = L._kiRmbLmbStart || L._kiRmbStart;
+    const _gTotal = L._kiRmbLmbStart ? BALANCE.ki.rmb.damageDelay : _kB.activateDelay;
+    const _gActive = (L._kiRmbActive && !L._kiRmbReady && _gStart) || (_isFading && L._kiRmbLmbStart);
+    if (_gActive && _gStart) {
+      const _gaugeRatio = Math.min(1, (_now2 - _gStart) / _gTotal);
+      if (_gaugeRatio > 0) {
+        const _startAngle = -Math.PI / 2;
+        const _endAngle = _startAngle + Math.PI * 2 * _gaugeRatio;
+        ctx.save();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(L._kiRmbX, L._kiRmbY);
+        ctx.arc(L._kiRmbX, L._kiRmbY, _kB.aoeRange, _startAngle, _endAngle);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(220,225,255,0.22)`; ctx.fill();
+        ctx.beginPath();
+        ctx.arc(L._kiRmbX, L._kiRmbY, _kB.aoeRange, _startAngle, _endAngle);
+        ctx.strokeStyle = `rgba(220,225,255,0.85)`; ctx.lineWidth = 3.5; ctx.stroke();
+        ctx.restore();
+      }
+    }
+    if (L._kiRmbActive && L._kiRmbReady) {
+      // 3초 타이머 게이지 (재입력 가능 이후 남은 2초를 원 테두리 호로 표시)
+      if (L._kiRmbReadyAt) {
+        const _timerElapsed = performance.now() - L._kiRmbReadyAt;
+        const _timerRatio = Math.max(0, 1 - _timerElapsed / 2000);
+        if (_timerRatio > 0) {
+          const _tStart = -Math.PI / 2;
+          const _tEnd = _tStart + Math.PI * 2 * _timerRatio;
+          ctx.beginPath();
+          ctx.arc(L._kiRmbX, L._kiRmbY, _kB.aoeRange + 6, _tStart, _tEnd);
+          ctx.strokeStyle = `rgba(255,255,255,0.8)`; ctx.lineWidth = 3; ctx.setLineDash([]); ctx.stroke();
+        }
+      }
+      ctx.fillStyle='rgba(220,225,255,0.85)'; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+      ctx.fillText('LMB / RMB', L._kiRmbX, L._kiRmbY - _kB.aoeRange - 8);
+    }
+  }
 
   // 프릴 청소구역 (지속 표시)
   if (gameOn && L.charDef?.id==='prill' && L._prillZonePos) {
@@ -14211,104 +14612,10 @@ function resetL() {
   L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._intuAmmo=BALANCE.intu.magMax; L._intuWeapon='pistol'; L._intuReloading=false; L._intuLastSync=''; L._intuReloadEnd=0; L._roonSlush=0; L._roonZones=[]; L._roonIncomingZones=[]; L._roonBallInFlight=false; R._roonSlush=0; L._runefRmbActive=false; L._runefShot1=false; L._runefNextSpell='fire'; clearTimeout(L._runefRmbTimer); clearTimeout(L._runefShot1Timer); L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._syaHitRevealEnd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0; SKILLS.meramona._stage=0; SKILLS.meramona._tempEnd=0; SKILLS.meramona._hitStack=0
   R._pelunaAnvil=null;
   L._raiseCharging=false; L._raiseClicks=0; L._raiseJumping=false; L._raiseBoosted=false; L._raiseStaminaStarvedAt=0;
+  L._kiRmbActive=false; L._kiRmbReady=false; L._kiCombo=0; L._kiFinalHit=0; L._kiRmbX=0; L._kiRmbY=0; L._kiDodgeRecovered=false; L._kiRmbStart=0; L._kiRmbToken=0; L._kiRmbFadeEnd=0; L._kiRmbReadyAt=0; L._kiAfterTeleDodge=false; L._kiLmbToken=0; L._kiRmbLmbStart=0;
   L._levinaSpear=null; L._levinaSpearSyncTick=0; L._levinaLmbWpCd=0; L._levinaRmbWpCd=0;
   R._levinaSpear=null;
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
-}
-
-// ============================================================
-// 훈련장 — 오프라인 봇 3종
-// ============================================================
-
-
-function _applyBotDamage(bot, dmg) {
-  if (!bot.isAlive) return;
-  bot.hp = Math.max(0, bot.hp-dmg);
-  bot.health = bot.hp;  // R 동기화용
-  _addDmgNum('dealt', Math.round(dmg), bot.x, bot.y-bot.radius-8);
-  addShake(2,6); playHitSfx();
-  if (bot.hp<=0) { bot.isAlive=false; bot.hp=0; bot.health=0; }
-}
-
-function openTrainingCharSelect() {
-  let sp=document.getElementById('training-char-panel');
-  if (sp){sp.remove();return;}
-  sp=document.createElement('div');
-  sp.id='training-char-panel';
-  sp.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);'
-    +'background:#0d1520;border:1px solid #2a4a3a;padding:14px 18px;z-index:300;'
-    +'font-family:Courier New,monospace;font-size:12px;color:#aaa;max-width:700px;border-radius:3px;';
-  const grid=document.createElement('div');
-  grid.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;max-height:280px;overflow-y:auto;';
-  Object.values(CHARACTERS).forEach(ch=>{
-    if(ch.disabled)return;
-    const btn=document.createElement('button');
-    btn.textContent=ch.name;
-    btn.style.cssText=`background:#111;border:1px solid ${ch.color||'#334'};color:${ch.color||'#aaa'};padding:5px 12px;cursor:pointer;font-family:Courier New,monospace;font-size:11px;border-radius:2px;`;
-    btn.onclick=()=>{ selCharId=ch.id; resetL(); localBullets=[]; fxList=[]; sp.remove(); };
-    grid.appendChild(btn);
-  });
-  const title=document.createElement('div');
-  title.style.cssText='color:#6fa;letter-spacing:2px;font-size:11px;margin-bottom:4px;';
-  title.textContent='── 캐릭터 변경 ──';
-  sp.appendChild(title); sp.appendChild(grid);
-  document.body.appendChild(sp);
-}
-
-function openTrainingAugPanel() {
-  let sp=document.getElementById('training-aug-panel');
-  if(sp){sp.remove();return;}
-  sp=document.createElement('div');
-  sp.id='training-aug-panel';
-  sp.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);'
-    +'background:#0a0a12;border:1px solid #4a3a1a;border-radius:6px;padding:14px 16px;'
-    +'z-index:300;max-width:820px;max-height:60vh;overflow-y:auto;';
-  const titleRow=document.createElement('div');
-  titleRow.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;';
-  const tt=document.createElement('span');
-  tt.style.cssText='color:#fa8;font-size:11px;letter-spacing:2px;';
-  tt.textContent='── 증강 ── 좌클릭: 획득  우클릭: 제거';
-  const cl=document.createElement('button');
-  cl.textContent='✕'; cl.style.cssText='background:none;border:1px solid #555;color:#888;cursor:pointer;padding:1px 7px;font-family:Courier New,monospace;border-radius:3px;';
-  cl.onclick=()=>sp.remove();
-  titleRow.append(tt,cl); sp.appendChild(titleRow);
-  const grid=document.createElement('div');
-  grid.style.cssText='display:flex;flex-wrap:wrap;gap:6px;justify-content:center;';
-  AUGMENTS.forEach(aug=>{
-    const cnt=getAugCount(aug.id);
-    const card=document.createElement('div');
-    card.style.cssText=`width:100px;padding:8px 6px;border:1px solid ${cnt>0?'#fa8':'#333'};border-radius:4px;background:${cnt>0?'#1a1200':'#111'};cursor:pointer;text-align:center;font-family:Courier New,monospace;`;
-    card.innerHTML=`<div style="font-size:18px">${aug.emoji}</div><div style="font-size:10px;color:#fa8;margin:2px 0">${aug.name}</div><div style="font-size:12px;color:#fff;font-weight:bold">${cnt>0?'×'+cnt:''}</div>`;
-    card.title=aug.desc||'';
-    card.addEventListener('click',e=>{
-      e.preventDefault();
-      matchState.localAugments.push(aug.id);
-      if(gameOn)resetL();
-      openTrainingAugPanel();openTrainingAugPanel();
-    });
-    card.addEventListener('contextmenu',e=>{
-      e.preventDefault();
-      const i2=matchState.localAugments.lastIndexOf(aug.id);
-      if(i2!==-1){matchState.localAugments.splice(i2,1);if(gameOn)resetL();openTrainingAugPanel();openTrainingAugPanel();}
-    });
-    grid.appendChild(card);
-  });
-  sp.appendChild(grid);
-  document.body.appendChild(sp);
-}
-
-function exitTraining() {
-  gameOn=false; _trainingMode=false;
-  _trainingBots=[]; _botBullets=[];
-  const th=document.getElementById('training-hud');if(th)th.remove();
-  const sp=document.getElementById('training-char-panel');if(sp)sp.remove();
-  const ap=document.getElementById('training-aug-panel');if(ap)ap.remove();
-  const twrap=document.getElementById('confirm-training-wrap');if(twrap)twrap.style.display='none';
-  const pvwrap=document.getElementById('confirm-pvp-wrap');if(pvwrap)pvwrap.style.display='';
-  const h2=document.getElementById('scr-select')?.querySelector('h2');
-  if(h2)h2.textContent='캐릭터 선택';
-  document.getElementById('hud').style.display='none';
-  showScr('scr-lobby');
 }
 
 function startGame() {
@@ -14766,6 +15073,30 @@ function loop() {
   } else if (L.charDef?.id==='raise' && L._attackPreview?._loopManaged) {
     L._attackPreview = null;
   }
+  // 키 예고장 틱 — 범위 내 상대 일반 회피 시 스테미나 회복
+  if (gameOn && L.charDef?.id==='ki' && L._kiRmbActive) {
+    if (R.dodging && !R._counterPending && !L._kiDodgeRecovered) {
+      if (Math.hypot(R.x-L._kiRmbX, R.y-L._kiRmbY) < BALANCE.ki.rmb.aoeRange + R.radius) {
+        L._kiDodgeRecovered = true;
+        const _sm = L._augStamMax ?? STAM_MAX;
+        L.stamina = Math.min(_sm, L.stamina + _sm * BALANCE.ki.rmb.stamRecoverRatio);
+        addFx({type:'healPulse', x:L.x, y:L.y, r:0, maxR:40, dur:12, maxDur:12});
+      }
+    }
+    if (!R.dodging) L._kiDodgeRecovered = false;
+  }
+  // 키 우클릭 순간이동 후 페이드 중 회피 감지
+  if (gameOn && L.charDef?.id==='ki' && !L._kiRmbActive && L._kiRmbFadeEnd && performance.now() < L._kiRmbFadeEnd) {
+    if (R.dodging && !R._counterPending && !L._kiAfterTeleDodge) {
+      if (Math.hypot(R.x-L._kiRmbX, R.y-L._kiRmbY) < BALANCE.ki.rmb.aoeRange + R.radius) {
+        L._kiAfterTeleDodge = true;
+        const _sm = L._augStamMax ?? STAM_MAX;
+        L.stamina = Math.min(_sm, L.stamina + _sm * BALANCE.ki.rmb.stamRecoverRatio);
+        addFx({type:'healPulse', x:L.x, y:L.y, r:0, maxR:40, dur:12, maxDur:12});
+      }
+    }
+  }
+
   // 레비나 삼지창 틱 (경유지 기반)
   if (gameOn && L.charDef?.id === 'levina' && L._levinaSpear) {
     const _sp = L._levinaSpear;
@@ -15839,5 +16170,10 @@ document.addEventListener('keydown', (e) => {
 
 
 </script>
+
+<!-- ══════════════════════════════════════════════════
+     UI 커스터마이즈 — body 최하단에 두어 항상 최상위 렌더링
+     ══════════════════════════════════════════════════ -->
+       
 </body>
 </html>
