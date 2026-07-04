@@ -284,7 +284,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.34.2</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.34.4</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -497,7 +497,7 @@ const BALANCE = {
     cost:       40,
     dist:       140,
     dur:        130,
-    invincible: 80,
+    invincible: 110,
   },
   regen: {
     idle:       5000,
@@ -566,7 +566,7 @@ const BALANCE = {
     rmb: {
       cost:          40,       // 스테미나 소모
       hammerSpeed:   16,       // 망치 이동 속도 (px/frame)
-      hammerRange:   900,      // 최대 사거리
+      hammerRange:   630,      // 900 * 0.7
       hammerRadius:  26,       // 망치 크기 (충돌 반경)
       hammerDamage:  20,       // 망치 피해량
       window:        1500,     // 망치가 자동 회수되는 시간 (ms)
@@ -666,7 +666,7 @@ const BALANCE = {
       cost:            20,
       meleeRange:      200,
       halfAngle:       1.2,
-      damage:          25,
+      damage:          20,    // 25 → 20
       stackCount:      3,
       overchargeRatio: 0.20,
       cd:              350,
@@ -707,7 +707,7 @@ const BALANCE = {
       cd:        280,
     },
     rmb: {
-      cost:           130,
+      cost:           100,   // 130 → 100
       speed:          16,
       radius:         18,
       explosionRange: 150,      // 폭발 반경
@@ -779,42 +779,42 @@ const BALANCE = {
 
     lmb: {                  // 유령구체 — 관통 후 탄착지점 폭발
       cost:           25,
-      speed:          14,
+      speed:          18.2, // 14 × 1.3 = 탄속 30% 증가
       radius:         10,
       range:          1100,
       explosionRange: 80,
-      damage:         10,
-      healAmount:     25,   // 폭발 범위 내 유령 회복
+      damage:         15,   // 10 → 15
+      healAmount:     25,
       cd:             600,
     },
     rmb: {                  // 유령친구 — 소환 / 돌진 명령
-      summonCost: 200,      // 소환 시 스테미나 전량 소모
+      summonCost: 100,      // 200 → 100
       cdSummon:   200,
       cdDash:     700,
-      dashDur:    350,      // 돌진 이동 시간 (ms)
+      dashDur:    350,
+      dashRange:  208,      // 돌진 거리
       dashDamage: 30,
-      dashKnockback: 0,
+      dashKnockback: 200,   // 돌진 넉백
     },
-    counter: {              // 죽지말아줘! — 유령 회복 투사체 + 이중 폭발
+    counter: {              // 순간이동 투사체 — 유령→엘린 방향 발사, 도달 시 유령 순간이동 + 폭발
       projSpeed:      18,
       projRadius:     12,
-      healAmount:     60,
-      explosionRange: 100,
-      damage:         20,
+      explosionRange: 120,
+      damage:         25,
       knockbackPower: 420,
       cd:             300,
     },
     spirit: {               // 유령 소환수 스탯
       maxHp:         130,
-      speed:         2.6,   // 이동속도 감소
+      speed:         3.0,   // 2.6 → 3.0
       radius:        18,
-      meleeRange:    80,    // 공격 사거리 (접촉 없이 공격)
-      meleeHalfAngle: Math.PI / 2, // 반원형 (앞쪽 180°)
-      meleeDamage:   10,
-      meleeInterval: 1200,
-      stopRange:     90,    // 이 거리 이내면 추격 중단
-      dashDamage:    10,
-      dashKnockback: 260,
+      meleeRange:    80,
+      meleeHalfAngle: Math.PI / 2,
+      meleeDamage:   15,    // 10 → 15
+      meleeInterval: 1000,  // 1200 → 1000ms
+      stopRange:     90,
+      dashDamage:    15,    // 10 → 15
+      dashKnockback: 200,   // 돌진 넉백 추가
       dashDur:       350,
     },
   },
@@ -1107,11 +1107,11 @@ const BALANCE = {
 
     lmb: {
       cost:       15,
-      meleeRange: 130,   // 일자 공격 길이
-      width:      30,    // 일자 공격 너비
+      meleeRange: 156,   // 130 * 1.2 = 156
+      width:      36,    // 30 * 1.2 = 36
       damage:     15,
-      cdBase:     350,   // 기본 쿨다운 (체력 100%)
-      cdMin:      100,   // 최소 쿨다운 (체력 0%)
+      cdBase:     350,
+      cdMin:      70,    // 100 → 70ms
     },
     rmb: {
       cost:   40,
@@ -1162,7 +1162,7 @@ const BALANCE = {
       minRange:    104,
       maxRange:    364,
       minDamage:   40,
-      maxDamage:   100,
+      maxDamage:   80,    // 100 → 80
       minKbPower:  200,
       maxKbPower:  700,
       cd:          300,
@@ -1218,7 +1218,7 @@ const BALANCE = {
     radius: 20,
 
     lmb: {
-      cost:        25,
+      cost:        20,    // 25 → 20
       length:      220,
       width:       56,
       damage:      15,
@@ -1227,7 +1227,7 @@ const BALANCE = {
       cd:          380,
     },
     rmb: {
-      cost:        60,
+      cost:        35,    // 60 → 35
       length:      220,
       width:       60,
       damage:      20,
@@ -1263,7 +1263,7 @@ const BALANCE = {
       cd:          480,
     },
     rmb: {
-      summonCost:  200,
+      summonCost:  100,       // 200 → 100
       placeDist:   90,
       pickupRange: 65,
       carrySpeed:  0.75,
@@ -1273,20 +1273,23 @@ const BALANCE = {
       burstSpeed:  18,
       burstRadius: 11,
       burstRange:  1100,
-      burstCost:   30,       // 점사 스테미나 소모
+      burstCost:   30,
       slowDur:     1500,
       cd:          800,
     },
     cannon: {
-      maxHp:       110,
-      radius:      22,
-      atkRange:    520,
-      damage:      20,
-      shotSpeed:   16,
-      shotRadius:  10,
-      shotRange:   900,
-      fireInterval:800,
-      // 발사체: 일반 피해만 (넉백 없음, 빙수 게이지 없음)
+      maxHp:        100,      // 110 → 100
+      radius:       22,
+      atkRange:     520,
+      damage:       20,
+      shotSpeed:    16,
+      shotRadius:   15,       // 10 → 15
+      shotRange:    900,
+      fireInterval: 600,      // 800 → 600
+      spread:       0.105,    // ±6도 (라디안)
+      leashRange:   600,      // 이 거리 초과 시 1초 후 파괴
+      leashDelay:   1000,
+      leashStamRefund: 50,
     },
     counter: {
       aoeRange:    130,
@@ -1295,12 +1298,16 @@ const BALANCE = {
       cd:          300,
       miniMaxHp:   90,
       miniRadius:  16,
-      miniAtkRange:400,
-      miniDamage:  12,
+      miniAtkRange:460,       // 400 → 460
+      miniDamage:  15,        // 12 → 15
       miniShotSpeed: 14,
-      miniShotRadius: 8,
+      miniShotRadius: 12,     // 8 → 12
       miniShotRange: 750,
-      miniFireInterval: 900,
+      miniFireInterval: 800,  // 900 → 800
+      miniSpread:  0.105,     // ±6도
+      leashRange:  600,
+      leashDelay:  1000,
+      leashStamRefund: 50,
     },
   },
   // ── 프릴 ───────────────────────────────────────────────────
@@ -1354,12 +1361,12 @@ const BALANCE = {
     lmb: {
       cost:       30,
       damage:     30,
-      speed:      13,
+      speed:      16.9, // 13 * 1.3 = 16.9
       radius:     10,
       range:      650,
       cd:         380,
-      homingMin:  0.10,  // 이 비율 이후 호밍 시작
-      homingMax:  0.11,  // 사거리 끝에서 최대 호밍 강도 (rad/frame)
+      homingMin:  0.10,
+      homingMax:  0.07,  // 0.11 → 0.07 (유도 감소)
     },
     rmb: {
       cost:         60,
@@ -1458,20 +1465,22 @@ const BALANCE = {
     radius: 20,
 
     lmb: {
-      cost:        30,
-      halfAngle:    Math.PI * 0.4,  // 최대 드래그 시 넓은 부채꼴
-      minHalfAngle: 0.12,           // 최소 드래그 시 좁은 부채꼴 (집중)
+      minCost:     10,           // 최소 드래그 시 스테미나 소모
+      maxCost:     40,           // 최대 드래그 시 스테미나 소모
+      halfAngle:    Math.PI * 0.4,
+      minHalfAngle: 0.12,
       minRange:    112,
       maxRange:    500,
-      minDamage:   8,
+      minDamage:   15,   // 8 → 15
       maxDamage:   35,
       dragThreshold: 20,
       maxDragDist: 350,
       cd:          400,
     },
     rmb: {
+      stamPerPx:   0.133,        // px당 스테미나 소모 (≈200/1500)
       cost:        80,
-      pathInterval: 8,    // 경로 샘플링 간격 (ms) — 촘촘하게
+      pathInterval: 8,
       dashSpeed:   900,
       reduction:   0.5,
       cd:          900,
@@ -1615,7 +1624,7 @@ const BALANCE = {
       cost:       100,
       damage:     15,
       radius:     30,
-      speed:      11,
+      speed:      13,    // 11 * 1.2 = 13.2 ≈ 13
       range:      550,
       zoneDur:    4000,
       zoneRadius: 200,
@@ -1663,7 +1672,7 @@ const BALANCE = {
     counter: {
       damage:       20,
       range:        200,
-      tempStageDur: 5000,  // 임시 단계↑ 지속 ms
+      tempStageDur: 4000,  // 5000 → 4000ms
       cd:           400,
     },
   },
@@ -1713,27 +1722,25 @@ const BALANCE = {
     reloadTime: 1500,
     // 권총 (LMB 기본)
     pistol: {
-      cost:   15,        // 스테미나 소모
-      ammo:   1,         // 탄환 소모
+      cost:   15,
+      ammo:   1,
       damage: 20,
       radius: 10,
       speed:  20,
       range:  650,
-      cd:     350,
+      cd:     250,   // 350 → 250
     },
-    // 산탄총 (LMB 기본 or RMB)
     shotgun: {
-      cost:   30,        // 스테미나 소모
-      ammo:   4,         // 탄환 소모
+      cost:   30,
+      ammo:   4,
       pellets: 4,
-      damage: 10,        // 탄당
+      damage: 10,
       radius: 8,
       speed:  20,
       range:  300,
-      spread: 0.35,      // 퍼짐 각도
-      cd:     600,
+      spread: 0.35,
+      cd:     350,   // 600 → 350
     },
-    // 저격총 (반격기)
     sniper: {
       cost:   0,
       damage: 65,
@@ -1741,6 +1748,7 @@ const BALANCE = {
       speed:  38,
       range:  1200,
       cd:     400,
+      counterDur: 4000, // 반격기 사용 시 저격총 유지 시간 ms
     },
     rmb: {
       cost: 70,  // 무기 전환 스테미나
@@ -1757,15 +1765,15 @@ const BALANCE = {
     speed:  3.75,
     radius: 20,
     lmb: {
-      cost:       25,        // 일반 스윙 스테미나
-      damage:     15,
+      cost:       20,        // 25 → 20
+      damage:     20,        // 15 → 20
       meleeRange: 110,
       halfAngle:  1.1,
       cd:         500,
-      chargeTime: 300,       // 0.3초 차징
-      drainRate:  40,        // (미사용)
-      throwCost:  25,        // 차징 투사체 스테미나
-      throwDamage:20,
+      chargeTime: 300,
+      drainRate:  40,
+      throwCost:  25,
+      throwDamage:25,        // 20 → 25
       throwRadius:14,
       throwSpeed: 31,
       throwRange: 600,
@@ -1825,7 +1833,7 @@ const BALANCE = {
     radius: 20,
     lmb: {
       cost:        30,
-      damage:      10,
+      damage:      5,    // 10 → 5
       finalDamage: 15,
       meleeRange:  160,
       halfAngle:   0.85,
@@ -1833,17 +1841,17 @@ const BALANCE = {
       teleWindow:  750,
       teleCost:    20,
       hitInterval: 170,
-      lmbHealRatio: 0.15,
+      lmbHealRatio: 0.10,  // 0.15 → 0.10
       cd:          750,
     },
     rmb: {
       cost:            50,
-      aoeRange:        386,   // 552 * 0.7
+      aoeRange:        347,   // 386 * 0.9 ≈ 347
       summonDist:      180,
-      damageDelay:     500,   // 선딜레이 0.5초
-      damage:          60,
+      damageDelay:     500,
+      damage:          50,    // 60 → 50
       activateDelay:   500,
-      healRatio:       0.15,
+      healRatio:       0.10,  // 0.15 → 0.10
       teleRange:       280,
       cd:              1200,
     },
@@ -1852,7 +1860,7 @@ const BALANCE = {
       width:        70,
       damage:       25,
       teleBackDist: 220,
-      healRatio:    0.15,
+      healRatio:    0.10,  // 0.15 → 0.10
       knockbackPower: 420,
       cd:           500,
     },
@@ -2256,9 +2264,9 @@ const CHARACTERS = {
     statsText: [['체력',String(BALANCE.hatsuhats.hp)],['이동속도','보통'],['스타일','드로잉형 중거리 암살자']],
     desc:      '붓으로 공격 범위를 자유롭게 조절하는 캐릭터',
     skills: [
-      { key:'LMB', name:'드로잉', cost:BALANCE.hatsuhats.lmb.cost,
+      { key:'LMB', name:'드로잉', cost:`${BALANCE.hatsuhats.lmb.minCost}~${BALANCE.hatsuhats.lmb.maxCost}`,
         desc:`드래그로 사거리와 피해량을 조절. 공격범위가 작을수록 피해량 상승. (${BALANCE.hatsuhats.lmb.minDamage}~${BALANCE.hatsuhats.lmb.maxDamage})` },
-      { key:'RMB', name:'캔버스 위 세상', cost:BALANCE.hatsuhats.rmb.cost,
+      { key:'RMB', name:'캔버스 위 세상', cost:`${BALANCE.hatsuhats.rmb.stamPerPx}/px`,
         desc:`드래그 경로대로 돌진. 돌진 중 받는 피해 ${Math.round((1-BALANCE.hatsuhats.rmb.reduction)*100)}% 감소` },
       { key:'L-Shift', name:'마음대로', cost:0,
         desc:`주변 원형 공격. (${BALANCE.hatsuhats.counter.damage})` },
@@ -2724,7 +2732,6 @@ const MAPS = [
     W(700,945,175,145),W(760,470,115,55),
   ])},
   { name:'최후의 전장', type:'닫힘', walls:[
-    W(830,550,340,300),
     W(880,500,240,55),  W(880,795,240,55),
     ...mH([
       W(560,0,55,320),    W(560,500,55,230),  W(560,850,55,230),  W(560,1230,55,170),
@@ -2825,6 +2832,7 @@ const matchState = {
 function getAugCount(id) { return matchState.localAugments.filter(x => x === id).length; }
 
 let currentMap  = MAPS[0];
+const _gameMaps = MAPS.filter(m => !m.isTraining); // 훈련장 제외
 let mouseScreenX = 600, mouseScreenY = 400;
 let mouseX      = 600, mouseY = 400, mouseDown = false;
 let _rmbHeld    = false;
@@ -2890,6 +2898,19 @@ const R = {
   },
   applyCC(cc) {
     if (!cc) return;
+    if (_trainingMode) {
+      // 훈련장: 더미(R)에 CC는 로컬에서만 처리 (패킷 불필요)
+      const now = performance.now();
+      if (cc.stunDur)  { R.stunEnd = Math.max(R.stunEnd||0, now+cc.stunDur); }
+      if (cc.bindDur)  { R.bindEnd = Math.max(R.bindEnd||0, now+cc.bindDur); }
+      if (cc.sleepDur) { R.stunEnd = Math.max(R.stunEnd||0, now+cc.sleepDur); R._asleep=true; }
+      if (cc.knockbackPower !== undefined) {
+        const ang = Math.atan2(this.y-L.y, this.x-L.x);
+        this.tx = Math.max(this.radius, Math.min(WORLD_W-this.radius, (this.tx||this.x)+Math.cos(ang)*cc.knockbackPower*0.35));
+        this.ty = Math.max(this.radius, Math.min(WORLD_H-this.radius, (this.ty||this.y)+Math.sin(ang)*cc.knockbackPower*0.35));
+      }
+      return;
+    }
     if (cc.knockbackPower !== undefined) {
       const ang = Math.atan2(this.y-L.y, this.x-L.x);
       if (!this.burrowing) {
@@ -3238,7 +3259,9 @@ function onData(d) {
             exist._bindEnd   = md.bindRemaining   > 0 ? pnow + md.bindRemaining   : 0;
             exist._burnEnd   = md.burnRemaining   > 0 ? pnow + md.burnRemaining   : 0;
             exist._poisonEnd = md.poisonRemaining > 0 ? pnow + md.poisonRemaining : 0;
-            exist._slowEnd   = md.slowRemaining   > 0 ? pnow + md.slowRemaining   : 0;
+            // 내가 직접 설정한 CC는 보존 (Math.max)
+            exist._slowEnd  = Math.max(exist._slowEnd||0, md.slowRemaining > 0 ? pnow + md.slowRemaining : 0);
+            exist._sleepEnd = exist._sleepEnd || 0; // 상대가 sync 안 해줘도 유지
             nextPeer.push(exist);
           } else {
             const pnow = performance.now();
@@ -3294,7 +3317,7 @@ function onData(d) {
     case 'ready':
       peerCharId=d.charId; peerReady=true; checkBothReady(); break;
     case 'start':
-      if (!gameOn) { currentMap=MAPS[d.mapIdx??0]; startGame(); } break;
+      if (!gameOn) { currentMap=_gameMaps[d.mapIdx??0]??_gameMaps[0]; startGame(); } break;
     case 'dead':
       endGame(true); break;
     case 'rematchRequest':
@@ -3328,7 +3351,7 @@ function onData(d) {
       checkBetweenBothReady(); break;
     // ── 라운드 시작 동기화 (호스트→참가자)
     case 'roundStart':
-      currentMap = MAPS[d.mapIdx ?? 0]; // 3. 맵 변경
+      currentMap = _gameMaps[d.mapIdx ?? 0] ?? _gameMaps[0]; // 3. 맵 변경
       if (!matchState._betweenStarted) {
         matchState._betweenStarted = true;
         if (matchState._peerSelectedChar) peerCharId = matchState._peerSelectedChar;
@@ -4008,7 +4031,7 @@ function checkBothReady() {
   if (!localReady||!peerReady) return;
   if (isHost) {
     if (matchState.round === 1) send({type:'matchFormat', format: matchState.format});
-    const mi=Math.floor(Math.random()*MAPS.length); currentMap=MAPS[mi];
+    const mi=Math.floor(Math.random()*_gameMaps.length); currentMap=_gameMaps[mi];
     send({type:'start', mapIdx:mi}); startGame();
   }
 }
@@ -4345,50 +4368,58 @@ function _applyBotDamage(bot, dmg) {
 }
 
 function hitCtx(ctx, dmg) {
-  const _hits = [];
+  const hits = [];
   for (const t of Rs()) {
     if (!intersectsCtx(ctx, t.x, t.y, t.radius)) continue;
-    if (t.applyDamage && t.applyDamage(dmg)) _hits.push(t);
+    if (t.applyDamage && t.applyDamage(dmg)) hits.push(t);
   }
-  window._hitTargets = _hits;
-  window._hitTarget = _hits[0] ?? null; // 하위 호환
-  return _hits.length > 0;
+  window._hitTargets = hits;
+  window._hitTarget = hits[0] ?? null;
+  return hits;
 }
 
 // ── R + 상대 소환수 판정 ────────────────────────────────────
 function hitCtxAll(ctx, dmg, cc) {
-  const _hits = [];
+  const hits = [];
   for (const t of Rs()) {
     if (!intersectsCtx(ctx, t.x, t.y, t.radius)) continue;
     if (t.applyDamage) t.applyDamage(dmg);
-    if (cc && t.applyCC) t.applyCC(cc);
-    _hits.push(t);
+    hits.push(t);
   }
-  window._hitTargets = _hits;
-  window._hitTarget = _hits[0] ?? null;
-  return _hits.length > 0;
+  window._hitTargets = hits;
+  window._hitTarget = hits[0] ?? null;
+  // CC: 소환수가 맞았으면 소환수에게만, 아니면 R에게
+  if (cc) {
+    const _hasMinion = hits.some(t => t !== R);
+    for (const t of hits) {
+      if (_hasMinion && t === R) continue;
+      if (t.applyCC) t.applyCC(cc);
+    }
+  }
+  return hits.length > 0;
 }
 
 // ── 상대 소환수만 판정 (플레이어 제외) ─────────────────────
 function hitCtxSpirit(ctx, dmg, cc) {
-  const _hits = [];
+  const hits = [];
   for (const pm of peerMinions) {
     if (!intersectsCtx(ctx, pm.x, pm.y, pm.radius)) continue;
     if (pm.applyDamage) pm.applyDamage(dmg);
     if (cc && pm.applyCC) pm.applyCC(cc);
-    _hits.push(pm);
+    hits.push(pm);
   }
   if (_trainingMode) {
     for (const b of _trainingBots) {
       if (!b.isAlive || b.hidden) continue;
       if (!intersectsCtx(ctx, b.x, b.y, b.radius)) continue;
       if (b.applyDamage) b.applyDamage(dmg);
-      _hits.push(b);
+      if (cc && b.applyCC) b.applyCC(cc);
+      hits.push(b);
     }
   }
-  window._hitTargets = _hits;
-  window._hitTarget = _hits[0] ?? null;
-  return _hits.length > 0;
+  window._hitTargets = hits;
+  window._hitTarget = hits[0] ?? null;
+  return hits.length > 0;
 }
 
 // ── 매 프레임 적 타겟 목록 갱신 ────────────────────────────
@@ -4433,7 +4464,7 @@ function minionChaseNearest(m, dt, targets) {
   const tgts = targets ?? _enemyTargets;
   if (!tgts.length) return null;
 
-  // 가장 가까운 타겟 탐색
+  // 1순위: 가장 가까운 적 탐색
   let nearest = null, nearDist = Infinity;
   for (const t of tgts) {
     const d = Math.hypot(t.x - m.x, t.y - m.y);
@@ -4441,70 +4472,65 @@ function minionChaseNearest(m, dt, targets) {
   }
   if (!nearest) return null;
 
-  const spd = m.speed * dt;
-  const sd  = m._stateData;
+  const sd   = m._stateData;
+  const gx = nearest.x, gy = nearest.y;
+  const now2 = performance.now();
+  const _isSlowed = m._slowEnd && now2 < m._slowEnd;
+  const spd = m.speed * dt * (_isSlowed ? 0.4 : 1);
 
-  // 직선 통로 여부 확인 (막혀있으면 A* 사용)
-  const chaseX = nearest.x, chaseY = nearest.y;
-  let useDirect = nearDist < ASTAR_CELL * 2;
-  if (!useDirect) {
-    const steps = Math.ceil(nearDist / ASTAR_CELL);
-    let clear = true;
-    for (let s = 1; s <= steps; s++) {
-      const px = m.x + (chaseX - m.x) * s / steps;
-      const py = m.y + (chaseY - m.y) * s / steps;
-      for (const w of currentMap.walls) {
-        if (px+m.radius>w.x && px-m.radius<w.x+w.w &&
-            py+m.radius>w.y && py-m.radius<w.y+w.h) { clear=false; break; }
-      }
-      if (!clear) break;
-    }
-    useDirect = clear;
+  // 2순위: A* 최단 경로 — 항상 계산, 타겟/위치 변경 시 재계산
+  const goalMoved = Math.hypot(gx-(sd._goalX||0), gy-(sd._goalY||0)) > ASTAR_CELL;
+  const selfMoved = Math.hypot(m.x-(sd._selfX||0), m.y-(sd._selfY||0)) > ASTAR_CELL*2;
+  const timeout   = now2 - (sd._pathTime||0) > 500;
+  const noPath    = !sd._path || sd._path.length === 0;
+
+  if (goalMoved || selfMoved || timeout || noPath) {
+    const p = astarFind(m.x, m.y, gx, gy, m.radius);
+    sd._path    = p && p.length ? p : null;
+    sd._goalX   = gx; sd._goalY = gy;
+    sd._selfX   = m.x; sd._selfY = m.y;
+    sd._pathTime = now2;
   }
 
-  let moveDX, moveDY;
-
-  if (useDirect) {
-    // 직선 이동
-    moveDX = (chaseX - m.x) / nearDist;
-    moveDY = (chaseY - m.y) / nearDist;
-    sd._path = [];
+  // 3순위: 경로 없으면 직선으로 최대한 가까이
+  let dx, dy;
+  if (sd._path && sd._path.length > 0) {
+    // 이미 지난 웨이포인트 스킵
+    while (sd._path.length > 1 && Math.hypot(sd._path[0].x-m.x, sd._path[0].y-m.y) < ASTAR_CELL*0.5) {
+      sd._path.shift();
+    }
+    const wp = sd._path[0];
+    dx = wp.x - m.x;
+    dy = wp.y - m.y;
   } else {
-    // A* 경로 재계산 조건: 타겟 변경 / 경로 소진 / 500ms 경과
-    const pathEmpty    = !sd._path || sd._path.length === 0;
-    const targetMoved  = sd._lastChaseTarget !== nearest ||
-                         (sd._lastChaseX !== undefined &&
-                          Math.hypot(chaseX - sd._lastChaseX, chaseY - sd._lastChaseY) > ASTAR_CELL);
-    const timeElapsed  = (performance.now() - (sd._lastPathTime || 0)) > 500;
-    if (targetMoved || (pathEmpty && timeElapsed)) {
-      sd._path           = astarFind(m.x, m.y, chaseX, chaseY) || [];
-      sd._lastPathTime   = performance.now();
-      sd._lastChaseTarget = nearest;
-      sd._lastChaseX     = chaseX;
-      sd._lastChaseY     = chaseY;
-    }
-
-    if (sd._path && sd._path.length > 0) {
-      const wp = sd._path[0];
-      if (Math.hypot(wp.x - m.x, wp.y - m.y) < ASTAR_CELL * 0.55) sd._path.shift();
-      const nwp = sd._path[0];
-      if (nwp) {
-        const nd = Math.hypot(nwp.x - m.x, nwp.y - m.y) || 1;
-        moveDX = (nwp.x - m.x) / nd;
-        moveDY = (nwp.y - m.y) / nd;
-      } else {
-        moveDX = (chaseX - m.x) / nearDist;
-        moveDY = (chaseY - m.y) / nearDist;
-      }
-    } else {
-      // A* 실패 시 직선 이동 폴백
-      moveDX = (chaseX - m.x) / nearDist;
-      moveDY = (chaseY - m.y) / nearDist;
-    }
+    // A* 실패 폴백 — 직선
+    dx = gx - m.x;
+    dy = gy - m.y;
   }
 
-  m.x += moveDX * spd;
-  m.y += moveDY * spd;
+  const len = Math.hypot(dx, dy) || 1;
+  const mdx = dx/len, mdy = dy/len;
+
+  // 이동 + 벽 슬라이딩
+  const nx = m.x + mdx*spd, ny = m.y + mdy*spd;
+  const inWall = (px, py) => currentMap.walls.some(w =>
+    px+m.radius>w.x && px-m.radius<w.x+w.w &&
+    py+m.radius>w.y && py-m.radius<w.y+w.h
+  );
+
+  if (!inWall(nx, ny)) {
+    m.x = nx; m.y = ny;
+  } else if (!inWall(nx, m.y)) {
+    m.x = nx;
+    sd._path = null; // 경로 재계산
+  } else if (!inWall(m.x, ny)) {
+    m.y = ny;
+    sd._path = null;
+  } else {
+    // 완전 막힘 — 경로 재계산
+    sd._path = null; sd._pathTime = 0;
+  }
+
   return nearest;
 }
 
@@ -4545,6 +4571,7 @@ MINION_DEFS['elin_spirit'] = {
 
     // ── CC 상태 체크 (기절·속박·화염·독 등 모든 CC)
     if ((m._stunEnd   && now < m._stunEnd)   || (L.stunEnd && now < L.stunEnd))   return;
+    if (m._sleepEnd   && now < m._sleepEnd)  return;
     if ((m._bindEnd   && now < m._bindEnd)   || (L.bindEnd && now < L.bindEnd))   return;
     if (m._burnEnd    && now < m._burnEnd)   return;
     if (m._poisonEnd  && now < m._poisonEnd) return;
@@ -4558,7 +4585,9 @@ MINION_DEFS['elin_spirit'] = {
       // 돌진 중 적 판정 (한 번만)
       if (!m._dashHit && Math.hypot(R.x - m.x, R.y - m.y) < BS.meleeRange + R.radius) {
         m._dashHit = true;
+        window._hitTargets = [R]; window._hitTarget = R;
         hitRemote(BS.dashDamage);
+        if (BS.dashKnockback) knockbackRemote(BS.dashKnockback);
         addFx({type:'elinSpiritAtk', x:m.x, y:m.y, angle:Math.atan2(R.y-m.y, R.x-m.x), range:BS.meleeRange, halfAngle:BS.meleeHalfAngle, dur:10, maxDur:10});
         send({type:'fx', fx:{type:'elinSpiritAtk', x:m.x, y:m.y, angle:Math.atan2(R.y-m.y, R.x-m.x), range:BS.meleeRange, halfAngle:BS.meleeHalfAngle, dur:10, maxDur:10}});
       }
@@ -4566,7 +4595,9 @@ MINION_DEFS['elin_spirit'] = {
         for (const pm of peerMinions) {
           if (Math.hypot(pm.x - m.x, pm.y - m.y) < BS.meleeRange + pm.radius) {
             m._dashHit = true;
-            send({type:'minionHit', id:pm.id, damage:BS.dashDamage}); break;
+            if (pm.applyDamage) pm.applyDamage(BS.dashDamage);
+            if (pm.applyCC && BS.dashKnockback) pm.applyCC({knockbackPower: BS.dashKnockback, knockbackAngle: Math.atan2(pm.y-m.y, pm.x-m.x)});
+            break;
           }
         }
       }
@@ -4746,8 +4777,10 @@ function _herCannonAutoFire(m, BS, now) {
     if (d < nearDist) { nearDist = d; nearest = t; }
   }
   if (!nearest) return;
-  const angle = Math.atan2(nearest.y - m.y, nearest.x - m.x);
-  // 일반 피해 탄환 (넉백/슬러시 없음)
+  const _baseAngle = Math.atan2(nearest.y - m.y, nearest.x - m.x);
+  // 랜덤 spread 적용 (점사는 BS.spread 없음)
+  const _spread = BS.spread ? (Math.random() - 0.5) * 2 * BS.spread : 0;
+  const angle = _baseAngle + _spread;
   const b = {id:uid(), x:m.x, y:m.y,
              radius:BS.shotRadius, speed:BS.shotSpeed,
              dx:Math.cos(angle), dy:Math.sin(angle),
@@ -4767,15 +4800,40 @@ MINION_DEFS['herjang_cannon'] = {
   speed:  0,
 
   tick(m, dt, physDt, now) {
-    if (m._stunEnd && now < m._stunEnd) return;
-    _herCannonAutoFire(m, BALANCE.herjang.cannon, now);
+    if ((m._stunEnd && now < m._stunEnd) || (m._sleepEnd && now < m._sleepEnd)) return;
+    const BC = BALANCE.herjang.cannon;
+    // 리쉬 거리 초과 시 파괴 타이머
+    const _leashDist = Math.hypot(L.x - m.x, L.y - m.y);
+    if (_leashDist > BC.leashRange) {
+      if (!m._leashBreakAt) m._leashBreakAt = now + BC.leashDelay;
+      if (now >= m._leashBreakAt) {
+        m.hp = 0; // 파괴
+        L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + BC.leashStamRefund);
+        return;
+      }
+    } else {
+      m._leashBreakAt = null;
+    }
+    // 피해 없고 공격 중도 아닐 때 체력 회복 (플레이어와 동일: 5초 후 1초마다 10%)
+    const _cd = m._stateData;
+    const _lastAct = Math.max(m._lastDmgAt || 0, _cd.fireCd ? _cd.fireCd - BC.fireInterval : 0);
+    if (now - _lastAct > REGEN_IDLE) {
+      if (!m._lastRegenTick) m._lastRegenTick = now;
+      if (now - m._lastRegenTick >= REGEN_TICK) {
+        m.hp = Math.min(m.maxHp, m.hp + m.maxHp * REGEN_AMT);
+        m._lastRegenTick = now;
+      }
+    } else {
+      m._lastRegenTick = null;
+    }
+    _herCannonAutoFire(m, BC, now);
   },
 
   draw(m, ctx, isPeer) {
+    const BC = BALANCE.herjang.cannon;
     const pulse = 0.85 + 0.15*Math.sin(performance.now()*0.004);
     ctx.save();
     ctx.globalAlpha = isPeer ? 0.5 : 0.95;
-    // isPeer=false: 내 대포 → R 방향 / isPeer=true: 상대 대포 → L 방향
     const barrelTarget = isPeer ? L : R;
     const barrelAngle = Math.atan2(barrelTarget.y - m.y, barrelTarget.x - m.x);
 
@@ -4785,12 +4843,40 @@ MINION_DEFS['herjang_cannon'] = {
     ctx.strokeStyle = '#00c897'; ctx.lineWidth = 2.5;
     ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
 
-    // 포신 (양쪽 화면 모두 표시)
+    // 포신
     ctx.save();
     ctx.translate(m.x, m.y); ctx.rotate(barrelAngle);
     ctx.fillStyle = isPeer ? 'rgba(38,198,218,0.55)' : 'rgba(38,198,218,0.85)';
     ctx.fillRect(m.radius*0.2, -5, m.radius*1.1, 10);
     ctx.restore();
+
+    // 사거리 표시 (점선 원) — 내 대포만
+    if (!isPeer) {
+      ctx.beginPath(); ctx.arc(m.x, m.y, BC.atkRange, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(38,198,218,0.2)'; ctx.lineWidth = 1.5;
+      ctx.setLineDash([6,6]); ctx.stroke(); ctx.setLineDash([]);
+      // 픽업 범위
+      ctx.beginPath(); ctx.arc(m.x, m.y, BALANCE.herjang.rmb.pickupRange, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,220,80,0.35)'; ctx.lineWidth = 1.5;
+      ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+      // 리쉬 경고
+      if (m._leashBreakAt) {
+        const _remaining = m._leashBreakAt - performance.now();
+        const _alpha = 0.3 + 0.4*(1 - _remaining/BC.leashDelay);
+        // 대포-헤르쟝 연결 점선
+        ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(L.x, L.y);
+        ctx.strokeStyle = `rgba(255,80,80,${_alpha})`; ctx.lineWidth = 2;
+        ctx.setLineDash([8,6]); ctx.stroke(); ctx.setLineDash([]);
+        // 경고 원
+        ctx.beginPath(); ctx.arc(m.x, m.y, BC.leashRange, 0, Math.PI*2);
+        ctx.strokeStyle = `rgba(255,80,80,${_alpha*0.6})`; ctx.lineWidth = 1.5;
+        ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+        // 카운트다운 텍스트
+        ctx.fillStyle = `rgba(255,80,80,${_alpha})`;
+        ctx.font = 'bold 10px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText(`파괴 ${(_remaining/1000).toFixed(1)}s`, m.x, m.y + m.radius + 14);
+      }
+    }
 
     if (m._carried && !isPeer) {
       ctx.fillStyle='rgba(255,220,80,0.9)'; ctx.font='bold 9px Courier New'; ctx.textAlign='center';
@@ -4824,7 +4910,8 @@ MINION_DEFS['herjang_mini'] = {
   speed:  0,
 
   tick(m, dt, physDt, now) {
-    if (m._stunEnd && now < m._stunEnd) return;
+    if ((m._stunEnd && now < m._stunEnd) || (m._sleepEnd && now < m._sleepEnd)) return;
+    const BC = BALANCE.herjang.counter;
     // 매초 maxHp의 1/20씩 체력 감소 (20초 유지)
     if (!m._stateData.decayTick || now >= m._stateData.decayTick) {
       m.hp = Math.max(0, m.hp - m.maxHp / 20);
@@ -4832,18 +4919,18 @@ MINION_DEFS['herjang_mini'] = {
     }
     if (m.hp <= 0) return;
     _herCannonAutoFire(m, {
-      atkRange:     BALANCE.herjang.counter.miniAtkRange,
-      damage:       BALANCE.herjang.counter.miniDamage,
-      shotSpeed:    BALANCE.herjang.counter.miniShotSpeed,
-      shotRadius:   BALANCE.herjang.counter.miniShotRadius,
-      shotRange:    BALANCE.herjang.counter.miniShotRange,
-      fireInterval: BALANCE.herjang.counter.miniFireInterval,
-      knockbackPower: 0,    // 간이대포: 넉백 없음
-      slushAmt:     1,      // 로온 빙수 게이지
+      atkRange:     BC.miniAtkRange,
+      damage:       BC.miniDamage,
+      shotSpeed:    BC.miniShotSpeed,
+      shotRadius:   BC.miniShotRadius,
+      shotRange:    BC.miniShotRange,
+      fireInterval: BC.miniFireInterval,
+      spread:       BC.miniSpread,
     }, now);
   },
 
   draw(m, ctx, isPeer) {
+    const BC = BALANCE.herjang.counter;
     ctx.save();
     ctx.globalAlpha = isPeer ? 0.45 : 0.9;
     const pulse = 0.85+0.15*Math.sin(performance.now()*0.006);
@@ -4859,6 +4946,14 @@ MINION_DEFS['herjang_mini'] = {
       ctx.fillStyle = isPeer ? 'rgba(38,198,218,0.45)' : 'rgba(38,198,218,0.7)';
       ctx.fillRect(m.radius*0.3, -3.5, m.radius*1.0, 7);
       ctx.restore();
+    }
+
+    // 사거리 표시 (점선 원) — 내 간이대포만
+    if (!isPeer) {
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath(); ctx.arc(m.x, m.y, BC.miniAtkRange, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(94,234,212,0.2)'; ctx.lineWidth = 1.5;
+      ctx.setLineDash([5,6]); ctx.stroke(); ctx.setLineDash([]);
     }
 
     ctx.globalAlpha=isPeer?0.5:1;
@@ -4897,6 +4992,8 @@ function _attachTargetMethods(m) {
       return true;
     }
     send({type:'minionHit', id:this.id, damage:_d});
+    this.hp = Math.max(0, (this.hp ?? this.maxHp) - _d); // 로컬 hp 즉시 감소
+    this._lastDmgAt = performance.now();
     _addDmgNum('dealt', Math.round(_d), this.x, this.y-this.radius-10);
     addShake(Math.min(4+_d*0.12,10), 14); playHitSfx();
     applyLifesteal(_d); applyPoison(_d);
@@ -4904,24 +5001,30 @@ function _attachTargetMethods(m) {
   };
   m.applyCC = function(cc) {
     if (!cc) return;
+    const _now = performance.now();
     if (this.isBot) {
-      // 봇: 로컬에서 직접 CC 적용 (send 불필요)
-      const now = performance.now();
-      if (cc.stunDur)   this._stunEnd   = Math.max(this._stunEnd   ||0, now + cc.stunDur);
-      if (cc.bindDur)   this._bindEnd   = Math.max(this._bindEnd   ||0, now + cc.bindDur);
-      if (cc.slowDur)   this._slowEnd   = Math.max(this._slowEnd   ||0, now + cc.slowDur);
+      if (cc.stunDur)   this._stunEnd   = Math.max(this._stunEnd   ||0, _now + cc.stunDur);
+      if (cc.sleepDur)  this._sleepEnd  = Math.max(this._sleepEnd  ||0, _now + cc.sleepDur);
+      if (cc.bindDur)   this._bindEnd   = Math.max(this._bindEnd   ||0, _now + cc.bindDur);
+      if (cc.slowDur)   this._slowEnd   = Math.max(this._slowEnd   ||0, _now + cc.slowDur);
       if (cc.knockbackPower !== undefined) {
         const _ang = cc.knockbackAngle ?? Math.atan2(this.y-L.y, this.x-L.x);
-        this.tx = Math.max(this.radius, Math.min(WORLD_W-this.radius, (this.tx||this.x)+Math.cos(_ang)*cc.knockbackPower*0.25));
-        this.ty = Math.max(this.radius, Math.min(WORLD_H-this.radius, (this.ty||this.y)+Math.sin(_ang)*cc.knockbackPower*0.25));
+        this.tx = Math.max(this.radius, Math.min(WORLD_W-this.radius, this.x+Math.cos(_ang)*cc.knockbackPower*0.15));
+        this.ty = Math.max(this.radius, Math.min(WORLD_H-this.radius, this.y+Math.sin(_ang)*cc.knockbackPower*0.15));
       }
       return;
     }
+    // peerMinion: 패킷 전송
     const _cc = {...cc};
     if (cc.knockbackPower !== undefined) {
-      _cc.knockbackAngle = Math.atan2(this.y-L.y, this.x-L.x);
+      _cc.knockbackAngle = cc.knockbackAngle ?? Math.atan2(this.y-L.y, this.x-L.x);
     }
     send({type:'minionHit', id:this.id, damage:0, cc:_cc});
+    // 내 화면 peerMinion에 즉시 CC 상태 반영 (이펙트 표시용)
+    if (cc.stunDur)  this._stunEnd  = Math.max(this._stunEnd  ||0, _now + cc.stunDur);
+    if (cc.sleepDur) this._sleepEnd = Math.max(this._sleepEnd ||0, _now + cc.sleepDur);
+    if (cc.bindDur)  this._bindEnd  = Math.max(this._bindEnd  ||0, _now + cc.bindDur);
+    if (cc.slowDur)  this._slowEnd  = Math.max(this._slowEnd  ||0, _now + cc.slowDur);
   };
   return m;
 }
@@ -4953,6 +5056,7 @@ function damageLocalMinion(m, dmg, cc) {
   if (!m || m.hp <= 0) return;
   if (dmg > 0) {
     m.hp = Math.max(0, m.hp - dmg);
+    m._lastDmgAt = performance.now(); // 체력 회복 타이머 리셋
     addFx({ type: 'hit', x: m.x, y: m.y, r: 0, maxR: m.radius * 1.5, dur: 8, maxDur: 8 });
     playHitSfx();
   }
@@ -4960,34 +5064,40 @@ function damageLocalMinion(m, dmg, cc) {
   const now = performance.now();
   if (cc) {
     if (cc.stunDur)   m._stunEnd  = Math.max(m._stunEnd  ||0, now + cc.stunDur);
+    if (cc.sleepDur)  m._sleepEnd = Math.max(m._sleepEnd ||0, now + cc.sleepDur);
     if (cc.bindDur)   m._bindEnd  = Math.max(m._bindEnd  ||0, now + cc.bindDur);
     if (cc.burnDur)   m._burnEnd  = Math.max(m._burnEnd  ||0, now + cc.burnDur);
     if (cc.poisonDur) m._poisonEnd= Math.max(m._poisonEnd||0, now + cc.poisonDur);
     if (cc.slowDur)   m._slowEnd  = Math.max(m._slowEnd  ||0, now + cc.slowDur);
     if (cc.slushSync !== undefined) m._slush = cc.slushSync;
+    if (cc.slushAdd !== undefined) m._slush = Math.min(BALANCE.roon.lmb.slushMax, (m._slush||0) + cc.slushAdd);
     if (cc.slushReset) m._slush = 0;
     if (cc.knockbackPower && cc.knockbackAngle !== undefined) {
-      // 소환수 넉백: 위치 보정
       const _kbPow = cc.knockbackPower;
       const _kbAng = cc.knockbackAngle;
-      m.tx = Math.max(m.radius, Math.min(WORLD_W-m.radius, (m.tx||m.x) + Math.cos(_kbAng)*_kbPow*0.25));
-      m.ty = Math.max(m.radius, Math.min(WORLD_H-m.radius, (m.ty||m.y) + Math.sin(_kbAng)*_kbPow*0.25));
+      // 현재 위치(m.x/m.y) 기준으로 계산 — 누적 방지
+      m.tx = Math.max(m.radius, Math.min(WORLD_W-m.radius, m.x + Math.cos(_kbAng)*_kbPow*0.15));
+      m.ty = Math.max(m.radius, Math.min(WORLD_H-m.radius, m.y + Math.sin(_kbAng)*_kbPow*0.15));
     }
   }
 }
 
 // ── 범위 내 모든 적 타겟 피해+CC (Rs() 전체) ─────────────
 function hitAllInRange(cx, cy, range, dmg, cc) {
-  const _hits = [];
+  const hits = [];
   for (const t of Rs()) {
-    if (Math.hypot(t.x-cx, t.y-cy) < range + t.radius) {
-      if (dmg > 0 && t.applyDamage) t.applyDamage(dmg);
-      if (cc && t.applyCC) t.applyCC(cc);
-      _hits.push(t);
+    if (Math.hypot(t.x-cx, t.y-cy) >= range + t.radius) continue;
+    if (dmg > 0 && t.applyDamage) t.applyDamage(dmg);
+    hits.push(t);
+  }
+  if (cc && hits.length > 0) {
+    const _hasMinion = hits.some(t => t !== R);
+    for (const t of hits) {
+      if (_hasMinion && t === R) continue;
+      if (t.applyCC) t.applyCC(cc);
     }
   }
-  window._hitTargets = _hits; window._hitTarget = _hits[0] ?? null;
-  return _hits.length > 0;
+  return hits.length > 0;
 }
 
 // ── 범위 내 적 소환수에 피해+CC (스킬에서 직접 호출) ──────────
@@ -5016,6 +5126,16 @@ function tickMinions(dt, physDt, now) {
   for (let i = localMinions.length - 1; i >= 0; i--) {
     const m = localMinions[i];
     const def = MINION_DEFS[m.type];
+
+    // 소환수 넉백: tx/ty가 설정된 경우 실제 위치로 보간 (기절 중에도 적용)
+    if (m.tx !== undefined && m.ty !== undefined &&
+        (Math.abs(m.tx - m.x) > 0.5 || Math.abs(m.ty - m.y) > 0.5)) {
+      const _kbSpd = Math.min(1, physDt / 80);
+      m.x += (m.tx - m.x) * _kbSpd;
+      m.y += (m.ty - m.y) * _kbSpd;
+      if (Math.hypot(m.tx - m.x, m.ty - m.y) < 1) { m.x = m.tx; m.y = m.ty; }
+    }
+
     // AI 틱
     def?.tick?.(m, dt, physDt, now);
     // 벽 충돌
@@ -5130,20 +5250,59 @@ function drawMinions() {
 function _drawMinionOverlay(m, isPeer) {
   const now = performance.now();
 
-  // ── CC 상태 표시 ──
-  const isStunned = m._stunEnd && now < m._stunEnd;
-  const isBound   = m._bindEnd && now < m._bindEnd;
+  // ── CC 상태 표시 (플레이어와 동일한 스타일) ──
+  const isStunned  = m._stunEnd  && now < m._stunEnd;
+  const isSleeping = m._sleepEnd && now < m._sleepEnd;
+  const isBound    = m._bindEnd  && now < m._bindEnd;
+  const isSlowed   = m._slowEnd  && now < m._slowEnd;
+  const isBurning  = m._burnEnd  && now < m._burnEnd;
 
-  if (isStunned) {
-    const pulse = 0.5 + 0.5 * Math.sin(now * 0.012);
-    ctx.beginPath(); ctx.arc(m.x, m.y, m.radius + 8, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(239,68,68,${0.6 + 0.4 * pulse})`;
-    ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]); ctx.stroke(); ctx.setLineDash([]);
-  } else if (isBound) {
-    const pulse = 0.5 + 0.5 * Math.sin(now * 0.010);
-    ctx.beginPath(); ctx.arc(m.x, m.y, m.radius + 8, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(255,215,0,${0.6 + 0.4 * pulse})`;
-    ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]); ctx.stroke(); ctx.setLineDash([]);
+  // 속박: 금색 점선 링 + BIND
+  if (isBound) {
+    const pulse = 0.5+0.5*Math.sin(now*0.01);
+    ctx.beginPath(); ctx.arc(m.x,m.y,m.radius+10,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(255,215,0,${0.7+0.3*pulse})`; ctx.lineWidth=3.5;
+    ctx.setLineDash([6,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,215,0,0.9)'; ctx.font='bold 14px Courier New'; ctx.textAlign='center';
+    ctx.fillText('BIND', m.x, m.y-m.radius-38);
+  }
+
+  // 수면: 분홍 점선 링 + SLEEP
+  if (isSleeping) {
+    const pulse = 0.5+0.5*Math.sin(now*0.012);
+    ctx.beginPath(); ctx.arc(m.x,m.y,m.radius+10,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(255,105,180,${0.7+0.3*pulse})`; ctx.lineWidth=3.5;
+    ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,105,180,0.9)'; ctx.font='bold 14px Courier New'; ctx.textAlign='center';
+    ctx.fillText('SLEEP', m.x, m.y-m.radius-38);
+  } else if (isStunned) {
+    // 기절: 빨간 점선 링 + STUN
+    const pulse = 0.5+0.5*Math.sin(now*0.012);
+    ctx.beginPath(); ctx.arc(m.x,m.y,m.radius+10,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(239,68,68,${0.7+0.3*pulse})`; ctx.lineWidth=3.5;
+    ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(239,68,68,0.9)'; ctx.font='bold 14px Courier New'; ctx.textAlign='center';
+    ctx.fillText('STUN', m.x, m.y-m.radius-38);
+  }
+
+  // 연소: 주황 링 + BURN
+  if (isBurning) {
+    const pulse = 0.5+0.5*Math.sin(now*0.018);
+    ctx.beginPath(); ctx.arc(m.x,m.y,m.radius+10,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(255,150,0,${0.7+0.3*pulse})`; ctx.lineWidth=3;
+    ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,165,0,0.95)'; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
+    ctx.fillText('BURN', m.x, m.y-m.radius-38);
+  }
+
+  // 슬로우: 하늘색 링 + SLOW
+  if (isSlowed) {
+    const pulse = 0.5+0.5*Math.sin(now*0.008);
+    ctx.beginPath(); ctx.arc(m.x,m.y,m.radius+10,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(100,190,255,${0.7+0.3*pulse})`; ctx.lineWidth=3;
+    ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(130,210,255,0.95)'; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
+    ctx.fillText('SLOW', m.x, m.y-m.radius-46);
   }
 
   // ── 로온 빙수 게이지 ──
@@ -5244,8 +5403,7 @@ function applyPoison(baseDmg) {
     _poisonTimer.push(setTimeout(() => {
       if (!gameOn) return;
       hitRemoteRaw(tickDmg);
-      // 소환수 피해 틱도 적용
-      for (const pm of peerMinions) send({type:'minionHit', id:pm.id, damage:tickDmg});
+      for (const pm of peerMinions) if (pm.applyDamage) pm.applyDamage(tickDmg);
       addFx({type:'reikaBurnTick', x:R.x, y:R.y, r:0, maxR:20, dur:8, maxDur:8});
       send({type:'fx', fx:{type:'reikaBurnTick', x:R.x, y:R.y, r:0, maxR:20, dur:8, maxDur:8}});
     }, i * 1000));
@@ -5284,29 +5442,44 @@ function hitInRange(cx, cy, range, dmg) {
   }
   return hit;
 }
-function hitRemote(dmg) {
-  const targets = window._hitTargets?.length ? window._hitTargets : [window._hitTarget ?? R];
-  for (const t of targets) if (t?.applyDamage) t.applyDamage(dmg);
+// ── 단일/다중 타겟 CC 적용 헬퍼 ─────────────────────────────
+// targets: 타겟 배열 또는 단일 타겟 (없으면 R)
+function _applyCC(targets, cc) {
+  const _ts = Array.isArray(targets) ? targets : (targets ? [targets] : null);
+  if (!_ts || _ts.length === 0) return;
+  // 소환수가 타겟에 있으면 R에게는 CC 적용 안 함 (소환수 CC가 R로 번지는 현상 방지)
+  const _hasMinion = _ts.some(t => t !== R);
+  for (const t of _ts) {
+    if (_hasMinion && t === R) continue; // 소환수와 동시 타격 시 R 제외
+    if (t?.applyCC) t.applyCC(cc);
+  }
 }
 
-function knockbackRemote(power) {
-  const targets = window._hitTargets?.length ? window._hitTargets : [window._hitTarget ?? R];
-  for (const t of targets) if (t?.applyCC) t.applyCC({knockbackPower: power});
+function hitRemote(dmg, targets) {
+  const _ts = Array.isArray(targets) ? targets
+    : targets ? [targets]
+    : (window._hitTargets?.length ? window._hitTargets : (window._hitTarget ? [window._hitTarget] : [R]));
+  for (const t of _ts) if (t?.applyDamage) t.applyDamage(dmg);
 }
 
-function sleepRemote(dur) {
-  const targets = window._hitTargets?.length ? window._hitTargets : [window._hitTarget ?? R];
-  for (const t of targets) if (t?.applyCC) t.applyCC({sleepDur: dur});
+function knockbackRemote(power, targets) {
+  const _ts = targets ?? window._hitTargets ?? (window._hitTarget ? [window._hitTarget] : null);
+  _applyCC(_ts, {knockbackPower: power});
 }
 
-function stunRemote(dur) {
-  const targets = window._hitTargets?.length ? window._hitTargets : [window._hitTarget ?? R];
-  for (const t of targets) if (t?.applyCC) t.applyCC({stunDur: dur});
+function sleepRemote(dur, targets) {
+  const _ts = targets ?? window._hitTargets ?? (window._hitTarget ? [window._hitTarget] : null);
+  _applyCC(_ts, {sleepDur: dur});
 }
 
-function bindRemote(dur) {
-  const targets = window._hitTargets?.length ? window._hitTargets : [window._hitTarget ?? R];
-  for (const t of targets) if (t?.applyCC) t.applyCC({bindDur: dur});
+function stunRemote(dur, targets) {
+  const _ts = targets ?? window._hitTargets ?? (window._hitTarget ? [window._hitTarget] : null);
+  _applyCC(_ts, {stunDur: dur});
+}
+
+function bindRemote(dur, targets) {
+  const _ts = targets ?? window._hitTargets ?? (window._hitTarget ? [window._hitTarget] : null);
+  _applyCC(_ts, {bindDur: dur});
 }
 // 레이카 연소 적용
 function reikaApplyBurn(dur) {
@@ -5475,11 +5648,35 @@ function addFx(f) { fxList.push(f); }
 function _addDmgNum(type, dmg, x, y) {
   const buf = _dmgBuffer;
   if (type === 'dealt') {
-    buf.dealt += dmg;
-    buf.dealtX = x; buf.dealtY = y;
+    // 같은 위치(30px 이내)면 합산, 다른 위치면 즉시 별도 표시
+    const _samePosDealt = buf.dealt > 0 && Math.hypot(x - buf.dealtX, y - buf.dealtY) < 30;
+    if (_samePosDealt) {
+      buf.dealt += dmg;
+    } else {
+      // 기존 버퍼가 있으면 즉시 표시
+      if (buf.dealt > 0) {
+        addFx({type:'dmgNum', x:buf.dealtX, y:buf.dealtY,
+          text:String(Math.round(buf.dealt)), col:'#ff6060', size:19, dur:32, maxDur:32});
+        buf.dealt = 0;
+        if (buf.timer) { clearTimeout(buf.timer); buf.timer = null; }
+      }
+      buf.dealt = dmg;
+      buf.dealtX = x; buf.dealtY = y;
+    }
   } else {
-    buf.recv += dmg;
-    buf.recvX = x; buf.recvY = y;
+    const _samePosRecv = buf.recv > 0 && Math.hypot(x - buf.recvX, y - buf.recvY) < 30;
+    if (_samePosRecv) {
+      buf.recv += dmg;
+    } else {
+      if (buf.recv > 0) {
+        addFx({type:'dmgNum', x:buf.recvX, y:buf.recvY,
+          text:String(Math.round(buf.recv)), col:'#ffb0b0', size:18, dur:32, maxDur:32});
+        buf.recv = 0;
+        if (buf.timer) { clearTimeout(buf.timer); buf.timer = null; }
+      }
+      buf.recv = dmg;
+      buf.recvX = x; buf.recvY = y;
+    }
   }
   if (buf.timer) clearTimeout(buf.timer);
   buf.timer = setTimeout(() => {
@@ -5876,7 +6073,6 @@ const SKILLS = {
       } else {
         dist = Math.hypot(R.x - L.x, R.y - L.y) - R.radius;
       }
-      hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.meleeDamage);
       if (dist < augMeleeRange(B.meleeRange)) {
         if (_trainingMode) {
           for (const _mb of _trainingBots) {
@@ -6084,7 +6280,6 @@ const SKILLS = {
           hit = true;
         }
       }
-      hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
       // FX는 항상 표시 (공중 휘두르기 포함)
       addFx({type:'tauSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, col:fxCol, dur:10, maxDur:10});
       send({type:'fx', fx:{type:'tauSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, col:fxCol, dur:10, maxDur:10}});
@@ -6125,8 +6320,7 @@ const SKILLS = {
         L._attackPreview = null;
         if (!gameOn || L._counterToken!==tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-        hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.aoeDamage);
-        if (Math.hypot(R.x-L.x,R.y-L.y)<B.aoeRange+R.radius) knockbackRemote(B.knockbackPower);
+        hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.aoeDamage, {knockbackPower:B.knockbackPower});
         L._tauOveleucharge = true;
         L._tauHitStack = 0;
         addFx({type:'tauRing', x:L.x, y:L.y, r:B.aoeRange, angle:getAngle(), dur:22, maxDur:22});
@@ -6257,7 +6451,6 @@ const SKILLS = {
           const diff = Math.abs(((toR - swingAngle) + Math.PI*3) % (Math.PI*2) - Math.PI);
           if (diff < B.lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
         }
-        hitCtxSpirit({x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
         L._lmbAttacking = false;
         if (false) {
       }
@@ -6306,7 +6499,6 @@ const SKILLS = {
             hitCtx({x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
             if (swingNum === 2) bindRemote(B.bindDur);
           }
-          hitCtxSpirit({x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
         }
         addFx({type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:12, maxDur:12});
         send({type:'fx', fx:{type:'ropeSwing', x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:12, maxDur:12}});
@@ -6358,14 +6550,8 @@ const SKILLS = {
       if (!useStam(B.lmb.cost)) return;
       const _lianCos = Math.cos(angle), _lianSin = Math.sin(angle);
       
-        const dist=Math.hypot(R.x-L.x,R.y-L.y);
-        if (dist < B.lmb.meleeRange+R.radius) {
-          const toR=Math.atan2(R.y-L.y,R.x-L.x);
-          const diff=Math.abs(((toR-angle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-          if (diff < B.lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
-        }
+      hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
       
-      hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.lmb.meleeRange), halfAngle:B.lmb.halfAngle}, B.lmb.damage);
       if (false) {
       }
       // 스윙 범위 내 투사체 즉시 소거 + 상대방 localBullets에서도 제거
@@ -6524,27 +6710,16 @@ const SKILLS = {
         if (!_enemyTargets.length) return;
         if (!useStam(20)) return;
 
-        // 현재 A* 경로에서 방향 결정
-        const sd = spirit._stateData;
-        let dashDX = 0, dashDY = 0;
-        if (sd._path && sd._path.length > 0) {
-          // A* 경로의 첫 웨이포인트 방향
-          const wp = sd._path[0];
-          const nd = Math.hypot(wp.x - spirit.x, wp.y - spirit.y) || 1;
-          dashDX = (wp.x - spirit.x) / nd;
-          dashDY = (wp.y - spirit.y) / nd;
-        } else {
-          // 경로 없으면 가장 가까운 적 방향
-          const nearest = _enemyTargets.reduce((a, b) =>
-            Math.hypot(a.x - spirit.x, a.y - spirit.y) < Math.hypot(b.x - spirit.x, b.y - spirit.y) ? a : b,
-            _enemyTargets[0]);
-          if (!nearest) return;
-          const nd = Math.hypot(nearest.x - spirit.x, nearest.y - spirit.y) || 1;
-          dashDX = (nearest.x - spirit.x) / nd;
-          dashDY = (nearest.y - spirit.y) / nd;
-        }
+        // 최단거리(직선) — 가장 가까운 적 방향으로 직선 돌진
+        const nearest = _enemyTargets.reduce((a, b) =>
+          Math.hypot(a.x - spirit.x, a.y - spirit.y) < Math.hypot(b.x - spirit.x, b.y - spirit.y) ? a : b,
+          _enemyTargets[0]);
+        if (!nearest) return;
+        const nd = Math.hypot(nearest.x - spirit.x, nearest.y - spirit.y) || 1;
+        const dashDX = (nearest.x - spirit.x) / nd;
+        const dashDY = (nearest.y - spirit.y) / nd;
 
-        const dashDist = 208; // 짧은 돌진 거리
+        const dashDist = Math.min(nd + nearest.radius, B.dashRange);
         spirit._dashing   = true;
         spirit._dashHit   = false;
         spirit._dashStart = performance.now();
@@ -6555,9 +6730,8 @@ const SKILLS = {
         send({type:'fx', fx:{type:'dash', x:spirit.x, y:spirit.y, tx:spirit._dashTX, ty:spirit._dashTY, dur:10, maxDur:10}});
         L.rmbCooldown = B.cdDash;
       } else {
-        // 소환 — 스테미나 전량 소모
-        if (L.stamina < B.summonCost) return;
-        useStam(L.stamina); // 전량
+        // 소환 — B.summonCost 소모
+        if (!useStam(B.summonCost)) return;
         const BS = BALANCE.elin.spirit;
         spawnMinion('elin', 'elin_spirit', L.x, L.y);
         addFx({type:'elinSummon', x:L.x, y:L.y, r:0, maxR:50, dur:22, maxDur:22});
@@ -6566,19 +6740,20 @@ const SKILLS = {
       }
     },
 
-    // L-Shift: 죽지말아줘! — 유령에게 회복 투사체 + 자신·유령 위치 폭발
+    // L-Shift: 순간이동 — 유령→엘린 방향 투사체 발사, 도달 시 유령 순간이동 + 주변 폭발
+    // 유령 없으면 제자리 폭발 + 넉백
     counter(angle) {
       const B = BALANCE.elin.counter;
       if (!L.counterReady) return;
       if (L.lmbCooldown > 0 || L.rmbCooldown > 0) return;
-      const spirit = localMinions.find(m => m.type === 'elin_spirit');
-      if (!spirit) return; // 유령 없으면 사용 불가
       L.counterReady = false;
       L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:18, maxDur:18});
       const tok = ++L._counterToken;
-      const snapSX = spirit.x, snapSY = spirit.y; // 선딜 시작 시 유령 위치 스냅샷
+      const spirit = localMinions.find(m => m.type === 'elin_spirit');
+      const snapSX = spirit ? spirit.x : L.x;
+      const snapSY = spirit ? spirit.y : L.y;
       setTimeout(() => {
         L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) {
@@ -6588,29 +6763,40 @@ const SKILLS = {
         L.color = L.defaultColor; L._preFlashColor = null;
         send({type:'colorChange', color:L.defaultColor});
 
-        // 현재 유령 위치로 투사체 발사
         const sp2 = localMinions.find(m => m.type === 'elin_spirit');
-        const tx = sp2 ? sp2.x : snapSX, ty = sp2 ? sp2.y : snapSY;
-        const ddx = tx - L.x, ddy = ty - L.y;
+
+        if (!sp2) {
+          // 유령 없음 — 제자리 폭발 + 넉백
+          hitCtxAll({x:L.x, y:L.y, range:B.explosionRange}, B.damage, {knockbackPower:B.knockbackPower});
+          addFx({type:'elinExplosion', x:L.x, y:L.y, r:0, maxR:B.explosionRange, dur:18, maxDur:18});
+          send({type:'fx', fx:{type:'elinExplosion', x:L.x, y:L.y, r:0, maxR:B.explosionRange, dur:18, maxDur:18}});
+          L.lastAttackTime = performance.now();
+          return;
+        }
+
+        const sx = sp2.x, sy = sp2.y;
+        // 유령→엘린 방향으로 투사체 발사
+        const ddx = L.x - sx, ddy = L.y - sy;
         const dd = Math.hypot(ddx, ddy) || 1;
+        // _spiritRef는 직렬화 불가이므로 id로 추적
         const b = {
-          id: uid(), x: L.x, y: L.y,
+          id: uid(), x: sx, y: sy,
           radius: B.projRadius, speed: B.projSpeed,
           dx: ddx / dd, dy: ddy / dd,
-          damage: 0, maxRange: dd + 150, traveled: 0,
+          damage: 0, maxRange: dd + B.projRadius + L.radius + 10, traveled: 0,
           pierceWalls: true, pierceEnemies: true,
-          isElinHeal: true,
-          healAmount: B.healAmount,
+          isElinCounter: true,
+          _elinCounterSpiritId: sp2.id,
+          _elinCounterDestX: L.x,
+          _elinCounterDestY: L.y,
           explosionRange: B.explosionRange,
           explosionDamage: B.damage,
           knockbackPower: B.knockbackPower,
         };
-        applyPierceShot(b); localBullets.push(b); playShootSfx();
-
-        // 자신 위치에서 즉시 폭발
-        if (hitCtxAll({x:L.x, y:L.y, range:B.explosionRange}, B.damage)) knockbackRemote(B.knockbackPower);
-        addFx({type:'elinExplosion', x:L.x, y:L.y, r:0, maxR:B.explosionRange, dur:18, maxDur:18});
-        send({type:'fx', fx:{type:'elinExplosion', x:L.x, y:L.y, r:0, maxR:B.explosionRange, dur:18, maxDur:18}});
+        localBullets.push(b);
+        send({type:'bullet', ...b}); playShootSfx();
+        addFx({type:'elinCounterShot', x:sx, y:sy, tx:L.x, ty:L.y, dur:Math.round(dd/B.projSpeed/FRAME_MS)+4, maxDur:Math.round(dd/B.projSpeed/FRAME_MS)+4});
+        send({type:'fx', fx:{type:'elinCounterShot', x:sx, y:sy, tx:L.x, ty:L.y, dur:Math.round(dd/B.projSpeed/FRAME_MS)+4, maxDur:Math.round(dd/B.projSpeed/FRAME_MS)+4}});
         L.lastAttackTime = performance.now();
       }, BALANCE.counter.delay);
     },
@@ -6725,7 +6911,7 @@ const SKILLS = {
         const diffpm = Math.abs(((topm - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
         if (diffpm >= B.halfAngle) continue;
         const pmDmg = diffpm < B.centerAngle ? B.centerDmg : B.damage;
-        send({ type: 'minionHit', id: pm.id, damage: pmDmg });
+        if (pm.applyDamage) pm.applyDamage(pmDmg);
       }
       addFx({type:'maisilSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, centerAngle:B.centerAngle, dur:10, maxDur:10});
       send({type:'fx', fx:{type:'maisilSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, centerAngle:B.centerAngle, dur:10, maxDur:10}});
@@ -6744,24 +6930,29 @@ const SKILLS = {
 
       const cos = Math.cos(angle), sin = Math.sin(angle);
       const baseSpread = B.range * 0.12;
-      // 훈련장: 봇 직접 체크
-      
-      const dx = R.x - L.x, dy = R.y - L.y;
-      const fwd  =  dx * cos + dy * sin;
-      const perp = -dx * sin + dy * cos;
-      const widthAtFwd = baseSpread * (1 - fwd / B.range);
-      const hit = fwd >= 0 && fwd <= B.range + R.radius
-               && Math.abs(perp) <= widthAtFwd + R.radius;
-      if (!hit) return;
-
-      hitCtxAll({x:L.x, y:L.y, range:B.range}, 10);
-      const dist = Math.hypot(dx, dy);
-      const pullAngle = Math.atan2(L.y - R.y, L.x - R.x);
-      const maxPull = Math.max(0, dist - L.radius - R.radius - 10);
-      const actualPull = Math.min(B.pullDist, maxPull);
-      const tx = Math.max(R.radius, Math.min(WORLD_W - R.radius, R.x + Math.cos(pullAngle) * actualPull));
-      const ty = Math.max(R.radius, Math.min(WORLD_H - R.radius, R.y + Math.sin(pullAngle) * actualPull));
-      send({type:'pull', tx, ty, dur: B.dur});
+      // 모든 타겟에 대해 독립적으로 판정
+      for (const _t of Rs()) {
+        const _dx2 = _t.x - L.x, _dy2 = _t.y - L.y;
+        const _fwd2  =  _dx2 * cos + _dy2 * sin;
+        const _perp2 = -_dx2 * sin + _dy2 * cos;
+        const _wAt = baseSpread * (1 - _fwd2 / B.range);
+        if (!(_fwd2 >= 0 && _fwd2 <= B.range + _t.radius && Math.abs(_perp2) <= _wAt + _t.radius)) continue;
+        if (_t.applyDamage) _t.applyDamage(10);
+        // 인력: 모든 타겟을 키 쪽으로 당김
+        if (_t === R && !_trainingMode) {
+          const _dist2 = Math.hypot(_dx2, _dy2);
+          const _pullAng2 = Math.atan2(L.y - _t.y, L.x - _t.x);
+          const _maxPull2 = Math.max(0, _dist2 - L.radius - _t.radius - 10);
+          const _actPull2 = Math.min(B.pullDist, _maxPull2);
+          const _tx2 = Math.max(_t.radius, Math.min(WORLD_W - _t.radius, _t.x + Math.cos(_pullAng2) * _actPull2));
+          const _ty2 = Math.max(_t.radius, Math.min(WORLD_H - _t.radius, _t.y + Math.sin(_pullAng2) * _actPull2));
+          send({type:'pull', tx:_tx2, ty:_ty2, dur: B.dur});
+        } else if (_t !== R) {
+          // 소환수/봇: 인력 방향 넉백으로 대체
+          const _pullAng3 = Math.atan2(L.y - _t.y, L.x - _t.x);
+          if (_t.applyCC) _t.applyCC({knockbackPower: B.pullDist * 4, knockbackAngle: _pullAng3});
+        }
+      }
     },
 
     counter(angle) {
@@ -6908,7 +7099,6 @@ const SKILLS = {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
           const diff = Math.abs(((toR - angle) + Math.PI*3) % (Math.PI*2) - Math.PI);
           if (diff < B.frontAngle) { hitCtx({x:L.x, y:L.y, angle, range:B.frontRange, halfAngle:B.frontAngle}, B.damage); knockbackRemote(B.knockbackPower); }
-        hitCtxSpirit({x:L.x, y:L.y, angle, range:B.frontRange, halfAngle:B.frontAngle}, B.damage);
         }
         addFx({type:'erapabiSpin', x:L.x, y:L.y, angle, phase:'front', range:B.frontRange, halfAngle:B.frontAngle, dur:14, maxDur:14});
         send({type:'fx', fx:{type:'erapabiSpin', x:L.x, y:L.y, angle, phase:'front', range:B.frontRange, halfAngle:B.frontAngle, dur:14, maxDur:14}});
@@ -6925,7 +7115,6 @@ const SKILLS = {
           const toR = Math.atan2(R.y - L.y, R.x - L.x);
           const diff = Math.abs(((toR - backAngle) + Math.PI*3) % (Math.PI*2) - Math.PI);
           if (diff < B.backAngle) { hitCtx({x:L.x, y:L.y, angle:backAngle, range:B.backRange, halfAngle:B.backAngle}, B.damage); knockbackRemote(B.knockbackPower); }
-        hitCtxSpirit({x:L.x, y:L.y, angle:backAngle, range:B.backRange, halfAngle:B.backAngle}, B.damage);
         }
         addFx({type:'erapabiSpin', x:L.x, y:L.y, angle:backAngle, phase:'back', range:B.backRange, halfAngle:B.backAngle, dur:14, maxDur:14});
         send({type:'fx', fx:{type:'erapabiSpin', x:L.x, y:L.y, angle:backAngle, phase:'back', range:B.backRange, halfAngle:B.backAngle, dur:14, maxDur:14}});
@@ -6948,14 +7137,9 @@ const SKILLS = {
         const bl = B.lmbBlessed;
         const swingAngle = angle + bl.bias;
         
-          const dist = Math.hypot(R.x-L.x, R.y-L.y);
-          if (dist < augMeleeRange(bl.range) + R.radius) {
-            const toR = Math.atan2(R.y-L.y, R.x-L.x);
-            const diff = Math.abs(((toR-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-            if (diff < bl.halfAngle) { hitCtx({x:L.x, y:L.y, angle:angle+bl.bias, range:augMeleeRange(bl.range), halfAngle:bl.halfAngle}, bl.damage); reikaApplyBurn(bl.burnDur); }
-          }
+        const _reikaHits = hitCtx({x:L.x, y:L.y, angle:angle+bl.bias, range:augMeleeRange(bl.range), halfAngle:bl.halfAngle}, bl.damage);
+        if (_reikaHits.length) reikaApplyBurn(bl.burnDur);
         
-        hitCtxSpirit({x:L.x, y:L.y, angle:angle+bl.bias, range:augMeleeRange(bl.range), halfAngle:bl.halfAngle}, bl.damage);
         if (false) {
       }
         // 파동 원형 범위
@@ -6981,13 +7165,7 @@ const SKILLS = {
           const lmb = B.lmb;
           const currentAngle = getAngle(); // 선딜 후 실제 조준 방향 재계산
           const swingAngle = currentAngle + lmb.bias;
-          const dist = Math.hypot(R.x-L.x, R.y-L.y);
-          if (dist < lmb.range + R.radius) {
-            const toR = Math.atan2(R.y-L.y, R.x-L.x);
-            const diff = Math.abs(((toR-swingAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
-            if (diff < lmb.halfAngle) hitCtx({x:L.x, y:L.y, angle:currentAngle+lmb.bias, range:augMeleeRange(lmb.range), halfAngle:lmb.halfAngle}, lmb.damage);
-          }
-          hitCtxSpirit({x:L.x, y:L.y, angle:currentAngle+lmb.bias, range:augMeleeRange(lmb.range), halfAngle:lmb.halfAngle}, lmb.damage);
+          hitCtx({x:L.x, y:L.y, angle:currentAngle+lmb.bias, range:augMeleeRange(lmb.range), halfAngle:lmb.halfAngle}, lmb.damage);
           if (false) {
       }
           // 약간 전진 (현재 방향 기준)
@@ -7324,7 +7502,6 @@ const SKILLS = {
             hit = true;
           }
         }
-        hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.baseDamage);
       
       const col = hit ? '80,220,120' : '40,160,80';
       addFx({type:'kanSlash', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, col, dur:10, maxDur:10});
@@ -7335,41 +7512,60 @@ const SKILLS = {
     rmb(angle) {
       const B = BALANCE.kan.rmb;
       if (L.rmbCooldown > 0) return;
-      const dist = Math.hypot(R.x - L.x, R.y - L.y);
-      if (dist > B.pullRange + R.radius) return;
+      // Rs() 중 가장 가까운 타겟 탐색
+      let _kanTarget = null, _kanDist = Infinity;
+      for (const _t of Rs()) {
+        const _d = Math.hypot(_t.x-L.x, _t.y-L.y);
+        if (_d < B.pullRange + _t.radius && _d < _kanDist) { _kanTarget = _t; _kanDist = _d; }
+      }
+      if (!_kanTarget) return;
       if (!useStam(B.cost)) return;
 
-      // 넉백 방향 사전 계산 (끌어당기기 전 방향 캡처)
-      const kbAngle = Math.atan2(R.y - L.y, R.x - L.x);
-      const kbVX = Math.cos(kbAngle) * B.knockbackPower;
-      const kbVY = Math.sin(kbAngle) * B.knockbackPower;
-
-      // 상대를 칸 옆으로 끌어당김
-      const pullTX = Math.max(R.radius, Math.min(WORLD_W-R.radius, L.x + Math.cos(kbAngle) * (L.radius + R.radius + 6)));
-      const pullTY = Math.max(R.radius, Math.min(WORLD_H-R.radius, L.y + Math.sin(kbAngle) * (L.radius + R.radius + 6)));
-      send({type:'pull', tx: pullTX, ty: pullTY, dur: B.pullDur});
-
-      // 쌍방 행동불능
-      L.stunEnd = performance.now() + B.lockDur;
-      window._hitTargets = [R]; window._hitTarget = R; // 플레이어 대상 스턴 보장
-      stunRemote(B.lockDur + B.knockbackStunDur + 50);
-
+      const kbAngle = Math.atan2(_kanTarget.y - L.y, _kanTarget.x - L.x);
       addFx({type:'kanGrab', x:L.x, y:L.y, r:0, maxR:B.pullRange*0.6, dur:12, maxDur:12});
       send({type:'fx', fx:{type:'kanGrab', x:L.x, y:L.y, r:0, maxR:B.pullRange*0.6, dur:12, maxDur:12}});
+      L.stunEnd = performance.now() + B.lockDur;
 
-      const tok = ++L._counterToken;
-      setTimeout(() => {
-        if (!gameOn || L._counterToken !== tok) return;
-        if (!R.burrowing) {
-          send({type:'knockback', vx: kbVX, vy: kbVY});
-          R.tx = Math.max(R.radius, Math.min(WORLD_W-R.radius, R.tx + kbVX * 0.35));
-          R.ty = Math.max(R.radius, Math.min(WORLD_H-R.radius, R.ty + kbVY * 0.35));
-        }
-        addFx({type:'kanThrow', x:L.x, y:L.y, r:0, maxR:60, dur:14, maxDur:14});
-        send({type:'fx', fx:{type:'kanThrow', x:L.x, y:L.y, r:0, maxR:60, dur:14, maxDur:14}});
-        L.lastAttackTime = performance.now();
-      }, B.lockDur + 50);
-
+      if (_kanTarget === R) {
+        const pullTX = Math.max(R.radius, Math.min(WORLD_W-R.radius, L.x + Math.cos(kbAngle)*(L.radius+R.radius+6)));
+        const pullTY = Math.max(R.radius, Math.min(WORLD_H-R.radius, L.y + Math.sin(kbAngle)*(L.radius+R.radius+6)));
+        send({type:'pull', tx:pullTX, ty:pullTY, dur:B.pullDur});
+        window._hitTargets = [R]; window._hitTarget = R;
+        stunRemote(B.lockDur + B.knockbackStunDur + 50);
+        const tok = ++L._counterToken;
+        setTimeout(() => {
+          if (!gameOn || L._counterToken !== tok) return;
+          if (!R.burrowing) {
+            const kbVX = Math.cos(kbAngle)*B.knockbackPower, kbVY = Math.sin(kbAngle)*B.knockbackPower;
+            send({type:'knockback', vx:kbVX, vy:kbVY});
+            R.tx = Math.max(R.radius, Math.min(WORLD_W-R.radius, R.tx+kbVX*0.35));
+            R.ty = Math.max(R.radius, Math.min(WORLD_H-R.radius, R.ty+kbVY*0.35));
+          }
+          addFx({type:'kanThrow', x:L.x, y:L.y, r:0, maxR:60, dur:14, maxDur:14});
+          send({type:'fx', fx:{type:'kanThrow', x:L.x, y:L.y, r:0, maxR:60, dur:14, maxDur:14}});
+          L.lastAttackTime = performance.now();
+        }, B.lockDur + 50);
+      } else {
+        // 소환수: 플레이어와 동일한 로직
+        // 1. 끌어당기기 (칸 옆으로 이동)
+        const pullTX = Math.max(_kanTarget.radius, Math.min(WORLD_W-_kanTarget.radius, L.x + Math.cos(kbAngle)*(L.radius+_kanTarget.radius+6)));
+        const pullTY = Math.max(_kanTarget.radius, Math.min(WORLD_H-_kanTarget.radius, L.y + Math.sin(kbAngle)*(L.radius+_kanTarget.radius+6)));
+        _kanTarget.tx = pullTX; _kanTarget.ty = pullTY;
+        // 2. 전체 기절 (lockDur + knockbackStunDur)
+        if (_kanTarget.applyCC) _kanTarget.applyCC({stunDur: B.lockDur + B.knockbackStunDur + 50});
+        // 3. lockDur 후 넉백 (플레이어와 동일한 타이밍)
+        const tok2 = ++L._counterToken;
+        setTimeout(() => {
+          if (!gameOn || L._counterToken !== tok2) return;
+          if (_kanTarget.applyCC) _kanTarget.applyCC({
+            knockbackPower: B.knockbackPower,
+            knockbackAngle: kbAngle
+          });
+          addFx({type:'kanThrow', x:L.x, y:L.y, r:0, maxR:60, dur:14, maxDur:14});
+          send({type:'fx', fx:{type:'kanThrow', x:L.x, y:L.y, r:0, maxR:60, dur:14, maxDur:14}});
+          L.lastAttackTime = performance.now();
+        }, B.lockDur + 50);
+      }
       L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
 
@@ -7394,10 +7590,7 @@ const SKILLS = {
         L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-        if (Math.hypot(R.x - L.x, R.y - L.y) < range + R.radius) {
-          hitCtxAll({x:L.x, y:L.y, range}, damage);
-          if (Math.hypot(R.x-L.x,R.y-L.y)<range+R.radius) knockbackRemote(kbPower);
-        }
+        hitCtxAll({x:L.x, y:L.y, range}, damage, {knockbackPower:kbPower});
         addFx({type:'kanShockwave', x:L.x, y:L.y, r:0, maxR:range, gaugeT:t, dur:22, maxDur:22});
         send({type:'fx', fx:{type:'kanShockwave', x:L.x, y:L.y, r:0, maxR:range, gaugeT:t, dur:22, maxDur:22}});
         L.lastAttackTime = performance.now();
@@ -7430,15 +7623,7 @@ const SKILLS = {
       const held = Math.min(now - L._cherityChargeStart, B.chargeTime);
       const t    = frozenT !== null && frozenT !== undefined ? frozenT : held / B.chargeTime;
       const cost = Math.round(B.minCost + (B.maxCost - B.minCost) * t);
-      // 동결 상태(스테미나 소진으로 동결)면 이미 전부 소모 → 추가 차감 없이 발동
-      if (frozenT === null || frozenT === undefined) {
-        const remaining = Math.max(0, cost - drained);
-        // 스테미나 부족해도 발사 허용 (가능한 만큼만 차감)
-        if (remaining > 0) {
-          L.stamina = Math.max(0, L.stamina - remaining);
-          L.staminaUseTime = performance.now();
-        }
-      }
+      // 차징 드레인이 이미 cost를 처리함 — 릴리즈 시 추가 차감 없음
       const damage      = Math.round(B.minDamage + (B.maxDamage - B.minDamage) * t);
       const speed       = B.minSpeed + (B.maxSpeed - B.minSpeed) * t;
       const pierceWalls = t >= 0.7;
@@ -7549,29 +7734,16 @@ const SKILLS = {
       if (!useStam(B.cost)) return;
 
       const cos = Math.cos(angle), sin = Math.sin(angle);
-      // 훈련장: 봇 직접 체크
-      
-        const dx = R.x - L.x, dy = R.y - L.y;
-        const fwd  =  dx * cos + dy * sin;
-        const perp = Math.abs(-dx * sin + dy * cos);
-        const inRect = fwd >= 0 && fwd <= augMeleeRange(B.length) + R.radius
-                    && perp <= B.width / 2 + R.radius;
-        if (inRect) {
-          const tipThresh = augMeleeRange(B.length) * B.tipRatio;
-          const dmg = fwd >= tipThresh ? B.tipDamage : B.damage;
-          hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.length), halfAngle:Math.PI/2}, dmg);
-        }
-      
-      // 소환수 조건부 피해 (끝부분=tipDamage, 일반=damage)
-      for (const pm of peerMinions) {
-        const pdx = pm.x - L.x, pdy = pm.y - L.y;
-        const pfwd  =  pdx * cos + pdy * sin;
-        const pperp = Math.abs(-pdx * sin + pdy * cos);
-        if (pfwd < 0 || pfwd > augMeleeRange(B.length) + pm.radius) continue;
-        if (pperp > B.width / 2 + pm.radius) continue;
-        const tipThresh = augMeleeRange(B.length) * B.tipRatio;
-        const pmDmg = pfwd >= tipThresh ? B.tipDamage : B.damage;
-        send({ type: 'minionHit', id: pm.id, damage: pmDmg });
+      // 범위 안 모든 타겟(Rs())에 끝부분 판정 포함 피해
+      for (const _t of Rs()) {
+        const _dx = _t.x - L.x, _dy = _t.y - L.y;
+        const _fwd  =  _dx * cos + _dy * sin;
+        const _perp = Math.abs(-_dx * sin + _dy * cos);
+        if (_fwd < 0 || _fwd > augMeleeRange(B.length) + _t.radius) continue;
+        if (_perp > B.width / 2 + _t.radius) continue;
+        const _tipThresh = augMeleeRange(B.length) * B.tipRatio;
+        const _dmg = _fwd >= _tipThresh ? B.tipDamage : B.damage;
+        if (_t.applyDamage) _t.applyDamage(_dmg);
       }
       addFx({type:'konyeongStab', x:L.x, y:L.y, angle, len:augMeleeRange(B.length), width:B.width, dur:9, maxDur:9});
       send({type:'fx', fx:{type:'konyeongStab', x:L.x, y:L.y, angle, len:augMeleeRange(B.length), width:B.width, dur:9, maxDur:9}});
@@ -7625,19 +7797,29 @@ const SKILLS = {
         L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-        const dist = Math.hypot(R.x - L.x, R.y - L.y);
-        if (dist < B.aoeRange + R.radius) {
-          const tipThresh = B.aoeRange * B.tipRatio;
-          const dmg = dist >= tipThresh ? B.tipDamage : B.damage;
-          hitCtx({x:L.x, y:L.y, angle, range:B.aoeRange, halfAngle:Math.PI}, dmg);
-          knockbackRemote(B.knockbackPower);
-          // 직접 슬로우 2초
-          R._slowEnd = Math.max(R._slowEnd||0, performance.now() + B.slowDur);
-          send({type:'slowPlayer', dur: B.slowDur});
+        const tipThresh = B.aoeRange * B.tipRatio;
+        // Rs() 전체 순회 — 끝부분(tipRatio 이상) 2배 피해 + 슬로우 + 넉백
+        const _cHits = [];
+        let _hitR = false;
+        for (const _t of Rs()) {
+          const _dist = Math.hypot(_t.x - L.x, _t.y - L.y);
+          if (_dist >= B.aoeRange + _t.radius) continue;
+          const _dmg = _dist >= tipThresh ? B.tipDamage : B.damage;
+          if (_t.applyDamage) _t.applyDamage(_dmg);
+          if (_t.applyCC) _t.applyCC({slowDur: B.slowDur});
+          _cHits.push(_t);
+          if (_t === R) _hitR = true;
         }
-        hitCtxSpirit({x:L.x, y:L.y, angle, range:B.aoeRange, halfAngle:Math.PI}, B.damage);
-        addFx({type:'konyeongSwing', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:18, maxDur:18});
-        send({type:'fx', fx:{type:'konyeongSwing', x:L.x, y:L.y, r:0, maxR:B.aoeRange, dur:18, maxDur:18}});
+        if (_cHits.length) {
+          window._hitTargets = _cHits; window._hitTarget = _cHits[0];
+          knockbackRemote(B.knockbackPower);
+          if (_hitR) {
+            R._slowEnd = Math.max(R._slowEnd||0, performance.now() + B.slowDur);
+            send({type:'slowPlayer', dur: B.slowDur});
+          }
+        }
+        addFx({type:'konyeongSwing', x:L.x, y:L.y, maxR:B.aoeRange, tipR:B.aoeRange*B.tipRatio, dur:18, maxDur:18});
+        send({type:'fx', fx:{type:'konyeongSwing', x:L.x, y:L.y, maxR:B.aoeRange, tipR:B.aoeRange*B.tipRatio, dur:18, maxDur:18}});
         L.lastAttackTime = performance.now();
       }, BALANCE.counter.delay);
     },
@@ -7649,14 +7831,14 @@ const SKILLS = {
     lmb(angle) {
       const B = BALANCE.herjang.lmb;
       if (L.lmbCooldown > 0) return;
-      if (!useStam(B.cost)) return;
-      // 대포 운반 중이면 내려놓기 — 공격 취소, 0.5초 딜레이
+      // 대포 운반 중이면 스테미나 없어도 내려놓기
       if (L._herCarrying && L._herCannon) {
         L._herCarrying = false;
         L._herPickupCooldown = performance.now() + 1000;
         L.lmbCooldown = 500;
         return;
       }
+      if (!useStam(B.cost)) return;
       const b = {
         id:uid(), x:L.x, y:L.y,
         radius: augBulletRadius(B.radius), speed: augBulletSpeed(B.speed),
@@ -7696,7 +7878,7 @@ const SKILLS = {
         }
         L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
       } else {
-        // 점사 지시: 3발 연속 발사
+        // 점사 지시: 플레이어가 조준한 방향으로 3발 연속 발사
         if (L._herCarrying) {
           L._herCarrying = false;
           L._herPickupCooldown = performance.now() + 1000;
@@ -7704,17 +7886,16 @@ const SKILLS = {
           return;
         }
         if (!useStam(B.burstCost)) return;
-        // 훈련장: 가장 가까운 봇을 타겟으로
-        let target = {x: R.x, y: R.y};
-        
-        const fireAngle = Math.atan2(target.y - cannon.y, target.x - cannon.x);
+        const _mx = mouseX, _my = mouseY; // 클릭 시점 마우스 위치 저장
+        const BC = BALANCE.herjang.cannon;
         for (let i = 0; i < B.burstCount; i++) {
           setTimeout(() => {
             if (!gameOn) return;
             const bx = cannon.x, by = cannon.y;
+            const fireAngle = Math.atan2(_my - by, _mx - bx); // 대포→마우스 방향
             const bl = {
               id:uid(), x:bx, y:by,
-              radius: B.burstRadius, speed: B.burstSpeed,
+              radius: BC.shotRadius, speed: B.burstSpeed,
               dx: Math.cos(fireAngle), dy: Math.sin(fireAngle),
               damage: B.burstDamage, maxRange: B.burstRange, traveled: 0,
               _herBurst: true, _herSlowDur: B.slowDur, pierceWalls: true,
@@ -7870,14 +8051,31 @@ const SKILLS = {
         };
         const fireZoneHit = () => {
           if (!gameOn || !L._prillZoneActive || L._prillZoneHitsLeft<=0) { endZone(); return; }
-          // 방향은 loop에서 실시간 업데이트된 zp.angle 사용
           const curAngle = zp.angle;
           zp.angle = curAngle; zp.cos = Math.cos(curAngle); zp.sin = Math.sin(curAngle);
-          // 피해: 자신이 구역 위에 있으면 부스트 적용 (구역 위치=발동 지점 고정)
-          hitCtxAll({x:zp.x, y:zp.y, cos:zp.cos, sin:zp.sin, len:B.length, width:B.width/2}, B.damage);
+          // FX 먼저 표시
           addFx({type:'prillZoneHit', x:zp.x, y:zp.y, angle:zp.angle, len:B.length, width:B.width, dur:12, maxDur:12});
           send({type:'fx', fx:{type:'prillZoneHit', x:zp.x, y:zp.y, angle:zp.angle, len:B.length, width:B.width, dur:12, maxDur:12}});
           L.lastAttackTime = performance.now();
+          // FX 선단 속도: len을 (12*FRAME_MS*1/2.2)ms에 주파 → pxPerMs
+          const _fxTotalMs = 12 * FRAME_MS;
+          const _fxPxPerMs = B.length / (_fxTotalMs / 2.2);
+          // 범위 안 각 타겟에 거리 비례 딜레이로 피해
+          for (const _t of Rs()) {
+            // 타겟이 구역(직사각형) 안에 있는지 확인
+            const _dx = _t.x - zp.x, _dy = _t.y - zp.y;
+            const _along = _dx * zp.cos + _dy * zp.sin;
+            const _perp  = Math.abs(-_dx * zp.sin + _dy * zp.cos);
+            if (_along < 0 || _along > B.length + _t.radius) continue;
+            if (_perp > B.width/2 + _t.radius) continue;
+            // 선단이 타겟까지 도달하는 시간
+            const _hitDelay = Math.max(0, (_along - _t.radius) / _fxPxPerMs);
+            const _target = _t;
+            setTimeout(() => {
+              if (!gameOn) return;
+              if (_target.applyDamage) _target.applyDamage(B.damage);
+            }, _hitDelay);
+          }
           L._prillZoneHitsLeft--;
           if (L._prillZoneHitsLeft<=0) endZone();
         };
@@ -7972,8 +8170,7 @@ const SKILLS = {
       addFx({type:'dazDiveEnter', x:startX, y:startY, r:0, maxR:55, dur:14, maxDur:14});
       send({type:'fx', fx:{type:'dazDiveEnter', x:startX, y:startY, r:0, maxR:55, dur:14, maxDur:14}});
       // 잠수 진입 피해
-      hitCtxAll({x:startX, y:startY, range:B.aoeRange}, B.damage);
-      if (Math.hypot(R.x-startX,R.y-startY)<(B.knockbackRange||B.aoeRange)+R.radius) knockbackRemote(B.knockbackPower);
+      hitCtxAll({x:startX, y:startY, range:B.aoeRange}, B.damage, {knockbackPower:B.knockbackPower});
       L.lastAttackTime=performance.now();
       L.burrowing=true;
       L.color=L.defaultColor; send({type:'colorChange', color:L.defaultColor});
@@ -7990,8 +8187,7 @@ const SKILLS = {
           clearInterval(_mvInt);
           L.burrowing=false;
           L.color=L.defaultColor; send({type:'colorChange',color:L.defaultColor});
-          hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage);
-          if (Math.hypot(R.x-L.x,R.y-L.y)<(B.knockbackRange||B.aoeRange)+R.radius) knockbackRemote(B.knockbackPower);
+          hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage, {knockbackPower:B.knockbackPower});
           L.lastAttackTime=performance.now();
           addFx({type:'dazDiveExit', x:L.x, y:L.y, r:0, maxR:60, dur:16, maxDur:16});
           send({type:'fx', fx:{type:'dazDiveExit', x:L.x, y:L.y, r:0, maxR:60, dur:16, maxDur:16}});
@@ -8121,7 +8317,7 @@ const SKILLS = {
           for (const pm of peerMinions) {
             const _pmd = Math.hypot(pm.x-L.x, pm.y-L.y);
             if (_pmd <= B.ringOuter+pm.radius && _pmd >= _inner-pm.radius) {
-              send({type:'minionHit', id:pm.id, damage:_dmg});
+              if (pm.applyDamage) pm.applyDamage(_dmg);
             }
           }
         
@@ -8238,7 +8434,7 @@ const SKILLS = {
       send({type:'fx', fx:{type:'sherinaDoubling', x:L.x, y:L.y, dur:20, maxDur:20}});
       L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
       // 넉백: FX 범위(반경 90px) 이내 적에게만
-      if (!_trainingMode && Math.hypot(R.x-L.x, R.y-L.y) < 150+R.radius) knockbackRemote(420);
+      for(const _t of Rs()) if(Math.hypot(_t.x-L.x,_t.y-L.y)<150+_t.radius) _t.applyCC?.({knockbackPower:420});
     },
 
     counter(angle) {
@@ -8293,6 +8489,7 @@ const SKILLS = {
       L._hatsDragStart = {x: mouseX, y: mouseY};
       L._hatsDragMax = 0;
       L._hatsDragTotalLen = 0;
+      L._hatsLmbDrained = 0;
       L._hatsDragPath = [{x: mouseX, y: mouseY}]; // 경로 기록 시작
     },
 
@@ -8310,7 +8507,6 @@ const SKILLS = {
         L._hatsDragPath = null; L._hatsDragFarthest = null; L._hatsFrozen = false;
         return;
       }
-      // 스테미나는 드래그 중에 이미 소모됨
 
       // t: 0=짧게(멀리/약하게), 1=길게(가까이/강하게)
       const t = (dragLen - B.dragThreshold) / (B.maxDragDist - B.dragThreshold);
@@ -8394,7 +8590,7 @@ const SKILLS = {
         L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-        if (hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage)) knockbackRemote(B.knockbackPower);
+        hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage, {knockbackPower:B.knockbackPower});
         addFx({type:'hatsSwing', x:L.x, y:L.y, r:0, maxR:B.range, dur:18, maxDur:18});
         send({type:'fx', fx:{type:'hatsSwing', x:L.x, y:L.y, r:0, maxR:B.range, dur:18, maxDur:18}});
         L.lastAttackTime = performance.now();
@@ -8413,7 +8609,6 @@ const SKILLS = {
       const _cd = L._syaAttackBoost > 0 ? B.cd * BALANCE.sya.rmb.attackCdMult : B.cd;
       
         hitCtxAll({x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle}, B.damage);
-        hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle}, B.damage);
       
       if (L._syaAttackBoost > 0) L._syaAttackBoost--;
       addFx({type:'syaSwing', x:L.x, y:L.y, angle, range:augMeleeRange(B.range), halfAngle:B.halfAngle, dur:10, maxDur:10, col:'40,80,255'});
@@ -8460,7 +8655,6 @@ const SKILLS = {
           if (Math.hypot(R.x-L.x, R.y-L.y) < B.range+R.radius) {
             hitRemote(B.damage); freezeRemote(B.freezeDur); _hit = true;
           }
-          hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI}, B.damage);
         
         addFx({type:'syaSwing', x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI, dur:16, maxDur:16, col:'40,80,255'});
         send({type:'fx', fx:{type:'syaSwing', x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI, dur:16, maxDur:16, col:'40,80,255'}});
@@ -8552,10 +8746,9 @@ const SKILLS = {
       L._runefRmbActive = false; L._attackPreview = null;
       clearTimeout(L._runefRmbTimer); L.rmbCooldown = B.cd;
       const _sx = sx ?? L.x, _sy = sy ?? L.y;
-        if (hitCtx({x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle}, B.iceDamage)) {
+        if (hitCtx({x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle}, B.iceDamage).length) {
           freezeRemote(B.iceFreezeDur);
         }
-        hitCtxSpirit({x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle}, B.iceDamage);
       addFx({type:'swing', x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle, dur:12, maxDur:12, col:'100,200,255'});
       send({type:'fx', fx:{type:'swing', x:_sx, y:_sy, angle, range:augMeleeRange(B.iceRange), halfAngle:B.iceHalfAngle, dur:12, maxDur:12, col:'100,200,255'}});
       addFx({type:'freeze', x:_sx, y:_sy, r:0, maxR:augMeleeRange(B.iceRange), dur:10, maxDur:10});
@@ -8753,21 +8946,18 @@ const SKILLS = {
           const a = Math.atan2(ty-L.y, tx-L.x);
           return Math.abs(((a-angle)+Math.PI*3)%(Math.PI*2)-Math.PI) < B.halfAngle;
         };
-        
-          if (_check(R.x, R.y, R.radius)) {
+        for (const _t of Rs()) {
+          if (!_check(_t.x, _t.y, _t.radius)) continue;
+          if (_t === R && !_trainingMode) {
             hitRemote(B.damage); freezeRemote(B.freezeDur);
             SKILLS.roon._addSlush(B.slushFill, false, null);
-            _hit = true;
+          } else {
+            if (_t.applyDamage) _t.applyDamage(B.damage);
+            if (_t.applyCC) _t.applyCC({stunDur: B.freezeDur});
+            SKILLS.roon._addSlush(B.slushFill, true, _t);
           }
-          // 상대 소환수에도 슬러시 적용
-          for (const pm of peerMinions) {
-            if (!_check(pm.x, pm.y, pm.radius)) continue;
-            send({type:'minionHit', id:pm.id, damage:B.damage, cc:{stunDur:B.freezeDur}});
-            pm._slush = Math.min(BALANCE.roon.lmb.slushMax, (pm._slush||0) + B.slushFill);
-            send({type:'minionHit', id:pm.id, damage:0, cc:{slushSync:pm._slush}});
-            _hit = true;
-          }
-          hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:B.halfAngle}, 0);
+          _hit = true;
+        }
         
         addFx({type:'swing', x:L.x, y:L.y, angle, range:B.range, halfAngle:B.halfAngle, dur:14, maxDur:14, col:'165,249,166'});
         send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:B.range, halfAngle:B.halfAngle, dur:14, maxDur:14, col:'165,249,166'}});
@@ -9028,8 +9218,14 @@ const SKILLS = {
         addFx({type: 'syaSwing', x: L.x, y: L.y, col: '0,160,30', angle: _ang1, range: B.range, halfAngle: Math.PI, dur: 22, maxDur: 22});
         send({type: 'fx', fx: {type: 'syaSwing', x: L.x, y: L.y, col: '0,160,30', angle: _ang1, range: B.range, halfAngle: Math.PI, dur: 22, maxDur: 22}});
         if (hit1) {
-          R._slowEnd = Math.max(R._slowEnd || 0, performance.now() + B.slowDur);
-          send({type: 'slowPlayer', dur: B.slowDur});
+          // R이 맞았을 때만 슬로우, 소환수만 맞은 경우 제외
+          const _hit1HasR = (window._hitTargets||[]).some(t => t === R);
+          if (_hit1HasR) {
+            R._slowEnd = Math.max(R._slowEnd || 0, performance.now() + B.slowDur);
+            send({type: 'slowPlayer', dur: B.slowDur});
+          } else {
+            for (const t of (window._hitTargets||[])) if (t !== R && t.applyCC) t.applyCC({slowDur: B.slowDur});
+          }
           L._tadtaCounterSlowed = true;
         } else {
           L._tadtaCounterSlowed = false;
@@ -9042,10 +9238,16 @@ const SKILLS = {
           const hit2 = hitCtxAll({x: L.x, y: L.y, range: B.range}, B.damage);
           addFx({type: 'syaSwing', x: L.x, y: L.y, col: '0,210,50', angle: _ang2, range: B.range, halfAngle: Math.PI, ccw: true, dur: 22, maxDur: 22});
           send({type: 'fx', fx: {type: 'syaSwing', x: L.x, y: L.y, col: '0,210,50', angle: _ang2, range: B.range, halfAngle: Math.PI, ccw: true, dur: 22, maxDur: 22}});
-          // 슬로우 중이면 속박 (반격기 1타 감속 OR 덩굴 지대 감속)
-          const _hasVineSlow = L._tadtaVineZone && performance.now() < L._tadtaVineZone.expiry
-            && Math.hypot(R.x - L._tadtaVineZone.x, R.y - L._tadtaVineZone.y) < L._tadtaVineZone.r + R.radius;
-          if (hit2 && (L._tadtaCounterSlowed || _hasVineSlow)) bindRemote(B.bindDur);
+          // 슬로우 중이면 속박 — 맞은 타겟별로 독립 판단
+          if (hit2) {
+            for (const _bt of (window._hitTargets || [])) {
+              const _hasVineSlow2 = L._tadtaVineZone && performance.now() < L._tadtaVineZone.expiry
+                && Math.hypot(_bt.x - L._tadtaVineZone.x, _bt.y - L._tadtaVineZone.y) < L._tadtaVineZone.r + _bt.radius;
+              if (L._tadtaCounterSlowed || _hasVineSlow2) {
+                if (_bt.applyCC) _bt.applyCC({bindDur: B.bindDur});
+              }
+            }
+          }
           L._tadtaCounterSlowed = false;
           L.lastAttackTime = performance.now();
         }, B.swingDelay);
@@ -9109,7 +9311,6 @@ const SKILLS = {
       L._lmbAttacking = true;
       const hit = hitCtx(shape, damage);
       if (hit && isMax) knockbackRemote(B.knockbackPower);
-      hitCtxSpirit(shape, damage);
       L._lmbAttacking = false;
 
       const col = isMax ? '255,180,20' : '191,161,54';
@@ -9174,7 +9375,6 @@ const SKILLS = {
         if (hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage)) {
           knockbackRemote(420);
         }
-        hitCtxSpirit({x:L.x, y:L.y, angle, range:B.range, halfAngle:Math.PI}, B.damage);
         addFx({type:'aoe', x:L.x, y:L.y, r:B.range, dur:18, maxDur:18, col:'191,161,54'});
         send({type:'fx', fx:{type:'aoe', x:L.x, y:L.y, r:B.range, dur:18, maxDur:18, col:'191,161,54'}});
         // 버프: 다음 파워 펀치 33% 충전 상태로 시작
@@ -9211,7 +9411,6 @@ const SKILLS = {
           const lost = L.maxHealth - L.health;
           if (lost > 0) L.health = Math.min(L.maxHealth, L.health + lost * B.healRatio);
         }
-        hitCtxSpirit({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
         L._lmbAttacking = false;
         addFx({type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9, col:'251,199,255'});
         send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:9, maxDur:9, col:'251,199,255'}});
@@ -9282,10 +9481,9 @@ const SKILLS = {
         if (!gameOn || L._counterToken !== tok) return;
         const fa = getAngle();
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
-        if (hitCtx({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage)) {
+        if (hitCtx({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage).length) {
           sleepRemote(B.sleepDur);
         }
-        hitCtxSpirit({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, B.damage);
         addFx({type:'swing', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:12, maxDur:12, col:'251,199,255'});
         send({type:'fx', fx:{type:'swing', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle, dur:12, maxDur:12, col:'251,199,255'}});
         addFx({type:'freeze', x:L.x, y:L.y, r:0, maxR:B.meleeRange, dur:10, maxDur:10});
@@ -9298,8 +9496,9 @@ const SKILLS = {
   intu: {
     // 탄창 체크 및 재장전
     _checkAmmo(cost) {
-      if ((L._intuAmmo||12) < cost) return false;
-      L._intuAmmo = (L._intuAmmo||BALANCE.intu.magMax) - cost;
+      const _magMax = BALANCE.intu.magMax;
+      if ((L._intuAmmo??_magMax) < cost) return false;
+      L._intuAmmo = (L._intuAmmo??_magMax) - cost;
       if (L._intuAmmo <= 0) {
         L._intuReloading = true;
         L._intuReloadEnd = performance.now() + BALANCE.intu.reloadTime;
@@ -9315,7 +9514,7 @@ const SKILLS = {
     },
 
     _syncState() {
-      send({type:'intuState', ammo:L._intuAmmo??12, weapon:L._intuWeapon||'pistol', reloading:!!L._intuReloading});
+      send({type:'intuState', ammo:L._intuAmmo??BALANCE.intu.magMax, weapon:L._intuWeapon||'pistol', reloading:!!L._intuReloading});
     },
     _firePistolNoStam(angle) {
       const B = BALANCE.intu.pistol;
@@ -9372,6 +9571,34 @@ const SKILLS = {
     lmb(angle) {
       if (L.lmbCooldown > 0) return;
       if (L._intuReloading) return;
+      // 저격 모드(반격기 후 유지)면 저격 발사
+      if (L._intuWeapon === 'sniper') {
+        const B = BALANCE.intu.sniper;
+        if ((L._intuAmmo ?? BALANCE.intu.magMax) < 1) return;
+        if (L.lmbCooldown > 0) return;
+        L.lmbCooldown = 300 + 600; // 선딜레이 + 발사 후 쿨 (클릭 즉시 설정)
+        L.lastAttackTime = performance.now();
+        L._attackPreview = {shapes:[{type:'line', range:augMeleeRange(B.range), width:augBulletRadius(B.radius)*2, pierceWalls:true}]};
+        setTimeout(() => {
+          if (!gameOn) return;
+          L._attackPreview = null;
+          if (!SKILLS.intu._checkAmmo(1)) return;
+          const _sAngle = Math.atan2(mouseY-L.y, mouseX-L.x);
+          const b = {
+            id:uid(), x:L.x, y:L.y,
+            radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
+            dx:Math.cos(_sAngle), dy:Math.sin(_sAngle),
+            damage:B.damage, maxRange:B.range, traveled:0,
+            pierceWalls:true, pierceEnemies:true,
+            color: L.color, isIntuSniper:true,
+          };
+          applyPierceShot(b); localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
+          L.lmbCooldown = 600;
+          L.lastAttackTime = performance.now();
+          SKILLS.intu._syncState();
+        }, 300);
+        return;
+      }
       const _isShotgun = L._intuWeapon === 'shotgun';
       const B = _isShotgun ? BALANCE.intu.shotgun : BALANCE.intu.pistol;
       const fired = _isShotgun ? SKILLS.intu._fireShotgun(angle) : SKILLS.intu._firePistol(angle);
@@ -9379,12 +9606,26 @@ const SKILLS = {
     },
 
     rmb(angle) {
-      // 무기 스왑 후 즉시 발사
       if (L.rmbCooldown > 0) return;
       if (L._intuReloading) return;
+      // 저격 상태에서 우클릭: 이전 무기로 복귀 후 즉시 발사
+      if (L._intuWeapon === 'sniper') {
+        L._intuWeapon = L._intuPrevWeapon || 'pistol';
+        ++L._intuSniperTok; // 복귀 타이머 무효화
+        const _isSg = L._intuWeapon === 'shotgun';
+        const _swB = _isSg ? BALANCE.intu.shotgun : BALANCE.intu.pistol;
+        if (!useStam(_swB.cost)) { SKILLS.intu._syncState(); return; }
+        const _fired = _isSg ? SKILLS.intu._fireShotgunNoStam(angle) : SKILLS.intu._firePistolNoStam(angle);
+        if (_fired) { L.lmbCooldown = _swB.cd; L.rmbCooldown = BALANCE.intu.rmb.cd; L.lastAttackTime = performance.now(); }
+        SKILLS.intu._syncState();
+        return;
+      }
+      // 일반 무기 스왑
+      const _beforeSwap = L._intuWeapon;
       L._intuWeapon = L._intuWeapon === 'shotgun' ? 'pistol' : 'shotgun';
       const _rmbSwapB = L._intuWeapon==='shotgun'?BALANCE.intu.shotgun:BALANCE.intu.pistol;
-      if (!useStam(_rmbSwapB.cost)) { L._intuWeapon = L._intuWeapon==='shotgun'?'pistol':'shotgun'; return; } // 전환 후 해당 무기 스테미나
+      if (!useStam(_rmbSwapB.cost)) { L._intuWeapon = _beforeSwap; return; }
+      L._intuPrevWeapon = L._intuWeapon; // 현재 무기를 이전 무기로 기록
       const _isShotgun = L._intuWeapon === 'shotgun';
       const _rmbB = _isShotgun ? BALANCE.intu.shotgun : BALANCE.intu.pistol;
       const _rmbFired = _isShotgun ? SKILLS.intu._fireShotgunNoStam(angle) : SKILLS.intu._firePistolNoStam(angle);
@@ -9394,32 +9635,41 @@ const SKILLS = {
     counter(angle) {
       const B = BALANCE.intu.sniper;
       if (!L.counterReady) return;
-      if ((L._intuAmmo||0) < 1) return; // 탄창 없으면 발사 불가
+      if ((L._intuAmmo||0) < 1) return;
       L.counterReady = false; L.lmbCooldown = BALANCE.intu.counter.cd; L.rmbCooldown = BALANCE.intu.counter.cd;
       L.color = '#ffd700'; send({type:'colorChange', color:'#ffd700'});
       addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:BALANCE.counter.delay/FRAME_MS, maxDur:BALANCE.counter.delay/FRAME_MS, col:'161,138,138'});
       L._intuCounterActive = true;
-      L._intuWeapon = 'sniper'; // 선딜레이 중 SP 표시
-      L._attackPreview = {shapes:[{type:'line', range:BALANCE.intu.sniper.range>800?800:BALANCE.intu.sniper.range, width:8}]};
+      // 스나이퍼 복귀 토큰 갱신 — 이전 복귀 타이머 무효화
+      const _sniperTok = ++L._intuSniperTok;
+      const _prevWeapon = (L._intuWeapon !== 'sniper') ? L._intuWeapon : (L._intuPrevWeapon || 'pistol');
+      L._intuPrevWeapon = _prevWeapon;
+      L._intuWeapon = 'sniper';
       const _sTok = ++L._counterToken;
       setTimeout(() => {
         if (!gameOn || L._counterToken !== _sTok) return;
         L._intuCounterActive = false; L._attackPreview = null;
         L.color = L.defaultColor; send({type:'colorChange', color:L.defaultColor});
-        L._intuWeapon = L._intuWeapon === 'sniper' ? 'pistol' : L._intuWeapon;
+        L._intuWeapon = 'sniper';
         SKILLS.intu._checkAmmo(1);
-      // 저격: 관통 (발사 시점 마우스 방향)
-      const _sAngle = Math.atan2(mouseY-L.y, mouseX-L.x);
-      const b = {
-        id:uid(), x:L.x, y:L.y,
-        radius:augBulletRadius(10), speed:augBulletSpeed(B.speed),
-        dx:Math.cos(_sAngle), dy:Math.sin(_sAngle),
-        damage:B.damage, maxRange:B.range, traveled:0,
-        pierceWalls:true, pierceEnemies:true,
-        color: L.color, isIntuSniper:true,
-      };
-      localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
-      L.lastAttackTime = performance.now();
+        const _sAngle = Math.atan2(mouseY-L.y, mouseX-L.x);
+        const b = {
+          id:uid(), x:L.x, y:L.y,
+          radius:augBulletRadius(10), speed:augBulletSpeed(B.speed),
+          dx:Math.cos(_sAngle), dy:Math.sin(_sAngle),
+          damage:B.damage, maxRange:B.range, traveled:0,
+          pierceWalls:true, pierceEnemies:true,
+          color: L.color, isIntuSniper:true,
+        };
+        localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
+        L.lastAttackTime = performance.now();
+        // counterDur 후 이전 무기로 복귀 — 토큰이 바뀌면 취소
+        const _myTok = _sniperTok;
+        setTimeout(() => {
+          if (!gameOn || L._intuSniperTok !== _myTok) return;
+          if (L._intuWeapon === 'sniper') L._intuWeapon = L._intuPrevWeapon || 'pistol';
+          SKILLS.intu._syncState();
+        }, B.counterDur);
       }, BALANCE.counter.delay);
     },
   },
@@ -9458,14 +9708,9 @@ const SKILLS = {
           const _curAngle = getAngle(); // 타격 시점 방향
           const dmg = isFinal ? B.finalDamage : B.damage;
           const hit = hitCtx({x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle}, dmg);
-          hitCtxSpirit({x:L.x, y:L.y, angle:_curAngle, range:_range, halfAngle:B.halfAngle}, dmg);
           if (isFinal && hit) {
             L._kiFinalHit = performance.now();
-            const _lmbHeal = L.maxHealth * B.lmbHealRatio;
-            const _stamHeal = (L._augStamMax ?? STAM_MAX) * 0.15;
-            L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + _stamHeal);
-            addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_lmbHeal});
-            send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:0}});
+            // 3타 코인 제거 — 더 이상 코인을 생성하지 않음
           }
           const col = isFinal ? '255,165,0' : '195,201,222';
           const _swingRange = _range;
@@ -9527,10 +9772,14 @@ const SKILLS = {
       L._kiLmbToken = (L._kiLmbToken||0) + 1;
       const myTok = L._kiLmbToken;
       L._kiRmbReady = false;
-      L._kiRmbStart = 0; // 3초 타이머 무효화
-      L._kiRmbLmbStart = performance.now(); // 선딜 게이지용
+      L._kiRmbStart = 0;
+      L._kiRmbLmbStart = performance.now();
       L.rmbCooldown = B.cd;
-      L.lmbCooldown = 0; // 시전 즉시 평타 가능
+      L.lmbCooldown = 0;
+      // kiWarning FX 즉시 제거 (rmbRmb와 동일하게)
+      for (let _fi = fxList.length-1; _fi >= 0; _fi--) {
+        if (fxList[_fi].type === 'kiWarning') { fxList.splice(_fi, 1); break; }
+      }
       const kx = L._kiRmbX, ky = L._kiRmbY;
       const _strikeStart = performance.now();
       addFx({type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
@@ -9561,12 +9810,15 @@ const SKILLS = {
       L._kiRmbStart = 0;
       L.rmbCooldown = B.cd;
       L.lmbCooldown = 0;
-      // kiStrike FX
+      // kiWarning FX 즉시 제거 (rmbLmb와 동일하게)
+      for (let _fi = fxList.length-1; _fi >= 0; _fi--) {
+        if (fxList[_fi].type === 'kiWarning') { fxList.splice(_fi, 1); break; }
+      }
+      // kiStrike FX (rmbLmb와 동일)
       const _strikeStart2 = performance.now();
-      addFx({type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
-             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS), startTime:_strikeStart2, delayMs:B.damageDelay});
-      send({type:'fx', fx:{type:'kiStrike', x:kx, y:ky, r:B.aoeRange,
-             dur:Math.round(B.damageDelay/FRAME_MS), maxDur:Math.round(B.damageDelay/FRAME_MS), startTime:_strikeStart2, delayMs:B.damageDelay}});
+      const _strikeDur = Math.round(B.damageDelay/FRAME_MS);
+      addFx({type:'kiStrike', x:kx, y:ky, r:B.aoeRange, dur:_strikeDur, maxDur:_strikeDur, startTime:_strikeStart2, delayMs:B.damageDelay});
+      send({type:'fx', fx:{type:'kiStrike', x:kx, y:ky, r:B.aoeRange, dur:_strikeDur, maxDur:_strikeDur, startTime:_strikeStart2, delayMs:B.damageDelay}});
       // 즉시 순간이동
       const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(angle)*B.teleRange));
       const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(angle)*B.teleRange));
@@ -9577,8 +9829,13 @@ const SKILLS = {
       send({type:'fx', fx:{type:'dodge', x:tx, y:ty, radius:L.radius+10, dur:10, maxDur:10}});
       L._kiRmbActive = false;
       L._kiRmbReady = false;
-      L._kiRmbFadeEnd = performance.now() + B.damageDelay + 500;
-      L._kiRmbRmbStart = performance.now(); // 페이드 구간 게이지 채우기용
+      // 소멸 이팩트: kiStrike(0.5초) 후 0.5초간 소멸 — FX로 전송해 상대방도 볼 수 있게
+      const _fadeTotalMs = B.damageDelay + 500;
+      const _fadeDur = Math.round(_fadeTotalMs / FRAME_MS);
+      addFx({type:'kiRmbFade', x:kx, y:ky, r:B.aoeRange, dur:_fadeDur, maxDur:_fadeDur, delayMs:B.damageDelay});
+      send({type:'fx', fx:{type:'kiRmbFade', x:kx, y:ky, r:B.aoeRange, dur:_fadeDur, maxDur:_fadeDur, delayMs:B.damageDelay, _receivedAt: null}});
+      L._kiRmbFadeEnd = performance.now() + _fadeTotalMs;
+      L._kiRmbRmbStart = performance.now();
       L._kiRmbLmbStart = 0;
       L._kiAfterTeleDodge = false;
       L.lastAttackTime = performance.now();
@@ -9604,12 +9861,8 @@ const SKILLS = {
         const lx2 = dx2*cos2 + dy2*sin2, ly2 = dx2*(-sin2) + dy2*cos2;
         const _inRange = augMeleeRange(B.range) + R.radius;
         const _hit = lx2 > -R.radius && lx2 < _inRange && Math.abs(ly2) < B.width + R.radius;
-        const _spiritHit = hitCtxSpirit({x:L.x, y:L.y, cos:cos2, sin:sin2, len:augMeleeRange(B.range), width:B.width}, B.damage);
-        const _anyHit = _hit || _spiritHit;
-        if (_hit) {
-          hitCtxAll({x:L.x, y:L.y, cos:cos2, sin:sin2, len:augMeleeRange(B.range), width:B.width}, B.damage);
-          knockbackRemote(B.knockbackPower);
-        }
+        const _anyHit = hitCtxAll({x:L.x, y:L.y, cos:cos2, sin:sin2, len:augMeleeRange(B.range), width:B.width}, B.damage) || _hit;
+        if ((window._hitTargets||[]).length > 0) knockbackRemote(B.knockbackPower);
         addFx({type:'kiSlash', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), width:B.width, dur:16, maxDur:16});
         send({type:'fx', fx:{type:'kiSlash', x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), width:B.width, dur:16, maxDur:16}});
         // 뒤로 순간이동
@@ -9716,14 +9969,14 @@ const SKILLS = {
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         const sp = L._levinaSpear; // setTimeout 시점의 현재 창 위치
         // 출발지 피해 + 넉백
-        if (hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage)) knockbackRemote(B.knockbackPower);
+        hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage, {knockbackPower:B.knockbackPower});
         addFx({type:'aoe', x:L.x, y:L.y, r:B.aoeRange, dur:14, maxDur:14, col:'105,34,10'});
         send({type:'fx', fx:{type:'aoe', x:L.x, y:L.y, r:B.aoeRange, dur:14, maxDur:14, col:'105,34,10'}});
         if (sp) {
           // 창 위치로 순간이동 (창은 유지)
           L.x = sp.x; L.y = sp.y; resolveWall(L);
           // 도착지 피해 + 넉백
-          if (hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage)) knockbackRemote(B.knockbackPower);
+          hitCtxAll({x:L.x, y:L.y, range:B.aoeRange}, B.damage, {knockbackPower:B.knockbackPower});
           addFx({type:'aoe', x:L.x, y:L.y, r:B.aoeRange, dur:14, maxDur:14, col:'105,34,10'});
           send({type:'fx', fx:{type:'aoe', x:L.x, y:L.y, r:B.aoeRange, dur:14, maxDur:14, col:'105,34,10'}});
         }
@@ -9850,15 +10103,31 @@ CANVAS.addEventListener('mousemove', e => {
           L.staminaUseTime = performance.now();
         } else {
           const B = BALANCE.hatsuhats.lmb;
-          const alreadyMaxed = (L._hatsDragTotalLen || 0) >= B.maxDragDist;
-          const stamCost = alreadyMaxed ? 0 : screenMoved * (200 / 2500);
+          const _totalLen = L._hatsDragTotalLen || 0;
+          const alreadyMaxed = _totalLen >= B.maxDragDist;
+          let stamCost = 0;
+          if (!alreadyMaxed) {
+            const _wasUnder = _totalLen < B.dragThreshold;
+            const _nowOver  = _totalLen + screenMoved >= B.dragThreshold;
+            if (_wasUnder && _nowOver) {
+              stamCost = B.minCost;
+            } else if (!_wasUnder) {
+              const _stamPerPxLmb = (B.maxCost - B.minCost) / (B.maxDragDist - B.dragThreshold);
+              stamCost = screenMoved * _stamPerPxLmb;
+            }
+            // 총 소모량이 maxCost를 초과하지 않도록 캡
+            const _drained = L._hatsLmbDrained || 0;
+            stamCost = Math.min(stamCost, B.maxCost - _drained);
+            stamCost = Math.max(0, stamCost);
+          }
           if (!alreadyMaxed && L.stamina <= 0) {
             L._hatsFrozen = true;
             L.staminaUseTime = performance.now();
           } else {
-            if (!alreadyMaxed && stamCost > 0) {
+            if (stamCost > 0) {
               L.stamina = Math.max(0, L.stamina - stamCost);
               L.staminaUseTime = performance.now();
+              L._hatsLmbDrained = (L._hatsLmbDrained || 0) + stamCost;
             }
             const _clx=Math.max(L.radius, Math.min(WORLD_W-L.radius, wx));
             const _cly=Math.max(L.radius, Math.min(WORLD_H-L.radius, wy));
@@ -10173,9 +10442,10 @@ function resolveWall(p) {
 }
 
 // astarFind — 소환수 경로 탐색
-const ASTAR_CELL = 60; // 그리드 셀 크기 (px)
+const ASTAR_CELL = 40; // 그리드 셀 크기 (px) — 작을수록 좁은 길도 탐색
 
-function astarFind(sx, sy, gx, gy) {
+function astarFind(sx, sy, gx, gy, entityRadius) {
+  const margin = entityRadius ?? 18; // 소환수 반경 고려
   const CW = Math.ceil(WORLD_W / ASTAR_CELL);
   const CH = Math.ceil(WORLD_H / ASTAR_CELL);
   const toCX = x => Math.max(0, Math.min(CW-1, Math.floor(x / ASTAR_CELL)));
@@ -10186,13 +10456,16 @@ function astarFind(sx, sy, gx, gy) {
   const gcx = toCX(gx), gcy = toCY(gy);
   if (scx === gcx && scy === gcy) return [];
 
-  // 셀이 벽에 막혀있는지 확인 (경계 포함)
+  // 셀 중심이 벽에서 entityRadius 이내이면 막힌 것으로 판단
   const isBlocked = (cx, cy) => {
     if (cx < 0 || cy < 0 || cx >= CW || cy >= CH) return true;
-    const x1 = cx * ASTAR_CELL, y1 = cy * ASTAR_CELL;
-    const x2 = x1 + ASTAR_CELL, y2 = y1 + ASTAR_CELL;
+    const centerX = (cx + 0.5) * ASTAR_CELL;
+    const centerY = (cy + 0.5) * ASTAR_CELL;
     for (const w of currentMap.walls) {
-      if (x1 < w.x + w.w && x2 > w.x && y1 < w.y + w.h && y2 > w.y) return true;
+      // 셀 중심에서 벽까지의 최단 거리가 margin 미만이면 막힘
+      const nearX = Math.max(w.x, Math.min(w.x + w.w, centerX));
+      const nearY = Math.max(w.y, Math.min(w.y + w.h, centerY));
+      if (Math.hypot(centerX - nearX, centerY - nearY) < margin) return true;
     }
     return false;
   };
@@ -10207,7 +10480,7 @@ function astarFind(sx, sy, gx, gy) {
   const open     = [{ cx: scx, cy: scy, f: h(scx, scy) }];
 
   let iters = 0;
-  while (open.length > 0 && iters++ < 1500) {
+  while (open.length > 0 && iters++ < 3000) {
     // 최소 f 노드 추출
     let bi = 0;
     for (let i = 1; i < open.length; i++) if (open[i].f < open[bi].f) bi = i;
@@ -10288,25 +10561,35 @@ function moveBullets(dt=1) {
       const _B2=BALANCE.dazbin.rmb;
       // 범위 안 적 감지: 탄속 느리게 + 슬로우 부여
       const _waveDist=Math.hypot(R.x-b.x, R.y-b.y);
-      let _waveHit = !_trainingMode && _waveDist<b.radius+R.radius;
-      if (!_waveHit) {
+      const _waveHitR = !_trainingMode && _waveDist<b.radius+R.radius;
+      let _waveHitMinion = false;
+      for (const _rt of Rs()) {
+        if (_rt===R) continue;
+        if (Math.hypot(_rt.x-b.x,_rt.y-b.y)<b.radius+_rt.radius){_waveHitMinion=true;break;}
+      }
+      if (!_waveHitR && _trainingMode) {
         for (const _rt of Rs()) {
-          if (_rt===R) continue; // R은 위에서 처리
-          if (Math.hypot(_rt.x-b.x,_rt.y-b.y)<b.radius+_rt.radius){_waveHit=true;break;}
+          if (Math.hypot(_rt.x-b.x,_rt.y-b.y)<b.radius+_rt.radius){_waveHitMinion=true;break;}
         }
       }
-      if (!_waveHit && _trainingMode) {
-        for (const _rt of Rs()) {
-          if (Math.hypot(_rt.x-b.x,_rt.y-b.y)<b.radius+_rt.radius){_waveHit=true;break;}
-        }
-      }
+      const _waveHit = _waveHitR || _waveHitMinion;
       if (_waveHit) {
         if (b.speed !== (_B2.speedSlow||2.0)) {
           b.speed = _B2.speedSlow||2.0;
           send({type:'bulletSync', id:b.id, x:b.x, y:b.y, dx:b.dx, dy:b.dy, speed:b.speed});
         }
-        R._slowEnd=Math.max(R._slowEnd||0, performance.now()+(_B2.slowDur||800));
-        send({type:'slowPlayer', dur:_B2.slowDur||800});
+        if (_waveHitR) {
+          R._slowEnd=Math.max(R._slowEnd||0, performance.now()+(_B2.slowDur||800));
+          send({type:'slowPlayer', dur:_B2.slowDur||800});
+        }
+        if (_waveHitMinion) {
+          for (const _rt of Rs()) {
+            if (_rt===R) continue;
+            if (Math.hypot(_rt.x-b.x,_rt.y-b.y)<b.radius+_rt.radius) {
+              if (_rt.applyCC) _rt.applyCC({slowDur: _B2.slowDur||800});
+            }
+          }
+        }
       } else {
         if (b.speed !== (_B2.speed||7)) {
           b.speed = _B2.speed||7;
@@ -10333,12 +10616,22 @@ function moveBullets(dt=1) {
     }
     const oob = b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H;
     const hitWall = bulletHitsWall(b) && !b.pierceWalls;
-    // hitEnemy: Rs() 전체 순회 — 모든 타겟에 피해
+    // hitEnemy: Rs() 전체 순회 — swept collision (빠른 탄환이 소환수를 뚫는 현상 방지)
     let hitEnemy = false;
     let _hitTarget = null;
     const _hitTargets = [];
+    const _bSpd = b.speed * dt; // 이번 프레임 이동거리
+    const _steps = Math.max(1, Math.ceil(_bSpd / 10)); // 스텝 수 (10px마다 체크)
     for (const _rt of Rs()) {
-      if (Math.hypot(b.x-_rt.x, b.y-_rt.y) < b.radius+_rt.radius) {
+      let _hit = false;
+      for (let _s = 0; _s <= _steps; _s++) {
+        const _px = b.x - b.dx * _bSpd * (_steps - _s) / _steps;
+        const _py = b.y - b.dy * _bSpd * (_steps - _s) / _steps;
+        if (Math.hypot(_px - _rt.x, _py - _rt.y) < b.radius + _rt.radius) {
+          _hit = true; break;
+        }
+      }
+      if (_hit) {
         hitEnemy = true;
         _hitTargets.push(_rt);
         if (_hitTarget === null) _hitTarget = _rt;
@@ -10374,10 +10667,9 @@ function moveBullets(dt=1) {
       continue; // 벽·플레이어 충돌 판정 건너뜀
     }
 
-    // 상대 소환수 명중 판정 — 명중 시 minionHit 패킷 전송 후 탄환 제거
-    // isElinOrb/isElinHeal은 관통 탄환이므로 제외 (폭발 시점에 별도 처리)
-        const hitPeerMinion = hitEnemy && _hitTarget && _hitTarget !== R;
-    const hitSpirit = hitPeerMinion; // 기존 hitSpirit 참조와 호환
+    // 상대 소환수 명중 판정
+    const hitPeerMinion = hitEnemy && _hitTargets.some(t => t !== R && !t.isBot);
+    const hitSpirit = hitPeerMinion;
 
     if (b.isTauSickle) {
 
@@ -10507,7 +10799,7 @@ function moveBullets(dt=1) {
       if (hitSpirit2) {
         healSp.hp = Math.min(healSp.maxHp, healSp.hp + b.healAmount);
         addFx({type:'elinSpiritHeal', x:healSp.x, y:healSp.y, r:0, maxR:55, dur:18, maxDur:18});
-        if (hitCtxAll({x:healSp.x, y:healSp.y, range:b.explosionRange}, b.explosionDamage)) knockbackRemote(b.knockbackPower);
+        hitCtxAll({x:healSp.x, y:healSp.y, range:b.explosionRange}, b.explosionDamage, {knockbackPower:b.knockbackPower});
         addFx({type:'elinExplosion', x:healSp.x, y:healSp.y, r:0, maxR:b.explosionRange, dur:18, maxDur:18});
         send({type:'fx', fx:{type:'elinExplosion', x:healSp.x, y:healSp.y, r:0, maxR:b.explosionRange, dur:18, maxDur:18}});
         localBullets.splice(i, 1);
@@ -10516,7 +10808,34 @@ function moveBullets(dt=1) {
       }
       // 벽·적 관통 (hitWall / hitEnemy 무시)
 
-    } else if (b.isSherinaEcho) {
+    } else if (b.isElinCounter) {
+      // 순간이동 투사체: 목적지(엘린 위치) 도달 시 유령 순간이동 + 폭발
+      const _destX = b._elinCounterDestX ?? L.x;
+      const _destY = b._elinCounterDestY ?? L.y;
+      const _arrivedL = Math.hypot(b.x - _destX, b.y - _destY) < b.radius + L.radius;
+      if (_arrivedL || rangeOut || oob) {
+        if (_arrivedL) {
+          // 유령 순간이동
+          const _sp3 = b._elinCounterSpiritId
+            ? localMinions.find(m => m.id === b._elinCounterSpiritId)
+            : localMinions.find(m => m.type === 'elin_spirit');
+          if (_sp3) {
+            _sp3.x = _destX; _sp3.y = _destY; _sp3.tx = _destX; _sp3.ty = _destY;
+            // 경로 초기화 — 다음 프레임에 새 위치 기준으로 재계산
+            if (_sp3._stateData) { _sp3._stateData._path = null; _sp3._stateData._pathTime = 0; }
+            addFx({type:'phaseJump', x:b.x, y:b.y, tx:_destX, ty:_destY, dur:8, maxDur:8, col:'195,120,255', col2:'220,180,255'});
+            send({type:'fx', fx:{type:'phaseJump', x:b.x, y:b.y, tx:_destX, ty:_destY, dur:8, maxDur:8, col:'195,120,255', col2:'220,180,255'}});
+          }
+          // 도달 지점 주변 폭발
+          hitCtxAll({x:_destX, y:_destY, range:b.explosionRange}, b.explosionDamage, {knockbackPower:b.knockbackPower});
+          addFx({type:'elinExplosion', x:_destX, y:_destY, r:0, maxR:b.explosionRange, dur:18, maxDur:18});
+          send({type:'fx', fx:{type:'elinExplosion', x:_destX, y:_destY, r:0, maxR:b.explosionRange, dur:18, maxDur:18}});
+        }
+        localBullets.splice(i, 1);
+      }
+      // 벽·적 관통
+
+
       // 셰리나 에코: 탄환 직격 피해 + 종료 시 경로 전체를 하나의 rect 잔향으로
       // 시작점 기록
       // 훈련장 봇 직접 피해
@@ -10606,31 +10925,28 @@ function moveBullets(dt=1) {
             const _rBz = BALANCE.roon.rmb;
             const _zx = b.x, _zy = b.y;
             L.rmbCooldown = _rBz.zoneDur + 1000;
-            // 탄환이 맞은 타겟에 피해 (R이든 소환수든 동일)
-            window._hitTarget = _hitTarget;
-            hitRemote(b.damage);
-            // 빙수지대 생성 (소환수 포함 모든 명중에 생성)
-            if (!_trainingMode) {
-              const _mvToX=Math.max(L.radius,Math.min(WORLD_W-L.radius,_zx));
-              const _mvToY=Math.max(L.radius,Math.min(WORLD_H-L.radius,_zy));
-              L.x=_mvToX; L.y=_mvToY; L.tx=_mvToX; L.ty=_mvToY;
-              if (!L._roonZones) L._roonZones = [];
-              const _tgt = _hitTarget || R;
-              const _initDist = Math.hypot(_tgt.x-_zx, _tgt.y-_zy);
-              const _zone = {x:_zx, y:_zy, r:_rBz.zoneRadius,
-                expiry:performance.now()+_rBz.zoneDur, lastTick:performance.now(),
-                _capturedTarget: _tgt,
-                _captured: _initDist < _rBz.zoneRadius + _tgt.radius};
-              L._roonZones.push(_zone);
-              send({type:'roonZone', x:_zx, y:_zy, r:_rBz.zoneRadius, dur:_rBz.zoneDur});
-              addFx({type:'roonBlizzardZone', x:_zx, y:_zy, r:_rBz.zoneRadius, dur:Math.round(_rBz.zoneDur/FRAME_MS), maxDur:Math.round(_rBz.zoneDur/FRAME_MS)});
-              send({type:'fx', fx:{type:'roonBlizzardZone', x:_zx, y:_zy, r:_rBz.zoneRadius, dur:Math.round(_rBz.zoneDur/FRAME_MS), maxDur:Math.round(_rBz.zoneDur/FRAME_MS)}});
-            } else {
-              // 훈련장
-              if (!L._roonZones) L._roonZones=[];
-              L._roonZones.push({x:_zx,y:_zy,r:_rBz.zoneRadius,expiry:performance.now()+_rBz.zoneDur,lastTick:performance.now(),_bot:_hitTarget});
-              addFx({type:'roonBlizzardZone',x:_zx,y:_zy,r:_rBz.zoneRadius,dur:Math.round(_rBz.zoneDur/FRAME_MS),maxDur:Math.round(_rBz.zoneDur/FRAME_MS)});
+            // 탄환이 맞은 타겟들에 피해
+            for (const _bt of (_hitTargets.length ? _hitTargets : (_hitTarget ? [_hitTarget] : []))) {
+              if (_bt.applyDamage) _bt.applyDamage(b.damage);
             }
+            // 순간이동 (PvP + 훈련장 공통)
+            const _mvToX=Math.max(L.radius,Math.min(WORLD_W-L.radius,_zx));
+            const _mvToY=Math.max(L.radius,Math.min(WORLD_H-L.radius,_zy));
+            L.x=_mvToX; L.y=_mvToY; L.tx=_mvToX; L.ty=_mvToY;
+            // 빙수지대 생성
+            if (!L._roonZones) L._roonZones = [];
+            const _tgt = _hitTargets[0] || _hitTarget || R;
+            const _initDist = Math.hypot(_tgt.x-_zx, _tgt.y-_zy);
+            const _zone = {x:_zx, y:_zy, r:_rBz.zoneRadius,
+              expiry:performance.now()+_rBz.zoneDur, lastTick:performance.now(),
+              _capturedTarget: _tgt,
+              _captured: _initDist < _rBz.zoneRadius + _tgt.radius};
+            L._roonZones.push(_zone);
+            if (!_trainingMode) {
+              send({type:'roonZone', x:_zx, y:_zy, r:_rBz.zoneRadius, dur:_rBz.zoneDur});
+            }
+            addFx({type:'roonBlizzardZone',x:_zx,y:_zy,r:_rBz.zoneRadius,dur:Math.round(_rBz.zoneDur/FRAME_MS),maxDur:Math.round(_rBz.zoneDur/FRAME_MS)});
+            if (!_trainingMode) send({type:'fx', fx:{type:'roonBlizzardZone', x:_zx, y:_zy, r:_rBz.zoneRadius, dur:Math.round(_rBz.zoneDur/FRAME_MS), maxDur:Math.round(_rBz.zoneDur/FRAME_MS)}});
             playHitSfx();
           }
           if (!_hitEnemyEff) L.rmbCooldown = 1000;
@@ -10644,8 +10960,7 @@ function moveBullets(dt=1) {
         if (rangeOut||oob||hitWall||hitEnemy) {
           addFx({type:'runefFireExplosion',x:b.x,y:b.y,r:b.expRadius,dur:16,maxDur:16});
           send({type:'fx',fx:{type:'runefFireExplosion',x:b.x,y:b.y,r:b.expRadius,dur:16,maxDur:16}});
-          if (!_trainingMode&&Math.hypot(R.x-b.x,R.y-b.y)<b.expRadius+R.radius){window._hitTargets=[R];window._hitTarget=R;hitRemote(b.expDamage);knockbackRemote(420);}
-          else if(_trainingMode){for(const _fb of _trainingBots)if(_fb.isAlive&&!_fb.hidden&&Math.hypot(_fb.x-b.x,_fb.y-b.y)<b.expRadius+_fb.radius){window._hitTargets=[_fb];window._hitTarget=_fb;_fb.applyDamage&&_fb.applyDamage(b.expDamage);}}
+          hitAllInRange(b.x, b.y, b.expRadius, b.expDamage, {knockbackPower:420});
           localBullets.splice(i,1);
         }
         continue;
@@ -10707,14 +11022,13 @@ function moveBullets(dt=1) {
           }
         }
         if (b._herBurst && b._herSlowDur) {
-          if (_hitTarget && _hitTarget !== R) {
-            // 소환수 명중: minionHit cc로 슬로우 전송
-            send({type:'minionHit', id:_hitTarget.id, damage:0,
-                  cc:{slowDur:b._herSlowDur}});
-          } else {
-            // 플레이어 명중
-            R._slowEnd = Math.max(R._slowEnd||0, performance.now() + b._herSlowDur);
-            send({type:'slowPlayer', dur: b._herSlowDur});
+          for (const _ht of (window._hitTargets||[])) {
+            if (_ht === R) {
+              R._slowEnd = Math.max(R._slowEnd||0, performance.now() + b._herSlowDur);
+              send({type:'slowPlayer', dur: b._herSlowDur});
+            } else if (_ht.applyCC) {
+              _ht.applyCC({slowDur: b._herSlowDur});
+            }
           }
         }
         if (b.pierceEnemies) continue; // 관통탄: 제거 안 함
@@ -10789,8 +11103,24 @@ function moveBullets(dt=1) {
         L._kbFrames = 12;
       }
     }
-    // ※ localMinions 피해는 peer 측의 minionHit 패킷으로 처리
-    //   (peerBullets 시뮬레이션에서 직접 처리하면 이중 피해 발생)
+    // localMinions에 닿으면 peerBullet 시각적 제거 (관통탄 제외) — swept collision
+    // pierceWalls는 벽만 관통, 소환수는 관통 안 함
+    if (!b.pierceEnemies && !b.isDazWave && !b.isTadtaVine) {
+      const _pbSpd = b.speed * dt;
+      const _pbSteps = Math.max(1, Math.ceil(_pbSpd / 10));
+      for (const lm of localMinions) {
+        if (lm.hp <= 0) continue;
+        let _lmHit = false;
+        for (let _s = 0; _s <= _pbSteps; _s++) {
+          const _px = b.x - b.dx * _pbSpd * (_pbSteps - _s) / _pbSteps;
+          const _py = b.y - b.dy * _pbSpd * (_pbSteps - _s) / _pbSteps;
+          if (Math.hypot(_px - lm.x, _py - lm.y) < b.radius + lm.radius) {
+            _lmHit = true; break;
+          }
+        }
+        if (_lmHit) { peerBullets.splice(i, 1); break; }
+      }
+    }
   }
 }
 
@@ -11495,25 +11825,26 @@ function draw() {
       ctx.fillStyle=`rgba(255,120,0,${a*0.22})`; ctx.fill();
       ctx.strokeStyle=`rgba(255,170,50,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
     } else if (f.type==='kiStrike') {
-      const _kt = 1 - f.dur/f.maxDur;
+      const _elapsed = f._receivedAt ? (performance.now() - f._receivedAt) : ((f.maxDur - f.dur) * FRAME_MS);
+      const _gTotal = f.delayMs || (f.maxDur * FRAME_MS);
+      const _kt = Math.min(1, _elapsed / _gTotal);
       const _kr = f.r;
-      const _kOff = _kr * (1 - _kt);
       ctx.save();
-      // X 모양 — 회전하며 수렴, 3중 레이어 글로우
-      const _rot = _kt * Math.PI * 0.4;
-      for (let i = 0; i < 4; i++) {
-        const _ang = _rot + Math.PI/4 + i*Math.PI/2;
-        const _len = _kr * 0.45;
-        const _sx2 = f.x + Math.cos(_ang)*(_kOff + _len);
-        const _sy2 = f.y + Math.sin(_ang)*(_kOff + _len);
-        const _ex2 = f.x + Math.cos(_ang)*Math.max(0, _kOff - _len*0.1);
-        const _ey2 = f.y + Math.sin(_ang)*Math.max(0, _kOff - _len*0.1);
-        ctx.beginPath(); ctx.moveTo(_sx2,_sy2); ctx.lineTo(_ex2,_ey2);
-        ctx.strokeStyle=`rgba(220,225,255,${a*0.3})`; ctx.lineWidth=10; ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(_sx2,_sy2); ctx.lineTo(_ex2,_ey2);
-        ctx.strokeStyle=`rgba(195,201,222,${a*0.75})`; ctx.lineWidth=5; ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(_sx2,_sy2); ctx.lineTo(_ex2,_ey2);
-        ctx.strokeStyle=`rgba(240,245,255,${a})`; ctx.lineWidth=2; ctx.stroke();
+      // 원 4개가 바깥에서 중심으로 수렴
+      const _numCircles = 4;
+      for (let i = 0; i < _numCircles; i++) {
+        const _ang = Math.PI/4 + i*Math.PI/2 + _kt * Math.PI * 0.4;
+        const _dist = _kr * (1 - _kt); // 수렴 거리
+        const _cx2 = f.x + Math.cos(_ang) * _dist;
+        const _cy2 = f.y + Math.sin(_ang) * _dist;
+        const _cr = _kr * 0.07; // 원 반지름
+        // 글로우
+        ctx.beginPath(); ctx.arc(_cx2, _cy2, _cr*2.2, 0, Math.PI*2);
+        ctx.fillStyle=`rgba(220,225,255,${a*0.18})`; ctx.fill();
+        // 본체
+        ctx.beginPath(); ctx.arc(_cx2, _cy2, _cr, 0, Math.PI*2);
+        ctx.fillStyle=`rgba(195,201,222,${a*0.5})`; ctx.fill();
+        ctx.strokeStyle=`rgba(240,245,255,${a*0.95})`; ctx.lineWidth=2; ctx.stroke();
       }
       // 수축 점선 원
       ctx.beginPath(); ctx.arc(f.x, f.y, _kr*(1-_kt*0.5), 0, Math.PI*2);
@@ -11564,7 +11895,35 @@ function draw() {
       ctx.fillText('C', _cx, _cy);
       ctx.textBaseline='alphabetic';
       ctx.restore();
-    } else if (f.type==='kiWarning') {
+    } else if (f.type==='kiRmbFade') {
+      // rmbRmb 후 소멸 이팩트 — 상대방 화면에서 표시 (내 화면은 실시간 렌더러)
+      if (L.charDef?.id !== 'ki') {
+        const _fadeTotalMs = f.delayMs + 500;
+        const _elapsed = f._receivedAt ? (performance.now() - f._receivedAt) : ((f.maxDur - f.dur) * FRAME_MS);
+        const _halfMs = _fadeTotalMs / 2;
+        // 전반: 흰보라 가득 채워짐 (kiStrike 진행도)
+        // 후반: 역방향으로 소멸
+        const _eraseRatio = _elapsed < _halfMs ? 0 : (_elapsed - _halfMs) / _halfMs;
+        const _fillRatio = Math.min(1, _elapsed / _halfMs);
+        const _sA = -Math.PI / 2;
+        const _eA = _sA + Math.PI * 2 * _fillRatio * (1 - _eraseRatio);
+        if (_eA > _sA) {
+          ctx.save(); ctx.setLineDash([]);
+          ctx.beginPath(); ctx.moveTo(f.x, f.y);
+          ctx.arc(f.x, f.y, f.r, _sA, _eA);
+          ctx.closePath();
+          ctx.fillStyle = `rgba(220,225,255,0.22)`; ctx.fill();
+          ctx.beginPath(); ctx.arc(f.x, f.y, f.r, _sA, _eA);
+          ctx.strokeStyle = `rgba(220,225,255,0.85)`; ctx.lineWidth = 3.5; ctx.stroke();
+          ctx.restore();
+        }
+        // 예고장 원 (점선) — 소멸까지 유지
+        const _kp2 = 0.5 + 0.5*Math.sin(performance.now()*0.01);
+        const _fadeA = Math.max(0, 1 - _elapsed / _fadeTotalMs);
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+        ctx.strokeStyle = `rgba(195,201,222,${_fadeA*(0.4+0.2*_kp2)})`; ctx.lineWidth = 2.5;
+        ctx.setLineDash([8,6]); ctx.stroke(); ctx.setLineDash([]);
+      }
       // 키 예고장 경고 원 — 내 화면(키)에선 실시간 렌더러가 담당, 상대 화면에서만 FX로 표시
       if (L.charDef?.id !== 'ki') {
         const _kp = 0.5 + 0.5*Math.sin(performance.now()*0.01);
@@ -11765,12 +12124,27 @@ function draw() {
       ctx.restore();
 
     } else if (f.type==='konyeongSwing') {
-      const rSwing = f.maxR * (1 - f.dur/f.maxDur);
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rSwing), 0, Math.PI*2);
-      ctx.fillStyle=`rgba(245,190,80,${a*0.18})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,210,100,${a*0.9})`; ctx.lineWidth=3.5; ctx.stroke();
-      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, rSwing*0.55), 0, Math.PI*2);
-      ctx.strokeStyle=`rgba(255,230,120,${a*0.5})`; ctx.lineWidth=1.5; ctx.stroke();
+      // 반격기 원형 스윙 — 평타(konyeongStab)와 동일한 스타일
+      const _tip = f.tipR ?? f.maxR * 0.65;
+      const _t   = 1 - f.dur/f.maxDur;
+      const _cur = f.maxR * Math.min(1, _t * 2.2); // 평타처럼 확장
+      ctx.save();
+      // 외곽 원 (전체 aoeRange) — 바닐라색
+      ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, _cur), 0, Math.PI*2);
+      ctx.fillStyle  = `rgba(245,230,200,${a*0.35})`; ctx.fill();
+      ctx.strokeStyle= `rgba(245,220,180,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+      // tip 구간(경계~끝) 강조 — 평타 끝부분과 동일한 주황
+      if (_cur > _tip) {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(f.x, f.y, _cur, 0, Math.PI*2);
+        ctx.arc(f.x, f.y, _tip, 0, Math.PI*2, true);
+        ctx.fillStyle = `rgba(255,200,100,${a*0.6})`; ctx.fill();
+        ctx.restore();
+      }
+      // tip 경계 원 — 더 밝고 두껍게
+      ctx.beginPath(); ctx.arc(f.x, f.y, _tip, 0, Math.PI*2);
+      ctx.strokeStyle= `rgba(255,230,80,${a*0.95})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.restore();
 
     } else if (f.type==='hatsBeam') {
       // 히트스캔 빔 — 라임색 선 섬광
@@ -13578,7 +13952,7 @@ function drawPlayer(p, label) {
   const _intuP = (p===L&&L.charDef?.id==='intu')?L:((p===R&&(R.charDef?.id==='intu'||peerCharId==='intu'))?R:null);
   if (_intuP) {
     const _iSG = _intuP._intuWeapon === 'shotgun';
-    const _iAmmo = _intuP._intuAmmo ?? 12;
+    const _iAmmo = _intuP._intuAmmo ?? BALANCE.intu.magMax;
     const _iMax = BALANCE.intu.magMax;
     const _iReload = _intuP._intuReloading;
     // 무기명: 스테미나 바 오른쪽
@@ -14496,8 +14870,8 @@ function checkBetweenBothReady() {
 
   if (isHost) {
     // 호스트: 새 맵 선택 → roundStart 전송 → 카운트다운
-    const mapIdx = Math.floor(Math.random() * MAPS.length);
-    currentMap = MAPS[mapIdx];
+    const mapIdx = Math.floor(Math.random() * _gameMaps.length);
+    currentMap = _gameMaps[mapIdx];
     send({ type: 'roundStart', mapIdx });
     startBetweenCountdown(3);
   }
@@ -14982,7 +15356,7 @@ function loop() {
         const path = L._hatsPath;
         const last = path[path.length - 1];
         const segDist = Math.hypot(mouseX - last.x, mouseY - last.y);
-        const stamCost = segDist * (200 / 1500);
+        const stamCost = segDist * BALANCE.hatsuhats.rmb.stamPerPx;
         if (stamCost > 0 && L.stamina < stamCost) {
           // 스테미나 부족 → 완전 취소 (이동/회복 영향 없음)
           L._hatsRmbPending = false;
@@ -15007,7 +15381,7 @@ function loop() {
         const path = L._hatsPath;
         const last = path[path.length - 1];
         const segDist = Math.hypot(mouseX - last.x, mouseY - last.y);
-        const stamCost = segDist * (200 / 1500);
+        const stamCost = segDist * BALANCE.hatsuhats.rmb.stamPerPx;
         if (stamCost > 0 && L.stamina < stamCost) {
           L._hatsRmbFrozen = true;
           L._hatsRmbDrawing = false; // 이동 차단 해제 (경로는 유지, 마우스 떼면 실행)
@@ -15190,18 +15564,23 @@ function loop() {
     const frozen  = L._cherityFrozenT !== null && L._cherityFrozenT !== undefined;
 
     if (!frozen && liveT < 1 && L.stamina > 0) {
-      // 정상 차징 중 — 드레인
+      // 차징 중 드레인
       const drain = B.chargeDrainRate * (physDt / 1000);
       const actual = Math.min(drain, L.stamina);
       L.stamina = Math.max(0, L.stamina - drain);
       L._cherityDrained = (L._cherityDrained || 0) + actual;
       L.staminaUseTime = now;
-      // 스테미나 소진 → 현재 t에서 동결
       if (L.stamina <= 0) L._cherityFrozenT = liveT;
     }
-    // 최대 차징 도달 → t=1로 고정 유지 (자동발사 없음, 직접 릴리즈해야 함)
+    // 최대 차징 도달 → t=1로 고정, 드레인을 maxCost로 보정
     if (!frozen && liveT >= 1) {
       L._cherityFrozenT = 1;
+      const _remaining = B.maxCost - (L._cherityDrained || 0);
+      if (_remaining > 0) {
+        L.stamina = Math.max(0, L.stamina - _remaining);
+        L._cherityDrained = B.maxCost;
+        L.staminaUseTime = now;
+      }
     }
     // 차징 중(동결·풀차징 포함)엔 항상 staminaUseTime 갱신 → 자동회복 억제
     L.staminaUseTime = now;
@@ -15787,16 +16166,16 @@ function loop() {
   }
   // 인투 상태 매 프레임 동기화 (탄창/무기/재장전)
   if (gameOn && L.charDef?.id==='intu') {
-    const _iCur = JSON.stringify([L._intuAmmo??12, L._intuWeapon||'pistol', !!L._intuReloading]);
+    const _iCur = JSON.stringify([L._intuAmmo??BALANCE.intu.magMax, L._intuWeapon||'pistol', !!L._intuReloading]);
     if (_iCur !== L._intuLastSync) {
       L._intuLastSync = _iCur;
-      send({type:'intuState', ammo:L._intuAmmo??12, weapon:L._intuWeapon||'pistol', reloading:!!L._intuReloading});
+      send({type:'intuState', ammo:L._intuAmmo??BALANCE.intu.magMax, weapon:L._intuWeapon||'pistol', reloading:!!L._intuReloading});
     }
   }
   // 인투 반격기 선딜레이 중 방향 갱신
   if (gameOn && L.charDef?.id==='intu' && L._intuCounterActive) {
-    // 저격: 벽 관통이므로 전체 사거리 표시
-    L._attackPreview = {shapes:[{type:'line', range:1200, width:8, pierceWalls:true}]};
+    const _Bs = BALANCE.intu.sniper;
+    L._attackPreview = {shapes:[{type:'line', range:augMeleeRange(_Bs.range), width:augBulletRadius(_Bs.radius)*2, pierceWalls:true}]};
   }
   // 로온 반격기 선딜레이 중 방향 갱신
   if (gameOn && L.charDef?.id==='roon' && L._counterToken && L._roonCounterActive) {
@@ -16013,7 +16392,7 @@ function loop() {
       } else if (now - L._reikaRBurning.lastTick >= BR.burn.tickMs) {
         L._reikaRBurning.lastTick = now;
         hitRemote(BR.burn.damage);
-        for (const pm of peerMinions) send({type:'minionHit', id:pm.id, damage:BR.burn.damage});
+        for (const pm of peerMinions) if (pm.applyDamage) pm.applyDamage(BR.burn.damage);
         addFx({type:'reikaBurnTick', x:R.x, y:R.y, r:0, maxR:22, dur:8, maxDur:8});
         send({type:'fx', fx:{type:'reikaBurnTick', x:R.x, y:R.y, r:0, maxR:22, dur:8, maxDur:8}});
       }
@@ -16130,7 +16509,12 @@ function loop() {
             send({type:'ruvuHammerHitMe', damage: applyDmgAugs(BALANCE.ruvu.rmb.hammerDamage)});
             receiveHit(applyDmgAugs(BALANCE.ruvu.rmb.hammerDamage));
           } else {
-            _applyBotDamage(window._activeBot || L, applyDmgAugs(BALANCE.ruvu.rmb.hammerDamage));
+            // 훈련장: 망치 위치 기준 가장 가까운 타겟에 피해
+            for (const _t of Rs()) {
+              if (Math.hypot(_t.x-_rh.x, _t.y-_rh.y) < _HR2 + _t.radius) {
+                if (_t.applyDamage) _t.applyDamage(BALANCE.ruvu.rmb.hammerDamage);
+              }
+            }
           }
           addFx({type:'counterCharge', x:_rh.x, y:_rh.y, r:_HR2, maxR:_HR2, dur:8, maxDur:8});
         }
@@ -16146,17 +16530,25 @@ function loop() {
       if (_rh.traveled >= _rh.maxRange) _rh._stopped = true;
     }
 
-    // ── 전진 중 피격 판정 ──────────────────────────────────
     if (!_rh.returning && !_rh._hitR && !_rh._stopped) {
       const _HR2 = 16 * ((_rh.radius || BALANCE.ruvu.rmb.hammerRadius) / BALANCE.ruvu.rmb.hammerRadius);
-      if (Math.hypot(L.x-_rh.x, L.y-_rh.y) < _HR2 + L.radius) {
-        _rh._hitR = true;
-        if (!_trainingMode) {
+      // 훈련장: Rs() 전체, PvP: L 위치 기준
+      let _hammerHit = false;
+      if (!_trainingMode) {
+        if (Math.hypot(L.x-_rh.x, L.y-_rh.y) < _HR2 + L.radius) {
+          _rh._hitR = true; _hammerHit = true;
           send({type:'ruvuHammerHitMe', damage: applyDmgAugs(BALANCE.ruvu.rmb.hammerDamage)});
           receiveHit(applyDmgAugs(BALANCE.ruvu.rmb.hammerDamage));
-        } else {
-          _applyBotDamage(window._activeBot || L, applyDmgAugs(BALANCE.ruvu.rmb.hammerDamage));
         }
+      } else {
+        for (const _t of Rs()) {
+          if (Math.hypot(_t.x-_rh.x, _t.y-_rh.y) < _HR2 + _t.radius) {
+            _rh._hitR = true; _hammerHit = true;
+            if (_t.applyDamage) _t.applyDamage(BALANCE.ruvu.rmb.hammerDamage);
+          }
+        }
+      }
+      if (_hammerHit) {
         addFx({type:'bombBlast', x:_rh.x, y:_rh.y, r:0, maxR:_HR2*1.5, dur:10, maxDur:10});
       }
     }
