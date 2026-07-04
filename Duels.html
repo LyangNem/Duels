@@ -1832,7 +1832,7 @@ const BALANCE = {
     speed:  4.25,
     radius: 20,
     lmb: {
-      cost:        30,
+      cost:        20,    // 30 → 20
       damage:      5,    // 10 → 5
       finalDamage: 15,
       meleeRange:  160,
@@ -2547,11 +2547,11 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     desc:      '전설적인 도둑. 예고 후 기습하고 빠르게 이탈하며 상대의 허를 찌르는 캐릭터.',
     skills: [
       { key:'LMB',     name:'손기술',   cost:BALANCE.ki.lmb.cost,
-        desc:`3연타 근거리 공격. 마지막 타격 적중 시 ${BALANCE.ki.lmb.teleWindow/1000}초 내 재입력으로 해당 방향 순간이동 (${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.finalDamage})` },
+        desc:`3연타 근거리 공격. 마지막 타격 적중 후 ${BALANCE.ki.lmb.teleWindow/1000}초 내 재입력으로 해당 방향 순간이동 (${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.finalDamage})` },
       { key:'RMB',     name:'예고장',   cost:BALANCE.ki.rmb.cost,
-        desc:`마우스 방향 앞에 광역 예고 표시 생성 (${BALANCE.ki.rmb.activateDelay/1000}초 후 재입력 가능). LMB: ${BALANCE.ki.rmb.damageDelay/1000}초 선딜 후 범위 내 광역 피해. RMB: ${BALANCE.ki.rmb.damageDelay/1000}초 선딜 후 지정 방향 순간이동 및 표시 소멸. 표시 중 상대 일반 회피 시 최대체력 ${Math.round(BALANCE.ki.rmb.healRatio*100)}% 회복 (${BALANCE.ki.rmb.damage})` },
+        desc:`마우스 방향 앞에 광역 예고 표시 생성. ${BALANCE.ki.rmb.activateDelay/1000}초 후 재입력 가능. LMB: ${BALANCE.ki.rmb.damageDelay/1000}초 선딜 후 범위 내 광역 피해. RMB: 지정 방향 즉시 순간이동 후 표시 소멸. 표시 범위 내 상대가 일반 회피 시 최대체력 ${Math.round(BALANCE.ki.rmb.healRatio*100)}% 회복 + 스테미나 ${Math.round(BALANCE.ki.rmb.healRatio*100)}% 회복 (${BALANCE.ki.rmb.damage})` },
       { key:'L-Shift', name:'특수탈취', cost:0,
-        desc:`전방 일자 범위 공격 후 뒤로 순간이동. 적중 시 코인을 탈취해 최대체력 ${Math.round(BALANCE.ki.counter.healRatio*100)}% 회복 (${BALANCE.ki.counter.damage})` },
+        desc:`전방 일자 범위 공격 후 뒤로 순간이동. 적중 시 최대체력 ${Math.round(BALANCE.ki.counter.healRatio*100)}% 회복 + 스테미나 ${Math.round(BALANCE.ki.counter.healRatio*100)}% 회복 (${BALANCE.ki.counter.damage})` },
     ],
   },
 };
@@ -4692,6 +4692,15 @@ MINION_DEFS['elin_spirit'] = {
       ctx.beginPath(); ctx.arc(m.x, m.y, m.radius + 6, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(200,216,240,0.9)'; ctx.lineWidth = 2.5;
       ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    // 사정거리 표시 (점선 원) — 내 유령만
+    if (!isPeer) {
+      const BS = BALANCE.elin.spirit;
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath(); ctx.arc(m.x, m.y, BS.meleeRange, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(200,216,240,0.25)'; ctx.lineWidth = 1.5;
+      ctx.setLineDash([6,5]); ctx.stroke(); ctx.setLineDash([]);
     }
 
     // HP바
@@ -9874,7 +9883,7 @@ const SKILLS = {
         // 적중 시에만 코인(체력 회복)
         if (_anyHit) {
           const _cHeal = L.maxHealth * B.healRatio;
-          L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + (L._augStamMax ?? STAM_MAX) * 0.15);
+          L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + (L._augStamMax ?? STAM_MAX) * B.healRatio);
           addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:bx, ty:by, dur:20, maxDur:20, healAmt:_cHeal});
           send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:bx, ty:by, dur:20, maxDur:20, healAmt:0}});
         }
@@ -15615,7 +15624,7 @@ function loop() {
       } else if (Math.hypot(R.x-L._kiRmbX, R.y-L._kiRmbY) < BALANCE.ki.rmb.aoeRange + R.radius) {
         L._kiDodgeRecovered = true;
         const _healAmt = L.maxHealth * BALANCE.ki.rmb.healRatio;
-        L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + (L._augStamMax ?? STAM_MAX) * 0.15);
+        L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + (L._augStamMax ?? STAM_MAX) * BALANCE.ki.rmb.healRatio);
         addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_healAmt});
         send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:0}});
       }
@@ -15632,7 +15641,7 @@ function loop() {
       } else if (Math.hypot(R.x-L._kiRmbX, R.y-L._kiRmbY) < BALANCE.ki.rmb.aoeRange + R.radius) {
         L._kiAfterTeleDodge = true;
         const _healAmt2 = L.maxHealth * BALANCE.ki.rmb.healRatio;
-        L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + (L._augStamMax ?? STAM_MAX) * 0.15);
+        L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + (L._augStamMax ?? STAM_MAX) * BALANCE.ki.rmb.healRatio);
         addFx({type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:_healAmt2});
         send({type:'fx', fx:{type:'kiCoin', sx:R.x, sy:R.y, tx:L.x, ty:L.y, dur:20, maxDur:20, healAmt:0}});
       }
