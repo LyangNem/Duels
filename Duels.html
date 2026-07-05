@@ -8095,7 +8095,7 @@ const SKILLS = {
             const _target = _t;
             setTimeout(() => {
               if (!gameOn) return;
-              if (_target.applyDamage) _target.applyDamage(B.damage);
+              if (_target.applyDamage) _target.applyDamage(prillApplyBoosts(B.damage));
             }, _hitDelay);
           }
           L._prillZoneHitsLeft--;
@@ -10025,20 +10025,32 @@ function _pelunaIsEmpowered() {
 
 // ── 프릴 피해 부스트 헬퍼 ──────────────────────────────────
 function prillApplyBoosts(dmg) {
-  // applyDmgAugs는 hitCtx 내부에서 처리되므로 여기선 순수 배율만 계산
   if (L.charDef?.id !== 'prill') return dmg;
-  let m = 1;
+  const now = performance.now();
+  let boost = 0;
   // 반격기 피해 부스트
-  if (L._prillBoostExpiry && performance.now() < L._prillBoostExpiry)
-    m += BALANCE.prill.counter.boostMult;
-  // 청소구역 피해 부스트 — 자신(L)이 구역 위에 있을 때만 적용
-  if (L._prillZoneBoosted && performance.now() < (L._prillZoneExpiry||0) && L._prillZonePos) {
+  if (L._prillBoostExpiry && now < L._prillBoostExpiry)
+    boost = Math.max(boost, BALANCE.prill.counter.boostMult);
+  // 현재 청소구역 피해 부스트
+  if (L._prillZoneBoosted && now < (L._prillZoneExpiry||0) && L._prillZonePos) {
     const _zp = L._prillZonePos, _BZ = BALANCE.prill.rmb;
-    // L이 구역 직사각형 안에 있는지 체크
     if (intersectsCtx({x:_zp.x, y:_zp.y, cos:_zp.cos, sin:_zp.sin, len:_BZ.length, width:_BZ.width/2}, L.x, L.y, L.radius))
-      m += _BZ.zoneDamageBoost;
+      boost = Math.max(boost, _BZ.zoneDamageBoost);
   }
-  return Math.round(dmg * m);
+  // 이전 청소구역 피해 부스트 (새 구역 시작 후에도 남아있는 구역들)
+  if (L._prillOldZones) {
+    const _BZ = BALANCE.prill.rmb;
+    const _cos0 = Math.cos, _sin0 = Math.sin;
+    for (const oz of L._prillOldZones) {
+      if (now >= oz.expiry) continue;
+      const _cos = Math.cos(oz.angle), _sin = Math.sin(oz.angle);
+      if (intersectsCtx({x:oz.x, y:oz.y, cos:_cos, sin:_sin, len:_BZ.length, width:_BZ.width/2}, L.x, L.y, L.radius))
+        boost = Math.max(boost, _BZ.zoneDamageBoost);
+    }
+    // 만료된 구역 정리
+    L._prillOldZones = L._prillOldZones.filter(oz => now < oz.expiry);
+  }
+  return Math.round(dmg * (1 + boost));
 }
 
 function fireShotgun(angle, {pellets, spread, speed, radius, damage, maxRange, knockbackPower}) {
@@ -16779,5 +16791,10 @@ document.addEventListener('keydown', (e) => {
 
 
 </script>
+
+<!-- ══════════════════════════════════════════════════
+     UI 커스터마이즈 — body 최하단에 두어 항상 최상위 렌더링
+     ══════════════════════════════════════════════════ -->
+       
 </body>
 </html>
