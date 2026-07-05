@@ -2072,7 +2072,7 @@ const CHARACTERS = {
     desc:      '유령 친구를 소환해 함께 전투하는 캐릭터',
     skills: [
       { key:'LMB', name:'유령구체', cost: BALANCE.elin.lmb.cost,
-        desc:`벽과 적을 관통하는 구체 발사. 탄착지점에서 폭발해 피해 (${BALANCE.elin.lmb.damage})` },
+        desc:`벽과 적을 관통하는 구체 발사. 탄착지점에서 폭발해 피해 및 유령 체력 ${BALANCE.elin.lmb.healAmount} 회복 (${BALANCE.elin.lmb.damage})` },
       { key:'RMB', name:'유령친구', cost: `${BALANCE.elin.rmb.summonCost}/20`,
         desc:`유령 소환. 유령이 있으면 가장 가까운 적에게 직선 돌진 명령. 돌진 적중 시 넉백 (${BALANCE.elin.spirit.dashDamage})` },
       { key:'L-Shift', name:'순간이동', cost: 0,
@@ -16778,6 +16778,11 @@ document.addEventListener('keydown', (e) => {
 
 
 
-</script>   
+</script>
+
+<!-- ══════════════════════════════════════════════════
+     UI 커스터마이즈 — body 최하단에 두어 항상 최상위 렌더링
+     ══════════════════════════════════════════════════ -->
+       
 </body>
 </html>
