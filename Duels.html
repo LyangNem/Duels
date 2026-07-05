@@ -11743,13 +11743,6 @@ function draw() {
       ctx.closePath();
       ctx.fillStyle=`rgba(100,100,255,${a*0.25})`; ctx.fill();
       ctx.strokeStyle=`rgba(150,150,255,${a*0.9})`; ctx.lineWidth=2; ctx.stroke();
-    } else if (f.type==='sorField') {
-      // 정전기장: 점선 원 — 지속
-      const _pulse = 0.5 + 0.5*Math.sin(performance.now()*0.006);
-      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
-      ctx.fillStyle=`rgba(77,77,180,${a*0.12})`; ctx.fill();
-      ctx.strokeStyle=`rgba(120,120,255,${a*(0.6+0.3*_pulse)})`; ctx.lineWidth=2.5;
-      ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
     } else if (f.type==='aoe') {
       // 미아루키 반격: 즉시 풀사이즈 원 → 페이드아웃
       const _aoeCol = f.col || '255,20,147';
