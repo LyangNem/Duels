@@ -284,7 +284,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.35.0</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.35.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -10106,8 +10106,10 @@ const SKILLS = {
     // 감전 적용 헬퍼 (R, 봇, 소환수 모두)
     _applyZapTo(target, dur, strong) {
       const _now = performance.now();
-      const DISC_DUR = 500; // 방전 0.5초
+      const DISC_DUR = 500;
       if (target === R) {
+        // 회피 중(저스트 회피 포함)이면 감전 무시
+        if (R.invincible > 0 || R.dodging || R.burrowing) return;
         R._zapEnd = Math.max(R._zapEnd||0, _now + dur);
         if (strong) R._discEnd = Math.max(R._discEnd||0, _now + DISC_DUR);
         send({type:'zapApply', dur, discDur: strong ? DISC_DUR : 0});
@@ -11254,10 +11256,20 @@ function moveBullets(dt=1) {
           knockbackRemote(b.cherKbPower);
           localBullets.splice(i, 1); continue;
         }
-        // 저격탄(반격기): 1회만 피해+넉백, splice 안 함 (관통), 평타 아님
+        // 저격탄: 모든 적 관통 (pierceEnemies), 각 적에게 한 번씩 피해
         if (b.isIntuSniper) {
-          if (!b._sniperHit) { b._sniperHit=true; L._lmbAttacking=false; hitRemote(b.damage); knockbackRemote(BALANCE.intu.counter.knockbackPower); playHitSfx(); }
-          continue; // 제거 안 함
+          if (!b._sniperHits) b._sniperHits = new Set();
+          for (const _t of (window._hitTargets||[])) {
+            const _tid = _t === R ? 'R' : (_t.id || String(_t.x));
+            if (!b._sniperHits.has(_tid)) {
+              b._sniperHits.add(_tid);
+              L._lmbAttacking = false;
+              if (_t === R) { hitRemote(b.damage); knockbackRemote(BALANCE.intu.counter.knockbackPower); }
+              else if (_t.applyDamage) { _t.applyDamage(b.damage); }
+              playHitSfx();
+            }
+          }
+          continue; // 관통 — 제거 안 함
         }
         L._lmbAttacking = !!b._lmbAttack;
         hitRemote(b.damage);
@@ -15482,7 +15494,7 @@ function resetL() {
   L._prillZoneToken=0;
   L._dazPortals=[]; // 다즈빈 포탈 초기화
   L._yuiHistory=[]; L._yuiLastSample=0; // 유이 히스토리 초기화
-  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._intuAmmo=BALANCE.intu.magMax; L._intuWeapon='pistol'; L._intuReloading=false; L._intuLastSync=''; L._intuReloadEnd=0; L._roonSlush=0; L._roonZones=[]; L._roonIncomingZones=[]; L._roonBallInFlight=false; R._roonSlush=0; L._runefRmbActive=false; L._runefShot1=false; L._runefNextSpell='fire'; clearTimeout(L._runefRmbTimer); clearTimeout(L._runefShot1Timer); L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._syaHitRevealEnd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0; SKILLS.meramona._stage=0; SKILLS.meramona._tempEnd=0; SKILLS.meramona._hitStack=0
+  L._pelunaAnvils=[]; L._sherinaPaths=[]; L._pierceShotReady=false; L._pierceShotCd=0; L._pierceShotUsed=false; L._intuAmmo=BALANCE.intu.magMax; L._intuWeapon='pistol'; L._intuReloading=false; L._intuLastSync=''; L._intuReloadEnd=0; L._intuSniperTok=0; L._intuPrevWeapon='pistol'; L._intuCounterActive=false; L._roonSlush=0; L._roonZones=[]; L._roonIncomingZones=[]; L._roonBallInFlight=false; R._roonSlush=0; L._runefRmbActive=false; L._runefShot1=false; L._runefNextSpell='fire'; clearTimeout(L._runefRmbTimer); clearTimeout(L._runefShot1Timer); L._syaInvisible=false; L._syaAttackBoost=0; L._syaInvisStart=0; L._syaInvisEndAt=0; L._syaHitRevealEnd=0; L._thornLastTick=0; L._startBoostEnd = getAugCount('start_boost')>0 ? performance.now()+8000 : 0; L._sherinaEchoZones=[]; L._sherinaGlobalHitCd=new Map(); L._pelunaEmpowerExpiry=0; L._pelunaPreswing=false; L._pelunaToken=0; SKILLS.meramona._stage=0; SKILLS.meramona._tempEnd=0; SKILLS.meramona._hitStack=0
   R._pelunaAnvil=null;
   L._raiseCharging=false; L._raiseClicks=0; L._raiseJumping=false; L._raiseBoosted=false; L._raiseStaminaStarvedAt=0;
   L._kiRmbActive=false; L._kiRmbReady=false; L._kiCombo=0; L._kiFinalHit=0; L._kiRmbX=0; L._kiRmbY=0; L._kiDodgeRecovered=false; L._kiRmbStart=0; L._kiRmbToken=0; L._kiRmbFadeEnd=0; L._kiRmbReadyAt=0; L._kiAfterTeleDodge=false; L._kiLmbToken=0; L._kiRmbLmbStart=0; L._kiWasDodging=false; L._kiWasDodging2=false; L._peerJustDodged=false; L._kiRmbRmbStart=0;
@@ -15940,6 +15952,7 @@ function loop() {
       for (const t of Rs()) {
         if (Math.hypot(t.x-f.x, t.y-f.y) < f.radius + (t.radius||20)) {
           if (t === R) {
+            if (R.invincible > 0 || R.dodging || R.burrowing) continue;
             if (!R._zapEnd || now >= R._zapEnd) {
               R._zapEnd = now + BALANCE.sor.rmb.zapDur;
               send({type:'zapApply', dur:BALANCE.sor.rmb.zapDur, strong:false});
