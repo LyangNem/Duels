@@ -2069,14 +2069,14 @@ const CHARACTERS = {
     speed:     BALANCE.elin.speed,
     radius:    BALANCE.elin.radius,
     statsText: [['체력', String(BALANCE.elin.hp)],['이동속도','느림'],['스타일','소환형 초장거리 서포터']],
-    desc:      '유령 친구를 소환해 함께 전투하는 캐릭터.',
+    desc:      '유령 친구를 소환해 함께 전투하는 캐릭터',
     skills: [
       { key:'LMB', name:'유령구체', cost: BALANCE.elin.lmb.cost,
-        desc:`벽과 적을 관통하는 구체 발사. 탄착지점에서 폭발해 피해. 범위 내 유령은 ${BALANCE.elin.lmb.healAmount} 체력 회복(${BALANCE.elin.lmb.damage})` },
-      { key:'RMB', name:'유령친구', cost: '200/20',
-        desc:`유령 소환. 유령이 있으면 가장 가까운 적에게 돌진 명령 (${BALANCE.elin.spirit.dashDamage})` },
-      { key:'L-Shift', name:'죽지말아줘!', cost: 0,
-        desc:`유령을 향해 투사체 발사. 도달 시 유령 ${BALANCE.elin.counter.healAmount} 회복. 유령 및 엘린 위치 폭발 및 넉백 (${BALANCE.elin.counter.damage})` },
+        desc:`벽과 적을 관통하는 구체 발사. 탄착지점에서 폭발해 피해 (${BALANCE.elin.lmb.damage})` },
+      { key:'RMB', name:'유령친구', cost: `${BALANCE.elin.rmb.summonCost}/20`,
+        desc:`유령 소환. 유령이 있으면 가장 가까운 적에게 직선 돌진 명령. 돌진 적중 시 넉백 (${BALANCE.elin.spirit.dashDamage})` },
+      { key:'L-Shift', name:'순간이동', cost: 0,
+        desc:`유령 위치에서 엘린 방향으로 투사체 발사. 도달 시 유령이 엘린 위치로 순간이동하며 주변 폭발 및 넉백 (${BALANCE.elin.counter.damage})` },
     ],
   },
 
@@ -2246,9 +2246,9 @@ const CHARACTERS = {
     desc:      '이동형 대포를 운용해 전장을 지배하는 캐릭터',
     skills: [
       { key:'LMB',     name:'미니 대포',     cost:BALANCE.herjang.lmb.cost,
-        desc:`대포를 발사하고 반동으로 뒤로 넉백. (${BALANCE.herjang.lmb.damage})` },
-      { key:'RMB',     name:'이동형 대포',   cost:'200/30',
-        desc:`전방에 대포 설치. 대포가 있으면 슬로우 포탄 3발 점사 지시. 대포에 가까이 가서 대포 위치 이동 가능 및 이동을 제외한 다른 행동으로 대포 내려놓기. (탄당 ${BALANCE.herjang.rmb.burstDamage})` },
+        desc:`대포를 발사하고 반동으로 뒤로 넉백 (${BALANCE.herjang.lmb.damage})` },
+      { key:'RMB',     name:'이동형 대포',   cost:`${BALANCE.herjang.rmb.summonCost}/${BALANCE.herjang.rmb.burstCost}`,
+        desc:`대포 설치. 대포가 있으면 슬로우 포탄 ${BALANCE.herjang.rmb.burstCount}발 점사 지시. 대포에 가까이 가면 들고 이동 가능. 대포가 멀어지면 파괴되며 스테미나 ${BALANCE.herjang.cannon.leashStamRefund} 회복 (탄당 ${BALANCE.herjang.rmb.burstDamage})` },
       { key:'L-Shift', name:'간이 대포',     cost:0,
         desc:`제자리에 간이 대포 생성 및 주변 넉백 피해. 간이 대포가 적을 자동 공격 (${BALANCE.herjang.counter.damage})` },
     ],
@@ -2544,12 +2544,12 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
     speed:     BALANCE.ki.speed,
     radius:    BALANCE.ki.radius,
     statsText: [['체력', String(BALANCE.ki.hp)],['이동속도','빠름'],['스타일','기만형 근거리 딜러']],
-    desc:      '전설적인 도둑으로, 상대를 속이며 플레이하는 캐릭터',
+    desc:      '전설적인 도둑. 예고 후 기습하고 빠르게 이탈하며 상대의 허를 찌르는 캐릭터.',
     skills: [
       { key:'LMB',     name:'손기술',   cost:BALANCE.ki.lmb.cost,
         desc:`3연타 근거리 공격. 마지막 타격 적중 후 ${BALANCE.ki.lmb.teleWindow/1000}초 내 재입력으로 해당 방향 순간이동 (${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.damage}/${BALANCE.ki.lmb.finalDamage})` },
       { key:'RMB',     name:'예고장',   cost:BALANCE.ki.rmb.cost,
-        desc:`마우스 방향 앞에 광역 예고 표시 생성. ${BALANCE.ki.rmb.activateDelay/1000}초 후 재입력 가능. LMB: ${BALANCE.ki.rmb.damageDelay/1000}초 선딜 후 범위 내 광역 피해. RMB: 지정 방향 즉시 순간이동 후 표시 소멸. 표시 범위 내 상대가 일반 회피 시 최대체력 ${Math.round(BALANCE.ki.rmb.healRatio*100)}% 회복 + 스테미나 ${Math.round(BALANCE.ki.rmb.healRatio*100)}% 회복 (${BALANCE.ki.rmb.damage})` },
+        desc:`예고장 표시 생성. 표시 범위 내 상대가 일반 회피 시 체력 및 스테미나 ${Math.round(BALANCE.ki.rmb.healRatio*100)}% 회복. LMB로 범위 내 광역 피해 / RMB로 순간이동 후 예고장 제거. (${BALANCE.ki.rmb.damage})` },
       { key:'L-Shift', name:'특수탈취', cost:0,
         desc:`전방 일자 범위 공격 후 뒤로 순간이동. 적중 시 최대체력 ${Math.round(BALANCE.ki.counter.healRatio*100)}% 회복 + 스테미나 ${Math.round(BALANCE.ki.counter.healRatio*100)}% 회복 (${BALANCE.ki.counter.damage})` },
     ],
@@ -4570,11 +4570,11 @@ MINION_DEFS['elin_spirit'] = {
     const BS = BALANCE.elin.spirit;
 
     // ── CC 상태 체크 (기절·속박·화염·독 등 모든 CC)
-    if ((m._stunEnd   && now < m._stunEnd)   || (L.stunEnd && now < L.stunEnd))   return;
-    if (m._sleepEnd   && now < m._sleepEnd)  return;
-    if ((m._bindEnd   && now < m._bindEnd)   || (L.bindEnd && now < L.bindEnd))   return;
-    if (m._burnEnd    && now < m._burnEnd)   return;
-    if (m._poisonEnd  && now < m._poisonEnd) return;
+    if (m._stunEnd  && now < m._stunEnd)  return;
+    if (m._sleepEnd && now < m._sleepEnd) return;
+    if (m._bindEnd  && now < m._bindEnd)  return;
+    if (m._burnEnd  && now < m._burnEnd)  return;
+    if (m._poisonEnd && now < m._poisonEnd) return;
 
     // ── 돌진 처리
     if (m._dashing) {
@@ -4665,6 +4665,7 @@ MINION_DEFS['elin_spirit'] = {
 
         if (hit) {
           cd.meleeCd = now + BS.meleeInterval;
+          m._lastAtkAt = now; // 공격 시각 기록
           addFx({type:'elinSpiritAtk', x:m.x, y:m.y, angle:atkAngle, range:BS.meleeRange, halfAngle:BS.meleeHalfAngle, dur:11, maxDur:11});
           send({type:'fx', fx:{type:'elinSpiritAtk', x:m.x, y:m.y, angle:atkAngle, range:BS.meleeRange, halfAngle:BS.meleeHalfAngle, dur:11, maxDur:11}});
         }
@@ -4672,6 +4673,18 @@ MINION_DEFS['elin_spirit'] = {
     } else {
       // 사거리 벗어나면 도달 타임 리셋
       if (m._stateData) m._stateData._reachTime = null;
+    }
+
+    // 5초간 공격받지도 하지도 않으면 체력 회복
+    const _lastAct = Math.max(m._lastDmgAt || 0, m._lastAtkAt || 0);
+    if (now - _lastAct > REGEN_IDLE) {
+      if (!m._lastRegenTick) m._lastRegenTick = now;
+      if (now - m._lastRegenTick >= REGEN_TICK) {
+        m.hp = Math.min(m.maxHp, m.hp + m.maxHp * REGEN_AMT);
+        m._lastRegenTick = now;
+      }
+    } else {
+      m._lastRegenTick = null;
     }
   },
 
@@ -10829,9 +10842,10 @@ function moveBullets(dt=1) {
             ? localMinions.find(m => m.id === b._elinCounterSpiritId)
             : localMinions.find(m => m.type === 'elin_spirit');
           if (_sp3) {
-            _sp3.x = _destX; _sp3.y = _destY; _sp3.tx = _destX; _sp3.ty = _destY;
-            // 경로 초기화 — 다음 프레임에 새 위치 기준으로 재계산
-            if (_sp3._stateData) { _sp3._stateData._path = null; _sp3._stateData._pathTime = 0; }
+            _sp3.x = _destX; _sp3.y = _destY;
+            _sp3.tx = undefined; _sp3.ty = undefined; // 넉백 보간 해제
+            _sp3._dashing = false; _sp3._dashHit = false;
+            _sp3._stateData = {};
             addFx({type:'phaseJump', x:b.x, y:b.y, tx:_destX, ty:_destY, dur:8, maxDur:8, col:'195,120,255', col2:'220,180,255'});
             send({type:'fx', fx:{type:'phaseJump', x:b.x, y:b.y, tx:_destX, ty:_destY, dur:8, maxDur:8, col:'195,120,255', col2:'220,180,255'}});
           }
@@ -10842,49 +10856,8 @@ function moveBullets(dt=1) {
         }
         localBullets.splice(i, 1);
       }
-      // 벽·적 관통
+      // 벽·적 관통, 타격·회피 판정 없음
 
-
-      // 셰리나 에코: 탄환 직격 피해 + 종료 시 경로 전체를 하나의 rect 잔향으로
-      // 시작점 기록
-      // 훈련장 봇 직접 피해
-
-      if (hitWall || oob || rangeOut || hitEnemy || hitSpirit) {
-        if (hitEnemy) { hitRemote(b.damage); addShake(2,6); playHitSfx(); }
-        // 경로 전체 = 시작~현재 하나의 rect
-        const _sx = b._startX, _sy = b._startY, _ex = b.x, _ey = b.y;
-        const _ang = Math.atan2(_ey-_sy, _ex-_sx);
-        const _len = Math.max(b.radius*2, Math.hypot(_ex-_sx, _ey-_sy));
-        const _hw = b.echoRadius;
-        const _ecx = (_sx+_ex)/2, _ecy = (_sy+_ey)/2;
-        const _eDmg = b.echoDamage, _eDur = b.echoDur, _eTick = b.echoTickInterval;
-        // 0.5초 후 잔향 생성
-        setTimeout(() => {
-          if (!gameOn) return;
-          if (!L._sherinaEchoZones) L._sherinaEchoZones = [];
-          const _now = performance.now();
-          L._sherinaEchoZones.push({
-            sx: _sx, sy: _sy, ex: _ex, ey: _ey,
-            cx: _ecx, cy: _ecy,
-            angle: _ang, fullLen: _len, halfW: _hw,
-            damage: _eDmg,
-            createdAt: _now,
-            totalDur: _eDur,
-            expiry: _now + _eDur,
-            tickInterval: _eTick,
-            _hitCd: new Map(),
-          });
-          // 상대 화면 동기화
-          send({type:'fx', fx:{type:'sherinaEchoZone',
-            sx:_sx, sy:_sy, cx:_ecx, cy:_ecy, angle:_ang, fullLen:_len, halfW:_hw,
-            dur:Math.round(_eDur/FRAME_MS), maxDur:Math.round(_eDur/FRAME_MS)}});
-        }, 500);
-        // 경로 저장 (더블링용): 시작-끝만
-        if (!L._sherinaPaths) L._sherinaPaths = [];
-        L._sherinaPaths.unshift([{x:_sx,y:_sy},{x:_ex,y:_ey}]);
-        if (L._sherinaPaths.length > BALANCE.sherina.rmb.maxPaths) L._sherinaPaths.pop();
-        localBullets.splice(i, 1);
-      }
     } else {
       // 다즈빈 파동 구체: 관통 탄 — 틱 피해만, 충돌로 제거 안 함
       // 인투 저격탄: hit블록에서 처리됨
