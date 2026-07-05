@@ -284,7 +284,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.34.4</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.35.0</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1298,16 +1298,13 @@ const BALANCE = {
       cd:          300,
       miniMaxHp:   90,
       miniRadius:  16,
-      miniAtkRange:460,       // 400 → 460
-      miniDamage:  15,        // 12 → 15
+      miniAtkRange:460,
+      miniDamage:  15,
       miniShotSpeed: 14,
-      miniShotRadius: 12,     // 8 → 12
+      miniShotRadius: 12,
       miniShotRange: 750,
-      miniFireInterval: 800,  // 900 → 800
-      miniSpread:  0.105,     // ±6도
-      leashRange:  600,
-      leashDelay:  1000,
-      leashStamRefund: 50,
+      miniFireInterval: 800,
+      miniSpread:  0.105,
     },
   },
   // ── 프릴 ───────────────────────────────────────────────────
@@ -1906,8 +1903,43 @@ const BALANCE = {
       cd:            600,
     },
   },
-};
+  // ── 소르 ────────────────────────────────────────────────────
+  sor: {
+    hp:     110,
+    speed:  4.0,
+    radius: 20,
 
+    lmb: {
+      cost:       20,
+      speed:      17,
+      radius:     14,   // 크기 증가
+      range:      450,  // 중거리
+      damage:     20,   // 12 → 20
+      spread:     40,
+      zapDur:     3000,
+      cd:         400,
+    },
+    rmb: {
+      cost:       40,   // 45 → 40
+      throwSpeed: 14,
+      throwRadius:10,
+      throwRange: 800,
+      fieldRadius:120,
+      fieldDur:   4000,
+      zapDur:     3000,
+      damage:     10,
+      cd:         800,
+    },
+    counter: {
+      range:        350,  // 사거리 단축
+      width:        90,   // 폭 증가
+      damage:       15,
+      knockbackPower:420,
+      zapDur:       3000,
+      cd:           300,
+    },
+  },
+};
 
 const STAM_MAX   = BALANCE.stam.max;
 const STAM_DELAY = BALANCE.stam.regenDelay;
@@ -2552,6 +2584,25 @@ desc:`우클릭 : 화염구 폭발 (${BALANCE.runef.rmb.fireExpDamage}) / 우클
         desc:`예고장 표시 생성. 표시 범위 내 상대가 저스트 회피가 아닌 회피 사용 시 체력 및 스테미나 ${Math.round(BALANCE.ki.rmb.healRatio*100)}% 회복. LMB로 범위 내 광역 피해 / RMB로 순간이동 후 예고장 제거. (${BALANCE.ki.rmb.damage})` },
       { key:'L-Shift', name:'특수탈취', cost:0,
         desc:`전방 일자 범위 공격 후 뒤로 순간이동. 적중 시 체력 및 스테미나 ${Math.round(BALANCE.ki.counter.healRatio*100)}% 회복 (${BALANCE.ki.counter.damage})` },
+    ],
+  },
+
+  sor: {
+    id:        'sor',
+    name:      '소르',
+    color:     '#4d4d8f',
+    maxHealth: BALANCE.sor.hp,
+    speed:     BALANCE.sor.speed,
+    radius:    BALANCE.sor.radius,
+    statsText: [['체력', String(BALANCE.sor.hp)],['이동속도','보통'],['스타일','감전형 중거리 컨트롤러']],
+    desc:      '감전을 이용해 상대의 행동을 제한하는 캐릭터',
+    skills: [
+      { key:'LMB',     name:'배터리',   cost:BALANCE.sor.lmb.cost,
+        desc:`전파 발사. ${BALANCE.sor.lmb.zapDur/1000}초 감전 — 스테미나 회복 속도 감소. 정전기장 통과 또는 감전된 적 타격 시 방전시켜 일시적으로 스테미나 회복 완전 정지 (${BALANCE.sor.lmb.damage})` },
+      { key:'RMB',     name:'정전기장', cost:BALANCE.sor.rmb.cost,
+        desc:`배터리를 던져 정전기장 생성. 범위 내 적 ${BALANCE.sor.rmb.zapDur/1000}초 감전 (${BALANCE.sor.rmb.damage})` },
+      { key:'L-Shift', name:'정전기',   cost:0,
+        desc:`전방 넓은 일자 공격. 넉백 및 ${BALANCE.sor.counter.zapDur/1000}초 감전. 감전 중인 적 적중 시 방전 (${BALANCE.sor.counter.damage})` },
     ],
   },
 };
@@ -3486,6 +3537,17 @@ function onData(d) {
     case 'slowPlayer':
       // 직접 슬로우: L이 직접 감속됨
       L._slowEnd = Math.max(L._slowEnd||0, performance.now() + d.dur); break;
+    case 'zapApply':
+      L._zapEnd = Math.max(L._zapEnd||0, performance.now() + d.dur);
+      if (d.discDur) L._discEnd = Math.max(L._discEnd||0, performance.now() + d.discDur);
+      break;
+    case 'sorFieldSync': {
+      // 상대방이 정전기장을 설치했을 때 — R 화면에서 필드 위치 기록
+      if (!R._sorFields) R._sorFields = [];
+      const _sfNow = performance.now();
+      R._sorFields.push({x:d.x, y:d.y, radius:d.fieldRadius, expiry:_sfNow+d.fieldDur, zapDur:d.zapDur, damage:d.damage});
+      break;
+    }
     case 'smokeZone':
       globalSmokeZones.push({x:d.x, y:d.y, r:d.r, expiry:performance.now()+d.dur, visionRange:d.visionRange}); break;
     case 'smokeReveal':
@@ -4075,10 +4137,17 @@ function tickStamina(now, physDt) {
   const stamMax = L._augStamMax ?? STAM_MAX;
   if (L.stamina >= stamMax) return;
   if (now - L.staminaUseTime < STAM_DELAY) return;
+
+  // 감전: 강화 감전이면 회복 완전 정지, 일반 감전이면 회복 속도 40%
+  const _zapActive = L._zapEnd && now < L._zapEnd;
+  const _discActive = L._discEnd && now < L._discEnd;
+  if (_discActive) return; // 방전: 스테미나 회복 완전 정지
+
   const regenMult = (L.charDef?.id === 'nsonya' && (L._nsonyaStacks||0) >= 2)
     ? BALANCE.nsonya.rmb.stamRegenMult : 1;
   const augMult = 1 + 0.20 * getAugCount('swift_regen');
-  L.stamina = Math.min(stamMax, L.stamina + (STAM_MAX / STAM_REGEN) * physDt * regenMult * augMult);
+  const zapMult = _zapActive ? 0.6 : 1; // 감전: 스테미나 회복 40% 감소 (60% 유지)
+  L.stamina = Math.min(stamMax, L.stamina + (STAM_MAX / STAM_REGEN) * physDt * regenMult * augMult * zapMult);
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -4989,10 +5058,7 @@ MINION_DEFS['herjang_mini'] = {
     ctx.globalAlpha=1; ctx.restore();
   },
 
-  onDeath(m) {
-    addFx({type:'bombBlast', x:m.x, y:m.y, r:0, maxR:m.radius*2, dur:12, maxDur:12});
-    send({type:'fx', fx:{type:'bombBlast', x:m.x, y:m.y, r:0, maxR:m.radius*2, dur:12, maxDur:12}});
-  },
+  onDeath(m) {},
 };
 
 // ── 소환수 생성 ─────────────────────────────────────────────
@@ -5029,6 +5095,8 @@ function _attachTargetMethods(m) {
       if (cc.sleepDur)  this._sleepEnd  = Math.max(this._sleepEnd  ||0, _now + cc.sleepDur);
       if (cc.bindDur)   this._bindEnd   = Math.max(this._bindEnd   ||0, _now + cc.bindDur);
       if (cc.slowDur)   this._slowEnd   = Math.max(this._slowEnd   ||0, _now + cc.slowDur);
+      if (cc.zapDur)    this._zapEnd    = Math.max(this._zapEnd    ||0, _now + cc.zapDur);
+      if (cc.discDur) this._discEnd = Math.max(this._discEnd||0, _now + cc.discDur);
       if (cc.knockbackPower !== undefined) {
         const _ang = cc.knockbackAngle ?? Math.atan2(this.y-L.y, this.x-L.x);
         this.tx = Math.max(this.radius, Math.min(WORLD_W-this.radius, this.x+Math.cos(_ang)*cc.knockbackPower*0.15));
@@ -5047,6 +5115,8 @@ function _attachTargetMethods(m) {
     if (cc.sleepDur) this._sleepEnd = Math.max(this._sleepEnd ||0, _now + cc.sleepDur);
     if (cc.bindDur)  this._bindEnd  = Math.max(this._bindEnd  ||0, _now + cc.bindDur);
     if (cc.slowDur)  this._slowEnd  = Math.max(this._slowEnd  ||0, _now + cc.slowDur);
+    if (cc.zapDur)   this._zapEnd   = Math.max(this._zapEnd   ||0, _now + cc.zapDur);
+    if (cc.discDur) this._discEnd = Math.max(this._discEnd||0, _now + cc.discDur);
   };
   return m;
 }
@@ -5091,6 +5161,8 @@ function damageLocalMinion(m, dmg, cc) {
     if (cc.burnDur)   m._burnEnd  = Math.max(m._burnEnd  ||0, now + cc.burnDur);
     if (cc.poisonDur) m._poisonEnd= Math.max(m._poisonEnd||0, now + cc.poisonDur);
     if (cc.slowDur)   m._slowEnd  = Math.max(m._slowEnd  ||0, now + cc.slowDur);
+    if (cc.zapDur)    m._zapEnd   = Math.max(m._zapEnd   ||0, now + cc.zapDur);
+    if (cc.discDur) m._discEnd = Math.max(m._discEnd||0, now + cc.discDur);
     if (cc.slushSync !== undefined) m._slush = cc.slushSync;
     if (cc.slushAdd !== undefined) m._slush = Math.min(BALANCE.roon.lmb.slushMax, (m._slush||0) + cc.slushAdd);
     if (cc.slushReset) m._slush = 0;
@@ -5168,7 +5240,6 @@ function tickMinions(dt, physDt, now) {
     // 사망 처리
     if (m.hp <= 0) {
       def?.onDeath?.(m);
-      addFx({ type: 'bombBlast', x: m.x, y: m.y, r: 0, maxR: m.radius * 2, dur: 14, maxDur: 14 });
       send({ type: 'minionDied', id: m.id });
       localMinions.splice(i, 1);
     }
@@ -5315,6 +5386,20 @@ function _drawMinionOverlay(m, isPeer) {
     ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle='rgba(255,165,0,0.95)'; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
     ctx.fillText('BURN', m.x, m.y-m.radius-38);
+  }
+
+  // 감전/방전: 하늘색 링 + ZAP/DISC (방전 우선)
+  const _mzNow = now;
+  const _mzIsDisc = m._discEnd && _mzNow < m._discEnd;
+  const _mzIsZap  = m._zapEnd  && _mzNow < m._zapEnd;
+  if (_mzIsDisc || _mzIsZap) {
+    const _mzCol = _mzIsDisc ? '60,140,255' : '100,200,255';
+    const _mzP = 0.5+0.5*Math.sin(_mzNow*0.015);
+    ctx.beginPath(); ctx.arc(m.x,m.y,m.radius+10,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(${_mzCol},${0.7+0.3*_mzP})`; ctx.lineWidth=3;
+    ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=`rgba(${_mzCol},0.9)`; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
+    ctx.fillText(_mzIsDisc ? 'DISCHARGE' : 'ZAP', m.x, m.y-m.radius-46);
   }
 
   // 슬로우: 하늘색 링 + SLOW
@@ -10006,6 +10091,95 @@ const SKILLS = {
       }, BALANCE.counter.delay);
     },
   },
+
+  // ── 소르 ────────────────────────────────────────────────────
+  sor: {
+    // 감전 적용 헬퍼 (R, 봇, 소환수 모두)
+    _applyZapTo(target, dur, strong) {
+      const _now = performance.now();
+      const DISC_DUR = 500; // 방전 0.5초
+      if (target === R) {
+        R._zapEnd = Math.max(R._zapEnd||0, _now + dur);
+        if (strong) R._discEnd = Math.max(R._discEnd||0, _now + DISC_DUR);
+        send({type:'zapApply', dur, discDur: strong ? DISC_DUR : 0});
+      } else if (target && target.applyCC) {
+        target.applyCC({zapDur: dur, discDur: strong ? DISC_DUR : 0});
+      }
+    },
+    _applyZap(strong) {
+      SKILLS.sor._applyZapTo(R, BALANCE.sor.lmb.zapDur, strong);
+    },
+
+    lmb(angle) {
+      const B = BALANCE.sor.lmb;
+      if (L.lmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      const cos = Math.cos(angle), sin = Math.sin(angle);
+      const perp = {x:-sin, y:cos};
+      const burstId = uid();
+      const offsets = [-B.spread, 0, B.spread];
+      for (const off of offsets) {
+        const b = {
+          id:uid(), x:L.x + perp.x*off, y:L.y + perp.y*off,
+          radius:B.radius, speed:augBulletSpeed(B.speed),
+          dx:cos, dy:sin,
+          damage:B.damage, maxRange:B.range, traveled:0,
+          isSorBattery:true, _sorBurstId:burstId,
+        };
+        localBullets.push(b); send({type:'bullet',...b});
+      }
+      playShootSfx();
+      L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
+    },
+
+    rmb(angle) {
+      const B = BALANCE.sor.rmb;
+      if (L.rmbCooldown > 0) return;
+      if (!useStam(B.cost)) return;
+      // 마우스까지 거리 계산 — 최대 throwRange
+      const _dist = Math.min(B.throwRange, Math.hypot(mouseX-L.x, mouseY-L.y));
+      const b = {
+        id:uid(), x:L.x, y:L.y,
+        radius:B.throwRadius, speed:B.throwSpeed,
+        dx:Math.cos(angle), dy:Math.sin(angle),
+        damage:B.damage, maxRange:_dist, traveled:0,
+        isSorField:true,
+        fieldRadius:B.fieldRadius, fieldDur:B.fieldDur, zapDur:B.zapDur,
+      };
+      localBullets.push(b); send({type:'bullet',...b}); playShootSfx();
+      L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
+    },
+
+    counter(angle) {
+      const B = BALANCE.sor.counter;
+      if (!L.counterReady) return;
+      L.counterReady = false; L.lmbCooldown = B.cd; L.rmbCooldown = B.cd;
+      L.color = '#8080ff'; send({type:'colorChange', color:'#8080ff'});
+      addFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:18, maxDur:18});
+      const tok = ++L._counterToken;
+      // 미리보기
+      L._attackPreview = {shapes:[{type:'rect', len:B.range, width:B.width/2}]};
+      setTimeout(() => {
+        if (!gameOn || L._counterToken !== tok) return;
+        L.color = L.defaultColor; L._attackPreview = null;
+        send({type:'colorChange', color:L.defaultColor});
+        const _fireAngle = getAngle();
+        const _fcos = Math.cos(_fireAngle), _fsin = Math.sin(_fireAngle);
+        const _hits = hitCtx({x:L.x, y:L.y, cos:_fcos, sin:_fsin, len:B.range, width:B.width/2}, B.damage);
+        const _now3 = performance.now();
+        for (const t of (_hits||[])) {
+          const _alreadyZapped = t === R
+            ? (R._zapEnd && _now3 < R._zapEnd)
+            : (t._zapEnd && _now3 < t._zapEnd);
+          SKILLS.sor._applyZapTo(t, B.zapDur, !!_alreadyZapped);
+          if (t === R) knockbackRemote(B.knockbackPower);
+          else if (t.applyCC) t.applyCC({knockbackPower:B.knockbackPower, knockbackAngle:_fireAngle});        }
+        addFx({type:'sorCounter', x:L.x, y:L.y, angle:_fireAngle, range:B.range, width:B.width, dur:14, maxDur:14});
+        send({type:'fx', fx:{type:'sorCounter', x:L.x, y:L.y, angle:_fireAngle, range:B.range, width:B.width, dur:14, maxDur:14}});
+        L.lastAttackTime = performance.now();
+      }, BALANCE.counter.delay);
+    },
+  },
 };
 // ============================================================
 
@@ -10870,8 +11044,87 @@ function moveBullets(dt=1) {
       }
       // 벽·적 관통, 타격·회피 판정 없음
 
+    } else if (b.isSherinaEcho) {
+      if (hitEnemy) { hitRemote(b.damage); addShake(2,6); playHitSfx(); }
+      if (hitWall || oob || rangeOut || hitEnemy) {
+        // 경로 전체 = 시작~현재 하나의 rect 잔향
+        const _sx = b._startX, _sy = b._startY, _ex = b.x, _ey = b.y;
+        const _ang = Math.atan2(_ey-_sy, _ex-_sx);
+        const _len = Math.max(b.radius*2, Math.hypot(_ex-_sx, _ey-_sy));
+        const _hw = b.echoRadius;
+        const _ecx = (_sx+_ex)/2, _ecy = (_sy+_ey)/2;
+        const _eDmg = b.echoDamage, _eDur = b.echoDur, _eTick = b.echoTickInterval;
+        setTimeout(() => {
+          if (!gameOn) return;
+          if (!L._sherinaEchoZones) L._sherinaEchoZones = [];
+          const _now = performance.now();
+          L._sherinaEchoZones.push({
+            sx: _sx, sy: _sy, ex: _ex, ey: _ey,
+            cx: _ecx, cy: _ecy,
+            angle: _ang, fullLen: _len, halfW: _hw,
+            damage: _eDmg,
+            createdAt: _now,
+            totalDur: _eDur,
+            expiry: _now + _eDur,
+            tickInterval: _eTick,
+            _hitCd: new Map(),
+          });
+          send({type:'fx', fx:{type:'sherinaEchoZone',
+            sx:_sx, sy:_sy, cx:_ecx, cy:_ecy, angle:_ang, fullLen:_len, halfW:_hw,
+            dur:Math.round(_eDur/FRAME_MS), maxDur:Math.round(_eDur/FRAME_MS)}});
+        }, 500);
+        if (!L._sherinaPaths) L._sherinaPaths = [];
+        L._sherinaPaths.unshift([{x:_sx,y:_sy},{x:_ex,y:_ey}]);
+        if (L._sherinaPaths.length > BALANCE.sherina.rmb.maxPaths) L._sherinaPaths.pop();
+        localBullets.splice(i, 1);
+      }
+
+    } else if (b.isSorField) {
+      if (rangeOut||oob||hitWall) {
+        const _fn = performance.now();
+        if (!L._sorFields) L._sorFields = [];
+        L._sorFields.push({x:b.x, y:b.y, radius:b.fieldRadius, expiry:_fn+b.fieldDur});
+        for (const t of Rs()) {
+          if (Math.hypot(t.x-b.x, t.y-b.y) < b.fieldRadius + (t.radius||20)) {
+            if (t.applyDamage) t.applyDamage(b.damage);
+            SKILLS.sor._applyZapTo(t, b.zapDur, false);
+          }
+        }
+        addFx({type:'sorField', x:b.x, y:b.y, r:b.fieldRadius, dur:Math.round(b.fieldDur/FRAME_MS), maxDur:Math.round(b.fieldDur/FRAME_MS)});
+        send({type:'fx', fx:{type:'sorField', x:b.x, y:b.y, r:b.fieldRadius, dur:Math.round(b.fieldDur/FRAME_MS), maxDur:Math.round(b.fieldDur/FRAME_MS)}});
+        send({type:'sorFieldSync', x:b.x, y:b.y, fieldRadius:b.fieldRadius, fieldDur:b.fieldDur, zapDur:b.zapDur, damage:b.damage});
+        localBullets.splice(i,1);
+      }
+
+    } else if (b.isSorBattery) {      const _now2 = performance.now();
+      const _fieldHit = L._sorFields && L._sorFields.some(f =>
+        _now2 < f.expiry && Math.hypot(b.x-f.x, b.y-f.y) < b.radius + f.radius
+      );
+      if (_fieldHit && !b._fieldTriggered) b._fieldTriggered = true;
+      if (hitEnemy) {
+        // 버스트 ID로 같은 발사에서 한 번만 피해
+        if (!L._sorHitBursts) L._sorHitBursts = new Set();
+        if (!L._sorHitBursts.has(b._sorBurstId)) {
+          L._sorHitBursts.add(b._sorBurstId);
+          setTimeout(() => L._sorHitBursts?.delete(b._sorBurstId), 200);
+          for (const t of (window._hitTargets||[])) {
+            if (t.applyDamage) t.applyDamage(b.damage);
+            // 방전 조건: 정전기장 통과 탄환 OR 이미 감전 중인 적
+            // 단, 같은 버스트의 여러 발이 동시에 맞아도 방전 안 됨 — 첫 발만 체크
+            const _alreadyZapped = t === R
+              ? (R._zapEnd && _now2 < R._zapEnd)
+              : (t._zapEnd && _now2 < t._zapEnd);
+            const _strong = b._fieldTriggered || !!_alreadyZapped;
+            SKILLS.sor._applyZapTo(t, BALANCE.sor.lmb.zapDur, _strong);
+          }
+          addShake(2,6); playHitSfx();
+        }
+        localBullets.splice(i,1);
+      } else if (rangeOut||oob||hitWall) {
+        localBullets.splice(i,1);
+      }
+
     } else {
-      // 다즈빈 파동 구체: 관통 탄 — 틱 피해만, 충돌로 제거 안 함
       // 인투 저격탄: hit블록에서 처리됨
       // 로온 얼린 멜론: 적중 시 빙수 게이지
       if (b.isRoonMelon) {
@@ -11449,6 +11702,36 @@ function draw() {
     } else if (f.type==='dash') {
       ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(f.tx,f.ty);
       ctx.strokeStyle=`rgba(100,200,255,${a*.4})`; ctx.lineWidth=6; ctx.stroke();
+    } else if (f.type==='sorField') {
+      // 정전기장: 하늘색 점선 원 + ZAP 텍스트
+      const _pulse = 0.5 + 0.5*Math.sin(performance.now()*0.006);
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(100,200,255,${a*0.10})`; ctx.fill();
+      ctx.strokeStyle=`rgba(100,200,255,${a*(0.6+0.3*_pulse)})`; ctx.lineWidth=2.5;
+      ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
+      // 중앙 ZAP 텍스트
+      ctx.fillStyle=`rgba(100,200,255,${a*0.8})`;
+      ctx.font=`bold 14px Courier New`; ctx.textAlign='center';
+      ctx.fillText('ZAP', f.x, f.y + 5);
+    } else if (f.type==='sorCounter') {
+      // 일자 전격 FX
+      const _cos = Math.cos(f.angle), _sin = Math.sin(f.angle);
+      const _hw = f.width/2;
+      const _px = -_sin*_hw, _py = _cos*_hw;
+      const _ex = f.x+_cos*f.range, _ey = f.y+_sin*f.range;
+      ctx.beginPath();
+      ctx.moveTo(f.x+_px, f.y+_py); ctx.lineTo(_ex+_px, _ey+_py);
+      ctx.lineTo(_ex-_px, _ey-_py); ctx.lineTo(f.x-_px, f.y-_py);
+      ctx.closePath();
+      ctx.fillStyle=`rgba(100,100,255,${a*0.25})`; ctx.fill();
+      ctx.strokeStyle=`rgba(150,150,255,${a*0.9})`; ctx.lineWidth=2; ctx.stroke();
+    } else if (f.type==='sorField') {
+      // 정전기장: 점선 원 — 지속
+      const _pulse = 0.5 + 0.5*Math.sin(performance.now()*0.006);
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(77,77,180,${a*0.12})`; ctx.fill();
+      ctx.strokeStyle=`rgba(120,120,255,${a*(0.6+0.3*_pulse)})`; ctx.lineWidth=2.5;
+      ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
     } else if (f.type==='aoe') {
       // 미아루키 반격: 즉시 풀사이즈 원 → 페이드아웃
       const _aoeCol = f.col || '255,20,147';
@@ -13339,6 +13622,22 @@ function draw() {
         ctx.beginPath(); ctx.arc(bullet.x, bullet.y, bullet.radius*0.5, 0, Math.PI*2);
         ctx.strokeStyle=`rgba(150,180,255,${0.6*_wpulse})`; ctx.lineWidth=1.5; ctx.stroke();
 
+      } else if (bullet.isSorBattery) {
+        // 소르 배터리 — 하츠하츠 볼트 스타일, 하늘색
+        const _tRatio = bullet.maxRange ? bullet.traveled / bullet.maxRange : 0;
+        const _fadeStart = 0.70;
+        const _ha = _tRatio < _fadeStart ? 1.0 : Math.max(0, 1 - (_tRatio - _fadeStart) / (1 - _fadeStart));
+        const _cos = bullet.dx, _sin = bullet.dy;
+        const _h = (bullet.radius || 14) * 1.2; // 크기 조정
+        const _p = (lx, ly) => ({x: bullet.x + _cos*lx - _sin*ly, y: bullet.y + _sin*lx + _cos*ly});
+        ctx.beginPath();
+        ctx.moveTo(_p( _h, 0).x, _p( _h, 0).y);
+        ctx.lineTo(_p( 0,  _h).x, _p( 0,  _h).y);
+        ctx.lineTo(_p(-_h, 0).x, _p(-_h, 0).y);
+        ctx.lineTo(_p( 0, -_h).x, _p( 0, -_h).y);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(100,200,255,${_ha*0.18})`; ctx.fill();
+        ctx.strokeStyle = `rgba(100,200,255,${_ha*0.92})`; ctx.lineWidth = 2; ctx.stroke();
       } else if (bullet.isHatsBolt) {
         // 하츠하츠 볼트 — 정마름모, 사거리 기반 정확한 페이드
         const _ct = bullet.clampT ?? 0.5;
@@ -13712,6 +14011,22 @@ function draw() {
     ctx.beginPath(); ctx.arc(_rz.x,_rz.y,_rz.r*0.5,0,Math.PI*2);
     ctx.strokeStyle=`rgba(200,255,255,${_rza*0.3})`; ctx.lineWidth=1; ctx.stroke();
   }
+  // 소르 정전기장 렌더링
+  if (L._sorFields && L.charDef?.id === 'sor') {
+    const _sfNow = performance.now();
+    for (const f of L._sorFields) {
+      if (_sfNow >= f.expiry) continue;
+      const _sfA = Math.min(1, (f.expiry - _sfNow) / 500);
+      const _pulse = 0.5+0.5*Math.sin(_sfNow*0.006);
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.radius, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(100,200,255,${_sfA*0.10})`; ctx.fill();
+      ctx.strokeStyle=`rgba(100,200,255,${_sfA*(0.6+0.3*_pulse)})`; ctx.lineWidth=2.5;
+      ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=`rgba(100,200,255,${_sfA*0.8})`;
+      ctx.font='bold 14px Courier New'; ctx.textAlign='center';
+      ctx.fillText('ZAP', f.x, f.y + 5);
+    }
+  }
   drawAttackPreview(L._attackPreview);
   // 소환수 시각 위치 임시 적용
   const _pmSnaps = peerMinions.map(pm => ({rx:pm.x, ry:pm.y}));
@@ -13871,6 +14186,23 @@ function drawPlayer(p, label) {
     ctx.setLineDash([6,3]); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle='rgba(255,215,0,0.9)'; ctx.font='bold 14px Courier New'; ctx.textAlign='center';
     ctx.fillText('BIND', p.x, p.y-p.radius-38);
+  }
+
+  // 감전/방전 표시 (하늘색, 방전 우선)
+  const _zapNowP = performance.now();
+  const _zapEndP  = p===L ? L._zapEnd  : R._zapEnd;
+  const _discEndP = p===L ? L._discEnd : R._discEnd;
+  const _zapActiveP  = _zapEndP  && _zapNowP < _zapEndP;
+  const _discActiveP = _discEndP && _zapNowP < _discEndP;
+  if (_zapActiveP || _discActiveP) {
+    const _isDisc = !!_discActiveP;
+    const _zapCol = _isDisc ? '60,140,255' : '100,200,255'; // 방전=진한하늘, 감전=하늘
+    const pulseZ = 0.5+0.5*Math.sin(_zapNowP*0.015);
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.radius+10,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(${_zapCol},${0.7+0.3*pulseZ})`; ctx.lineWidth=3;
+    ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=`rgba(${_zapCol},0.9)`; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
+    ctx.fillText(_isDisc ? 'DISCHARGE' : 'ZAP', p.x, p.y-p.radius-46);
   }
 
   // 기절 표시: 노랑 점선 링 + STUN 텍스트 (수면 상태이면 분홍색 + SLEEP)
@@ -15581,6 +15913,26 @@ function loop() {
   }
 
   tickStamina(now, physDt);
+  // 정전기장 틱: 범위 내 R/소환수 감전 + 만료 정리
+  if (L._sorFields && L._sorFields.length > 0) {
+    L._sorFields = L._sorFields.filter(f => now < f.expiry);
+    for (const f of L._sorFields) {
+      for (const t of Rs()) {
+        if (Math.hypot(t.x-f.x, t.y-f.y) < f.radius + (t.radius||20)) {
+          if (t === R) {
+            if (!R._zapEnd || now >= R._zapEnd) {
+              R._zapEnd = now + BALANCE.sor.rmb.zapDur;
+              send({type:'zapApply', dur:BALANCE.sor.rmb.zapDur, strong:false});
+            }
+          } else if (t.applyCC) {
+            if (!(t._zapEnd && now < t._zapEnd)) {
+              t.applyCC({zapDur: BALANCE.sor.rmb.zapDur});
+            }
+          }
+        }
+      }
+    }
+  }
   // 레이즈 평타 차징: 스테미나 회복 차단 + 연타 끊김 감지 + 실시간 미리보기 (프레임 기반)
   if (gameOn && L.charDef?.id==='raise' && L._raiseCharging) {
     const _rB = BALANCE.raise.lmb;
