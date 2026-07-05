@@ -2935,7 +2935,9 @@ const R = {
     const _d = applyDmgAugs(dmg);
     this.health = Math.max(0, this.health - _d);
     send({type:'hitMe', damage:_d});
-    _addDmgNum('dealt', Math.round(_d), this.x, this.y-this.radius-10);
+    // 훈련장: 패킷 없이 로컬에서 직접 표시
+    if (_trainingMode) _addDmgNum('dealt', Math.round(_d), this.x, this.y-this.radius-10);
+    // PvP: dealt 수치는 dmgDealtSync 패킷으로 상대방이 실제 받은 값으로 보정
     addShake(Math.min(4+_d*0.12,10), 14);
     playHitSfx(); applyLifesteal(_d); applyPoison(_d); applyStunShot();
     if (_trainingMode && _d > 0) {
@@ -3537,6 +3539,10 @@ function onData(d) {
     case 'slowPlayer':
       // 직접 슬로우: L이 직접 감속됨
       L._slowEnd = Math.max(L._slowEnd||0, performance.now() + d.dur); break;
+    case 'dmgDealtSync':
+      // 상대방이 실제로 받은 피해량 — dealt 표시 보정
+      _addDmgNum('dealt', d.damage, d.x, d.y);
+      break;
     case 'zapApply':
       L._zapEnd = Math.max(L._zapEnd||0, performance.now() + d.dur);
       if (d.discDur) L._discEnd = Math.max(L._discEnd||0, performance.now() + d.discDur);
@@ -4334,6 +4340,8 @@ function receiveHit(dmg) {
     for (const pm of peerMinions) send({type:'minionHit', id:pm.id, damage:0, cc:{knockbackPower:700, knockbackAngle:Math.atan2(pm.y-L.y, pm.x-L.x)}});
   }
   L.health = Math.max(0, L.health - dmg);
+  // 실제로 받은 피해량을 상대방에게 알려서 dealt 숫자 표시 보정
+  send({type:'dmgDealtSync', damage: Math.round(dmg), x: L.x, y: L.y - L.radius - 10});
   // 가시갑옷: 피해 받을 시 피해량의 30% × 스택 수를 주변에 반사
   const _thornCount = getAugCount('thorn_armor');
   if (_thornCount > 0 && !L._suppressThorn) {
@@ -16405,7 +16413,9 @@ function loop() {
         if (!_inAnyT) continue;
         const _cd = L._sherinaGlobalHitCd.get(_etKey)||0;
         if (_now3 <= _cd) continue;
-        const _hitZone = L._sherinaEchoZones.find(_z=>_inRect(_z,_et.x,_et.y,_et.radius));
+        // 스킬 잔향(isRmb) 우선, 없으면 평타 잔향
+        const _rmbZone = L._sherinaEchoZones.find(_z=>_z.isRmb && _inRect(_z,_et.x,_et.y,_et.radius));
+        const _hitZone = _rmbZone || L._sherinaEchoZones.find(_z=>_inRect(_z,_et.x,_et.y,_et.radius));
         const _dmgVal = _hitZone?.damage || 0;
         L._sherinaGlobalHitCd.set(_etKey, _now3+_interval);
         if (_et === R) {
@@ -16414,6 +16424,9 @@ function loop() {
           window._hitTarget = _et;
           if (_et.applyDamage) _et.applyDamage(_dmgVal);
           L._lmbAttacking = _wasLmbSt;
+        } else {
+          // 소환수/봇 — 스킬 잔향 우선 피해량 적용
+          if (_et.applyDamage) _et.applyDamage(_dmgVal);
         }
       }
     
