@@ -8121,7 +8121,7 @@ const SKILLS = {
         if (!gameOn||L._counterToken!==tok) return;
         L.color=L.defaultColor; L._preFlashColor=null; send({type:'colorChange', color:L.defaultColor});
         const fa = getAngle(); // 선딜레이 후 실제 발사 시점 각도
-        if (hitCtxAll({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), halfAngle:B.halfAngle}, B.damage)) {
+        if (hitCtxAll({x:L.x, y:L.y, angle:fa, range:augMeleeRange(B.range), halfAngle:B.halfAngle}, prillApplyBoosts(B.damage)) ) {
           knockbackRemote(B.knockbackPower);
           L._prillBoostExpiry = performance.now() + B.boostDur;
         }
@@ -16791,5 +16791,10 @@ document.addEventListener('keydown', (e) => {
 
 
 </script>
+
+<!-- ══════════════════════════════════════════════════
+     UI 커스터마이즈 — body 최하단에 두어 항상 최상위 렌더링
+     ══════════════════════════════════════════════════ -->
+       
 </body>
 </html>
