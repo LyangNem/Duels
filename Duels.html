@@ -33232,12 +33232,18 @@ const SKILLS = {
   // ── 레비나 ──────────────────────────────────────────────────
 
   jerry: {
-    lmb(angle) {
+    lmb(angle, opt = {}) {
       const B=duels2GetSkillBalance('jerry','lmb');
       if (!useStam(B.cost)) return;
-      const dx=mouseX-L.x, dy=mouseY-L.y;
+      // 자동공격은 공통 AutoAttack Runtime이 넘긴 실제 대상/조준각을 사용하고, 수동 공격만 마우스 지점을 사용한다.
+      const target = opt.target || null;
+      const hasAutoTarget = !!(opt.auto && target && Number.isFinite(target.x) && Number.isFinite(target.y));
+      const fallbackAngle = Number.isFinite(opt.forceAngle) ? opt.forceAngle : (Number.isFinite(angle) ? angle : getAngle());
+      const aimX = hasAutoTarget ? target.x : (opt.auto ? L.x + Math.cos(fallbackAngle) * B.maxRange : mouseX);
+      const aimY = hasAutoTarget ? target.y : (opt.auto ? L.y + Math.sin(fallbackAngle) * B.maxRange : mouseY);
+      const dx=aimX-L.x, dy=aimY-L.y;
       const distance=Math.min(B.maxRange, Math.max(45, Math.hypot(dx,dy)));
-      const fireAngle=Math.atan2(dy,dx);
+      const fireAngle=hasAutoTarget || !opt.auto ? Math.atan2(dy,dx) : fallbackAngle;
       const projectile=duels2CreateJerryArcProjectile(fireAngle,distance,B,'grenade');
       duels2RouteProjectileDelivery(projectile,{applyPierce:false,sync:true,playSfx:true,moduleId:'delivery.target-arc-explosive',reason:'jerry.lmb.grenade'});
       L.lmbCooldown=B.cd; L.lastAttackTime=performance.now();
@@ -34870,6 +34876,14 @@ function duels2HydrateRemotePlayerCoreState(remote, snapshot={}, context={}) {
   const first = context.firstRemoteState ?? (remote._networkStateReady !== true);
   if (first) duels2RoutePositionSync(remote, snapshot.x, snapshot.y, {reason:'network.state:first-remote-position', route:'position.remote-first-sync'});
   else duels2RoutePositionTargetSync(remote, snapshot.x, snapshot.y, {reason:'network.state:remote-target', route:'position.target-sync'});
+  // 렌더 보간(_vx/_vy)과 별개로 전투 판정 좌표는 송신자의 최신 권한 위치를 즉시 사용한다.
+  // 기존에는 tx/ty만 이동해 화면은 움직이지만 hitbox가 스폰 위치의 x/y에 남을 수 있었다.
+  duels2RoutePositionSet(remote, snapshot.x, snapshot.y, {
+    reason:'network.state.remote-combat-authority',
+    route:'position.remote-combat-authority',
+    syncTarget:false,
+    resolveWall:false
+  });
   remote._networkStateReady = true;
   remote.hidden = false; remote.alive = true; remote.isAlive = true;
   if (Number.isFinite(snapshot.maxHealth)) { remote.maxHealth=snapshot.maxHealth; remote.maxHp=snapshot.maxHealth; }
@@ -55899,6 +55913,25 @@ function duels2StartMainGameLoop() {
   window._gameTimer = setTimeout(tick, 0);
 }
 
+// duels2ApplyTrainingCombatRelations: 이전 PvP 팀 모드와 무관하게 훈련장 조작자와 모든 훈련 대상을 적대 관계로 고정한다. ()
+function duels2ApplyTrainingCombatRelations() {
+  if (!L || !R) return false;
+  L.ownerId = 'training:local';
+  L.teamId = 'training:local';
+  R.ownerId = 'training:target';
+  R.teamId = 'training:target';
+  const localSlot = getPlayerSlotRecordByEntity?.(L);
+  const targetSlot = getPlayerSlotRecordByEntity?.(R);
+  if (localSlot) { localSlot.ownerId = L.ownerId; localSlot.teamId = L.teamId; }
+  if (targetSlot) { targetSlot.ownerId = R.ownerId; targetSlot.teamId = R.teamId; }
+  for (const target of _trainingBots || []) {
+    target.ownerId = 'training:target';
+    target.teamId = 'training:target';
+  }
+  return true;
+}
+window.duels2ApplyTrainingCombatRelations = duels2ApplyTrainingCombatRelations;
+
 function startTraining() {
   duels2ResetDebugSessionState('training-start');
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
@@ -55926,6 +55959,7 @@ function startTraining() {
   duels2RouteClearTrainingCollections({reason:'training.start:collections', route:'training.start'});
   syncPlayerSlots();
   _initTrainingBots();
+  duels2ApplyTrainingCombatRelations();
 
   localBullets = []; peerBullets = []; fxList = [];
   _firedBurstKb = new Set(); _sharedBulletHitSets = new Map();
@@ -56035,6 +56069,7 @@ function _trainingReset() {
   L._roonZones=duels2ClearFieldCollection('localRoonZones', L._roonZones, {reason:'reset'}); L._roonIncomingZones=duels2ClearFieldCollection('incomingRoonZones', L._roonIncomingZones, {reason:'reset'}); L._sherinaEchoZones=duels2ClearFieldCollection('localSherinaEchoZones', L._sherinaEchoZones, {reason:'reset'}); duels2ClearDeployableKind('empower-zone', 'local', L, {reason:'reset'});
   resetMinions();
   _initTrainingBots();
+  duels2ApplyTrainingCombatRelations();
   for (const bot of _trainingBots) { duels2RoutePositionReset(bot, bot.baseX, bot.baseY, {reason:'training.reset:bot', route:'position.spawn-reset'}); duels2RouteEntityHealthFull(bot, {reason:'training.reset.bot'}); bot.isAlive=true; bot.alive=true; bot.hidden=false; bot.respawnTimer=0; _clearRuntimeStatus(bot); }
   window._hitTargets=[]; window._hitTarget=null; _sharedBulletHitSets = new Map(); _firedBurstKb = new Set();
   addFx({type:'justdodge', x:R.x, y:R.y, r:0, maxR:40, dur:12, maxDur:12});
