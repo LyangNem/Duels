@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Duels</title>
-<meta name="duels-version" content="0.38.0">
+<meta name="duels-version" content="0.38.1">
 <script async src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js">
 // duels2GetAugmentVisibilityAndFastRegenSummary: 증강 HUD 공개 시점과 빠른 재생 효과 변경 상태를 반환한다. ()
 function duels2GetAugmentVisibilityAndFastRegenSummary() {
@@ -460,7 +460,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.38.0</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.38.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -894,7 +894,7 @@ input[type=text]:focus{border-color:#4af;}
  * - 캐릭터별로 피해/피격/사망/상태이상 코드를 따로 만들지 않는다.
  * - CombatResolver 외부에서 HP와 전투 피드백을 제각각 처리하지 않는다.
  */
-const DUELS2_ALPHA_VERSION = '0.38.0';
+const DUELS2_ALPHA_VERSION = '0.38.1';
 const DUELS2_ALPHA_STEP = 'Step 248 - Combat Result, Feedback, Motion & Return Policy Root Fix';
 
 
@@ -1385,7 +1385,7 @@ window.DUELS2_STATIC_REGRESSION_AUDIT_STEP = DUELS2_STATIC_REGRESSION_AUDIT_STEP
 // DUELS2_FINAL_RELEASE_AUDIT_STEP: Step 229 최종 릴리스 감사 범위와 자동/수동 검증 상태를 선언한다.
 const DUELS2_FINAL_RELEASE_AUDIT_STEP = Object.freeze({
   step:'Step 229 - Final Release Audit & Regression Checklist',
-  releaseLabel:'0.38.0',
+  releaseLabel:'0.38.1',
   staticAuditComplete:true,
   browserGameplayValidation:'manual-pending',
   twoPlayerNetworkValidation:'manual-pending',
@@ -1457,7 +1457,7 @@ window.duels2GetFinalReleaseAuditSummary = duels2GetFinalReleaseAuditSummary;
 // DUELS2_ALPHA_RELEASE_DECISION_STEP: Step 230의 Alpha 완료 판정 규칙과 현재 수동 검증 게이트 상태를 선언한다.
 const DUELS2_ALPHA_RELEASE_DECISION_STEP = Object.freeze({
   step:'Step 230 - Alpha Release Decision Gate & Completion Status',
-  releaseCandidateLabel:'0.38.0',
+  releaseCandidateLabel:'0.38.1',
   completionRule:'all-required-checks-passed',
   manualValidationRequired:true,
   automaticPromotionDisabled:true,
@@ -1504,7 +1504,7 @@ function duels2GetAlphaCompletionStatus() {
   const decision = duels2EvaluateAlphaReleaseDecision();
   return {
     version:DUELS2_ALPHA_VERSION,
-    uiVersion:'0.38.0',
+    uiVersion:'0.38.1',
     singleFileOnly:DUELS2_ALPHA_SINGLE_FILE_ONLY,
     staticAuditPassed:releaseAudit.staticAuditPassed,
     approved:decision.approved,
@@ -12791,7 +12791,7 @@ function finishHitResult(result) {
   return result;
 }
 function hitResultDidApply(result) {
-  return !!(result && (result.damaged || result.ccApplied || (result.statusApplied && result.statusApplied.length > 0)));
+  return !!(result && (result.damaged || result.delegatedDamage || result.ccApplied || (result.statusApplied && result.statusApplied.length > 0)));
 }
 function hitResultDidTouch(result) {
   return !!(result && (hitResultDidApply(result) || result.justDodgeTriggered || result.hit));
@@ -12891,6 +12891,8 @@ function applyDamageResult(target, amount, ctx = {}) {
     blocked: !ok && !justDodgeTriggered,
     justDodgeTriggered,
     damaged: ok && actual > 0,
+    // 원격 플레이어 피해는 대상 소유 클라이언트에 위임되므로 로컬 미러 HP가 줄지 않아도 적중 적용으로 유지한다.
+    delegatedDamage: ok && damageApplyResult?.delegated === true,
     // 피해 피드백과 후속 판정은 요청량이 아니라 실제 HP 감소량만 사용한다.
     // 보호막/원격 위임처럼 HP가 줄지 않은 성공 응답을 피해량으로 오인하지 않는다.
     damageAmount: actual,
@@ -14042,9 +14044,14 @@ const R = {
   stamina: STAM_MAX, dodging:false, counterReady:false,
   hidden:true, alive:false, isAlive:false, _networkStateReady:false,
   applyDamage(dmg, ctx = {}) {
-    if (this.radius <= 0 || this.hidden || this.alive === false) return false;
+    if (this.radius <= 0 || this.hidden || this._networkStateReady !== true) return false;
     const _d = getOutgoingAugmentedDamage(dmg, ctx);
-    if (this === R && !_trainingMode && !ctx.fromNetwork) send({type:'hitMe', targetPid:getPlayerPid(this)||'P2', sourcePid:DUELS2_PLAYER_REGISTRY.localPid||getPlayerPid(L)||'P1', damage:_d, fromThorn:!!ctx.fromThorn, eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null});
+    // 실제 P2P 상대의 HP는 상대 소유 클라이언트만 변경한다. 공격자 화면의 미러 HP를 예측 차감하면
+    // 회피·무적·피해감소 오차로 미러가 먼저 죽어 이후 충돌 대상에서 영구 제외될 수 있다.
+    if (this === R && !_trainingMode && !ctx.fromNetwork) {
+      send({type:'hitMe', targetPid:getPlayerPid(this)||'P2', sourcePid:DUELS2_PLAYER_REGISTRY.localPid||getPlayerPid(L)||'P1', damage:_d, fromThorn:!!ctx.fromThorn, eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null});
+      return {ok:true, applied:true, delegated:true, amount:_d};
+    }
     return applyPlayerRuntimeDamage(this, _d, {...ctx, rawDamage:true, outgoingApplied:true, _calculated:true, target:this});
   },
   applyCC(cc) {
@@ -14087,9 +14094,13 @@ function duels2CreateRemotePlayerEntity(pid, packet = {}) {
     color:packet.color || '#f44', defaultColor:packet.color || '#f44',
   };
   entity.applyDamage = function(dmg, ctx = {}) {
-    if (this.radius <= 0 || this.hidden || this.alive === false) return false;
+    if (this.radius <= 0 || this.hidden || this._networkStateReady !== true) return false;
     const amount = getOutgoingAugmentedDamage(dmg, ctx);
-    if (!_trainingMode && !ctx.fromNetwork) send({type:'hitMe', targetPid:pid, sourcePid:DUELS2_PLAYER_REGISTRY.localPid, damage:amount, fromThorn:!!ctx.fromThorn, eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null});
+    // P3/P4도 P2와 동일하게 소유 클라이언트에 피해를 위임하고 로컬 미러 HP는 변경하지 않는다.
+    if (!_trainingMode && !ctx.fromNetwork) {
+      send({type:'hitMe', targetPid:pid, sourcePid:DUELS2_PLAYER_REGISTRY.localPid, damage:amount, fromThorn:!!ctx.fromThorn, eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null});
+      return {ok:true, applied:true, delegated:true, amount};
+    }
     return applyPlayerRuntimeDamage(this, amount, {...ctx, rawDamage:true, outgoingApplied:true, _calculated:true, target:this});
   };
   entity.applyCC = function(cc) {
@@ -21693,7 +21704,7 @@ function duels2ApplyDamageViaTargetMethodAdapter(target, amount, ctx = {}, opt =
   const ok = methodResult !== false && (actualDamage > 0 || explicitApplied);
   if (ok && !isCombatPlayerEntity(target) && actualDamage > 0) applyBleedOnDamageTaken(target, actualDamage, ctx);
   if (ok && window._devUnlocked) recordCombatLog('damageDealt',{amount:actualDamage || amount,target:getTargetKind(target),tags:ctx.hitTags});
-  return {ok, invalid:false, kind:'target-method', amount, actualDamage, methodResult, target, reason:ok ? null : 'method-blocked', opt};
+  return {ok, invalid:false, delegated:methodResult?.delegated === true, kind:'target-method', amount, actualDamage, methodResult, target, reason:ok ? null : 'method-blocked', opt};
 }
 
 // duels2ApplyDamageViaRawHealthAdapter: hp/health 필드만 가진 레거시 대상에게 피해를 적용한다. (target: 피해 대상, amount: 적용 피해량, ctx: 피해 컨텍스트, opt: 기록용 옵션)
@@ -24230,8 +24241,13 @@ function duels2RegisterExtendedLegacyEventHandlers() {
   }, 520);
   duels2RegisterSimpleGameplayEventHandler('dead', d => {
     const victimPid=d.victimPid||d.sourcePid||d.pid||'P2';
-    DUELS2_MULTIPLAYER_ROUND_RUNTIME.markDead(victimPid,d.killerPid||d.attackerPid||null,{fromNetwork:true});
-    if(!duels2IsMultiplayerCombatMode()) endGame(true);
+    // 1대1은 기존 matchState 한 경로에서만 승점을 올린다. 다인전 Runtime까지 함께 호출하면
+    // 호스트가 applyResult와 endGame에서 각각 1점씩 받아 한 라운드에 2점이 증가한다.
+    if (duels2IsMultiplayerCombatMode()) {
+      DUELS2_MULTIPLAYER_ROUND_RUNTIME.markDead(victimPid,d.killerPid||d.attackerPid||null,{fromNetwork:true});
+    } else {
+      endGame(true);
+    }
   }, 520);
   duels2RegisterSimpleGameplayEventHandler('multiPlayerDead', d => {
     DUELS2_MULTIPLAYER_ROUND_RUNTIME.markDead(d.victimPid||d.sourcePid||d.pid,d.killerPid||null,{fromNetwork:true});
@@ -24381,14 +24397,30 @@ function duels2HandleStateSnapshotEvent(d) {
       const packetPid = PLAYER_SLOT_IDS.includes(d.pid) ? d.pid : (PLAYER_SLOT_IDS.includes(d.sourcePid) ? d.sourcePid : null);
       const localPid = DUELS2_PLAYER_REGISTRY.localPid || getPlayerPid(L) || 'P1';
       if (!packetPid || packetPid === localPid) return false;
+
+      // 원격 state는 동일 송신자 기준 단조 증가하는 sendTime만 수락한다.
+      // 늦게 도착한 과거 패킷이 최신 생존/위치 상태를 되돌려 상대를 대상 목록에서 제거하지 못하게 한다.
+      const existingRemote = DUELS2_PLAYER_REGISTRY.entitiesByPid.get(packetPid) || null;
+      const packetSendTime = Number(d.sendTime);
+      if (existingRemote && Number.isFinite(packetSendTime) && Number.isFinite(existingRemote._lastAcceptedStateSendTime) && packetSendTime <= existingRemote._lastAcceptedStateSendTime) {
+        return false;
+      }
+
       const stateX = Number(d.x), stateY = Number(d.y);
       const validStatePosition = Number.isFinite(stateX) && Number.isFinite(stateY) && stateX >= 0 && stateX <= WORLD_W && stateY >= 0 && stateY <= WORLD_H && !(stateX <= 1 && stateY <= 1);
       if (!validStatePosition) {
-        const pending = DUELS2_PLAYER_REGISTRY.entitiesByPid.get(packetPid);
-        if (pending) { pending._networkStateReady = false; pending.hidden = true; pending.alive = false; pending.isAlive = false; }
+        // 잘못된 단일 스냅샷은 폐기만 한다. 이미 활성화된 원격 플레이어의 hidden/alive 상태를
+        // false로 바꾸면 화면에는 보간 잔상이 남아 있는데 전투 수집에서는 사라지는 유령 상태가 된다.
+        // 아직 유효한 state를 한 번도 받지 않은 예약 엔티티만 기존 pending 상태를 유지한다.
+        if (existingRemote && existingRemote._networkStateReady !== true) {
+          existingRemote.hidden = true;
+          existingRemote.alive = false;
+          existingRemote.isAlive = false;
+        }
         return false;
       }
       const remote = duels2ResolveRemotePlayerFromPacket({...d, pid:packetPid});
+      if (Number.isFinite(packetSendTime)) remote._lastAcceptedStateSendTime = packetSendTime;
       const remotePid = packetPid;
       let remoteMinions = duels2GetRemoteOwnerCollection('minions', remotePid);
       // 상대 클럭 오프셋 추정 (네트워크 지연 무시, 단순 차이)
@@ -24601,8 +24633,8 @@ function onData(d) {
     case 'dead': {
       const victimPid = d.victimPid || d.sourcePid || d.pid || 'P2';
       const killerPid = d.killerPid || d.attackerPid || null;
-      DUELS2_MULTIPLAYER_ROUND_RUNTIME.markDead(victimPid, killerPid, {fromNetwork:true});
-      if (!duels2IsMultiplayerCombatMode()) endGame(true);
+      if (duels2IsMultiplayerCombatMode()) DUELS2_MULTIPLAYER_ROUND_RUNTIME.markDead(victimPid, killerPid, {fromNetwork:true});
+      else endGame(true);
       break;
     }
     case 'multiPlayerDead': {
@@ -57131,7 +57163,7 @@ function doRematch(options = {}) {
 // 리매치 시 랜덤 캐릭터 선택 잠금 해제 상태를 확인한다.
 function duels2GetRematchRandomSelectionFixSummary() {
   return {
-    version:'0.38.0',
+    version:'0.38.1',
     randomButtonDisabled:!!document.getElementById('random-btn')?.disabled,
     selectedCharacterId:selCharId,
     matchPhase:window._duels2MatchPhase || 'unknown',
@@ -59721,7 +59753,7 @@ function openDevPanel(opt = {}) {
 
   // 헤더
   const hdr = _devEl('div','display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #2a2a3a;padding-bottom:6px;');
-  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.38.0'));
+  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.38.1'));
   const hdrBtns = _devEl('div','display:flex;gap:4px;');
     hdrBtns.appendChild(_devBtn(_devPanelSide==='right'?'◀ 왼쪽':'▶ 오른쪽', ()=>{ _devPanelSide=_devPanelSide==='right'?'left':'right'; duels2SafeLocalStorageSetItem('devSide',_devPanelSide); refreshDevPanel(); }));
   hdrBtns.appendChild(_devBtn('✕', ()=>{ panel.remove(); }));
@@ -60163,7 +60195,7 @@ function duels2GetMultiPeerNetworkAuditSummary() {
 
 const DUELS2_RUNTIME_BUGFIX_038_STEP = Object.freeze({
   step:'Step 242 - Movement, Health Display & Remote Character Bugfix',
-  version:'0.38.0',
+  version:'0.38.1',
   fixes:Object.freeze([
     'primitive-skill-balance-values-preserved',
     'single-main-loop-generation-guard',
@@ -60736,7 +60768,7 @@ window.duels2GetResidualCollisionMigrationSummary = function duels2GetResidualCo
 // duels2GetFinalCombatGeometryMigrationSummary: 이번 전투 기하 판정 마이그레이션 상태를 반환한다.
 window.duels2GetFinalCombatGeometryMigrationSummary = function duels2GetFinalCombatGeometryMigrationSummary() {
   return {
-    version:'0.38.0',
+    version:'0.38.1',
     shapes:['circle','cone','line','orientedRect','annulus','ctx'],
     migrated:['konyeong.lmb-rect','konyeong.counter-circle','peluna.lmb-annulus','sherina.rmb-circle-knockback'],
     directMathHypotCount:(document.documentElement.innerHTML.match(/Math\.hypot\s*\(/g)||[]).length,
