@@ -895,7 +895,7 @@ input[type=text]:focus{border-color:#4af;}
  * - CombatResolver 외부에서 HP와 전투 피드백을 제각각 처리하지 않는다.
  */
 const DUELS2_ALPHA_VERSION = '0.38.1';
-const DUELS2_ALPHA_STEP = 'Step 248 - Combat Result, Feedback, Motion & Return Policy Root Fix';
+const DUELS2_ALPHA_STEP = 'Step 249 - Round Resolution Idempotency & Attackable Object Target Completion';
 
 
 /*
@@ -11827,7 +11827,7 @@ function _applyPlayerDeathRuntime(entity, ctx = {}) {
       }, AUG_VALS.revival.delay);
       return true;
     }
-    if (typeof send==='function') send({type:'dead'});
+    if (typeof send==='function') duels2SendLocalDuelDeathEvent();
     endGame(false);
     return true;
   }
@@ -12240,7 +12240,24 @@ function duels2TargetPassesCollectionRelation(source, target, opt = {}) {
 // duels2GetTargetCollectionCandidates: 명시 targets 또는 현재 전투 엔티티 목록에서 후보군을 수집한다. (opt: source/team/aliveOnly/targets 옵션)
 function duels2GetTargetCollectionCandidates(opt = {}) {
   const source = opt.source || getCombatSource(L);
-  if (Array.isArray(opt.targets)) return opt.targets.filter(Boolean);
+  if (Array.isArray(opt.targets)) {
+    const explicit = opt.targets.filter(Boolean);
+    // 명시적 플레이어 배열을 쓰는 구형 shape 공격도 attackable 전투 객체를 빠뜨리지 않는다.
+    // 캐릭터/소환수 타입을 검사하지 않고 공통 attackable 정책과 진영 관계만 사용한다.
+    if (opt.shape && !opt.playersOnly && opt.includeAttackableObjects !== false) {
+      const seen = new Set(explicit.map(target => getHitTargetKey?.(target) || target.id || target.pid || target));
+      for (const target of getCombatEntities({aliveOnly:opt.aliveOnly !== false})) {
+        if (!target || target.attackable !== true || target.targetable === false) continue;
+        if (!duels2TargetPassesCollectionKindFilter(target, opt)) continue;
+        if (!duels2TargetPassesCollectionRelation(source, target, opt)) continue;
+        const key = getHitTargetKey?.(target) || target.id || target.pid || target;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        explicit.push(target);
+      }
+    }
+    return explicit;
+  }
   if (duels2NormalizeDamageTargetTeam(opt.team) === 'self') return [source].filter(Boolean);
   return getCombatEntities({aliveOnly:opt.aliveOnly !== false}).filter(target => {
     if (!target) return false;
@@ -24033,10 +24050,15 @@ duels2RegisterSimpleGameplayEventHandler('matchFormat', d => {
 
 // roundScoreSync: 송신자 관점 점수를 수신자 관점으로 반전해 Score View에 반영한다.
 duels2RegisterSimpleGameplayEventHandler('roundScoreSync', d => {
+  if (d.authorityPid && d.authorityPid !== 'P1') return;
+  const token = duels2GetDuelRoundToken(d.roundToken ?? d.round);
+  if (token < duels2GetDuelRoundToken() - 1) return;
   matchState.localWins = Number(d.peerWins) || 0;
   matchState.peerWins = Number(d.localWins) || 0;
   if (Number.isFinite(Number(d.round))) matchState.round = Math.max(matchState.round || 1, Number(d.round));
   updateRoundScoreDisplay?.();
+  const sub = document.getElementById('round-result-sub');
+  if (sub) sub.textContent = `${matchState.localWins} — ${matchState.peerWins}`;
 });
 
 // debugMapChange: 개발자 맵 변경 이벤트를 로컬 Map Registry에 적용한다.
@@ -24241,12 +24263,11 @@ function duels2RegisterExtendedLegacyEventHandlers() {
   }, 520);
   duels2RegisterSimpleGameplayEventHandler('dead', d => {
     const victimPid=d.victimPid||d.sourcePid||d.pid||'P2';
-    // 1대1은 기존 matchState 한 경로에서만 승점을 올린다. 다인전 Runtime까지 함께 호출하면
-    // 호스트가 applyResult와 endGame에서 각각 1점씩 받아 한 라운드에 2점이 증가한다.
     if (duels2IsMultiplayerCombatMode()) {
       DUELS2_MULTIPLAYER_ROUND_RUNTIME.markDead(victimPid,d.killerPid||d.attackerPid||null,{fromNetwork:true});
     } else {
-      endGame(true);
+      if (!duels2IsCurrentDuelRoundEvent(d)) return;
+      endGame(true, d.roundToken ?? d.round);
     }
   }, 520);
   duels2RegisterSimpleGameplayEventHandler('multiPlayerDead', d => {
@@ -24621,7 +24642,7 @@ function onData(d) {
           damageEntityHealthRaw(L, _wdR);
           L.lastHitTime = performance.now();
           addShake(2,8);
-          if (getEntityHealth(L) <= 0) { send({type:'dead'}); endGame(false); }
+          if (getEntityHealth(L) <= 0) { duels2SendLocalDuelDeathEvent(); endGame(false); }
           updateLocalHud();
         }
       }
@@ -24634,7 +24655,7 @@ function onData(d) {
       const victimPid = d.victimPid || d.sourcePid || d.pid || 'P2';
       const killerPid = d.killerPid || d.attackerPid || null;
       if (duels2IsMultiplayerCombatMode()) DUELS2_MULTIPLAYER_ROUND_RUNTIME.markDead(victimPid, killerPid, {fromNetwork:true});
-      else endGame(true);
+      else if (duels2IsCurrentDuelRoundEvent(d)) endGame(true, d.roundToken ?? d.round);
       break;
     }
     case 'multiPlayerDead': {
@@ -24670,11 +24691,15 @@ function onData(d) {
       break;
     // ── 라운드 사이: 캐릭터/증강 선택지 수신 (호스트→참가자)
     case 'roundScoreSync': {
-      // 송신자 관점 점수를 수신자 관점으로 뒤집어 반영한다.
+      if (d.authorityPid && d.authorityPid !== 'P1') break;
+      const token = duels2GetDuelRoundToken(d.roundToken ?? d.round);
+      if (token < duels2GetDuelRoundToken() - 1) break;
       matchState.localWins = Number(d.peerWins) || 0;
       matchState.peerWins = Number(d.localWins) || 0;
       if (Number.isFinite(Number(d.round))) matchState.round = Math.max(matchState.round || 1, Number(d.round));
       updateRoundScoreDisplay?.();
+      const sub = document.getElementById('round-result-sub');
+      if (sub) sub.textContent = `${matchState.localWins} — ${matchState.peerWins}`;
       break;
     }
     case 'betweenData':
@@ -25720,6 +25745,8 @@ const DUELS2_SUMMON_RUNTIME = (() => {
       speed:Number(overrides.speed ?? spec.speed ?? 3) || 0,
       summonSpecId:String(type),
       visualProfile:overrides.visualProfile || spec.visualProfile || 'standard',
+      attackable:overrides.attackable ?? spec.attackable ?? false,
+      targetable:overrides.targetable ?? spec.targetable ?? true,
       _stateData:{},
       ...overrides,
     };
@@ -25782,6 +25809,7 @@ const DUELS2_SUMMON_RUNTIME = (() => {
       summonSpecId:entity.summonSpecId || entity.type,
       x:entity.x, y:entity.y, radius:entity.radius, hp:getEntityHealth(entity), maxHp:getEntityMaxHealth(entity),
       color:entity.color, speed:entity.speed, ownerId:entity.ownerId, teamId:getTeamId(entity),
+      attackable:entity.attackable === true, targetable:entity.targetable !== false,
       visualProfile:entity.visualProfile || spec?.visualProfile || 'standard',
     };
     const extra = spec?.serialize?.(entity, options) || {};
@@ -25800,6 +25828,8 @@ const DUELS2_SUMMON_RUNTIME = (() => {
       tx:Number(snapshot.x) || 0,
       ty:Number(snapshot.y) || 0,
       kind:snapshot.kind || spec?.entityKind || 'minion',
+      attackable:snapshot.attackable ?? spec?.attackable ?? false,
+      targetable:snapshot.targetable ?? spec?.targetable ?? true,
       ownerId:snapshot.ownerId || getOwnerId(owner) || 'peer',
       teamId:snapshot.teamId || getTeamId(owner) || 'peer',
     });
@@ -26195,6 +26225,8 @@ function getDebugPlayerById(id) { return (_debugPlayers || []).find(p => p.id ==
 
 // 레테 우편함: 가까운 아군에게 지원 편지를 발사하는 설치형 소환수다.
 MINION_DEFS['lete_mailbox'] = {
+  attackable: true,
+  targetable: true,
   radius: duels2GetSkillBalance('lete','rmb').mailboxRadius,
   maxHp:  duels2GetSkillBalance('lete','rmb').mailboxHp,
   color:  '#A7B0A4',
@@ -56752,9 +56784,46 @@ function showRoundResult(won, callback) {
   }, 1800);
 }
 
-function endGame(won) {
+// duels2GetDuelRoundToken: 1대1 라운드의 점수·사망 이벤트 식별 토큰을 정규화한다. (value: 패킷 또는 현재 matchState의 라운드 값)
+function duels2GetDuelRoundToken(value = matchState.round) {
+  return Math.max(1, Math.floor(Number(value) || 1));
+}
+
+// duels2SendLocalDuelDeathEvent: 같은 1대1 라운드에서 로컬 사망 패킷을 한 번만 전송한다. ()
+function duels2SendLocalDuelDeathEvent() {
+  const roundToken = duels2GetDuelRoundToken();
+  const victimPid = DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || (isHost ? 'P1' : 'P2');
+  const eventId = `duel-death:${roundToken}:${victimPid}`;
+  if (matchState._sentDuelDeathEventId === eventId) return false;
+  matchState._sentDuelDeathEventId = eventId;
+  send({type:'dead', eventId, roundToken, victimPid, sourcePid:victimPid});
+  return true;
+}
+
+// duels2IsCurrentDuelRoundEvent: 지연·중복된 이전 라운드 이벤트인지 확인한다. (packet: dead/roundScoreSync 패킷)
+function duels2IsCurrentDuelRoundEvent(packet = {}) {
+  const packetToken = duels2GetDuelRoundToken(packet.roundToken ?? packet.round);
+  return packetToken === duels2GetDuelRoundToken();
+}
+
+// duels2ApplyHostDuelScoreOnce: 호스트만 라운드 토큰당 정확히 한 번 승점을 변경한다. (won: 호스트 관점 승리 여부, roundToken: 종료 라운드 토큰)
+function duels2ApplyHostDuelScoreOnce(won, roundToken) {
+  if (!isHost) return false;
+  const token = duels2GetDuelRoundToken(roundToken);
+  if (!matchState._hostScoredDuelRounds) matchState._hostScoredDuelRounds = Object.create(null);
+  if (matchState._hostScoredDuelRounds[token]) return false;
+  matchState._hostScoredDuelRounds[token] = won ? 'local' : 'peer';
+  if (won) matchState.localWins += 1;
+  else matchState.peerWins += 1;
+  return true;
+}
+
+function endGame(won, roundTokenOverride = null) {
   if (!gameOn) return;
   if (_trainingMode) { L.health=L.maxHealth; return; }
+  const roundToken = duels2GetDuelRoundToken(roundTokenOverride ?? matchState.round);
+  if (roundToken !== duels2GetDuelRoundToken()) return;
+  if (matchState._roundResolutionToken === roundToken) return;
   if (duels2IsMultiplayerCombatMode()) {
     if (!won) {
       const killerPid = L._lastDamageSourcePid || L._lastHitSourcePid || null;
@@ -56767,10 +56836,14 @@ function endGame(won) {
     return;
   }
   if (!won) {
+    // 같은 라운드의 중복 사망 호출이 여러 타이머를 예약하지 못하게 즉시 잠근다.
+    matchState._roundResolutionToken = roundToken;
     L._dying = true;
+    clearTimeout(window._dyingTimer);
     window._dyingTimer = setTimeout(() => {
+      if (matchState._roundResolutionToken !== roundToken) return;
       L._dying = false;
-      _doEndGame(false);
+      _doEndGame(false, roundToken);
     }, 80);
     return;
   }
@@ -56778,25 +56851,38 @@ function endGame(won) {
   if (L._dying) {
     clearTimeout(window._dyingTimer);
     L._dying = false;
-    _doEndGame(isHost ? true : false);
+    matchState._roundResolutionToken = roundToken;
+    _doEndGame(isHost ? true : false, roundToken);
     return;
   }
-  _doEndGame(true);
+  matchState._roundResolutionToken = roundToken;
+  _doEndGame(true, roundToken);
 }
-function _doEndGame(won) {
+function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)) {
+  if (matchState._lastScoredRoundToken === roundToken) return;
   if (!gameOn && won) return; // 이미 처리됨 방어
+  matchState._lastScoredRoundToken = roundToken;
   gameOn=false;
   clearTimeout(window._gameTimer);
   if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
   if (_poisonTimer) { _poisonTimer.forEach(t => clearTimeout(t)); _poisonTimer=null; }
   window._audioCtx?.close();
 
-  // 라운드 스코어 갱신
-  if (won) matchState.localWins++;
-  else     matchState.peerWins++;
+  // 1대1 승점은 호스트가 라운드 토큰당 한 번만 변경한다. 참가자는 호스트의 절대 점수 동기화만 적용한다.
+  const scoreChanged = duels2ApplyHostDuelScoreOnce(won, roundToken);
   matchState.lastWinner = won ? 'local' : 'peer';
   updateRoundScoreDisplay?.();
-  send({type:'roundScoreSync', sourcePid:DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || 'P1', localWins:Number(matchState.localWins)||0, peerWins:Number(matchState.peerWins)||0, round:Number(matchState.round)||1});
+  if (isHost && scoreChanged) {
+    send({
+      type:'roundScoreSync',
+      sourcePid:DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || 'P1',
+      authorityPid:'P1',
+      roundToken,
+      localWins:Number(matchState.localWins)||0,
+      peerWins:Number(matchState.peerWins)||0,
+      round:Number(matchState.round)||1
+    });
+  }
 
   const fmt = matchState.format = duels2NormalizeMatchFormat(matchState.format);
   const matchDone = matchState.localWins >= fmt.winsNeeded || matchState.peerWins >= fmt.winsNeeded;
@@ -57328,6 +57414,10 @@ function duels2GetPidCharacterPositionFixSummary() {
 window.duels2GetPidCharacterPositionFixSummary=duels2GetPidCharacterPositionFixSummary;
 
 function startGame() {
+  matchState._sentDuelDeathEventId = null;
+  matchState._roundResolutionToken = null;
+
+  matchState._roundResolutionToken = null;
   duels2ResetDebugSessionState('match-start');
   window._duels2MatchPhase = 'playing';
   localReady=true; peerReady=true;
