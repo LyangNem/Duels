@@ -895,6 +895,9 @@ input[type=text]:focus{border-color:#4af;}
  * - CombatResolver 외부에서 HP와 전투 피드백을 제각각 처리하지 않는다.
  */
 const DUELS2_ALPHA_VERSION = '0.38.2';
+// DUELS2_RUNTIME_DIAGNOSTICS_ENABLED: 개발 단계의 전투·상태·모션·모듈 감사 이력 수집 여부다. 출시 실행에서는 사용하지 않으므로 비활성화한다.
+const DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = false;
+window.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = DUELS2_RUNTIME_DIAGNOSTICS_ENABLED;
 const DUELS2_ALPHA_STEP = 'Step 249 - Round Resolution Idempotency & Attackable Object Target Completion';
 
 
@@ -5418,7 +5421,7 @@ const DUELS2_SKILL_ACTION_CONTEXT_RUNTIME = (() => {
 
   // pushHistory: 액션 런타임 이벤트를 최근 기록에 추가한다. (type: 이벤트 종류, ctx: 대상 컨텍스트, extra: 추가 정보)
   function pushHistory(type, ctx, extra = {}) {
-    history.push({
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({
       type,
       at: performance.now(),
       ctx: cloneContextForHistory(ctx),
@@ -5677,7 +5680,7 @@ const DUELS2_SKILL_EXECUTOR_RUNTIME = (() => {
 
   // pushHistory: 실행기 이벤트를 최근 기록에 추가한다. (type: 이벤트 종류, entry: 기록 내용)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:performance.now(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:performance.now(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -5939,7 +5942,7 @@ const DUELS2_SKILL_COOLDOWN_GUARD_RUNTIME = (() => {
 
   // pushHistory: 쿨타임 가드 이벤트를 최근 기록에 추가한다. (type: 이벤트 종류, entry: 기록 내용)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:performance.now(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:performance.now(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -6097,7 +6100,7 @@ const DUELS2_SKILL_STAMINA_COST_GUARD_RUNTIME = (() => {
 
   // pushHistory: 비용 가드 이벤트를 최근 기록에 추가한다. (type: 이벤트 종류, entry: 기록 내용)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:performance.now(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:performance.now(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -6350,7 +6353,7 @@ const DUELS2_SKILL_STAMINA_COST_ADOPTION_RUNTIME = (() => {
 
   // pushHistory: adoption 이벤트를 최근 기록에 추가한다. (type: 이벤트 종류, entry: 기록 내용)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:performance.now(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:performance.now(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -6629,7 +6632,7 @@ const DUELS2_SKILL_COST_SPEC_RUNTIME = (() => {
 
   // pushHistory: 비용 명세 이벤트를 최근 기록에 추가한다. (type: build/link, entry: 기록 객체)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:performance.now(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:performance.now(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -6706,7 +6709,7 @@ const DUELS2_SKILL_COST_SPEC_ACTUAL_AUDIT_RUNTIME = (() => {
 
   // pushHistory: 비용 감사 기록을 최근 목록에 추가한다. (type: 이벤트 종류, entry: 기록 객체)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:performance.now(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:performance.now(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -7026,7 +7029,7 @@ const DUELS2_SKILL_COST_EXECUTOR_RUNTIME = (() => {
 
   // pushHistory: 비용 실행기 이벤트를 최근 기록에 추가한다. (type: 이벤트 종류, entry: 기록 객체)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:performance.now(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:performance.now(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -7578,7 +7581,7 @@ const DUELS2_SPECIAL_LMB_GUARD_RUNTIME = (() => {
     bump(counters.byResult, entry.result);
     bump(counters.byRoute, entry.route);
     bump(counters.byReason, entry.reason);
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > MAX_HISTORY) history.shift();
     return entry;
   }
@@ -7648,16 +7651,19 @@ window.DUELS2_SPECIAL_LMB_COST_EXECUTOR_ADOPTION = DUELS2_SPECIAL_LMB_COST_EXECU
 
 // duels2RecordSpecialLmbGuard: 비용은 계속 진행되는 LMB 선행 상태 변화를 기록한다. (charId: 캐릭터 id, branch: 분기명, opt: route/detail 옵션)
 function duels2RecordSpecialLmbGuard(charId, branch, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_SPECIAL_LMB_GUARD_RUNTIME?.recordObserved?.(charId, branch, opt || {});
 }
 
 // duels2RecordSpecialLmbConsumed: 비용 없이 LMB 입력을 소비하는 특수 분기를 기록한다. (charId: 캐릭터 id, branch: 분기명, opt: route/detail 옵션)
 function duels2RecordSpecialLmbConsumed(charId, branch, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_SPECIAL_LMB_GUARD_RUNTIME?.recordConsumed?.(charId, branch, opt || {});
 }
 
 // duels2RecordSpecialLmbBlocked: 특수 상태 때문에 LMB가 차단된 분기를 기록한다. (charId: 캐릭터 id, branch: 분기명, reason: 차단 사유, opt: route/detail 옵션)
 function duels2RecordSpecialLmbBlocked(charId, branch, reason, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_SPECIAL_LMB_GUARD_RUNTIME?.recordBlocked?.(charId, branch, reason, opt || {});
 }
 
@@ -7737,7 +7743,7 @@ const DUELS2_SPECIAL_RMB_GUARD_RUNTIME = (() => {
     bump(counters.byRoute, entry.route);
     bump(counters.byReason, entry.reason);
     bump(counters.byCostMode, entry.costMode);
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > MAX_HISTORY) history.shift();
     return entry;
   }
@@ -7880,7 +7886,7 @@ const DUELS2_REMAINING_RMB_COST_BRANCH_RUNTIME = (() => {
     bump(counters.byResult, normalized.result);
     bump(counters.byRoute, normalized.route);
     bump(counters.byCostMode, normalized.costMode || normalized.result);
-    history.push(normalized);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(normalized);
     while (history.length > MAX_HISTORY) history.shift();
     return normalized;
   }
@@ -8111,7 +8117,7 @@ const DUELS2_COMPLEX_RMB_COST_BRANCH_RUNTIME = (() => {
     bump(counters.byResult, normalized.result);
     bump(counters.byCostMode, normalized.costMode);
     bump(counters.byRoute, normalized.route);
-    history.push(normalized);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(normalized);
     while (history.length > MAX_HISTORY) history.shift();
     return normalized;
   }
@@ -8204,6 +8210,7 @@ window.CombatRuntimeAPI = Object.assign(window.CombatRuntimeAPI || {}, {ComplexR
 
 // duels2RecordComplexRmbCostBranch: 복잡 RMB의 현재 비용 분기를 명시적으로 기록한다. (charId: 캐릭터 id, branch: 분기명, result: cost/no-cost/resource-cost/blocked, opt: route/detail 옵션)
 function duels2RecordComplexRmbCostBranch(charId, branch, result = 'observed', opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_COMPLEX_RMB_COST_BRANCH_RUNTIME?.record?.(charId, branch, result, opt || null);
 }
 
@@ -8338,7 +8345,7 @@ const DUELS2_COMPLEX_RMB_FINAL_BRANCH_PREP_RUNTIME = (() => {
     else if (normalizedPhase === 'rollback') counters.rolledBack += 1;
     if (entry.stateMutationBeforeCost) counters.stateMutationsBeforeCost += 1;
     bump(counters.byKey, entry.key); bump(counters.byChar, entry.charId); bump(counters.byBranch, entry.branch); bump(counters.byPhase, entry.phase); bump(counters.byRoute, entry.route);
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > MAX_HISTORY) history.shift();
     return entry;
   }
@@ -8458,7 +8465,7 @@ const DUELS2_COUNTER_COST_PREP_RUNTIME = (() => {
 
   // pushHistory: 반격기 비용 준비 기록을 최근 목록에 추가한다. (type: 이벤트 종류, entry: 기록 객체)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:nowMs(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:nowMs(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -8602,7 +8609,8 @@ window.DUELS2_COUNTER_COST_PREP_RUNTIME = DUELS2_COUNTER_COST_PREP_RUNTIME;
 window.CombatRuntimeAPI = Object.assign(window.CombatRuntimeAPI || {}, {CounterCostPrepRuntime:DUELS2_COUNTER_COST_PREP_RUNTIME});
 
 // duels2RecordCounterInputPrep: Shift 입력 시점의 반격기 준비 상태를 기록한다. (actor: 실행자, opt: route/guard 정보)
-function duels2RecordCounterInputPrep(actor = L, opt = {}) { return DUELS2_COUNTER_COST_PREP_RUNTIME?.recordInput?.(actor, opt || {}) || null; }
+function duels2RecordCounterInputPrep(actor = L, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return DUELS2_COUNTER_COST_PREP_RUNTIME?.recordInput?.(actor, opt || {}) || null; }
 
 // duels2PrepareCounterSkillExecution: Skill Executor의 counter 슬롯 실행 직전 상태를 기록한다. (ctx: 실행 컨텍스트, opt: executorId/skillName/actor 옵션)
 function duels2PrepareCounterSkillExecution(ctx = {}, opt = {}) { return DUELS2_COUNTER_COST_PREP_RUNTIME?.prepare?.(ctx || {}, opt || {}) || null; }
@@ -8679,7 +8687,7 @@ const DUELS2_COUNTER_READY_GUARD_RUNTIME = (() => {
 
   // pushHistory: counterReady 가드 기록을 최근 목록에 추가한다. (type: 이벤트 종류, entry: 기록 객체)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:nowMs(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:nowMs(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -8837,7 +8845,7 @@ const DUELS2_COUNTER_COOLDOWN_PREP_RUNTIME = (() => {
 
   // pushHistory: 반격기 쿨타임 적용 기록을 최근 목록에 추가한다. (type: 이벤트 종류, entry: 기록 객체)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:nowMs(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:nowMs(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -8997,7 +9005,7 @@ const DUELS2_COUNTER_COST_EXECUTOR_RUNTIME = (() => {
       noCost:!!payment.noCost,
       spec:snapshotSpec(spec)
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > MAX_HISTORY) history.shift();
     return entry;
   }
@@ -9101,7 +9109,7 @@ const DUELS2_COUNTER_SLOT_EXECUTOR_RUNTIME = (() => {
 
   // pushHistory: counter 슬롯 실행 이벤트를 최근 기록에 추가한다. (type: 이벤트 종류, entry: 기록 내용)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:nowMs(), step:DUELS2_ALPHA_STEP, ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:nowMs(), step:DUELS2_ALPHA_STEP, ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -9232,7 +9240,8 @@ window.CombatRuntimeAPI = Object.assign(window.CombatRuntimeAPI || {}, {CounterS
 function duels2BeginCounterSlotExecution(ctx = {}, opt = {}) { return DUELS2_COUNTER_SLOT_EXECUTOR_RUNTIME?.begin?.(ctx || {}, opt || {}) || null; }
 
 // duels2RecordCounterSlotExecutionCost: counter 슬롯의 비용 실행 결과를 기록한다. (entry: begin 반환값, costExecution: 비용 실행 결과, ctx: actionCtx, opt: route 옵션)
-function duels2RecordCounterSlotExecutionCost(entry, costExecution = null, ctx = {}, opt = {}) { return DUELS2_COUNTER_SLOT_EXECUTOR_RUNTIME?.recordCost?.(entry, costExecution, ctx || {}, opt || {}) || null; }
+function duels2RecordCounterSlotExecutionCost(entry, costExecution = null, ctx = {}, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return DUELS2_COUNTER_SLOT_EXECUTOR_RUNTIME?.recordCost?.(entry, costExecution, ctx || {}, opt || {}) || null; }
 
 // duels2FinishCounterSlotExecution: counter 슬롯 핸들러 완료/실패/스킵 결과를 기록한다. (entry: begin 반환값, ctx: actionCtx, opt: outcome/reason/result 옵션)
 function duels2FinishCounterSlotExecution(entry, ctx = {}, opt = {}) { return DUELS2_COUNTER_SLOT_EXECUTOR_RUNTIME?.finish?.(entry, ctx || {}, opt || {}) || null; }
@@ -9284,7 +9293,7 @@ const DUELS2_COUNTER_EFFECT_CANONICAL_RUNTIME = (() => {
       statusApplied:Array.isArray(data.statusApplied) ? data.statusApplied.slice() : [],
       detail:data.detail || null
     });
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > MAX_HISTORY) history.shift();
     counters.total += 1;
     if (entry.type === 'heal') counters.heal += 1;
@@ -9437,11 +9446,14 @@ Object.assign(window, {DUELS2_COUNTER_EFFECT_PIPELINE_RUNTIME, DUELS2_COUNTER_EF
 window.CombatRuntimeAPI = Object.assign(window.CombatRuntimeAPI || {}, {CounterEffectRuntime:DUELS2_COUNTER_EFFECT_CANONICAL_RUNTIME});
 
 // duels2RecordCounterEffect: counter 효과를 canonical history에 기록한다. (type: 효과 종류, data: 효과 데이터, opt: route 옵션)
-function duels2RecordCounterEffect(type, data = {}, opt = {}) { return DUELS2_COUNTER_EFFECT_CANONICAL_RUNTIME.record(type, {...data, route:opt.route || data.route}); }
+function duels2RecordCounterEffect(type, data = {}, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return DUELS2_COUNTER_EFFECT_CANONICAL_RUNTIME.record(type, {...data, route:opt.route || data.route}); }
 // duels2RecordCounterHitResult: 적용 완료 HitResult를 관찰한다. (result: HitResult, opt: route 옵션)
-function duels2RecordCounterHitResult(result = {}, opt = {}) { return DUELS2_COUNTER_EFFECT_CANONICAL_RUNTIME.executeHitResultBoundary(result, opt); }
+function duels2RecordCounterHitResult(result = {}, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return DUELS2_COUNTER_EFFECT_CANONICAL_RUNTIME.executeHitResultBoundary(result, opt); }
 // duels2RecordCounterDamageProfile: Damage Profile 상태를 관찰한다. (profile: Damage Profile, opt: route 옵션)
-function duels2RecordCounterDamageProfile(profile = {}, opt = {}) { return DUELS2_COUNTER_EFFECT_CANONICAL_RUNTIME.executeDamageProfileBoundary(profile, opt); }
+function duels2RecordCounterDamageProfile(profile = {}, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return DUELS2_COUNTER_EFFECT_CANONICAL_RUNTIME.executeDamageProfileBoundary(profile, opt); }
 // duels2ExecuteCounterEffectBoundary: counter 개별 효과를 공통 관찰 경계로 전달한다. (type: 효과 종류, data: 효과 데이터, opt: route 옵션)
 function duels2ExecuteCounterEffectBoundary(type, data = {}, opt = {}) { return DUELS2_COUNTER_EFFECT_CANONICAL_RUNTIME.executeBoundary(type, data, opt); }
 // duels2ExecuteCounterHitResultBoundary: HitResult를 재적용 없이 공통 관찰 경계로 전달한다. (result: HitResult, opt: route 옵션)
@@ -9466,10 +9478,14 @@ function duels2ExecuteCounterDirectDamageHitResultEffect(result = {}, opt = {}) 
 function duels2ExecuteCounterDamageCcHitResultEffect(result = {}, opt = {}) { return DUELS2_COUNTER_EFFECT_CANONICAL_RUNTIME.executeHitResultBoundary(result, opt); }
 
 // Legacy prep facades: 제거된 Step 151~164 준비 API를 canonical 기록으로 연결한다. ()
-function duels2RecordCounterDamageEffectPrep(type, data = {}, opt = {}) { return duels2RecordCounterEffect(type, data, opt); }
-function duels2RecordCounterDirectDamageCcSplitPrep(result = {}, opt = {}) { return duels2ExecuteCounterHitResultBoundary(result, opt); }
-function duels2RecordCounterDirectDamageExecutorAdoptionPrep(result = {}, opt = {}) { return duels2ExecuteCounterHitResultBoundary(result, opt); }
-function duels2RecordCounterDamageCcSplitAdoptionPrep(result = {}, opt = {}) { return duels2ExecuteCounterHitResultBoundary(result, opt); }
+function duels2RecordCounterDamageEffectPrep(type, data = {}, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return duels2RecordCounterEffect(type, data, opt); }
+function duels2RecordCounterDirectDamageCcSplitPrep(result = {}, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return duels2ExecuteCounterHitResultBoundary(result, opt); }
+function duels2RecordCounterDirectDamageExecutorAdoptionPrep(result = {}, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return duels2ExecuteCounterHitResultBoundary(result, opt); }
+function duels2RecordCounterDamageCcSplitAdoptionPrep(result = {}, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return duels2ExecuteCounterHitResultBoundary(result, opt); }
 
 const DUELS2_COUNTER_EFFECT_PREP_RUNTIME_CONSOLIDATION_STEP = Object.freeze({
   step:'Step 223 - Counter Effect Prep Runtime Consolidation & History Store Reduction',
@@ -9501,7 +9517,7 @@ const DUELS2_COUNTER_PROJECTILE_ALIAS_FOLDING_RUNTIME = (() => {
     if (Object.prototype.hasOwnProperty.call(counters, kind) && typeof counters[kind] === 'number') counters[kind] += 1;
     bump(counters.byRoute, detail.route || detail.reason || `projectile.${kind}`);
     const entry = {kind, at:typeof performance !== 'undefined' ? performance.now() : Date.now(), ...detail};
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     if (history.length > MAX_HISTORY) history.shift();
     return entry;
   }
@@ -9536,6 +9552,7 @@ window.CombatRuntimeAPI = Object.assign(window.CombatRuntimeAPI || {}, {CounterP
 function duels2GetCounterProjectileFoldedSummary() { return DUELS2_COUNTER_PROJECTILE_ALIAS_FOLDING_RUNTIME.getSummary(); }
 // duels2RecordProjectileRuntimeExpansionSweep: delivery/impact executor의 최소 호환 기록을 남긴다. (event: phase/route/module 정보)
 function duels2RecordProjectileRuntimeExpansionSweep(event = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const kind = event.phase === 'impact' ? 'impact' : 'delivery';
   return DUELS2_COUNTER_PROJECTILE_ALIAS_FOLDING_RUNTIME.record(kind, event || {});
 }
@@ -9584,7 +9601,8 @@ function duels2ResolveProjectileDeliveryMetadata(bullet = {}, opt = {}, moduleId
 }
 
 // duels2RecordProjectileDeliveryMetadataAdoption: metadata 채택을 canonical 기록으로 남긴다. (event: metadata 기록)
-function duels2RecordProjectileDeliveryMetadataAdoption(event = {}) { return DUELS2_COUNTER_PROJECTILE_ALIAS_FOLDING_RUNTIME.record('metadata', event || {}); }
+function duels2RecordProjectileDeliveryMetadataAdoption(event = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return DUELS2_COUNTER_PROJECTILE_ALIAS_FOLDING_RUNTIME.record('metadata', event || {}); }
 // duels2AdoptProjectileDeliveryMetadata: 탄환에 delivery metadata를 부착한다. (bullet: 탄환, opt: 발사 옵션, moduleId: delivery 모듈)
 function duels2AdoptProjectileDeliveryMetadata(bullet = {}, opt = {}, moduleId = null) {
   if (!bullet || typeof bullet !== 'object') return null;
@@ -9617,6 +9635,7 @@ function duels2AdoptFireShotgunDeliveryMetadata(angle, config = {}, opt = {}) {
 }
 // duels2RecordFireShotgunPelletDeliveryMetadata: pellet에 산탄 인덱스 메타데이터를 부착한다. (meta: 산탄 메타, pellet: 탄환, pelletOpt: pellet 옵션)
 function duels2RecordFireShotgunPelletDeliveryMetadata(meta = {}, pellet = {}, pelletOpt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   if (pellet && typeof pellet === 'object') {
     pellet.isShotgunPellet = true;
     pellet._shotgunPelletIndex = pelletOpt.pelletIndex ?? null;
@@ -9762,7 +9781,8 @@ function duels2RouteProjectileLifecycleRemoval(collection = [], index = -1, bull
   return removed;
 }
 // duels2RecordProjectileLifecycleImpactCleanup: impact 완료를 최소 lifecycle 기록으로 남긴다. (event: impact 이벤트)
-function duels2RecordProjectileLifecycleImpactCleanup(event = {}) { return DUELS2_COUNTER_PROJECTILE_ALIAS_FOLDING_RUNTIME.record('lifecycle', {route:event.route || 'projectile.impact.cleanup', impactId:event.impactId || null}); }
+function duels2RecordProjectileLifecycleImpactCleanup(event = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null; return DUELS2_COUNTER_PROJECTILE_ALIAS_FOLDING_RUNTIME.record('lifecycle', {route:event.route || 'projectile.impact.cleanup', impactId:event.impactId || null}); }
 // duels2AdoptProjectileLifecyclePolicyTable: 과거 lifecycle table 채택 API를 최소 기록으로 연결한다. (bullet: 탄환, opt: lifecycle 옵션)
 function duels2AdoptProjectileLifecyclePolicyTable(bullet = {}, opt = {}) { return DUELS2_COUNTER_PROJECTILE_ALIAS_FOLDING_RUNTIME.record('lifecycle', {route:opt.route || 'projectile.lifecycle.policy', bulletId:bullet?.id || null, reason:opt.reason || null}); }
 // duels2AdoptProjectileImpactCleanupPolicy: 과거 impact cleanup policy API를 최소 기록으로 연결한다. (event: impact 이벤트, impactEntry: 이전 기록)
@@ -9864,6 +9884,7 @@ window.DUELS2_COUNTER_EFFECT_EXECUTOR_CLEANUP_CONSOLIDATION_STEP = DUELS2_COUNTE
 
 // duels2RecordSpecialRmbGuard: 비용은 계속 진행되지만 RMB 선행 분기가 있었음을 기록한다. (charId: 캐릭터 id, branch: 분기명, opt: route/detail 옵션)
 function duels2RecordSpecialRmbGuard(charId, branch, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const entry = DUELS2_SPECIAL_RMB_GUARD_RUNTIME?.recordObserved?.(charId, branch, opt || {});
   DUELS2_REMAINING_RMB_COST_BRANCH_RUNTIME?.recordFromSpecialRmb?.('observed', charId, branch, opt || {});
   DUELS2_COMPLEX_RMB_COST_BRANCH_RUNTIME?.recordFromSpecialRmb?.('observed', charId, branch, opt || {});
@@ -9872,6 +9893,7 @@ function duels2RecordSpecialRmbGuard(charId, branch, opt = {}) {
 
 // duels2RecordSpecialRmbConsumed: 비용 없이 RMB 입력을 소비하는 특수 분기를 기록한다. (charId: 캐릭터 id, branch: 분기명, opt: route/detail 옵션)
 function duels2RecordSpecialRmbConsumed(charId, branch, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const entry = DUELS2_SPECIAL_RMB_GUARD_RUNTIME?.recordConsumed?.(charId, branch, opt || {});
   DUELS2_REMAINING_RMB_COST_BRANCH_RUNTIME?.recordFromSpecialRmb?.('consumed', charId, branch, opt || {});
   DUELS2_COMPLEX_RMB_COST_BRANCH_RUNTIME?.recordFromSpecialRmb?.('consumed', charId, branch, opt || {});
@@ -9880,6 +9902,7 @@ function duels2RecordSpecialRmbConsumed(charId, branch, opt = {}) {
 
 // duels2RecordSpecialRmbBlocked: 특수 상태 때문에 RMB가 차단된 분기를 기록한다. (charId: 캐릭터 id, branch: 분기명, reason: 차단 사유, opt: route/detail 옵션)
 function duels2RecordSpecialRmbBlocked(charId, branch, reason, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const entry = DUELS2_SPECIAL_RMB_GUARD_RUNTIME?.recordBlocked?.(charId, branch, reason, opt || {});
   DUELS2_REMAINING_RMB_COST_BRANCH_RUNTIME?.recordFromSpecialRmb?.('blocked', charId, branch, {...(opt || {}), reason:reason || opt.reason || branch});
   DUELS2_COMPLEX_RMB_COST_BRANCH_RUNTIME?.recordFromSpecialRmb?.('blocked', charId, branch, {...(opt || {}), reason:reason || opt.reason || branch});
@@ -9939,7 +9962,7 @@ const DUELS2_SUMMON_COMMAND_RMB_COST_RUNTIME = (() => {
       targetCount:Number.isFinite(Number(entry.targetCount)) ? Number(entry.targetCount) : null,
       detail:entry.detail || null
     });
-    history.push(safe);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(safe);
     if (history.length > MAX_HISTORY) history.shift();
     counters.total++;
     if (safe.result === 'cost-branch') counters.costBranches++;
@@ -10054,6 +10077,7 @@ window.CombatRuntimeAPI = Object.assign(window.CombatRuntimeAPI || {}, {
 
 // duels2RecordSummonCommandRmbCostBranch: 소환형 RMB의 비용 지불 분기를 기록한다. (charId: 캐릭터 id, branch: 분기명, opt: amount/costMode/route 옵션)
 function duels2RecordSummonCommandRmbCostBranch(charId, branch, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_SUMMON_COMMAND_RMB_COST_RUNTIME?.recordCostBranch?.(`${charId}.rmb`, branch, {
     ...(opt || {}),
     charId,
@@ -10063,6 +10087,7 @@ function duels2RecordSummonCommandRmbCostBranch(charId, branch, opt = {}) {
 
 // duels2RecordSummonCommandRmbNoCostBranch: 소환형 RMB의 비용 없는 입력 소비 분기를 기록한다. (charId: 캐릭터 id, branch: 분기명, opt: route/detail 옵션)
 function duels2RecordSummonCommandRmbNoCostBranch(charId, branch, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_SUMMON_COMMAND_RMB_COST_RUNTIME?.recordNoCostBranch?.(`${charId}.rmb`, branch, {
     ...(opt || {}),
     charId
@@ -10071,6 +10096,7 @@ function duels2RecordSummonCommandRmbNoCostBranch(charId, branch, opt = {}) {
 
 // duels2RecordSummonCommandRmbBlocked: 소환형 RMB의 비용 전 차단 분기를 기록한다. (charId: 캐릭터 id, branch: 분기명, reason: 차단 사유, opt: route/detail 옵션)
 function duels2RecordSummonCommandRmbBlocked(charId, branch, reason, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_SUMMON_COMMAND_RMB_COST_RUNTIME?.recordBlocked?.(`${charId}.rmb`, branch, reason, {
     ...(opt || {}),
     charId
@@ -10171,7 +10197,7 @@ const DUELS2_RECALL_TOGGLE_RMB_COST_GATE_RUNTIME = (() => {
       detail:entry.detail || null,
       preparedFor:'skill-cost-executor-recall-toggle-gate'
     };
-    history.push(record);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(record);
     while (history.length > MAX_HISTORY) history.shift();
     counters.total += 1;
     if (result === 'cost') counters.costBranches += 1;
@@ -10285,16 +10311,19 @@ function duels2ResolveRecallToggleRmbCostGate(key, actor = L, opt = {}) {
 
 // duels2RecordRecallToggleRmbCostBranch: 회수/토글형 RMB의 비용 있는 분기를 명시적으로 기록한다. (key: char.slot 키, branch: 분기명, opt: amount/route 옵션)
 function duels2RecordRecallToggleRmbCostBranch(key, branch, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_RECALL_TOGGLE_RMB_COST_GATE_RUNTIME?.recordCostBranch?.(key, branch, opt || {});
 }
 
 // duels2RecordRecallToggleRmbNoCostBranch: 회수/토글형 RMB의 비용 없는 입력 소비 분기를 명시적으로 기록한다. (key: char.slot 키, branch: 분기명, opt: route/detail 옵션)
 function duels2RecordRecallToggleRmbNoCostBranch(key, branch, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_RECALL_TOGGLE_RMB_COST_GATE_RUNTIME?.recordNoCostBranch?.(key, branch, opt || {});
 }
 
 // duels2RecordRecallToggleRmbBlocked: 회수/토글형 RMB의 비용 전 차단 분기를 명시적으로 기록한다. (key: char.slot 키, branch: 분기명, reason: 차단 사유, opt: route/detail 옵션)
 function duels2RecordRecallToggleRmbBlocked(key, branch, reason, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_RECALL_TOGGLE_RMB_COST_GATE_RUNTIME?.recordBlocked?.(key, branch, reason, opt || {});
 }
 
@@ -10479,7 +10508,7 @@ const DUELS2_TARGET_GATED_RMB_RUNTIME = (() => {
     bump(counters.byResult, result);
     bump(counters.byRoute, entry.route);
     bump(counters.byTargetKind, entry.target?.kind || 'none');
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > MAX_HISTORY) history.shift();
     return entry;
   }
@@ -10681,6 +10710,7 @@ function duels2FinalizeSkillStaminaCostGuard(state, ok, opt = {}) {
 
 // duels2RecordSkillStaminaDrainAdoption: 지속 드레인형 스테미나 비용을 Cost Adoption 런타임에 기록한다. (actor: 비용 대상, amount: 요청량, kind: 비용 종류, opt: actual/route 옵션)
 function duels2RecordSkillStaminaDrainAdoption(actor, amount, kind = 'lmb', opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const entry = DUELS2_SKILL_STAMINA_COST_ADOPTION_RUNTIME.recordDrain(actor || L, amount, kind, opt || {});
   DUELS2_SKILL_COST_SPEC_ACTUAL_AUDIT_RUNTIME?.recordActual?.({
     ...(entry || {}),
@@ -10736,7 +10766,7 @@ const DUELS2_SKILL_SLOT_GUARD_RUNTIME = (() => {
 
   // pushHistory: 슬롯 가드 평가 이벤트를 최근 기록에 추가한다. (type: 이벤트 종류, entry: 기록 내용)
   function pushHistory(type, entry = {}) {
-    history.push({type, at:performance.now(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({type, at:performance.now(), ...entry});
     while (history.length > MAX_HISTORY) history.shift();
   }
 
@@ -10896,6 +10926,7 @@ function duels2EvaluateLocalSkillSlotGuard(slot, opt = {}) {
 
 // duels2RecordSkillSlotGuardConsumed: 입력 오버라이드가 슬롯 입력을 소비했음을 공통 가드 기록에 남긴다. (slot: lmb/rmb/counter, reason: 소비 사유, opt: route/actor 등 옵션)
 function duels2RecordSkillSlotGuardConsumed(slot, reason, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_SKILL_SLOT_GUARD_RUNTIME.recordConsumed(slot, reason, opt || {});
 }
 
@@ -11240,7 +11271,7 @@ function duels2SnapshotEntityHealthForRouting(entity) {
 
 // duels2PushHpMutationRouteHistory: HP 라우터 호출 이력을 제한된 길이로 저장한다.
 function duels2PushHpMutationRouteHistory(entry) {
-  duels2HpMutationRouterHistory.push({t:performance.now(), ...entry});
+  DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && duels2HpMutationRouterHistory.push({t:performance.now(), ...entry});
   while (duels2HpMutationRouterHistory.length > DUELS2_HP_MUTATION_ROUTER_HISTORY_LIMIT) duels2HpMutationRouterHistory.shift();
 }
 
@@ -12200,6 +12231,7 @@ const DUELS2_DAMAGE_TARGET_COLLECTION_LIMIT = 260;
 
 // duels2RecordDamageTargetCollection: 피해 대상 수집 라우터에 기록을 남긴다. (event: 수집 경로/개수/shape/team 정보를 담은 기록 객체)
 function duels2RecordDamageTargetCollection(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_DAMAGE_TARGET_COLLECTION_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -12347,7 +12379,7 @@ function duels2CreateDamageTargetCollectionRouting() {
       version:DUELS2_DAMAGE_TARGET_COLLECTION_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_DAMAGE_TARGET_COLLECTION_LIMIT) history.shift();
     counters.total += 1;
     counters.byRoute[entry.route || 'unknown'] = (counters.byRoute[entry.route || 'unknown'] || 0) + 1;
@@ -12413,6 +12445,7 @@ const DUELS2_DIRECT_TARGET_REFERENCE_SWEEP_LIMIT = 220;
 
 // duels2RecordDirectTargetReferenceSweep: 직접 타겟 참조 스윕 기록을 추가한다. (event: profile/route/targetCount 정보를 담은 기록 객체)
 function duels2RecordDirectTargetReferenceSweep(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_DIRECT_TARGET_REFERENCE_SWEEP;
   if (!router?.record) return null;
   return router.record(event);
@@ -12535,7 +12568,7 @@ function duels2CreateDirectTargetReferenceSweep() {
       version:DUELS2_DIRECT_TARGET_REFERENCE_SWEEP_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_DIRECT_TARGET_REFERENCE_SWEEP_LIMIT) history.shift();
     counters.total += 1;
     counters.byProfile[entry.profile || 'unknown'] = (counters.byProfile[entry.profile || 'unknown'] || 0) + 1;
@@ -13066,7 +13099,7 @@ function combatEventBusCreate() {
     // push: 정규화된 전투 이벤트를 기록하고 구독자에게 전달한다.
     push(event) {
       const entry = {...event, id:++seq, time:performance.now(), frame:typeof gameFrame !== 'undefined' ? gameFrame : null};
-      history.push(entry);
+      DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
       while (history.length > DUELS2_COMBAT_EVENT_HISTORY_LIMIT) history.shift();
       for (const listener of listeners) {
         try { listener(entry); } catch (err) { console.warn('[Duels2 CombatEventBus listener error]', err); }
@@ -13122,6 +13155,7 @@ function duels2ShouldBridgeLegacyCombatResult(result) {
 
 // duels2RecordLegacyCombatResult: Facade를 거치지 않은 기존 전투 결과를 Combat Event Bus에 요약 기록한다.
 function duels2RecordLegacyCombatResult(result) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   if (!duels2ShouldBridgeLegacyCombatResult(result)) return result;
   CombatEventBus.push({
     phase:'legacy-resolved',
@@ -13322,7 +13356,7 @@ function duels2CreateHealthDamageAdapter() {
   // pushHistory: HP 변화 호출 이력을 제한된 길이로 저장한다.
   function pushHistory(entry) {
     const item = {...entry, id:++seq, time:performance.now(), frame:typeof gameFrame !== 'undefined' ? gameFrame : null};
-    history.push(item);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(item);
     while (history.length > DUELS2_HEALTH_DAMAGE_HISTORY_LIMIT) history.shift();
     return item;
   }
@@ -13501,7 +13535,7 @@ function duels2CreateHealthSystemBoundary(originalSetEntityHealthValue) {
   // pushHistory: HealthSystem 호출 기록을 제한된 길이로 저장한다.
   function pushHistory(entry) {
     const item = {...entry, id:++seq, time:performance.now(), frame:typeof gameFrame !== 'undefined' ? gameFrame : null};
-    history.push(item);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(item);
     while (history.length > DUELS2_HEALTH_SYSTEM_HISTORY_LIMIT) history.shift();
     return item;
   }
@@ -15246,6 +15280,7 @@ const DUELS2_DAMAGE_SOURCE_CONTEXT_DECISION = Object.freeze({
 
 // duels2RecordDamageSourceContext: 피해 source context 라우팅 기록을 남긴다. (event: 기록할 이벤트 객체)
 function duels2RecordDamageSourceContext(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_DAMAGE_SOURCE_CONTEXT_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -15340,7 +15375,7 @@ function duels2CreateDamageSourceContextRouting() {
       version:DUELS2_DAMAGE_SOURCE_CONTEXT_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_DAMAGE_SOURCE_CONTEXT_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -15422,6 +15457,7 @@ const DUELS2_DAMAGE_PROFILE_DECISION = Object.freeze({
 
 // duels2RecordDamageProfile: Damage Profile 생성/적용 기록을 남긴다. (event: 기록할 이벤트 객체)
 function duels2RecordDamageProfile(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_DAMAGE_PROFILE_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -15565,7 +15601,7 @@ function duels2CreateDamageProfileRouting() {
       version:DUELS2_DAMAGE_PROFILE_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_DAMAGE_PROFILE_ROUTING_LIMIT) history.shift();
     if (entry.type === 'profile.build') counters.built += 1;
     else if (entry.type === 'profile.apply') counters.applied += 1;
@@ -15735,6 +15771,7 @@ const DUELS2_STATUS_READ_SCHEMA = Object.freeze({
 
 // duels2RecordStatusReadSchemaRoute: 상태 읽기 스키마의 추적 기록을 추가한다. (event: 기록할 상태 읽기 이벤트 객체)
 function duels2RecordStatusReadSchemaRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_READ_SCHEMA_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -15840,7 +15877,7 @@ function duels2CreateStatusReadSchemaRouting() {
       version:DUELS2_STATUS_READ_SCHEMA_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_READ_SCHEMA_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -15927,6 +15964,7 @@ const DUELS2_STATUS_APPLY_SPECIAL_SCHEMA = Object.freeze({
 
 // duels2RecordStatusApplySpecialRoute: 특수 상태 적용 라우팅 기록을 추가한다. (event: key/family/result 정보를 담은 기록 객체)
 function duels2RecordStatusApplySpecialRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_APPLY_SPECIAL_SCHEMA_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -15973,7 +16011,7 @@ function duels2CreateStatusApplySpecialSchemaRouting() {
       version:DUELS2_STATUS_APPLY_SPECIAL_SCHEMA_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_APPLY_SPECIAL_SCHEMA_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -16079,6 +16117,7 @@ const DUELS2_STATUS_EXTRA_SCHEMA = Object.freeze({
 
 // duels2RecordStatusExtraSchemaRoute: 상태 extra 생성 라우팅 기록을 추가한다. (event: key/fields/route 정보를 담은 기록 객체)
 function duels2RecordStatusExtraSchemaRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_EXTRA_SCHEMA_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -16155,7 +16194,7 @@ function duels2CreateStatusExtraSchemaRouting() {
       version:DUELS2_STATUS_EXTRA_SCHEMA_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_EXTRA_SCHEMA_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -16346,6 +16385,7 @@ const DUELS2_STATUS_PAYLOAD_SCHEMA = Object.freeze({
 
 // duels2RecordStatusPayloadSchemaRoute: 상태 payload 스키마 라우팅 기록을 추가한다. (event: payload 생성/조회 이벤트 객체)
 function duels2RecordStatusPayloadSchemaRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_PAYLOAD_SCHEMA_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -16417,7 +16457,7 @@ function duels2CreateStatusPayloadSchemaRouting() {
       version:DUELS2_STATUS_PAYLOAD_SCHEMA_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_PAYLOAD_SCHEMA_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -16496,6 +16536,7 @@ const DUELS2_STATUS_FIELD_SCHEMA = Object.freeze({
 
 // duels2RecordStatusFieldSchemaRoute: 상태 필드 스키마 라우팅 기록을 추가한다.
 function duels2RecordStatusFieldSchemaRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_FIELD_SCHEMA_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -16576,7 +16617,7 @@ function duels2CreateStatusFieldSchemaRouting() {
       version:DUELS2_STATUS_FIELD_SCHEMA_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_FIELD_SCHEMA_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -16645,6 +16686,7 @@ const DUELS2_DOT_LIFECYCLE_SCHEMA = Object.freeze({
 
 // duels2RecordStatusDotLifecycleRoute: DOT 라이프사이클 라우팅 기록을 추가한다.
 function duels2RecordStatusDotLifecycleRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_DOT_LIFECYCLE_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -16716,7 +16758,7 @@ function duels2CreateStatusDotLifecycleRouting() {
       version:DUELS2_STATUS_DOT_LIFECYCLE_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_DOT_LIFECYCLE_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -16787,6 +16829,7 @@ const DUELS2_STATUS_SIDE_EFFECT_SCHEMA = Object.freeze({
 
 // duels2RecordStatusSideEffectRoute: 상태 사이드 이펙트 라우팅 기록을 추가한다.
 function duels2RecordStatusSideEffectRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_SIDE_EFFECT_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -16873,7 +16916,7 @@ function duels2CreateStatusSideEffectRouting() {
       version:DUELS2_STATUS_SIDE_EFFECT_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_SIDE_EFFECT_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -16941,6 +16984,7 @@ const DUELS2_BUFF_RUNTIME_FIELD_SCHEMA = Object.freeze({
 
 // duels2RecordBuffRuntimeSchemaRoute: 버프 런타임 스키마 라우팅 기록을 추가한다.
 function duels2RecordBuffRuntimeSchemaRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_BUFF_RUNTIME_SCHEMA_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -17023,7 +17067,7 @@ function duels2CreateBuffRuntimeSchemaRouting() {
       version:DUELS2_BUFF_RUNTIME_SCHEMA_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_BUFF_RUNTIME_SCHEMA_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -17087,6 +17131,7 @@ const DUELS2_STATUS_APPLY_END_RESPONSIBILITY_LIMIT = 420;
 
 // duels2RecordStatusApplyEndResponsibility: 상태 적용/종료 반영 책임 경계 기록을 추가한다. (event: 기록 객체)
 function duels2RecordStatusApplyEndResponsibility(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_APPLY_END_RESPONSIBILITY;
   if (!router?.record) return null;
   return router.record(event);
@@ -17170,7 +17215,7 @@ function duels2CreateStatusApplyEndResponsibility() {
       version:DUELS2_STATUS_APPLY_END_RESPONSIBILITY_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_APPLY_END_RESPONSIBILITY_LIMIT) history.shift();
     return entry;
   }
@@ -17577,6 +17622,7 @@ function duels2BuildStatusSchemaIndex() {
 
 // duels2RecordStatusSchemaConsolidationRoute: 상태 스키마 통합 라우팅 기록을 추가한다. (event: 조회/검증 이벤트 객체)
 function duels2RecordStatusSchemaConsolidationRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_SCHEMA_CONSOLIDATION;
   if (!router?.record) return null;
   return router.record(event);
@@ -17629,7 +17675,7 @@ function duels2CreateStatusSchemaConsolidationRouter() {
       version:DUELS2_STATUS_SCHEMA_CONSOLIDATION_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_SCHEMA_CONSOLIDATION_LIMIT) history.shift();
     return entry;
   }
@@ -17723,6 +17769,7 @@ const DUELS2_STATUS_SCHEMA_MERGE_EXPECTATIONS = Object.freeze({
 
 // duels2RecordStatusSchemaMergePrep: 상태 스키마 병합 준비 기록을 추가한다. (event: 기록할 병합 준비 이벤트 객체)
 function duels2RecordStatusSchemaMergePrep(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_SCHEMA_MERGE_PREP;
   if (!router?.record) return null;
   return router.record(event);
@@ -17867,7 +17914,7 @@ function duels2CreateStatusSchemaMergePrepRouter() {
       version:DUELS2_STATUS_SCHEMA_MERGE_PREP_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_SCHEMA_MERGE_PREP_LIMIT) history.shift();
     return entry;
   }
@@ -17945,6 +17992,7 @@ const DUELS2_UNIFIED_STATUS_SCHEMA_LIMIT = 360;
 
 // duels2RecordUnifiedStatusSchemaRoute: 통합 상태 스키마 조회/검증 기록을 추가한다. (event: 기록 객체)
 function duels2RecordUnifiedStatusSchemaRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_UNIFIED_STATUS_SCHEMA_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -18032,7 +18080,7 @@ function duels2CreateUnifiedStatusSchemaRouting() {
       version:DUELS2_UNIFIED_STATUS_SCHEMA_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_UNIFIED_STATUS_SCHEMA_LIMIT) history.shift();
     return entry;
   }
@@ -18575,6 +18623,8 @@ function tickFreezeEffects(now = performance.now()) {
 // knockback / pull 같은 이동형 CC는 더 이상 대상별 보정 배율이나 별도 이동식을 쓰지 않는다.
 // 모든 전투 타겟은 vx/vy + frame countdown, moveTo easing을 같은 함수로 처리한다.
 const TARGET_KNOCKBACK_FRAMES = 12;
+// JUST_DODGE_WINDOW_MS: 저스트회피 판정 시간을 밀리초 단위로 정의한다. ()
+const JUST_DODGE_WINDOW_MS = 80;
 function getTargetKnockbackScale(t, scale = null) {
   // 2B 기준 기본 배율은 항상 1. 외부에서 명시적으로 scale을 준 경우만 예외적으로 사용한다.
   return Number.isFinite(scale) ? scale : 1;
@@ -18775,6 +18825,7 @@ function duels2ClassifyStatusMutationRoute(field, opt = {}) {
 
 // duels2RecordStatusMutationRoute: Status Mutation Router 히스토리에 상태 변경 라우팅 기록을 추가한다.
 function duels2RecordStatusMutationRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_MUTATION_ROUTER;
   if (!router?.record) return null;
   return router.record(event);
@@ -18874,7 +18925,7 @@ function duels2CreateStatusMutationRouter() {
       version:DUELS2_STATUS_MUTATION_ROUTER_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_MUTATION_ROUTER_LIMIT) history.shift();
     return entry;
   }
@@ -18940,6 +18991,7 @@ const DUELS2_STATUS_RESET_SYNC_ROUTING_LIMIT = 480;
 
 // duels2RecordStatusResetSyncRoute: Status Reset/Sync Routing 기록을 추가한다.
 function duels2RecordStatusResetSyncRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_RESET_SYNC_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -19052,7 +19104,7 @@ function duels2CreateStatusResetSyncRouting() {
       version:DUELS2_STATUS_RESET_SYNC_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_RESET_SYNC_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -19114,6 +19166,7 @@ const DUELS2_STATUS_DIRECT_CLEANUP_LIMIT = 520;
 
 // duels2RecordStatusDirectCleanup: Status Direct Cleanup 기록을 추가한다.
 function duels2RecordStatusDirectCleanup(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_DIRECT_CLEANUP;
   if (!router?.record) return null;
   return router.record(event);
@@ -19212,7 +19265,7 @@ function duels2CreateStatusDirectCleanup() {
       version:DUELS2_STATUS_DIRECT_CLEANUP_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_DIRECT_CLEANUP_LIMIT) history.shift();
     return entry;
   }
@@ -19275,6 +19328,7 @@ const DUELS2_STATUS_RUNTIME_CLEANUP_LIMIT = 520;
 
 // duels2RecordStatusRuntimeCleanup: Status Runtime Cleanup 기록을 추가한다.
 function duels2RecordStatusRuntimeCleanup(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_RUNTIME_CLEANUP;
   if (!router?.record) return null;
   return router.record(event);
@@ -19365,7 +19419,7 @@ function duels2CreateStatusRuntimeCleanup() {
       version:DUELS2_STATUS_RUNTIME_CLEANUP_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_RUNTIME_CLEANUP_LIMIT) history.shift();
     return entry;
   }
@@ -19427,6 +19481,7 @@ const DUELS2_STATUS_MINION_RUNTIME_ROUTING_LIMIT = 560;
 
 // duels2RecordStatusMinionRuntimeRoute: 소환수 상태 런타임 라우팅 기록을 추가한다.
 function duels2RecordStatusMinionRuntimeRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_MINION_RUNTIME_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -19515,7 +19570,7 @@ function duels2CreateStatusMinionRuntimeRouting() {
       version:DUELS2_STATUS_MINION_RUNTIME_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_MINION_RUNTIME_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -19575,6 +19630,7 @@ const DUELS2_STATUS_REMOTE_SNAPSHOT_ROUTING_LIMIT = 360;
 
 // duels2RecordStatusRemoteSnapshotRoute: 상대 플레이어 상태 스냅샷 라우팅 기록을 추가한다.
 function duels2RecordStatusRemoteSnapshotRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_REMOTE_SNAPSHOT_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -19632,7 +19688,7 @@ function duels2CreateStatusRemoteSnapshotRouting() {
       version:DUELS2_STATUS_REMOTE_SNAPSHOT_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_REMOTE_SNAPSHOT_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -19689,6 +19745,7 @@ const DUELS2_STATUS_TARGET_CC_PAYLOAD_ROUTING_LIMIT = 560;
 
 // duels2RecordStatusTargetCCPayloadRoute: CC payload 상태 적용 라우팅 기록을 추가한다.
 function duels2RecordStatusTargetCCPayloadRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_STATUS_TARGET_CC_PAYLOAD_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -19795,7 +19852,7 @@ function duels2CreateStatusTargetCCPayloadRouting() {
       version:DUELS2_STATUS_TARGET_CC_PAYLOAD_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_TARGET_CC_PAYLOAD_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -19944,7 +20001,7 @@ function duels2InstallStatusSystemBoundary() {
       version: DUELS2_STATUS_SYSTEM_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_STATUS_SYSTEM_HISTORY_LIMIT) history.shift();
     return entry;
   }
@@ -20327,6 +20384,7 @@ const DUELS2_CC_EFFECT_PAYLOAD_SCHEMA = Object.freeze([
 
 // duels2RecordCCEffectPayloadRoute: CC 부가효과 payload 라우팅 기록을 추가한다. (event: 적용/조회 이벤트 객체)
 function duels2RecordCCEffectPayloadRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_CC_EFFECT_PAYLOAD_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -20428,7 +20486,7 @@ function duels2CreateCCEffectPayloadRouting() {
       version:DUELS2_CC_EFFECT_PAYLOAD_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_CC_EFFECT_PAYLOAD_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -20488,6 +20546,7 @@ const DUELS2_SLUSH_RUNTIME_ROUTING_LIMIT = 360;
 
 // duels2RecordSlushRuntimeRoute: 로온 빙수 게이지 런타임 변경 기록을 추가한다. (event: 기록 객체)
 function duels2RecordSlushRuntimeRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_SLUSH_RUNTIME_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -20553,7 +20612,7 @@ function duels2CreateSlushRuntimeRouting() {
       version:DUELS2_SLUSH_RUNTIME_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_SLUSH_RUNTIME_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -20615,6 +20674,7 @@ const DUELS2_FORCED_MOTION_RUNTIME_ROUTING_LIMIT = 480;
 
 // duels2RecordForcedMotionRuntimeRoute: 강제이동 런타임 변경 기록을 추가한다. (event: 기록 객체)
 function duels2RecordForcedMotionRuntimeRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_FORCED_MOTION_RUNTIME_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -20798,7 +20858,7 @@ function duels2CreateForcedMotionRuntimeRouting() {
       version:DUELS2_FORCED_MOTION_RUNTIME_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_FORCED_MOTION_RUNTIME_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -20863,6 +20923,7 @@ const DUELS2_FREE_MOTION_SYNC_ROUTING_LIMIT = 360;
 
 // duels2RecordFreeMotionSyncRoute: 자유 이동 복구 기록을 라우터 히스토리에 추가한다. (event: 기록 객체)
 function duels2RecordFreeMotionSyncRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_FREE_MOTION_SYNC_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -20947,7 +21008,7 @@ function duels2CreateFreeMotionSyncRouting() {
       version:DUELS2_FREE_MOTION_SYNC_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     stats.recorded += 1;
     while (history.length > DUELS2_FREE_MOTION_SYNC_ROUTING_LIMIT) history.shift();
     return entry;
@@ -21017,6 +21078,7 @@ const DUELS2_FORCED_MOTION_TICK_BOUNDARY_ROUTING_LIMIT = 420;
 
 // duels2RecordForcedMotionTickRoute: 강제이동 tick 경계 기록을 히스토리에 추가한다. (event: 기록 객체)
 function duels2RecordForcedMotionTickRoute(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_FORCED_MOTION_TICK_BOUNDARY_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -21106,7 +21168,7 @@ function duels2CreateForcedMotionTickBoundaryRouting() {
       version:DUELS2_FORCED_MOTION_TICK_BOUNDARY_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_FORCED_MOTION_TICK_BOUNDARY_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -21259,6 +21321,7 @@ function duels2SelectDamageTargetWindowList(summary, mode = 'damaged') {
 
 // duels2RecordDamageTargetPath: 피해 대상 경로 통합 라우터에 처리 기록을 남긴다. (event: 기록 객체)
 function duels2RecordDamageTargetPath(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_DAMAGE_TARGET_PATH_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -21345,7 +21408,7 @@ function duels2CreateDamageTargetPathRouting() {
       version:DUELS2_DAMAGE_TARGET_PATH_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_DAMAGE_TARGET_PATH_ROUTING_LIMIT) history.shift();
     stats.resolved += 1;
     stats.targets += entry.count || 0;
@@ -21434,6 +21497,7 @@ const DUELS2_TRAINING_DAMAGE_POLICY = Object.freeze({
 
 // duels2RecordTrainingDamagePolicy: 훈련장 피해 정책 적용 기록을 남긴다. (event: 기록할 정책 이벤트 객체)
 function duels2RecordTrainingDamagePolicy(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_TRAINING_DAMAGE_POLICY_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -21613,7 +21677,7 @@ function duels2CreateTrainingDamagePolicyRouting() {
       version:DUELS2_TRAINING_DAMAGE_POLICY_ROUTING_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_TRAINING_DAMAGE_POLICY_ROUTING_LIMIT) history.shift();
     return entry;
   }
@@ -21685,6 +21749,7 @@ const DUELS2_DAMAGE_APPLICATION_BRANCH_CLEANUP = Object.freeze({
 
 // duels2RecordDamageApplicationBranch: 피해 적용 어댑터 기록을 남긴다. (event: 기록할 피해 적용 이벤트 객체)
 function duels2RecordDamageApplicationBranch(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_DAMAGE_APPLICATION_BRANCH_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -21774,7 +21839,7 @@ function duels2CreateDamageApplicationBranchRouting() {
       version:DUELS2_DAMAGE_APPLICATION_BRANCH_CLEANUP_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_DAMAGE_APPLICATION_BRANCH_CLEANUP_LIMIT) history.shift();
     return entry;
   }
@@ -21860,6 +21925,7 @@ const DUELS2_DAMAGEABLE_ENTITY_ADAPTER_SCHEMA = Object.freeze({
 
 // duels2RecordDamageableEntityAdapter: Damageable Entity Adapter 기록을 남긴다. (event: 기록할 이벤트 객체)
 function duels2RecordDamageableEntityAdapter(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_DAMAGEABLE_ENTITY_ADAPTER;
   if (!router?.record) return null;
   return router.record(event);
@@ -21986,7 +22052,7 @@ function duels2CreateDamageableEntityAdapter() {
       version:DUELS2_DAMAGEABLE_ENTITY_ADAPTER_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_DAMAGEABLE_ENTITY_ADAPTER_LIMIT) history.shift();
     return entry;
   }
@@ -22179,7 +22245,7 @@ function duels2CreateMotionRouterConsolidation() {
       version:DUELS2_MOTION_ROUTER_CONSOLIDATION_VERSION,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_MOTION_ROUTER_CONSOLIDATION_LIMIT) history.shift();
     return entry;
   }
@@ -23373,6 +23439,7 @@ function duels2SummarizeNetworkCombatEventPacket(packet) {
 
 // duels2RecordNetworkCombatEventPacket: 전투 이벤트 패킷 송신/수신/훈련장 대체 처리 기록을 추가한다. (direction: send/receive/training, packet: 패킷, opt: route/result/training 등 기록 옵션)
 function duels2RecordNetworkCombatEventPacket(direction, packet, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_NETWORK_COMBAT_EVENT_PACKET_ROUTING;
   if (!router?.record) return null;
   return router.record(direction, packet, opt);
@@ -23499,7 +23566,7 @@ function duels2CreateNetworkCombatEventPacketRouter() {
     if (opt.handled) stats.handled++;
     const shouldStore = family !== 'non-combat' || opt.storeNonCombat || window.DUELS2_NETWORK_COMBAT_EVENT_PACKET_ROUTING?.traceAllPackets;
     if (shouldStore) {
-      history.push({
+      DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({
         id:`network_combat_event_${Date.now().toString(36)}_${history.length.toString(36)}`,
         time:performance.now(),
         version:DUELS2_NETWORK_COMBAT_EVENT_PACKET_VERSION,
@@ -27277,7 +27344,7 @@ function duels2CreateMotionSystemBoundary() {
       version: DUELS2_MOTION_SYSTEM_VERSION,
       ...(event || {})
     };
-    history.push(item);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(item);
     while (history.length > DUELS2_MOTION_SYSTEM_HISTORY_LIMIT) history.shift();
     return item;
   }
@@ -27842,7 +27909,7 @@ function duels2CreateMotionMutationRouter() {
       route: route || 'motion.unknown',
       ...payload
     };
-    runtimeHistory.push(item);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && runtimeHistory.push(item);
     while (runtimeHistory.length > 240) runtimeHistory.shift();
     return item;
   }
@@ -27940,7 +28007,7 @@ function duels2CreatePositionSystemBoundary() {
       version: DUELS2_POSITION_SYSTEM_VERSION,
       ...(event || {})
     };
-    history.push(item);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(item);
     while (history.length > DUELS2_POSITION_SYSTEM_HISTORY_LIMIT) history.shift();
     window.DUELS2_MOTION_MUTATION_ROUTER?.record?.(item.type || 'position.unknown', { positionEvent:item });
     return item;
@@ -28128,7 +28195,7 @@ function duels2CreatePositionResetSyncRouting() {
 
   // pushHistory: 위치 라우팅 호출 결과를 최근 기록에 저장한다.
   function pushHistory(type, entity, x, y, opt, ok) {
-    history.push({
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({
       at: performance.now(),
       type,
       route: opt.route || type,
@@ -28700,7 +28767,7 @@ function tryDodge() {
 
   // 하츠하츠 RMB 드래그 취소 (LMB 드래그는 유지)
   if (L._hatsRmbDrawing || L._hatsRmbPending) { L._hatsRmbDrawing = false; L._hatsRmbPending = false; }
-  L.justCheck = {x:L.x, y:L.y, radius:L.radius+12, frames:5};
+  L.justCheck = {x:L.x, y:L.y, radius:L.radius+12, frames:JUST_DODGE_WINDOW_MS / FRAME_MS};
   L.lastAttackTime = performance.now();
   // inv_extend 증강: 무적 시간 +50ms
   const invMs = DODGE_INVMS;
@@ -29571,8 +29638,9 @@ const SKILLS = {
         finishRoute:'movement.skill-dash.finish.burrow-executor',
         stopReason:'mainmad.rmb.burrow:game-stopped',
         stopRoute:'movement.skill-dash.cancel.game-stop-burrow-executor',
-        payload:{burrow:true, invulnerableMovement:true},
-        onFinish(target) {
+        payload:{burrow:true, wallTraversal:'pass-through', invulnerableMovement:true},
+        onFinish(target, info) {
+          duels2ResolveWallTraversalLanding(target, {startX:target._moveStartX, startY:target._moveStartY, targetX:info?.x, targetY:info?.y});
           target.burrowing = false;
           target.burrowEntry = null;
           emitFx({type:'burrowExit', x:target.x, y:target.y, r:0, maxR:50, dur:14, maxDur:14});
@@ -30767,10 +30835,10 @@ const SKILLS = {
         finishRoute:'movement.skill-dash.finish.phase-executor',
         stopReason:'phase.rmb.phase-jump:game-stopped',
         stopRoute:'movement.skill-dash.cancel.game-stop-phase-executor',
-        payload:{phaseJump:true, wallIgnoreUntilLanding:true, invulnerableMovement:true},
-        onFinish(target) {
+        payload:{phaseJump:true, wallTraversal:'pass-through', wallIgnoreUntilLanding:true, invulnerableMovement:true},
+        onFinish(target, info) {
           target._phaseJumping = false;
-          resolveWall(target);
+          duels2ResolveWallTraversalLanding(target, {startX:target._moveStartX, startY:target._moveStartY, targetX:info?.x, targetY:info?.y});
           emitFx({type:'phaseLand', x:target.x, y:target.y, r:0, maxR:45, dur:14, maxDur:14});
         },
         onCancel(target) {
@@ -32581,10 +32649,10 @@ const SKILLS = {
         finishRoute:'movement.skill-dash.finish.raise-executor',
         stopReason:'raise.rmb.jump-dash:game-stopped',
         stopRoute:'movement.skill-dash.cancel.game-stop-raise-executor',
-        payload:{raiseJump:true, landStun:true, invulnerableMovement:true},
-        onFinish(target) {
+        payload:{raiseJump:true, landStun:true, wallTraversal:'pass-through', invulnerableMovement:true},
+        onFinish(target, info) {
           target._raiseJumping = false;
-          resolveWall(target);
+          duels2ResolveWallTraversalLanding(target, {startX:target._moveStartX, startY:target._moveStartY, targetX:info?.x, targetY:info?.y});
           // 착지 기절: 더미 / 봇 / 소환수 공통 판정
           const _raiseLandTargets = getTargetsInCircle(target.x, target.y, B.landRange, null, {source:target, team:'enemy'});
           if (_raiseLandTargets.length) {
@@ -34185,7 +34253,7 @@ const DUELS2_GAMEPLAY_MODULE_RUNTIME = (() => {
 
   // record: 모듈 실행 이력을 제한된 크기로 기록한다. (event: 실행 결과 메타데이터)
   function record(event={}) {
-    stats.history.push({time:performance.now(),...event});
+    stats.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({time:performance.now(),...event});
     if (stats.history.length>160) stats.history.shift();
   }
 
@@ -35313,6 +35381,37 @@ function duels2RecoverEntityFromWall(entity, opt = {}) {
   entity._wallRecoveryAt = performance.now();
   entity._wallRecoveryDistance = found.distance;
   return true;
+}
+
+// duels2ResolveWallTraversalLanding: 벽 무시 이동 종료 시 진행 방향 반대편의 가장 가까운 빈 공간에 착지시킨다. (entity: 이동 대상, opt: startX/startY/targetX/targetY/maxSearch/step)
+function duels2ResolveWallTraversalLanding(entity, opt = {}) {
+  if (!entity) return false;
+  if (duels2IsEntityPositionClear(entity, entity.x, entity.y)) {
+    entity.tx = entity.x; entity.ty = entity.y;
+    return true;
+  }
+  const sx = Number.isFinite(opt.startX) ? opt.startX : (Number.isFinite(entity._moveStartX) ? entity._moveStartX : entity.x);
+  const sy = Number.isFinite(opt.startY) ? opt.startY : (Number.isFinite(entity._moveStartY) ? entity._moveStartY : entity.y);
+  const tx = Number.isFinite(opt.targetX) ? opt.targetX : entity.x;
+  const ty = Number.isFinite(opt.targetY) ? opt.targetY : entity.y;
+  let dx = tx - sx, dy = ty - sy;
+  const len = Math.hypot(dx, dy) || 1;
+  dx /= len; dy /= len;
+  const step = Math.max(2, Number(opt.step) || 4);
+  const maxSearch = Math.max(step, Number(opt.maxSearch) || 360);
+  const r = Math.max(1, Number(entity.radius) || 20);
+  const tryPoint = (x, y) => {
+    x = Math.max(r, Math.min(WORLD_W-r, x));
+    y = Math.max(r, Math.min(WORLD_H-r, y));
+    if (!duels2IsEntityPositionClear(entity, x, y)) return false;
+    entity.x = x; entity.y = y; entity.tx = x; entity.ty = y; entity._vx = x; entity._vy = y;
+    return true;
+  };
+  // 진행 방향 바깥쪽을 먼저 탐색해 출발한 쪽으로 되밀리는 현상을 막는다.
+  for (let d = step; d <= maxSearch; d += step) if (tryPoint(tx + dx*d, ty + dy*d)) return true;
+  // 맵 경계 등으로 앞쪽에 공간이 없을 때만 목표점 뒤쪽을 보조 탐색한다.
+  for (let d = step; d <= maxSearch; d += step) if (tryPoint(tx - dx*d, ty - dy*d)) return true;
+  return duels2RecoverEntityFromWall(entity, {reason:'wall-traversal-landing-fallback'});
 }
 
 // resolveWall: 엔티티를 겹친 벽의 최소 침투 방향으로 밀고, 코너·다중 벽에 갇히면 가까운 빈 공간으로 복구한다. (p: 충돌 대상)
@@ -36819,10 +36918,9 @@ function moveBullets(dt=1) {
 // 레비나 삼지창 렌더 — drawPlayer 밖에서 L/R 모두 표시
 function drawLevinaSpears() {
   if (!gameOn) return;
-  // L이 레비나면 L 창, R._levinaSpear가 있으면 R 창 표시
-  const _owners = [];
-  if (L._levinaSpear) _owners.push(L);
-  if (R._levinaSpear) _owners.push(R);
+  // 등록된 모든 플레이어의 창을 렌더한다. 고정 R 참조에 의존하지 않는다.
+  const _owners = (typeof getAllPlayerEntities === 'function' ? getAllPlayerEntities({aliveOnly:false}) : [L, R])
+    .filter((entity, index, list) => entity && entity._levinaSpear && list.indexOf(entity) === index);
   for (const _levOwner of _owners) {
     if (!_levOwner._levinaSpear) continue; // null 안전 체크
 
@@ -36908,7 +37006,7 @@ function duels2EnsureCounterChargeFxGuardRuntime() {
       if (entry.reason) this.bump(this.byReason, entry.reason);
       if (entry.slot) this.bump(this.bySlot, entry.slot);
       if (entry.scope) this.bump(this.byScope, entry.scope);
-      this.history.push({...entry, type, t:Math.round(performance.now())});
+      this.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({...entry, type, t:Math.round(performance.now())});
       if (this.history.length > 120) this.history.shift();
     },
     getSummary() { return {installed:this.installed, step:this.step, gateMode:this.gateMode, characterSpecificBlocks:this.characterSpecificBlocks, counters:{...this.counters}, byReason:{...this.byReason}, bySlot:{...this.bySlot}, byScope:{...this.byScope}, recent:this.history.slice(-10)}; },
@@ -36919,6 +37017,7 @@ window.DUELS2_COUNTER_CHARGE_FX_GUARD_RUNTIME = duels2EnsureCounterChargeFxGuard
 
 // duels2RecordCounterChargeFxSuppressed: 반격기 문맥이 아닌 counterCharge FX 차단 기록을 남긴다. (fx: 차단된 FX, reason: 차단 사유)
 function duels2RecordCounterChargeFxSuppressed(f, reason = 'non-counter-context', detail = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const rt = duels2EnsureCounterChargeFxGuardRuntime();
   rt.record('suppressed', {reason, slot:detail.slot || f?.counterFxSlot || f?._counterFxSlot || null, scope:detail.scope || f?.counterFxScope || f?._counterFxScope || null, x:f?.x ?? null, y:f?.y ?? null, r:f?.r ?? null, maxR:f?.maxR ?? null, dur:f?.dur ?? null, source:f?._source || f?.source || null});
   rt.counters.nonCounterSuppressed = (rt.counters.nonCounterSuppressed || 0) + 1;
@@ -37915,7 +38014,7 @@ function duels2CreateCombatFeedbackBridge() {
   // pushHistory: 피드백 호출 이력을 제한된 길이로 저장한다.
   function pushHistory(entry) {
     const item = {...entry, id:++seq, time:performance.now(), frame:typeof gameFrame !== 'undefined' ? gameFrame : null};
-    history.push(item);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(item);
     while (history.length > DUELS2_COMBAT_FEEDBACK_HISTORY_LIMIT) history.shift();
     return item;
   }
@@ -38294,7 +38393,7 @@ function duels2CreateCombatFeedbackRouting() {
   // pushRoute: 라우팅 판정 이력을 제한된 길이로 저장한다.
   function pushRoute(entry) {
     const item = {...entry, id:++seq, time:duels2FeedbackRoutingNow(), frame:duels2FeedbackRoutingFrame()};
-    history.push(item);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(item);
     while (history.length > DUELS2_COMBAT_FEEDBACK_ROUTING_HISTORY_LIMIT) history.shift();
     return item;
   }
@@ -41970,6 +42069,7 @@ const DUELS2_TRAINING_SETTING_KEYS = new Set(['dummyHp','infiniteHp','infiniteSt
 
 // duels2RecordTrainingDebugControl: 훈련장/디버그 제어 이벤트를 기록한다. (event: 기록할 이벤트 객체)
 function duels2RecordTrainingDebugControl(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_TRAINING_DEBUG_CONTROL_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -42161,7 +42261,7 @@ function duels2CreateTrainingDebugControlRouter() {
     stats.byKey[key] = (stats.byKey[key] || 0) + 1;
     if (event.handled) stats.handled++;
     if (event.training) stats.training++;
-    history.push({
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({
       id:`training_debug_control_${Date.now().toString(36)}_${history.length.toString(36)}`,
       time:performance.now(),
       version:DUELS2_TRAINING_DEBUG_CONTROL_VERSION,
@@ -42245,6 +42345,7 @@ const DUELS2_DEV_SPAWN_ACTION_CONTROL_FUNCTIONS = Object.freeze({
 
 // duels2RecordDevSpawnActionControl: 디버그 spawn/action 제어 이벤트를 기록한다. (event: 기록할 이벤트 객체)
 function duels2RecordDevSpawnActionControl(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_DEV_SPAWN_ACTION_CONTROL_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -42355,7 +42456,7 @@ function duels2CreateDevSpawnActionControlRouter() {
     stats.byKey[key] = (stats.byKey[key] || 0) + 1;
     if (event.error) stats.errors++;
     if (event.training) stats.training++;
-    history.push({
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({
       id:`dev_spawn_action_${Date.now().toString(36)}_${history.length.toString(36)}`,
       time:performance.now(),
       version:DUELS2_DEV_SPAWN_ACTION_CONTROL_VERSION,
@@ -42425,6 +42526,7 @@ const DUELS2_CHARACTER_EXCEPTION_BRANCH_LIMIT = 360;
 
 // duels2RecordCharacterExceptionBranch: 캐릭터 예외 판정 스윕 기록을 추가한다. (event: 기록할 이벤트 객체)
 function duels2RecordCharacterExceptionBranch(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_CHARACTER_EXCEPTION_BRANCH_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -42502,7 +42604,7 @@ function duels2CreateCharacterExceptionBranchRouter() {
       step:DUELS2_ALPHA_STEP,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_CHARACTER_EXCEPTION_BRANCH_LIMIT) history.shift();
     return entry;
   }
@@ -42619,6 +42721,7 @@ const DUELS2_CHARACTER_CAPABILITY_PROFILE = Object.freeze({
 
 // duels2RecordCharacterCapabilityProfile: 캐릭터 capability profile 라우터에 기록을 추가한다. (event: 기록할 이벤트 객체)
 function duels2RecordCharacterCapabilityProfile(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_CHARACTER_CAPABILITY_PROFILE_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -42692,7 +42795,7 @@ function duels2CreateCharacterCapabilityProfileRouter() {
       step:DUELS2_ALPHA_STEP,
       ...event,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_CHARACTER_CAPABILITY_PROFILE_LIMIT) history.shift();
     return entry;
   }
@@ -42848,6 +42951,7 @@ const DUELS2_CAPABILITY_TAXONOMY_BRIDGE = Object.freeze({
 
 // duels2RecordCapabilityTaxonomyBridge: capability-taxonomy bridge 기록을 추가한다. (event: 기록할 이벤트 객체)
 function duels2RecordCapabilityTaxonomyBridge(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_CAPABILITY_TAXONOMY_BRIDGE_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -43006,7 +43110,7 @@ function duels2CreateCapabilityTaxonomyBridgeRouter() {
   // recordCapabilityTaxonomyBridge: 의미 있는 taxonomy bridge 이벤트를 history에 저장한다. (event: 기록할 이벤트 객체)
   function recordCapabilityTaxonomyBridge(event = {}) {
     const entry = {id:`capability_taxonomy_${Date.now().toString(36)}_${history.length.toString(36)}`, time:performance.now(), version:DUELS2_CAPABILITY_TAXONOMY_BRIDGE_VERSION, step:DUELS2_ALPHA_STEP, ...event};
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_CAPABILITY_TAXONOMY_BRIDGE_LIMIT) history.shift();
     return entry;
   }
@@ -43066,6 +43170,7 @@ const DUELS2_TAXONOMY_QUERY_REPLACEMENT_LIMIT = 520;
 
 // duels2RecordTaxonomyQueryReplacement: taxonomy query replacement 기록을 추가한다. (event: 기록할 이벤트 객체)
 function duels2RecordTaxonomyQueryReplacement(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_TAXONOMY_QUERY_REPLACEMENT_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -43094,7 +43199,7 @@ function duels2CreateTaxonomyQueryReplacementRouter() {
   // recordTaxonomyQueryReplacement: 의미 있는 taxonomy query replacement 이벤트를 history에 저장한다. (event: 기록할 이벤트 객체)
   function recordTaxonomyQueryReplacement(event = {}) {
     const entry = {id:`taxonomy_query_${Date.now().toString(36)}_${history.length.toString(36)}`, time:performance.now(), version:DUELS2_TAXONOMY_QUERY_REPLACEMENT_VERSION, step:DUELS2_ALPHA_STEP, ...event};
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_TAXONOMY_QUERY_REPLACEMENT_LIMIT) history.shift();
     return entry;
   }
@@ -43226,6 +43331,7 @@ function hasRemoteCharacterRuntime(runtimeKey, opt = {}) {
 
 // duels2RecordCharacterRuntimeBranch: character runtime branch 기록을 추가한다. (event: 기록할 이벤트 객체)
 function duels2RecordCharacterRuntimeBranch(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_CHARACTER_RUNTIME_BRANCH_ROUTING;
   if (!router?.record) return null;
   return router.record(event);
@@ -43250,7 +43356,7 @@ function duels2CreateCharacterRuntimeBranchRouter() {
     stats.bySchemaFound[schemaFound] = (stats.bySchemaFound[schemaFound] || 0) + 1;
     if (window.DUELS2_CHARACTER_RUNTIME_BRANCH_ROUTING?.traceChecks || !event.schemaFound) {
       const entry = {id:`character_runtime_${Date.now().toString(36)}_${history.length.toString(36)}`, time:performance.now(), version:DUELS2_CHARACTER_RUNTIME_BRANCH_VERSION, step:DUELS2_ALPHA_STEP, ...event};
-      history.push(entry);
+      DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
       while (history.length > DUELS2_CHARACTER_RUNTIME_BRANCH_LIMIT) history.shift();
       return entry;
     }
@@ -43409,6 +43515,7 @@ function isRemoteFunctionalModuleActive(moduleId, opt = {}) {
 
 // duels2RecordFunctionalSkillModuleClassification: 기능 모듈 판정 기록을 추가한다. (event: 기록할 이벤트 객체)
 function duels2RecordFunctionalSkillModuleClassification(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_FUNCTIONAL_SKILL_MODULE_CLASSIFICATION;
   if (!router?.record) return null;
   return router.record(event);
@@ -43433,7 +43540,7 @@ function duels2CreateFunctionalSkillModuleClassificationRouter() {
     stats.byRoute[route] = (stats.byRoute[route] || 0) + 1;
     if (window.DUELS2_FUNCTIONAL_SKILL_MODULE_CLASSIFICATION?.traceChecks || !event.schemaFound) {
       const entry = {id:`functional_module_${Date.now().toString(36)}_${history.length.toString(36)}`, time:performance.now(), version:DUELS2_FUNCTIONAL_SKILL_MODULE_CLASSIFICATION_VERSION, step:DUELS2_ALPHA_STEP, ...event};
-      history.push(entry);
+      DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
       while (history.length > DUELS2_FUNCTIONAL_SKILL_MODULE_CLASSIFICATION_LIMIT) history.shift();
       return entry;
     }
@@ -43680,7 +43787,7 @@ const DUELS2_INPUT_STATE_RUNTIME = (() => {
 
   // record: 입력 상태 전환 기록을 제한된 history에 남긴다. (entry: phase/profile/slot 등)
   function record(entry = {}) {
-    history.push({at:performance.now(), ...entry});
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push({at:performance.now(), ...entry});
     while (history.length > 240) history.shift();
   }
 
@@ -43889,6 +43996,7 @@ window.duels2GetInitializationOrderFixSummary = duels2GetInitializationOrderFixS
 
 // duels2RecordSharedChargeInputModule: 공유 차징/홀드 입력 모듈 기록을 추가한다. (event: 기록할 이벤트 객체)
 function duels2RecordSharedChargeInputModule(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_SHARED_CHARGE_INPUT_MODULE;
   if (!router?.record) return null;
   return router.record(event);
@@ -43916,7 +44024,7 @@ function duels2CreateSharedChargeInputModuleRouter() {
     stats.allowed[allowedKey] = (stats.allowed[allowedKey] || 0) + 1;
     if (window.DUELS2_SHARED_CHARGE_INPUT_MODULE?.traceInputs || !event.allowed) {
       const entry = {id:`shared_charge_input_${Date.now().toString(36)}_${history.length.toString(36)}`, time:performance.now(), version:DUELS2_SHARED_CHARGE_INPUT_MODULE_VERSION, step:DUELS2_ALPHA_STEP, ...event};
-      history.push(entry);
+      DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
       while (history.length > DUELS2_SHARED_CHARGE_INPUT_MODULE_LIMIT) history.shift();
       return entry;
     }
@@ -43971,6 +44079,7 @@ function duels2ResolveSharedContinuousStaminaCost(amount, slot = 'lmb', opt = {}
 
 // duels2RecordSharedContinuousStaminaModule: 지속 스테미나 비용 모듈 기록을 추가한다. (event: 기록할 이벤트 객체)
 function duels2RecordSharedContinuousStaminaModule(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_SHARED_CONTINUOUS_STAMINA_MODULE;
   if (!router?.record) return null;
   return router.record(event);
@@ -44063,7 +44172,7 @@ function duels2CreateSharedContinuousStaminaModuleRouter() {
   // recordSharedContinuousStaminaModule: 지속 스테미나 모듈 기록을 추가한다. (event: 기록할 이벤트 객체)
   function recordSharedContinuousStaminaModule(event) {
     const entry = {id:`shared_stamina_${Date.now().toString(36)}_${history.length.toString(36)}`, time:performance.now(), version:DUELS2_SHARED_CONTINUOUS_STAMINA_MODULE_VERSION, ...event};
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_SHARED_CONTINUOUS_STAMINA_MODULE_LIMIT) history.shift();
     return entry;
   }
@@ -44286,6 +44395,7 @@ function duels2SummarizeFunctionalModuleIds(moduleIds) {
 
 // duels2RecordBroadFunctionalModuleRegistry: broad functional module 판정/조회 기록을 추가한다. (event: 기록할 이벤트 객체)
 function duels2RecordBroadFunctionalModuleRegistry(event) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_BROAD_FUNCTIONAL_MODULE_REGISTRY;
   if (!router?.record) return null;
   return router.record(event);
@@ -44390,7 +44500,7 @@ function duels2CreateBroadFunctionalModuleRegistryRouter() {
       stats.byFamily[family] = (stats.byFamily[family] || 0) + 1;
       stats.byFacet[facet] = (stats.byFacet[facet] || 0) + 1;
     }
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_BROAD_FUNCTIONAL_MODULE_REGISTRY_LIMIT) history.shift();
     return entry;
   }
@@ -44647,6 +44757,7 @@ const DUELS2_DODGE_USE_POSITION_MEMORY_COMPOSITION = Object.freeze(['module.trig
 
 // duels2RecordNestedInputOverrideModule: 중첩 입력 오버라이드 모듈의 실행/판정 기록을 남긴다. (event: 기록할 이벤트 객체)
 function duels2RecordNestedInputOverrideModule(event = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_NESTED_INPUT_OVERRIDE_MODULE;
   if (!router?.record) return null;
   return router.record(event);
@@ -44820,7 +44931,7 @@ function duels2CreateNestedInputOverrideModuleRouter() {
     stats.byType[entry.type || 'unknown'] = (stats.byType[entry.type || 'unknown'] || 0) + 1;
     stats.byAction[entry.action || 'none'] = (stats.byAction[entry.action || 'none'] || 0) + 1;
     if (entry.result) stats.matches++; else stats.misses++;
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > 500) history.shift();
     return entry;
   }
@@ -50969,6 +51080,7 @@ const DUELS2_MODULAR_REGRESSION_FIX_SWEEP_VERSION = 1;
 
 // duels2RecordModularRegressionFix: Step 79 회귀 수정 라우터의 적용 이력을 기록한다. (event: 수정 종류/대상/수치 정보)
 function duels2RecordModularRegressionFix(event = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_MODULAR_REGRESSION_FIX_SWEEP;
   if (!router || !router._stats) return;
   const stats = router._stats;
@@ -50977,7 +51089,7 @@ function duels2RecordModularRegressionFix(event = {}) {
   stats.byKey[key] = (stats.byKey[key] || 0) + 1;
   stats.byRoute[event.route || event.reason || 'modular-regression'] = (stats.byRoute[event.route || event.reason || 'modular-regression'] || 0) + 1;
   const entry = {id:`modular_regression_${Date.now().toString(36)}_${stats.history.length.toString(36)}`, time:performance.now(), version:DUELS2_MODULAR_REGRESSION_FIX_SWEEP_VERSION, step:DUELS2_ALPHA_STEP, ...event};
-  stats.history.push(entry);
+  stats.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
   if (stats.history.length > 160) stats.history.shift();
 }
 
@@ -51500,6 +51612,7 @@ function duels2ResolveProjectileDeliveryModuleId(bullet = {}, opt = {}) {
 
 // duels2RecordProjectileDeliveryExecutor: 투사체 delivery 실행 통계를 기록한다. (event: route/module/charId/slot 등의 기록 객체)
 function duels2RecordProjectileDeliveryExecutor(event = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_PROJECTILE_DELIVERY_EXECUTOR;
   if (!router || !router._stats) return;
   const stats = router._stats;
@@ -51515,7 +51628,7 @@ function duels2RecordProjectileDeliveryExecutor(event = {}) {
   if (event.synced) stats.synced += 1;
   if (event.playSfx) stats.sfx += 1;
   const entry = {id:`projectile_delivery_${Date.now().toString(36)}_${stats.history.length.toString(36)}`, time:performance.now(), step:DUELS2_ALPHA_STEP, version:DUELS2_PROJECTILE_DELIVERY_EXECUTOR_VERSION, ...event};
-  stats.history.push(entry);
+  stats.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
   if (stats.history.length > 120) stats.history.shift();
   try { duels2RecordProjectileRuntimeExpansionSweep({phase:'delivery', ...event}); } catch (_) {}
 }
@@ -51803,6 +51916,7 @@ const DUELS2_PROJECTILE_POLICY_LEGACY_COMPAT = (() => {
 window.DUELS2_PROJECTILE_POLICY_LEGACY_COMPAT = DUELS2_PROJECTILE_POLICY_LEGACY_COMPAT;
 
 function duels2RecordProjectilePolicyApplicationGuardImpact(event = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return DUELS2_PROJECTILE_POLICY_LEGACY_COMPAT.observe(event.bullet || {}, event.targets || [], event, event);
 }
 function duels2AuditProjectilePolicyApplicationGuardTargets(bullet = {}, targets = [], event = {}, opt = {}) {
@@ -51943,7 +52057,7 @@ const DUELS2_COMBAT_OBJECT_POLICY_RUNTIME = (() => {
       filteringApplied:false,
       preserveExistingResult:true
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > MAX_HISTORY) history.shift();
     counters.total += 1;
     counters[family] = (counters[family] || 0) + 1;
@@ -53041,7 +53155,7 @@ const DUELS2_FIELD_RUNTIME = (() => {
       route:field?.route || field?.actionCtx?.route || null,
       ...extra,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     if (history.length > 720) history.shift();
     return entry;
   };
@@ -53581,7 +53695,7 @@ const DUELS2_DEPLOYABLE_OBJECT_RUNTIME = (() => {
       moduleId:deployable?.moduleId || null,
       ...extra,
     };
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     if (history.length > 480) history.shift();
     return entry;
   };
@@ -53923,6 +54037,7 @@ function duels2ResolveProjectileEffectModules(bullet = {}, opt = {}) {
 
 // duels2RecordProjectileImpactEffectExecutor: projectile impact/effect 실행 통계를 기록한다. (event: impactId/effects/route/targetCount 등을 담은 기록 객체)
 function duels2RecordProjectileImpactEffectExecutor(event = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_PROJECTILE_IMPACT_EFFECT_EXECUTOR;
   if (!router || !router._stats) return;
   const stats = router._stats;
@@ -53938,7 +54053,7 @@ function duels2RecordProjectileImpactEffectExecutor(event = {}) {
   if (stats.bySourceKind) stats.bySourceKind[event.sourceKind || 'unknown'] = (stats.bySourceKind[event.sourceKind || 'unknown'] || 0) + 1;
   for (const effect of event.effects || []) stats.byEffect[effect] = (stats.byEffect[effect] || 0) + 1;
   const entry = {id:`projectile_impact_${Date.now().toString(36)}_${stats.history.length.toString(36)}`, time:performance.now(), step:DUELS2_ALPHA_STEP, version:DUELS2_PROJECTILE_IMPACT_EFFECT_EXECUTOR_VERSION, ...event};
-  stats.history.push(entry);
+  stats.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
   if (stats.history.length > 160) stats.history.shift();
   try { duels2RecordProjectileRuntimeExpansionSweep({phase:'impact', ...event}); } catch (_) {}
   try { duels2AdoptProjectileImpactOwnerTeamPolicy?.({phase:'impact-policy', ...event, impactId, route:event.route || event.reason || 'projectile.impact'}); } catch (_) {}
@@ -54145,6 +54260,7 @@ function duels2ResolveCcStatusKeys(cc = {}) {
 
 // duels2RecordCcEffectExecutor: CC effect 실행 통계를 기록한다. (event: route/effects/statusKeys/target 정보를 담은 기록 객체)
 function duels2RecordCcEffectExecutor(event = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_CC_EFFECT_EXECUTOR;
   if (!router || !router._stats) return;
   const stats = router._stats;
@@ -54158,7 +54274,7 @@ function duels2RecordCcEffectExecutor(event = {}) {
   const targetKind = event.targetKind || duels2GetCombatActorKind?.(event.target) || 'unknown';
   stats.byTargetKind[targetKind] = (stats.byTargetKind[targetKind] || 0) + 1;
   const entry = {id:`cc_effect_${Date.now().toString(36)}_${stats.history.length.toString(36)}`, time:performance.now(), step:DUELS2_ALPHA_STEP, version:DUELS2_CC_EFFECT_EXECUTOR_VERSION, ...event, target:undefined, source:undefined};
-  stats.history.push(entry);
+  stats.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
   if (stats.history.length > 180) stats.history.shift();
 }
 
@@ -54244,6 +54360,7 @@ function duels2ResolveHealingEffectSpec(target, spec = {}, source = L) {
 
 // duels2RecordHealingEffectExecutor: 회복 effect 실행 통계를 기록한다. (event: amount/healed/route/target/source 등을 담은 기록 객체)
 function duels2RecordHealingEffectExecutor(event = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   const router = window.DUELS2_HEALING_EFFECT_EXECUTOR;
   if (!router || !router._stats) return;
   const stats = router._stats;
@@ -54261,7 +54378,7 @@ function duels2RecordHealingEffectExecutor(event = {}) {
     time:performance.now(), step:DUELS2_ALPHA_STEP, version:DUELS2_HEALING_EFFECT_EXECUTOR_VERSION,
     ...event, target:undefined, source:undefined,
   };
-  stats.history.push(entry);
+  stats.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
   if (stats.history.length > 180) stats.history.shift();
 }
 
@@ -54524,7 +54641,7 @@ function duels2CreateEntityRuntimeContract() {
   // recordEntityRuntimeContract: 계약 경계 사용 기록을 저장한다. (event: operation/kind/route 정보)
   function recordEntityRuntimeContract(event) {
     const entry = {id:`entity_runtime_${Date.now().toString(36)}_${history.length.toString(36)}`, time:performance.now(), version:DUELS2_ENTITY_RUNTIME_CONTRACT_VERSION, ...event};
-    history.push(entry);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
     while (history.length > DUELS2_ENTITY_RUNTIME_CONTRACT_HISTORY_LIMIT) history.shift();
     const route = entry.route || 'unknown';
     const kind = entry.kind || 'unknown';
@@ -54757,7 +54874,7 @@ function duels2CreateMovementCommandContract() {
       version:DUELS2_MOVEMENT_COMMAND_CONTRACT_VERSION,
       ...entry,
     };
-    history.push(item);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(item);
     while (history.length > DUELS2_MOVEMENT_COMMAND_CONTRACT_HISTORY_LIMIT) history.shift();
     const command = item.command || 'unknown';
     const route = item.route || 'unknown';
@@ -55014,7 +55131,7 @@ function duels2CreateCancelableDashTokenRuntime() {
       version:DUELS2_CANCELABLE_DASH_TOKEN_RUNTIME_VERSION,
       ...event,
     };
-    history.push(item);
+    DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(item);
     while (history.length > DUELS2_CANCELABLE_DASH_TOKEN_HISTORY_LIMIT) history.shift();
     const key = item.token?.key || item.key || 'unknown';
     const route = item.route || item.token?.route || 'unknown';
@@ -58848,6 +58965,7 @@ function loop() {
 // 임시 테스트 기능은 디버깅 탭 내부에서만 노출한다.
 // ============================================================
 function recordPacketLog(dir, data) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   try {
     if (!window._devPacketLog) window._devPacketLog = [];
     window._devPacketLog.unshift({
@@ -58861,6 +58979,7 @@ function recordPacketLog(dir, data) {
 }
 
 function recordCombatLog(type, data = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   try {
     if (!window._devCombatLog) window._devCombatLog = [];
     window._devCombatLog.unshift({
@@ -60044,7 +60163,7 @@ function duels2CreateNetworkCombatSnapshotRouting() {
         version:DUELS2_NETWORK_COMBAT_SNAPSHOT_VERSION,
         ...event,
       };
-      history.push(entry);
+      DUELS2_RUNTIME_DIAGNOSTICS_ENABLED && history.push(entry);
       while (history.length > DUELS2_NETWORK_COMBAT_SNAPSHOT_LIMIT) history.shift();
       return entry;
     }
@@ -60096,6 +60215,7 @@ function duels2InstallNetworkCombatSnapshotRouting() {
 
 // duels2RecordNetworkCombatSnapshot: 네트워크 스냅샷 이벤트를 라우터에 기록한다. (event: 기록할 이벤트, opt: keepHistory 등 기록 옵션)
 function duels2RecordNetworkCombatSnapshot(event, opt = {}) {
+  if (!DUELS2_RUNTIME_DIAGNOSTICS_ENABLED) return null;
   return window.DUELS2_NETWORK_COMBAT_SNAPSHOT_ROUTING?.record?.(event, opt) || null;
 }
 
@@ -60228,7 +60348,7 @@ function duels2BuildNetworkCombatSnapshotDirect(entity = L, opt = {}) {
           active:entity._prillZoneActive, boosted:entity._prillZoneBoosted,
           hitsLeft:entity._prillZoneHitsLeft }
       : null,
-    levinaSpear: (hasEntityFunctionalRuntime(entity, 'spearAnchor') && entity._levinaSpear)
+    levinaSpear: entity._levinaSpear
       ? { x:entity._levinaSpear.x, y:entity._levinaSpear.y, dx:entity._levinaSpear.dx, dy:entity._levinaSpear.dy,
           speed:entity._levinaSpear.speed, radius:entity._levinaSpear.radius,
           type:entity._levinaSpear.type, state:entity._levinaSpear.state,
