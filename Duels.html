@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Duels</title>
-<meta name="duels-version" content="0.38.1">
+<meta name="duels-version" content="0.38.2">
 <script async src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js">
 // duels2GetAugmentVisibilityAndFastRegenSummary: 증강 HUD 공개 시점과 빠른 재생 효과 변경 상태를 반환한다. ()
 function duels2GetAugmentVisibilityAndFastRegenSummary() {
@@ -460,7 +460,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.38.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.38.2</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -894,7 +894,7 @@ input[type=text]:focus{border-color:#4af;}
  * - 캐릭터별로 피해/피격/사망/상태이상 코드를 따로 만들지 않는다.
  * - CombatResolver 외부에서 HP와 전투 피드백을 제각각 처리하지 않는다.
  */
-const DUELS2_ALPHA_VERSION = '0.38.1';
+const DUELS2_ALPHA_VERSION = '0.38.2';
 const DUELS2_ALPHA_STEP = 'Step 249 - Round Resolution Idempotency & Attackable Object Target Completion';
 
 
@@ -1385,7 +1385,7 @@ window.DUELS2_STATIC_REGRESSION_AUDIT_STEP = DUELS2_STATIC_REGRESSION_AUDIT_STEP
 // DUELS2_FINAL_RELEASE_AUDIT_STEP: Step 229 최종 릴리스 감사 범위와 자동/수동 검증 상태를 선언한다.
 const DUELS2_FINAL_RELEASE_AUDIT_STEP = Object.freeze({
   step:'Step 229 - Final Release Audit & Regression Checklist',
-  releaseLabel:'0.38.1',
+  releaseLabel:'0.38.2',
   staticAuditComplete:true,
   browserGameplayValidation:'manual-pending',
   twoPlayerNetworkValidation:'manual-pending',
@@ -1457,7 +1457,7 @@ window.duels2GetFinalReleaseAuditSummary = duels2GetFinalReleaseAuditSummary;
 // DUELS2_ALPHA_RELEASE_DECISION_STEP: Step 230의 Alpha 완료 판정 규칙과 현재 수동 검증 게이트 상태를 선언한다.
 const DUELS2_ALPHA_RELEASE_DECISION_STEP = Object.freeze({
   step:'Step 230 - Alpha Release Decision Gate & Completion Status',
-  releaseCandidateLabel:'0.38.1',
+  releaseCandidateLabel:'0.38.2',
   completionRule:'all-required-checks-passed',
   manualValidationRequired:true,
   automaticPromotionDisabled:true,
@@ -1504,7 +1504,7 @@ function duels2GetAlphaCompletionStatus() {
   const decision = duels2EvaluateAlphaReleaseDecision();
   return {
     version:DUELS2_ALPHA_VERSION,
-    uiVersion:'0.38.1',
+    uiVersion:'0.38.2',
     singleFileOnly:DUELS2_ALPHA_SINGLE_FILE_ONLY,
     staticAuditPassed:releaseAudit.staticAuditPassed,
     approved:decision.approved,
@@ -4160,24 +4160,24 @@ const AUG_VALS = {
   counter_def: { window: 2, reduction: 30, window2: 2, reduction2: 20 },
   big_weapon:  { rangeBonus: 25, dmgPenalty: 10 },
   healing:     { hpPerSec: 2 },
-  light_step:  { distBonus: 40 },
+  light_step:  { distBonus: 30 },
   ration:      { hpThreshold: 50, healRatio: 10, ticks: 7, hpPenalty: 20 },
   swift_regen: { regenBonus: 20 },
   heal_dodge:  { healRatio: 20, distPenalty: 15 },
   thorn_armor: { reflectRatio: 30 },
   pierce_shot: { cd: 3 },
-  start_boost: { dur: 7, speedBonus: 40, dmgBonus: 30, stamBonus: 50, dodgeBonus: 40 },
+  start_boost: { dur: 7, speedBonus: 40, dmgBonus: 30 },
   guard_dodge: { reduction: 60, reduction2: 20, window2: 2 },
   equiv_trade:  { rmbCostMult: 0.70, lmbCostMult: 1.30 },
   resistance:   { ccReduction: 50, hpPenalty: 20 },
-  glass_cannon: { hpPenalty: 50, dmgBonus: 80 },
+  glass_cannon: { hpPenalty: 50, dmgBonus: 50 },
   careful_counter: { windowBonus: 4 },
   fast_regen:   { regenDelayReduction: 20 },
   double_dodge: { extraDodge: 1, distPenalty: 20 },
-  auto_attack:  { delay: 80 },
+  auto_attack:  { delay: 80, stamPenalty: 25 },
   pull_in:      { range: 220, power: 460, tickFactor: 0.055 },
   gum_shield:   { costRatio: 0.25, stamPenalty: 20 },
-  revival:      { delay: 1000, hpPenalty: 40 },
+  revival:      { delay: 1000, hpPenalty: 30 },
 };
 
 // ── 증강 정의 ──────────────────────────────────────────────
@@ -4205,7 +4205,7 @@ const AUGMENTS = [
   { id:'heal_dodge', name:'치유회피',     emoji:'🍀', rarity:'common', desc:`저스트 회피 시 체력 <b>${AUG_VALS.heal_dodge.healRatio}% 회복</b>, 회피 거리 <r>-${AUG_VALS.heal_dodge.distPenalty}%</r>` },
   { id:'thorn_armor',name:'가시갑옷',     emoji:'🌵', rarity:'common', desc:`피해를 받을 시 피해량의 <b>${AUG_VALS.thorn_armor.reflectRatio}%를 주변에 반사</b>` },
   { id:'pierce_shot',name:'관통샷',       emoji:'🏹', rarity:'common', desc:`<b>${AUG_VALS.pierce_shot.cd}초</b>마다 다음 평타가 벽을 관통` },
-  { id:'start_boost',name:'스타트 부스터',emoji:'⭐', rarity:'hero',   desc:`라운드 시작 ${AUG_VALS.start_boost.dur}초간 이동속도 <b>+${AUG_VALS.start_boost.speedBonus}%</b>, 피해량 <b>+${AUG_VALS.start_boost.dmgBonus}%</b>, 스테미나 회복속도 <b>+${AUG_VALS.start_boost.stamBonus}%</b>, 회피 거리 <b>+${AUG_VALS.start_boost.dodgeBonus}%</b>` },
+  { id:'start_boost',name:'스타트 부스터',emoji:'⭐', rarity:'hero',   desc:`라운드 시작 ${AUG_VALS.start_boost.dur}초간 이동속도 <b>+${AUG_VALS.start_boost.speedBonus}%</b>, 피해량 <b>+${AUG_VALS.start_boost.dmgBonus}%</b>` },
   { id:'guard_dodge',name:'가드 회피',    emoji:'🔰', rarity:'rare',   desc:`회피 도중 받는 피해 <b>${AUG_VALS.guard_dodge.reduction}% 감소</b> 및 회피 이후 ${AUG_VALS.guard_dodge.window2}초간 받는 피해 <b>${AUG_VALS.guard_dodge.reduction2}% 감소</b>` },
   { id:'equiv_trade', name:'등가교환',    emoji:'⚖️', rarity:'rare',   desc:`스킬 스테미나 소모량 <b>-${Math.round((1-AUG_VALS.equiv_trade.rmbCostMult)*100)}%</b><br>평타 스테미나 소모량 <r>+${Math.round((AUG_VALS.equiv_trade.lmbCostMult-1)*100)}%</r>` },
   { id:'resistance',  name:'저항',        emoji:'🧱', rarity:'epic',   desc:`CC기 지속시간 <b>-${AUG_VALS.resistance.ccReduction}%</b><br>체력 <r>-${AUG_VALS.resistance.hpPenalty}%</r>` },
@@ -4213,7 +4213,7 @@ const AUGMENTS = [
   { id:'careful_counter',name:'신중한 반격',emoji:'🎯',rarity:'common',desc:`저스트 회피 후 반격기 활성화 시간 <b>+${AUG_VALS.careful_counter.windowBonus}초</b>` },
   { id:'fast_regen',  name:'빠른 재생',   emoji:'💉', rarity:'common', desc:`자연 체력회복까지 걸리는 시간 <b>-${AUG_VALS.fast_regen.regenDelayReduction}%</b>` },
   { id:'double_dodge',name:'연속 회피',   emoji:'🌪️', rarity:'rare',   desc:`회피 <b>+1회 연속 사용</b><br>회피 거리 <r>-${AUG_VALS.double_dodge.distPenalty}%</r>` },
-  { id:'auto_attack', name:'자동 공격',   emoji:'🤖', rarity:'common', desc:`회피 사용 시 <b>스테미나 소모 없이 평타 자동 사용</b>` },
+  { id:'auto_attack', name:'자동 공격',   emoji:'🤖', rarity:'common', desc:`회피 사용 시 <b>스테미나 소모 없이 평타 자동 사용</b><br>최대 스테미나 <r>-${AUG_VALS.auto_attack.stamPenalty}%</r>` },
   { id:'pull_in',     name:'중력장',      emoji:'🧲', rarity:'common', desc:`반격기 선딜레이 중 <b>가까운 적 끌어당김</b>` },
   { id:'gum_shield',  name:'이 대신 잇몸으로', emoji:'🦷', rarity:'rare', desc:`스테미나 부족 시 <b>체력으로 스테미나 대체</b><br>최대 스테미나 <r>-${AUG_VALS.gum_shield.stamPenalty}%</r>` },
   { id:'revival',     name:'부활',        emoji:'👻', rarity:'hero',   desc:`사망 시 <b>${AUG_VALS.revival.delay/1000}초 후 부활</b><br>체력 <r>-${AUG_VALS.revival.hpPenalty}%</r>` },
@@ -18298,8 +18298,8 @@ function syncLegacyBuffVisuals(now = performance.now()) {
   if (sbCnt > 0 && L._startBoostEnd && L._startBoostEnd > now) {
     syncTimedBuff(L, 'spd', AUG_VALS.start_boost.speedBonus * sbCnt, L._startBoostEnd, 'start_boost_spd');
     syncTimedBuff(L, 'dmg', AUG_VALS.start_boost.dmgBonus * sbCnt, L._startBoostEnd, 'start_boost_dmg');
-    syncTimedBuff(L, 'stam_regen', AUG_VALS.start_boost.stamBonus * sbCnt, L._startBoostEnd, 'start_boost_stam');
-    syncTimedBuff(L, 'dodge_dist', AUG_VALS.start_boost.dodgeBonus * sbCnt, L._startBoostEnd, 'start_boost_dodge');
+    clearBuffStatus(L, 'start_boost_stam');
+    clearBuffStatus(L, 'start_boost_dodge');
   } else { clearBuffStatus(L, 'start_boost_spd'); clearBuffStatus(L, 'start_boost_dmg'); clearBuffStatus(L, 'start_boost_stam'); clearBuffStatus(L, 'start_boost_dodge'); }
   if (hasEntityFunctionalRuntime(L, 'stageStackBuff') && (L._nsonyaStacks||0) >= 1 && L._nsonyaExpiry?.[1] > now) { syncTimedBuff(L, 'spd', Math.round((duels2GetSkillBalance('nsonya','rmb').speedMult-1)*100), L._nsonyaExpiry[1], 'nsonya_spd', {hidden:false}); applyBuffStatus(L,'nsonya_stage',L._nsonyaStacks||1,250,{sourceId:'nsonya_stage',id:'nsonya_stage',label:'',suffix:'',signMode:'none',text:romanStage(L._nsonyaStacks||1), hidden:true}); } else { clearBuffStatus(L, 'nsonya_spd'); clearBuffStatus(L, 'nsonya_stage'); }
   if (hasEntityFunctionalRuntime(L, 'stealthInvisible') && L._syaInvisible && L._syaInvisEndAt > now) syncTimedBuff(L, 'spd', Math.round((duels2GetSkillBalance('sya','rmb').speedBoost-1)*100), L._syaInvisEndAt, 'sya_spd'); else clearBuffStatus(L, 'sya_spd');
@@ -24046,6 +24046,7 @@ duels2RegisterSimpleGameplayEventHandler('matchFormat', d => {
   matchState.peerAugments = [];
   matchState._pendingLocalAugHudId = null;
   matchState._pendingPeerAugHudId = null;
+  duels2ResetDuelScoreAuthorityState?.('network.match-format');
 });
 
 // roundScoreSync: 송신자 관점 점수를 수신자 관점으로 반전해 Score View에 반영한다.
@@ -24303,7 +24304,22 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     if(!matchState._betweenStarted){matchState._betweenStarted=true;if(matchState._peerSelectedChar)peerCharId=matchState._peerSelectedChar;updatePeerAugDisplay();}
     startBetweenCountdown(3);
   }, 520);
-  duels2RegisterSimpleGameplayEventHandler('matchOver', () => showMatchOver(false), 520);
+  // matchOver: 점수 권한자가 확정한 승자 PID와 절대 점수를 적용한 뒤 로컬 관점 결과 화면을 연다. (d: winnerPid/localWins/peerWins 포함 패킷)
+  duels2RegisterSimpleGameplayEventHandler('matchOver', d => {
+    if (d.authorityPid && d.authorityPid !== 'P1') return;
+    const localPid = DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || (isHost ? 'P1' : 'P2');
+    if (Number.isFinite(Number(d.localWins)) && Number.isFinite(Number(d.peerWins))) {
+      if (localPid === 'P1') {
+        matchState.localWins = Number(d.localWins) || 0;
+        matchState.peerWins = Number(d.peerWins) || 0;
+      } else {
+        matchState.localWins = Number(d.peerWins) || 0;
+        matchState.peerWins = Number(d.localWins) || 0;
+      }
+      updateRoundScoreDisplay?.();
+    }
+    showMatchOver(localPid === d.winnerPid);
+  }, 520);
   duels2RegisterSimpleGameplayEventHandler('fx', d => {
     const fx={...d.fx,_receivedAt:performance.now()};
     if(fx.type==='counterCharge') delete fx.followLocal;
@@ -24688,6 +24704,7 @@ function onData(d) {
       matchState.format = duels2NormalizeMatchFormat(d.format);
       matchState.localWins = 0; matchState.peerWins = 0; matchState.round = 1;
       matchState.localAugments = []; matchState.peerAugments = [];
+      duels2ResetDuelScoreAuthorityState?.('legacy.match-format');
       break;
     // ── 라운드 사이: 캐릭터/증강 선택지 수신 (호스트→참가자)
     case 'roundScoreSync': {
@@ -24727,8 +24744,22 @@ function onData(d) {
       startBetweenCountdown(3); // 피어도 동시에 카운트다운 시작
       break;
     // ── 최종 매치 종료
-    case 'matchOver':
-      showMatchOver(false); break; // 내가 졌을 때 받음
+    case 'matchOver': {
+      if (d.authorityPid && d.authorityPid !== 'P1') break;
+      const localPid = DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || (isHost ? 'P1' : 'P2');
+      if (Number.isFinite(Number(d.localWins)) && Number.isFinite(Number(d.peerWins))) {
+        if (localPid === 'P1') {
+          matchState.localWins = Number(d.localWins) || 0;
+          matchState.peerWins = Number(d.peerWins) || 0;
+        } else {
+          matchState.localWins = Number(d.peerWins) || 0;
+          matchState.peerWins = Number(d.localWins) || 0;
+        }
+        updateRoundScoreDisplay?.();
+      }
+      showMatchOver(localPid === d.winnerPid);
+      break;
+    }
     case 'debugMapChange':
       duels2SetCurrentMap(d.mapId ?? d.mapIdx, {network:false}); break;
     case 'fxClear':
@@ -25260,10 +25291,9 @@ function tickStamina(now, physDt) {
 
   // 엔소냐/디버그/팀 버프는 _buffStatuses → _devStamRegenBuffMult 경로로만 계산한다.
   const regenMult = 1;
-  const _boostActSt = getAugCount('start_boost')>0 && L._startBoostEnd && now < L._startBoostEnd;
   const _devStamRegenMult = L._devStamRegenBuffMult || (1 + Math.max(0, getEffectiveBuffPercent(L, 'stam_regen')) / 100);
   const augMult = (1 + (AUG_VALS.swift_regen.regenBonus/100) * getAugCount('swift_regen'))
-                * (1 + (_boostActSt ? (AUG_VALS.start_boost.stamBonus/100) : 0)) * _devStamRegenMult;
+                * _devStamRegenMult;
   const bigBulletPenalty = Math.max(0.05, 1 - (AUG_VALS.big_bullet.stamPenalty/100) * getAugCount('big_bullet'));
   const zapMult = _zapActive ? 0.6 : 1;
   L.stamina = Math.min(stamMax, L.stamina + (STAM_MAX / STAM_REGEN) * physDt * regenMult * augMult * bigBulletPenalty * zapMult);
@@ -28728,13 +28758,11 @@ function tryDodge() {
   if (!hasDir) { setTimeout(onDodgeEnd, 150); return; }
 
   const ds=performance.now(), sx=L.x, sy=L.y;
-  const _boostActDodge = getAugCount('start_boost')>0 && L._startBoostEnd && performance.now()<L._startBoostEnd;
   const _ddCount = getAugCount('double_dodge');
   const augDodgeDist = DODGE_DIST
     * Math.max(0.1, 1 + (AUG_VALS.light_step.distBonus/100) * getAugCount('light_step')
                       - (AUG_VALS.heal_dodge.distPenalty/100) * getAugCount('heal_dodge')
                       - (Math.min(0.8, (_ddCount > 0 ? (AUG_VALS.double_dodge.distPenalty/100) * _ddCount : 0))))
-    * (1 + (_boostActDodge ? (AUG_VALS.start_boost.dodgeBonus/100) : 0))
     * (L._devDodgeDistMult || 1);
   const tx=Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x+dx*augDodgeDist));
   const ty=Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y+dy*augDodgeDist));
@@ -56512,6 +56540,7 @@ function confirmSelect() {
 function checkBothReady() {
   if (!duels2AreAllRegisteredPlayersReady()) return;
   if (isHost) {
+    duels2ResetDuelScoreAuthorityState('host-new-match');
     send({type:'matchFormat', format: matchState.format});
     matchState.localAugments = []; matchState.peerAugments = [];
   }
@@ -56806,9 +56835,24 @@ function duels2IsCurrentDuelRoundEvent(packet = {}) {
   return packetToken === duels2GetDuelRoundToken();
 }
 
-// duels2ApplyHostDuelScoreOnce: 호스트만 라운드 토큰당 정확히 한 번 승점을 변경한다. (won: 호스트 관점 승리 여부, roundToken: 종료 라운드 토큰)
+// duels2IsDuelScoreAuthority: 현재 클라이언트가 1대1 승점의 단일 권한자인지 확인한다. ()
+function duels2IsDuelScoreAuthority() {
+  const localPid = DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || null;
+  return isHost === true || localPid === 'P1';
+}
+
+// duels2ResetDuelScoreAuthorityState: 새 매치에서 이전 라운드의 점수 확정 기록을 초기화한다. (reason: 초기화 사유)
+function duels2ResetDuelScoreAuthorityState(reason = 'match-reset') {
+  matchState._hostScoredDuelRounds = Object.create(null);
+  matchState._lastScoredRoundToken = null;
+  matchState._roundResolutionToken = null;
+  matchState._sentDuelDeathEventId = null;
+  matchState._duelScoreAuthorityResetReason = reason;
+}
+
+// duels2ApplyHostDuelScoreOnce: 점수 권한 클라이언트만 라운드 토큰당 정확히 한 번 승점을 변경한다. (won: 권한자 관점 승리 여부, roundToken: 종료 라운드 토큰)
 function duels2ApplyHostDuelScoreOnce(won, roundToken) {
-  if (!isHost) return false;
+  if (!duels2IsDuelScoreAuthority()) return false;
   const token = duels2GetDuelRoundToken(roundToken);
   if (!matchState._hostScoredDuelRounds) matchState._hostScoredDuelRounds = Object.create(null);
   if (matchState._hostScoredDuelRounds[token]) return false;
@@ -56872,7 +56916,7 @@ function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)
   const scoreChanged = duels2ApplyHostDuelScoreOnce(won, roundToken);
   matchState.lastWinner = won ? 'local' : 'peer';
   updateRoundScoreDisplay?.();
-  if (isHost && scoreChanged) {
+  if (duels2IsDuelScoreAuthority() && scoreChanged) {
     send({
       type:'roundScoreSync',
       sourcePid:DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || 'P1',
@@ -56888,9 +56932,21 @@ function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)
   const matchDone = matchState.localWins >= fmt.winsNeeded || matchState.peerWins >= fmt.winsNeeded;
 
   if (matchDone) {
-    // 매치 완전 종료
-    if (won) { showMatchOver(true); send({type:'matchOver'}); }
-    else     { showMatchOver(false); }
+    // 매치 완전 종료는 점수 권한자가 승자와 절대 점수를 확정하고 양쪽에 동일한 결과를 배포한다.
+    if (duels2IsDuelScoreAuthority()) {
+      const authorityLocalPid = DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || 'P1';
+      const winnerPid = matchState.localWins >= fmt.winsNeeded ? authorityLocalPid : (authorityLocalPid === 'P1' ? 'P2' : 'P1');
+      send({
+        type:'matchOver',
+        authorityPid:'P1',
+        winnerPid,
+        roundToken,
+        localWins:Number(matchState.localWins)||0,
+        peerWins:Number(matchState.peerWins)||0
+      });
+      showMatchOver(winnerPid === authorityLocalPid);
+    }
+    // 비권한 클라이언트는 점수 동기화 이전의 로컬 추정으로 최종 결과를 결정하지 않고 matchOver 권한 패킷을 기다린다.
   } else {
     // 라운드 종료 → 결과 표시 후 라운드 사이 화면
     matchState.round++;
@@ -57260,6 +57316,7 @@ function doRematch(options = {}) {
     }
     matchState.localWins=0; matchState.peerWins=0; matchState.round=1;
     matchState.localAugments=[]; matchState.peerAugments=[]; matchState._pendingLocalAugHudId=null; matchState._pendingPeerAugHudId=null;
+    duels2ResetDuelScoreAuthorityState('full-rematch');
     matchState._matchOver = false; // 플래그 초기화
     document.querySelectorAll('.char-card').forEach(c => { c.classList.remove('sel'); c.style.pointerEvents=''; });
     document.getElementById('confirm-btn').disabled=false;
@@ -57284,7 +57341,7 @@ function doRematch(options = {}) {
 // 리매치 시 랜덤 캐릭터 선택 잠금 해제 상태를 확인한다.
 function duels2GetRematchRandomSelectionFixSummary() {
   return {
-    version:'0.38.1',
+    version:'0.38.2',
     randomButtonDisabled:!!document.getElementById('random-btn')?.disabled,
     selectedCharacterId:selCharId,
     matchPhase:window._duels2MatchPhase || 'unknown',
@@ -57321,7 +57378,8 @@ function resetL() {
   L.radius    = duels2ReadFiniteCharacterStat(lc, 'radius', 20);
   L.stamina   = STAM_MAX
     * (1 + (AUG_VALS.endurance.stamBonus/100) * getAugCount('endurance'))
-    * (1 - (AUG_VALS.gum_shield.stamPenalty/100) * Math.min(1, getAugCount('gum_shield')));
+    * (1 - (AUG_VALS.gum_shield.stamPenalty/100) * Math.min(1, getAugCount('gum_shield')))
+    * Math.max(0.1, 1 - (AUG_VALS.auto_attack.stamPenalty/100) * getAugCount('auto_attack'));
   L._augStamMax = L.stamina;
   L._revivalCount = getAugCount('revival');
   L._reviving = false;
@@ -57416,8 +57474,7 @@ window.duels2GetPidCharacterPositionFixSummary=duels2GetPidCharacterPositionFixS
 function startGame() {
   matchState._sentDuelDeathEventId = null;
   matchState._roundResolutionToken = null;
-
-  matchState._roundResolutionToken = null;
+  matchState._lastScoredRoundToken = null;
   duels2ResetDebugSessionState('match-start');
   window._duels2MatchPhase = 'playing';
   localReady=true; peerReady=true;
@@ -59249,7 +59306,10 @@ function applyCharBaseStatsToEntity(entity, ch, opt = {}) {
     - (AUG_VALS.endurance.speedPenalty/100) * ac('endurance'));
   entity.speed = (ch.speed || entity.speed || 4) * spdMult;
   entity.radius = ch.radius ?? entity.radius ?? 20;
-  entity.maxStamina = STAM_MAX * (1 + (AUG_VALS.endurance.stamBonus/100) * ac('endurance')) * (1 - (AUG_VALS.gum_shield.stamPenalty/100) * Math.min(1, ac('gum_shield')));
+  entity.maxStamina = STAM_MAX
+    * (1 + (AUG_VALS.endurance.stamBonus/100) * ac('endurance'))
+    * (1 - (AUG_VALS.gum_shield.stamPenalty/100) * Math.min(1, ac('gum_shield')))
+    * Math.max(0.1, 1 - (AUG_VALS.auto_attack.stamPenalty/100) * ac('auto_attack'));
   entity.stamina = opt.keepSt ? Math.min(entity.stamina || entity.maxStamina, entity.maxStamina) : entity.maxStamina;
   entity.playerLike = true;
   if (opt.keepPos) { entity.x = oldX; entity.y = oldY; entity.tx = oldTx ?? oldX; entity.ty = oldTy ?? oldY; }
@@ -59878,7 +59938,7 @@ function openDevPanel(opt = {}) {
 
   // 헤더
   const hdr = _devEl('div','display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #2a2a3a;padding-bottom:6px;');
-  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.38.1'));
+  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.38.2'));
   const hdrBtns = _devEl('div','display:flex;gap:4px;');
     hdrBtns.appendChild(_devBtn(_devPanelSide==='right'?'◀ 왼쪽':'▶ 오른쪽', ()=>{ _devPanelSide=_devPanelSide==='right'?'left':'right'; duels2SafeLocalStorageSetItem('devSide',_devPanelSide); refreshDevPanel(); }));
   hdrBtns.appendChild(_devBtn('✕', ()=>{ panel.remove(); }));
@@ -60320,7 +60380,7 @@ function duels2GetMultiPeerNetworkAuditSummary() {
 
 const DUELS2_RUNTIME_BUGFIX_038_STEP = Object.freeze({
   step:'Step 242 - Movement, Health Display & Remote Character Bugfix',
-  version:'0.38.1',
+  version:'0.38.2',
   fixes:Object.freeze([
     'primitive-skill-balance-values-preserved',
     'single-main-loop-generation-guard',
@@ -60893,7 +60953,7 @@ window.duels2GetResidualCollisionMigrationSummary = function duels2GetResidualCo
 // duels2GetFinalCombatGeometryMigrationSummary: 이번 전투 기하 판정 마이그레이션 상태를 반환한다.
 window.duels2GetFinalCombatGeometryMigrationSummary = function duels2GetFinalCombatGeometryMigrationSummary() {
   return {
-    version:'0.38.1',
+    version:'0.38.2',
     shapes:['circle','cone','line','orientedRect','annulus','ctx'],
     migrated:['konyeong.lmb-rect','konyeong.counter-circle','peluna.lmb-annulus','sherina.rmb-circle-knockback'],
     directMathHypotCount:(document.documentElement.innerHTML.match(/Math\.hypot\s*\(/g)||[]).length,
