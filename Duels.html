@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Duels</title>
-<meta name="duels-version" content="0.39.0">
+<meta name="duels-version" content="0.39.1">
 <script async src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js">
 // duels2GetAugmentVisibilityAndFastRegenSummary: 증강 HUD 공개 시점과 빠른 재생 효과 변경 상태를 반환한다. ()
 function duels2GetAugmentVisibilityAndFastRegenSummary() {
@@ -454,7 +454,7 @@ input[type=text]:focus{border-color:#4af;}
 #dev-panel .dev-fold-title{font-size:14px!important;}
 
 
-/* ── 0.39.0 record card/layout hotfix ── */
+/* ── 0.39.1 record card/layout hotfix ── */
 .char-card,.start-aug-char-card{box-sizing:border-box;width:148px!important;min-width:148px!important;max-width:148px!important;overflow:hidden;}
 .char-card{padding:8px 8px 7px!important;font-size:10px!important;}
 .char-card .char-icon,.start-aug-char-card .char-icon{width:50px!important;height:50px!important;margin-bottom:5px!important;}
@@ -471,7 +471,7 @@ input[type=text]:focus{border-color:#4af;}
 .start-aug-item.sel::before{content:'';position:absolute;inset:5px;border:1px solid rgba(255,255,255,.74);border-radius:2px;pointer-events:none;}
 
 
-/* ── 0.39.0 record card readability restore ── */
+/* ── 0.39.1 record card readability restore ── */
 .char-card,.start-aug-char-card{
   box-sizing:border-box;
   width:158px!important;
@@ -547,7 +547,7 @@ input[type=text]:focus{border-color:#4af;}
   overflow-wrap:anywhere!important;
 }
 
-/* ── 0.39.0 character card 8-column / record detail ── */
+/* ── 0.39.1 character card 8-column / record detail ── */
 .char-grid{
   max-width:1174px!important;
   gap:10px!important;
@@ -647,7 +647,7 @@ input[type=text]:focus{border-color:#4af;}
 }
 
 
-/* ── 0.39.0 카드 가독성 및 레코드 상세 상태 수정 ── */
+/* ── 0.39.1 카드 가독성 및 레코드 상세 상태 수정 ── */
 .char-card,.start-aug-char-card{
   font-size:12px!important;
 }
@@ -677,7 +677,7 @@ input[type=text]:focus{border-color:#4af;}
 
 
 
-/* ── 0.39.0 캐릭터 카드 내부 배치 개선 ──
+/* ── 0.39.1 캐릭터 카드 내부 배치 개선 ──
    카드 비율과 8열 폭은 유지하면서, 비어 보이던 하단 공간을
    아이콘·이름·능력치 영역의 실제 간격으로 재분배한다. */
 #scr-select .char-card,
@@ -861,7 +861,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.39.0</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.39.1</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1295,7 +1295,7 @@ input[type=text]:focus{border-color:#4af;}
  * - 캐릭터별로 피해/피격/사망/상태이상 코드를 따로 만들지 않는다.
  * - CombatResolver 외부에서 HP와 전투 피드백을 제각각 처리하지 않는다.
  */
-const DUELS2_ALPHA_VERSION = '0.39.0';
+const DUELS2_ALPHA_VERSION = '0.39.1';
 // DUELS2_RUNTIME_DIAGNOSTICS_ENABLED: 개발 단계의 전투·상태·모션·모듈 감사 이력 수집 여부다. 출시 실행에서는 사용하지 않으므로 비활성화한다.
 const DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = false;
 window.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = DUELS2_RUNTIME_DIAGNOSTICS_ENABLED;
@@ -1789,7 +1789,7 @@ window.DUELS2_STATIC_REGRESSION_AUDIT_STEP = DUELS2_STATIC_REGRESSION_AUDIT_STEP
 // DUELS2_FINAL_RELEASE_AUDIT_STEP: Step 229 최종 릴리스 감사 범위와 자동/수동 검증 상태를 선언한다.
 const DUELS2_FINAL_RELEASE_AUDIT_STEP = Object.freeze({
   step:'Step 229 - Final Release Audit & Regression Checklist',
-  releaseLabel:'0.39.0',
+  releaseLabel:'0.39.1',
   staticAuditComplete:true,
   browserGameplayValidation:'manual-pending',
   twoPlayerNetworkValidation:'manual-pending',
@@ -1861,7 +1861,7 @@ window.duels2GetFinalReleaseAuditSummary = duels2GetFinalReleaseAuditSummary;
 // DUELS2_ALPHA_RELEASE_DECISION_STEP: Step 230의 Alpha 완료 판정 규칙과 현재 수동 검증 게이트 상태를 선언한다.
 const DUELS2_ALPHA_RELEASE_DECISION_STEP = Object.freeze({
   step:'Step 230 - Alpha Release Decision Gate & Completion Status',
-  releaseCandidateLabel:'0.39.0',
+  releaseCandidateLabel:'0.39.1',
   completionRule:'all-required-checks-passed',
   manualValidationRequired:true,
   automaticPromotionDisabled:true,
@@ -1908,7 +1908,7 @@ function duels2GetAlphaCompletionStatus() {
   const decision = duels2EvaluateAlphaReleaseDecision();
   return {
     version:DUELS2_ALPHA_VERSION,
-    uiVersion:'0.39.0',
+    uiVersion:'0.39.1',
     singleFileOnly:DUELS2_ALPHA_SINGLE_FILE_ONLY,
     staticAuditPassed:releaseAudit.staticAuditPassed,
     approved:decision.approved,
@@ -3634,7 +3634,7 @@ const CHARACTERS = {
     speed:     duels2GetSkillBalance('shubi','speed'),
     radius:    duels2GetSkillBalance('shubi','radius'),
     statsText: [['체력', String(duels2GetSkillBalance('shubi','hp'))],['이동속도','보통'],['스타일','파워형 근거리 딜러']],
-    desc:      '샷건으로 근거리를 장악하는 캐릭터.',
+    desc:      '샷건으로 근거리를 장악하는 캐릭터',
     skills: [
       { key:'LMB',     name:'샷건',   cost:duels2GetSkillBalance('shubi','lmb').cost,  desc:`샷건 ${duels2GetSkillBalance('shubi','lmb').pellets}발 중거리 발사 (탄당 ${duels2GetSkillBalance('shubi','lmb').damage})` },
       { key:'RMB',     name:'반동샷', cost:duels2GetSkillBalance('shubi','rmb').cost,  desc:`샷건 ${duels2GetSkillBalance('shubi','rmb').pellets}발 발사 + 후방 빠른 이동 (탄당 ${duels2GetSkillBalance('shubi','rmb').damage})` },
@@ -3650,7 +3650,7 @@ const CHARACTERS = {
     speed:     duels2GetSkillBalance('ruvu','speed'),
     radius:    duels2GetSkillBalance('ruvu','radius'),
     statsText: [['체력', String(duels2GetSkillBalance('ruvu','hp'))],['이동속도','보통'],['스타일','기동형 원거리 저격수']],
-    desc:      '망치로 못을 쳐날리는 캐릭터.',
+    desc:      '망치로 못을 쳐날리는 캐릭터',
     skills: [
       { key:'LMB',     name:'못망치',   cost:duels2GetSkillBalance('ruvu','lmb').cost, desc:`고속 못 발사 (${duels2GetSkillBalance('ruvu','lmb').damage})` },
       { key:'RMB',     name:'망치 투척', cost:duels2GetSkillBalance('ruvu','rmb').cost, desc:`벽과 적 관통 망치 투척. LMB로 망치 위치로 돌진 / RMB로 망치 회수. ${duels2GetSkillBalance('ruvu','rmb').window/1000}초 내 미사용 시 자동 회수` },
@@ -4299,11 +4299,11 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     desc:      '정확한 거리를 가늠하며 전투하는 캐릭터',
     skills: [
       { key:'LMB', name:'줄자', cost:duels2GetSkillBalance('ruli','lmb').cost,
-        desc:`현재 단계의 끝점에서 가로 직사각형 형태로 줄자를 휘둘러 공격합니다. (${duels2GetSkillBalance('ruli','lmb').damage})` },
+        desc:`현재 단계의 사거리 끝에서 피해 (${duels2GetSkillBalance('ruli','lmb').damage})` },
       { key:'RMB', name:'길이조절', cost:duels2GetSkillBalance('ruli','rmb').cost,
-        desc:`줄자의 타격 지점을 1~${duels2GetSkillBalance('ruli','rmb').stages}단계로 조정합니다. 짧게 누르면 다음 단계, 홀드하면 0.2초마다 한 단계씩 줄어듭니다.` },
+        desc:`줄자의 타격 지점을 1~${duels2GetSkillBalance('ruli','rmb').stages}단계로 조정. 차징으로 단계 감소` },
       { key:'L-Shift', name:'되감기', cost:0,
-        desc:`줄자를 7단계까지 즉시 늘린 뒤 1단계까지 순차적으로 되감으며 각 단계에 피해를 줍니다. (${duels2GetSkillBalance('ruli','counter').damage}×7)` },
+        desc:`줄자를 7단계까지 즉시 늘린 뒤 1단계까지 순차적으로 되감으며 피해 (${duels2GetSkillBalance('ruli','counter').damage}×7)` },
     ],
   },
 
@@ -4315,7 +4315,7 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     speed:     duels2GetSkillBalance('lete','speed'),
     radius:    duels2GetSkillBalance('lete','radius'),
     statsText: [['체력', String(duels2GetSkillBalance('lete','hp'))],['이동속도','빠름'],['스타일','유지형 중거리 서포터']],
-    desc:      '도착하지 못한 편지들의 한이 모여 탄생한 분실된 편지의 정령',
+    desc:      '도착하지 못한 편지들의 한이 모여 탄생한 분실된 편지의 정령 캐릭터',
     skills: [
       { key:'LMB', name:'우편이야.', cost:duels2GetSkillBalance('lete','lmb').cost,
         desc:`우편을 빠르게 날림. 사거리 끝에 도달 시 귀환 (${duels2GetSkillBalance('lete','lmb').damage})` },
@@ -58967,7 +58967,7 @@ function doRematch(options = {}) {
 // 리매치 시 랜덤 캐릭터 선택 잠금 해제 상태를 확인한다.
 function duels2GetRematchRandomSelectionFixSummary() {
   return {
-    version:'0.39.0',
+    version:'0.39.1',
     randomButtonDisabled:!!document.getElementById('random-btn')?.disabled,
     selectedCharacterId:selCharId,
     matchPhase:window._duels2MatchPhase || 'unknown',
@@ -61635,7 +61635,7 @@ function openDevPanel(opt = {}) {
 
   // 헤더
   const hdr = _devEl('div','display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #2a2a3a;padding-bottom:6px;');
-  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.39.0'));
+  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.39.1'));
   const hdrBtns = _devEl('div','display:flex;gap:4px;');
     hdrBtns.appendChild(_devBtn(_devPanelSide==='right'?'◀ 왼쪽':'▶ 오른쪽', ()=>{ _devPanelSide=_devPanelSide==='right'?'left':'right'; duels2SafeLocalStorageSetItem('devSide',_devPanelSide); refreshDevPanel(); }));
   hdrBtns.appendChild(_devBtn('✕', ()=>{ panel.remove(); }));
@@ -62078,7 +62078,7 @@ function duels2GetMultiPeerNetworkAuditSummary() {
 
 const DUELS2_RUNTIME_BUGFIX_038_STEP = Object.freeze({
   step:'Step 242 - Movement, Health Display & Remote Character Bugfix',
-  version:'0.39.0',
+  version:'0.39.1',
   fixes:Object.freeze([
     'primitive-skill-balance-values-preserved',
     'single-main-loop-generation-guard',
@@ -63203,7 +63203,7 @@ window.duels2GetResidualCollisionMigrationSummary = function duels2GetResidualCo
 // duels2GetFinalCombatGeometryMigrationSummary: 이번 전투 기하 판정 마이그레이션 상태를 반환한다.
 window.duels2GetFinalCombatGeometryMigrationSummary = function duels2GetFinalCombatGeometryMigrationSummary() {
   return {
-    version:'0.39.0',
+    version:'0.39.1',
     shapes:['circle','cone','line','orientedRect','annulus','ctx'],
     migrated:['konyeong.lmb-rect','konyeong.counter-circle','peluna.lmb-annulus','sherina.rmb-circle-knockback'],
     directMathHypotCount:(document.documentElement.innerHTML.match(/Math\.hypot\s*\(/g)||[]).length,
@@ -63255,7 +63255,7 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
 </script>
 
 <style>
-/* ── 0.39.0 듀얼즈 계정 UI ── */
+/* ── 0.39.1 듀얼즈 계정 UI ── */
 #duels2-account-gate{position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0a0a0cf5;font-family:'Courier New',monospace;color:#d6e8f5}
 #duels2-account-gate.hidden{display:none}
 .duels2-account-panel{position:relative;position:relative;box-sizing:border-box;width:min(92vw,470px);max-height:none;overflow:hidden;padding:32px 34px 28px;border:1px solid #2a4a6a;border-radius:2px;background:#0a0a0c;box-shadow:0 0 0 1px #101b26,0 0 34px #44aaff24}
@@ -63318,7 +63318,7 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
     </section>
     <div class="duels2-account-config-error" id="duels2-account-config-error"></div>
     <div class="duels2-account-msg" id="duels2-account-message"></div>
-    <div class="duels2-account-version">v0.39.0</div>
+    <div class="duels2-account-version">v0.39.1</div>
   </div>
 </div>
 
