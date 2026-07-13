@@ -62548,7 +62548,7 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
       <div class="duels2-account-field"><label>비밀번호 확인</label><input id="duels2-create-password2" type="password" autocomplete="new-password" maxlength="128"></div>
       <div class="duels2-account-actions"><button class="btn big" id="duels2-create-button" type="button">계정 생성</button></div>
     </section>
-    <div class="duels2-account-config-error" id="duels2-account-config-error">저장소 연결 정보가 없습니다. 이전 설정본에서 GitHub 연결을 먼저 완료해야 합니다.</div>
+    <div class="duels2-account-config-error" id="duels2-account-config-error"></div>
     <div class="duels2-account-msg" id="duels2-account-message"></div>
     <div class="duels2-account-version">v0.39.0</div>
   </div>
@@ -62556,16 +62556,17 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
 
 <script>
 /* ─────────────────────────────────────────────────────────────
-   GitHub Contents API 기반 신뢰형 로컬 계정 시스템
+   Cloudflare Worker 기반 듀얼즈 계정 시스템
    - 비밀번호 원문은 저장하지 않고 PBKDF2 해시만 계정 JSON에 기록한다.
-   - 토큰은 HTML이 아닌 현재 브라우저의 localStorage에만 저장한다.
+   - GitHub 토큰은 Cloudflare Worker Secret에만 보관한다.
    - 기존 레코드 런타임을 계정 데이터에 연결하며 게임 로직은 변경하지 않는다.
 ───────────────────────────────────────────────────────────── */
-const DUELS2_GITHUB_ACCOUNT_CONFIG_KEY='duels2.githubAccount.config.v1';
+const DUELS2_ACCOUNT_API_BASE='https://duels-account-api.lyan5097gc.workers.dev';
 const DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY='duels2.githubAccount.lastId.v1';
 const DUELS2_GITHUB_ACCOUNT_SESSION_KEY='duels2.githubAccount.session.v1';
-const DUELS2_GITHUB_ACCOUNT_STATE={config:null,current:null,fileSha:null,saveTimer:0,saveChain:Promise.resolve(),loading:false,dirty:false};
+const DUELS2_GITHUB_ACCOUNT_STATE={config:{apiBase:DUELS2_ACCOUNT_API_BASE},current:null,fileSha:null,saveTimer:0,saveChain:Promise.resolve(),loading:false,dirty:false};
 globalThis.DUELS2_GITHUB_ACCOUNT_STATE=DUELS2_GITHUB_ACCOUNT_STATE;
+globalThis.DUELS2_ACCOUNT_API_BASE=DUELS2_ACCOUNT_API_BASE;
 const DUELS2_DEBUG_ADMIN_ACCOUNT_ID='lyan5097';
 
 // duels2CanUseDebugTools: 현재 로그인 계정이 디버깅 권한 계정인지 확인한다. ()
@@ -62586,15 +62587,43 @@ window.duels2LockDebugTools=duels2LockDebugTools;
 // duels2AccountNormalizeId: 파일 경로와 로그인 비교에 사용할 안전한 계정 ID를 만든다. (value: 사용자가 입력한 아이디)
 function duels2AccountNormalizeId(value){return String(value||'').trim().toLowerCase().replace(/[^a-z0-9._-]/g,'').slice(0,32);}
 
-// duels2AccountReadConfig: 브라우저에 저장된 GitHub 저장소 연결 설정을 불러온다. ()
-function duels2AccountReadConfig(){
-  try{const parsed=JSON.parse(localStorage.getItem(DUELS2_GITHUB_ACCOUNT_CONFIG_KEY)||'null');return parsed&&parsed.owner&&parsed.repo&&parsed.token?parsed:null;}catch(_){return null;}
+// duels2AccountApiRequest: Cloudflare Worker 계정 API에 JSON 요청을 보낸다. (path: API 경로, options: fetch 옵션)
+async function duels2AccountApiRequest(path,options={}){
+  const response=await fetch(`${DUELS2_ACCOUNT_API_BASE}${path}`,{
+    ...options,
+    headers:{'Content-Type':'application/json',...(options.headers||{})},
+    cache:'no-store'
+  });
+  let body=null;
+  try{body=await response.json();}catch(_){body=null;}
+  if(!response.ok||body?.ok===false){
+    const code=body?.error||'';
+    const message=body?.message||(
+      code==='ACCOUNT_NOT_FOUND'?'존재하지 않는 계정입니다.':
+      code==='ACCOUNT_ALREADY_EXISTS'?'이미 존재하는 아이디입니다.':
+      code==='INVALID_ACCOUNT_DATA'?'계정 데이터 형식이 올바르지 않습니다.':
+      `계정 서버 요청 실패 (${response.status})`
+    );
+    const error=new Error(message);error.status=response.status;error.code=code;error.body=body;throw error;
+  }
+  return body||{ok:true};
 }
 
-// duels2AccountWriteConfig: GitHub 저장소 연결 설정을 브라우저에 저장한다. (config: owner/repo/branch/token 설정)
-function duels2AccountWriteConfig(config){
-  const safe={owner:String(config.owner||'').trim(),repo:String(config.repo||'').trim(),branch:String(config.branch||'main').trim()||'main',token:String(config.token||'').trim()};
-  localStorage.setItem(DUELS2_GITHUB_ACCOUNT_CONFIG_KEY,JSON.stringify(safe));DUELS2_GITHUB_ACCOUNT_STATE.config=safe;return safe;
+// duels2AccountLoadRemoteFile: Worker를 통해 계정 JSON을 가져온다. (accountId: 계정 ID)
+async function duels2AccountLoadRemoteFile(accountId){
+  const id=duels2AccountNormalizeId(accountId);
+  const body=await duels2AccountApiRequest('/account/load',{method:'POST',body:JSON.stringify({accountId:id})});
+  if(!body?.account)throw new Error('계정 데이터를 읽을 수 없습니다.');
+  return {data:body.account,sha:null,path:`accounts/${id}.json`};
+}
+
+// duels2AccountPutRemoteFile: Worker를 통해 계정 JSON을 생성하거나 갱신한다. (accountId: 계정 ID, data: 저장 데이터, sha: 호환용 미사용 값)
+async function duels2AccountPutRemoteFile(accountId,data,sha=null){
+  const id=duels2AccountNormalizeId(accountId);
+  const create=!sha&&String(data?.createdAt||'')===String(data?.updatedAt||'');
+  const path=create?'/account/create':'/account/save';
+  const method=create?'POST':'PUT';
+  return duels2AccountApiRequest(path,{method,body:JSON.stringify({accountId:id,account:data})});
 }
 
 // duels2AccountSetMessage: 계정 화면 하단 상태 문구를 갱신한다. (text: 표시 문구, kind: error/ok/기본)
@@ -62609,15 +62638,7 @@ function duels2AccountSetTab(name){
   duels2AccountSetMessage('');
 }
 
-// duels2AccountUtf8ToBase64: UTF-8 문자열을 GitHub Contents API용 Base64로 변환한다. (text: 원문 문자열)
-function duels2AccountUtf8ToBase64(text){
-  const bytes=new TextEncoder().encode(String(text));let binary='';const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(binary);
-}
 
-// duels2AccountBase64ToUtf8: GitHub Contents API의 Base64 내용을 UTF-8 문자열로 복원한다. (value: Base64 문자열)
-function duels2AccountBase64ToUtf8(value){
-  const binary=atob(String(value||'').replace(/\s/g,''));const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new TextDecoder().decode(bytes);
-}
 
 // duels2AccountBytesToHex: 바이트 배열을 저장 가능한 16진수 문자열로 바꾼다. (bytes: Uint8Array 또는 ArrayBuffer)
 function duels2AccountBytesToHex(bytes){return Array.from(bytes instanceof Uint8Array?bytes:new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');}
@@ -62631,32 +62652,6 @@ async function duels2AccountHashPassword(password,saltHex,iterations=150000){
   const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(String(password)),{name:'PBKDF2'},false,['deriveBits']);
   const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:duels2AccountHexToBytes(saltHex),iterations,hash:'SHA-256'},key,256);
   return duels2AccountBytesToHex(bits);
-}
-
-// duels2AccountGithubRequest: 현재 설정으로 GitHub REST API 요청을 수행한다. (path: API 경로, options: fetch 옵션)
-async function duels2AccountGithubRequest(path,options={}){
-  const cfg=DUELS2_GITHUB_ACCOUNT_STATE.config||duels2AccountReadConfig();if(!cfg)throw new Error('GitHub 저장소 설정이 필요합니다.');
-  const response=await fetch(`https://api.github.com${path}`,{...options,headers:{Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',Authorization:`Bearer ${cfg.token}`,...(options.headers||{})}});
-  let body=null;try{body=await response.json();}catch(_){body=null;}
-  if(!response.ok){const error=new Error(body?.message||`GitHub 요청 실패 (${response.status})`);error.status=response.status;error.body=body;throw error;}
-  return body;
-}
-
-// duels2AccountPath: 계정 ID에 해당하는 저장소 JSON 경로를 반환한다. (accountId: 정규화된 계정 ID)
-function duels2AccountPath(accountId){return `accounts/${encodeURIComponent(duels2AccountNormalizeId(accountId))}.json`;}
-
-// duels2AccountLoadRemoteFile: GitHub에서 계정 JSON과 현재 파일 SHA를 가져온다. (accountId: 계정 ID)
-async function duels2AccountLoadRemoteFile(accountId){
-  const cfg=DUELS2_GITHUB_ACCOUNT_STATE.config;const path=duels2AccountPath(accountId);const query=`?ref=${encodeURIComponent(cfg.branch||'main')}`;
-  const body=await duels2AccountGithubRequest(`/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${path}${query}`);
-  if(!body?.content)throw new Error('계정 파일의 내용을 읽을 수 없습니다.');
-  return {data:JSON.parse(duels2AccountBase64ToUtf8(body.content)),sha:body.sha||null,path};
-}
-
-// duels2AccountPutRemoteFile: 계정 JSON을 새 커밋으로 생성하거나 갱신한다. (accountId: 계정 ID, data: 저장 데이터, sha: 기존 파일 SHA)
-async function duels2AccountPutRemoteFile(accountId,data,sha=null){
-  const cfg=DUELS2_GITHUB_ACCOUNT_STATE.config;const path=duels2AccountPath(accountId);const payload={message:`Duels account sync: ${accountId}`,content:duels2AccountUtf8ToBase64(JSON.stringify(data,null,2)),branch:cfg.branch||'main'};if(sha)payload.sha=sha;
-  return duels2AccountGithubRequest(`/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${path}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
 }
 
 // duels2AccountBuildPayload: 현재 로그인 계정과 게임 레코드 상태를 원격 저장 형식으로 만든다. ()
@@ -62683,9 +62678,27 @@ function duels2AccountUpdateChip(state='idle',message=''){
 
 // duels2AccountSaveNow: 최신 계정 데이터를 GitHub에 직렬 저장하고 충돌 시 한 번 다시 시도한다. (manual: 수동 저장 여부)
 async function duels2AccountSaveNow(manual=false){
-  if(!DUELS2_GITHUB_ACCOUNT_STATE.current||DUELS2_GITHUB_ACCOUNT_STATE.loading)return false;clearTimeout(DUELS2_GITHUB_ACCOUNT_STATE.saveTimer);DUELS2_GITHUB_ACCOUNT_STATE.dirty=false;
-  const run=async()=>{duels2AccountUpdateChip('saving','저장 중');const payload=duels2AccountBuildPayload();try{let response;try{response=await duels2AccountPutRemoteFile(payload.accountId,payload,DUELS2_GITHUB_ACCOUNT_STATE.fileSha);}catch(error){if(error.status!==409)throw error;const latest=await duels2AccountLoadRemoteFile(payload.accountId);DUELS2_GITHUB_ACCOUNT_STATE.fileSha=latest.sha;response=await duels2AccountPutRemoteFile(payload.accountId,payload,latest.sha);}DUELS2_GITHUB_ACCOUNT_STATE.fileSha=response?.content?.sha||DUELS2_GITHUB_ACCOUNT_STATE.fileSha;DUELS2_GITHUB_ACCOUNT_STATE.current=payload;duels2AccountUpdateChip('saved','저장됨');if(manual)duels2AccountSetMessage('GitHub에 저장했습니다.','ok');return true;}catch(error){DUELS2_GITHUB_ACCOUNT_STATE.dirty=true;duels2AccountUpdateChip('error','저장 실패');if(manual)duels2AccountSetMessage(error.message,'error');console.error('[Duels Account] save failed',error);return false;}};
-  DUELS2_GITHUB_ACCOUNT_STATE.saveChain=DUELS2_GITHUB_ACCOUNT_STATE.saveChain.then(run,run);return DUELS2_GITHUB_ACCOUNT_STATE.saveChain;
+  if(!DUELS2_GITHUB_ACCOUNT_STATE.current||DUELS2_GITHUB_ACCOUNT_STATE.loading)return false;
+  clearTimeout(DUELS2_GITHUB_ACCOUNT_STATE.saveTimer);DUELS2_GITHUB_ACCOUNT_STATE.dirty=false;
+  const run=async()=>{
+    duels2AccountUpdateChip('saving','저장 중');
+    const payload=duels2AccountBuildPayload();
+    try{
+      await duels2AccountApiRequest('/account/save',{method:'PUT',body:JSON.stringify({accountId:payload.accountId,account:payload})});
+      DUELS2_GITHUB_ACCOUNT_STATE.current=payload;
+      duels2AccountUpdateChip('saved','저장됨');
+      if(manual)duels2AccountSetMessage('계정 서버에 저장했습니다.','ok');
+      return true;
+    }catch(error){
+      DUELS2_GITHUB_ACCOUNT_STATE.dirty=true;
+      duels2AccountUpdateChip('error','저장 실패');
+      if(manual)duels2AccountSetMessage(error.message,'error');
+      console.error('[Duels Account] save failed',error);
+      return false;
+    }
+  };
+  DUELS2_GITHUB_ACCOUNT_STATE.saveChain=DUELS2_GITHUB_ACCOUNT_STATE.saveChain.then(run,run);
+  return DUELS2_GITHUB_ACCOUNT_STATE.saveChain;
 }
 
 // duels2AccountScheduleSave: 연속 점수 변경을 하나의 GitHub 커밋으로 묶어 지연 저장한다. (delay: 지연 시간 ms)
@@ -62694,15 +62707,14 @@ function duels2AccountScheduleSave(delay=900){
 }
 
 // duels2AccountEnterGame: 인증된 계정을 활성화하고 로그인 화면을 닫는다. (data: 계정 JSON, sha: 원격 파일 SHA)
-function duels2AccountEnterGame(data,sha){
+function duels2AccountEnterGame(data,sha=null){
   duels2LockDebugTools?.();
-  DUELS2_GITHUB_ACCOUNT_STATE.loading=true;DUELS2_GITHUB_ACCOUNT_STATE.current=data;DUELS2_GITHUB_ACCOUNT_STATE.fileSha=sha||null;duels2AccountApplyPayload(data);DUELS2_GITHUB_ACCOUNT_STATE.loading=false;
+  DUELS2_GITHUB_ACCOUNT_STATE.loading=true;DUELS2_GITHUB_ACCOUNT_STATE.current=data;DUELS2_GITHUB_ACCOUNT_STATE.fileSha=null;duels2AccountApplyPayload(data);DUELS2_GITHUB_ACCOUNT_STATE.loading=false;
   localStorage.setItem(DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY,data.accountId);localStorage.setItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY,JSON.stringify({accountId:data.accountId,updatedAt:Date.now()}));document.getElementById('duels2-account-gate')?.classList.add('hidden');duels2AccountUpdateChip('saved','동기화됨');
 }
 
 // duels2AccountRestoreSession: 최근 로그인 계정을 GitHub에서 다시 불러와 자동 로그인한다. ()
 async function duels2AccountRestoreSession(){
-  if(!DUELS2_GITHUB_ACCOUNT_STATE.config)return false;
   let session=null;try{session=JSON.parse(localStorage.getItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY)||'null');}catch(_){session=null;}
   const id=duels2AccountNormalizeId(session?.accountId);if(!id)return false;
   duels2AccountSetMessage('최근 계정 데이터를 불러오는 중입니다.');
@@ -62713,23 +62725,32 @@ async function duels2AccountRestoreSession(){
 // duels2AccountLogin: 입력한 비밀번호를 원격 해시와 비교하고 계정 데이터를 적용한다. ()
 async function duels2AccountLogin(){
   const id=duels2AccountNormalizeId(document.getElementById('duels2-login-id')?.value);const password=document.getElementById('duels2-login-password')?.value||'';if(!id||!password)return duels2AccountSetMessage('아이디와 비밀번호를 입력하세요.','error');
-  if(!DUELS2_GITHUB_ACCOUNT_STATE.config){document.getElementById('duels2-account-config-error')?.classList.add('show');return duels2AccountSetMessage('저장소 연결 정보가 없습니다.','error');}duels2AccountSetMessage('계정을 불러오는 중입니다.');
+  duels2AccountSetMessage('계정을 불러오는 중입니다.');
   try{const remote=await duels2AccountLoadRemoteFile(id);const data=remote.data;const hash=await duels2AccountHashPassword(password,data.password?.salt,data.password?.iterations||150000);if(hash!==data.password?.hash)throw new Error('비밀번호가 일치하지 않습니다.');document.getElementById('duels2-login-password').value='';duels2AccountEnterGame(data,remote.sha);}catch(error){duels2AccountSetMessage(error.status===404?'존재하지 않는 계정입니다.':error.message,'error');}
 }
 
 // duels2AccountCreate: 새 계정 파일을 만들고 현재 브라우저 데이터를 선택적으로 이전한다. ()
 async function duels2AccountCreate(){
-  const id=duels2AccountNormalizeId(document.getElementById('duels2-create-id')?.value);const displayName=String(document.getElementById('duels2-create-name')?.value||'').trim().slice(0,24);const password=document.getElementById('duels2-create-password')?.value||'';const password2=document.getElementById('duels2-create-password2')?.value||'';
-  if(id.length<3)return duels2AccountSetMessage('아이디는 영문 소문자·숫자 기준 3자 이상이어야 합니다.','error');if(!displayName)return duels2AccountSetMessage('표시 이름을 입력하세요.','error');if(password.length<4)return duels2AccountSetMessage('비밀번호는 4자 이상 입력하세요.','error');if(password!==password2)return duels2AccountSetMessage('비밀번호 확인이 일치하지 않습니다.','error');if(!DUELS2_GITHUB_ACCOUNT_STATE.config){document.getElementById('duels2-account-config-error')?.classList.add('show');return duels2AccountSetMessage('저장소 연결 정보가 없습니다.','error');}
+  const id=duels2AccountNormalizeId(document.getElementById('duels2-create-id')?.value);
+  const displayName=String(document.getElementById('duels2-create-name')?.value||'').trim().slice(0,24);
+  const password=document.getElementById('duels2-create-password')?.value||'';
+  const password2=document.getElementById('duels2-create-password2')?.value||'';
+  if(id.length<3)return duels2AccountSetMessage('아이디는 영문 소문자·숫자 기준 3자 이상이어야 합니다.','error');
+  if(!displayName)return duels2AccountSetMessage('표시 이름을 입력하세요.','error');
+  if(password.length<4)return duels2AccountSetMessage('비밀번호는 4자 이상 입력하세요.','error');
+  if(password!==password2)return duels2AccountSetMessage('비밀번호 확인이 일치하지 않습니다.','error');
   duels2AccountSetMessage('계정을 생성하는 중입니다.');
-  try{try{await duels2AccountLoadRemoteFile(id);throw new Error('이미 존재하는 아이디입니다.');}catch(error){if(error.status!==404)throw error;}const salt=crypto.getRandomValues(new Uint8Array(16));const saltHex=duels2AccountBytesToHex(salt);const iterations=150000;const hash=await duels2AccountHashPassword(password,saltHex,iterations);const now=new Date().toISOString();const data={version:1,accountId:id,displayName,createdAt:now,updatedAt:now,password:{algorithm:'PBKDF2-SHA256',iterations,salt:saltHex,hash},characterRecords:{},characterStats:{}};const response=await duels2AccountPutRemoteFile(id,data,null);document.getElementById('duels2-create-password').value='';document.getElementById('duels2-create-password2').value='';duels2AccountEnterGame(data,response?.content?.sha||null);}catch(error){duels2AccountSetMessage(error.message,'error');}
-}
-
-// duels2AccountSaveSettingsFromUi: 저장소 설정 입력값을 저장하고 연결 여부를 확인한다. (testOnly: 저장 없이 테스트만 할지 여부)
-async function duels2AccountSaveSettingsFromUi(testOnly=false){
-  const config={owner:document.getElementById('duels2-github-owner')?.value,repo:document.getElementById('duels2-github-repo')?.value,branch:document.getElementById('duels2-github-branch')?.value||'main',token:document.getElementById('duels2-github-token')?.value};if(!config.owner||!config.repo||!config.token)return duels2AccountSetMessage('소유자, 저장소 이름, 토큰을 모두 입력하세요.','error');
-  const previous=DUELS2_GITHUB_ACCOUNT_STATE.config;DUELS2_GITHUB_ACCOUNT_STATE.config=config;duels2AccountSetMessage('저장소 연결을 확인하는 중입니다.');
-  try{await duels2AccountGithubRequest(`/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}`);if(!testOnly)duels2AccountWriteConfig(config);duels2AccountSetMessage(testOnly?'연결에 성공했습니다.':'설정을 저장했습니다.','ok');if(!testOnly)setTimeout(()=>duels2AccountSetTab('login'),500);}catch(error){DUELS2_GITHUB_ACCOUNT_STATE.config=previous;duels2AccountSetMessage(error.message,'error');}
+  try{
+    const salt=crypto.getRandomValues(new Uint8Array(16));
+    const saltHex=duels2AccountBytesToHex(salt);const iterations=150000;
+    const hash=await duels2AccountHashPassword(password,saltHex,iterations);
+    const now=new Date().toISOString();
+    const data={version:1,accountId:id,displayName,createdAt:now,updatedAt:now,password:{algorithm:'PBKDF2-SHA256',iterations,salt:saltHex,hash},characterRecords:{},characterStats:{}};
+    await duels2AccountApiRequest('/account/create',{method:'POST',body:JSON.stringify({accountId:id,account:data})});
+    document.getElementById('duels2-create-password').value='';
+    document.getElementById('duels2-create-password2').value='';
+    duels2AccountEnterGame(data,null);
+  }catch(error){duels2AccountSetMessage(error.message,'error');}
 }
 
 // duels2AccountLogout: 변경 데이터를 저장한 뒤 현재 계정을 닫고 로그인 화면으로 돌아간다. ()
@@ -62748,8 +62769,8 @@ function duels2AccountInstallSaveHooks(){
 
 // duels2AccountInit: 계정 UI 이벤트와 기존 게임 저장 훅을 초기화한다. ()
 function duels2AccountInit(){
-  DUELS2_GITHUB_ACCOUNT_STATE.config=duels2AccountReadConfig();duels2AccountInstallSaveHooks();
-  const cfg=DUELS2_GITHUB_ACCOUNT_STATE.config;const configError=document.getElementById('duels2-account-config-error');configError?.classList.toggle('show',!cfg);
+  DUELS2_GITHUB_ACCOUNT_STATE.config={apiBase:DUELS2_ACCOUNT_API_BASE};duels2AccountInstallSaveHooks();
+  document.getElementById('duels2-account-config-error')?.classList.remove('show');
   const lastId=localStorage.getItem(DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY)||'';document.getElementById('duels2-login-id').value=lastId;
   document.getElementById('duels2-account-tab-login')?.addEventListener('click',()=>duels2AccountSetTab('login'));document.getElementById('duels2-account-tab-create')?.addEventListener('click',()=>duels2AccountSetTab('create'));
   document.getElementById('duels2-login-button')?.addEventListener('click',duels2AccountLogin);document.getElementById('duels2-create-button')?.addEventListener('click',duels2AccountCreate);
@@ -62761,10 +62782,14 @@ function duels2AccountInit(){
 // duels2AccountAdminResetPassword: 개발자모드에서 지정 계정의 비밀번호 해시를 새 값으로 교체한다. (accountId: 계정 아이디, newPassword: 새 비밀번호)
 async function duels2AccountAdminResetPassword(accountId,newPassword){
   const id=duels2AccountNormalizeId(accountId);const password=String(newPassword||'');
-  if(!id)throw new Error('계정 아이디를 입력하세요.');if(password.length<4)throw new Error('새 비밀번호는 4자 이상이어야 합니다.');
-  const loaded=await duels2AccountLoadRemoteFile(id);const saltHex=duels2AccountBytesToHex(crypto.getRandomValues(new Uint8Array(16)));const iterations=150000;
+  if(!id)throw new Error('계정 아이디를 입력하세요.');
+  if(password.length<4)throw new Error('새 비밀번호는 4자 이상이어야 합니다.');
+  const loaded=await duels2AccountLoadRemoteFile(id);
+  const saltHex=duels2AccountBytesToHex(crypto.getRandomValues(new Uint8Array(16)));const iterations=150000;
   loaded.data.password={algorithm:'PBKDF2-SHA256',iterations,salt:saltHex,hash:await duels2AccountHashPassword(password,saltHex,iterations)};
-  loaded.data.updatedAt=new Date().toISOString();await duels2AccountPutRemoteFile(id,loaded.data,loaded.sha);return true;
+  loaded.data.updatedAt=new Date().toISOString();
+  await duels2AccountApiRequest('/account/save',{method:'PUT',body:JSON.stringify({accountId:id,account:loaded.data})});
+  return true;
 }
 window.duels2AccountAdminResetPassword=duels2AccountAdminResetPassword;
 
