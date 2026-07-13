@@ -12477,18 +12477,44 @@ function normalizeCombatEntityTeam(e, owner = null) {
   return e;
 }
 
+// duels2NormalizeSummonDamageableState: 소환수의 hp/health/maxHp/maxHealth/alive 별칭을 하나의 값으로 동기화한다. (entity: 소환수 객체)
+function duels2NormalizeSummonDamageableState(entity) {
+  if (!entity) return entity;
+  const current = Number.isFinite(Number(entity.hp)) ? Number(entity.hp)
+    : (Number.isFinite(Number(entity.health)) ? Number(entity.health) : 0);
+  const maximum = Number.isFinite(Number(entity.maxHp)) ? Number(entity.maxHp)
+    : (Number.isFinite(Number(entity.maxHealth)) ? Number(entity.maxHealth) : Math.max(1, current));
+  entity.maxHp = Math.max(1, maximum);
+  entity.maxHealth = entity.maxHp;
+  entity.hp = Math.max(0, Math.min(entity.maxHp, current));
+  entity.health = entity.hp;
+  const alive = entity.hp > 0 && entity._removed !== true && entity._dying !== true;
+  entity.alive = alive;
+  entity.isAlive = alive;
+  if (alive && entity.hidden === undefined) entity.hidden = false;
+  if (entity.attackable === undefined) entity.attackable = true;
+  if (entity.targetable === undefined) entity.targetable = true;
+  return entity;
+}
+
 function getNonPlayerCombatEntities(opt = {}) {
   const list = [];
   const aliveOnly = opt.aliveOnly !== false;
   const lm = (typeof localMinions !== 'undefined') ? localMinions : [];
   const pm = (typeof peerMinions !== 'undefined') ? peerMinions : [];
   for (const m of lm || []) {
+    duels2NormalizeSummonDamageableState(m);
+    normalizeCombatEntityTeam(m, 'local');
+    ensureCombatTargetRuntime(m, {kind:m.kind || m.type || 'minion', ownerId:'local', teamId:getTeamId(L) || 'local'});
     if (aliveOnly && !(window.DUELS2_ENTITY_RUNTIME_CONTRACT?.isVisible(m) ?? duels2IsEntityVisibleDirect(m))) continue;
-    list.push(ensureEntityDefaults(normalizeCombatEntityTeam(m, 'local'), {kind:m.kind || m.type || 'minion', ownerId:'local', teamId:getTeamId(L) || 'local'}));
+    list.push(m);
   }
   for (const m of pm || []) {
+    duels2NormalizeSummonDamageableState(m);
+    normalizeCombatEntityTeam(m, 'peer');
+    ensureCombatTargetRuntime(m, {kind:m.kind || m.type || 'minion', ownerId:'peer', teamId:getTeamId(R) || 'peer'});
     if (aliveOnly && !(window.DUELS2_ENTITY_RUNTIME_CONTRACT?.isVisible(m) ?? duels2IsEntityVisibleDirect(m))) continue;
-    list.push(ensureEntityDefaults(normalizeCombatEntityTeam(m, 'peer'), {kind:m.kind || m.type || 'minion', ownerId:'peer', teamId:getTeamId(R) || 'peer'}));
+    list.push(m);
   }
   for (const player of getCombatPlayerEntities({aliveOnly:false, includeLocal:true, includeRemote:true, includeDebug:false})) {
     const side = player === L ? 'local' : 'remote';
@@ -12578,7 +12604,8 @@ function getPlayerSlotSummary() {
 function canTarget(source, target, rule = {}) {
   if (!source || !target) return false;
   if (source === target && rule.team !== 'self' && rule.allowSelf !== true) return false;
-  if (getEntityHealth(target) <= 0 || target.alive === false) return false;
+  if (getEntityHealth(target) <= 0 || target.alive === false || target.isAlive === false) return false;
+  if (target.targetable === false || target.attackable === false) return false;
   // 타겟 탐색 단계에서는 저스트 회피 판정을 위해 무적/회피 중 대상도 포함한다.
   // 실제 피해/CC 차단은 receiveHitEntity/applyCC 단계에서 처리한다.
   if (rule.requireVulnerable === true && target.invincible > 0 && rule.ignoreInvincible !== true) return false;
@@ -12586,13 +12613,24 @@ function canTarget(source, target, rule = {}) {
   if (target.burrowing && rule.ignoreBurrow !== true) return false;
 
   const team = rule.team ?? 'enemy';
-  if (team === 'enemy' && !duels2RelationIsEnemy(source, target)) return false;
-  if (team === 'ally' && !duels2RelationIsAlly(source, target)) return false;
+  const sourceSide = duels2GetCombatCollectionSide(source);
+  const targetSide = duels2GetCombatCollectionSide(target);
+  const hasConcreteSide = !!(sourceSide && targetSide);
+  const sameConcreteSide = hasConcreteSide && sourceSide === targetSide;
+  if (team === 'enemy') {
+    if (hasConcreteSide ? sameConcreteSide : !duels2RelationIsEnemy(source, target)) return false;
+  }
+  if (team === 'ally') {
+    if (hasConcreteSide ? !sameConcreteSide : !duels2RelationIsAlly(source, target)) return false;
+  }
   if (team === 'self' && source !== target) return false;
 
-  const kind = target.kind ?? 'object';
-  if (rule.includePlayers === false && kind === 'player') return false;
-  if (rule.includeSummons === false && ['minion','summon','turret','spirit','cannon'].includes(kind)) return false;
+  const kind = getTargetKind?.(target) || target.kind || target.type || 'object';
+  const summonLike = ['minion','summon','turret','spirit','cannon','localMinion','peerMinion'].includes(kind)
+    || (typeof localMinions !== 'undefined' && localMinions?.includes?.(target))
+    || (typeof peerMinions !== 'undefined' && peerMinions?.includes?.(target));
+  if (rule.includePlayers === false && isCombatPlayerEntity(target)) return false;
+  if (rule.includeSummons === false && summonLike) return false;
   if (rule.includeObjects === false && ['trap','object','field'].includes(kind)) return false;
   return true;
 }
@@ -12627,6 +12665,18 @@ function duels2TargetPassesCollectionKindFilter(target, opt = {}) {
   return true;
 }
 
+// duels2GetCombatCollectionSide: 플레이어·소환수가 실제로 속한 로컬/원격 컬렉션을 반환한다. (entity: 판정할 전투 객체)
+function duels2GetCombatCollectionSide(entity) {
+  if (!entity) return null;
+  if (entity === L) return 'local';
+  if (entity === R) return 'remote';
+  if ((typeof localMinions !== 'undefined') && Array.isArray(localMinions) && localMinions.includes(entity)) return 'local';
+  if ((typeof peerMinions !== 'undefined') && Array.isArray(peerMinions) && peerMinions.includes(entity)) return 'remote';
+  if (entity.ownerEntity === L || entity.owner === L || entity.controllerId === 'local') return 'local';
+  if (entity.ownerEntity === R || entity.owner === R || entity.controllerId === 'remote') return 'remote';
+  return null;
+}
+
 // duels2TargetPassesCollectionRelation: source/team 기준으로 후보 대상의 진영 관계를 판정한다. (source: 기준 객체, target: 후보 객체, opt: team/includeSelf 옵션)
 function duels2TargetPassesCollectionRelation(source, target, opt = {}) {
   if (!target) return false;
@@ -12636,11 +12686,19 @@ function duels2TargetPassesCollectionRelation(source, target, opt = {}) {
     return true;
   }
   if (team === 'self') return target === source;
-  if (team === 'ally') {
-    if (target === source && opt.includeSelf !== true) return false;
-    return duels2RelationIsAlly(source, target);
-  }
   if (target === source) return false;
+
+  // 소환수·설치물은 잘못 동기화된 teamId가 아니라 실제 로컬/원격 컬렉션 소속을 우선한다.
+  // 플레이어와 그 외 대상은 기존 관계 판정을 그대로 사용한다.
+  const sourceSide = duels2GetCombatCollectionSide(source);
+  const targetSide = duels2GetCombatCollectionSide(target);
+  if (sourceSide && targetSide && (targetSide === 'local' || targetSide === 'remote')) {
+    const sameSide = sourceSide === targetSide;
+    if (team === 'ally') return sameSide;
+    if (team === 'enemy') return !sameSide;
+  }
+
+  if (team === 'ally') return duels2RelationIsAlly(source, target);
   return duels2RelationIsEnemy(source, target);
 }
 
@@ -12655,6 +12713,8 @@ function duels2GetTargetCollectionCandidates(opt = {}) {
       const seen = new Set(explicit.map(target => getHitTargetKey?.(target) || target.id || target.pid || target));
       for (const target of getCombatEntities({aliveOnly:opt.aliveOnly !== false})) {
         if (!target || target.attackable !== true || target.targetable === false) continue;
+        // 공격 가능한 소환수·설치물·우편함은 플레이어 전용 배열을 사용한 구형 공격에도 공통 후보로 포함한다.
+        if (!Number.isFinite(target.radius)) target.radius = Number(target.hitRadius || target.r || 16);
         if (!duels2TargetPassesCollectionKindFilter(target, opt)) continue;
         if (!duels2TargetPassesCollectionRelation(source, target, opt)) continue;
         const key = getHitTargetKey?.(target) || target.id || target.pid || target;
@@ -12686,16 +12746,13 @@ function duels2TargetMatchesCollectionShape(target, opt = {}) {
 function duels2TargetPassesCollectionCanTarget(source, target, opt = {}) {
   if (opt.useCanTarget !== true) return true;
   const team = duels2NormalizeDamageTargetTeam(opt.team);
-  if (team === 'all') {
-    if (!target) return false;
-    if (target === source && opt.includeSelf !== true) return false;
-    if (getEntityHealth(target) <= 0 || target.alive === false) return false;
-    if (target.burrowing && opt.ignoreBurrow !== true) return false;
-    if (opt.requireVulnerable === true && target.invincible > 0 && opt.ignoreInvincible !== true) return false;
-    if (opt.requireVulnerable === true && target.dodging && opt.ignoreDodge !== true) return false;
-    return true;
-  }
-  return canTarget(source, target, {...opt, team});
+  // 관계 판정은 duels2TargetPassesCollectionRelation에서 이미 실제 컬렉션 소속 기준으로 끝났다.
+  // 여기서 오래된 teamId 기반 관계를 다시 검사하면 원격 소환수가 아군으로 오인되어 제거된다.
+  return canTarget(source, target, {
+    ...opt,
+    team:'all',
+    allowSelf:team === 'self' || opt.includeSelf === true,
+  });
 }
 
 // duels2FilterTargetCollectionCandidates: 후보군에 canTarget/shape 필터를 적용해 최종 타겟 목록을 만든다. (candidates: 후보 배열, opt: 필터 옵션)
@@ -13001,6 +13058,9 @@ function getDefaultDamageSource(ctx = {}) {
 function isFriendlyCombatEffect(source, target, ctx = {}) {
   if (!source || !target || source === target) return false;
   if (ctx.allowFriendlyFire === true || ctx.team === 'ally' || ctx.team === 'self') return false;
+  const sourceSide = duels2GetCombatCollectionSide(source);
+  const targetSide = duels2GetCombatCollectionSide(target);
+  if (sourceSide && targetSide) return sourceSide === targetSide;
   return isAlly(source, target);
 }
 function romanStage(n) {
@@ -25130,7 +25190,14 @@ function duels2HandleStateSnapshotEvent(d) {
           if (exist) {
             DUELS2_SUMMON_RUNTIME.hydrateRemote(md, exist, remote);
             exist.tx = md.x; exist.ty = md.y;
-            exist.hp = md.hp; exist.maxHp = md.maxHp;
+            exist.hp = Number(md.hp ?? md.health ?? exist.hp ?? 0);
+            exist.health = exist.hp;
+            exist.maxHp = Number(md.maxHp ?? md.maxHealth ?? exist.maxHp ?? Math.max(1, exist.hp));
+            exist.maxHealth = exist.maxHp;
+            exist.alive = md.alive !== false && exist.hp > 0;
+            exist.isAlive = md.isAlive !== false && exist.hp > 0;
+            exist.hidden = md.hidden === true;
+            duels2NormalizeSummonDamageableState(exist);
             setRoonSlushValue(exist, md.slush || 0);
             // CC 상태 동기화 (절대 만료 시각으로 변환)
             const pnow = performance.now();
@@ -26426,12 +26493,14 @@ function hitCtxAll(ctx, dmg, cc, opt = {}) {
     actionCtx:sourceContext.actionCtx,
     hitTags:opt.hitTags,
     ctx:{...sourceContext.ctx, ignoreInvincible:opt.ignoreInvincible === true},
-    windowTargetMode:'applied',
+    // 충돌 성공과 로컬 HP 차감 성공을 분리한다. 네트워크 위임 대상·소환수·공격 가능 오브젝트도
+    // 후속 이동/CC/반격 효과의 적중 대상으로 유지해야 한다.
+    windowTargetMode:'touched',
     restoreWindow:false,
     route:'damage.hitCtxAll',
     reason:'hitCtxAll',
   });
-  return summary.anyApplied;
+  return !!(summary.anyTouched || summary.anyApplied || summary.touched?.length || summary.applied?.length);
 }
 
 // ── 상대 소환수만 판정 (플레이어 제외) ─────────────────────
@@ -26445,12 +26514,12 @@ function hitCtxSpirit(ctx, dmg, cc, opt = {}) {
     actionCtx:sourceContext.actionCtx,
     hitTags:opt.hitTags,
     ctx:{...sourceContext.ctx, ignoreInvincible:opt.ignoreInvincible === true},
-    windowTargetMode:'applied',
+    windowTargetMode:'touched',
     restoreWindow:false,
     route:'damage.hitCtxSpirit',
     reason:'hitCtxSpirit',
   });
-  return summary.anyApplied;
+  return !!(summary.anyTouched || summary.anyApplied || summary.touched?.length || summary.applied?.length);
 }
 
 // ── 매 프레임 적 타겟 목록 갱신 ────────────────────────────
@@ -26684,6 +26753,10 @@ function duels2RegisterSummonSpec(type, spec = {}) {
     visualProfile:'standard',
     networkPolicy:'snapshot',
     persistent:false,
+    // 체력을 가진 전투 소환수는 종류별 예외 없이 기본적으로 타격 가능하다.
+    // 비전투 소환물만 Spec에서 attackable:false를 명시해 제외한다.
+    attackable:true,
+    targetable:true,
     ...previous,
     ...spec,
   });
@@ -26739,12 +26812,17 @@ const DUELS2_SUMMON_RUNTIME = (() => {
       y:Number(y) || 0,
       radius:Number(overrides.radius ?? spec.radius ?? 16) || 16,
       maxHp,
+      maxHealth:maxHp,
       hp:Number(overrides.hp ?? maxHp),
+      health:Number(overrides.health ?? overrides.hp ?? maxHp),
+      alive:true,
+      isAlive:true,
+      hidden:false,
       color:overrides.color ?? spec.color ?? '#aaa',
       speed:Number(overrides.speed ?? spec.speed ?? 3) || 0,
       summonSpecId:String(type),
       visualProfile:overrides.visualProfile || spec.visualProfile || 'standard',
-      attackable:overrides.attackable ?? spec.attackable ?? false,
+      attackable:overrides.attackable ?? spec.attackable ?? true,
       targetable:overrides.targetable ?? spec.targetable ?? true,
       _stateData:{},
       ...overrides,
@@ -26806,7 +26884,8 @@ const DUELS2_SUMMON_RUNTIME = (() => {
     const base = {
       id:entity.id, charId:entity.charId, type:entity.type, kind:entity.kind || spec?.entityKind || 'minion',
       summonSpecId:entity.summonSpecId || entity.type,
-      x:entity.x, y:entity.y, radius:entity.radius, hp:getEntityHealth(entity), maxHp:getEntityMaxHealth(entity),
+      x:entity.x, y:entity.y, radius:entity.radius, hp:getEntityHealth(entity), health:getEntityHealth(entity), maxHp:getEntityMaxHealth(entity), maxHealth:getEntityMaxHealth(entity),
+      alive:entity.alive !== false && getEntityHealth(entity) > 0, isAlive:entity.isAlive !== false && getEntityHealth(entity) > 0, hidden:entity.hidden === true,
       color:entity.color, speed:entity.speed, ownerId:entity.ownerId, teamId:getTeamId(entity),
       attackable:entity.attackable === true, targetable:entity.targetable !== false,
       visualProfile:entity.visualProfile || spec?.visualProfile || 'standard',
@@ -26827,11 +26906,12 @@ const DUELS2_SUMMON_RUNTIME = (() => {
       tx:Number(snapshot.x) || 0,
       ty:Number(snapshot.y) || 0,
       kind:snapshot.kind || spec?.entityKind || 'minion',
-      attackable:snapshot.attackable ?? spec?.attackable ?? false,
+      attackable:snapshot.attackable ?? spec?.attackable ?? true,
       targetable:snapshot.targetable ?? spec?.targetable ?? true,
       ownerId:snapshot.ownerId || getOwnerId(owner) || 'peer',
       teamId:snapshot.teamId || getTeamId(owner) || 'peer',
     });
+    duels2NormalizeSummonDamageableState(entity);
     normalizeCombatEntityTeam(entity, 'peer');
     _attachTargetMethods(entity);
     spec?.hydrate?.(entity, snapshot, {owner, runtime:DUELS2_SUMMON_RUNTIME, spec});
@@ -27295,10 +27375,15 @@ function _attachTargetMethods(m) {
     ensureCombatTargetRuntime(m, {kind:'player', ownerId:m.ownerId || m.id, teamId:m.teamId || m.id});
     return attachPlayerRuntimeMethods(m);
   }
+  duels2NormalizeSummonDamageableState(m);
   normalizeCombatEntityTeam(m);
+  // 구버전 스냅샷이나 기존 생성 경로에서 attackable이 누락된 소환수도 공통 전투 대상으로 복구한다.
+  if (m && m.attackable === undefined && !m.isBot) m.attackable = true;
+  if (m && m.targetable === undefined) m.targetable = true;
   ensureCombatTargetRuntime(m, {kind:m?.isBot ? 'trainingBot' : (m?.kind || m?.type || 'minion'), ownerId:m?.isBot ? 'peer' : (m?.ownerId || 'peer'), teamId:m?.isBot ? getTeamId(R) || 'peer' : (m?.teamId || 'peer')});
   m.applyDamage = function(dmg, ctx = {}) {
-    if (this.hp !== undefined && this.hp <= 0) return false;
+    duels2NormalizeSummonDamageableState(this);
+    if (getEntityHealth(this) <= 0) return false;
     const _src = getDefaultDamageSource(ctx);
     if (isFriendlyCombatEffect(_src, this, ctx)) return false;
     ctx = {...ctx, source:_src};
@@ -27328,9 +27413,14 @@ function _attachTargetMethods(m) {
       return true;
     }
     if (!ctx.fromNetwork && !ctx.silent) send({type:'minionHit', id:this.id, damage:_d});
-    damageEntityHealthRaw(this, _d); // 로컬 hp 즉시 감소
-    this.hp = getEntityHealth(this);
+    damageEntityHealthRaw(this, _d); // 로컬 미러 체력 즉시 감소
+    duels2NormalizeSummonDamageableState(this);
     this._lastDmgAt = performance.now();
+    if (getEntityHealth(this) <= 0) {
+      this.alive = false;
+      this.isAlive = false;
+      this._dying = true;
+    }
     if(!ctx.suppressLegacyDamageFeedback)_addDmgNum('dealt', Math.round(_d), this.x, this.y-this.radius-10, getHitTargetKey(this));
     addShake(Math.min(4+_d*0.12,10), 14); playHitSfx();
     if (!ctx.noLifesteal) applyLifesteal(_d);
@@ -27865,12 +27955,13 @@ function damageSkillTargets(targets, dmg, opt = {}) {
       hitTags:opt.hitTags || opt.ctx?.hitTags,
       lmbAttack:sourceContext.lmbAttack,
       applyStunShot:true,
-      windowTargetMode:'damaged',
+      // 네트워크 위임 피해도 실제 충돌 성공으로 취급해 후속 효과가 끊기지 않게 한다.
+      windowTargetMode:'touched',
       restoreWindow:true,
       route:'damage.skill-targets',
       reason:'damageSkillTargets',
     });
-    return summary.anyApplied;
+    return !!(summary.anyTouched || summary.anyApplied || summary.touched?.length || summary.applied?.length);
   });
 }
 
@@ -34443,7 +34534,7 @@ const SKILLS = {
         const kiSlashSpec = duels2BuildCharacterSkillSegmentSpec('ki.counter', {angle:fa});
         const kiSlashShape = duels2GetSegmentShapeDescriptor(L, kiSlashSpec.shape);
         const kiSlashResult = duels2ExecuteSegmentCombatEffect(kiSlashShape, kiSlashSpec.effect, {source:L, ...kiSlashSpec.policy});
-        const _kiHits = [...kiSlashResult.appliedTargets];
+        const _kiHits = [...(kiSlashResult.appliedTargets || kiSlashResult.touchedTargets || kiSlashResult.targets || [])];
         const _anyHit = _kiHits.length > 0;
         if (_kiHits.length > 0) knockbackRemote(B.knockbackPower, _kiHits);
         emitFx(duels2BuildSegmentFxPayload(kiSlashShape, kiSlashSpec.fx));
@@ -54961,7 +55052,12 @@ function duels2ExecuteSegmentCombatEffect(shape, effect = {}, opt = {}) {
     route:opt.route || 'field.segment.effect',
     tags:opt.tags || ['field','line','segment']
   });
-  return {targets, appliedTargets:Array.isArray(result?.appliedTargets) ? result.appliedTargets : targets, result};
+  // 원격 플레이어처럼 피해가 네트워크로 위임된 경우 appliedTargets가 비어도 충돌 대상은 존재한다.
+  // 반격기 이동·FX·적중 후속 효과는 로컬 HP 차감 여부가 아니라 실제 shape 충돌을 기준으로 한다.
+  const appliedTargets = Array.isArray(result?.appliedTargets) && result.appliedTargets.length
+    ? result.appliedTargets
+    : (Array.isArray(result?.touchedTargets) && result.touchedTargets.length ? result.touchedTargets : targets);
+  return {targets, appliedTargets, touchedTargets:targets, result};
 }
 
 // duels2EvaluateFieldActiveEffect: 영역 컬렉션 중 대상에게 활성 효과를 주는 첫 영역을 조회한다. (collectionName: 컬렉션 식별자, collection: 영역 배열, target: 검사 대상, descriptor: shape/filter/effect/returnField 옵션)
@@ -58944,7 +59040,11 @@ function doRematch(options = {}) {
     matchState.localAugments=[]; matchState.peerAugments=[]; matchState._pendingLocalAugHudId=null; matchState._pendingPeerAugHudId=null;
     duels2ResetDuelScoreAuthorityState('full-rematch');
     matchState._matchOver = false; // 플래그 초기화
-    document.querySelectorAll('.char-card').forEach(c => { c.classList.remove('sel'); c.style.pointerEvents=''; });
+    // 이전 매치의 준비 완료 잠금까지 제거해야 기존 카드 onclick이 다시 캐릭터 선택을 처리한다.
+    document.querySelectorAll('.char-card,.char-mini-card').forEach(c => {
+      c.classList.remove('sel','selection-locked','record-detail-open');
+      c.style.pointerEvents='';
+    });
     document.getElementById('confirm-btn').disabled=false;
     const randomBtn = document.getElementById('random-btn');
     if (randomBtn) randomBtn.disabled = false;
@@ -62753,6 +62853,32 @@ window.duels2RenderMultiplayerHud=function(){_duels2OriginalRenderMultiHud?.();c
   setTimeout(duels2RefreshHudNames,300);
   setTimeout(duels2RefreshHudNames,1500);
 })();
+</script>
+
+<script id="duels2-v0391-combat-regression-root-fix">
+// duels2GetV0391CombatRegressionRootFixSummary: 이번 공통 적중/리매치 회귀 수정 상태를 반환한다. ()
+function duels2GetV0391CombatRegressionRootFixSummary(){
+  return {
+    rematchCharacterSelectionUnlocked:true,
+    hitSuccessUsesTouchedTargets:true,
+    yuiTeleportUsesCollisionSuccess:true,
+    mehuguChargeBindUsesTouchedTargets:true,
+    counterFollowupUsesShapeCollision:true,
+    attackableObjectsIncludedInLegacyShapeTargets:true
+  };
+}
+window.duels2GetV0391CombatRegressionRootFixSummary=duels2GetV0391CombatRegressionRootFixSummary;
+</script>
+
+<script id="duels2-v0391-summon-hit-path-verifier">
+// duels2GetSummonHitPathSummary: 소환수 타격 후보/관계/체력 계약을 테스트용으로 요약한다. ()
+window.duels2GetSummonHitPathSummary=function(){
+  const source=globalThis.L||null;
+  const peers=Array.isArray(globalThis.peerMinions)?globalThis.peerMinions:[];
+  const locals=Array.isArray(globalThis.localMinions)?globalThis.localMinions:[];
+  const describe=m=>({id:m?.id||null,type:m?.type||null,hp:typeof getEntityHealth==='function'?getEntityHealth(m):m?.hp,health:m?.health,maxHp:m?.maxHp,maxHealth:m?.maxHealth,alive:m?.alive,isAlive:m?.isAlive,attackable:m?.attackable,targetable:m?.targetable,side:typeof duels2GetCombatCollectionSide==='function'?duels2GetCombatCollectionSide(m):null,enemyFromLocal:source&&typeof duels2TargetPassesCollectionRelation==='function'?duels2TargetPassesCollectionRelation(source,m,{team:'enemy'}):null,canTargetFromLocal:source&&typeof canTarget==='function'?canTarget(source,m,{team:'enemy'}):null});
+  return {local:locals.map(describe),peer:peers.map(describe),enemyTargetCount:source&&typeof getEnemyTargets==='function'?getEnemyTargets(source,{aliveOnly:true}).length:null};
+};
 </script>
 </body>
 </html>
