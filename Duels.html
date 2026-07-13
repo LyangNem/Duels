@@ -104,6 +104,24 @@ window.duels2GetSummonBehaviorMigrationSummary = duels2GetSummonBehaviorMigratio
 // duels2GetRootRegressionFixSummary: 디버그·제리·레테·오디오 공통 경로 수정 상태를 반환한다. ()
 function duels2GetRootRegressionFixSummary(){return {debugCharacterChange:'target-key-routed',debugPointerPolicy:'controls-only',jerryImpactIdempotent:true,jerryKnockback:'combat-resolver-radial',leteReturnSync:'projectileVisualState',leteSupportPeerArrival:true,audio:'kind-channel-replace-hit-ducking'};}
 window.duels2GetRootRegressionFixSummary=duels2GetRootRegressionFixSummary;
+
+// duels2ToggleHelpPanel: 로비 도움말 패널을 열거나 닫는다. (forceOpen: true면 열기, false면 닫기, 생략하면 토글)
+function duels2ToggleHelpPanel(forceOpen){
+  const panel=document.getElementById('duels-help-panel');
+  if(!panel)return;
+  const shouldOpen=typeof forceOpen==='boolean'?forceOpen:panel.hidden;
+  panel.hidden=!shouldOpen;
+  if(shouldOpen)duels2OpenHelpTab('how');
+}
+// duels2OpenHelpTab: 도움말 분류를 전환한다. (tabId: how, controls, status 중 하나)
+function duels2OpenHelpTab(tabId){
+  const id=['how','controls','status'].includes(tabId)?tabId:'how';
+  document.querySelectorAll('[data-help-tab]').forEach(button=>button.classList.toggle('active',button.dataset.helpTab===id));
+  document.querySelectorAll('[data-help-page]').forEach(page=>page.classList.toggle('active',page.dataset.helpPage===id));
+}
+window.duels2ToggleHelpPanel=duels2ToggleHelpPanel;
+window.duels2OpenHelpTab=duels2OpenHelpTab;
+
 </script>
 <script>
 
@@ -724,6 +742,38 @@ input[type=text]:focus{border-color:#4af;}
 #scr-between .char-card.record-detail-open{
   justify-content:center!important;
 }
+
+/* 도움말: 기존 듀얼즈 UI와 같은 각진 패널, 얇은 테두리, 푸른 발광을 사용한다. */
+.duels-help-entry{margin-top:18px;text-align:center;position:relative;z-index:10}
+.duels-help-open{background:transparent;border:0;color:#667;font:12px 'Courier New',monospace;letter-spacing:2px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;padding:4px 8px}
+.duels-help-open:hover{color:#8bd;text-shadow:0 0 8px #4af8}
+.duels-help-panel{width:min(760px,calc(100vw - 36px));max-height:min(590px,72vh);overflow:auto;margin:14px auto 0;background:linear-gradient(180deg,#0d1520 0%,#091019 100%);border:1px solid #29435c;box-shadow:0 0 0 1px #09111b,0 0 24px #249cff22;padding:0;text-align:left;color:#91a1b2;font-size:12px;letter-spacing:.4px}
+.duels-help-panel[hidden]{display:none!important}
+.duels-help-header{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid #22364a;color:#62bdff;letter-spacing:3px;text-shadow:0 0 10px #2af5}
+.duels-help-close{width:30px;height:28px;background:#0b131c;border:1px solid #24394c;color:#789;font-size:20px;line-height:20px;cursor:pointer}
+.duels-help-close:hover{color:#fff;border-color:#4af;box-shadow:0 0 10px #4af5}
+.duels-help-tabs{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #22364a}
+.duels-help-tab{height:38px;background:#0a121b;border:0;border-right:1px solid #1d3042;color:#65788b;font:11px 'Courier New',monospace;letter-spacing:2px;cursor:pointer}
+.duels-help-tab:last-child{border-right:0}
+.duels-help-tab:hover{color:#9cd;background:#0d1924}
+.duels-help-tab.active{color:#dff;background:#102130;box-shadow:inset 0 -2px #49b8ff;text-shadow:0 0 8px #4af8}
+.duels-help-page{display:none;padding:18px 22px 20px;line-height:1.55}
+.duels-help-page.active{display:block}
+.duels-help-section-title{margin:4px 0 10px;color:#58bfff;font-size:11px;letter-spacing:3px;border-bottom:1px solid #1e3447;padding-bottom:5px}
+.duels-help-section-title.buff{color:#72e5a6}.duels-help-section-title.debuff{color:#ff7d82}
+.duels-help-step,.duels-help-note{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;margin:8px 0;padding:8px 10px;background:#0a121a;border-left:2px solid #27445e}
+.duels-help-step>b{display:flex;align-items:center;justify-content:center;width:22px;height:22px;color:#bde8ff;border:1px solid #315b7c}
+.duels-help-note{grid-template-columns:128px 1fr}.duels-help-note>b{color:#b9d4e8}
+.duels-help-control-group{margin-bottom:14px}
+.duels-help-row{display:grid;grid-template-columns:160px 1fr;gap:12px;align-items:center;min-height:31px;border-bottom:1px dashed #192b3b}
+.duels-help-row kbd{display:inline-block;width:max-content;min-width:82px;padding:3px 8px;background:#09111a;border:1px solid #2c4b64;color:#c6e8ff;font:11px 'Courier New',monospace;letter-spacing:1px;box-shadow:inset 0 0 8px #0008}
+.duels-help-status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;margin-top:10px}
+.duels-help-status{padding:10px 12px;min-height:82px;background:#0a121a;border:1px solid #16293a;display:flex;flex-direction:column;justify-content:flex-start}
+.duels-help-status b{display:block;color:#c6d9e8;margin-bottom:5px;letter-spacing:1px}
+.duels-help-status span{color:#74889a;line-height:1.55}
+.duels-help-footnote{margin:15px 0 0;color:#53697b;font-size:11px;border-top:1px solid #1b3041;padding-top:10px}
+@media(max-width:700px){.duels-help-panel{max-height:68vh}.duels-help-status-grid{grid-template-columns:1fr}.duels-help-note{grid-template-columns:1fr}.duels-help-row{grid-template-columns:118px 1fr}.duels-help-page{padding:14px}}
+
 </style>
 </head>
 <body>
@@ -741,24 +791,64 @@ input[type=text]:focus{border-color:#4af;}
   </div>
   <p class="status" id="lobby-err"></p>
 
-  <!-- 조작키 알아보기 -->
-  <div style="margin-top:18px;text-align:center;">
-    <span onclick="var p=document.getElementById('controls-panel');p.style.display=p.style.display==='none'?'block':'none'"
-      style="font-size:12px;color:#556;letter-spacing:2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;user-select:none;">
-      ※ 조작키 알아보기
-    </span>
-    <div id="controls-panel" style="display:none;margin-top:14px;background:#0d1520;border:1px solid #1a2a3a;border-radius:4px;padding:16px 24px;font-size:12px;color:#667;letter-spacing:1px;line-height:2.3;text-align:left;min-width:340px;">
-      <div style="color:#4af;letter-spacing:3px;font-size:11px;margin-bottom:6px;">── 이동 ──</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">W / A / S / D</span>이동</div>
-      <div style="color:#4af;letter-spacing:3px;font-size:11px;margin:10px 0 6px;">── 전투 ──</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">LMB (좌클릭)</span>기본 공격</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">RMB (우클릭)</span>스킬</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">SPACE</span>회피 (스테미나 40 소모)</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">L-SHIFT</span>반격 — 저스트 회피 후 사용</div>
-      <div style="color:#4af;letter-spacing:3px;font-size:11px;margin:10px 0 6px;">── 시스템 ──</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">저스트 회피</span>공격 회피 → 반격기 5s 활성화</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">스테미나</span>자동 회복</div>
-      <div><span style="color:#99b;min-width:110px;display:inline-block;">체력 회복</span>5초간 미전투 시 10%/s 자연 회복</div>
+  <!-- 도움말 -->
+  <div class="duels-help-entry">
+    <button type="button" class="duels-help-open" onclick="duels2ToggleHelpPanel()">※ 도움말</button>
+    <div id="duels-help-panel" class="duels-help-panel" hidden>
+      <div class="duels-help-header">
+        <strong>DUELS HELP</strong>
+        <button type="button" class="duels-help-close" onclick="duels2ToggleHelpPanel(false)" aria-label="도움말 닫기">×</button>
+      </div>
+      <div class="duels-help-tabs" role="tablist" aria-label="도움말 분류">
+        <button type="button" class="duels-help-tab active" data-help-tab="how" onclick="duels2OpenHelpTab('how')">게임 방법</button>
+        <button type="button" class="duels-help-tab" data-help-tab="controls" onclick="duels2OpenHelpTab('controls')">조작키</button>
+        <button type="button" class="duels-help-tab" data-help-tab="status" onclick="duels2OpenHelpTab('status')">버프 / 디버프</button>
+      </div>
+
+      <section class="duels-help-page active" data-help-page="how">
+        <div class="duels-help-section-title">기본 진행</div>
+        <div class="duels-help-step"><b>1</b><span>방을 만들거나 방 코드로 참가한 뒤, 사용할 캐릭터와 시작 증강을 선택합니다.</span></div>
+        <div class="duels-help-step"><b>2</b><span>상대의 체력을 0으로 만들면 라운드에서 승리합니다. 정해진 선승 수를 먼저 달성하면 게임에서 승리합니다.</span></div>
+        <div class="duels-help-step"><b>3</b><span>공격·스킬·회피는 스테미나를 사용합니다. 스테미나가 부족하면 해당 행동을 사용할 수 없습니다.</span></div>
+        <div class="duels-help-step"><b>4</b><span>공격을 정확한 순간에 회피하면 저스트 회피가 발생하고, 일정 시간 동안 반격기를 사용할 수 있습니다. 모든 반격기에는 넉백 또는 다른 CC기가 부여되어 있습니다.</span></div>
+        <div class="duels-help-section-title">화면과 카드</div>
+        <div class="duels-help-note"><b>캐릭터 카드 우클릭</b><span>로그인 상태에서는 해당 캐릭터의 플레이 횟수, 승률, 레코드 점수를 확인할 수 있습니다. 다시 우클릭하면 원래 카드로 돌아옵니다.</span></div>
+        <div class="duels-help-note"><b>증강 선택</b><span>증강은 선택한 게임 동안 캐릭터 능력치를 강화하거나 새로운 효과를 부여합니다.</span></div>
+        <div class="duels-help-note"><b>게스트 플레이</b><span>게임은 가능하지만 레코드와 통계는 저장되지 않습니다. 관련 정보를 확인하려면 로그인해야 합니다.</span></div>
+      </section>
+
+      <section class="duels-help-page" data-help-page="controls">
+        <div class="duels-help-control-group">
+          <div class="duels-help-section-title">이동</div>
+          <div class="duels-help-row"><kbd>W A S D</kbd><span>상하좌우 이동</span></div>
+          <div class="duels-help-row"><kbd>마우스</kbd><span>조준 방향 지정</span></div>
+        </div>
+        <div class="duels-help-control-group">
+          <div class="duels-help-section-title">전투</div>
+          <div class="duels-help-row"><kbd>좌클릭</kbd><span>기본 공격 또는 캐릭터별 주 공격</span></div>
+          <div class="duels-help-row"><kbd>우클릭</kbd><span>스킬 또는 캐릭터별 보조 조작</span></div>
+          <div class="duels-help-row"><kbd>SPACE</kbd><span>회피 · 기본 스테미나 40 소모</span></div>
+          <div class="duels-help-row"><kbd>왼쪽 SHIFT</kbd><span>저스트 회피 후 활성화된 반격기 사용</span></div>
+        </div>
+        <div class="duels-help-control-group">
+          <div class="duels-help-section-title">기타</div>
+          <div class="duels-help-row"><kbd>카드 우클릭</kbd><span>캐릭터 통계 보기 / 원래 카드로 돌아가기</span></div>
+        </div>
+        <p class="duels-help-footnote">일부 캐릭터는 클릭, 홀드, 차징 또는 입력 조합에 따라 공격 방식이 달라집니다. 캐릭터 카드를 선택해 스킬 설명을 확인하세요.</p>
+      </section>
+
+      <section class="duels-help-page" data-help-page="status">
+        <div class="duels-help-section-title debuff">디버프</div>
+        <div class="duels-help-status-grid">
+          <div class="duels-help-status"><b>빙결</b><span id="duelsHelpFreezeDesc">일정 시간 이동과 행동이 제한됩니다.</span></div>
+          <div class="duels-help-status"><b>화염</b><span id="duelsHelpBurnDesc">0.5초마다 피해를 받습니다.</span></div>
+          <div class="duels-help-status"><b>출혈</b><span id="duelsHelpBleedDesc">매 초 피해를 받으며, 피해를 입을 때 추가 피해를 받습니다.</span></div>
+          <div class="duels-help-status"><b>감전</b><span id="duelsHelpZapDesc">스테미나 회복 속도가 감소합니다.</span></div>
+          <div class="duels-help-status"><b>방전</b><span>스테미나 회복이 정지됩니다.</span></div>
+          <div class="duels-help-status"><b>수면</b><span>일정 시간 이동과 행동이 제한되지만, 피해를 입을 시 해제됩니다.</span></div>
+        </div>
+        <p class="duels-help-footnote">상태의 정확한 지속시간과 수치는 캐릭터 스킬 및 증강에 따라 다릅니다.</p>
+      </section>
     </div>
   </div>
 
@@ -14118,7 +14208,7 @@ function applyDamage(target, amount, ctx = {}) {
 function applyBleedOnDamageTaken(target, dmg, ctx = {}) {
   if (!target || !dmg || ctx.noBleed || ctx.damageType === 'bleed') return;
   if (!isTargetStatusActive(target, 'bleed')) return;
-  const extra = Math.max(1, Math.ceil(dmg * 0.10));
+  const extra = Math.max(1, Math.ceil(dmg * DUELS2_STATUS_EFFECT_RULES.bleed.damageTakenExtraRatio));
   if (target === L) damageEntityHealthRaw(L, extra);
   else if (typeof target.applyDamage === 'function') target.applyDamage(extra, {...ctx, rawDamage:true, noBleed:true, damageType:'bleed'});
   else if (target.hp !== undefined || target.health !== undefined || target.maxHp !== undefined || target.maxHealth !== undefined) damageEntityHealthRaw(target, extra);
@@ -17663,6 +17753,38 @@ function applyUnifiedCC(target, id, dur, source = L, ctx = {}, opt = {}) {
   return duels2RouteApplyUnifiedStatus(target, id, dur, source, ctx, {...opt, reason:opt.reason || 'apply-unified-cc', route:opt.route || 'status.apply-route'});
 }
 
+
+// DUELS2_STATUS_EFFECT_RULES: 상태 효과의 실제 수치와 표시 문구가 같은 데이터를 사용하도록 정의한다. ()
+const DUELS2_STATUS_EFFECT_RULES = Object.freeze({
+  freeze: Object.freeze({maxHealthDamageRatio:0.05, tickMs:1000}),
+  burn: Object.freeze({maxHealthDamageRatio:0.05, tickMs:500}),
+  bleed: Object.freeze({maxHealthDamageRatio:0.05, tickMs:1000, damageTakenExtraRatio:0.10}),
+  zap: Object.freeze({staminaRegenMultiplier:0.60}),
+});
+window.DUELS2_STATUS_EFFECT_RULES = DUELS2_STATUS_EFFECT_RULES;
+
+// duels2FormatStatusPercent: 상태 규칙의 비율값을 퍼센트 문자열로 변환한다. (ratio: 0~1 비율)
+function duels2FormatStatusPercent(ratio) {
+  const value = Number(ratio || 0) * 100;
+  return `${Number.isInteger(value) ? value : Number(value.toFixed(2))}%`;
+}
+
+// duels2RefreshHelpStatusDescriptions: 도움말 상태 설명을 실제 상태 규칙 데이터로 갱신한다. ()
+function duels2RefreshHelpStatusDescriptions() {
+  const rules = DUELS2_STATUS_EFFECT_RULES;
+  const freeze = document.getElementById('duelsHelpFreezeDesc');
+  const burn = document.getElementById('duelsHelpBurnDesc');
+  const bleed = document.getElementById('duelsHelpBleedDesc');
+  const zap = document.getElementById('duelsHelpZapDesc');
+  if (freeze) freeze.textContent = `일정 시간 이동과 행동이 제한되며, ${rules.freeze.tickMs / 1000}초마다 최대 체력의 ${duels2FormatStatusPercent(rules.freeze.maxHealthDamageRatio)} 피해를 받고 해제될 때도 같은 피해를 받습니다.`;
+  if (burn) burn.textContent = `${rules.burn.tickMs / 1000}초마다 최대 체력의 ${duels2FormatStatusPercent(rules.burn.maxHealthDamageRatio)} 피해를 받습니다.`;
+  if (bleed) bleed.textContent = `매 ${rules.bleed.tickMs / 1000}초마다 최대 체력의 ${duels2FormatStatusPercent(rules.bleed.maxHealthDamageRatio)} 피해를 받으며, 피해를 입을 때 받은 피해의 ${duels2FormatStatusPercent(rules.bleed.damageTakenExtraRatio)} 추가 피해를 받습니다.`;
+  if (zap) zap.textContent = `스테미나 회복 속도가 ${duels2FormatStatusPercent(1 - rules.zap.staminaRegenMultiplier)} 감소합니다.`;
+}
+window.duels2RefreshHelpStatusDescriptions = duels2RefreshHelpStatusDescriptions;
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', duels2RefreshHelpStatusDescriptions, {once:true});
+else duels2RefreshHelpStatusDescriptions();
+
 function startBurnStatus(target, dur, source = L, ctx = {}, opt = {}) {
   if (!target || !dur) return false;
   ensureCombatTargetRuntime(target);
@@ -17676,14 +17798,14 @@ function startBurnStatus(target, dur, source = L, ctx = {}, opt = {}) {
     dealDamage: opt.dealDamage !== false,
     start: prevMeta?.start ?? now,
     end: Math.max(prevMeta?.end || 0, end),
-    nextTick: prevMeta?.nextTick ?? (now + 500),
+    nextTick: prevMeta?.nextTick ?? (now + DUELS2_STATUS_EFFECT_RULES.burn.tickMs),
   }, {reason:'start-dot-meta', key:'burn', route:'status.dot-lifecycle'});
   return true;
 }
 
 function applyBurnDamageTick(target, meta = null) {
   if (!target || meta?.dealDamage === false) return false;
-  const dmg = Math.max(1, Math.ceil(getEntityMaxHealth(target) * 0.05));
+  const dmg = Math.max(1, Math.ceil(getEntityMaxHealth(target) * DUELS2_STATUS_EFFECT_RULES.burn.maxHealthDamageRatio));
   const ok = applyDamage(target, dmg, {source:meta?.source || L, slot:'cc', damageType:'burn', rawDamage:true, noLifesteal:true, noPoison:true});
   emitFx({type:'reikaBurnTick', x:target.x || 0, y:target.y || 0, r:0, maxR:(getEntityRadius(target) || 20) + 14, dur:10, maxDur:10});
   return ok;
@@ -17699,7 +17821,7 @@ function tickBurnEffects(now = performance.now()) {
     while (now >= meta.nextTick && meta.nextTick <= end) {
       applyBurnDamageTick(t, meta);
       meta._lastTickAt = meta.nextTick;
-      meta.nextTick += 500;
+      meta.nextTick += DUELS2_STATUS_EFFECT_RULES.burn.tickMs;
     }
     if (now >= end) {
       if (!meta._lastTickAt || meta._lastTickAt < end) applyBurnDamageTick(t, meta);
@@ -17767,13 +17889,13 @@ function startBleedStatus(target, dur, source = L, ctx = {}, opt = {}) {
     source, ctx, dealDamage: opt.dealDamage !== false,
     start: prevMeta?.start ?? now,
     end: Math.max(prevMeta?.end || 0, end),
-    nextTick: prevMeta?.nextTick ?? (now + 1000),
+    nextTick: prevMeta?.nextTick ?? (now + DUELS2_STATUS_EFFECT_RULES.bleed.tickMs),
   }, {reason:'start-dot-meta', key:'bleed', route:'status.dot-lifecycle'});
   return true;
 }
 function applyBleedDamageTick(target, meta = null) {
   if (!target || meta?.dealDamage === false) return false;
-  const dmg = Math.max(1, Math.ceil(getEntityMaxHealth(target) * 0.05));
+  const dmg = Math.max(1, Math.ceil(getEntityMaxHealth(target) * DUELS2_STATUS_EFFECT_RULES.bleed.maxHealthDamageRatio));
   const ok = applyDamage(target, dmg, {source:meta?.source || L, slot:'cc', damageType:'bleed', rawDamage:true, noBleed:true, noLifesteal:true, noPoison:true});
   emitFx({type:'reikaBurnTick', x:target.x || 0, y:target.y || 0, r:0, maxR:(getEntityRadius(target)||20)+16, dur:10, maxDur:10, col:'150,0,25'});
   return ok;
@@ -17788,7 +17910,7 @@ function tickBleedEffects(now = performance.now()) {
     while (now >= meta.nextTick && meta.nextTick <= end) {
       applyBleedDamageTick(t, meta);
       meta._lastTickAt = meta.nextTick;
-      meta.nextTick += 1000;
+      meta.nextTick += DUELS2_STATUS_EFFECT_RULES.bleed.tickMs;
     }
     if (now >= end) {
       if (!meta._lastTickAt || meta._lastTickAt < end) applyBleedDamageTick(t, meta);
@@ -18961,14 +19083,14 @@ function startFreezeStatus(target, dur, source = L, ctx = {}, opt = {}) {
     dealDamage: opt.dealDamage !== false,
     start: prevMeta?.start ?? now,
     end: Math.max(prevMeta?.end || 0, end),
-    nextTick: prevMeta?.nextTick ?? (now + 1000),
+    nextTick: prevMeta?.nextTick ?? (now + DUELS2_STATUS_EFFECT_RULES.freeze.tickMs),
     dealt: !!prevMeta?.dealt,
   }, {reason:'start-freeze-meta', key:'freeze', route:'status.dot-lifecycle'});
   return true;
 }
 function applyFreezeDamageTick(target, meta = null) {
   if (!target || meta?.dealDamage === false) return false;
-  const dmg = Math.max(1, Math.ceil(getEntityMaxHealth(target) * 0.05));
+  const dmg = Math.max(1, Math.ceil(getEntityMaxHealth(target) * DUELS2_STATUS_EFFECT_RULES.freeze.maxHealthDamageRatio));
   const ok = applyDamage(target, dmg, {source:meta?.source || L, slot:'cc', damageType:'freeze', rawDamage:true, noLifesteal:true});
   emitFx({type:'freezeTick', x:target.x || 0, y:target.y || 0, r:0, maxR:(getEntityRadius(target) || 20) + 22, dur:14, maxDur:14, col:'122,238,255'});
   return ok;
@@ -18991,7 +19113,7 @@ function tickFreezeEffects(now = performance.now()) {
       applyFreezeDamageTick(t, meta);
       meta.dealt = true;
       meta._lastTickAt = meta.nextTick;
-      meta.nextTick += 1000;
+      meta.nextTick += DUELS2_STATUS_EFFECT_RULES.freeze.tickMs;
     }
   }
 }
@@ -25787,6 +25909,7 @@ window.duels2GetCharacterRecordStats=duels2GetCharacterRecordStats;
 
 // duels2RecordCharacterRoundResult: 정상적으로 정산된 한 라운드를 캐릭터 통계에 기록한다. (charId: 캐릭터 ID, won: 승리 여부)
 function duels2RecordCharacterRoundResult(charId,won){
+  if(globalThis.duels2IsGuestMode?.()) return null;
   if(!CHARACTERS[charId]) return null;
   const current=duels2GetCharacterRecordStats(charId);
   const next={plays:current.plays+1,wins:current.wins+(won?1:0)};
@@ -25836,6 +25959,15 @@ function duels2GetCharacterMasteryView(charId,pid=null) {
 // duels2ApplyMasteryCardStyle: 캐릭터 카드 하단에 레코드와 등급 외곽선을 적용한다. (card: 카드 요소, charId: 캐릭터 ID, pid: 소유 PID)
 function duels2ApplyMasteryCardStyle(card,charId,pid=null) {
   if (!card || !charId) return null;
+  const localPid=DUELS2_PLAYER_REGISTRY?.localPid||getPlayerPid?.(L)||'P1';
+  const isLocalCard=!pid||pid===localPid;
+  if(globalThis.duels2IsGuestMode?.()&&isLocalCard){
+    for(const cls of [...card.classList])if(cls.startsWith('mastery-'))card.classList.remove(cls);
+    card.style.removeProperty('--mastery-gradient');card.style.removeProperty('--mastery-glow');
+    card.dataset.masteryTier='guest';card.dataset.masteryPoints='';
+    const badge=card.querySelector('.char-mastery');if(badge){badge.textContent='';badge.hidden=true;}
+    return {charId,points:0,tier:DUELS2_CHARACTER_MASTERY_TIERS[0],next:null,label:'게스트',progress:0};
+  }
   const view=duels2GetCharacterMasteryView(charId,pid);
   for (const cls of [...card.classList]) if (cls.startsWith('mastery-') && cls!=='mastery-card') card.classList.remove(cls);
   card.classList.add('mastery-card',`mastery-${view.tier.id}`);
@@ -25871,6 +26003,7 @@ function duels2SetRemoteCharacterMastery(pid,charId,points) {
 
 // duels2SetCharacterRecordPoints: 개발자 도구 등에서 캐릭터 레코드 점수를 직접 설정한다. (charId: 캐릭터 ID, points: 새 점수, reason: 변경 사유)
 function duels2SetCharacterRecordPoints(charId,points,reason='manual') {
+  if(globalThis.duels2IsGuestMode?.()){duels2ShowLoginRequired?.();return null;}
   if (!CHARACTERS[charId]) return null;
   const before=duels2GetCharacterMasteryPoints(charId);
   const after=Math.max(0,Math.floor(Number(points)||0));
@@ -25897,6 +26030,7 @@ window.duels2SetCharacterRecordPoints=duels2SetCharacterRecordPoints;
 
 // duels2AwardCharacterMastery: 캐릭터 레코드 점수를 양수 또는 음수로 변경하고 저장한다. (charId: 캐릭터 ID, amount: 증감량, reason: 기록 사유, opt: floor/ceiling)
 function duels2AwardCharacterMastery(charId,amount,reason='round',opt={}) {
+  if(globalThis.duels2IsGuestMode?.()) return null;
   if (!CHARACTERS[charId]) return null;
   const before=duels2GetCharacterMasteryPoints(charId);
   let after=before+Math.floor(Number(amount)||0);
@@ -25928,6 +26062,7 @@ function duels2ShowRecordDelta(result) {
 
 // duels2BroadcastCurrentRecord: 현재 캐릭터 레코드를 다른 참가자에게 즉시 동기화한다. (charId: 캐릭터 ID)
 function duels2BroadcastCurrentRecord(charId) {
+  if(globalThis.duels2IsGuestMode?.()) return;
   if(!charId || typeof send!=='function') return;
   const pid=DUELS2_PLAYER_REGISTRY?.localPid||getPlayerPid?.(L)||'P1';
   send({type:'recordUpdate',pid,sourcePid:pid,charId,masteryPoints:duels2GetCharacterMasteryPoints(charId)});
@@ -25945,6 +26080,7 @@ function duels2GetRoundRecordChange(points,won) {
 
 // duels2CanSettleRoundRecord: 정상 종료이며 서로 다른 플레이어인 경우에만 레코드 정산을 허용한다. ()
 function duels2CanSettleRoundRecord() {
+  if (globalThis.duels2IsGuestMode?.()) return false;
   if (matchState._recordSettlementBlocked || matchState._recordSettlementBlockedByDeparture) return false;
   if (matchState._recordSettlementBlockedSamePlayer) return false;
   if (matchState._remoteRecordIdentityId && matchState._remoteRecordIdentityId===DUELS2_LOCAL_RECORD_IDENTITY) return false;
@@ -26135,7 +26271,7 @@ function tickStamina(now, physDt) {
   const augMult = (1 + (AUG_VALS.swift_regen.regenBonus/100) * getAugCount('swift_regen'))
                 * _devStamRegenMult;
   const bigBulletPenalty = Math.max(0.05, 1 - (AUG_VALS.big_bullet.stamPenalty/100) * getAugCount('big_bullet'));
-  const zapMult = _zapActive ? 0.6 : 1;
+  const zapMult = _zapActive ? DUELS2_STATUS_EFFECT_RULES.zap.staminaRegenMultiplier : 1;
   L.stamina = Math.min(stamMax, L.stamina + (STAM_MAX / STAM_REGEN) * physDt * regenMult * augMult * bigBulletPenalty * zapMult);
 }
 
@@ -61994,6 +62130,30 @@ window.duels2GetPelunaAlphaAndLevinaGaugeFixSummary=duels2GetPelunaAlphaAndLevin
      UI 커스터마이즈 — body 최하단에 두어 항상 최상위 렌더링
      ══════════════════════════════════════════════════ -->
        
+
+<script id="duels2-help-runtime-fallback">
+// duels2OpenHelpTab: 도움말 분류를 전환한다. (tabId: how, controls, status 중 하나)
+window.duels2OpenHelpTab = function duels2OpenHelpTab(tabId) {
+  const id = ['how', 'controls', 'status'].includes(tabId) ? tabId : 'how';
+  document.querySelectorAll('[data-help-tab]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.helpTab === id);
+  });
+  document.querySelectorAll('[data-help-page]').forEach((page) => {
+    page.classList.toggle('active', page.dataset.helpPage === id);
+  });
+};
+
+// duels2ToggleHelpPanel: 로비 도움말 패널을 열거나 닫는다. (forceOpen: true면 열기, false면 닫기, 생략하면 토글)
+window.duels2ToggleHelpPanel = function duels2ToggleHelpPanel(forceOpen) {
+  const panel = document.getElementById('duels-help-panel');
+  if (!panel) return false;
+  const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : panel.hidden;
+  panel.hidden = !shouldOpen;
+  if (shouldOpen) window.duels2OpenHelpTab('how');
+  return shouldOpen;
+};
+</script>
+
 </body>
 </html>
 
@@ -62514,6 +62674,12 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
 .duels2-account-field input:focus{border-color:#4af;background:#101820;box-shadow:0 0 0 1px #44aaff33,0 0 12px #44aaff1f}
 .duels2-account-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:23px}
 .duels2-account-actions .btn.big{min-width:180px;font-size:14px;padding:12px 34px}
+.duels2-account-guest-wrap{display:flex;align-items:center;gap:10px;margin:18px auto 0;color:#496175;font-size:9px;letter-spacing:1px}
+.duels2-account-guest-wrap::before,.duels2-account-guest-wrap::after{content:"";flex:1;height:1px;background:#172838}
+#duels2-guest-button{min-width:180px;margin:10px auto 0;color:#89a4ba;border-color:#304b61;background:#09131c}
+#duels2-guest-button:hover{color:#d4efff;border-color:#5b8baa;background:#0d1c28;box-shadow:0 0 12px #44aaff22}
+.duels2-guest-login-notice{display:flex;align-items:center;justify-content:center;min-height:100%;padding:14px;text-align:center;color:#8fa8bb;font-size:10px;line-height:1.7;letter-spacing:.4px}
+.duels2-guest-login-notice b{color:#ccecff}
 .duels2-account-msg{min-height:20px;margin-top:15px;text-align:center;font-size:11px;color:#667b8d;line-height:1.6;letter-spacing:.5px}
 .duels2-account-msg.error{color:#ff6f6f}.duels2-account-msg.ok{color:#64d792}
 .duels2-account-check{display:flex;align-items:flex-start;justify-content:center;gap:8px;margin:15px auto 0;color:#7890a6;font-size:10px;line-height:1.5;max-width:330px}
@@ -62540,6 +62706,8 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
       <div class="duels2-account-field"><label>아이디</label><input id="duels2-login-id" autocomplete="username" maxlength="32"></div>
       <div class="duels2-account-field"><label>비밀번호</label><input id="duels2-login-password" type="password" autocomplete="current-password" maxlength="128"></div>
       <div class="duels2-account-actions"><button class="btn big" id="duels2-login-button" type="button">로그인</button></div>
+      <div class="duels2-account-guest-wrap">또는</div>
+      <div class="duels2-account-actions" style="margin-top:0"><button class="btn" id="duels2-guest-button" type="button">게스트로 플레이</button></div>
     </section>
     <section class="duels2-account-section" id="duels2-account-create-section">
       <div class="duels2-account-field"><label>아이디</label><input id="duels2-create-id" autocomplete="username" maxlength="32"></div>
@@ -62564,10 +62732,38 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
 const DUELS2_ACCOUNT_API_BASE='https://duels-account-api.lyan5097gc.workers.dev';
 const DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY='duels2.githubAccount.lastId.v1';
 const DUELS2_GITHUB_ACCOUNT_SESSION_KEY='duels2.githubAccount.session.v1';
+const DUELS2_GUEST_ID_KEY='duels2.guest.identity.v1';
 const DUELS2_GITHUB_ACCOUNT_STATE={config:{apiBase:DUELS2_ACCOUNT_API_BASE},current:null,fileSha:null,saveTimer:0,saveChain:Promise.resolve(),loading:false,dirty:false};
 globalThis.DUELS2_GITHUB_ACCOUNT_STATE=DUELS2_GITHUB_ACCOUNT_STATE;
 globalThis.DUELS2_ACCOUNT_API_BASE=DUELS2_ACCOUNT_API_BASE;
 const DUELS2_DEBUG_ADMIN_ACCOUNT_ID='lyan5097';
+
+// duels2IsGuestMode: 현재 플레이 세션이 저장되지 않는 게스트 모드인지 확인한다. ()
+function duels2IsGuestMode(){return DUELS2_GITHUB_ACCOUNT_STATE.current?.isGuest===true;}
+window.duels2IsGuestMode=duels2IsGuestMode;
+
+// duels2GetGuestIdentity: 새로고침 뒤에도 유지되는 이 브라우저의 게스트 식별자를 반환한다. ()
+function duels2GetGuestIdentity(){
+  let id=String(localStorage.getItem(DUELS2_GUEST_ID_KEY)||'').trim();
+  if(!id){
+    id=(crypto?.randomUUID?.()||`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`).toLowerCase();
+    localStorage.setItem(DUELS2_GUEST_ID_KEY,id);
+  }
+  return id;
+}
+
+// duels2ShowLoginRequired: 게스트가 레코드나 통계 기능을 열 때 로그인 안내를 표시한다. ()
+function duels2ShowLoginRequired(){
+  let toast=document.getElementById('duels2-login-required-toast');
+  if(!toast){
+    toast=document.createElement('div');toast.id='duels2-login-required-toast';toast.className='record-delta-toast';document.body.appendChild(toast);
+  }
+  toast.textContent='레코드와 통계를 확인하려면 로그인하세요.';
+  toast.style.color='#9fd8ff';toast.classList.remove('show');void toast.offsetWidth;toast.classList.add('show');
+  clearTimeout(window._duels2LoginRequiredTimer);window._duels2LoginRequiredTimer=setTimeout(()=>toast.classList.remove('show'),2400);
+}
+window.duels2ShowLoginRequired=duels2ShowLoginRequired;
+
 
 // duels2CanUseDebugTools: 현재 로그인 계정이 디버깅 권한 계정인지 확인한다. ()
 function duels2CanUseDebugTools(){
@@ -62656,7 +62852,7 @@ async function duels2AccountHashPassword(password,saltHex,iterations=150000){
 
 // duels2AccountBuildPayload: 현재 로그인 계정과 게임 레코드 상태를 원격 저장 형식으로 만든다. ()
 function duels2AccountBuildPayload(){
-  const current=DUELS2_GITHUB_ACCOUNT_STATE.current;if(!current)return null;
+  const current=DUELS2_GITHUB_ACCOUNT_STATE.current;if(!current||current.isGuest)return null;
   return {...current,version:1,updatedAt:new Date().toISOString(),characterRecords:structuredClone(DUELS2_CHARACTER_MASTERY_STATE.local||{}),characterStats:structuredClone(DUELS2_CHARACTER_RECORD_STATS_STATE.local||{})};
 }
 
@@ -62672,13 +62868,18 @@ function duels2AccountApplyPayload(data){
 function duels2AccountUpdateChip(state='idle',message=''){
   let chip=document.getElementById('duels2-account-chip');if(!chip){chip=document.createElement('div');chip.id='duels2-account-chip';document.getElementById('scr-lobby')?.appendChild(chip);}
   const user=DUELS2_GITHUB_ACCOUNT_STATE.current;chip.style.display=user?'flex':'none';if(!user)return;
+  if(user.isGuest){
+    chip.innerHTML=`<strong>게스트</strong><span data-state="guest">레코드 저장 안 됨</span><button type="button" id="duels2-account-logout">로그인</button>`;
+    document.getElementById('duels2-account-logout')?.addEventListener('click',duels2AccountLogout);
+    return;
+  }
   chip.innerHTML=`<strong>${user.displayName||user.accountId}</strong><span id="duels2-account-sync-state" data-state="${state}">${message||'연결됨'}</span><button type="button" id="duels2-account-sync-now">저장</button><button type="button" id="duels2-account-logout">로그아웃</button>`;
   document.getElementById('duels2-account-sync-now')?.addEventListener('click',()=>duels2AccountSaveNow(true));document.getElementById('duels2-account-logout')?.addEventListener('click',duels2AccountLogout);
 }
 
 // duels2AccountSaveNow: 최신 계정 데이터를 GitHub에 직렬 저장하고 충돌 시 한 번 다시 시도한다. (manual: 수동 저장 여부)
 async function duels2AccountSaveNow(manual=false){
-  if(!DUELS2_GITHUB_ACCOUNT_STATE.current||DUELS2_GITHUB_ACCOUNT_STATE.loading)return false;
+  if(!DUELS2_GITHUB_ACCOUNT_STATE.current||DUELS2_GITHUB_ACCOUNT_STATE.current.isGuest||DUELS2_GITHUB_ACCOUNT_STATE.loading)return false;
   clearTimeout(DUELS2_GITHUB_ACCOUNT_STATE.saveTimer);DUELS2_GITHUB_ACCOUNT_STATE.dirty=false;
   const run=async()=>{
     duels2AccountUpdateChip('saving','저장 중');
@@ -62703,19 +62904,35 @@ async function duels2AccountSaveNow(manual=false){
 
 // duels2AccountScheduleSave: 연속 점수 변경을 하나의 GitHub 커밋으로 묶어 지연 저장한다. (delay: 지연 시간 ms)
 function duels2AccountScheduleSave(delay=900){
-  if(!DUELS2_GITHUB_ACCOUNT_STATE.current||DUELS2_GITHUB_ACCOUNT_STATE.loading)return;DUELS2_GITHUB_ACCOUNT_STATE.dirty=true;duels2AccountUpdateChip('saving','저장 대기');clearTimeout(DUELS2_GITHUB_ACCOUNT_STATE.saveTimer);DUELS2_GITHUB_ACCOUNT_STATE.saveTimer=setTimeout(()=>duels2AccountSaveNow(false),Math.max(100,delay));
+  if(!DUELS2_GITHUB_ACCOUNT_STATE.current||DUELS2_GITHUB_ACCOUNT_STATE.current.isGuest||DUELS2_GITHUB_ACCOUNT_STATE.loading)return;DUELS2_GITHUB_ACCOUNT_STATE.dirty=true;duels2AccountUpdateChip('saving','저장 대기');clearTimeout(DUELS2_GITHUB_ACCOUNT_STATE.saveTimer);DUELS2_GITHUB_ACCOUNT_STATE.saveTimer=setTimeout(()=>duels2AccountSaveNow(false),Math.max(100,delay));
 }
+
+// duels2AccountEnterGuest: 저장 없는 게스트 세션을 활성화하고 로그인 화면을 닫는다. ()
+function duels2AccountEnterGuest(){
+  duels2LockDebugTools?.();
+  clearTimeout(DUELS2_GITHUB_ACCOUNT_STATE.saveTimer);
+  DUELS2_GITHUB_ACCOUNT_STATE.loading=true;
+  DUELS2_GITHUB_ACCOUNT_STATE.current={accountId:`guest-${duels2GetGuestIdentity()}`,displayName:'게스트',isGuest:true,characterRecords:{},characterStats:{}};
+  DUELS2_GITHUB_ACCOUNT_STATE.fileSha=null;DUELS2_GITHUB_ACCOUNT_STATE.dirty=false;
+  duels2AccountApplyPayload(DUELS2_GITHUB_ACCOUNT_STATE.current);
+  DUELS2_GITHUB_ACCOUNT_STATE.loading=false;
+  localStorage.setItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY,JSON.stringify({mode:'guest',updatedAt:Date.now()}));
+  document.getElementById('duels2-account-gate')?.classList.add('hidden');
+  duels2AccountUpdateChip('idle','레코드 저장 안 됨');
+}
+window.duels2AccountEnterGuest=duels2AccountEnterGuest;
 
 // duels2AccountEnterGame: 인증된 계정을 활성화하고 로그인 화면을 닫는다. (data: 계정 JSON, sha: 원격 파일 SHA)
 function duels2AccountEnterGame(data,sha=null){
   duels2LockDebugTools?.();
   DUELS2_GITHUB_ACCOUNT_STATE.loading=true;DUELS2_GITHUB_ACCOUNT_STATE.current=data;DUELS2_GITHUB_ACCOUNT_STATE.fileSha=null;duels2AccountApplyPayload(data);DUELS2_GITHUB_ACCOUNT_STATE.loading=false;
-  localStorage.setItem(DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY,data.accountId);localStorage.setItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY,JSON.stringify({accountId:data.accountId,updatedAt:Date.now()}));document.getElementById('duels2-account-gate')?.classList.add('hidden');duels2AccountUpdateChip('saved','동기화됨');
+  localStorage.setItem(DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY,data.accountId);localStorage.setItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY,JSON.stringify({mode:'account',accountId:data.accountId,updatedAt:Date.now()}));document.getElementById('duels2-account-gate')?.classList.add('hidden');duels2AccountUpdateChip('saved','동기화됨');
 }
 
 // duels2AccountRestoreSession: 최근 로그인 계정을 GitHub에서 다시 불러와 자동 로그인한다. ()
 async function duels2AccountRestoreSession(){
   let session=null;try{session=JSON.parse(localStorage.getItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY)||'null');}catch(_){session=null;}
+  if(session?.mode==='guest'){duels2AccountEnterGuest();return true;}
   const id=duels2AccountNormalizeId(session?.accountId);if(!id)return false;
   duels2AccountSetMessage('최근 계정 데이터를 불러오는 중입니다.');
   try{const remote=await duels2AccountLoadRemoteFile(id);if(!remote?.data?.accountId)throw new Error('계정 데이터를 읽을 수 없습니다.');duels2AccountEnterGame(remote.data,remote.sha);return true;}
@@ -62756,7 +62973,12 @@ async function duels2AccountCreate(){
 // duels2AccountLogout: 변경 데이터를 저장한 뒤 현재 계정을 닫고 로그인 화면으로 돌아간다. ()
 async function duels2AccountLogout(){
   duels2LockDebugTools?.();
-  if(DUELS2_GITHUB_ACCOUNT_STATE.dirty)await duels2AccountSaveNow(false);localStorage.removeItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY);DUELS2_GITHUB_ACCOUNT_STATE.current=null;DUELS2_GITHUB_ACCOUNT_STATE.fileSha=null;document.getElementById('duels2-account-gate')?.classList.remove('hidden');duels2AccountSetTab('login');duels2AccountUpdateChip();
+  if(!duels2IsGuestMode()&&DUELS2_GITHUB_ACCOUNT_STATE.dirty)await duels2AccountSaveNow(false);
+  clearTimeout(DUELS2_GITHUB_ACCOUNT_STATE.saveTimer);
+  localStorage.removeItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY);
+  DUELS2_GITHUB_ACCOUNT_STATE.current=null;DUELS2_GITHUB_ACCOUNT_STATE.fileSha=null;DUELS2_GITHUB_ACCOUNT_STATE.dirty=false;
+  duels2AccountApplyPayload({characterRecords:{},characterStats:{}});
+  document.getElementById('duels2-account-gate')?.classList.remove('hidden');duels2AccountSetTab('login');duels2AccountUpdateChip();
 }
 
 // duels2AccountInstallSaveHooks: 기존 레코드·통계 로컬 저장 함수 뒤에 GitHub 자동 저장을 연결한다. ()
@@ -62764,7 +62986,15 @@ function duels2AccountInstallSaveHooks(){
   if(window._duels2AccountSaveHooksInstalled)return;window._duels2AccountSaveHooksInstalled=true;
   const originalMastery=duels2SaveCharacterMastery;duels2SaveCharacterMastery=function(){const result=originalMastery.apply(this,arguments);duels2AccountScheduleSave();return result;};window.duels2SaveCharacterMastery=duels2SaveCharacterMastery;
   const originalStats=duels2SaveCharacterRecordStats;duels2SaveCharacterRecordStats=function(){const result=originalStats.apply(this,arguments);duels2AccountScheduleSave();return result;};window.duels2SaveCharacterRecordStats=duels2SaveCharacterRecordStats;
-  if(typeof send==='function'){const originalSend=send;send=function(packet){if(packet&&typeof packet==='object'&&DUELS2_GITHUB_ACCOUNT_STATE.current)packet={...packet,recordIdentityId:`account:${DUELS2_GITHUB_ACCOUNT_STATE.current.accountId}`,accountId:DUELS2_GITHUB_ACCOUNT_STATE.current.accountId,displayName:DUELS2_GITHUB_ACCOUNT_STATE.current.displayName};return originalSend(packet);};window.send=send;}
+  if(typeof send==='function'){const originalSend=send;send=function(packet){
+    const current=DUELS2_GITHUB_ACCOUNT_STATE.current;
+    if(packet&&typeof packet==='object'&&current){
+      packet=current.isGuest
+        ? {...packet,recordIdentityId:`guest:${duels2GetGuestIdentity()}`,accountId:null,displayName:'게스트',guestMode:true}
+        : {...packet,recordIdentityId:`account:${current.accountId}`,accountId:current.accountId,displayName:current.displayName,guestMode:false};
+    }
+    return originalSend(packet);
+  };window.send=send;}
 }
 
 // duels2AccountInit: 계정 UI 이벤트와 기존 게임 저장 훅을 초기화한다. ()
@@ -62773,7 +63003,7 @@ function duels2AccountInit(){
   document.getElementById('duels2-account-config-error')?.classList.remove('show');
   const lastId=localStorage.getItem(DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY)||'';document.getElementById('duels2-login-id').value=lastId;
   document.getElementById('duels2-account-tab-login')?.addEventListener('click',()=>duels2AccountSetTab('login'));document.getElementById('duels2-account-tab-create')?.addEventListener('click',()=>duels2AccountSetTab('create'));
-  document.getElementById('duels2-login-button')?.addEventListener('click',duels2AccountLogin);document.getElementById('duels2-create-button')?.addEventListener('click',duels2AccountCreate);
+  document.getElementById('duels2-login-button')?.addEventListener('click',duels2AccountLogin);document.getElementById('duels2-create-button')?.addEventListener('click',duels2AccountCreate);document.getElementById('duels2-guest-button')?.addEventListener('click',duels2AccountEnterGuest);
   document.getElementById('duels2-login-password')?.addEventListener('keydown',event=>{if(event.key==='Enter')duels2AccountLogin();});document.getElementById('duels2-create-password2')?.addEventListener('keydown',event=>{if(event.key==='Enter')duels2AccountCreate();});
   duels2AccountSetTab('login');duels2AccountRestoreSession();window.addEventListener('online',()=>{if(DUELS2_GITHUB_ACCOUNT_STATE.dirty)duels2AccountSaveNow(false);});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&DUELS2_GITHUB_ACCOUNT_STATE.dirty)duels2AccountSaveNow(false);});
 }
@@ -62818,6 +63048,7 @@ function duels2InstallRecordDetailObserver(){
 // duels2ToggleRecordDetailCard: 캐릭터 카드의 앞면과 레코드 통계 화면을 전환한다. (card: 우클릭된 카드 요소)
 function duels2ToggleRecordDetailCard(card){
   if(!card)return false;
+  if(globalThis.duels2IsGuestMode?.()){duels2ShowLoginRequired();return true;}
   const charId=card.dataset.id||card.dataset.charId||card.dataset.characterId;
   if(!charId||!CHARACTERS[charId])return false;
   let detail=card.querySelector(':scope > .char-record-detail');
