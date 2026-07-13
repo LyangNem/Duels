@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Duels</title>
-<meta name="duels-version" content="0.38.2">
+<meta name="duels-version" content="0.39.0">
 <script async src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js">
 // duels2GetAugmentVisibilityAndFastRegenSummary: 증강 HUD 공개 시점과 빠른 재생 효과 변경 상태를 반환한다. ()
 function duels2GetAugmentVisibilityAndFastRegenSummary() {
@@ -166,18 +166,31 @@ input[type=text]:focus{border-color:#4af;}
 .text-right{text-align:right;}
 /* ── 캐릭터 선택 ── */
 .char-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:1190px;}
-.char-card{width:140px;padding:14px 8px;border:1px solid #2a3a4a;border-radius:4px;
-           cursor:pointer;transition:all .2s;text-align:center;background:#0d1015;position:relative;}
+.char-card{width:136px;padding:9px 7px 8px;border:1px solid #2a3a4a;border-radius:4px;
+           cursor:pointer;transition:all .2s;text-align:center;background:#0d1015;position:relative;
+           display:flex;flex-direction:column;font-size:11px;}
 .char-card:hover{border-color:#4af;background:#111820;}
 .char-card.sel{border-color:#fa0;background:#12100a;}
-.char-icon{width:60px;height:60px;border-radius:50%;margin:0 auto 12px;}
-.char-name{font-size:1.1em;letter-spacing:2px;margin-bottom:6px;}
-.char-stats{font-size:11px;color:#667;line-height:1.9;text-align:left;margin-top:6px;}
-.char-stats b{color:#99b;}
+.char-icon{width:52px;height:52px;border-radius:50%;margin:0 auto 7px;}
+.char-name{font-size:1.02em;letter-spacing:1.5px;margin-bottom:3px;line-height:1.2;}
+.char-stats{font-size:9px;color:#667;line-height:1.45;text-align:left;margin-top:3px;}
+.char-stats b{color:#99b;} .char-stats>div{white-space:nowrap;}
 .char-tooltip{display:none;position:fixed;background:#0d1520;border:1px solid #2a3a4a;
               border-radius:4px;padding:10px 14px;font-size:11px;color:#778;
               z-index:999;pointer-events:none;line-height:1.7;text-align:left;
               white-space:nowrap;}
+
+/* ── 캐릭터 레코드 ── */
+.char-card.mastery-card{border:2px solid transparent;background:linear-gradient(#0d1015,#0d1015) padding-box,var(--mastery-gradient,#8b6b45) border-box;box-shadow:0 0 8px var(--mastery-glow,rgba(180,130,70,.35)),inset 0 0 8px rgba(255,255,255,.025);}
+.char-card.mastery-card:hover{background:linear-gradient(#111820,#111820) padding-box,var(--mastery-gradient,#8b6b45) border-box;box-shadow:0 0 14px var(--mastery-glow,rgba(180,130,70,.48));}
+#scr-select .char-card.mastery-card.sel,#scr-between .char-card.mastery-card.sel{position:relative;z-index:2;transform:translateY(-3px) scale(1.025);background:linear-gradient(#151a21,#151a21) padding-box,var(--mastery-gradient,#fa0) border-box;box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 0 5px rgba(90,185,255,.34),0 10px 24px rgba(0,0,0,.48),0 0 22px var(--mastery-glow,rgba(255,170,0,.65)),inset 0 0 0 1px rgba(255,255,255,.20),inset 0 0 18px rgba(90,185,255,.10);}
+#scr-select .char-card.mastery-card.sel::before,#scr-between .char-card.mastery-card.sel::before{content:'';position:absolute;inset:5px;border:1px solid rgba(255,255,255,.78);border-radius:2px;pointer-events:none;}
+.char-mastery{font-size:7px;line-height:1.15;letter-spacing:.45px;margin-top:auto;padding-top:4px;opacity:.72;font-weight:600;text-shadow:0 0 4px currentColor;}
+.mastery-hud-badge{display:none!important;}
+.mastery-hud-frame{border:2px solid transparent!important;background:linear-gradient(#0d1520,#0d1520) padding-box,var(--mastery-gradient,#2a4a6a) border-box!important;box-shadow:0 0 9px var(--mastery-glow,rgba(70,150,220,.25)),inset 0 0 5px rgba(255,255,255,.03)!important;}
+.record-delta-toast{position:fixed;left:50%;top:86px;transform:translateX(-50%) translateY(-8px);z-index:90;padding:7px 13px;border:1px solid currentColor;border-radius:4px;background:rgba(8,12,18,.94);font-size:12px;font-weight:bold;letter-spacing:1px;pointer-events:none;opacity:0;transition:opacity .18s,transform .18s;box-shadow:0 0 16px currentColor;}
+.record-delta-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#aug-hud,#peer-aug-hud{min-height:48px;}
 
 /* ── 시작 증강 선택 ── */
 #scr-start-aug {
@@ -189,7 +202,7 @@ input[type=text]:focus{border-color:#4af;}
 }
 .start-aug-char-row { display:flex; gap:16px; justify-content:center; margin-bottom:28px; flex-wrap:wrap; }
 .start-aug-char-card {
-  width:140px; padding:14px 8px; border:2px solid; border-radius:6px;
+  width:136px; padding:9px 7px 8px; border:2px solid; border-radius:6px;
   text-align:center; background:#0d1015; position:relative;
 }
 .start-aug-char-card.me { opacity:1; }
@@ -220,7 +233,7 @@ input[type=text]:focus{border-color:#4af;}
 
 @media (max-width: 768px) {
   #scr-select .char-grid { max-width: 1190px; gap: 10px; }
-  #scr-select .char-card { width: 140px; padding: 12px 8px; font-size: 12px; }
+  #scr-select .char-card { width:136px; padding:9px 7px 8px; font-size:11px; }
 }
 
 /* ── HUD 바 ── */
@@ -396,7 +409,7 @@ input[type=text]:focus{border-color:#4af;}
 .start-aug-name,.aug-pick-name{font-size:1.15em!important;}
 .start-aug-desc,.aug-pick-desc{font-size:12px!important;line-height:1.6!important;}
 .start-aug-rarity{font-size:10px!important;}
-.char-card{font-size:13px!important;}
+.char-card{font-size:12px!important;}
 .start-aug-item,.aug-pick-card{font-size:13px!important;}
 .dev-fold-title{font-size:13px!important;}
 .dev-status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:5px;}
@@ -422,13 +435,302 @@ input[type=text]:focus{border-color:#4af;}
 #dev-panel .dev-resize-handle{z-index:2;}
 #dev-panel .dev-fold-title{font-size:14px!important;}
 
+
+/* ── 0.39.0 record card/layout hotfix ── */
+.char-card,.start-aug-char-card{box-sizing:border-box;width:148px!important;min-width:148px!important;max-width:148px!important;overflow:hidden;}
+.char-card{padding:8px 8px 7px!important;font-size:10px!important;}
+.char-card .char-icon,.start-aug-char-card .char-icon{width:50px!important;height:50px!important;margin-bottom:5px!important;}
+.char-card .char-name,.start-aug-char-card .char-name{font-size:11px!important;line-height:1.1!important;margin-bottom:3px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.char-card .char-stats,.start-aug-char-card .char-stats{font-size:9px!important;line-height:1.22!important;margin-top:2px!important;width:100%;min-width:0;overflow:hidden;}
+.char-stats>div{display:grid;grid-template-columns:max-content minmax(0,1fr);column-gap:3px;align-items:center;white-space:nowrap;min-width:0;}
+.char-stats>div>b{white-space:nowrap;}
+.char-stats>div>span{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.char-mastery{font-size:9px!important;line-height:1.15!important;letter-spacing:.25px!important;padding-top:5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.start-aug-char-card{padding:8px!important;overflow:hidden;}
+.start-aug-char-card .char-mastery{font-size:9px!important;}
+/* 증강 선택도 캐릭터 선택과 같은 카드 상승/이중 테두리 효과를 사용한다. */
+.start-aug-item.sel{position:relative;z-index:2;transform:translateY(-3px) scale(1.025);border-color:#8fd8ff!important;background:#151a21!important;box-shadow:0 0 0 2px rgba(255,255,255,.90),0 0 0 5px rgba(90,185,255,.32),0 10px 24px rgba(0,0,0,.46),inset 0 0 0 1px rgba(255,255,255,.18),inset 0 0 18px rgba(90,185,255,.10)!important;}
+.start-aug-item.sel::before{content:'';position:absolute;inset:5px;border:1px solid rgba(255,255,255,.74);border-radius:2px;pointer-events:none;}
+
+
+/* ── 0.39.0 record card readability restore ── */
+.char-card,.start-aug-char-card{
+  box-sizing:border-box;
+  width:158px!important;
+  min-width:158px!important;
+  max-width:158px!important;
+  min-height:218px!important;
+  overflow:visible!important;
+}
+.char-card,.start-aug-char-card{
+  padding:11px 10px 10px!important;
+  font-size:12px!important;
+}
+.char-card .char-icon,.start-aug-char-card .char-icon{
+  width:58px!important;
+  height:58px!important;
+  margin-bottom:7px!important;
+}
+.char-card .char-name,.start-aug-char-card .char-name{
+  width:100%!important;
+  font-size:13px!important;
+  line-height:1.2!important;
+  margin-bottom:6px!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere;
+}
+.char-card .char-stats,.start-aug-char-card .char-stats{
+  width:100%!important;
+  min-width:0!important;
+  margin-top:4px!important;
+  font-size:11px!important;
+  line-height:1.38!important;
+  overflow:visible!important;
+}
+.char-card .char-stats>div,.start-aug-char-card .char-stats>div{
+  display:grid!important;
+  grid-template-columns:max-content minmax(0,1fr)!important;
+  column-gap:4px!important;
+  align-items:start!important;
+  min-width:0!important;
+  white-space:normal!important;
+}
+.char-card .char-stats>div>b,.start-aug-char-card .char-stats>div>b{
+  white-space:nowrap!important;
+}
+.char-card .char-stats>div>span,.start-aug-char-card .char-stats>div>span{
+  display:block!important;
+  min-width:0!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:break-word!important;
+}
+/* 이동속도 등 짧은 등급 값은 반드시 한 줄로 유지한다. */
+.char-card .char-stats>div:nth-child(1)>span,
+.char-card .char-stats>div:nth-child(2)>span,
+.start-aug-char-card .char-stats>div:nth-child(1)>span,
+.start-aug-char-card .char-stats>div:nth-child(2)>span{
+  white-space:nowrap!important;
+}
+.char-card .char-mastery,.start-aug-char-card .char-mastery{
+  width:100%!important;
+  box-sizing:border-box!important;
+  margin-top:auto!important;
+  padding-top:8px!important;
+  font-size:10px!important;
+  line-height:1.2!important;
+  letter-spacing:.15px!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+}
+
+/* ── 0.39.0 character card 8-column / record detail ── */
+.char-grid{
+  max-width:1174px!important;
+  gap:10px!important;
+}
+.char-card,.start-aug-char-card{
+  width:138px!important;
+  min-width:138px!important;
+  max-width:138px!important;
+  min-height:222px!important;
+  padding:10px 8px 9px!important;
+}
+.char-card .char-name,.start-aug-char-card .char-name{
+  font-size:12px!important;
+  line-height:1.2!important;
+  margin-bottom:5px!important;
+  overflow-wrap:anywhere!important;
+}
+.char-card .char-stats,.start-aug-char-card .char-stats{
+  font-size:10px!important;
+  line-height:1.34!important;
+  margin-top:3px!important;
+  text-align:left!important;
+}
+.char-card .char-stats>div,.start-aug-char-card .char-stats>div{
+  column-gap:3px!important;
+  text-align:left!important;
+}
+.char-card .char-stats>div:nth-child(3),
+.start-aug-char-card .char-stats>div:nth-child(3){
+  display:block!important;
+  text-align:left!important;
+  margin-top:2px!important;
+}
+.char-card .char-stats>div:nth-child(3)>b,
+.start-aug-char-card .char-stats>div:nth-child(3)>b{
+  display:inline!important;
+}
+.char-card .char-stats>div:nth-child(3)>span,
+.start-aug-char-card .char-stats>div:nth-child(3)>span{
+  display:inline!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+.char-card .char-mastery,.start-aug-char-card .char-mastery{
+  margin-top:4px!important;
+  padding-top:3px!important;
+  font-size:9px!important;
+  line-height:1.15!important;
+}
+.char-card.record-detail-open{overflow:hidden!important;}
+.char-card.record-detail-open>.char-tooltip,
+.char-card.record-detail-open>.char-icon,
+.char-card.record-detail-open>.char-name,
+.char-card.record-detail-open>.char-stats,
+.char-card.record-detail-open>.char-mastery{visibility:hidden!important;}
+.char-record-detail{
+  display:none;
+  position:absolute;
+  inset:8px;
+  z-index:5;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:3px;
+  background:rgba(8,12,18,.96);
+  padding:12px 9px;
+  box-sizing:border-box;
+  text-align:left;
+  color:#b9c7d5;
+}
+.char-card.record-detail-open .char-record-detail{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:11px;
+}
+.char-record-detail-title{
+  color:#e7f3ff;
+  font-size:12px;
+  font-weight:700;
+  text-align:center;
+  letter-spacing:.7px;
+  margin-bottom:3px;
+}
+.char-record-detail-row{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  font-size:10px;
+  line-height:1.25;
+}
+.char-record-detail-row b{color:#8295aa;font-weight:600;}
+.char-record-detail-row span{color:#e7f0fa;text-align:right;}
+.char-record-detail-hint{
+  margin-top:5px;
+  text-align:center;
+  color:#637284;
+  font-size:8px;
+}
+
+
+/* ── 0.39.0 카드 가독성 및 레코드 상세 상태 수정 ── */
+.char-card,.start-aug-char-card{
+  font-size:12px!important;
+}
+.char-card .char-name,.start-aug-char-card .char-name{
+  font-size:13px!important;
+  line-height:1.25!important;
+}
+.char-card .char-stats,.start-aug-char-card .char-stats{
+  font-size:11px!important;
+  line-height:1.42!important;
+}
+.char-card .char-stats>div,.start-aug-char-card .char-stats>div{
+  min-width:0!important;
+}
+.char-card .char-stats>div>b,.start-aug-char-card .char-stats>div>b,
+.char-card .char-stats>div>span,.start-aug-char-card .char-stats>div>span{
+  font-size:inherit!important;
+}
+.char-card .char-mastery,.start-aug-char-card .char-mastery{
+  font-size:10px!important;
+  line-height:1.25!important;
+  letter-spacing:.2px!important;
+}
+.char-record-detail-title{font-size:13px!important;}
+.char-record-detail-row{font-size:11px!important;}
+.char-record-detail-hint{font-size:9px!important;}
+
+
+
+/* ── 0.39.0 캐릭터 카드 내부 배치 개선 ──
+   카드 비율과 8열 폭은 유지하면서, 비어 보이던 하단 공간을
+   아이콘·이름·능력치 영역의 실제 간격으로 재분배한다. */
+#scr-select .char-card,
+#scr-between .char-card{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  min-height:222px!important;
+  height:222px!important;
+  padding:12px 8px 10px!important;
+}
+#scr-select .char-card .char-icon,
+#scr-between .char-card .char-icon{
+  width:60px!important;
+  height:60px!important;
+  flex:0 0 60px!important;
+  margin:2px auto 8px!important;
+}
+#scr-select .char-card .char-name,
+#scr-between .char-card .char-name{
+  flex:0 0 auto!important;
+  width:100%!important;
+  margin:0 0 8px!important;
+  font-size:13px!important;
+  line-height:1.2!important;
+  text-align:center!important;
+}
+#scr-select .char-card .char-stats,
+#scr-between .char-card .char-stats{
+  flex:1 1 auto!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0 1px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+  font-size:11px!important;
+  line-height:1.32!important;
+  text-align:left!important;
+}
+#scr-select .char-card .char-stats>div,
+#scr-between .char-card .char-stats>div{
+  margin:0!important;
+  min-height:15px!important;
+}
+#scr-select .char-card .char-stats>div:nth-child(3),
+#scr-between .char-card .char-stats>div:nth-child(3){
+  margin-top:1px!important;
+  line-height:1.38!important;
+}
+/* 기본 카드에서 숨긴 레코드 문구가 빈 자리까지 차지하지 않게 한다. */
+#scr-select .char-card .char-mastery:empty,
+#scr-between .char-card .char-mastery:empty{
+  display:none!important;
+  margin:0!important;
+  padding:0!important;
+}
+/* 상세 통계 뒷면은 기존 카드 비율 안에서 중앙 정렬을 유지한다. */
+#scr-select .char-card.record-detail-open,
+#scr-between .char-card.record-detail-open{
+  justify-content:center!important;
+}
 </style>
 </head>
 <body>
 
 <!-- 로비 -->
 <div id="scr-lobby" class="screen">
-  <h1>⚔ PvP</h1>
+  <h1>⚔ DUELS</h1>
   <p class="sub">Made By Lyan___</p>
   <div class="flex-gap-12">
     <button class="btn big" onclick="hostGame()">방 만들기</button>
@@ -460,7 +762,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.38.2</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.39.0</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -894,7 +1196,7 @@ input[type=text]:focus{border-color:#4af;}
  * - 캐릭터별로 피해/피격/사망/상태이상 코드를 따로 만들지 않는다.
  * - CombatResolver 외부에서 HP와 전투 피드백을 제각각 처리하지 않는다.
  */
-const DUELS2_ALPHA_VERSION = '0.38.2';
+const DUELS2_ALPHA_VERSION = '0.39.0';
 // DUELS2_RUNTIME_DIAGNOSTICS_ENABLED: 개발 단계의 전투·상태·모션·모듈 감사 이력 수집 여부다. 출시 실행에서는 사용하지 않으므로 비활성화한다.
 const DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = false;
 window.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = DUELS2_RUNTIME_DIAGNOSTICS_ENABLED;
@@ -1388,7 +1690,7 @@ window.DUELS2_STATIC_REGRESSION_AUDIT_STEP = DUELS2_STATIC_REGRESSION_AUDIT_STEP
 // DUELS2_FINAL_RELEASE_AUDIT_STEP: Step 229 최종 릴리스 감사 범위와 자동/수동 검증 상태를 선언한다.
 const DUELS2_FINAL_RELEASE_AUDIT_STEP = Object.freeze({
   step:'Step 229 - Final Release Audit & Regression Checklist',
-  releaseLabel:'0.38.2',
+  releaseLabel:'0.39.0',
   staticAuditComplete:true,
   browserGameplayValidation:'manual-pending',
   twoPlayerNetworkValidation:'manual-pending',
@@ -1460,7 +1762,7 @@ window.duels2GetFinalReleaseAuditSummary = duels2GetFinalReleaseAuditSummary;
 // DUELS2_ALPHA_RELEASE_DECISION_STEP: Step 230의 Alpha 완료 판정 규칙과 현재 수동 검증 게이트 상태를 선언한다.
 const DUELS2_ALPHA_RELEASE_DECISION_STEP = Object.freeze({
   step:'Step 230 - Alpha Release Decision Gate & Completion Status',
-  releaseCandidateLabel:'0.38.2',
+  releaseCandidateLabel:'0.39.0',
   completionRule:'all-required-checks-passed',
   manualValidationRequired:true,
   automaticPromotionDisabled:true,
@@ -1507,7 +1809,7 @@ function duels2GetAlphaCompletionStatus() {
   const decision = duels2EvaluateAlphaReleaseDecision();
   return {
     version:DUELS2_ALPHA_VERSION,
-    uiVersion:'0.38.2',
+    uiVersion:'0.39.0',
     singleFileOnly:DUELS2_ALPHA_SINGLE_FILE_ONLY,
     staticAuditPassed:releaseAudit.staticAuditPassed,
     approved:decision.approved,
@@ -3012,6 +3314,40 @@ const BALANCE = {
   },
 
 
+  // ── 루란 ────────────────────────────────────────────────────
+  luran: {
+    hp:     120,
+    speed:  4,
+    radius: 20,
+    lmb: {
+      cost:       40,
+      damage:     60,
+      strikeLength: 128,
+      strikeWidth:  72,
+      cd:         760,
+    },
+    rmb: {
+      cost:      0,
+      stages:    7,
+      // 1단계 타격 범위의 안쪽 경계가 첫 눈금(18px)에 놓이고, 공격 깊이 72px 전체가 4눈금으로 정확히 채워진다.
+      minRange:  54,
+      stepRange: 72,
+      tickUnit:  18,
+      ticksPerStage: 4,
+      holdMs:    200,
+      cd:        10,
+    },
+    counter: {
+      damage:       30,
+      strikeLength: 136,
+      strikeWidth:  72,
+      stepInterval: 90,
+      knockbackPower: 420,
+      cd:           520,
+    },
+  },
+
+
   // ── 레테 ────────────────────────────────────────────────────
   lete: {
     hp:     110,
@@ -3095,8 +3431,6 @@ const BALANCE = {
       cd:              520,
     },
   },
-
-
   levina: {
     hp:     100,
     speed:  4.5,
@@ -3854,6 +4188,26 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     ],
   },
 
+
+  luran: {
+    id:        'luran',
+    name:      '루란',
+    color:     '#e6dd85',
+    maxHealth: duels2GetSkillBalance('luran','hp'),
+    speed:     duels2GetSkillBalance('luran','speed'),
+    radius:    duels2GetSkillBalance('luran','radius'),
+    statsText: [['체력', String(duels2GetSkillBalance('luran','hp'))],['이동속도','보통'],['스타일','거리조절형 중거리 딜러']],
+    desc:      '정확한 거리를 가늠하며 전투하는 캐릭터',
+    skills: [
+      { key:'LMB', name:'줄자', cost:duels2GetSkillBalance('luran','lmb').cost,
+        desc:`현재 단계의 끝점에서 가로 직사각형 형태로 줄자를 휘둘러 공격합니다. (${duels2GetSkillBalance('luran','lmb').damage})` },
+      { key:'RMB', name:'길이조절', cost:duels2GetSkillBalance('luran','rmb').cost,
+        desc:`줄자의 타격 지점을 1~${duels2GetSkillBalance('luran','rmb').stages}단계로 조정합니다. 짧게 누르면 다음 단계, 홀드하면 0.2초마다 한 단계씩 줄어듭니다.` },
+      { key:'L-Shift', name:'되감기', cost:0,
+        desc:`줄자를 7단계까지 즉시 늘린 뒤 1단계까지 순차적으로 되감으며 각 단계에 피해를 줍니다. (${duels2GetSkillBalance('luran','counter').damage}×7)` },
+    ],
+  },
+
   lete: {
     id:        'lete',
     name:      '레테',
@@ -4333,6 +4687,7 @@ const DUELS2_MULTIPLAYER_ROUND_RUNTIME = (() => {
     if (result.winnerPid) roundWinsByPid.set(result.winnerPid, (roundWinsByPid.get(result.winnerPid) || 0) + 1);
     if (result.winnerTeam) roundWinsByTeam.set(result.winnerTeam, (roundWinsByTeam.get(result.winnerTeam) || 0) + 1);
     lastResult = {...result, localWon, round:matchState.round, resolvedAt:performance.now()};
+    const recordResult=duels2AwardRecordForCompletedRound(localWon, matchState.round);
     gameOn = false;
     clearTimeout(window._gameTimer);
     if (_stateInterval) { clearInterval(_stateInterval); _stateInterval = null; }
@@ -4345,9 +4700,14 @@ const DUELS2_MULTIPLAYER_ROUND_RUNTIME = (() => {
       tx.style.color = localWon ? '#4f8' : '#f88';
       tx.style.textShadow = localWon ? '0 0 30px #4f8' : '0 0 30px #f44';
     }
-    if (sub) sub.textContent = getMode() === 'ffa'
-      ? getPids().map(pid => `${pid} ${roundWinsByPid.get(pid)||0}승`).join(' · ')
-      : [...roundWinsByTeam.entries()].map(([team,wins]) => `${team.replace('team:','')} ${wins}승`).join(' · ');
+    if (sub) {
+      const scoreText=getMode() === 'ffa'
+        ? getPids().map(pid => `${pid} ${roundWinsByPid.get(pid)||0}승`).join(' · ')
+        : [...roundWinsByTeam.entries()].map(([team,wins]) => `${team.replace('team:','')} ${wins}승`).join(' · ');
+      const delta=Number(recordResult?.delta)||0;
+      const recordText=recordResult?`레코드 ${delta>0?'+':''}${delta} (${recordResult.before} → ${recordResult.after})`:'';
+      sub.textContent=[scoreText,recordText].filter(Boolean).join(' · ');
+    }
 
     // duels2ResolveMultiplayerMatchCompletion: 한 라운드 승리를 최종 매치 승리로 오판하지 않도록 현재 포맷의 필요 승수를 기준으로 종료 여부를 계산한다.
     const normalizedFormat = matchState.format = duels2NormalizeMatchFormat(matchState.format);
@@ -5060,6 +5420,7 @@ function emitFx(typeOrFx, params = {}, opt = {}) {
       delete netFx.ctx;
     }
     delete netFx._networkHandled;
+    delete netFx._localOnly;
     // 상대 클라이언트와 performance.now() 기준이 다르므로 수신측 _receivedAt을 기준으로 렌더한다.
     delete netFx.createdAt;
     send({type:'fx', fx:netFx});
@@ -5070,7 +5431,10 @@ function emitFx(typeOrFx, params = {}, opt = {}) {
 }
 
 function emitLocalFx(typeOrFx, params = {}) {
-  return emitFx(typeOrFx, params, {network:false});
+  const fx = normalizeFxInput(typeOrFx, params);
+  // addFx의 자동 네트워크 동기화에서도 제외되도록 명시적인 로컬 전용 표식을 유지한다.
+  fx._localOnly = true;
+  return emitFx(fx, {}, {network:false});
 }
 
 // ── 스테미나 비용: 새 코드에서는 useStamTyped/drainStaminaTyped를 사용
@@ -5255,6 +5619,11 @@ const CHAR_SKILL_META = Object.freeze({
   sherina: {
     lmb: {domain:'attack', delivery:'projectile', timing:'delayed', target:'aim', autoProfile:'direct_lmb', augmentHooks:['lmb_basic','stun_shot','pierce_shot','big_bullet','speed_shot'], tags:['lmb','attack','projectile','echo','echo_zone']},
     rmb: {domain:'attack', delivery:'field', timing:'persistent', target:'area', augmentHooks:[], tags:['rmb','attack','field','echo_zone','knockback']}
+  },
+  luran: {
+    lmb: {domain:'attack', delivery:'area', timing:'instant', target:'aim', autoProfile:'direct_lmb', augmentHooks:['lmb_basic','big_weapon','lifesteal'], tags:['lmb','attack','area','step_range','precision_point']},
+    rmb: {domain:'resource', delivery:'self', timing:'hold_release', target:'self', autoProfile:null, augmentHooks:[], tags:['rmb','utility','step_range','hold_adjust']},
+    counter: {domain:'attack', delivery:'area', timing:'scheduled_combo', target:'aim', augmentHooks:[], tags:['counter','attack','area','step_range','rewind','multi_hit']}
   }
 });
 
@@ -11638,8 +12007,12 @@ function syncPlayerSlots() {
     const entity = DUELS2_PLAYER_REGISTRY.entitiesByPid.get(pid) || null;
     const slot = getPlayerSlotRecord(pid);
     if (entity) {
-      const teamId = _defaultTeamForPid(pid, mode);
+      // 훈련장에서는 일반 매치 팀 배정을 덮어쓰지 않고, 조작자와 훈련 대상을 항상 적대 관계로 유지한다.
+      const teamId = _trainingMode
+        ? (entity === L ? 'training:local' : 'training:target')
+        : _defaultTeamForPid(pid, mode);
       entity.teamId = teamId;
+      if (_trainingMode) entity.ownerId = entity === L ? 'training:local' : 'training:target';
       _bindPlayerSlotRecord(entity, pid, {
         owner:pid === DUELS2_PLAYER_REGISTRY.localPid ? 'local' : 'peer',
         ownerId:entity.ownerId || (pid === DUELS2_PLAYER_REGISTRY.localPid ? 'local' : `peer:${pid}`),
@@ -13445,7 +13818,11 @@ const HealthDamageAdapter = duels2CreateHealthDamageAdapter();
 
 // applyDamageResult: 기존 피해 적용 결과를 Health Damage Adapter 공식 입구로 통과시킨다.
 applyDamageResult = function duels2ApplyDamageResultHealthDamageAdapter(target, amount, ctx = {}) {
-  return HealthDamageAdapter.applyDamageResult(target, amount, ctx);
+  const result = HealthDamageAdapter.applyDamageResult(target, amount, ctx);
+  // 모든 공식 피해 경로에서 실제 피해 또는 원격 위임 피해가 성립하면 피격음을 보장한다.
+  // receiveHitEntity 등 하위 경로에서도 같은 순간 피격음을 요청할 수 있지만 Audio Runtime이 종류별 한 번으로 합친다.
+  if (result?.damaged || result?.delegatedDamage) playHitSfx();
+  return result;
 };
 
 // damageEntityHealthRaw: 기존 raw HP 감소를 Health Damage Adapter 공식 입구로 통과시킨다.
@@ -21806,9 +22183,45 @@ function duels2ApplyDamageViaResolvedAdapter(kind, target, amount, ctx = {}, opt
 
 // duels2RouteApplyDamageToTarget: 피해 대상별 적용 분기를 하나의 어댑터 입구로 처리한다. (target: 피해 대상, amount: 적용 피해량, ctx: 피해 컨텍스트, opt: 기록용 옵션)
 function duels2RouteApplyDamageToTarget(target, amount, ctx = {}, opt = {}) {
-  const kind = duels2ResolveDamageApplicationAdapterKind(target);
+  // 훈련장 더미/봇은 원격 플레이어용 applyDamage 네트워크 가드를 통과시키지 않는다.
+  // 기존 정상 훈련장 공격과 동일한 Training Damage Policy를 공통 피해 입구에서 사용한다.
+  const isTrainingPolicyTarget = !!(_trainingMode && target && (
+    duels2IsTrainingDummyDamageTarget?.(target) || duels2IsTrainingBotDamageTarget?.(target)
+  ));
+  const kind = isTrainingPolicyTarget ? 'training-policy' : duels2ResolveDamageApplicationAdapterKind(target);
   const hpBefore = getEntityHealth(target);
-  const result = duels2ApplyDamageViaResolvedAdapter(kind, target, amount, ctx, opt);
+  let result;
+  if (isTrainingPolicyTarget) {
+    const trainingResult = duels2RouteApplyTrainingDamagePolicy(target, amount, {
+      fallbackTarget:R,
+      reason:opt.reason || 'damage.apply-result.training-policy',
+      route:opt.route || 'damage.apply-result',
+    });
+    if (trainingResult?.applied && trainingResult.amount > 0 && trainingResult.kind === 'dummy') {
+      duels2TrackTrainingDamageStats(target, trainingResult.amount, {reason:'damage-adapter.training-dummy'});
+    }
+    result = {
+      ok:trainingResult?.applied === true && Number(trainingResult?.amount || 0) > 0,
+      invalid:false,
+      delegated:false,
+      kind:'training-policy',
+      amount:Number(trainingResult?.amount || 0),
+      actualDamage:Math.max(0, Number(trainingResult?.before || 0) - Number(trainingResult?.after || 0)),
+      methodResult:trainingResult,
+      target,
+      reason:trainingResult?.applied ? null : 'training-policy-blocked',
+      opt,
+    };
+    // 훈련장 정책은 대상의 legacy applyDamage를 우회하므로, 그 내부에서 생성되던 피해 숫자를 공통 경계에서 보완한다.
+    // suppressLegacyDamageFeedback가 지정된 호출은 중복 표시를 막기 위해 그대로 존중한다.
+    if (result.ok && !ctx?.suppressLegacyDamageFeedback && typeof _addDmgNum === 'function') {
+      const pos = duels2GetVisibleCombatPosition?.(target) || {x:Number(target?.x)||0,y:Number(target?.y)||0};
+      const radius = Math.max(0, Number(target?.radius ?? target?.r ?? 20) || 20);
+      _addDmgNum('dealt', Math.round(result.amount), pos.x, pos.y-radius-10, getHitTargetKey?.(target));
+    }
+  } else {
+    result = duels2ApplyDamageViaResolvedAdapter(kind, target, amount, ctx, opt);
+  }
   const hpAfter = getEntityHealth(target);
   duels2RecordDamageApplicationBranch({
     type:'damage.apply-adapter',
@@ -22460,61 +22873,84 @@ fetch('https://Lyangnem.github.io/Duels/hitted.mp3')
   .then(buf => _sfxCtx.decodeAudioData(buf))
   .then(decoded => { _hitBuffer = decoded; })
   .catch(() => {});
-// DUELS2_AUDIO_RUNTIME: 효과음 종류별 활성 음원과 우선순위를 관리한다. 같은 종류는 새 소리가 이전 소리를 교체하고, 타격음은 발사음을 덕킹한다.
+// DUELS2_AUDIO_RUNTIME: 같은 실행 순간의 효과음 요청을 종류별로 하나만 남기고, 서로 다른 종류는 각각 한 번씩 함께 재생한다.
 const DUELS2_AUDIO_RUNTIME = {
-  active:new Map(),
-  gains:new Map(),
-  priorities:Object.freeze({shoot:10,hit:100}),
-  duckGain:0.18,
+  // activeByKind: 이미 재생 중인 음원을 종류별 Set으로 추적한다. 이후 시점의 같은 소리를 끊지 않는다.
+  activeByKind:new Map(),
+  // pendingKinds: 현재 동기 실행 묶음에서 요청된 효과음 종류를 모은다.
+  pendingKinds:new Map(),
+  flushScheduled:false,
   normalGain:0.5,
+  batchSerial:0,
 };
 
-// duels2StopActiveSfxKind: 지정 종류의 현재 효과음을 안전하게 중단하고 연결을 정리한다. (kind: hit/shoot)
-function duels2StopActiveSfxKind(kind) {
-  const entry=DUELS2_AUDIO_RUNTIME.active.get(kind);
-  if(!entry) return false;
-  try{entry.source.onended=null;entry.source.stop();}catch(_){ }
-  try{entry.source.disconnect();entry.gain.disconnect();}catch(_){ }
-  DUELS2_AUDIO_RUNTIME.active.delete(kind);
-  DUELS2_AUDIO_RUNTIME.gains.delete(kind);
-  return true;
-}
-
-// duels2RefreshSfxMix: 타격음 재생 여부에 따라 발사음 볼륨을 조절해 타격음을 우선적으로 들리게 한다. ()
-function duels2RefreshSfxMix(){
-  const hitActive=DUELS2_AUDIO_RUNTIME.active.has('hit');
-  const shootGain=DUELS2_AUDIO_RUNTIME.gains.get('shoot');
-  if(shootGain){
-    const target=hitActive?DUELS2_AUDIO_RUNTIME.duckGain:DUELS2_AUDIO_RUNTIME.normalGain;
-    try{shootGain.gain.cancelScheduledValues(_sfxCtx.currentTime);shootGain.gain.setTargetAtTime(target,_sfxCtx.currentTime,0.012);}catch(_){shootGain.gain.value=target;}
+// duels2GetActiveSfxSet: 효과음 종류별 활성 음원 Set을 반환하고 없으면 생성한다. (kind: hit/shoot 등 효과음 종류)
+function duels2GetActiveSfxSet(kind) {
+  let set=DUELS2_AUDIO_RUNTIME.activeByKind.get(kind);
+  if(!set){
+    set=new Set();
+    DUELS2_AUDIO_RUNTIME.activeByKind.set(kind,set);
   }
+  return set;
 }
 
-// duels2PlaySfxKind: 효과음 종류별 단일 활성 음원을 재생하고 우선순위 기반 믹싱을 적용한다. (kind: hit/shoot, buffer: AudioBuffer)
-function duels2PlaySfxKind(kind,buffer){
+// duels2StartSfxNow: 한 종류의 효과음을 즉시 한 번 재생한다. 이미 재생 중인 같은 종류의 소리는 중단하지 않는다. (kind: 효과음 종류, buffer: AudioBuffer)
+function duels2StartSfxNow(kind,buffer){
   if(!buffer) return false;
   if(_sfxCtx.state==='suspended'){try{_sfxCtx.resume();}catch(_){ }}
-  duels2StopActiveSfxKind(kind);
   const source=_sfxCtx.createBufferSource();
   const gain=_sfxCtx.createGain();
   source.buffer=buffer;
   gain.gain.value=DUELS2_AUDIO_RUNTIME.normalGain;
-  source.connect(gain);gain.connect(_sfxCtx.destination);
-  const entry={source,gain,kind};
-  DUELS2_AUDIO_RUNTIME.active.set(kind,entry);
-  DUELS2_AUDIO_RUNTIME.gains.set(kind,gain);
+  source.connect(gain);
+  gain.connect(_sfxCtx.destination);
+  const entry={source,gain,kind,batch:DUELS2_AUDIO_RUNTIME.batchSerial};
+  const activeSet=duels2GetActiveSfxSet(kind);
+  activeSet.add(entry);
   source.onended=()=>{
-    if(DUELS2_AUDIO_RUNTIME.active.get(kind)!==entry) return;
-    DUELS2_AUDIO_RUNTIME.active.delete(kind);DUELS2_AUDIO_RUNTIME.gains.delete(kind);
+    activeSet.delete(entry);
+    if(activeSet.size===0) DUELS2_AUDIO_RUNTIME.activeByKind.delete(kind);
     try{source.disconnect();gain.disconnect();}catch(_){ }
-    duels2RefreshSfxMix();
   };
   source.start(0);
-  duels2RefreshSfxMix();
   return true;
 }
 
-// playHitSfx: 타격음을 재생하며 발사음보다 높은 믹싱 우선순위를 갖는다. ()
+// duels2FlushSfxBatch: 같은 렌더 프레임에 모인 요청을 종류별 한 번씩 재생한다. 피격음과 발사음은 서로 다른 종류이므로 각각 하나씩 재생된다. ()
+function duels2FlushSfxBatch(){
+  DUELS2_AUDIO_RUNTIME.flushScheduled=false;
+  if(DUELS2_AUDIO_RUNTIME.pendingKinds.size===0) return false;
+  const batch=Array.from(DUELS2_AUDIO_RUNTIME.pendingKinds.entries());
+  DUELS2_AUDIO_RUNTIME.pendingKinds.clear();
+  DUELS2_AUDIO_RUNTIME.batchSerial+=1;
+  let played=false;
+  for(const [kind,buffer] of batch){
+    if(duels2StartSfxNow(kind,buffer)) played=true;
+  }
+  return played;
+}
+
+// duels2ScheduleSfxFrameFlush: 같은 화면 프레임에 들어온 효과음 요청을 하나의 배치로 묶는다. (flush: 배치 실행 함수)
+function duels2ScheduleSfxFrameFlush(flush){
+  if(typeof requestAnimationFrame === 'function'){
+    requestAnimationFrame(()=>flush());
+    return;
+  }
+  setTimeout(flush, Math.max(0, Number(typeof FRAME_MS !== 'undefined' ? FRAME_MS : 16.6667) || 16.6667));
+}
+
+// duels2PlaySfxKind: 같은 렌더 프레임의 효과음을 종류별 하나로 예약한다. 서로 다른 종류는 같은 프레임에도 각각 유지한다. (kind: hit/shoot, buffer: AudioBuffer)
+function duels2PlaySfxKind(kind,buffer){
+  if(!buffer) return false;
+  DUELS2_AUDIO_RUNTIME.pendingKinds.set(kind,buffer);
+  if(!DUELS2_AUDIO_RUNTIME.flushScheduled){
+    DUELS2_AUDIO_RUNTIME.flushScheduled=true;
+    duels2ScheduleSfxFrameFlush(duels2FlushSfxBatch);
+  }
+  return true;
+}
+
+// playHitSfx: 현재 렌더 프레임의 피격음을 한 번만 예약한다. ()
 function playHitSfx() {
   if (window._duels2SuppressHitSfx) return false;
   return duels2PlaySfxKind('hit',_hitBuffer);
@@ -22527,23 +22963,36 @@ fetch('https://Lyangnem.github.io/Duels/shoot.mp3')
   .then(decoded => { _shootBuffer = decoded; })
   .catch(() => {});
 
-// playShootSfx: 발사음을 종류별 단일 채널로 재생하며 타격음 재생 중에는 자동으로 볼륨을 낮춘다. ()
+// playShootSfx: 현재 렌더 프레임의 발사음을 한 번만 예약한다. ()
 function playShootSfx() {
   return duels2PlaySfxKind('shoot',_shootBuffer);
 }
 
-// duels2GetSfxSinglePlaySummary: 현재 효과음 채널·우선순위·덕킹 정책을 반환한다. ()
+// duels2GetSfxSinglePlaySummary: 현재 동시 효과음 중복 억제 정책과 활성 종류를 반환한다. ()
 function duels2GetSfxSinglePlaySummary() {
   return {
-    policy:'kind-channel-replace-with-hit-priority-ducking',
-    activeKinds:Array.from(DUELS2_AUDIO_RUNTIME.active.keys()),
-    sameKindReplacement:true,
+    policy:'same-render-frame-dedupe-per-kind',
+    activeKinds:Array.from(DUELS2_AUDIO_RUNTIME.activeByKind.keys()),
+    pendingKinds:Array.from(DUELS2_AUDIO_RUNTIME.pendingKinds.keys()),
+    sameKindSimultaneousDeduplication:true,
+    dedupeWindow:'render-frame',
     crossKindCoexistence:true,
-    hitPriority:true,
-    shootDuckGain:DUELS2_AUDIO_RUNTIME.duckGain,
+    interruptsPreviousSound:false,
+    hitAndShootCanPlayTogether:true,
   };
 }
+
 window.duels2GetSfxSinglePlaySummary = duels2GetSfxSinglePlaySummary;
+
+// duels2GetHoldAudioLevinaRegressionFixSummary: 홀드 연사·공통 피격음·레비나 원격 창 회귀 수정 상태를 반환한다. ()
+function duels2GetHoldAudioLevinaRegressionFixSummary() {
+  return {
+    holdAutoFire:{instantInputSessionDoesNotBlock:true, holdProfilesStillBlock:true},
+    hitSfx:{officialDamageResultGuarantee:true, simultaneousKindDedupePreserved:true},
+    levinaSpear:{registryAndLegacyOwnerUnion:true, remoteSnapshotRuntimeFieldsPreserved:true}
+  };
+}
+window.duels2GetHoldAudioLevinaRegressionFixSummary = duels2GetHoldAudioLevinaRegressionFixSummary;
 
 // duels2GetRegressionFixBatchSummary: 이번 오디오·HUD·캐릭터 회귀 수정 상태를 반환한다. ()
 function duels2GetRegressionFixBatchSummary() {
@@ -23318,8 +23767,29 @@ function duels2ClaimReconnectSlot(peerId, requestedPid) {
   return record;
 }
 
+// duels2EndMatchWithoutRecordSettlement: 참가자 중도 이탈 시 승패와 레코드 정산 없이 현재 경기를 종료한다. (reason: 종료 원인)
+function duels2EndMatchWithoutRecordSettlement(reason='player-departed') {
+  matchState._recordSettlementBlocked=true;
+  matchState._recordSettlementBlockedByDeparture=true;
+  gameOn=false;
+  clearTimeout(window._gameTimer);
+  if (_stateInterval) { clearInterval(_stateInterval); _stateInterval=null; }
+  try { matchState.phase='aborted'; matchState.lastAbortReason=reason; } catch (_) {}
+  const roundOverlay=document.getElementById('round-result-overlay');
+  const resultOverlay=document.getElementById('result-overlay')||document.getElementById('result-oveleulay');
+  if(roundOverlay) roundOverlay.style.display='none';
+  if(resultOverlay) resultOverlay.style.display='none';
+  showScr?.('scr-lobby',{force:true});
+  setStatus?.('host-status','플레이어가 중도 이탈해 기록 변화 없이 경기를 종료했습니다.','err');
+  setStatus?.('join-status','플레이어가 중도 이탈해 기록 변화 없이 경기를 종료했습니다.','err');
+  return {terminated:true,reason,recordChanged:false};
+}
+window.duels2EndMatchWithoutRecordSettlement=duels2EndMatchWithoutRecordSettlement;
+
 // duels2HandleHostConnectionLoss: 비정상 호스트 이탈 시 손상된 경기를 계속하지 않고 안전하게 종료한다. (reason: 종료 원인)
 function duels2HandleHostConnectionLoss(reason = 'host-connection-lost') {
+  matchState._recordSettlementBlocked=true;
+  matchState._recordSettlementBlockedByDeparture=true;
   DUELS2_MULTIPLAYER_SESSION_RECOVERY.lastHostLossAt = performance.now();
   DUELS2_MULTIPLAYER_SESSION_RECOVERY.revision += 1;
   gameOn = false;
@@ -23639,7 +24109,23 @@ function duels2InstallNetworkCombatEventPacketRouter() {
 
 duels2InstallNetworkCombatEventPacketRouter();
 
+// duels2GetRecordIdentityId: 같은 브라우저 프로필에서 실행한 플레이어를 판별할 영구 식별자를 반환한다. ()
+function duels2GetRecordIdentityId() {
+  const key='duels2.recordIdentityId.v1';
+  try {
+    let id=localStorage.getItem(key);
+    if(!id){ id='record-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,12); localStorage.setItem(key,id); }
+    return id;
+  } catch (_) {
+    if(!window._duels2FallbackRecordIdentity) window._duels2FallbackRecordIdentity='session-'+Math.random().toString(36).slice(2,12);
+    return window._duels2FallbackRecordIdentity;
+  }
+}
+const DUELS2_LOCAL_RECORD_IDENTITY=duels2GetRecordIdentityId();
+window.DUELS2_LOCAL_RECORD_IDENTITY=DUELS2_LOCAL_RECORD_IDENTITY;
+
 function send(d) {
+  if(d && typeof d==='object' && !d.recordIdentityId) d={...d,recordIdentityId:DUELS2_LOCAL_RECORD_IDENTITY};
   d = duels2NormalizeGameplayEventPacket(d, 'send');
   if (!d) return {handled:false, forwarded:false, result:'invalid-gameplay-event'};
   if (d?.type === 'fx' && d.fx && Array.isArray(fxList)) {
@@ -23877,6 +24363,15 @@ function setupConn(connection, opt = {}) {
   });
   c.on('close', () => {
     const pid = DUELS2_MULTI_PEER_CONNECTION_ROUTER.pidByConnection.get(c) || remotePid;
+    const wasActive=!!gameOn || ['playing','round','combat'].includes(String(matchState?.phase||'').toLowerCase());
+    if (wasActive) {
+      matchState._recordSettlementBlocked=true;
+      matchState._recordSettlementBlockedByDeparture=true;
+      if (isHost) {
+        try { duels2RouteMultiPeerPacket({type:'matchAbortNoRecord',pid,sourcePid:'P1',reason:'player-connection-closed'}); } catch (_) {}
+      }
+      duels2EndMatchWithoutRecordSettlement('player-connection-closed');
+    }
     duels2UnregisterPeerConnection(pid);
     if (isHost) {
       duels2RememberReconnectSlot(pid, c.peer || null);
@@ -24087,6 +24582,7 @@ duels2RegisterSimpleGameplayEventHandler('playerLeave', d => {
 duels2RegisterSimpleGameplayEventHandler('ready', d => {
   const readyPid = PLAYER_SLOT_IDS.includes(d.sourcePid || d.pid) ? (d.sourcePid || d.pid) : 'P2';
   duels2SetPlayerLobbySelection(readyPid, {charId:d.charId, ready:true});
+  if(Number.isFinite(Number(d.masteryPoints))) duels2SetRemoteCharacterMastery(readyPid,d.charId,d.masteryPoints);
   checkBothReady();
 });
 
@@ -24363,6 +24859,8 @@ function duels2RegisterExtendedLegacyEventHandlers() {
   }, 520);
   duels2RegisterSimpleGameplayEventHandler('betweenSelection', d => {
     matchState._peerSelectedChar=d.charId??null; matchState._peerSelectedAug=d.augId??null; matchState._peerBetweenReady=true;
+    const peerPid=duels2GetPrimaryOpponentPid?.()||'P2';
+    if(Number.isFinite(Number(d.masteryPoints))) duels2SetRemoteCharacterMastery(peerPid,d.masteryCharId||d.charId||peerCharId,d.masteryPoints);
     if(d.augId){matchState.peerAugments.push(d.augId);matchState._pendingPeerAugHudId=d.augId;}
     renderAugHud?.(); refreshLiveHud?.(); updatePeerAugDisplay(); checkBetweenBothReady();
   }, 520);
@@ -24394,11 +24892,9 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     addFx(fx);
   }, 510);
   duels2RegisterSimpleGameplayEventHandler('reviveBlink', d => revivePeerRuntimeProxy(d.dur||1000), 510);
-  duels2RegisterSimpleGameplayEventHandler('devAlert', () => {
-    window._devUnlocked=true; if(!window._devAlertShownThisGame){window._devAlertShownThisGame=true;alert('상대방이 디버깅 탭에 진입했습니다.');}
-  }, 510);
+  // 디버깅 패널 진입은 로컬 UI이므로 네트워크 알림을 처리하지 않는다.
   duels2RegisterSimpleGameplayEventHandler('devCmd', d => {
-    window._devUnlocked=true; duels2RouteApplyDevCommand(d,{fromPeer:true,defaultTarget:L,reason:'network.devCmd',route:'network.devCmd'});
+    duels2RouteApplyDevCommand(d,{fromPeer:true,defaultTarget:L,reason:'network.devCmd',route:'network.devCmd'});
   }, 510);
   duels2RegisterSimpleGameplayEventHandler('roonSlush', d => setRoonSlushValue(L,d.v), 510);
   duels2RegisterSimpleGameplayEventHandler('reikaFireTrailField', d => {
@@ -24425,7 +24921,7 @@ function duels2RegisterExtendedLegacyEventHandlers() {
   }, 510);
   duels2RegisterSimpleGameplayEventHandler('charChange', d => {
     const e=duels2ResolvePacketSourceEntity(d);const pid=getPlayerPid(e)||d.sourcePid||'P2';if(pid==='P2')peerCharId=d.charId;
-    duels2ApplyCharacterDefinitionToEntity(e,d.charId,{reason:'network.char-change'});if(d.color){e.color=d.color;e.defaultColor=d.color;}if(Number.isFinite(Number(d.radius)))e.radius=Number(d.radius);duels2SetPlayerLobbySelection?.(pid,{charId:d.charId});
+    duels2ApplyCharacterDefinitionToEntity(e,d.charId,{reason:'network.char-change'});if(d.color){e.color=d.color;e.defaultColor=d.color;}if(Number.isFinite(Number(d.radius)))e.radius=Number(d.radius);duels2SetPlayerLobbySelection?.(pid,{charId:d.charId});if(Number.isFinite(Number(d.masteryPoints)))duels2SetRemoteCharacterMastery(pid,d.charId,d.masteryPoints);renderAugHud?.();
   }, 510);
   duels2RegisterSimpleGameplayEventHandler('colorChange', d => {duels2ResolvePacketSourceEntity(d).color=d.color;}, 510);
   duels2RegisterSimpleGameplayEventHandler('freezeApply', d => receiveFreeze(d.dur), 510);
@@ -24616,6 +25112,12 @@ window.duels2GetStateSnapshotMigrationSummary = duels2GetStateSnapshotMigrationS
 function onData(d) {
   d = duels2NormalizeGameplayEventPacket(d, 'receive');
   if (!d) return false;
+  if (d.recordIdentityId && d.recordIdentityId !== DUELS2_LOCAL_RECORD_IDENTITY) {
+    matchState._remoteRecordIdentityId=String(d.recordIdentityId);
+  } else if (d.recordIdentityId && d.recordIdentityId === DUELS2_LOCAL_RECORD_IDENTITY) {
+    matchState._remoteRecordIdentityId=String(d.recordIdentityId);
+    matchState._recordSettlementBlockedSamePlayer=true;
+  }
   if (window._devUnlocked) recordPacketLog('recv', d);
   duels2RouteReceiveNetworkCombatEventPacket(d, {route:'onData'});
   const modularDispatch = duels2DispatchGameplayEvent(d, {route:'onData', localPid:DUELS2_PLAYER_REGISTRY.localPid || 'P1', isHost});
@@ -24675,6 +25177,7 @@ function onData(d) {
     case 'ready': {
       const readyPid = PLAYER_SLOT_IDS.includes(d.sourcePid || d.pid) ? (d.sourcePid || d.pid) : 'P2';
       duels2SetPlayerLobbySelection(readyPid, {charId:d.charId, ready:true});
+      if(Number.isFinite(Number(d.masteryPoints))) duels2SetRemoteCharacterMastery(readyPid,d.charId,d.masteryPoints);
       checkBothReady();
       break;
     }
@@ -24868,12 +25371,10 @@ function onData(d) {
       revivePeerRuntimeProxy(d.dur || 1000);
       break;
     case 'devAlert':
-      window._devUnlocked = true;
-      if (!window._devAlertShownThisGame) { window._devAlertShownThisGame = true; alert('상대방이 디버깅 탭에 진입했습니다.'); }
+      // 레거시 디버깅 진입 알림 패킷은 무시한다.
       break;
     case 'devCmd':
       // 상대방이 디버깅 명령을 내 화면에 적용
-      window._devUnlocked = true;
       duels2RouteApplyDevCommand(d, {fromPeer:true, defaultTarget:L, reason:'network.devCmd', route:'network.devCmd'});
       break;
     case 'roonSlush': // 빙수 게이지 수신
@@ -25244,6 +25745,256 @@ function onData(d) {
   }
 }
 
+// ── 캐릭터 레코드 런타임 ──────────────────────────────────────────────
+const DUELS2_CHARACTER_RECORD_STORAGE_KEY = 'duels2.characterRecord.v1';
+const DUELS2_CHARACTER_RECORD_LEGACY_STORAGE_KEY = 'duels2.characterMastery.v1';
+const DUELS2_CHARACTER_MASTERY_STORAGE_KEY = DUELS2_CHARACTER_RECORD_STORAGE_KEY;
+const DUELS2_CHARACTER_MASTERY_TIERS = Object.freeze([
+  {id:'none', name:'없음', min:0, gradient:'linear-gradient(135deg,#27313d,#3a4654)', glow:'rgba(80,100,120,.12)', text:'#7e8995'},
+  {id:'bronze', name:'브론즈', min:500, gradient:'linear-gradient(135deg,#5f2f18,#a95625,#d07a3b,#713419)', glow:'rgba(184,86,37,.58)', text:'#d98248'},
+  {id:'silver', name:'실버', min:1500, gradient:'linear-gradient(135deg,#7d8792,#eef4fa,#89939d)', glow:'rgba(210,225,240,.52)', text:'#dce8f2'},
+  {id:'gold', name:'골드', min:3000, gradient:'linear-gradient(135deg,#9b6500,#ffe066,#c99200)', glow:'rgba(255,205,45,.58)', text:'#ffd84c'},
+  {id:'diamond', name:'다이아', min:5000, gradient:'linear-gradient(135deg,#1769d2,#4aa8ff,#9de8ff,#2476df)', glow:'rgba(45,145,255,.72)', text:'#68baff'},
+  {id:'platinum', name:'플레티넘', min:8000, gradient:'linear-gradient(135deg,#76d8ff,#9eeeff,#aaf2c1,#66d991)', glow:'rgba(105,225,205,.72)', text:'#8fe8cf'},
+  {id:'master', name:'마스터', min:12000, gradient:'linear-gradient(135deg,#ffe34f,#ff9d38,#a86cff,#6f3dd6)', glow:'rgba(205,120,255,.72)', text:'#f0c3ff'}
+]);
+const DUELS2_CHARACTER_MASTERY_STATE = {
+  local:Object.create(null),
+  remoteByPid:new Map()
+};
+const DUELS2_CHARACTER_RECORD_STATS_STORAGE_KEY='duels2.characterRecordStats.v1';
+const DUELS2_CHARACTER_RECORD_STATS_STATE={local:Object.create(null)};
+
+// duels2LoadCharacterRecordStats: 캐릭터별 정상 라운드 플레이 횟수와 승리 횟수를 불러온다. ()
+function duels2LoadCharacterRecordStats(){
+  DUELS2_CHARACTER_RECORD_STATS_STATE.local=Object.create(null);
+  return DUELS2_CHARACTER_RECORD_STATS_STATE.local;
+}
+
+// duels2SaveCharacterRecordStats: 캐릭터별 플레이 통계를 브라우저에 저장한다. ()
+function duels2SaveCharacterRecordStats(){
+  return true;
+}
+
+// duels2GetCharacterRecordStats: 지정 캐릭터의 플레이 횟수, 승리 횟수와 승률을 반환한다. (charId: 캐릭터 ID)
+function duels2GetCharacterRecordStats(charId){
+  const raw=DUELS2_CHARACTER_RECORD_STATS_STATE.local[charId]||{plays:0,wins:0};
+  const plays=Math.max(0,Math.floor(Number(raw.plays)||0));
+  const wins=Math.max(0,Math.min(plays,Math.floor(Number(raw.wins)||0)));
+  return {plays,wins,winRate:plays>0?(wins/plays)*100:0};
+}
+window.duels2GetCharacterRecordStats=duels2GetCharacterRecordStats;
+
+// duels2RecordCharacterRoundResult: 정상적으로 정산된 한 라운드를 캐릭터 통계에 기록한다. (charId: 캐릭터 ID, won: 승리 여부)
+function duels2RecordCharacterRoundResult(charId,won){
+  if(!CHARACTERS[charId]) return null;
+  const current=duels2GetCharacterRecordStats(charId);
+  const next={plays:current.plays+1,wins:current.wins+(won?1:0)};
+  DUELS2_CHARACTER_RECORD_STATS_STATE.local[charId]=next;
+  duels2SaveCharacterRecordStats();
+  return {...next,winRate:next.plays>0?(next.wins/next.plays)*100:0};
+}
+
+duels2LoadCharacterRecordStats();
+
+// duels2LoadCharacterMastery: 저장된 캐릭터별 레코드 점수를 안전하게 불러오고 기존 숙련도 저장값을 한 번 마이그레이션한다. ()
+function duels2LoadCharacterMastery() {
+  DUELS2_CHARACTER_MASTERY_STATE.local=Object.create(null);
+  return DUELS2_CHARACTER_MASTERY_STATE.local;
+}
+
+// duels2SaveCharacterMastery: 현재 캐릭터별 레코드 점수를 브라우저 저장소에 기록한다. ()
+function duels2SaveCharacterMastery() {
+  return true;
+}
+
+// duels2GetCharacterMasteryPoints: 로컬 또는 지정 PID의 캐릭터 레코드 점수를 반환한다. (charId: 캐릭터 ID, pid: 생략 시 로컬)
+function duels2GetCharacterMasteryPoints(charId,pid=null) {
+  if (!charId) return 0;
+  const localPid=DUELS2_PLAYER_REGISTRY?.localPid||getPlayerPid?.(L)||'P1';
+  if (!pid || pid===localPid) return Math.max(0,Math.floor(Number(DUELS2_CHARACTER_MASTERY_STATE.local[charId])||0));
+  return Math.max(0,Math.floor(Number(DUELS2_CHARACTER_MASTERY_STATE.remoteByPid.get(pid)?.[charId])||0));
+}
+
+// duels2GetCharacterMasteryTier: 레코드 점수에 해당하는 등급 정의를 반환한다. (points: 레코드 점수)
+function duels2GetCharacterMasteryTier(points) {
+  const value=Math.max(0,Number(points)||0);
+  let tier=DUELS2_CHARACTER_MASTERY_TIERS[0];
+  for (const item of DUELS2_CHARACTER_MASTERY_TIERS) if (value>=item.min) tier=item;
+  return tier;
+}
+
+// duels2GetCharacterMasteryView: 카드와 HUD에 사용할 레코드 표시 데이터를 만든다. (charId: 캐릭터 ID, pid: 생략 시 로컬)
+function duels2GetCharacterMasteryView(charId,pid=null) {
+  const points=duels2GetCharacterMasteryPoints(charId,pid);
+  const tier=duels2GetCharacterMasteryTier(points);
+  const index=DUELS2_CHARACTER_MASTERY_TIERS.indexOf(tier);
+  const next=DUELS2_CHARACTER_MASTERY_TIERS[index+1]||null;
+  return {charId,points,tier,next,label:`${tier.name} · ${points}`,progress:next?Math.max(0,Math.min(1,(points-tier.min)/(next.min-tier.min))):1};
+}
+
+// duels2ApplyMasteryCardStyle: 캐릭터 카드 하단에 레코드와 등급 외곽선을 적용한다. (card: 카드 요소, charId: 캐릭터 ID, pid: 소유 PID)
+function duels2ApplyMasteryCardStyle(card,charId,pid=null) {
+  if (!card || !charId) return null;
+  const view=duels2GetCharacterMasteryView(charId,pid);
+  for (const cls of [...card.classList]) if (cls.startsWith('mastery-') && cls!=='mastery-card') card.classList.remove(cls);
+  card.classList.add('mastery-card',`mastery-${view.tier.id}`);
+  card.style.setProperty('--mastery-gradient',view.tier.gradient);
+  card.style.setProperty('--mastery-glow',view.tier.glow);
+  card.dataset.masteryTier=view.tier.id;
+  card.dataset.masteryPoints=String(view.points);
+  let badge=card.querySelector('.char-mastery');
+  if (!badge) { badge=document.createElement('div'); badge.className='char-mastery'; card.appendChild(badge); }
+  else if (badge !== card.lastElementChild) card.appendChild(badge);
+  badge.style.color=view.tier.text;
+  // 기본 카드에서는 레코드 등급과 점수를 모두 숨긴다. 우클릭 상세 화면에서만 노출한다.
+  badge.textContent='';
+  badge.hidden=true;
+  return view;
+}
+
+// duels2RefreshCharacterRecordUi: 현재 화면에 열린 카드와 HUD의 레코드 표시를 즉시 갱신한다. ()
+function duels2RefreshCharacterRecordUi() {
+  document.querySelectorAll('.char-card[data-id]').forEach(card=>duels2ApplyMasteryCardStyle(card,card.dataset.id,card.dataset.masteryPid||null));
+  renderAugHud?.();
+}
+
+// duels2SetRemoteCharacterMastery: 상대가 전송한 캐릭터 레코드를 PID별로 저장하고 HUD를 갱신한다. (pid: 상대 PID, charId: 캐릭터 ID, points: 점수)
+function duels2SetRemoteCharacterMastery(pid,charId,points) {
+  if (!pid || !charId || !CHARACTERS[charId]) return false;
+  const record={...(DUELS2_CHARACTER_MASTERY_STATE.remoteByPid.get(pid)||{})};
+  record[charId]=Math.max(0,Math.floor(Number(points)||0));
+  DUELS2_CHARACTER_MASTERY_STATE.remoteByPid.set(pid,record);
+  renderAugHud?.();
+  return true;
+}
+
+// duels2SetCharacterRecordPoints: 개발자 도구 등에서 캐릭터 레코드 점수를 직접 설정한다. (charId: 캐릭터 ID, points: 새 점수, reason: 변경 사유)
+function duels2SetCharacterRecordPoints(charId,points,reason='manual') {
+  if (!CHARACTERS[charId]) return null;
+  const before=duels2GetCharacterMasteryPoints(charId);
+  const after=Math.max(0,Math.floor(Number(points)||0));
+  DUELS2_CHARACTER_MASTERY_STATE.local[charId]=after;
+
+  // 로그인 계정 JSON의 메모리 사본도 즉시 갱신한다.
+  // 자동 로그인 시 원격 JSON이 다시 적용되므로 런타임 값만 바꾸면 새로고침 후 원복된다.
+  const accountState=globalThis.DUELS2_GITHUB_ACCOUNT_STATE;
+  if(accountState?.current){
+    const records=(accountState.current.characterRecords&&typeof accountState.current.characterRecords==='object')
+      ? {...accountState.current.characterRecords}
+      : {};
+    records[charId]=after;
+    accountState.current={...accountState.current,characterRecords:records,updatedAt:new Date().toISOString()};
+  }
+
+  duels2SaveCharacterMastery();
+  duels2RefreshCharacterRecordUi();
+  if(typeof duels2BroadcastCurrentRecord==='function') duels2BroadcastCurrentRecord(charId);
+  if(typeof duels2AccountScheduleSave==='function') duels2AccountScheduleSave(120);
+  return {charId,before,after,reason,beforeTier:duels2GetCharacterMasteryTier(before),afterTier:duels2GetCharacterMasteryTier(after)};
+}
+window.duels2SetCharacterRecordPoints=duels2SetCharacterRecordPoints;
+
+// duels2AwardCharacterMastery: 캐릭터 레코드 점수를 양수 또는 음수로 변경하고 저장한다. (charId: 캐릭터 ID, amount: 증감량, reason: 기록 사유, opt: floor/ceiling)
+function duels2AwardCharacterMastery(charId,amount,reason='round',opt={}) {
+  if (!CHARACTERS[charId]) return null;
+  const before=duels2GetCharacterMasteryPoints(charId);
+  let after=before+Math.floor(Number(amount)||0);
+  if (Number.isFinite(Number(opt.floor))) after=Math.max(Number(opt.floor),after);
+  if (Number.isFinite(Number(opt.ceiling))) after=Math.min(Number(opt.ceiling),after);
+  after=Math.max(0,Math.floor(after));
+  DUELS2_CHARACTER_MASTERY_STATE.local[charId]=after;
+  duels2SaveCharacterMastery();
+  duels2RefreshCharacterRecordUi();
+  const result={charId,before,after,delta:after-before,reason,beforeTier:duels2GetCharacterMasteryTier(before),afterTier:duels2GetCharacterMasteryTier(after)};
+  duels2ShowRecordDelta(result);
+  duels2BroadcastCurrentRecord(charId);
+  return result;
+}
+
+// duels2ShowRecordDelta: 라운드 직후 레코드 증감량을 독립 토스트로 표시한다. (result: 레코드 변경 결과)
+function duels2ShowRecordDelta(result) {
+  if (!result) return;
+  let el=document.getElementById('record-delta-toast');
+  if(!el){el=document.createElement('div');el.id='record-delta-toast';el.className='record-delta-toast';document.body.appendChild(el);}
+  const delta=Number(result.delta)||0;
+  const sign=delta>0?'+':'';
+  el.textContent=`레코드 ${sign}${delta} · ${result.before} → ${result.after}`;
+  el.style.color=delta>0?'#7fffa0':delta<0?'#ff8585':'#aab6c2';
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(window._recordDeltaToastTimer);
+  window._recordDeltaToastTimer=setTimeout(()=>el.classList.remove('show'),2400);
+}
+
+// duels2BroadcastCurrentRecord: 현재 캐릭터 레코드를 다른 참가자에게 즉시 동기화한다. (charId: 캐릭터 ID)
+function duels2BroadcastCurrentRecord(charId) {
+  if(!charId || typeof send!=='function') return;
+  const pid=DUELS2_PLAYER_REGISTRY?.localPid||getPlayerPid?.(L)||'P1';
+  send({type:'recordUpdate',pid,sourcePid:pid,charId,masteryPoints:duels2GetCharacterMasteryPoints(charId)});
+}
+
+// duels2GetRoundRecordChange: 현재 등급과 승패에 따른 한 라운드 레코드 증감 규칙을 계산한다. (points: 현재 점수, won: 라운드 승리 여부)
+function duels2GetRoundRecordChange(points,won) {
+  const tier=duels2GetCharacterMasteryTier(points);
+  // 다이아 이상은 단순 참가 점수는 없지만, 승리 보너스 50점은 계속 획득한다.
+  if (tier.id==='master') return won?{amount:50,floor:12000,reason:'master-win'}:{amount:-60,floor:12000,reason:'master-loss'};
+  if (tier.id==='platinum') return won?{amount:50,floor:8000,reason:'platinum-win'}:{amount:-40,floor:8000,reason:'platinum-loss'};
+  if (tier.id==='diamond') return won?{amount:50,reason:'diamond-win'}:{amount:0,reason:'diamond-loss-no-change'};
+  return {amount:won?100:50,ceiling:5000,reason:won?'round-win':'round-play'};
+}
+
+// duels2CanSettleRoundRecord: 정상 종료이며 서로 다른 플레이어인 경우에만 레코드 정산을 허용한다. ()
+function duels2CanSettleRoundRecord() {
+  if (matchState._recordSettlementBlocked || matchState._recordSettlementBlockedByDeparture) return false;
+  if (matchState._recordSettlementBlockedSamePlayer) return false;
+  if (matchState._remoteRecordIdentityId && matchState._remoteRecordIdentityId===DUELS2_LOCAL_RECORD_IDENTITY) return false;
+  return true;
+}
+window.duels2CanSettleRoundRecord=duels2CanSettleRoundRecord;
+
+// duels2AwardRecordForCompletedRound: 라운드 종료 시 사용 캐릭터의 레코드를 라운드당 정확히 한 번 갱신한다. (won: 로컬 승리 여부, roundToken: 종료 라운드 식별자)
+function duels2AwardRecordForCompletedRound(won,roundToken=matchState.round) {
+  if (!duels2CanSettleRoundRecord()) return null;
+  const token=Math.max(1,Math.floor(Number(roundToken)||1));
+  if (matchState._recordAwardedRoundToken===token) return null;
+  const charId=L.charDef?.id||selCharId;
+  if (!charId) return null;
+  matchState._recordAwardedRoundToken=token;
+  duels2RecordCharacterRoundResult(charId,!!won);
+  const before=duels2GetCharacterMasteryPoints(charId);
+  const rule=duels2GetRoundRecordChange(before,!!won);
+  const result=duels2AwardCharacterMastery(charId,rule.amount,rule.reason,rule);
+  if (result && result.delta!==0) {
+    const sign=result.delta>0?'+':'';
+    setStatus?.('rematch-status',`레코드 ${sign}${result.delta} · ${result.afterTier.name}`,'ok');
+  }
+  return result;
+}
+
+// 이전 매치 단위 API를 호출하는 잔여 코드가 있어도 중복 지급하지 않도록 유지하는 호환 래퍼.
+function duels2AwardMasteryForCompletedMatch() { return null; }
+
+duels2LoadCharacterMastery();
+if(typeof duels2RegisterSimpleGameplayEventHandler==='function'){
+  duels2RegisterSimpleGameplayEventHandler('recordUpdate',d=>{
+    const pid=d.pid||d.sourcePid||duels2GetPrimaryOpponentPid?.()||'P2';
+    if(Number.isFinite(Number(d.masteryPoints))) duels2SetRemoteCharacterMastery(pid,d.charId,d.masteryPoints);
+  },545);
+}
+if(typeof duels2RegisterSimpleGameplayEventHandler==='function'){
+  duels2RegisterSimpleGameplayEventHandler('matchAbortNoRecord',d=>{
+    matchState._recordSettlementBlocked=true;
+    matchState._recordSettlementBlockedByDeparture=true;
+    return duels2EndMatchWithoutRecordSettlement(d?.reason||'remote-player-departed');
+  },1000);
+}
+
+// duels2GetCharacterSelectionOrder: 캐릭터 선택 UI에서 지정 캐릭터를 마지막에 배치한다. (lastIds: 마지막에 둘 캐릭터 id 배열)
+function duels2GetCharacterSelectionOrder(lastIds=['luran']) {
+  const tail=new Set(lastIds);
+  return Object.values(CHARACTERS).sort((a,b)=>(tail.has(a.id)?1:0)-(tail.has(b.id)?1:0));
+}
+
 // Lobby, character select setup / training screens
 let selCharId = null;
 document.addEventListener('DOMContentLoaded', () => {
@@ -25260,12 +26011,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const grid = document.getElementById('char-grid');
-  Object.values(CHARACTERS).forEach(ch => {
+  duels2GetCharacterSelectionOrder().forEach(ch => {
     const card = document.createElement('div');
     card.className = 'char-card';
     card.dataset.id = ch.id;
     card.dataset.id = ch.id;
-    const statsHtml   = ch.statsText.map(([k,v]) => `<b>${k}</b>: ${v}`).join('<br>');
+    const statsHtml   = ch.statsText.map(([k,v]) => `<div><b>${k}</b><span>: ${v}</span></div>`).join('');
     const tooltipHtml = `${ch.desc}<br><br>` + ch.skills.map(s =>
       `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
       (s.wpCost ? ` / 스테미나 ${s.cost}/${s.wpCost}` : (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`))
@@ -25275,6 +26026,28 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="char-icon" style="background:${ch.color}22;border:3px solid ${ch.color};"></div>
       <div class="char-name" style="color:${ch.color}">${ch.name}</div>
       <div class="char-stats">${statsHtml}</div>`;
+    duels2ApplyMasteryCardStyle(card,ch.id);
+    const recordDetail=document.createElement('div');
+    recordDetail.className='char-record-detail';
+    card.appendChild(recordDetail);
+    const refreshRecordDetail=()=>{
+      const stats=duels2GetCharacterRecordStats(ch.id);
+      const record=duels2GetCharacterMasteryView(ch.id);
+      recordDetail.innerHTML=`
+        <div class="char-record-detail-title">${ch.name}</div>
+        <div class="char-record-detail-row"><b>플레이</b><span>${stats.plays}회</span></div>
+        <div class="char-record-detail-row"><b>승률</b><span>${stats.plays?stats.winRate.toFixed(1):'0.0'}%</span></div>
+        <div class="char-record-detail-row"><b>레코드</b><span>${record.tier.name} · ${record.points}</span></div>
+        <div class="char-record-detail-hint">우클릭으로 돌아가기</div>`;
+    };
+    card.addEventListener('contextmenu',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const opening=!card.classList.contains('record-detail-open');
+      // 카드별 상세 상태를 독립적으로 관리해 여러 캐릭터 통계를 동시에 열 수 있다.
+      if(opening){refreshRecordDetail();card.classList.add('record-detail-open');}
+      else card.classList.remove('record-detail-open');
+    });
     if (ch.disabled) {
       card.style.opacity = '0.3';
       card.style.cursor = 'not-allowed';
@@ -26599,8 +27372,9 @@ function drawAttackPreview(preview) {
       const _meleeAug = !sh.noAug && !sh.projectile && !sh.explosion && !sh.moveAttack && sh.melee !== false;
       const hw = sh.noAug ? sh.width : (sh.projectile ? augBulletRadius(sh.width) : (_meleeAug ? augMeleeRange(sh.width) : sh.width));
       const len = sh.noAug ? sh.len : (_meleeAug ? augMeleeRange(sh.len) : sh.len);
-      ctx.globalAlpha = 0.14; ctx.fillRect(0, -hw, len, hw * 2);
-      ctx.globalAlpha = 0.55; ctx.strokeRect(0, -hw, len, hw * 2);
+      const startDist=Number.isFinite(sh.startDist)?sh.startDist:0;
+      ctx.globalAlpha = 0.14; ctx.fillRect(startDist, -hw, len, hw * 2);
+      ctx.globalAlpha = 0.55; ctx.strokeRect(startDist, -hw, len, hw * 2);
       ctx.restore();
 
     } else if (sh.type === 'line') {
@@ -29334,6 +30108,203 @@ function duels2StartJerryBlastJump(entity, distance, durationMs, options = {}) {
   return true;
 }
 
+
+// duels2GetSteppedRangeState: 단계형 거리 모듈의 현재 단계를 유효 범위로 정규화한다. (entity: 상태를 가진 엔티티, balance: stages를 포함한 밸런스 객체)
+function duels2GetSteppedRangeState(entity, balance) {
+  const stages=Math.max(1,Math.floor(balance?.stages||7));
+  const current=Math.max(1,Math.min(stages,Math.floor(entity?._steppedRangeStage||1)));
+  if(entity) entity._steppedRangeStage=current;
+  return current;
+}
+
+// duels2ResetSteppedRangeState: 새 라운드나 게임 재시작 시 단계형 거리 상태와 진행 중 입력을 초기 단계로 되돌린다. (entity: 초기화할 엔티티, opt: stage/clearInput 설정)
+function duels2ResetSteppedRangeState(entity, opt={}) {
+  if(!entity) return 1;
+  const initialStage=Math.max(1,Math.floor(Number(opt.stage)||1));
+  entity._steppedRangeStage=initialStage;
+  if(opt.clearInput!==false){
+    if(entity._luranAdjustTimer){clearInterval(entity._luranAdjustTimer);entity._luranAdjustTimer=null;}
+    entity._luranAdjustHeld=false;
+    entity._luranAdjustDidStep=false;
+    entity._luranAdjustStartedAt=0;
+    entity._luranAdjustLastStepAt=0;
+    entity._luranAdjustToken=(entity._luranAdjustToken||0)+1;
+  }
+  return initialStage;
+}
+
+// duels2SetSteppedRangeState: 단계형 거리 모듈의 단계를 설정하고 선택적 시각 피드백을 전송한다. (entity: 대상 엔티티, stage: 새 단계, balance: 거리 밸런스, opt: angle/fx 설정)
+function duels2SetSteppedRangeState(entity, stage, balance, opt={}) {
+  if(!entity) return 1;
+  const stages=Math.max(1,Math.floor(balance?.stages||7));
+  const next=Math.max(1,Math.min(stages,Math.floor(stage||1)));
+  entity._steppedRangeStage=next;
+  if(opt.fx!==false){
+    const angle=Number.isFinite(opt.angle)?opt.angle:(entity===L?getAngle():0);
+    const distance=(balance?.minRange||0)+(next-1)*(balance?.stepRange||0);
+    // 거리 조절은 조작자에게만 필요한 정보이므로 네트워크로 전송하지 않는다.
+    emitLocalFx({type:'rulerAdjust',x:entity.x,y:entity.y,angle,distance,stage:next,stages,dur:16,maxDur:16,strikeLength:128,strikeWidth:72,col:'230,221,133'});
+  }
+  return next;
+}
+
+// duels2GetSteppedRangePoint: 단계와 조준각으로 실제 타격 지점 좌표를 계산한다. (source: 기준 엔티티, angle: 조준각, stage: 단계, balance: minRange/stepRange)
+function duels2GetSteppedRangePoint(source, angle, stage, balance) {
+  const distance=(balance?.minRange||0)+(Math.max(1,stage)-1)*(balance?.stepRange||0);
+  return {x:source.x+Math.cos(angle)*distance,y:source.y+Math.sin(angle)*distance,distance};
+}
+
+// duels2GetWallLimitedRange: 기준점에서 지정 방향으로 진행할 때 벽 앞까지 허용되는 거리를 반환한다. (source/angle/maxDistance/halfWidth)
+function duels2GetWallLimitedRange(source, angle, maxDistance, halfWidth=1) {
+  const safeMax=Math.max(0,Number(maxDistance)||0);
+  if(safeMax<=0) return safeMax;
+  const walls=currentMap?.walls||[];
+  const step=4, radius=Math.max(1,Number(halfWidth)||1);
+  const cos=Math.cos(angle), sin=Math.sin(angle);
+  // 맵 가장자리는 벽과 같은 사거리 차단 경계다. 중심선의 탐색 반경까지 월드 안에 남아야 한다.
+  const isBlocked=(x,y)=>{
+    if(x-radius<0 || x+radius>WORLD_W || y-radius<0 || y+radius>WORLD_H) return true;
+    return walls.some(w=>x+radius>w.x&&x-radius<w.x+w.w&&y+radius>w.y&&y-radius<w.y+w.h);
+  };
+  let lastClear=0;
+  for(let distance=step;distance<=safeMax;distance+=step){
+    const x=source.x+cos*distance;
+    const y=source.y+sin*distance;
+    if(isBlocked(x,y)) return lastClear;
+    lastClear=distance;
+  }
+  // step으로 정확히 나누어지지 않는 마지막 구간도 검사한다.
+  if(lastClear<safeMax){
+    const x=source.x+cos*safeMax;
+    const y=source.y+sin*safeMax;
+    if(!isBlocked(x,y)) return safeMax;
+  }
+  return Math.min(lastClear,safeMax);
+}
+
+// duels2GetSteppedRangeStrikeGeometry: 단계형 거리 공격의 벽 제한 끝점과 가로 직사각형 판정을 계산한다. (source/angle/stage/rangeBalance/strikeLength/strikeWidth)
+function duels2GetSteppedRangeStrikeGeometry(source, angle, stage, rangeBalance, strikeLength, strikeWidth) {
+  const desired=duels2GetSteppedRangePoint(source,angle,stage,rangeBalance);
+  // 벽 차단은 공격 범위 전체 폭이 아니라 줄자의 중심선만 검사한다.
+  // 따라서 벽 옆에 붙어 있어도 측면 벽을 전방 장애물로 오인하지 않는다.
+  const limitedDistance=duels2GetWallLimitedRange(source,angle,desired.distance,2);
+  return {
+    x:source.x+Math.cos(angle)*limitedDistance,
+    y:source.y+Math.sin(angle)*limitedDistance,
+    distance:limitedDistance,
+    desiredDistance:desired.distance,
+    blocked:limitedDistance+1<desired.distance,
+    angle:angle+Math.PI/2,
+    length:Math.max(1,Number(strikeLength)||128),
+    width:Math.max(1,Number(strikeWidth)||34),
+  };
+}
+
+// duels2GetRulerTickLayout: 단계 거리와 타격 깊이에서 실제 자 눈금 단위와 자연 정렬되는 눈금 위치를 계산한다. (rangeBalance/strikeDepth/endDistance)
+function duels2GetRulerTickLayout(rangeBalance, strikeDepth, endDistance) {
+  const balance=rangeBalance||{};
+  const ticksPerStage=Math.max(1,Math.round(Number(balance.ticksPerStage)||4));
+  const stepRange=Math.max(1,Number(balance.stepRange)||72);
+  const tickUnit=Math.max(1,Number(balance.tickUnit)||stepRange/ticksPerStage);
+  const firstInnerEdge=Math.max(0,(Number(balance.minRange)||0)-Math.max(1,Number(strikeDepth)||1)/2);
+  const maxDistance=Math.max(0,Number(endDistance)||0);
+  const ticks=[];
+  // 첫 공격 범위의 안쪽 경계를 첫 기준 눈금으로 삼는다. 별도의 끝눈금을 강제로 추가하지 않는다.
+  for(let index=0,distance=firstInnerEdge;distance<=maxDistance+0.01;index++,distance=firstInnerEdge+index*tickUnit){
+    ticks.push({distance,index,major:index%ticksPerStage===0});
+  }
+  return {tickUnit,ticksPerStage,firstInnerEdge,ticks};
+}
+
+// duels2GetVisibleCombatPosition: 원격 보간 좌표를 포함해 화면과 판정이 공유할 전투 위치를 반환한다. (entity: 대상 엔티티)
+function duels2GetVisibleCombatPosition(entity) {
+  if (!entity) return {x:0,y:0};
+  const isRemotePlayer=entity!==L && isCombatPlayerEntity?.(entity);
+  const x=isRemotePlayer && Number.isFinite(entity._vx) ? entity._vx : (Number.isFinite(entity.x)?entity.x:(Number(entity.tx)||0));
+  const y=isRemotePlayer && Number.isFinite(entity._vy) ? entity._vy : (Number.isFinite(entity.y)?entity.y:(Number(entity.ty)||0));
+  return {x,y};
+}
+
+// duels2IsTrainingHostileTarget: 훈련장 기본 더미와 봇을 로컬 플레이어의 적대 전투 대상으로 판정한다. (source/entity)
+function duels2IsTrainingHostileTarget(source, entity) {
+  if (!_trainingMode || source !== L || !entity || entity === source) return false;
+  return entity === R || (_trainingBots || []).includes(entity) || !!(entity.isTrainingDummy || entity.isTrainingDummyClone || entity.isDummyPlayer || entity.isBot);
+}
+
+// duels2EntityMatchesOrientedStrikeRect: 표시 위치 기준으로 회전 직사각형 타격 여부를 판정한다. (entity/geometry/source)
+function duels2EntityMatchesOrientedStrikeRect(entity, geometry, source) {
+  if (!entity || entity===source) return false;
+  const trainingHostile=duels2IsTrainingHostileTarget(source,entity);
+  if (!trainingHostile && !isEnemy(source,entity)) return false;
+  const targetable=(window.DUELS2_ENTITY_RUNTIME_CONTRACT?.isTargetable(entity,{allowInvincible:true}) ?? duels2IsEntityTargetableDirect(entity,{allowInvincible:true}));
+  if (!trainingHostile && !targetable) return false;
+  const pos=trainingHostile && Number.isFinite(entity.x) && Number.isFinite(entity.y)
+    ? {x:entity.x,y:entity.y}
+    : duels2GetVisibleCombatPosition(entity);
+  const radius=Math.max(0,Number(entity.radius ?? entity.r ?? 0)||0);
+  const a=-geometry.angle;
+  const dx=pos.x-geometry.x, dy=pos.y-geometry.y;
+  const rx=dx*Math.cos(a)-dy*Math.sin(a), ry=dx*Math.sin(a)+dy*Math.cos(a);
+  return Math.abs(rx)<=geometry.length/2+radius && Math.abs(ry)<=geometry.width/2+radius;
+}
+
+// duels2CollectSteppedRangeDamageCandidates: 단계형 거리 공격이 사용할 실제 전투 후보를 수집하고 훈련장 호환 대상을 보완한다. (source: 공격자)
+function duels2CollectSteppedRangeDamageCandidates(source) {
+  if (_trainingMode) duels2ApplyTrainingCombatRelations?.();
+  const candidates=[...getCombatEntities({aliveOnly:true})];
+  if (_trainingMode) {
+    if (typeof R !== 'undefined' && R) candidates.push(R);
+    for (const target of (_trainingBots || [])) candidates.push(target);
+  }
+  return [...new Set(candidates)].filter(target => {
+    if (!target || target === source) return false;
+    if (duels2IsTrainingHostileTarget(source,target)) return target.alive !== false && target.isAlive !== false && getEntityHealth(target) > 0;
+    return duels2IsEntityTargetableDirect(target,{allowInvincible:true});
+  });
+}
+
+// duels2BuildSteppedRangeHitContext: 화면에 그리는 단계형 직사각형을 기존 캐릭터의 공통 직사각형 판정 형식으로 변환한다. (source/angle/geometry)
+function duels2BuildSteppedRangeHitContext(source, angle, geometry) {
+  const dirX=Math.cos(angle), dirY=Math.sin(angle);
+  const depth=Math.max(1,Number(geometry?.width)||1);
+  return {
+    x:(Number(geometry?.x)||source.x)-dirX*depth/2,
+    y:(Number(geometry?.y)||source.y)-dirY*depth/2,
+    cos:dirX,
+    sin:dirY,
+    len:depth,
+    width:Math.max(0.5,(Number(geometry?.length)||1)/2),
+  };
+}
+
+// duels2ExecuteSteppedRangePointHit: 표시 직사각형을 공통 getTargetsInCtx/피해 경로로 판정해 좌클릭과 반격기의 좌표를 일치시킨다. (source/angle/stage/damage/opt)
+function duels2ExecuteSteppedRangePointHit(source, angle, stage, damage, opt={}) {
+  const rangeBalance=opt.rangeBalance||duels2GetSkillBalance(opt.charId||source?.charDef?.id||'luran','rmb');
+  const geometry=duels2GetSteppedRangeStrikeGeometry(source,angle,stage,rangeBalance,opt.strikeLength,opt.strikeWidth);
+  const hitContext=duels2BuildSteppedRangeHitContext(source,angle,geometry);
+  const actionCtx=createActionContext?.({sourceEntity:source,charId:opt.charId||source?.charDef?.id||'luran',slot:opt.slot||'lmb',delivery:'area',timing:opt.timing||'instant',tags:['attack','step_range','precision_rect','wall_blocked',...(opt.tags||[])]})||null;
+  if (_trainingMode) duels2ApplyTrainingCombatRelations?.();
+  // 기존 캐릭터와 동일한 대상 수집기를 사용한다. 화면 직사각형의 안쪽 가장자리가 ctx 시작점이고 바깥쪽까지 depth만큼 진행한다.
+  const targets=getTargetsInCtx(hitContext,null,{source,team:'enemy'});
+  const knockbackPower=Number(opt.knockbackPower)||0;
+  const cc=knockbackPower>0?{knockbackPower,knockbackAngle:Number.isFinite(opt.knockbackAngle)?opt.knockbackAngle:angle,originX:source.x,originY:source.y}:null;
+  const summary=duels2ResolveDamageTargetPath(targets,damage,{
+    source,
+    cc,
+    actionCtx,
+    hitTags:['luran','step_range','precision_rect',...(opt.tags||[])],
+    ctx:{slot:opt.slot||'lmb'},
+    windowTargetMode:'applied',
+    restoreWindow:false,
+    route:opt.route||'damage.luran.step-range',
+    reason:'luran-stepped-range-hit',
+  });
+  const appliedTargets=summary?.appliedTargets||summary?.damagedTargets||summary?.applied?.map?.(result=>result?.target).filter(Boolean)||[];
+  emitFx({type:'rulerStrike',x:source.x,y:source.y,tx:geometry.x,ty:geometry.y,angle,distance:geometry.distance,stage,stages:rangeBalance.stages||7,hitRadius:geometry.length/2,strikeLength:geometry.length,strikeWidth:geometry.width,dur:opt.dur||18,maxDur:opt.dur||18,col:'230,221,133'});
+  if(summary?.anyApplied) playHitSfx();
+  return {point:geometry,hitContext,targets,appliedTargets,applied:!!summary?.anyApplied,summary};
+}
+
 const SKILLS = {
 
   shubi: {
@@ -31859,7 +32830,8 @@ const SKILLS = {
       }
       L._lmbAttacking = false;
       L._lmbFireTime = performance.now();
-      playHitSfx();
+      // 하츠하츠 평타 발사 시점에는 발사음만 요청한다. 피격음은 실제 피해 결과 경계에서 재생된다.
+      playShootSfx();
       L._hatsDragPath = null; L._hatsDragFarthest = null; L._hatsFrozen = false;
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
@@ -33479,6 +34451,136 @@ const SKILLS = {
   },
 
 
+
+  // ── 루란 ────────────────────────────────────────────────────
+  luran: {
+    // lmb: 현재 거리 단계의 끝점에 줄자 타격을 실행한다. (angle: 공격 방향)
+    lmb(angle) {
+      const B=duels2GetSkillBalance('luran','lmb');
+      const rangeB=duels2GetSkillBalance('luran','rmb');
+      if(L.lmbCooldown>0 || !useStam(B.cost)) return;
+      const stage=duels2GetSteppedRangeState(L,rangeB);
+      duels2ExecuteSteppedRangePointHit(L,angle,stage,B.damage,{charId:'luran',slot:'lmb',strikeLength:B.strikeLength,strikeWidth:B.strikeWidth,rangeBalance:rangeB,route:'skill.luran.lmb'});
+      L.lmbCooldown=B.cd; L.lastAttackTime=performance.now();
+    },
+    // rmbStart: 우클릭 홀드를 시작하고 0.2초마다 현재 사거리 단계를 한 칸 줄인다. ()
+    rmbStart() {
+      const B=duels2GetSkillBalance('luran','rmb');
+      duels2GetSteppedRangeState(L,B);
+      if (L._luranAdjustTimer) clearInterval(L._luranAdjustTimer);
+      L._luranAdjustHeld=true;
+      L._luranAdjustStartedAt=performance.now();
+      L._luranAdjustLastStepAt=L._luranAdjustStartedAt;
+      L._luranAdjustDidStep=false;
+      L._rmbAttacking=false;
+      const token=(L._luranAdjustToken||0)+1;
+      L._luranAdjustToken=token;
+      L._luranAdjustTimer=setInterval(()=>{
+        if(!gameOn || L?.charDef?.id!=='luran' || !L._luranAdjustHeld || L._luranAdjustToken!==token){
+          clearInterval(L._luranAdjustTimer);L._luranAdjustTimer=null;return;
+        }
+        const current=duels2GetSteppedRangeState(L,B);
+        if(current<=1) return;
+        const liveAngle=getAngle();
+        duels2SetSteppedRangeState(L,current-1,B,{angle:liveAngle});
+        L._luranAdjustDidStep=true;
+        L._luranAdjustLastStepAt=performance.now();
+        L.rmbCooldown=B.cd;
+      },Math.max(1,Number(B.holdMs)||200));
+    },
+    // rmbRelease: 홀드 중 단계가 줄었다면 그대로 확정하고, 짧은 클릭일 때만 한 단계 증가시킨다. (angle: 해제 시 조준각)
+    rmbRelease(angle) {
+      const B=duels2GetSkillBalance('luran','rmb');
+      if(!L._luranAdjustHeld) return;
+      L._luranAdjustHeld=false;
+      L._luranAdjustToken=(L._luranAdjustToken||0)+1;
+      if(L._luranAdjustTimer){clearInterval(L._luranAdjustTimer);L._luranAdjustTimer=null;}
+      const didStep=!!L._luranAdjustDidStep;
+      L._luranAdjustDidStep=false;
+      L._luranAdjustStartedAt=0;
+      L._luranAdjustLastStepAt=0;
+      if(didStep) return;
+      if(L.rmbCooldown>0) return;
+      const current=duels2GetSteppedRangeState(L,B);
+      const next=Math.min(Math.max(1,Number(B.stages)||7),current+1);
+      if(next!==current) duels2SetSteppedRangeState(L,next,B,{angle});
+      L.rmbCooldown=B.cd;
+    },
+    // rmb: 일반 슬롯 실행에서도 최대 단계에서 순환하지 않고 한 단계만 증가한다. (angle: 조준각)
+    rmb(angle) {
+      const B=duels2GetSkillBalance('luran','rmb');
+      if(L.rmbCooldown>0) return;
+      const current=duels2GetSteppedRangeState(L,B);
+      const next=Math.min(Math.max(1,Number(B.stages)||7),current+1);
+      if(next!==current) duels2SetSteppedRangeState(L,next,B,{angle});
+      L.rmbCooldown=B.cd;
+    },
+    // counter: 7단계부터 1단계까지 되감으며 피해와 넉백을 함께 적용한다. (angle: 초기 조준각)
+    counter(angle) {
+      const B=duels2GetSkillBalance('luran','counter');
+      const rangeB=duels2GetSkillBalance('luran','rmb');
+      if(!duels2CheckCounterReadyGuard(L,{route:'skill.counter.ready-check',source:'character-counter'})) return;
+      duels2ConsumeCounterReadyGuard(L,{route:'skill.counter.ready-consume',source:'character-counter'});
+      duels2ApplyCounterCooldownToLocal(B.cd,{route:'skill.counter.cooldown',source:'character-counter'});
+      const tok=++L._counterToken;
+      const maxDistance=(rangeB.minRange||0)+(Math.max(1,rangeB.stages||7)-1)*(rangeB.stepRange||0);
+      const previewAngle=getAngle();
+      const previewWallDistance=duels2GetWallLimitedRange(L,previewAngle,maxDistance,2);
+      const previewStage=Math.max(1,Math.min(rangeB.stages||7,
+        Math.floor((previewWallDistance-(rangeB.minRange||0))/Math.max(1,rangeB.stepRange||1))+1));
+      const previewFirstGeo=duels2GetSteppedRangeStrikeGeometry(L,previewAngle,1,rangeB,B.strikeLength,B.strikeWidth);
+      const previewLastGeo=duels2GetSteppedRangeStrikeGeometry(L,previewAngle,previewStage,rangeB,B.strikeLength,B.strikeWidth);
+      const previewStart=Math.max(0,previewFirstGeo.distance-B.strikeWidth/2);
+      const previewEnd=Math.max(previewStart,previewLastGeo.distance+B.strikeWidth/2);
+      L._luranCounterPreview={token:tok,active:true,stage:previewStage,predelay:true};
+      L._attackPreview={shapes:[{type:'rect',startDist:previewStart,len:Math.max(0,previewEnd-previewStart),width:B.strikeLength/2,noAug:true}],_luranCounterPredelay:true};
+      addFx({type:'counterCharge',x:L.x,y:L.y,r:35,maxR:35,dur:BALANCE.counter.delay/FRAME_MS,maxDur:BALANCE.counter.delay/FRAME_MS,followLocal:true,counterFxSlot:'counter',counterFxScope:'counter'});
+      scheduleAction(BALANCE.counter.delay,()=>{
+        L._attackPreview=null;
+        if(!gameOn||L._counterToken!==tok){L._luranCounterPreview=null;return;}
+        const startAngle=getAngle();
+        const requestedMax=(rangeB.minRange||0)+(Math.max(1,rangeB.stages||7)-1)*(rangeB.stepRange||0);
+        const wallDistance=duels2GetWallLimitedRange(L,startAngle,requestedMax,2);
+        // 벽 직전까지 도달 가능한 가장 먼 단계부터 되감는다. 1단계보다 가까운 벽이면 1단계에서 시작한다.
+        const startStage=Math.max(1,Math.min(rangeB.stages||7,
+          Math.floor((wallDistance-(rangeB.minRange||0))/Math.max(1,rangeB.stepRange||1))+1));
+        duels2SetSteppedRangeState(L,startStage,rangeB,{angle:startAngle,fx:false});
+
+        // 반격기 도중 벽이나 맵 경계가 가까워지면, 아직 남은 단계보다 도달 가능한 단계가 낮은 즉시 그 단계로 건너뛴다.
+        // 이렇게 하면 서로 다른 먼 단계들이 모두 같은 벽 앞 좌표로 압축되어 연속 타격되는 현상을 막을 수 있다.
+        const rewindState={nextStage:startStage};
+        const runNextRewindHit=()=>{
+          if(!gameOn||L._counterToken!==tok){L._luranCounterPreview=null;return;}
+          if(rewindState.nextStage<1){
+            L.lastAttackTime=performance.now();
+            L._luranCounterPreview=null;
+            return;
+          }
+
+          const liveAngle=getAngle();
+          const liveWallDistance=duels2GetWallLimitedRange(L,liveAngle,requestedMax,2);
+          const liveReachableStage=Math.max(1,Math.min(rangeB.stages||7,
+            Math.floor((liveWallDistance-(rangeB.minRange||0))/Math.max(1,rangeB.stepRange||1))+1));
+          const stage=Math.min(rewindState.nextStage,liveReachableStage);
+
+          L._luranCounterPreview={token:tok,active:true,stage,predelay:false};
+          duels2ExecuteSteppedRangePointHit(L,liveAngle,stage,B.damage,{charId:'luran',slot:'counter',timing:'scheduled_combo',strikeLength:B.strikeLength,strikeWidth:B.strikeWidth,rangeBalance:rangeB,dur:14,tags:['counter','rewind'],knockbackPower:B.knockbackPower,knockbackAngle:liveAngle,route:'skill.luran.counter'});
+          L._steppedRangeStage=stage;
+          rewindState.nextStage=stage-1;
+
+          if(rewindState.nextStage<1){
+            L.lastAttackTime=performance.now();
+            L._luranCounterPreview=null;
+            return;
+          }
+          scheduleAction(B.stepInterval,runNextRewindHit,{cancelOnRoundChange:true,cancelIfCharChanged:true});
+        };
+        runNextRewindHit();
+      },{cancelOnRoundChange:true,cancelIfCharChanged:true});
+    },
+  },
+
+
   levina: {
     // 레비나 창의 기본 피해를 유지 시간과 무관하게 15로 고정한다. ()
     _dmg(sp) {
@@ -34106,18 +35208,6 @@ function _sendChat() {
   if (!inp) return;
   const text = inp.value.trim();
   if (!text) { _closeChat(); return; }
-  // 디버깅 탭 활성화 명령: 채팅 기록에도, 상대에게도 보내지 않는다.
-  if (text === '/디버깅') {
-    window._devUnlocked = true;
-    if (gameOn && typeof send === 'function' && !window._devAlertSentThisGame) {
-      send({type:'devAlert'});
-      window._devAlertSentThisGame = true;
-    }
-    inp.value = '';
-    _closeChat();
-    openDevPanel({force:true});
-    return;
-  }
   // 내 채팅 직접 표시 (send 인터셉터 우회)
   _addChatMsg('나', text, true);
   send({type:'chat', name:L.charDef?.name || DUELS2_PLAYER_REGISTRY.localPid || '나', text});
@@ -35082,8 +36172,13 @@ duels2RegisterPlayerStateSpecialField('character-flags',(remote,d)=>{
 // 레비나 창 특수 필드: 원격 창 스냅샷을 기존 객체에 병합하거나 제거한다.
 duels2RegisterPlayerStateSpecialField('levina-spear',(remote,d)=>{
   if (d.levinaSpear) {
-    if (!remote._levinaSpear) remote._levinaSpear={_hitSeg:new Set(),_retHitSeg:new Set()};
+    if (!remote._levinaSpear) remote._levinaSpear={_hitSeg:new Set(),_retHitSeg:new Set(),waypoints:[]};
+    const prevHitSeg = remote._levinaSpear._hitSeg instanceof Set ? remote._levinaSpear._hitSeg : new Set();
+    const prevRetHitSeg = remote._levinaSpear._retHitSeg instanceof Set ? remote._levinaSpear._retHitSeg : new Set();
     Object.assign(remote._levinaSpear,d.levinaSpear);
+    remote._levinaSpear._hitSeg = prevHitSeg;
+    remote._levinaSpear._retHitSeg = prevRetHitSeg;
+    if (!Array.isArray(remote._levinaSpear.waypoints)) remote._levinaSpear.waypoints=[];
   } else if (d.levinaSpear === null) remote._levinaSpear=null;
   return d.levinaSpear;
 },{priority:90});
@@ -36918,8 +38013,10 @@ function moveBullets(dt=1) {
 // 레비나 삼지창 렌더 — drawPlayer 밖에서 L/R 모두 표시
 function drawLevinaSpears() {
   if (!gameOn) return;
-  // 등록된 모든 플레이어의 창을 렌더한다. 고정 R 참조에 의존하지 않는다.
-  const _owners = (typeof getAllPlayerEntities === 'function' ? getAllPlayerEntities({aliveOnly:false}) : [L, R])
+  // Registry 목록과 레거시 L/R 슬롯을 합쳐 렌더한다.
+  // 원격 R이 Registry 동기화 시점에서 잠시 빠져도 이벤트로 받은 창이 사라지지 않도록 한다.
+  const _registeredOwners = typeof getAllPlayerEntities === 'function' ? getAllPlayerEntities({aliveOnly:false}) : [];
+  const _owners = [..._registeredOwners, L, R]
     .filter((entity, index, list) => entity && entity._levinaSpear && list.indexOf(entity) === index);
   for (const _levOwner of _owners) {
     if (!_levOwner._levinaSpear) continue; // null 안전 체크
@@ -37110,8 +38207,8 @@ function addFx(f) {
   }
   fxList.push(f);
   // addFx만 직접 호출한 공격 이펙트도 다음 마이크로태스크에 네트워크로 동기화한다. 피해 숫자·개인 UI 효과는 제외한다.
-  if (f && !f._receivedAt && !f._networkHandled && !_trainingMode && gameOn && typeof send === 'function') {
-    const localOnlyFxTypes = new Set(['dmgNum','healNum','staminaNum','screenFlash','screenTint','damageVignette']);
+  if (f && !f._receivedAt && !f._networkHandled && !f._localOnly && !_trainingMode && gameOn && typeof send === 'function') {
+    const localOnlyFxTypes = new Set(['dmgNum','healNum','staminaNum','screenFlash','screenTint','damageVignette','rulerAdjust']);
     if (!localOnlyFxTypes.has(f.type)) {
       queueMicrotask(() => {
         if (!f._networkHandled && !f._receivedAt && gameOn) {
@@ -38611,8 +39708,7 @@ function draw() {
       ctx.strokeStyle=`rgba(255,210,40,${a*.9})`; ctx.lineWidth=3; ctx.stroke();
       ctx.fillStyle=`rgba(255,210,40,${a*.12})`; ctx.fill();
     } else if (f.type==='devModeAlert') {
-      // 상대가 디버깅 탭 진입 - 1회만 alert
-      if (!window._devAlertShownThisGame) { window._devAlertShownThisGame=true; window._devUnlocked=true; alert('상대방이 디버깅 탭에 진입했습니다.'); }
+      // 레거시 디버깅 진입 FX는 표시하지 않는다.
     } else if (f.type==='runefFireExplosion') {
       const _ft=1-f.dur/f.maxDur;
       ctx.beginPath(); ctx.arc(f.x,f.y,f.r*(0.5+_ft*0.5),0,Math.PI*2);
@@ -40094,6 +41190,72 @@ function draw() {
       ctx.fillStyle=`rgba(51,120,255,${a*0.3})`; ctx.fill();
       ctx.strokeStyle=`rgba(160,200,255,${a*0.9})`; ctx.lineWidth=2; ctx.stroke();
 
+    } else if (f.type==='rulerAdjust' || f.type==='rulerStrike') {
+      // 단계형 줄자 — 비타격 사거리와 타격 팁을 함께 감싸는 윤곽선, 사거리 좌측 가장자리 눈금, 기존 팁 공격 연출을 사용한다.
+      const _angle=Number.isFinite(f.angle)?f.angle:Math.atan2((f.ty??f.y)-f.y,(f.tx??f.x)-f.x);
+      const _distance=f.distance||Math.hypot((f.tx??f.x)-f.x,(f.ty??f.y)-f.y);
+      const _tx=Number.isFinite(f.tx)?f.tx:f.x+Math.cos(_angle)*_distance;
+      const _ty=Number.isFinite(f.ty)?f.ty:f.y+Math.sin(_angle)*_distance;
+      const _strikeLength=Math.max(1,Number(f.strikeLength)||128);
+      const _strikeWidth=Math.max(1,Number(f.strikeWidth)||76);
+      const _dirX=Math.cos(_angle), _dirY=Math.sin(_angle);
+      const _nx=-_dirY, _ny=_dirX;
+      const _outlineLength=Math.max(1,_distance+_strikeWidth/2);
+      const _outlineCenterX=f.x+_dirX*_outlineLength/2;
+      const _outlineCenterY=f.y+_dirY*_outlineLength/2;
+      if(f.type==='rulerStrike'){
+        ctx.save();
+        // 실제 타격 순간에만 비타격 구간부터 타격 팁까지 전체 윤곽선을 표시한다.
+        ctx.translate(_outlineCenterX,_outlineCenterY);ctx.rotate(_angle);
+        ctx.strokeStyle=`rgba(${f.col||'230,221,133'},${a*0.7})`;ctx.lineWidth=1.5;
+        ctx.strokeRect(-_outlineLength/2,-_strikeLength/2,_outlineLength,_strikeLength);
+        ctx.restore();
+      }
+      // 실제 단계 거리에서 파생한 자 눈금을 공격 범위의 바깥쪽 끝까지 같은 단위로 연속해서 그린다.
+      const _edgeOffset=_strikeLength/2;
+      const _rulerEnd=Math.max(0,_distance+_strikeWidth/2);
+      const _rangeBalance=duels2GetSkillBalance('luran','rmb');
+      const _tickLayout=duels2GetRulerTickLayout(_rangeBalance,_strikeWidth,_rulerEnd);
+      for(const _mark of _tickLayout.ticks){
+        const _tick=_mark.major?12:7;
+        const _cx=f.x+_dirX*_mark.distance-_nx*_edgeOffset, _cy=f.y+_dirY*_mark.distance-_ny*_edgeOffset;
+        ctx.beginPath();
+        ctx.moveTo(_cx,_cy);
+        ctx.lineTo(_cx+_nx*_tick,_cy+_ny*_tick);
+        // 어두운 맵과 밝은 배경 모두에서 눈금이 읽히도록 어두운 받침선과 밝은 본선을 겹쳐 그린다.
+        ctx.strokeStyle=`rgba(24,22,10,${a*0.82})`;
+        ctx.lineWidth=_mark.major?4.4:3.2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(_cx,_cy);
+        ctx.lineTo(_cx+_nx*_tick,_cy+_ny*_tick);
+        ctx.strokeStyle=`rgba(${f.col||'230,221,133'},${a*(_mark.major?1:0.9)})`;
+        ctx.lineWidth=_mark.major?2.5:1.7;
+        ctx.stroke();
+      }
+      if(f.type==='rulerStrike'){
+        // 타격 팁은 작은 네모에서 실제 판정 크기까지 빠르게 확장된다.
+        const _progress=Math.max(0,Math.min(1,1-(f.dur||0)/Math.max(1,f.maxDur||1)));
+        const _expand=Math.min(1,_progress/0.34);
+        const _ease=1-Math.pow(1-_expand,3);
+        const _scale=0.2+0.8*_ease;
+        ctx.save();ctx.translate(_tx,_ty);ctx.rotate(_angle);ctx.scale(_scale,_scale);
+        ctx.fillStyle=`rgba(${f.col||'230,221,133'},${a*0.24})`;
+        ctx.strokeStyle=`rgba(${f.col||'230,221,133'},${a})`;
+        ctx.lineWidth=2.5/Math.max(0.2,_scale);
+        // 전체 사거리 윤곽선과 같은 로컬 축을 사용해 두 도형의 모서리가 정확히 맞닿게 한다.
+        ctx.fillRect(-_strikeWidth/2,-_strikeLength/2,_strikeWidth,_strikeLength);
+        ctx.strokeRect(-_strikeWidth/2,-_strikeLength/2,_strikeWidth,_strikeLength);
+        ctx.restore();
+      }
+      if(f.type==='rulerAdjust'){
+        ctx.save();
+        ctx.font='bold 13px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.strokeStyle=`rgba(0,0,0,${a*0.9})`;ctx.lineWidth=4;ctx.strokeText(String(f.stage||1),_tx,_ty);
+        ctx.fillStyle=`rgba(255,255,245,${a})`;ctx.fillText(String(f.stage||1),_tx,_ty);
+        ctx.restore();
+      }
+
     } else if (f.type==='dmgNum') {
       // 피해 숫자 — 위로 떠오르며 페이드아웃
       const prog = 1 - f.dur/f.maxDur;
@@ -40260,6 +41422,103 @@ function draw() {
     ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
   }
 
+
+  // 루란 공격 범위 미리보기: 현재 단계 숫자와 사거리 왼쪽 가장자리 눈금을 항상 표시한다.
+  if (gameOn && L?.charDef?.id==='luran') {
+    const _rb=duels2GetSkillBalance('luran','rmb');
+    const _lmbB=duels2GetSkillBalance('luran','lmb');
+    const _counterB=duels2GetSkillBalance('luran','counter');
+    const _normalStage=duels2GetSteppedRangeState(L,_rb);
+    const _angle=getAngle();
+    const _dirX=Math.cos(_angle), _dirY=Math.sin(_angle);
+    const _nx=-_dirY, _ny=_dirX;
+    const _baseCol=L.charDef?.color||'#e6dd85';
+    const _counterPredelay=!!L._attackPreview?._luranCounterPredelay;
+
+    // 반격기 선딜 중에는 현재 조준 방향의 벽/맵 경계까지 도달 가능한 마지막 단계와 미리보기를 매 프레임 갱신한다.
+    let _displayStage=_normalStage;
+    let _previewStrikeLength=_lmbB.strikeLength;
+    let _previewStrikeWidth=_lmbB.strikeWidth;
+    if (_counterPredelay) {
+      _previewStrikeLength=_counterB.strikeLength;
+      _previewStrikeWidth=_counterB.strikeWidth;
+      const _maxDistance=(_rb.minRange||0)+(Math.max(1,_rb.stages||7)-1)*(_rb.stepRange||0);
+      const _limited=duels2GetWallLimitedRange(L,_angle,_maxDistance,2);
+      _displayStage=Math.max(1,Math.min(_rb.stages||7,
+        Math.floor((_limited-(_rb.minRange||0))/Math.max(1,_rb.stepRange||1))+1));
+      const _firstGeo=duels2GetSteppedRangeStrikeGeometry(L,_angle,1,_rb,_counterB.strikeLength,_counterB.strikeWidth);
+      const _lastGeo=duels2GetSteppedRangeStrikeGeometry(L,_angle,_displayStage,_rb,_counterB.strikeLength,_counterB.strikeWidth);
+      const _previewStart=Math.max(0,_firstGeo.distance-_counterB.strikeWidth/2);
+      const _previewEnd=Math.max(_previewStart,_lastGeo.distance+_counterB.strikeWidth/2);
+      if (L._attackPreview?.shapes?.[0]) {
+        const _shape=L._attackPreview.shapes[0];
+        _shape.startDist=_previewStart;
+        _shape.len=Math.max(0,_previewEnd-_previewStart);
+        _shape.width=_counterB.strikeLength/2;
+      }
+      if (L._luranCounterPreview) L._luranCounterPreview.stage=_displayStage;
+    }
+
+    const _geo=duels2GetSteppedRangeStrikeGeometry(L,_angle,_displayStage,_rb,_previewStrikeLength,_previewStrikeWidth);
+    const _leftOffset=Math.max(10,Number(_previewStrikeLength||128)/2);
+
+    // 반격기 공통 선딜 미리보기가 떠 있는 동안에는 별도 타격 박스를 겹쳐 그리지 않는다.
+    if (!_counterPredelay) {
+      ctx.save();
+      ctx.translate(_geo.x,_geo.y);
+      ctx.rotate(_geo.angle);
+      ctx.setLineDash([7,5]);
+      ctx.fillStyle=_baseCol+'22';
+      ctx.strokeStyle='rgba(255,255,255,0.55)';
+      ctx.lineWidth=1.5;
+      ctx.globalAlpha=0.85;
+      ctx.fillRect(-_geo.length/2,-_geo.width/2,_geo.length,_geo.width);
+      ctx.strokeRect(-_geo.length/2,-_geo.width/2,_geo.length,_geo.width);
+      ctx.restore();
+    }
+
+    // 실제 단계 거리에서 파생한 자 눈금을 공격 범위의 바깥쪽 끝까지 같은 단위로 연속해서 그린다.
+    ctx.save();
+    ctx.globalAlpha=0.92;
+    ctx.lineCap='butt';
+    const _rulerEnd=Math.max(0,_geo.distance+_geo.width/2);
+    const _tickLayout=duels2GetRulerTickLayout(_rb,_geo.width,_rulerEnd);
+    for(const _mark of _tickLayout.ticks){
+      const _tick=_mark.major?12:7;
+      const _x=L.x+_dirX*_mark.distance-_nx*_leftOffset;
+      const _y=L.y+_dirY*_mark.distance-_ny*_leftOffset;
+      ctx.beginPath();
+      ctx.moveTo(_x,_y);
+      ctx.lineTo(_x+_nx*_tick,_y+_ny*_tick);
+      // 상시 미리보기 눈금은 공격 이펙트와 구분되도록 이전처럼 얇고 연하게 표시한다.
+      ctx.strokeStyle=_mark.major?'rgba(230,221,133,0.52)':'rgba(230,221,133,0.30)';
+      ctx.lineWidth=_mark.major?1.8:1.0;
+      ctx.stroke();
+    }
+
+    // 단계 숫자는 실제 타격 판정의 중앙에 유지한다.
+    ctx.font='bold 13px Arial';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.strokeStyle='rgba(0,0,0,0.88)';
+    ctx.lineWidth=4;
+    ctx.strokeText(String(_displayStage),_geo.x,_geo.y);
+    ctx.fillStyle='rgba(255,255,245,0.98)';
+    ctx.fillText(String(_displayStage),_geo.x,_geo.y);
+    ctx.restore();
+
+    // 길이조절 호 게이지는 루란의 캐릭터 색을 그대로 사용한다.
+    if (L._luranAdjustHeld) {
+      const _stepMs=Math.max(1,Number(_rb.holdMs)||200);
+      const _anchor=Number(L._luranAdjustLastStepAt||L._luranAdjustStartedAt||performance.now());
+      const _ratio=_normalStage<=1 ? 1 : Math.min(1,Math.max(0,(performance.now()-_anchor)/_stepMs));
+      duels2RenderArcGauge(L,_ratio,{styleId:'standardHold',style:{
+        color:'rgba(230,221,133,0.90)',
+        completeColor:'rgba(230,221,133,0.90)',
+        completePulseColor:'230,221,133'
+      }});
+    }
+  }
 
   // 샤이라즈 트랩: 실제 렌더 함수는 Deployable Renderer Registry에서 조회한다.
   if (gameOn && hasEntityFunctionalRuntime(L, 'trapCc') && L._shairazTraps?.length > 0) {
@@ -42025,6 +43284,10 @@ function showScr(id, options = {}) {
   if (protectedDuringMatch && (gameOn || matchLockedPhase) && options.force !== true) return false;
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
   document.getElementById(id)?.classList.remove('hidden');
+  // 캐릭터 선택 화면을 새로 열 때 이전 우클릭 통계 상태를 모두 초기화한다.
+  if (id === 'scr-select' || id === 'scr-between') {
+    document.querySelectorAll('.char-card.record-detail-open').forEach(card=>card.classList.remove('record-detail-open'));
+  }
   window._duels2ActiveScreenId = id;
   return true;
 }
@@ -43739,6 +45002,10 @@ function duels2IsLocalSharedChargeInputRuntime(slot = 'lmb') {
 function duels2ShouldRunAutoPrimaryWhileMouseHeld(opt = {}) {
   if (!mouseDown || !gameOn) return false;
   if (L._reviving || opt.stunned || L.burrowing || opt.ePredelay) return false;
+  // 실제 홀드/릴리즈 프로필만 일반 자동 평타 반복을 막는다.
+  // direct-slot-adapter의 instant 세션은 마우스를 놓을 때까지 남아 있으므로 세션 존재만 검사하면 모든 일반 캐릭터의 홀드 연사가 차단된다.
+  const activeLmbSession = window.DUELS2_INPUT_STATE_RUNTIME?.getSession?.('lmb') || null;
+  if (activeLmbSession?.profile && activeLmbSession.profile.mode !== 'instant') return false;
   if (duels2IsLocalSharedChargeInputRuntime('lmb')) return false;
   const blockedRuntimes = ['bombSlowField','scytheOvercharge','shieldDashParry','pullBoomerang','fortifyLaser','energyBlessed','spearAnchor'];
   return !blockedRuntimes.some(runtime => hasEntityCharacterRuntime(L, runtime, {route:'shared-charge.auto-primary-block', reason:'non-shared-manual-input-block'}));
@@ -43919,6 +45186,17 @@ function duels2DispatchLegacyPointerPress(slot = 'lmb', payload = {}) {
   doRMB();
   return true;
 }
+
+
+// 루란 길이조절 프로필: 우클릭의 짧은 클릭과 단계별 홀드 감소를 공통 입력 상태 Runtime에서 구분한다.
+duels2RegisterInputStateProfile('step-range-adjust', {
+  slot:'rmb', priority:360, mode:'hold-release',
+  match({actor,slot}) { return slot==='rmb' && actor?.charDef?.id==='luran'; },
+  press({payload}) { runSkillInputContext('rmb',()=>SKILLS.luran.rmbStart(),{tags:['manual_rmb','hold_start','step_range']}); },
+  release({payload,elapsedMs}) { runSkillInputContext('rmb',()=>SKILLS.luran.rmbRelease(Number.isFinite(payload.angle)?payload.angle:getAngle(),elapsedMs),{tags:['manual_rmb','hold_release','step_range']}); },
+  documentRelease({payload,elapsedMs}) { runSkillInputContext('rmb',()=>SKILLS.luran.rmbRelease(Number.isFinite(payload.angle)?payload.angle:getAngle(),elapsedMs),{tags:['manual_rmb','hold_release','step_range']}); },
+  leave({elapsedMs}) { runSkillInputContext('rmb',()=>SKILLS.luran.rmbRelease(getAngle(),elapsedMs),{tags:['manual_rmb','hold_release','step_range']}); }
+});
 
 // Shared Charge 프로필: 기존 공유 차징 스키마를 상태 Runtime 프로필로 연결한다.
 duels2RegisterInputStateProfile('shared-charge-adapter', {
@@ -56260,7 +57538,7 @@ function openTrainingCharSelect() {
   sp.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#0d1520;border:1px solid #2a4a3a;padding:16px 20px;z-index:300;font-family:Courier New,monospace;font-size:12px;color:#aaa;letter-spacing:1px;border-radius:3px;max-width:680px;';
   const grid = document.createElement('div');
   grid.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;max-height:300px;overflow-y:auto;';
-  Object.values(CHARACTERS).forEach(ch => {
+  duels2GetCharacterSelectionOrder().forEach(ch => {
     const btn = document.createElement('button');
     btn.textContent = ch.name;
     btn.style.cssText = `background:#111;border:1px solid ${ch.color||'#334'};color:${ch.color||'#aaa'};padding:5px 12px;cursor:pointer;font-family:Courier New,monospace;font-size:11px;border-radius:2px;`;
@@ -56550,9 +57828,12 @@ function betweenReady() {
   if (matchState._selectedChar) selCharId = matchState._selectedChar;
   if (matchState._selectedAug) { matchState.localAugments.push(matchState._selectedAug); matchState._pendingLocalAugHudId = matchState._selectedAug; }
 
+  const masteryCharId=matchState._selectedChar||selCharId;
   send({ type:'betweenSelection',
          charId: matchState._selectedChar,
-         augId:  matchState._selectedAug });
+         augId:  matchState._selectedAug,
+         masteryCharId,
+         masteryPoints:duels2GetCharacterMasteryPoints(masteryCharId) });
 
   // 3번 버그 수정: 카드 클릭 완전 비활성화
   document.querySelectorAll('.char-mini-card').forEach(c => c.style.pointerEvents = 'none');
@@ -56647,11 +57928,12 @@ function confirmSelect() {
   if (!selCharId) { setStatus('sel-status','캐릭터를 선택해주세요!','err'); return; }
   const localPid = DUELS2_PLAYER_REGISTRY.localPid || 'P1';
   duels2SetPlayerLobbySelection(localPid, {charId:selCharId, ready:true});
+  matchState._masteryAwardedForMatch=false; matchState._recordAwardedRoundToken=null;
   setStatus('sel-status','다른 참가자 대기 중...','');
   document.getElementById('confirm-btn').disabled=true;
   document.getElementById('random-btn').disabled=true;
   document.querySelectorAll('.char-card').forEach(c => c.style.pointerEvents='none');
-  send({type:'ready', pid:localPid, sourcePid:localPid, charId:selCharId});
+  send({type:'ready', pid:localPid, sourcePid:localPid, charId:selCharId, masteryPoints:duels2GetCharacterMasteryPoints(selCharId)});
   checkBothReady();
 }
 function checkBothReady() {
@@ -56670,6 +57952,7 @@ function duels2GetPrimaryOpponentPid(localPid=DUELS2_PLAYER_REGISTRY.localPid||'
 function duels2GetLobbyCharacterId(pid){return DUELS2_MULTIPLAYER_LOBBY_STATE.charByPid.get(pid)||DUELS2_PLAYER_REGISTRY.entitiesByPid.get(pid)?.charDef?.id||null;}
 
 function showStartAugScreen() {
+  document.querySelectorAll('.record-detail-open').forEach(card=>card.classList.remove('record-detail-open'));
   window._duels2MatchPhase = 'start-aug';
   _localStartAugReady=false; _peerStartAugReady=false; _localStartAug=null;
   const _pi=document.getElementById('start-aug-peer-info');
@@ -56686,14 +57969,19 @@ function showStartAugScreen() {
   const renderChar=(charId,cls,label)=>{
     const ch=CHARACTERS[charId]; if(!ch)return;
     const d=document.createElement('div');
-    d.className=`char-card ${cls==='me'?'sel':''}`;
-    d.style.borderColor=ch.color; d.style.cursor='default';
+    d.className=`char-card start-aug-char-card ${cls}`;
+    d.dataset.id=ch.id;
+    d.style.cursor='default';
     const statsHtml=(ch.statsText||[]).map(([k,v])=>`<div><b>${k}</b>: ${v}</div>`).join('');
     d.innerHTML=`
       <div class="char-icon" style="background:${ch.color}22;border:3px solid ${ch.color};"></div>
       <div class="char-name" style="color:${ch.color}">${ch.name}</div>
       <div style="font-size:9px;color:${cls==='me'?'#fa0':'#67a'};letter-spacing:2px;margin-bottom:4px;">${label}</div>
       <div class="char-stats">${statsHtml}</div>`;
+    const masteryPid=cls==='me'?localPid:opponentPid;
+    d.dataset.masteryPid=masteryPid;
+    duels2ApplyMasteryCardStyle(d,ch.id,masteryPid);
+    duels2AttachRecordDetailToCard?.(d);
     charRow.appendChild(d);
   };
   const localPid=DUELS2_PLAYER_REGISTRY.localPid||'P1';
@@ -57032,6 +58320,7 @@ function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)
   // 1대1 승점은 호스트가 라운드 토큰당 한 번만 변경한다. 참가자는 호스트의 절대 점수 동기화만 적용한다.
   const scoreChanged = duels2ApplyHostDuelScoreOnce(won, roundToken);
   matchState.lastWinner = won ? 'local' : 'peer';
+  duels2AwardRecordForCompletedRound(!!won, roundToken);
   updateRoundScoreDisplay?.();
   if (duels2IsDuelScoreAuthority() && scoreChanged) {
     send({
@@ -57088,6 +58377,7 @@ function showMatchOver(won) {
   ov.style.display='flex';
   document.getElementById('rematch-btn').disabled=false;
   setStatus('rematch-status','','');
+  renderAugHud?.();
   document.getElementById('round-score').style.display='none';
   // 호스트만 포맷 선택 표시
   const fmtRow = document.getElementById('rematch-format-row');
@@ -57216,12 +58506,16 @@ function showBetweenScreen() {
     ).join('<br>');
     const card = document.createElement('div');
     card.className = 'char-card';
+    card.dataset.id = ch.id;
+    card.dataset.masteryPid = DUELS2_PLAYER_REGISTRY.localPid||'P1';
     card.style.cursor = 'pointer';
     card.innerHTML = `
       <div class="char-tooltip">${ch.desc}<br><br>${skillsHtml}</div>
       <div class="char-icon" style="background:${ch.color}22;border:3px solid ${ch.color};"></div>
       <div class="char-name" style="color:${ch.color}">${ch.name}</div>
       <div class="char-stats">${statsHtml}</div>`;
+    duels2ApplyMasteryCardStyle(card,ch.id);
+    duels2AttachRecordDetailToCard?.(card);
     card.onclick = e => preserveUiScroll(() => {
       e?.preventDefault?.();
       if (matchState._localBetweenReady) return;
@@ -57322,7 +58616,13 @@ function _mkCharIcon(isRival) {
       `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
       (s.wpCost ? ` / 스테미나 ${s.cost}/${s.wpCost}` : (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`))
     ).join('<br>');
-    tip.innerHTML = `<b style="color:${ch.color}">${(isRival?'[상대] ':'') + ch.name}</b><br>${ch.desc}<br><br>${skillsHtml}`;
+    const pid=isRival?(getPlayerPid?.(rival)||duels2GetPrimaryOpponentPid?.()||'P2'):(DUELS2_PLAYER_REGISTRY?.localPid||getPlayerPid?.(L)||'P1');
+    const mastery=duels2GetCharacterMasteryView(ch.id,pid);
+    div.querySelector('.mastery-hud-badge')?.remove();
+    div.classList.add('mastery-hud-frame');
+    div.style.setProperty('--mastery-gradient',mastery.tier.gradient);
+    div.style.setProperty('--mastery-glow',mastery.tier.glow);
+    tip.innerHTML = `<b style="color:${ch.color}">${(isRival?'[상대] ':'') + ch.name}</b><br>${ch.desc}<br><span style="color:${mastery.tier.text};font-weight:bold;">레코드 ${mastery.label}</span><br><br>${skillsHtml}`;
   };
   div.addEventListener('mouseenter', () => { refresh(); tip.style.display = 'block'; });
   div.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
@@ -57394,6 +58694,7 @@ function acceptRematch() {
 function doRematch(options = {}) {
   // 다음 라운드와 완전 리매치를 승수로 추측하지 않는다. 네트워크 승수 동기화가 늦어도 화면 단계가 뒤집히지 않도록 호출자가 모드를 명시한다.
   const rematchMode = options.mode === 'next-round' ? 'next-round' : 'full-rematch';
+  if (rematchMode === 'full-rematch') { matchState._masteryAwardedForMatch = false; matchState._recordAwardedRoundToken = null; }
   const keepChars = rematchMode === 'next-round';
   const isMatchOver = rematchMode === 'full-rematch';
   localReady=false; peerReady=false; lastLoopTime=0;
@@ -57458,7 +58759,7 @@ function doRematch(options = {}) {
 // 리매치 시 랜덤 캐릭터 선택 잠금 해제 상태를 확인한다.
 function duels2GetRematchRandomSelectionFixSummary() {
   return {
-    version:'0.38.2',
+    version:'0.39.0',
     randomButtonDisabled:!!document.getElementById('random-btn')?.disabled,
     selectedCharacterId:selCharId,
     matchPhase:window._duels2MatchPhase || 'unknown',
@@ -57505,6 +58806,8 @@ function resetL() {
   L._augFirstHit = false;
   L.staminaUseTime=-99999;
   L.lmbCooldown=0; L.rmbCooldown=0;
+  // 단계형 거리 캐릭터는 새 라운드·재시작마다 항상 초기 단계에서 시작한다.
+  duels2ResetSteppedRangeState(L,{stage:1,clearInput:true});
   duels2ConsumeCounterReadyGuard(L, {route:'skill.counter.ready-consume', source:'character-counter'}); L.counterExpiry=0; L._counterPending=false;
   L.lastHitTime=0; L.lastAttackTime=0; L.lastRegenTick=performance.now();
   L.invincible=0; L.hitFlash=0; L._preFlashColor=null; L._dying=false;
@@ -57589,6 +58892,10 @@ function duels2GetPidCharacterPositionFixSummary() {
 window.duels2GetPidCharacterPositionFixSummary=duels2GetPidCharacterPositionFixSummary;
 
 function startGame() {
+  matchState._recordSettlementBlocked=false;
+  matchState._recordSettlementBlockedByDeparture=false;
+  matchState._recordSettlementBlockedSamePlayer=!!(matchState._remoteRecordIdentityId && matchState._remoteRecordIdentityId===DUELS2_LOCAL_RECORD_IDENTITY);
+
   matchState._sentDuelDeathEventId = null;
   matchState._roundResolutionToken = null;
   matchState._lastScoredRoundToken = null;
@@ -58998,16 +60305,19 @@ function debugLog(tag, ...args) {
   } catch(e) {}
 }
 
-// 디버깅 탭은 채팅창에 /디버깅을 입력해 최초 1회 활성화한 뒤 Tab으로 열 수 있다.
-let _devBuf = '';
+// 디버깅 탭은 권한 계정에서 Tab 키로 언제든 열고 닫는다.
 document.addEventListener('keydown', (e) => {
   const _tag = (document.activeElement?.tagName || '').toLowerCase();
   const _typing = _tag === 'input' || _tag === 'textarea' || document.activeElement?.isContentEditable;
-  if (e.key === 'Tab' && !_typing) {
-    if (!window._devUnlocked) return;
-    e.preventDefault();
-    toggleDevPanel();
+  if (e.key !== 'Tab' || _typing) return;
+  if (typeof duels2CanUseDebugTools !== 'function' || !duels2CanUseDebugTools()) {
+    window._devUnlocked = false;
+    document.getElementById('dev-panel')?.remove();
+    return;
   }
+  e.preventDefault();
+  window._devUnlocked = true;
+  toggleDevPanel();
 });
 
 // ── DevToolsCore ─────────────────────────────────────────────
@@ -59255,7 +60565,7 @@ function devRenderControlTab(wrap) {
   if (selectedEntry.key === 'self' || selectedEntry.key === 'peerPlayer') {
     wrap.appendChild(_devHdr(`캐릭터 변경 → ${selectedEntry.label || '나'}`,'#8af'));
     const cGrid = _devEl('div','display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;'); cGrid.className='dev-control-grid';
-    Object.values(CHARACTERS).filter(c=>!c.disabled).forEach(ch => {
+    duels2GetCharacterSelectionOrder().filter(c=>!c.disabled).forEach(ch => {
       const cur = (selectedTarget?.charDef?.id || selCharId) === ch.id;
       const b = _devEl('div',`padding:5px 10px;border:1px solid ${cur?'#8af':'#333'};border-radius:3px;background:${cur?'#001a2a':'#111'};cursor:pointer;font-size:12.5px;color:${cur?'#8af':'#aaa'};`);
       b.textContent = ch.name;
@@ -59941,6 +61251,53 @@ function devRemoveNearestBot() {
   if (best) { if (best.kind==='bot') _trainingBots.splice(best.i,1); else _debugPlayers.splice(best.i,1); if (!_trainingMode && typeof send==='function') send({type:'devCmd',cmd:'despawnNearestBot'}); }
 }
 function devRenderBaseTab(wrap) {
+
+  wrap.appendChild(_devHdr('계정 비밀번호 재설정','#7cf'));
+  const accountResetRow=_devEl('div','display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:10px;');
+  const accountResetId=_devEl('input','min-width:0;padding:7px;background:#111;color:#ddd;border:1px solid #356;');
+  accountResetId.placeholder='계정 아이디';
+  const accountResetPassword=_devEl('input','min-width:0;padding:7px;background:#111;color:#ddd;border:1px solid #356;');
+  accountResetPassword.type='password';accountResetPassword.placeholder='새 비밀번호';
+  const accountResetBtn=_devBtn('재설정',async()=>{try{accountResetBtn.disabled=true;await duels2AccountAdminResetPassword(accountResetId.value,accountResetPassword.value);alert('비밀번호를 재설정했습니다.');accountResetPassword.value='';}catch(error){alert(error.message||String(error));}finally{accountResetBtn.disabled=false;}});
+  accountResetRow.append(accountResetId,accountResetPassword,accountResetBtn);wrap.appendChild(accountResetRow);
+  wrap.appendChild(_devHdr('캐릭터 레코드 조정','#fc8'));
+  const recordRow=_devEl('div','display:grid;grid-template-columns:1fr 110px auto;gap:6px;align-items:center;margin-bottom:6px;');
+  const recordChar=_devEl('select','min-width:0;padding:7px;background:#111;color:#ddd;border:1px solid #765;');
+  duels2GetCharacterSelectionOrder().filter(c=>!c.disabled).forEach(ch=>{const o=document.createElement('option');o.value=ch.id;o.textContent=ch.name;recordChar.appendChild(o);});
+  recordChar.value=duels2SafeLocalStorageGetItem('devRecordCharId')||L.charDef?.id||selCharId||recordChar.options[0]?.value||'';
+  if(!CHARACTERS[recordChar.value]) recordChar.value=L.charDef?.id||selCharId||recordChar.options[0]?.value||'';
+  const recordInput=_devEl('input','width:100%;box-sizing:border-box;padding:7px;background:#111;color:#fff;border:1px solid #765;');
+  recordInput.type='number';recordInput.min='0';recordInput.step='50';
+  const syncRecordInput=()=>{recordInput.value=String(duels2GetCharacterMasteryPoints(recordChar.value));};
+  recordChar.onchange=()=>{duels2SafeLocalStorageSetItem('devRecordCharId',recordChar.value);syncRecordInput();};syncRecordInput();
+  const persistDevRecord=async(nextValue,reason,button)=>{
+    const id=recordChar.value;
+    const result=duels2SetCharacterRecordPoints(id,nextValue,reason);
+    if(!result)return false;
+    syncRecordInput();
+    if(button)button.disabled=true;
+    try{
+      const saved=typeof duels2AccountSaveNow==='function' ? await duels2AccountSaveNow(false) : false;
+      if(!saved)throw new Error('GitHub 계정 파일 저장에 실패했습니다.');
+      refreshDevPanel();
+      return true;
+    }catch(error){
+      console.error('[Duels Dev Record] save failed',error);
+      alert(error?.message||String(error));
+      refreshDevPanel();
+      return false;
+    }finally{
+      if(button?.isConnected)button.disabled=false;
+    }
+  };
+  const setRecordBtn=_devBtn('적용',()=>persistDevRecord(recordInput.value,'dev-panel',setRecordBtn));
+  recordRow.append(recordChar,recordInput,setRecordBtn);wrap.appendChild(recordRow);
+  const minus60Btn=_devBtn('-60',()=>persistDevRecord(duels2GetCharacterMasteryPoints(recordChar.value)-60,'dev-minus-60',minus60Btn));
+  const minus40Btn=_devBtn('-40',()=>persistDevRecord(duels2GetCharacterMasteryPoints(recordChar.value)-40,'dev-minus-40',minus40Btn));
+  const plus50Btn=_devBtn('+50',()=>persistDevRecord(duels2GetCharacterMasteryPoints(recordChar.value)+50,'dev-plus-50',plus50Btn));
+  const plus100Btn=_devBtn('+100',()=>persistDevRecord(duels2GetCharacterMasteryPoints(recordChar.value)+100,'dev-plus-100',plus100Btn));
+  const resetRecordBtn=_devBtn('0으로',()=>persistDevRecord(0,'dev-reset',resetRecordBtn));
+  wrap.appendChild(_devRow([minus60Btn,minus40Btn,plus50Btn,plus100Btn,resetRecordBtn]));
   wrap.appendChild(_devHdr('대상별 수치 / 디버프기 / 버프기 / 강제행동','#fa8'));
   devGetTargetEntries().forEach(e=>wrap.appendChild(buildDevTargetPanel(e)));
   wrap.appendChild(_devHdr('더미 / 봇 소환','#8af'));
@@ -60010,6 +61367,11 @@ let _devPanelCollapsed = false;
 let _devPanelSide = duels2SafeLocalStorageGetItem('devSide') || 'right';
 
 function refreshDevPanel() {
+  if (typeof duels2CanUseDebugTools !== 'function' || !duels2CanUseDebugTools()) {
+    window._devUnlocked = false;
+    document.getElementById('dev-panel')?.remove();
+    return null;
+  }
   const old = document.getElementById('dev-panel');
   const scrollTop = old ? old.scrollTop : 0;
   if (old) old.remove();
@@ -60018,18 +61380,26 @@ function refreshDevPanel() {
   return panel;
 }
 function toggleDevPanel() {
+  if (typeof duels2CanUseDebugTools !== 'function' || !duels2CanUseDebugTools()) {
+    window._devUnlocked = false;
+    document.getElementById('dev-panel')?.remove();
+    return null;
+  }
   const old = document.getElementById('dev-panel');
   if (old) { old.remove(); return null; }
   return openDevPanel({force:true});
 }
 function openDevPanel(opt = {}) {
+  if (typeof duels2CanUseDebugTools !== 'function' || !duels2CanUseDebugTools()) {
+    window._devUnlocked = false;
+    document.getElementById('dev-panel')?.remove();
+    return null;
+  }
   _devPanelCollapsed = false; // 디버깅 탭 자체 접기/펼치기 제거
   let old = document.getElementById('dev-panel');
   if (old && !opt.force) return old;
   if (old) old.remove();
-  if (gameOn && typeof send==='function' && !window._devPanelWasOpen) {
-    send({type:'devAlert'}); window._devPanelWasOpen = true;
-  }
+  window._devPanelWasOpen = true;
 
   const sideStyle = _devPanelSide==='left' ? 'left:12px;' : _devPanelSide==='bottom' ? 'bottom:12px;top:auto;left:50%;transform:translateX(-50%);' : 'right:12px;';
   const panel = document.createElement('div');
@@ -60057,7 +61427,7 @@ function openDevPanel(opt = {}) {
 
   // 헤더
   const hdr = _devEl('div','display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #2a2a3a;padding-bottom:6px;');
-  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.38.2'));
+  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.39.0'));
   const hdrBtns = _devEl('div','display:flex;gap:4px;');
     hdrBtns.appendChild(_devBtn(_devPanelSide==='right'?'◀ 왼쪽':'▶ 오른쪽', ()=>{ _devPanelSide=_devPanelSide==='right'?'left':'right'; duels2SafeLocalStorageSetItem('devSide',_devPanelSide); refreshDevPanel(); }));
   hdrBtns.appendChild(_devBtn('✕', ()=>{ panel.remove(); }));
@@ -60500,7 +61870,7 @@ function duels2GetMultiPeerNetworkAuditSummary() {
 
 const DUELS2_RUNTIME_BUGFIX_038_STEP = Object.freeze({
   step:'Step 242 - Movement, Health Display & Remote Character Bugfix',
-  version:'0.38.2',
+  version:'0.39.0',
   fixes:Object.freeze([
     'primitive-skill-balance-values-preserved',
     'single-main-loop-generation-guard',
@@ -61073,7 +62443,7 @@ window.duels2GetResidualCollisionMigrationSummary = function duels2GetResidualCo
 // duels2GetFinalCombatGeometryMigrationSummary: 이번 전투 기하 판정 마이그레이션 상태를 반환한다.
 window.duels2GetFinalCombatGeometryMigrationSummary = function duels2GetFinalCombatGeometryMigrationSummary() {
   return {
-    version:'0.38.2',
+    version:'0.39.0',
     shapes:['circle','cone','line','orientedRect','annulus','ctx'],
     migrated:['konyeong.lmb-rect','konyeong.counter-circle','peluna.lmb-annulus','sherina.rmb-circle-knockback'],
     directMathHypotCount:(document.documentElement.innerHTML.match(/Math\.hypot\s*\(/g)||[]).length,
@@ -61111,6 +62481,7 @@ window.duels2GetJerryActionContextFixSummary=duels2GetJerryActionContextFixSumma
 function duels2GetJerryCharacterSummary() {
   return {
     jerry:{color:CHARACTERS.jerry.color,hp:BALANCE.jerry.hp,speed:BALANCE.jerry.speed,skills:['grenade-launcher','c4-fan','blast-jump']},
+    luran:{color:CHARACTERS.luran.color,hp:BALANCE.luran.hp,speed:BALANCE.luran.speed,skills:['precision-ruler-hit','step-range-adjust','seven-step-rewind']},
     levinaColor:CHARACTERS.levina.color,
     projectileImpactSpec:'jerry.target-explosion'
   };
@@ -61121,4 +62492,355 @@ window.duels2GetJerryCharacterSummary=duels2GetJerryCharacterSummary;
 // duels2GetCombatPipelineRepairSummary: 공통 피해·피드백·넉백·레테 귀환 동기화 수정 상태를 반환한다. ()
 function duels2GetCombatPipelineRepairSummary(){return {projectileHitIdempotency:true,damageFeedbackByActualResult:true,knockbackProxyTargeting:true,projectileVisualPatchQueue:true,leteReturnOwnerBySourcePid:true};}
 window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary;
+</script>
+
+<style>
+/* ── 0.39.0 듀얼즈 계정 UI ── */
+#duels2-account-gate{position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0a0a0cf5;font-family:'Courier New',monospace;color:#d6e8f5}
+#duels2-account-gate.hidden{display:none}
+.duels2-account-panel{position:relative;position:relative;box-sizing:border-box;width:min(92vw,470px);max-height:none;overflow:hidden;padding:32px 34px 28px;border:1px solid #2a4a6a;border-radius:2px;background:#0a0a0c;box-shadow:0 0 0 1px #101b26,0 0 34px #44aaff24}
+.duels2-account-panel::before,.duels2-account-panel::after{content:'';position:absolute;width:18px;height:18px;pointer-events:none}
+.duels2-account-panel::before{left:-1px;top:-1px;border-left:2px solid #4af;border-top:2px solid #4af}
+.duels2-account-panel::after{right:-1px;bottom:-1px;border-right:2px solid #4af;border-bottom:2px solid #4af}
+.duels2-account-title{font-size:28px;letter-spacing:7px;color:#4af;text-align:center;text-transform:uppercase;text-shadow:0 0 14px #44aaff66;margin-bottom:8px}
+.duels2-account-sub{font-size:10px;line-height:1.7;color:#55697d;text-align:center;letter-spacing:2px;margin-bottom:24px}
+.duels2-account-tabs{display:flex;justify-content:center;gap:8px;margin-bottom:23px;border-bottom:1px solid #172838;padding-bottom:13px}
+.duels2-account-tabs .btn{min-width:130px;padding:9px 18px;font-size:12px;margin:0}
+.duels2-account-tabs .btn.sel{color:#fff;border-color:#4af;background:#132334;box-shadow:0 0 12px #44aaff2f}
+.duels2-account-section{display:none}.duels2-account-section.active{display:block}
+.duels2-account-field{display:grid;grid-template-columns:106px minmax(0,1fr);align-items:center;gap:12px;margin:12px 0}
+.duels2-account-field label{font-size:11px;color:#7890a6;letter-spacing:1.5px;text-align:right}
+.duels2-account-field input{width:100%;box-sizing:border-box;background:#0d1015;color:#cce9ff;border:1px solid #2a4a6a;border-radius:2px;padding:10px 12px;font-family:'Courier New',monospace;font-size:13px;letter-spacing:1px;outline:none;user-select:text}
+.duels2-account-field input:focus{border-color:#4af;background:#101820;box-shadow:0 0 0 1px #44aaff33,0 0 12px #44aaff1f}
+.duels2-account-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:23px}
+.duels2-account-actions .btn.big{min-width:180px;font-size:14px;padding:12px 34px}
+.duels2-account-msg{min-height:20px;margin-top:15px;text-align:center;font-size:11px;color:#667b8d;line-height:1.6;letter-spacing:.5px}
+.duels2-account-msg.error{color:#ff6f6f}.duels2-account-msg.ok{color:#64d792}
+.duels2-account-check{display:flex;align-items:flex-start;justify-content:center;gap:8px;margin:15px auto 0;color:#7890a6;font-size:10px;line-height:1.5;max-width:330px}
+.duels2-account-check input{margin-top:2px;accent-color:#4af}
+.duels2-account-config-error{display:none;margin:12px 0 0;padding:9px 11px;border:1px solid #5d2d38;background:#170c10;color:#ff8585;font-size:10px;line-height:1.6;text-align:center}
+.duels2-account-config-error.show{display:block}
+#duels2-account-chip{position:absolute;left:18px;bottom:14px;z-index:30;display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid #25425a;border-radius:2px;background:#07111ccc;color:#91a9bd;font-size:10px;letter-spacing:.5px}
+#duels2-account-chip strong{color:#bce2ff;font-weight:600}
+#duels2-account-chip button{padding:3px 6px;border:1px solid #304b61;background:#0a1722;color:#8fb0c9;font-family:inherit;font-size:9px;cursor:pointer}
+#duels2-account-sync-state[data-state="saving"]{color:#ffd777}#duels2-account-sync-state[data-state="saved"]{color:#75e69d}#duels2-account-sync-state[data-state="error"]{color:#ff8585}
+.duels2-account-version{position:absolute;right:14px;bottom:10px;color:#34566f;font-size:9px;letter-spacing:1px;pointer-events:none}
+@media(max-width:560px){.duels2-account-panel{padding:25px 18px 22px}.duels2-account-title{font-size:22px;letter-spacing:5px}.duels2-account-field{grid-template-columns:1fr;gap:5px}.duels2-account-field label{text-align:left}.duels2-account-tabs .btn{min-width:0;flex:1}}
+</style>
+
+<div id="duels2-account-gate">
+  <div class="duels2-account-panel">
+    <div class="duels2-account-title">DUELS</div>
+    <div class="duels2-account-sub">Made By Lyan___</div>
+    <div class="duels2-account-tabs">
+      <button class="btn" id="duels2-account-tab-login" type="button">로그인</button>
+      <button class="btn" id="duels2-account-tab-create" type="button">계정 생성</button>
+    </div>
+    <section class="duels2-account-section" id="duels2-account-login-section">
+      <div class="duels2-account-field"><label>아이디</label><input id="duels2-login-id" autocomplete="username" maxlength="32"></div>
+      <div class="duels2-account-field"><label>비밀번호</label><input id="duels2-login-password" type="password" autocomplete="current-password" maxlength="128"></div>
+      <div class="duels2-account-actions"><button class="btn big" id="duels2-login-button" type="button">로그인</button></div>
+    </section>
+    <section class="duels2-account-section" id="duels2-account-create-section">
+      <div class="duels2-account-field"><label>아이디</label><input id="duels2-create-id" autocomplete="username" maxlength="32"></div>
+      <div class="duels2-account-field"><label>표시 이름</label><input id="duels2-create-name" maxlength="24"></div>
+      <div class="duels2-account-field"><label>비밀번호</label><input id="duels2-create-password" type="password" autocomplete="new-password" maxlength="128"></div>
+      <div class="duels2-account-field"><label>비밀번호 확인</label><input id="duels2-create-password2" type="password" autocomplete="new-password" maxlength="128"></div>
+      <div class="duels2-account-actions"><button class="btn big" id="duels2-create-button" type="button">계정 생성</button></div>
+    </section>
+    <div class="duels2-account-config-error" id="duels2-account-config-error">저장소 연결 정보가 없습니다. 이전 설정본에서 GitHub 연결을 먼저 완료해야 합니다.</div>
+    <div class="duels2-account-msg" id="duels2-account-message"></div>
+    <div class="duels2-account-version">v0.39.0</div>
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   GitHub Contents API 기반 신뢰형 로컬 계정 시스템
+   - 비밀번호 원문은 저장하지 않고 PBKDF2 해시만 계정 JSON에 기록한다.
+   - 토큰은 HTML이 아닌 현재 브라우저의 localStorage에만 저장한다.
+   - 기존 레코드 런타임을 계정 데이터에 연결하며 게임 로직은 변경하지 않는다.
+───────────────────────────────────────────────────────────── */
+const DUELS2_GITHUB_ACCOUNT_CONFIG_KEY='duels2.githubAccount.config.v1';
+const DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY='duels2.githubAccount.lastId.v1';
+const DUELS2_GITHUB_ACCOUNT_SESSION_KEY='duels2.githubAccount.session.v1';
+const DUELS2_GITHUB_ACCOUNT_STATE={config:null,current:null,fileSha:null,saveTimer:0,saveChain:Promise.resolve(),loading:false,dirty:false};
+globalThis.DUELS2_GITHUB_ACCOUNT_STATE=DUELS2_GITHUB_ACCOUNT_STATE;
+const DUELS2_DEBUG_ADMIN_ACCOUNT_ID='lyan5097';
+
+// duels2CanUseDebugTools: 현재 로그인 계정이 디버깅 권한 계정인지 확인한다. ()
+function duels2CanUseDebugTools(){
+  const id=String(DUELS2_GITHUB_ACCOUNT_STATE.current?.accountId||'').trim().toLowerCase();
+  return id===DUELS2_DEBUG_ADMIN_ACCOUNT_ID;
+}
+window.duels2CanUseDebugTools=duels2CanUseDebugTools;
+
+// duels2LockDebugTools: 로컬 디버깅 패널과 잠금 상태를 즉시 정리한다. ()
+function duels2LockDebugTools(){
+  window._devUnlocked=false;
+  window._devPanelWasOpen=false;
+  document.getElementById('dev-panel')?.remove();
+}
+window.duels2LockDebugTools=duels2LockDebugTools;
+
+// duels2AccountNormalizeId: 파일 경로와 로그인 비교에 사용할 안전한 계정 ID를 만든다. (value: 사용자가 입력한 아이디)
+function duels2AccountNormalizeId(value){return String(value||'').trim().toLowerCase().replace(/[^a-z0-9._-]/g,'').slice(0,32);}
+
+// duels2AccountReadConfig: 브라우저에 저장된 GitHub 저장소 연결 설정을 불러온다. ()
+function duels2AccountReadConfig(){
+  try{const parsed=JSON.parse(localStorage.getItem(DUELS2_GITHUB_ACCOUNT_CONFIG_KEY)||'null');return parsed&&parsed.owner&&parsed.repo&&parsed.token?parsed:null;}catch(_){return null;}
+}
+
+// duels2AccountWriteConfig: GitHub 저장소 연결 설정을 브라우저에 저장한다. (config: owner/repo/branch/token 설정)
+function duels2AccountWriteConfig(config){
+  const safe={owner:String(config.owner||'').trim(),repo:String(config.repo||'').trim(),branch:String(config.branch||'main').trim()||'main',token:String(config.token||'').trim()};
+  localStorage.setItem(DUELS2_GITHUB_ACCOUNT_CONFIG_KEY,JSON.stringify(safe));DUELS2_GITHUB_ACCOUNT_STATE.config=safe;return safe;
+}
+
+// duels2AccountSetMessage: 계정 화면 하단 상태 문구를 갱신한다. (text: 표시 문구, kind: error/ok/기본)
+function duels2AccountSetMessage(text,kind=''){
+  const el=document.getElementById('duels2-account-message');if(!el)return;el.textContent=text||'';el.className='duels2-account-msg'+(kind?' '+kind:'');
+}
+
+// duels2AccountSetTab: 로그인·계정 생성 중 하나의 화면만 연다. (name: login/create)
+function duels2AccountSetTab(name){
+  const safeName=name==='create'?'create':'login';
+  ['login','create'].forEach(id=>{document.getElementById(`duels2-account-${id}-section`)?.classList.toggle('active',id===safeName);document.getElementById(`duels2-account-tab-${id}`)?.classList.toggle('sel',id===safeName);});
+  duels2AccountSetMessage('');
+}
+
+// duels2AccountUtf8ToBase64: UTF-8 문자열을 GitHub Contents API용 Base64로 변환한다. (text: 원문 문자열)
+function duels2AccountUtf8ToBase64(text){
+  const bytes=new TextEncoder().encode(String(text));let binary='';const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(binary);
+}
+
+// duels2AccountBase64ToUtf8: GitHub Contents API의 Base64 내용을 UTF-8 문자열로 복원한다. (value: Base64 문자열)
+function duels2AccountBase64ToUtf8(value){
+  const binary=atob(String(value||'').replace(/\s/g,''));const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new TextDecoder().decode(bytes);
+}
+
+// duels2AccountBytesToHex: 바이트 배열을 저장 가능한 16진수 문자열로 바꾼다. (bytes: Uint8Array 또는 ArrayBuffer)
+function duels2AccountBytesToHex(bytes){return Array.from(bytes instanceof Uint8Array?bytes:new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');}
+
+// duels2AccountHexToBytes: 16진수 문자열을 PBKDF2 salt 바이트로 복원한다. (hex: 16진수 문자열)
+function duels2AccountHexToBytes(hex){const value=String(hex||'');const out=new Uint8Array(Math.floor(value.length/2));for(let i=0;i<out.length;i++)out[i]=parseInt(value.slice(i*2,i*2+2),16)||0;return out;}
+
+// duels2AccountHashPassword: 비밀번호를 계정별 salt와 PBKDF2-SHA256으로 해시한다. (password: 비밀번호, saltHex: salt, iterations: 반복 횟수)
+async function duels2AccountHashPassword(password,saltHex,iterations=150000){
+  if(!crypto?.subtle)throw new Error('이 브라우저에서는 안전한 비밀번호 해시를 사용할 수 없습니다.');
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(String(password)),{name:'PBKDF2'},false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:duels2AccountHexToBytes(saltHex),iterations,hash:'SHA-256'},key,256);
+  return duels2AccountBytesToHex(bits);
+}
+
+// duels2AccountGithubRequest: 현재 설정으로 GitHub REST API 요청을 수행한다. (path: API 경로, options: fetch 옵션)
+async function duels2AccountGithubRequest(path,options={}){
+  const cfg=DUELS2_GITHUB_ACCOUNT_STATE.config||duels2AccountReadConfig();if(!cfg)throw new Error('GitHub 저장소 설정이 필요합니다.');
+  const response=await fetch(`https://api.github.com${path}`,{...options,headers:{Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',Authorization:`Bearer ${cfg.token}`,...(options.headers||{})}});
+  let body=null;try{body=await response.json();}catch(_){body=null;}
+  if(!response.ok){const error=new Error(body?.message||`GitHub 요청 실패 (${response.status})`);error.status=response.status;error.body=body;throw error;}
+  return body;
+}
+
+// duels2AccountPath: 계정 ID에 해당하는 저장소 JSON 경로를 반환한다. (accountId: 정규화된 계정 ID)
+function duels2AccountPath(accountId){return `accounts/${encodeURIComponent(duels2AccountNormalizeId(accountId))}.json`;}
+
+// duels2AccountLoadRemoteFile: GitHub에서 계정 JSON과 현재 파일 SHA를 가져온다. (accountId: 계정 ID)
+async function duels2AccountLoadRemoteFile(accountId){
+  const cfg=DUELS2_GITHUB_ACCOUNT_STATE.config;const path=duels2AccountPath(accountId);const query=`?ref=${encodeURIComponent(cfg.branch||'main')}`;
+  const body=await duels2AccountGithubRequest(`/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${path}${query}`);
+  if(!body?.content)throw new Error('계정 파일의 내용을 읽을 수 없습니다.');
+  return {data:JSON.parse(duels2AccountBase64ToUtf8(body.content)),sha:body.sha||null,path};
+}
+
+// duels2AccountPutRemoteFile: 계정 JSON을 새 커밋으로 생성하거나 갱신한다. (accountId: 계정 ID, data: 저장 데이터, sha: 기존 파일 SHA)
+async function duels2AccountPutRemoteFile(accountId,data,sha=null){
+  const cfg=DUELS2_GITHUB_ACCOUNT_STATE.config;const path=duels2AccountPath(accountId);const payload={message:`Duels account sync: ${accountId}`,content:duels2AccountUtf8ToBase64(JSON.stringify(data,null,2)),branch:cfg.branch||'main'};if(sha)payload.sha=sha;
+  return duels2AccountGithubRequest(`/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${path}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+}
+
+// duels2AccountBuildPayload: 현재 로그인 계정과 게임 레코드 상태를 원격 저장 형식으로 만든다. ()
+function duels2AccountBuildPayload(){
+  const current=DUELS2_GITHUB_ACCOUNT_STATE.current;if(!current)return null;
+  return {...current,version:1,updatedAt:new Date().toISOString(),characterRecords:structuredClone(DUELS2_CHARACTER_MASTERY_STATE.local||{}),characterStats:structuredClone(DUELS2_CHARACTER_RECORD_STATS_STATE.local||{})};
+}
+
+// duels2AccountApplyPayload: 로그인한 계정의 레코드와 통계를 현재 게임 런타임에 적용한다. (data: 원격 계정 JSON)
+function duels2AccountApplyPayload(data){
+  const records=data?.characterRecords&&typeof data.characterRecords==='object'?data.characterRecords:{};const stats=data?.characterStats&&typeof data.characterStats==='object'?data.characterStats:{};
+  for(const key of Object.keys(DUELS2_CHARACTER_MASTERY_STATE.local))delete DUELS2_CHARACTER_MASTERY_STATE.local[key];Object.assign(DUELS2_CHARACTER_MASTERY_STATE.local,records);
+  for(const key of Object.keys(DUELS2_CHARACTER_RECORD_STATS_STATE.local))delete DUELS2_CHARACTER_RECORD_STATS_STATE.local[key];Object.assign(DUELS2_CHARACTER_RECORD_STATS_STATE.local,stats);
+  duels2RefreshCharacterRecordUi?.();
+}
+
+// duels2AccountUpdateChip: 로비 좌하단의 로그인 계정과 동기화 상태를 갱신한다. (state: idle/saving/saved/error, message: 상태 문구)
+function duels2AccountUpdateChip(state='idle',message=''){
+  let chip=document.getElementById('duels2-account-chip');if(!chip){chip=document.createElement('div');chip.id='duels2-account-chip';document.getElementById('scr-lobby')?.appendChild(chip);}
+  const user=DUELS2_GITHUB_ACCOUNT_STATE.current;chip.style.display=user?'flex':'none';if(!user)return;
+  chip.innerHTML=`<strong>${user.displayName||user.accountId}</strong><span id="duels2-account-sync-state" data-state="${state}">${message||'연결됨'}</span><button type="button" id="duels2-account-sync-now">저장</button><button type="button" id="duels2-account-logout">로그아웃</button>`;
+  document.getElementById('duels2-account-sync-now')?.addEventListener('click',()=>duels2AccountSaveNow(true));document.getElementById('duels2-account-logout')?.addEventListener('click',duels2AccountLogout);
+}
+
+// duels2AccountSaveNow: 최신 계정 데이터를 GitHub에 직렬 저장하고 충돌 시 한 번 다시 시도한다. (manual: 수동 저장 여부)
+async function duels2AccountSaveNow(manual=false){
+  if(!DUELS2_GITHUB_ACCOUNT_STATE.current||DUELS2_GITHUB_ACCOUNT_STATE.loading)return false;clearTimeout(DUELS2_GITHUB_ACCOUNT_STATE.saveTimer);DUELS2_GITHUB_ACCOUNT_STATE.dirty=false;
+  const run=async()=>{duels2AccountUpdateChip('saving','저장 중');const payload=duels2AccountBuildPayload();try{let response;try{response=await duels2AccountPutRemoteFile(payload.accountId,payload,DUELS2_GITHUB_ACCOUNT_STATE.fileSha);}catch(error){if(error.status!==409)throw error;const latest=await duels2AccountLoadRemoteFile(payload.accountId);DUELS2_GITHUB_ACCOUNT_STATE.fileSha=latest.sha;response=await duels2AccountPutRemoteFile(payload.accountId,payload,latest.sha);}DUELS2_GITHUB_ACCOUNT_STATE.fileSha=response?.content?.sha||DUELS2_GITHUB_ACCOUNT_STATE.fileSha;DUELS2_GITHUB_ACCOUNT_STATE.current=payload;duels2AccountUpdateChip('saved','저장됨');if(manual)duels2AccountSetMessage('GitHub에 저장했습니다.','ok');return true;}catch(error){DUELS2_GITHUB_ACCOUNT_STATE.dirty=true;duels2AccountUpdateChip('error','저장 실패');if(manual)duels2AccountSetMessage(error.message,'error');console.error('[Duels Account] save failed',error);return false;}};
+  DUELS2_GITHUB_ACCOUNT_STATE.saveChain=DUELS2_GITHUB_ACCOUNT_STATE.saveChain.then(run,run);return DUELS2_GITHUB_ACCOUNT_STATE.saveChain;
+}
+
+// duels2AccountScheduleSave: 연속 점수 변경을 하나의 GitHub 커밋으로 묶어 지연 저장한다. (delay: 지연 시간 ms)
+function duels2AccountScheduleSave(delay=900){
+  if(!DUELS2_GITHUB_ACCOUNT_STATE.current||DUELS2_GITHUB_ACCOUNT_STATE.loading)return;DUELS2_GITHUB_ACCOUNT_STATE.dirty=true;duels2AccountUpdateChip('saving','저장 대기');clearTimeout(DUELS2_GITHUB_ACCOUNT_STATE.saveTimer);DUELS2_GITHUB_ACCOUNT_STATE.saveTimer=setTimeout(()=>duels2AccountSaveNow(false),Math.max(100,delay));
+}
+
+// duels2AccountEnterGame: 인증된 계정을 활성화하고 로그인 화면을 닫는다. (data: 계정 JSON, sha: 원격 파일 SHA)
+function duels2AccountEnterGame(data,sha){
+  duels2LockDebugTools?.();
+  DUELS2_GITHUB_ACCOUNT_STATE.loading=true;DUELS2_GITHUB_ACCOUNT_STATE.current=data;DUELS2_GITHUB_ACCOUNT_STATE.fileSha=sha||null;duels2AccountApplyPayload(data);DUELS2_GITHUB_ACCOUNT_STATE.loading=false;
+  localStorage.setItem(DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY,data.accountId);localStorage.setItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY,JSON.stringify({accountId:data.accountId,updatedAt:Date.now()}));document.getElementById('duels2-account-gate')?.classList.add('hidden');duels2AccountUpdateChip('saved','동기화됨');
+}
+
+// duels2AccountRestoreSession: 최근 로그인 계정을 GitHub에서 다시 불러와 자동 로그인한다. ()
+async function duels2AccountRestoreSession(){
+  if(!DUELS2_GITHUB_ACCOUNT_STATE.config)return false;
+  let session=null;try{session=JSON.parse(localStorage.getItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY)||'null');}catch(_){session=null;}
+  const id=duels2AccountNormalizeId(session?.accountId);if(!id)return false;
+  duels2AccountSetMessage('최근 계정 데이터를 불러오는 중입니다.');
+  try{const remote=await duels2AccountLoadRemoteFile(id);if(!remote?.data?.accountId)throw new Error('계정 데이터를 읽을 수 없습니다.');duels2AccountEnterGame(remote.data,remote.sha);return true;}
+  catch(error){console.error('[Duels Account] auto login failed',error);localStorage.removeItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY);duels2AccountSetMessage('자동 로그인에 실패했습니다. 다시 로그인하세요.','error');return false;}
+}
+
+// duels2AccountLogin: 입력한 비밀번호를 원격 해시와 비교하고 계정 데이터를 적용한다. ()
+async function duels2AccountLogin(){
+  const id=duels2AccountNormalizeId(document.getElementById('duels2-login-id')?.value);const password=document.getElementById('duels2-login-password')?.value||'';if(!id||!password)return duels2AccountSetMessage('아이디와 비밀번호를 입력하세요.','error');
+  if(!DUELS2_GITHUB_ACCOUNT_STATE.config){document.getElementById('duels2-account-config-error')?.classList.add('show');return duels2AccountSetMessage('저장소 연결 정보가 없습니다.','error');}duels2AccountSetMessage('계정을 불러오는 중입니다.');
+  try{const remote=await duels2AccountLoadRemoteFile(id);const data=remote.data;const hash=await duels2AccountHashPassword(password,data.password?.salt,data.password?.iterations||150000);if(hash!==data.password?.hash)throw new Error('비밀번호가 일치하지 않습니다.');document.getElementById('duels2-login-password').value='';duels2AccountEnterGame(data,remote.sha);}catch(error){duels2AccountSetMessage(error.status===404?'존재하지 않는 계정입니다.':error.message,'error');}
+}
+
+// duels2AccountCreate: 새 계정 파일을 만들고 현재 브라우저 데이터를 선택적으로 이전한다. ()
+async function duels2AccountCreate(){
+  const id=duels2AccountNormalizeId(document.getElementById('duels2-create-id')?.value);const displayName=String(document.getElementById('duels2-create-name')?.value||'').trim().slice(0,24);const password=document.getElementById('duels2-create-password')?.value||'';const password2=document.getElementById('duels2-create-password2')?.value||'';
+  if(id.length<3)return duels2AccountSetMessage('아이디는 영문 소문자·숫자 기준 3자 이상이어야 합니다.','error');if(!displayName)return duels2AccountSetMessage('표시 이름을 입력하세요.','error');if(password.length<4)return duels2AccountSetMessage('비밀번호는 4자 이상 입력하세요.','error');if(password!==password2)return duels2AccountSetMessage('비밀번호 확인이 일치하지 않습니다.','error');if(!DUELS2_GITHUB_ACCOUNT_STATE.config){document.getElementById('duels2-account-config-error')?.classList.add('show');return duels2AccountSetMessage('저장소 연결 정보가 없습니다.','error');}
+  duels2AccountSetMessage('계정을 생성하는 중입니다.');
+  try{try{await duels2AccountLoadRemoteFile(id);throw new Error('이미 존재하는 아이디입니다.');}catch(error){if(error.status!==404)throw error;}const salt=crypto.getRandomValues(new Uint8Array(16));const saltHex=duels2AccountBytesToHex(salt);const iterations=150000;const hash=await duels2AccountHashPassword(password,saltHex,iterations);const now=new Date().toISOString();const data={version:1,accountId:id,displayName,createdAt:now,updatedAt:now,password:{algorithm:'PBKDF2-SHA256',iterations,salt:saltHex,hash},characterRecords:{},characterStats:{}};const response=await duels2AccountPutRemoteFile(id,data,null);document.getElementById('duels2-create-password').value='';document.getElementById('duels2-create-password2').value='';duels2AccountEnterGame(data,response?.content?.sha||null);}catch(error){duels2AccountSetMessage(error.message,'error');}
+}
+
+// duels2AccountSaveSettingsFromUi: 저장소 설정 입력값을 저장하고 연결 여부를 확인한다. (testOnly: 저장 없이 테스트만 할지 여부)
+async function duels2AccountSaveSettingsFromUi(testOnly=false){
+  const config={owner:document.getElementById('duels2-github-owner')?.value,repo:document.getElementById('duels2-github-repo')?.value,branch:document.getElementById('duels2-github-branch')?.value||'main',token:document.getElementById('duels2-github-token')?.value};if(!config.owner||!config.repo||!config.token)return duels2AccountSetMessage('소유자, 저장소 이름, 토큰을 모두 입력하세요.','error');
+  const previous=DUELS2_GITHUB_ACCOUNT_STATE.config;DUELS2_GITHUB_ACCOUNT_STATE.config=config;duels2AccountSetMessage('저장소 연결을 확인하는 중입니다.');
+  try{await duels2AccountGithubRequest(`/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}`);if(!testOnly)duels2AccountWriteConfig(config);duels2AccountSetMessage(testOnly?'연결에 성공했습니다.':'설정을 저장했습니다.','ok');if(!testOnly)setTimeout(()=>duels2AccountSetTab('login'),500);}catch(error){DUELS2_GITHUB_ACCOUNT_STATE.config=previous;duels2AccountSetMessage(error.message,'error');}
+}
+
+// duels2AccountLogout: 변경 데이터를 저장한 뒤 현재 계정을 닫고 로그인 화면으로 돌아간다. ()
+async function duels2AccountLogout(){
+  duels2LockDebugTools?.();
+  if(DUELS2_GITHUB_ACCOUNT_STATE.dirty)await duels2AccountSaveNow(false);localStorage.removeItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY);DUELS2_GITHUB_ACCOUNT_STATE.current=null;DUELS2_GITHUB_ACCOUNT_STATE.fileSha=null;document.getElementById('duels2-account-gate')?.classList.remove('hidden');duels2AccountSetTab('login');duels2AccountUpdateChip();
+}
+
+// duels2AccountInstallSaveHooks: 기존 레코드·통계 로컬 저장 함수 뒤에 GitHub 자동 저장을 연결한다. ()
+function duels2AccountInstallSaveHooks(){
+  if(window._duels2AccountSaveHooksInstalled)return;window._duels2AccountSaveHooksInstalled=true;
+  const originalMastery=duels2SaveCharacterMastery;duels2SaveCharacterMastery=function(){const result=originalMastery.apply(this,arguments);duels2AccountScheduleSave();return result;};window.duels2SaveCharacterMastery=duels2SaveCharacterMastery;
+  const originalStats=duels2SaveCharacterRecordStats;duels2SaveCharacterRecordStats=function(){const result=originalStats.apply(this,arguments);duels2AccountScheduleSave();return result;};window.duels2SaveCharacterRecordStats=duels2SaveCharacterRecordStats;
+  if(typeof send==='function'){const originalSend=send;send=function(packet){if(packet&&typeof packet==='object'&&DUELS2_GITHUB_ACCOUNT_STATE.current)packet={...packet,recordIdentityId:`account:${DUELS2_GITHUB_ACCOUNT_STATE.current.accountId}`,accountId:DUELS2_GITHUB_ACCOUNT_STATE.current.accountId,displayName:DUELS2_GITHUB_ACCOUNT_STATE.current.displayName};return originalSend(packet);};window.send=send;}
+}
+
+// duels2AccountInit: 계정 UI 이벤트와 기존 게임 저장 훅을 초기화한다. ()
+function duels2AccountInit(){
+  DUELS2_GITHUB_ACCOUNT_STATE.config=duels2AccountReadConfig();duels2AccountInstallSaveHooks();
+  const cfg=DUELS2_GITHUB_ACCOUNT_STATE.config;const configError=document.getElementById('duels2-account-config-error');configError?.classList.toggle('show',!cfg);
+  const lastId=localStorage.getItem(DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY)||'';document.getElementById('duels2-login-id').value=lastId;
+  document.getElementById('duels2-account-tab-login')?.addEventListener('click',()=>duels2AccountSetTab('login'));document.getElementById('duels2-account-tab-create')?.addEventListener('click',()=>duels2AccountSetTab('create'));
+  document.getElementById('duels2-login-button')?.addEventListener('click',duels2AccountLogin);document.getElementById('duels2-create-button')?.addEventListener('click',duels2AccountCreate);
+  document.getElementById('duels2-login-password')?.addEventListener('keydown',event=>{if(event.key==='Enter')duels2AccountLogin();});document.getElementById('duels2-create-password2')?.addEventListener('keydown',event=>{if(event.key==='Enter')duels2AccountCreate();});
+  duels2AccountSetTab('login');duels2AccountRestoreSession();window.addEventListener('online',()=>{if(DUELS2_GITHUB_ACCOUNT_STATE.dirty)duels2AccountSaveNow(false);});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&DUELS2_GITHUB_ACCOUNT_STATE.dirty)duels2AccountSaveNow(false);});
+}
+
+
+// duels2AccountAdminResetPassword: 개발자모드에서 지정 계정의 비밀번호 해시를 새 값으로 교체한다. (accountId: 계정 아이디, newPassword: 새 비밀번호)
+async function duels2AccountAdminResetPassword(accountId,newPassword){
+  const id=duels2AccountNormalizeId(accountId);const password=String(newPassword||'');
+  if(!id)throw new Error('계정 아이디를 입력하세요.');if(password.length<4)throw new Error('새 비밀번호는 4자 이상이어야 합니다.');
+  const loaded=await duels2AccountLoadRemoteFile(id);const saltHex=duels2AccountBytesToHex(crypto.getRandomValues(new Uint8Array(16)));const iterations=150000;
+  loaded.data.password={algorithm:'PBKDF2-SHA256',iterations,salt:saltHex,hash:await duels2AccountHashPassword(password,saltHex,iterations)};
+  loaded.data.updatedAt=new Date().toISOString();await duels2AccountPutRemoteFile(id,loaded.data,loaded.sha);return true;
+}
+window.duels2AccountAdminResetPassword=duels2AccountAdminResetPassword;
+
+// duels2AttachRecordDetailToCard: 선택·증강·라운드 준비 카드에 독립적인 우클릭 통계 화면을 연결한다. (card: 카드 요소)
+function duels2AttachRecordDetailToCard(card){
+  if(!card||card.dataset.recordDetailBound==='1')return;const charId=card.dataset.id;if(!charId||!CHARACTERS[charId])return;
+  card.dataset.recordDetailBound='1';
+  card.addEventListener('contextmenu',event=>{event.preventDefault();event.stopPropagation();
+    let detail=card.querySelector(':scope > .char-record-detail');
+    if(!detail){detail=document.createElement('div');detail.className='char-record-detail';card.appendChild(detail);}
+    const opening=!card.classList.contains('record-detail-open');
+    if(opening){const pid=card.dataset.masteryPid||null;const stats=pid&&pid!==(DUELS2_PLAYER_REGISTRY?.localPid||'P1')?{plays:0,wins:0,winRate:0}:duels2GetCharacterRecordStats(charId);const record=duels2GetCharacterMasteryView(charId,pid);
+      detail.innerHTML=`<div class="char-record-detail-title">${CHARACTERS[charId].name}</div><div class="char-record-detail-row"><b>플레이</b><span>${stats.plays}회</span></div><div class="char-record-detail-row"><b>승률</b><span>${stats.plays?stats.winRate.toFixed(1):'0.0'}%</span></div><div class="char-record-detail-row"><b>레코드</b><span>${record.tier.name} · ${record.points}</span></div><div class="char-record-detail-hint">우클릭으로 돌아가기</div>`;
+      card.classList.add('record-detail-open');
+    }else card.classList.remove('record-detail-open');
+  });
+}
+
+// duels2InstallRecordDetailObserver: 동적으로 생성되는 모든 캐릭터 카드에 우클릭 통계를 자동 연결한다. ()
+function duels2InstallRecordDetailObserver(){
+  const bind=()=>document.querySelectorAll('.char-card[data-id],.start-aug-char-card[data-id]').forEach(duels2AttachRecordDetailToCard);bind();
+  new MutationObserver(bind).observe(document.body,{subtree:true,childList:true});
+}
+
+
+// duels2ToggleRecordDetailCard: 캐릭터 카드의 앞면과 레코드 통계 화면을 전환한다. (card: 우클릭된 카드 요소)
+function duels2ToggleRecordDetailCard(card){
+  if(!card)return false;
+  const charId=card.dataset.id||card.dataset.charId||card.dataset.characterId;
+  if(!charId||!CHARACTERS[charId])return false;
+  let detail=card.querySelector(':scope > .char-record-detail');
+  if(!detail){
+    detail=document.createElement('div');
+    detail.className='char-record-detail';
+    card.appendChild(detail);
+  }
+  const opening=!card.classList.contains('record-detail-open');
+  if(!opening){
+    card.classList.remove('record-detail-open');
+    return true;
+  }
+  const pid=card.dataset.masteryPid||null;
+  const localPid=window.DUELS2_PLAYER_REGISTRY?.localPid||'P1';
+  const isRemote=!!pid&&pid!==localPid;
+  const stats=isRemote
+    ? (window.duels2GetRemoteCharacterRecordStats?.(pid,charId)||{plays:0,wins:0,winRate:0})
+    : duels2GetCharacterRecordStats(charId);
+  const plays=Number(stats?.plays)||0;
+  const wins=Number(stats?.wins)||0;
+  const winRate=Number.isFinite(Number(stats?.winRate))?Number(stats.winRate):(plays?wins/plays*100:0);
+  const record=duels2GetCharacterMasteryView(charId,pid);
+  detail.innerHTML=`<div class="char-record-detail-title">${CHARACTERS[charId].name}</div>
+    <div class="char-record-detail-row"><b>플레이</b><span>${plays}회</span></div>
+    <div class="char-record-detail-row"><b>승률</b><span>${winRate.toFixed(1)}%</span></div>
+    <div class="char-record-detail-row"><b>레코드</b><span>${record.tier.name} · ${record.points}</span></div>
+    <div class="char-record-detail-hint">우클릭으로 돌아가기</div>`;
+  card.classList.add('record-detail-open');
+  return true;
+}
+window.duels2ToggleRecordDetailCard=duels2ToggleRecordDetailCard;
+
+// 카드가 동적으로 다시 만들어져도 우클릭이 사라지지 않도록 문서 캡처 단계에서 공통 처리한다.
+document.addEventListener('contextmenu',event=>{
+  const rawTarget=event.target;
+  if(!(rawTarget instanceof Element))return;
+  const card=rawTarget.closest('.char-card[data-id],.start-aug-char-card[data-id]');
+  if(!card)return;
+  const visibleScreen=card.closest('.screen');
+  if(visibleScreen?.classList.contains('hidden'))return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  duels2ToggleRecordDetailCard(card);
+},true);
+
+document.addEventListener('DOMContentLoaded',duels2InstallRecordDetailObserver);
+
+document.addEventListener('DOMContentLoaded',duels2AccountInit);
+window.duels2AccountSaveNow=duels2AccountSaveNow;window.duels2AccountLogout=duels2AccountLogout;window.duels2AccountRestoreSession=duels2AccountRestoreSession;
 </script>
