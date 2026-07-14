@@ -884,6 +884,74 @@ option{
 }
 </style>
 
+
+
+<style id="duels2-dev-tabs-v2">
+#dev-panel{
+  background:rgba(8,9,14,.96)!important;
+  border:1px solid #59401f!important;
+  border-radius:2px!important;
+  padding:0!important;
+  box-shadow:0 12px 38px rgba(0,0,0,.48);
+  backdrop-filter:blur(5px);
+}
+#dev-panel .dev-main-tabs{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:0;
+  margin:0;
+  padding:0 8px;
+  overflow-x:auto;
+  border-bottom:1px solid #29251f;
+  background:#0d0e13;
+}
+#dev-panel .dev-main-tabs button{
+  flex:0 0 auto;
+  min-width:68px;
+  padding:10px 13px 9px;
+  border:0;
+  border-right:1px solid #292929;
+  border-bottom:2px solid transparent;
+  border-radius:0;
+  background:transparent;
+  color:#777;
+  font-family:var(--font-ui);
+  font-size:12px;
+  font-weight:520;
+  cursor:pointer;
+}
+#dev-panel .dev-main-tabs button:first-child{border-left:1px solid #292929}
+#dev-panel .dev-main-tabs button.active{
+  color:#ffb45e;
+  background:#17130e;
+  border-bottom-color:#ff9f3d;
+}
+#dev-panel .dev-tab-content{
+  padding:12px;
+}
+#dev-panel .dev-section-line{
+  margin:2px 0 10px;
+  padding:0 0 7px;
+  border-bottom:1px solid #41301d;
+  color:#ffb45e;
+  font-size:12px;
+  font-weight:620;
+  letter-spacing:.03em;
+}
+#dev-panel .dev-help-line{
+  margin:-3px 0 10px;
+  color:#6f7480;
+  font-size:11px;
+  line-height:1.45;
+}
+#dev-panel button{
+  border-radius:2px!important;
+}
+#dev-panel pre{
+  border-radius:0!important;
+}
+</style>
+
 </head>
 <body>
 
@@ -35810,11 +35878,398 @@ function _closeChat() {
   send({type:'chatTyping', typing:false, name:duels2GetLocalDisplayName()});
 }
 
+
+// ============================================================================
+// 성능 프로파일러
+// .performance 채팅 명령 또는 개발자 패널에서 누구나 로컬 오버레이를 켜고 끈다.
+// 측정이 꺼져 있을 때는 프레임 샘플과 DOM 갱신을 수행하지 않는다.
+// ============================================================================
+
+// duels2CreatePerformanceProfiler: FPS·프레임·업데이트·렌더 비용과 활성 객체 수를 수집하는 로컬 프로파일러를 생성한다. ()
+function duels2CreatePerformanceProfiler() {
+  const SAMPLE_LIMIT = 180;
+  const state = {
+    enabled:false,
+    frameSamples:[],
+    updateSamples:[],
+    renderSamples:[],
+    lastFrameAt:0,
+    lastUiAt:0,
+    rafId:0,
+    overlay:null,
+    devListeners:new Set(),
+    longFrames25:0,
+    longFrames50:0,
+    worstFrame:0,
+  };
+
+  // pushSample: 유한한 측정값만 제한 길이 배열에 기록한다. (list: 대상 배열, value: 밀리초 값)
+  function pushSample(list, value) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < 0) return;
+    list.push(number);
+    if (list.length > SAMPLE_LIMIT) list.splice(0, list.length - SAMPLE_LIMIT);
+  }
+
+  // getPercentile: 정렬된 복사본에서 지정 백분위 값을 반환한다. (list: 측정 배열, ratio: 0~1 백분위)
+  function getPercentile(list, ratio) {
+    if (!list.length) return 0;
+    const sorted = [...list].sort((a,b)=>a-b);
+    const index = Math.max(0, Math.min(sorted.length - 1, Math.ceil(sorted.length * ratio) - 1));
+    return sorted[index] || 0;
+  }
+
+  // getAverage: 배열의 평균값을 반환한다. (list: 측정 배열)
+  function getAverage(list) {
+    if (!list.length) return 0;
+    return list.reduce((sum,value)=>sum+value,0) / list.length;
+  }
+
+  // safeLength: 전역 컬렉션이 없거나 배열이 아니어도 안전하게 개수를 반환한다. (value: 컬렉션 후보)
+  function safeLength(value) {
+    return Array.isArray(value) ? value.length : 0;
+  }
+
+  // getObjectCounts: 현재 전투 화면의 주요 활성 객체 개수를 수집한다. ()
+  function getObjectCounts() {
+    // 실제 전투 객체 배열은 top-level let/const라서 같은 스크립트에서 직접 읽는다.
+    const lengthOf=value=>Array.isArray(value)?value.length:0;
+
+    const fx=typeof fxList!=='undefined' ? lengthOf(fxList) : 0;
+
+    const localProjectileCount=typeof localBullets!=='undefined' ? lengthOf(localBullets) : 0;
+    const peerProjectileCount=typeof peerBullets!=='undefined' ? lengthOf(peerBullets) : 0;
+    const botProjectileCount=typeof _botBullets!=='undefined' ? lengthOf(_botBullets) : 0;
+    const projectiles=localProjectileCount+peerProjectileCount+botProjectileCount;
+
+    const localMinionCount=typeof localMinions!=='undefined' ? lengthOf(localMinions) : 0;
+    const peerMinionCount=typeof peerMinions!=='undefined' ? lengthOf(peerMinions) : 0;
+    const minions=localMinionCount+peerMinionCount;
+
+    const localSlowCount=typeof localSlowZones!=='undefined' ? lengthOf(localSlowZones) : 0;
+    const peerSlowCount=typeof peerSlowZones!=='undefined' ? lengthOf(peerSlowZones) : 0;
+    const smokeCount=typeof globalSmokeZones!=='undefined' ? lengthOf(globalSmokeZones) : 0;
+    const localFireTrailCount=
+      typeof L!=='undefined' && Array.isArray(L?._reikaFireTrails)
+        ? L._reikaFireTrails.length : 0;
+    const remoteFireTrailCount=
+      typeof R!=='undefined' && Array.isArray(R?._reikaFireTrails)
+        ? R._reikaFireTrails.length : 0;
+    const fields=
+      localSlowCount+
+      peerSlowCount+
+      smokeCount+
+      localFireTrailCount+
+      remoteFireTrailCount;
+
+    const bots=typeof _trainingBots!=='undefined' ? lengthOf(_trainingBots) : 0;
+
+    let players=0;
+    try{
+      if(typeof duels2GetAllCombatPlayers==='function'){
+        const list=duels2GetAllCombatPlayers({
+          includeDebug:true,
+          includeRemote:true,
+          includeLocal:true
+        });
+        players=lengthOf(list);
+      }
+    }catch(_){}
+    if(!players){
+      if(typeof L!=='undefined' && L) players++;
+      if(typeof R!=='undefined' && R) players++;
+    }
+
+    return {
+      fx,
+      bullets:projectiles,
+      projectiles,
+      minions,
+      fields,
+      bots,
+      players,
+      total:fx+projectiles+minions+fields+bots+players,
+      detail:{
+        projectiles:{
+          local:localProjectileCount,
+          peer:peerProjectileCount,
+          bot:botProjectileCount,
+        },
+        minions:{
+          local:localMinionCount,
+          peer:peerMinionCount,
+        },
+        fields:{
+          localSlow:localSlowCount,
+          peerSlow:peerSlowCount,
+          smoke:smokeCount,
+          fireTrail:localFireTrailCount+remoteFireTrailCount,
+        },
+      },
+    };
+  }
+
+  // getSnapshot: 현재 측정값을 화면과 개발자 패널에서 사용할 수 있는 객체로 반환한다. ()
+  function getSnapshot() {
+    const frameAvg = getAverage(state.frameSamples);
+    const counts = getObjectCounts();
+    return {
+      enabled:state.enabled,
+      fps:frameAvg > 0 ? Math.min(999, 1000/frameAvg) : 0,
+      frame:{
+        current:state.frameSamples.at(-1)||0,
+        average:frameAvg,
+        p95:getPercentile(state.frameSamples,.95),
+        max:state.frameSamples.length ? Math.max(...state.frameSamples) : 0,
+      },
+      update:{
+        current:state.updateSamples.at(-1)||0,
+        average:getAverage(state.updateSamples),
+        p95:getPercentile(state.updateSamples,.95),
+        max:state.updateSamples.length ? Math.max(...state.updateSamples) : 0,
+      },
+      render:{
+        current:state.renderSamples.at(-1)||0,
+        average:getAverage(state.renderSamples),
+        p95:getPercentile(state.renderSamples,.95),
+        max:state.renderSamples.length ? Math.max(...state.renderSamples) : 0,
+      },
+      counts,
+      longFrames:{
+        over25:state.longFrames25,
+        over50:state.longFrames50,
+        worst:state.worstFrame,
+      },
+      memory:(performance&&performance.memory)?{
+        used:performance.memory.usedJSHeapSize||0,
+        total:performance.memory.totalJSHeapSize||0,
+        limit:performance.memory.jsHeapSizeLimit||0,
+      }:null,
+      gameOn:typeof gameOn!=='undefined' && !!gameOn,
+      hidden:document.hidden,
+      sampleCount:state.frameSamples.length,
+    };
+  }
+
+  // formatSnapshot: 오버레이와 개발자 패널에서 공유할 텍스트를 생성한다. (snapshot: getSnapshot 반환값)
+  function formatSnapshot(snapshot=getSnapshot()) {
+    const ms=value=>Number(value||0).toFixed(2);
+    const fps=Number(snapshot.fps||0).toFixed(0);
+    const mb=value=>`${(Number(value||0)/1048576).toFixed(1)} MB`;
+    const status=snapshot.hidden?'백그라운드':(snapshot.gameOn?'게임 중':'대기 화면');
+    const lines=[
+      `PERFORMANCE  ${status}`,
+      `FPS        ${fps}   samples ${snapshot.sampleCount}`,
+      `Frame      now ${ms(snapshot.frame.current)}  avg ${ms(snapshot.frame.average)}  p95 ${ms(snapshot.frame.p95)}  max ${ms(snapshot.frame.max)}`,
+      `Update     now ${ms(snapshot.update.current)}  avg ${ms(snapshot.update.average)}  p95 ${ms(snapshot.update.p95)}  max ${ms(snapshot.update.max)}`,
+      `Render     now ${ms(snapshot.render.current)}  avg ${ms(snapshot.render.average)}  p95 ${ms(snapshot.render.p95)}  max ${ms(snapshot.render.max)}`,
+      `Long frame 25ms+ ${snapshot.longFrames.over25}   50ms+ ${snapshot.longFrames.over50}   worst ${ms(snapshot.longFrames.worst)}`,
+      `Objects    total ${snapshot.counts.total}`,
+      `           FX ${snapshot.counts.fx}  Projectile ${snapshot.counts.projectiles}  Minion ${snapshot.counts.minions}`,
+      `           Field ${snapshot.counts.fields}  Bot ${snapshot.counts.bots}  Player ${snapshot.counts.players}`,
+      `Projectile L ${snapshot.counts.detail.projectiles.local}  R ${snapshot.counts.detail.projectiles.peer}  Bot ${snapshot.counts.detail.projectiles.bot}`,
+      `Minion     L ${snapshot.counts.detail.minions.local}  R ${snapshot.counts.detail.minions.peer}`,
+      `Field      Slow ${snapshot.counts.detail.fields.localSlow+snapshot.counts.detail.fields.peer}  Smoke ${snapshot.counts.detail.fields.smoke}  Trail ${snapshot.counts.detail.fields.fireTrail}`,
+    ];
+    if(snapshot.memory){
+      lines.push(`Memory     ${mb(snapshot.memory.used)} / ${mb(snapshot.memory.total)}   limit ${mb(snapshot.memory.limit)}`);
+    }else{
+      lines.push('Memory     브라우저 미지원');
+    }
+    return lines.join('\n');
+  }
+
+  // ensureOverlay: 프로파일러 오버레이 DOM을 한 번만 생성한다. ()
+  function ensureOverlay() {
+    let overlay = document.getElementById('duels2-performance-profiler');
+    if (overlay) {
+      state.overlay = overlay;
+      return overlay;
+    }
+    overlay = document.createElement('pre');
+    overlay.id = 'duels2-performance-profiler';
+    overlay.setAttribute('aria-live','polite');
+    overlay.style.cssText = [
+      'position:fixed',
+      'top:12px',
+      'left:12px',
+      'min-width:310px',
+      'margin:0',
+      'padding:10px 12px',
+      'z-index:12000',
+      'pointer-events:none',
+      'white-space:pre',
+      'font-family:var(--font-mono,Consolas,monospace)',
+      'font-size:11px',
+      'font-weight:560',
+      'line-height:1.55',
+      'letter-spacing:0',
+      'color:#dff7ff',
+      'background:rgba(8,12,18,.86)',
+      'border:1px solid rgba(125,220,255,.42)',
+      'border-radius:8px',
+      'box-shadow:0 8px 26px rgba(0,0,0,.32)',
+      'backdrop-filter:blur(7px)',
+      'display:none',
+    ].join(';');
+    document.body.appendChild(overlay);
+    state.overlay = overlay;
+    return overlay;
+  }
+
+  // notifyDevListeners: 개발자 패널의 프로파일러 표시를 최신 상태로 갱신한다. ()
+  function notifyDevListeners() {
+    const snapshot = getSnapshot();
+    for (const listener of [...state.devListeners]) {
+      try { listener(snapshot); } catch (_) { state.devListeners.delete(listener); }
+    }
+  }
+
+  // renderOverlay: 최대 초당 4회 오버레이와 개발자 패널을 갱신한다. (now: 현재 performance.now 값)
+  function renderOverlay(now=performance.now()) {
+    if (!state.enabled || now-state.lastUiAt < 250) return;
+    state.lastUiAt = now;
+    const overlay = ensureOverlay();
+    overlay.textContent = formatSnapshot();
+    notifyDevListeners();
+  }
+
+  // frameLoop: 활성화된 동안 브라우저 프레임 간격을 연속 측정한다. (now: requestAnimationFrame 타임스탬프)
+  function frameLoop(now) {
+    if (!state.enabled) {
+      state.rafId = 0;
+      state.lastFrameAt = 0;
+      return;
+    }
+    if (state.lastFrameAt > 0) {
+      const delta = now-state.lastFrameAt;
+      if (delta > 0 && delta < 1000) {
+        pushSample(state.frameSamples, delta);
+        state.worstFrame=Math.max(state.worstFrame,delta);
+        if(delta>=25) state.longFrames25++;
+        if(delta>=50) state.longFrames50++;
+      }
+    }
+    state.lastFrameAt = now;
+    renderOverlay(now);
+    state.rafId = window.requestAnimationFrame(frameLoop);
+  }
+
+  // setEnabled: 프로파일러 표시와 측정을 명시적으로 켜거나 끈다. (enabled: 새 활성 상태)
+  function setEnabled(enabled) {
+    const next = !!enabled;
+    if (state.enabled === next) return state.enabled;
+    state.enabled = next;
+    const overlay = ensureOverlay();
+    overlay.style.display = next ? 'block' : 'none';
+    if (next) {
+      state.frameSamples.length = 0;
+      state.updateSamples.length = 0;
+      state.renderSamples.length = 0;
+      state.lastFrameAt = 0;
+      state.lastUiAt = 0;
+      state.longFrames25 = 0;
+      state.longFrames50 = 0;
+      state.worstFrame = 0;
+      overlay.textContent='PERFORMANCE  측정 시작 중...';
+      if (!state.rafId) state.rafId = requestAnimationFrame(frameLoop);
+      notifyDevListeners();
+    } else {
+      state.lastFrameAt = 0;
+      if (state.rafId) window.cancelAnimationFrame(state.rafId);
+      state.rafId = 0;
+      notifyDevListeners();
+    }
+    try { localStorage.setItem('duels2.performance.enabled', next?'1':'0'); } catch (_) {}
+    return state.enabled;
+  }
+
+  // toggle: 현재 프로파일러 활성 상태를 반전한다. ()
+  function toggle() {
+    return setEnabled(!state.enabled);
+  }
+
+  // recordUpdate: 메인 게임 로직 1회 실행 시간을 기록한다. (milliseconds: loop 실행 비용)
+  function recordUpdate(milliseconds) {
+    if (!state.enabled) return;
+    pushSample(state.updateSamples, milliseconds);
+  }
+
+  // recordRender: 캔버스 draw 1회 실행 시간을 기록한다. (milliseconds: draw 실행 비용)
+  function recordRender(milliseconds) {
+    if (!state.enabled) return;
+    pushSample(state.renderSamples, milliseconds);
+  }
+
+  // subscribe: 개발자 패널이 상태 변경과 측정값 갱신을 구독한다. (listener: snapshot 콜백)
+  function subscribe(listener) {
+    if (typeof listener !== 'function') return ()=>{};
+    state.devListeners.add(listener);
+    let active=true;
+    queueMicrotask(()=>{
+      if(!active || !state.devListeners.has(listener)) return;
+      try { listener(getSnapshot()); } catch (_) {}
+    });
+    return ()=>{
+      active=false;
+      state.devListeners.delete(listener);
+    };
+  }
+
+  const api = Object.freeze({
+    get enabled(){ return state.enabled; },
+    setEnabled,
+    toggle,
+    recordUpdate,
+    recordRender,
+    getSnapshot,
+    formatSnapshot,
+    subscribe,
+  });
+
+  setTimeout(()=>{
+    let saved=false;
+    try { saved=localStorage.getItem('duels2.performance.enabled')==='1'; } catch (_) {}
+    if (saved) setEnabled(true);
+  },0);
+
+  return api;
+}
+
+const DUELS2_PERFORMANCE_PROFILER = duels2CreatePerformanceProfiler();
+window.DUELS2_PERFORMANCE_PROFILER = DUELS2_PERFORMANCE_PROFILER;
+
+// duels2ProfiledDraw: 프로파일러 활성 시에만 draw 실행 비용을 측정한다. ()
+function duels2ProfiledDraw() {
+  if (!DUELS2_PERFORMANCE_PROFILER.enabled) {
+    draw();
+    return;
+  }
+  const started=performance.now();
+  try { draw(); }
+  finally { DUELS2_PERFORMANCE_PROFILER.recordRender(performance.now()-started); }
+}
+
+// duels2TogglePerformanceProfiler: 채팅과 개발자 패널이 공유하는 토글 진입점이다. ()
+function duels2TogglePerformanceProfiler() {
+  return DUELS2_PERFORMANCE_PROFILER.toggle();
+}
+window.duels2TogglePerformanceProfiler = duels2TogglePerformanceProfiler;
+
+
 function _sendChat() {
   const inp = document.getElementById('chat-input');
   if (!inp) return;
   const text = inp.value.trim();
   if (!text) { _closeChat(); return; }
+
+  if (text.toLowerCase()==='.performance') {
+    const enabled=duels2TogglePerformanceProfiler();
+    _addChatMsg('SYSTEM', `성능 프로파일러 ${enabled?'켜짐':'꺼짐'}`, true);
+    _closeChat();
+    return;
+  }
+
   // 내 채팅 직접 표시 (send 인터셉터 우회)
   _addChatMsg(duels2GetLocalDisplayName(), text, true);
   send({type:'chat', name:duels2GetLocalDisplayName(), text});
@@ -58156,6 +58611,7 @@ function duels2StartMainGameLoop() {
     const started = performance.now();
     loop();
     const elapsed = performance.now() - started;
+    DUELS2_PERFORMANCE_PROFILER.recordUpdate(elapsed);
     window._gameTimer = setTimeout(tick, Math.max(0, FRAME_MS - elapsed));
   };
   window._gameTimer = setTimeout(tick, 0);
@@ -58224,7 +58680,7 @@ function startTraining() {
   if (!window._rafRunning) {
     window._rafRunning = true;
     (function rafLoop() {
-      if (gameOn) { draw(); updateLocalHud(); }
+      if (gameOn) { duels2ProfiledDraw(); updateLocalHud(); }
       requestAnimationFrame(rafLoop);
     })();
   }
@@ -59785,7 +60241,7 @@ function startGame() {
   if (!window._rafRunning) {
     window._rafRunning = true;
     (function rafLoop() {
-      if (gameOn) draw();
+      if (gameOn) duels2ProfiledDraw();
       requestAnimationFrame(rafLoop);
     })();
   }
@@ -61262,87 +61718,29 @@ function duels2SafeLocalStorageRemoveItem(key) {
 
 let _devActiveTab = duels2SafeLocalStorageGetItem('devTab') || 'base';
 function _devTabBar(tabs, container) {
-  const bar = _devEl('div','display:flex;gap:2px;margin-bottom:6px;flex-wrap:wrap;');
-  tabs.forEach(([id, label]) => {
-    const b = _devEl('button',
-      `padding:4px 10px;font-family:var(--font-ui);font-size:12px;cursor:pointer;border-radius:3px 3px 0 0;border:1px solid ${_devActiveTab===id?'#fa8':'#333'};background:${_devActiveTab===id?'#2a1a00':'#111'};color:${_devActiveTab===id?'#fa8':'#666'};`);
-    b.textContent = label;
-    b.onclick = e => { e?.preventDefault?.(); e?.stopPropagation?.(); preserveUiScroll(() => { _devActiveTab=id; duels2SafeLocalStorageSetItem('devTab',id); refreshDevPanel(); }); };
-    bar.appendChild(b);
+  const bar=_devEl('div','');
+  bar.className='dev-main-tabs';
+  tabs.forEach(([id,label])=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.textContent=label;
+    button.className=_devActiveTab===id?'active':'';
+    button.onclick=e=>{
+      e?.preventDefault?.();
+      e?.stopPropagation?.();
+      preserveUiScroll(()=>{
+        _devActiveTab=id;
+        duels2SafeLocalStorageSetItem('devTab',id);
+        refreshDevPanel();
+      });
+    };
+    bar.appendChild(button);
   });
   return bar;
 }
 
 // ── DevToolsStateView ────────────────────────────────────────
-function devRenderStateTab(wrap) {
-  const pre = _devPre('dt-state','160px');
-  const upd = () => {
-    if (!document.getElementById('dt-state')) return;
-    const now = performance.now();
-    const rem = end => end&&end>now ? ((end-now)/1000).toFixed(1)+'s' : '-';
-    pre.textContent = [
-      `캐릭터 L:${L.charDef?.id||'?'} R:${R.charDef?.id||'?'}`,
-      `위치 L(${Math.round(L.x||0)},${Math.round(L.y||0)}) R(${Math.round(R.x||0)},${Math.round(R.y||0)})`,
-      `HP L:${Math.round(L.health||0)}/${Math.round(L.maxHealth||0)} R:${Math.round(R.health||0)}/${Math.round(R.maxHealth||0)}`,
-      `ST L:${Math.round(L.stamina||0)} R:${Math.round(R.stamina||0)}`,
-      ``,
-      `── L 상태이상 ──`,
-      `stun:${rem(L.stunEnd)} bind:${rem(L.bindEnd)} slow:${rem(L._slowEnd)}`,
-      `zap:${rem(L._zapEnd)} disc:${rem(L._discEnd)}`,
-      `dodge:${L.dodging||false} counter:${L.counterReady||false} inv:${(L.invincible||0).toFixed(1)}`,
-      `dying:${L._dying||false} reviving:${L._reviving||false}`,
-      `── R 상태이상 ──`,
-      `stun:${rem(R.stunEnd)} bind:${rem(R.bindEnd)} slow:${rem(R._slowEnd)}`,
-      `dodge:${R.dodging||false} zap:${rem(R._zapEnd)}`,
-      ``,
-      `── 증강 ──`,
-      `L:[${(matchState.localAugments||[]).join(',')||'없음'}]`,
-      `R:[${(matchState.peerAugments||[]).join(',')||'없음'}]`,
-      ``,
-      `modifiers L:${L.modifiers?safeStringify(L.modifiers,60):'없음'}`,
-      `modifiers R:${R.modifiers?safeStringify(R.modifiers,60):'없음'}`,
-    ].join('\n');
-  };
-  upd();
-  const iv = setInterval(()=>{if(!document.getElementById('dt-state')){clearInterval(iv);return;}upd();},200);
-  wrap.appendChild(pre);
-}
-
 // ── DevToolsEntityView ───────────────────────────────────────
-function devRenderEntityTab(wrap) {
-  const pre = _devPre('dt-entity','140px');
-  const upd = () => {
-    if (!document.getElementById('dt-entity')) return;
-    const lines = [];
-    const listM = (arr, label) => {
-      lines.push(`[${label}] ${arr?.length??0}개`);
-      (arr||[]).forEach((m,i) => {
-        const warn = (m.ownerId||m.teamId)?'':' ⚠ownerless';
-        lines.push(`  #${i} ${m.type||m.kind||'?'} hp=${m.hp??m.health??'?'} (${Math.round(m.x||0)},${Math.round(m.y||0)})${warn}`);
-      });
-    };
-    listM(typeof localMinions!=='undefined'?localMinions:[],'localMinions');
-    listM(typeof peerMinions!=='undefined'?peerMinions:[],'peerMinions');
-    lines.push(``);
-    lines.push(`bullets L:${typeof localBullets!=='undefined'?localBullets.length:0} R:${typeof peerBullets!=='undefined'?peerBullets.length:0}`);
-    lines.push(`fxList: ${typeof fxList!=='undefined'?fxList.length:0}`);
-    if (typeof fxList!=='undefined') {
-      const types = {};
-      fxList.forEach(f => { types[f.type]=(types[f.type]||0)+1; });
-      lines.push(`  ${Object.entries(types).map(([k,v])=>`${k}:${v}`).join(' ')}`);
-    }
-    pre.textContent = lines.join('\n');
-  };
-  upd();
-  const iv = setInterval(()=>{if(!document.getElementById('dt-entity')){clearInterval(iv);return;}upd();},300);
-  wrap.appendChild(_devRow([
-    _devBtn('로컬 소환수 제거', ()=>{if(typeof localMinions!=='undefined')localMinions.length=0;upd();}),
-    _devBtn('FX 전체 제거', ()=>{if(typeof fxList!=='undefined')fxList.length=0;upd();}),
-    _devBtn('새로고침', upd)
-  ]));
-  wrap.appendChild(pre);
-}
-
 // duels2InstallDebugPanelPointerPolicy: 디버그 패널 배경은 전투 포인터를 막지 않고 실제 컨트롤만 입력을 받게 한다. ()
 function duels2InstallDebugPanelPointerPolicy(){
   const styleId='duels2-debug-pointer-policy';if(document.getElementById(styleId))return;
@@ -61351,30 +61749,6 @@ function duels2InstallDebugPanelPointerPolicy(){
 duels2InstallDebugPanelPointerPolicy();
 
 // ── DevToolsLogView ──────────────────────────────────────────
-function devRenderLogTab(wrap) {
-  wrap.appendChild(_devHdr('패킷 로그','#aaf'));
-  const pktPre = _devPre('dt-pkt','110px');
-  const updPkt = () => {
-    if (!document.getElementById('dt-pkt')) return;
-    pktPre.textContent = (window._devPacketLog||[]).map(p=>`[${p.dir.toUpperCase()}] ${p.type||'?'} ${safeStringify(p.data,60)}`).join('\n')||'(없음)';
-  };
-  updPkt();
-  const iv1 = setInterval(()=>{if(!document.getElementById('dt-pkt')){clearInterval(iv1);return;}updPkt();},250);
-  wrap.appendChild(_devRow([_devBtn('초기화',()=>{window._devPacketLog=[];updPkt();})]));
-  wrap.appendChild(pktPre);
-
-  wrap.appendChild(_devHdr('전투 로그','#afa'));
-  const cbtPre = _devPre('dt-cbt','110px');
-  const updCbt = () => {
-    if (!document.getElementById('dt-cbt')) return;
-    cbtPre.textContent = (window._devCombatLog||[]).map(e=>`[${e.type}] ${safeStringify(e.data,60)}`).join('\n')||'(없음)';
-  };
-  updCbt();
-  const iv2 = setInterval(()=>{if(!document.getElementById('dt-cbt')){clearInterval(iv2);return;}updCbt();},250);
-  wrap.appendChild(_devRow([_devBtn('초기화',()=>{window._devCombatLog=[];updCbt();})]));
-  wrap.appendChild(cbtPre);
-}
-
 // ── DevToolsControlView ──────────────────────────────────────
 function devRenderMapTab(wrap) {
   wrap.appendChild(_devHdr('맵 선택','#8f8'));
@@ -62078,64 +62452,133 @@ function devRemoveNearestBot() {
   all.forEach(o=>{const d=DUELS2_ENTITY_RUNTIME_CONTRACT.distanceBetween(o.e,L); if(d<bd){bd=d;best=o;}});
   if (best) { if (best.kind==='bot') _trainingBots.splice(best.i,1); else _debugPlayers.splice(best.i,1); if (!_trainingMode && typeof send==='function') send({type:'devCmd',cmd:'despawnNearestBot'}); }
 }
-function devRenderBaseTab(wrap) {
 
-  wrap.appendChild(_devHdr('계정 비밀번호 재설정','#7cf'));
-  const accountResetRow=_devEl('div','display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:10px;');
-  const accountResetId=_devEl('input','min-width:0;padding:7px;background:#111;color:#ddd;border:1px solid #356;');
-  accountResetId.placeholder='계정 아이디';
-  const accountResetPassword=_devEl('input','min-width:0;padding:7px;background:#111;color:#ddd;border:1px solid #356;');
-  accountResetPassword.type='password';accountResetPassword.placeholder='새 비밀번호';
-  const accountResetBtn=_devBtn('재설정',async()=>{try{accountResetBtn.disabled=true;await duels2AccountAdminResetPassword(accountResetId.value,accountResetPassword.value);alert('비밀번호를 재설정했습니다.');accountResetPassword.value='';}catch(error){alert(error.message||String(error));}finally{accountResetBtn.disabled=false;}});
-  accountResetRow.append(accountResetId,accountResetPassword,accountResetBtn);wrap.appendChild(accountResetRow);
-  wrap.appendChild(_devHdr('캐릭터 레코드 조정','#fc8'));
-  const recordRow=_devEl('div','display:grid;grid-template-columns:1fr 110px auto;gap:6px;align-items:center;margin-bottom:6px;');
-  const recordChar=_devEl('select','min-width:0;padding:7px;background:#111;color:#ddd;border:1px solid #765;');
-  duels2GetCharacterSelectionOrder().filter(c=>!c.disabled).forEach(ch=>{const o=document.createElement('option');o.value=ch.id;o.textContent=ch.name;recordChar.appendChild(o);});
-  recordChar.value=duels2SafeLocalStorageGetItem('devRecordCharId')||L.charDef?.id||selCharId||recordChar.options[0]?.value||'';
-  if(!CHARACTERS[recordChar.value]) recordChar.value=L.charDef?.id||selCharId||recordChar.options[0]?.value||'';
-  const recordInput=_devEl('input','width:100%;box-sizing:border-box;padding:7px;background:#111;color:#fff;border:1px solid #765;');
-  recordInput.type='number';recordInput.min='0';recordInput.step='50';
-  const syncRecordInput=()=>{recordInput.value=String(duels2GetCharacterMasteryPoints(recordChar.value));};
-  recordChar.onchange=()=>{duels2SafeLocalStorageSetItem('devRecordCharId',recordChar.value);syncRecordInput();};syncRecordInput();
-  const persistDevRecord=async(nextValue,reason,button)=>{
-    const id=recordChar.value;
-    const result=duels2SetCharacterRecordPoints(id,nextValue,reason);
-    if(!result)return false;
-    syncRecordInput();
-    if(button)button.disabled=true;
-    try{
-      const saved=typeof duels2AccountSaveNow==='function' ? await duels2AccountSaveNow(false) : false;
-      if(!saved)throw new Error('GitHub 계정 파일 저장에 실패했습니다.');
-      refreshDevPanel();
-      return true;
-    }catch(error){
-      console.error('[Duels Dev Record] save failed',error);
-      alert(error?.message||String(error));
-      refreshDevPanel();
-      return false;
-    }finally{
-      if(button?.isConnected)button.disabled=false;
+// devCreateSectionCard: 개발자 패널의 기능 묶음을 카드 형태로 생성한다. (title: 섹션명, description: 보조 설명)
+function devRenderBaseTab(wrap) {
+  wrap.appendChild(_devEl('div','', ''));
+  const title=_devEl('div','');
+  title.className='dev-section-line';
+  title.textContent='개발자 도구';
+  wrap.appendChild(title);
+  const desc=_devEl('div','');
+  desc.className='dev-help-line';
+  desc.textContent='상단 탭에서 필요한 기능을 선택하세요. 상태·엔티티·런타임·로그 화면은 성능 프로파일러로 통합했습니다.';
+  wrap.appendChild(desc);
+
+  const status=_devPre('dt-dev-overview','120px');
+  status.textContent=[
+    `버전: 0.39.2`,
+    `계정: ${duels2GetCurrentAccountId?.()||'-'}`,
+    `프로파일러: ${DUELS2_PERFORMANCE_PROFILER.enabled?'켜짐':'꺼짐'}`,
+    `현재 맵: ${currentMap?.name||'-'}`,
+    `선택 대상: ${devGetSelectedTargetEntry?.()?.label||'나'}`,
+  ].join('\n');
+  wrap.appendChild(status);
+}
+
+function devRenderPerformanceTab(wrap) {
+  const title=_devEl('div','');
+  title.className='dev-section-line';
+  title.textContent='성능 프로파일러';
+  wrap.appendChild(title);
+
+  const desc=_devEl('div','');
+  desc.className='dev-help-line';
+  desc.textContent='채팅에서 .performance를 입력해도 같은 프로파일러를 켜고 끌 수 있습니다. 켠 뒤 약 0.3초 후부터 샘플이 표시됩니다.';
+  wrap.appendChild(desc);
+
+  const stateView=_devPre('dt-performance-profiler','230px');
+  const toggle=_devBtn(
+    DUELS2_PERFORMANCE_PROFILER.enabled?'프로파일러 끄기':'프로파일러 켜기',
+    ()=>{duels2TogglePerformanceProfiler();refreshDevPanel();}
+  );
+  wrap.appendChild(_devRow([
+    toggle,
+    _devBtn('측정값 복사',async()=>{
+      const value=DUELS2_PERFORMANCE_PROFILER.formatSnapshot();
+      try{await navigator.clipboard.writeText(value);}
+      catch(_){
+        const area=document.createElement('textarea');
+        area.value=value;document.body.appendChild(area);area.select();
+        document.execCommand('copy');area.remove();
+      }
+    })
+  ]));
+
+  let unsubscribe=()=>{};
+  unsubscribe=DUELS2_PERFORMANCE_PROFILER.subscribe(snapshot=>{
+    if(!stateView.isConnected){
+      unsubscribe();
+      return;
     }
-  };
-  const setRecordBtn=_devBtn('적용',()=>persistDevRecord(recordInput.value,'dev-panel',setRecordBtn));
-  recordRow.append(recordChar,recordInput,setRecordBtn);wrap.appendChild(recordRow);
-  const minus60Btn=_devBtn('-60',()=>persistDevRecord(duels2GetCharacterMasteryPoints(recordChar.value)-60,'dev-minus-60',minus60Btn));
-  const minus40Btn=_devBtn('-40',()=>persistDevRecord(duels2GetCharacterMasteryPoints(recordChar.value)-40,'dev-minus-40',minus40Btn));
-  const plus50Btn=_devBtn('+50',()=>persistDevRecord(duels2GetCharacterMasteryPoints(recordChar.value)+50,'dev-plus-50',plus50Btn));
-  const plus100Btn=_devBtn('+100',()=>persistDevRecord(duels2GetCharacterMasteryPoints(recordChar.value)+100,'dev-plus-100',plus100Btn));
-  const resetRecordBtn=_devBtn('0으로',()=>persistDevRecord(0,'dev-reset',resetRecordBtn));
-  wrap.appendChild(_devRow([minus60Btn,minus40Btn,plus50Btn,plus100Btn,resetRecordBtn]));
-  wrap.appendChild(_devHdr('대상별 수치 / 디버프기 / 버프기 / 강제행동','#fa8'));
-  devGetTargetEntries().forEach(e=>wrap.appendChild(buildDevTargetPanel(e)));
-  wrap.appendChild(_devHdr('더미 / 봇 소환','#8af'));
-  wrap.appendChild(_devRow([_devBtn('더미 소환',()=>{devSpawnBot('dummy');refreshDevPanel();}),_devBtn('근거리 봇 소환',()=>{devSpawnBot('melee');refreshDevPanel();}),_devBtn('원거리 봇 소환',()=>{devSpawnBot('ranged');refreshDevPanel();}),_devBtn('가까운 소환체 제거',()=>{devRemoveNearestBot();refreshDevPanel();})]));
-  const stPre = _devPre('dt-base-state','80px');
-  const updSt = () => { if (!document.getElementById('dt-base-state')) return; const now=performance.now(); const rem=e=>e&&e>now?((e-now)/1000).toFixed(1)+'s':'-'; stPre.textContent=`L HP:${Math.round(L.health||0)}/${Math.round(L.maxHealth||0)} ST:${Math.round(L.stamina||0)}
-R HP:${Math.round(R.health||0)}/${Math.round(R.maxHealth||0)}
-L debuff stun:${rem(L.stunEnd)} bind:${rem(L.bindEnd)} zap:${rem(L._zapEnd)}
-fx:${typeof fxList!=='undefined'?fxList.length:0} bots:${_trainingBots?.length||0}`; };
-  updSt(); const iv=setInterval(()=>{if(!document.getElementById('dt-base-state')){clearInterval(iv);return;}updSt();},200); wrap.appendChild(stPre);
+    stateView.textContent=DUELS2_PERFORMANCE_PROFILER.formatSnapshot(snapshot);
+    toggle.textContent=snapshot.enabled?'프로파일러 끄기':'프로파일러 켜기';
+  });
+  stateView.textContent=DUELS2_PERFORMANCE_PROFILER.formatSnapshot();
+  wrap.appendChild(stateView);
+}
+
+function devRenderAccountTab(wrap) {
+  const title=_devEl('div','');
+  title.className='dev-section-line';
+  title.textContent='계정 관리';
+  wrap.appendChild(title);
+
+  const row=_devEl('div','display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;');
+  const id=_devEl('input','min-width:0;padding:7px;background:#111;color:#ddd;border:1px solid #356;');
+  id.placeholder='계정 아이디';
+  const password=_devEl('input','min-width:0;padding:7px;background:#111;color:#ddd;border:1px solid #356;');
+  password.type='password';
+  password.placeholder='새 비밀번호';
+  const button=_devBtn('재설정',async()=>{
+    try{
+      button.disabled=true;
+      await duels2AccountAdminResetPassword(id.value,password.value);
+      alert('비밀번호를 재설정했습니다.');
+      password.value='';
+    }catch(error){
+      alert(error.message||String(error));
+    }finally{
+      button.disabled=false;
+    }
+  });
+  row.append(id,password,button);
+  wrap.appendChild(row);
+}
+
+function devRenderRecordTab(wrap) {
+  const title=_devEl('div','');
+  title.className='dev-section-line';
+  title.textContent='캐릭터 레코드 조정';
+  wrap.appendChild(title);
+
+  const recordRow=_devEl('div','display:grid;grid-template-columns:minmax(140px,1fr) 110px auto;gap:8px;align-items:center;margin-bottom:8px;');
+  const recordSelect=_devEl('select','min-width:0;padding:8px;background:#111;color:#ddd;border:1px solid #654;');
+  duels2GetCharacterSelectionOrder().filter(ch=>!ch.disabled).forEach(ch=>{
+    const option=document.createElement('option');
+    option.value=ch.id;
+    option.textContent=ch.name;
+    recordSelect.appendChild(option);
+  });
+  const recordValue=_devEl('input','min-width:0;padding:8px;background:#111;color:#ddd;border:1px solid #654;');
+  recordValue.type='number';
+  recordValue.value='12000';
+  const apply=_devBtn('적용',()=>{
+    const charId=recordSelect.value;
+    const value=Math.max(0,Math.round(Number(recordValue.value)||0));
+    duels2SetCharacterRecordValue?.(charId,value);
+    refreshDevPanel();
+  });
+  recordRow.append(recordSelect,recordValue,apply);
+  wrap.appendChild(recordRow);
+
+  wrap.appendChild(_devRow([
+    _devBtn('-60',()=>{recordValue.value=String(Math.max(0,(Number(recordValue.value)||0)-60));}),
+    _devBtn('-40',()=>{recordValue.value=String(Math.max(0,(Number(recordValue.value)||0)-40));}),
+    _devBtn('+50',()=>{recordValue.value=String((Number(recordValue.value)||0)+50);}),
+    _devBtn('+100',()=>{recordValue.value=String((Number(recordValue.value)||0)+100);}),
+    _devBtn('0으로',()=>{recordValue.value='0';}),
+  ]));
 }
 
 // DUELS2_RUNTIME_PRESENTATION_REGISTRY: 개발자 화면에 공개할 canonical Runtime만 정의한다. ()
@@ -62160,41 +62603,13 @@ function duels2GetCanonicalRuntimePresentationSummary() {
 window.duels2GetCanonicalRuntimePresentationSummary = duels2GetCanonicalRuntimePresentationSummary;
 
 // devRenderRuntimeTab: 제거된 준비 Runtime 이름 없이 canonical Runtime과 모듈 executor 상태만 표시한다. (wrap: 탭 컨테이너)
-function devRenderRuntimeTab(wrap) {
-  wrap.appendChild(_devHdr('Canonical Runtime','#8fd'));
-  const pre = _devPre('dt-runtime','260px');
-  const update = () => {
-    if (!document.getElementById('dt-runtime')) return;
-    const lines = [`Step: ${DUELS2_ALPHA_STEP}`, ''];
-    for (const item of duels2GetCanonicalRuntimePresentationSummary()) {
-      const total = item.summary?.total ?? item.summary?.historySize ?? item.summary?.registered ?? item.summary?.register ?? '-';
-      lines.push(`${item.installed?'●':'○'} ${item.label}`);
-      lines.push(`  ${item.runtime}`);
-      lines.push(`  기록/처리: ${total}`);
-    }
-    lines.push('', '── Effect Module Executor ──');
-    for (const id of ['module.effect.damage','module.effect.heal','module.effect.cc','module.effect.knockback']) {
-      const coverage = DUELS2_FUNCTIONAL_MODULE_EXECUTOR_COVERAGE?.[id];
-      lines.push(`${id}: ${coverage?.status || 'unknown'}`);
-      lines.push(`  ${coverage?.executor || '-'}`);
-    }
-    pre.textContent = lines.join('\n');
-  };
-  update();
-  wrap.appendChild(_devRow([_devBtn('새로고침', update)]));
-  wrap.appendChild(pre);
-}
-
 // ── DevToolsAdvancedTab (회귀 테스트) ────────────────────────
-function devRenderAdvancedTab(wrap) {
-  wrap.appendChild(_devEl('div','color:#777;padding:8px;border:1px solid #333;border-radius:4px;','고급 탭은 제거되었습니다.'));
-}
-
 // ── DevToolsPanel 메인 ───────────────────────────────────────
 let _devPanelCollapsed = false;
 let _devPanelSide = duels2SafeLocalStorageGetItem('devSide') || 'right';
 
 function refreshDevPanel() {
+  if(!['base','performance','account','record','map','control'].includes(_devActiveTab)) _devActiveTab='base';
   if (typeof duels2CanUseDebugTools !== 'function' || !duels2CanUseDebugTools()) {
     window._devUnlocked = false;
     document.getElementById('dev-panel')?.remove();
@@ -62248,13 +62663,13 @@ function openDevPanel(opt = {}) {
   }
 
   const _devSavedW = duels2SafeLocalStorageGetItem('devPanelWidth') || '560px';
-  panel.style.cssText = `position:fixed;top:48px;${sideStyle}width:${_devSavedW};max-width:92vw;max-height:calc(100vh - 96px);overflow:auto;resize:both;background:rgba(10,10,18,0.9);border:1px solid #fa8;border-radius:8px;padding:10px;z-index:9999;font-family:var(--font-ui);font-size:12px;color:#ccc;backdrop-filter:blur(4px);pointer-events:auto;`;
+  panel.style.cssText = `position:fixed;top:48px;${sideStyle}width:${_devSavedW};max-width:92vw;max-height:calc(100vh - 96px);overflow:auto;resize:both;background:rgba(8,9,14,.96);border:1px solid #59401f;border-radius:2px;padding:0;z-index:9999;font-family:var(--font-ui);font-size:12px;color:#ccc;backdrop-filter:blur(5px);pointer-events:auto;`;
   panel.dataset.combatPassthrough='false';
   const blockGamePointer = ev => ev.stopPropagation();
   for (const type of ['pointerdown','pointerup','mousedown','mouseup','click','dblclick','contextmenu','wheel']) panel.addEventListener(type, blockGamePointer);
 
   // 헤더
-  const hdr = _devEl('div','display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #2a2a3a;padding-bottom:6px;');
+  const hdr = _devEl('div','display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #29251f;padding:8px 10px;');
   hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.39.2'));
   const hdrBtns = _devEl('div','display:flex;gap:4px;');
     hdrBtns.appendChild(_devBtn(_devPanelSide==='right'?'◀ 왼쪽':'▶ 오른쪽', ()=>{ _devPanelSide=_devPanelSide==='right'?'left':'right'; duels2SafeLocalStorageSetItem('devSide',_devPanelSide); refreshDevPanel(); }));
@@ -62263,19 +62678,31 @@ function openDevPanel(opt = {}) {
   panel.appendChild(hdr);
 
   // 탭 바
-  const TABS = [['base','기본'],['state','상태'],['entity','엔티티'],['runtime','런타임'],['map','맵'],['log','로그'],['control','조작']];
-  const tabContent = _devEl('div','');
-  panel.appendChild(_devTabBar(TABS, panel));
+  const TABS = [
+    ['base','기본'],
+    ['performance','성능'],
+    ['account','계정'],
+    ['record','레코드'],
+    ['map','맵'],
+    ['control','조작']
+  ];
+  const allowedTabs=new Set(TABS.map(([id])=>id));
+  if(!allowedTabs.has(_devActiveTab)){
+    _devActiveTab='base';
+    duels2SafeLocalStorageSetItem('devTab','base');
+  }
+
+  const tabContent=_devEl('div','');
+  tabContent.className='dev-tab-content';
+  panel.appendChild(_devTabBar(TABS,panel));
   panel.appendChild(tabContent);
 
-  // 탭 내용 렌더링
-  if (_devActiveTab==='base')     devRenderBaseTab(tabContent);
-  else if (_devActiveTab==='state')   devRenderStateTab(tabContent);
-  else if (_devActiveTab==='entity')  devRenderEntityTab(tabContent);
-  else if (_devActiveTab==='runtime') devRenderRuntimeTab(tabContent);
-  else if (_devActiveTab==='map')     devRenderMapTab(tabContent);
-  else if (_devActiveTab==='log')     devRenderLogTab(tabContent);
-  else if (_devActiveTab==='control') devRenderControlTab(tabContent);
+  if(_devActiveTab==='base') devRenderBaseTab(tabContent);
+  else if(_devActiveTab==='performance') devRenderPerformanceTab(tabContent);
+  else if(_devActiveTab==='account') devRenderAccountTab(tabContent);
+  else if(_devActiveTab==='record') devRenderRecordTab(tabContent);
+  else if(_devActiveTab==='map') devRenderMapTab(tabContent);
+  else if(_devActiveTab==='control') devRenderControlTab(tabContent);
 
   const resizeHandle = _devEl('div','');
   resizeHandle.className = 'dev-resize-handle ' + (_devPanelSide === 'right' ? 'left' : 'right');
@@ -62301,26 +62728,6 @@ function openDevPanel(opt = {}) {
 }
 
 // ── 미니 HUD ────────────────────────────────────────────────
-function _devInitMiniHUD() {
-  let hud = document.getElementById('dev-mini-hud');
-  if (hud) return;
-  hud = document.createElement('div');
-  hud.id = 'dev-mini-hud';
-  hud.style.cssText = 'position:fixed;top:6px;right:6px;background:rgba(0,0,0,0.55);border-radius:4px;padding:3px 7px;font-family:var(--font-ui);font-size:8px;color:#fa8;z-index:8000;pointer-events:none;line-height:1.5;display:none;';
-  document.body.appendChild(hud);
-  setInterval(()=>{
-    if (!window._devUnlocked) { hud.style.display='none'; return; }
-    hud.style.display = 'block';
-    const now = performance.now();
-    const pkt = (window._devPacketLog||[])[0];
-    const cbt = (window._devCombatLog||[])[0];
-    hud.innerHTML = `L:${Math.round(L.health||0)}/${Math.round(L.maxHealth||0)} ST:${Math.round(L.stamina||0)}<br>R:${Math.round(R.health||0)}/${Math.round(R.maxHealth||0)}<br>fx:${typeof fxList!=='undefined'?fxList.length:0} mn:${(typeof localMinions!=='undefined'?localMinions.length:0)}+${(typeof peerMinions!=='undefined'?peerMinions.length:0)}<br>${pkt?'['+pkt.dir+']'+pkt.type:''}${cbt?' '+cbt.type:''}`;
-  }, 200);
-}
-_devInitMiniHUD();
-
-
-
 // ============================================================
 // 2.0.0-Alpha Step 61 — Network Combat Snapshot Routing
 // ============================================================
