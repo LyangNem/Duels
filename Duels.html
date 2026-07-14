@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Duels</title>
-<meta name="duels-version" content="0.39.1">
+<meta name="duels-version" content="0.39.2">
 <script async src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js">
 // duels2GetAugmentVisibilityAndFastRegenSummary: 증강 HUD 공개 시점과 빠른 재생 효과 변경 상태를 반환한다. ()
 function duels2GetAugmentVisibilityAndFastRegenSummary() {
@@ -454,7 +454,7 @@ input[type=text]:focus{border-color:#4af;}
 #dev-panel .dev-fold-title{font-size:14px!important;}
 
 
-/* ── 0.39.1 record card/layout hotfix ── */
+/* ── 0.39.2 record card/layout hotfix ── */
 .char-card,.start-aug-char-card{box-sizing:border-box;width:148px!important;min-width:148px!important;max-width:148px!important;overflow:hidden;}
 .char-card{padding:8px 8px 7px!important;font-size:10px!important;}
 .char-card .char-icon,.start-aug-char-card .char-icon{width:50px!important;height:50px!important;margin-bottom:5px!important;}
@@ -471,7 +471,7 @@ input[type=text]:focus{border-color:#4af;}
 .start-aug-item.sel::before{content:'';position:absolute;inset:5px;border:1px solid rgba(255,255,255,.74);border-radius:2px;pointer-events:none;}
 
 
-/* ── 0.39.1 record card readability restore ── */
+/* ── 0.39.2 record card readability restore ── */
 .char-card,.start-aug-char-card{
   box-sizing:border-box;
   width:158px!important;
@@ -547,7 +547,7 @@ input[type=text]:focus{border-color:#4af;}
   overflow-wrap:anywhere!important;
 }
 
-/* ── 0.39.1 character card 8-column / record detail ── */
+/* ── 0.39.2 character card 8-column / record detail ── */
 .char-grid{
   max-width:1174px!important;
   gap:10px!important;
@@ -647,7 +647,7 @@ input[type=text]:focus{border-color:#4af;}
 }
 
 
-/* ── 0.39.1 카드 가독성 및 레코드 상세 상태 수정 ── */
+/* ── 0.39.2 카드 가독성 및 레코드 상세 상태 수정 ── */
 .char-card,.start-aug-char-card{
   font-size:12px!important;
 }
@@ -677,7 +677,7 @@ input[type=text]:focus{border-color:#4af;}
 
 
 
-/* ── 0.39.1 캐릭터 카드 내부 배치 개선 ──
+/* ── 0.39.2 캐릭터 카드 내부 배치 개선 ──
    카드 비율과 8열 폭은 유지하면서, 비어 보이던 하단 공간을
    아이콘·이름·능력치 영역의 실제 간격으로 재분배한다. */
 #scr-select .char-card,
@@ -861,7 +861,7 @@ input[type=text]:focus{border-color:#4af;}
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.39.1</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.39.2</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1295,7 +1295,7 @@ input[type=text]:focus{border-color:#4af;}
  * - 캐릭터별로 피해/피격/사망/상태이상 코드를 따로 만들지 않는다.
  * - CombatResolver 외부에서 HP와 전투 피드백을 제각각 처리하지 않는다.
  */
-const DUELS2_ALPHA_VERSION = '0.39.1';
+const DUELS2_ALPHA_VERSION = '0.39.2';
 // DUELS2_RUNTIME_DIAGNOSTICS_ENABLED: 개발 단계의 전투·상태·모션·모듈 감사 이력 수집 여부다. 출시 실행에서는 사용하지 않으므로 비활성화한다.
 const DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = false;
 window.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = DUELS2_RUNTIME_DIAGNOSTICS_ENABLED;
@@ -1789,7 +1789,7 @@ window.DUELS2_STATIC_REGRESSION_AUDIT_STEP = DUELS2_STATIC_REGRESSION_AUDIT_STEP
 // DUELS2_FINAL_RELEASE_AUDIT_STEP: Step 229 최종 릴리스 감사 범위와 자동/수동 검증 상태를 선언한다.
 const DUELS2_FINAL_RELEASE_AUDIT_STEP = Object.freeze({
   step:'Step 229 - Final Release Audit & Regression Checklist',
-  releaseLabel:'0.39.1',
+  releaseLabel:'0.39.2',
   staticAuditComplete:true,
   browserGameplayValidation:'manual-pending',
   twoPlayerNetworkValidation:'manual-pending',
@@ -1861,7 +1861,7 @@ window.duels2GetFinalReleaseAuditSummary = duels2GetFinalReleaseAuditSummary;
 // DUELS2_ALPHA_RELEASE_DECISION_STEP: Step 230의 Alpha 완료 판정 규칙과 현재 수동 검증 게이트 상태를 선언한다.
 const DUELS2_ALPHA_RELEASE_DECISION_STEP = Object.freeze({
   step:'Step 230 - Alpha Release Decision Gate & Completion Status',
-  releaseCandidateLabel:'0.39.1',
+  releaseCandidateLabel:'0.39.2',
   completionRule:'all-required-checks-passed',
   manualValidationRequired:true,
   automaticPromotionDisabled:true,
@@ -1908,7 +1908,7 @@ function duels2GetAlphaCompletionStatus() {
   const decision = duels2EvaluateAlphaReleaseDecision();
   return {
     version:DUELS2_ALPHA_VERSION,
-    uiVersion:'0.39.1',
+    uiVersion:'0.39.2',
     singleFileOnly:DUELS2_ALPHA_SINGLE_FILE_ONLY,
     staticAuditPassed:releaseAudit.staticAuditPassed,
     approved:decision.approved,
@@ -25948,6 +25948,348 @@ function duels2GetCharacterMasteryView(charId,pid=null) {
   return {charId,points,tier,next,label:`${tier.name} · ${points}`,progress:next?Math.max(0,Math.min(1,(points-tier.min)/(next.min-tier.min))):1};
 }
 
+// duels2ResolveMasteryDodgeFxProfile: 플레이어와 현재 캐릭터의 레코드 등급을 읽어 회피 전용 시각 효과 설정을 반환한다. (entity: 회피 중인 플레이어, charId: 캐릭터 ID 선택값, pid: 플레이어 PID 선택값)
+function duels2ResolveMasteryDodgeFxProfile(entity, charId=null, pid=null) {
+  if (!entity) return null;
+  const resolvedCharId=charId
+    || entity?.charDef?.id
+    || entity?.charId
+    || entity?.characterId
+    || entity?._charId
+    || entity?.selectedCharId
+    || null;
+  if (!resolvedCharId || !CHARACTERS[resolvedCharId]) return null;
+
+  const localPid=DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || 'P1';
+  const resolvedPid=pid || getPlayerPid?.(entity) || (entity===L ? localPid : (DUELS2_PLAYER_REGISTRY?.remotePids?.[0] || 'P2'));
+  const isLocal=entity===L || resolvedPid===localPid;
+  if (isLocal && globalThis.duels2IsGuestMode?.()) return null;
+
+  const view=duels2GetCharacterMasteryView(resolvedCharId, isLocal ? null : resolvedPid);
+  const tierIndex=DUELS2_CHARACTER_MASTERY_TIERS.indexOf(view.tier);
+  const diamondIndex=DUELS2_CHARACTER_MASTERY_TIERS.findIndex(item=>item.id==='diamond');
+  if (tierIndex < diamondIndex) return null;
+
+  const profiles={
+    diamond:{
+      tierId:'diamond',
+      primary:'104,186,255',
+      secondary:'157,232,255',
+      intervalMs:46,
+      count:1,
+      duration:20,
+      spread:34
+    },
+    platinum:{
+      tierId:'platinum',
+      primary:'220,244,255',
+      secondary:'154,255,221',
+      intervalMs:54,
+      count:2,
+      duration:24,
+      spread:20,
+      activeLimit:12,
+      nearbyLimit:5
+    },
+    master:{
+      tierId:'master',
+      primary:'255,227,79',
+      secondary:'168,108,255',
+      accent:'255,157,56',
+      travelIntervalMs:44,
+      travelCountStart:1,
+      travelCountEnd:3,
+      travelDuration:34,
+      endpointCountMin:1,
+      endpointCountMax:2,
+      endpointDurationMin:34,
+      endpointDurationMax:40,
+      activeLimit:17,
+      nearbyLimit:5,
+      minSpacingTravel:11,
+      minSpacingEndpoint:15
+    }
+  };
+  return {...profiles[view.tier.id], charId:resolvedCharId, pid:resolvedPid, points:view.points, tier:view.tier};
+}
+window.duels2ResolveMasteryDodgeFxProfile=duels2ResolveMasteryDodgeFxProfile;
+
+// duels2EmitMasteryDodgeTrailFx: 레코드 등급에 맞는 회피 FX를 출발·이동·도착 단계별로 생성한다. (entity: 회피 플레이어, profile: 등급 효과 설정, motion: angle/speed/mode)
+function duels2EmitMasteryDodgeTrailFx(entity, profile, motion={}) {
+  if (!entity || !profile) return false;
+  const angle=Number.isFinite(motion.angle) ? motion.angle : 0;
+  const speed=Math.max(0,Number(motion.speed)||0);
+  const mode=motion.mode||'travel';
+  const isMaster=profile.tierId==='master';
+  const modeSeedBias=mode==='start'?3.17:(mode==='end'?7.43:0);
+  const baseSeed=(performance.now()*0.013)+(Number(entity.x)||0)*0.011+(Number(entity.y)||0)*0.017+modeSeedBias;
+
+  const travelProgress=Math.max(0,Math.min(1,Number(motion.progress)||0));
+  let count=isMaster
+    ? (mode==='travel'
+        ? Math.max(1,Math.round((profile.travelCountStart||1)+((profile.travelCountEnd||3)-(profile.travelCountStart||1))*travelProgress))
+        : Math.floor((profile.endpointCountMin||1)+Math.random()*((profile.endpointCountMax||2)-(profile.endpointCountMin||1)+1)))
+    : Math.max(1,Math.floor(profile.count||1));
+
+  if(isMaster && mode!=='travel' && Array.isArray(fxList)){
+    const centerX=Number(entity.x)||0;
+    const centerY=Number(entity.y)||0;
+    const nearbyActive=fxList.filter(fx=>
+      fx?.type==='masteryDodgeTrail'
+      && fx?.tierId==='master'
+      && fx?.burstType!=='travel'
+      && (Number(fx.dur)||0)>0
+      && Math.hypot((Number(fx.x)||0)-centerX,(Number(fx.y)||0)-centerY)<=42
+    ).length;
+    const endpointActiveLimit=3;
+    count=Math.max(0,Math.min(count,endpointActiveLimit-nearbyActive));
+    if(count<=0)return false;
+  }
+
+  if(Array.isArray(fxList)){
+    const centerX=Number(entity.x)||0;
+    const centerY=Number(entity.y)||0;
+    const tierId=profile.tierId||'';
+    const activeLimit=Math.max(1,Number(profile.activeLimit)||999);
+    const nearbyLimit=Math.max(1,Number(profile.nearbyLimit)||999);
+
+    const activeSameTier=fxList.filter(fx=>
+      fx?.type==='masteryDodgeTrail'
+      && fx?.tierId===tierId
+      && (Number(fx.dur)||0)>0
+    ).length;
+
+    const nearbySameTier=fxList.filter(fx=>
+      fx?.type==='masteryDodgeTrail'
+      && fx?.tierId===tierId
+      && (Number(fx.dur)||0)>0
+      && Math.hypot((Number(fx.x)||0)-centerX,(Number(fx.y)||0)-centerY)<=50
+    ).length;
+
+    count=Math.max(
+      0,
+      Math.min(
+        count,
+        activeLimit-activeSameTier,
+        nearbyLimit-nearbySameTier
+      )
+    );
+    if(count<=0)return false;
+  }
+
+  const duration=isMaster
+    ? (mode==='travel'
+        ? (profile.travelDuration||30)
+        : Math.floor((profile.endpointDurationMin||36)+Math.random()*((profile.endpointDurationMax||44)-(profile.endpointDurationMin||36)+1)))
+    : profile.duration;
+
+  const acceptedMasterPositions=[];
+
+  for(let i=0;i<count;i++){
+    const seed=baseSeed+i*1.927;
+    let px=Number(entity.x)||0;
+    let py=Number(entity.y)||0;
+    let burstType='standard';
+    let sizeBias=0.5;
+
+    if(isMaster){
+      if(mode==='travel'){
+        // 출발 지점에서는 중심에 가깝게 모이고, 도착 지점으로 갈수록 밀도와 퍼짐이 함께 증가한다.
+        const progress=Math.max(0,Math.min(1,Number(motion.progress)||0));
+        const lane=(i-(count-1)/2);
+        const spacing=7.5-progress*2.4;
+        const backBase=5+i*spacing+Math.min(10,speed*.30);
+        const backJitter=(((seed*1.71)%1)-.5)*(3.2+progress*2.2);
+        const phase=seed*2.15+i*1.73;
+
+        const spreadScale=.35+progress*.65;
+        const waveA=Math.sin(phase)*(7.5+Math.abs(lane)*1.6)*spreadScale;
+        const waveB=Math.sin(phase*.57+1.4)*4.2*spreadScale;
+        const laneOffset=lane*(3.8+progress*1.2)*spreadScale;
+        const maxSpread=7+progress*14;
+        const pathOffset=Math.max(-maxSpread,Math.min(maxSpread,waveA+waveB+laneOffset));
+
+        const back=backBase+backJitter+Math.sin(phase*.83)*(1.4+progress*1.4);
+        px-=Math.cos(angle)*back;
+        py-=Math.sin(angle)*back;
+        px+=Math.cos(angle+Math.PI/2)*pathOffset;
+        py+=Math.sin(angle+Math.PI/2)*pathOffset;
+        burstType='travel';
+        sizeBias=.20+progress*.12+((seed*1.3)%1)*.18;
+      }else{
+        // 출발과 도착은 고정 슬롯 대신 매번 다른 패턴을 만든다.
+        const patternIndex=Math.abs(Math.floor(baseSeed*10))%4;
+        let localAngle=0;
+        let spread=18;
+        let baseSize=.42;
+
+        if(patternIndex===0){
+          // 고리형: 여러 방향으로 둘러싼다.
+          localAngle=(Math.PI*2)*(i/count)+(((seed*1.11)%1)-.5)*.28;
+          spread=16+((seed*1.77)%1)*8;
+          baseSize=.34+((i%2)*.22);
+        }else if(patternIndex===1){
+          // 사선 파편형: 한 사선 축으로 크기가 달라지며 뻗는다.
+          localAngle=Math.PI*.25+(((seed*1.37)%1)-.5)*.22;
+          const direction=(i-(count-1)/2);
+          spread=Math.abs(direction)*(8+((seed*1.53)%1)*3)+10;
+          px+=Math.cos(localAngle+Math.PI/2)*direction*5;
+          py+=Math.sin(localAngle+Math.PI/2)*direction*5;
+          baseSize=.72-Math.min(.38,Math.abs(direction)*.12);
+        }else if(patternIndex===2){
+          // 군집형: 중심 가까이 작은 네모와 바깥 큰 네모가 섞인다.
+          localAngle=(Math.PI*2)*((i*2+1)/Math.max(3,count))+(((seed*1.89)%1)-.5)*.4;
+          spread=(i%2===0?11:22)+((seed*2.07)%1)*4;
+          baseSize=(i%3===0?.68:(i%3===1?.30:.44));
+        }else{
+          // 분열형: 좌우 두 방향으로 갈라지는 패턴.
+          const side=i%2===0?-1:1;
+          localAngle=(side<0?Math.PI*.88:Math.PI*.12)+(((seed*1.41)%1)-.5)*.3;
+          spread=12+Math.floor(i/2)*7+((seed*1.97)%1)*4;
+          baseSize=.58-Math.min(.26,Math.floor(i/2)*.08);
+        }
+
+        px+=Math.cos(localAngle)*spread;
+        py+=Math.sin(localAngle)*spread;
+        burstType=mode==='start'?'start':'end';
+        sizeBias=Math.max(.24,Math.min(.80,baseSize+(((seed*2.31)%1)-.5)*.12));
+      }
+    }else{
+      const spread=Math.max(10,Number(profile.spread)||14);
+      const lane=i-(count-1)/2;
+      const back=7+i*5+Math.min(17,speed*.55)+(((seed*1.7)%1)-.5)*5;
+      const sideBase=lane*(spread*.52);
+      const sideWave=Math.sin(seed*3.17+i*1.23)*(spread*.48);
+      const side=Math.max(-spread,Math.min(spread,sideBase+sideWave));
+      px-=Math.cos(angle)*back;
+      py-=Math.sin(angle)*back;
+      px+=Math.cos(angle+Math.PI/2)*side;
+      py+=Math.sin(angle+Math.PI/2)*side;
+    }
+
+    if(isMaster){
+      const minSpacing=mode==='travel'
+        ? Math.max(6,Number(profile.minSpacingTravel)||11)
+        : Math.max(8,Number(profile.minSpacingEndpoint)||15);
+
+      const collides=(x,y)=>{
+        const existingCollision=Array.isArray(fxList) && fxList.some(fx=>
+          fx?.type==='masteryDodgeTrail'
+          && fx?.tierId==='master'
+          && (Number(fx.dur)||0)>0
+          && Math.hypot((Number(fx.x)||0)-x,(Number(fx.y)||0)-y)<minSpacing
+        );
+        const batchCollision=acceptedMasterPositions.some(pos=>
+          Math.hypot(pos.x-x,pos.y-y)<minSpacing
+        );
+        return existingCollision || batchCollision;
+      };
+
+      if(collides(px,py)){
+        let placed=false;
+        const normalX=Math.cos(angle+Math.PI/2);
+        const normalY=Math.sin(angle+Math.PI/2);
+        const directionX=Math.cos(angle);
+        const directionY=Math.sin(angle);
+
+        for(let attempt=1;attempt<=4;attempt++){
+          const sideSign=attempt%2===0?-1:1;
+          const outward=minSpacing*(.75+attempt*.38);
+          const backward=mode==='travel'
+            ? minSpacing*(attempt*.28)
+            : minSpacing*(attempt*.14);
+
+          const testX=px+normalX*outward*sideSign-directionX*backward;
+          const testY=py+normalY*outward*sideSign-directionY*backward;
+          if(!collides(testX,testY)){
+            px=testX;
+            py=testY;
+            placed=true;
+            break;
+          }
+        }
+
+        if(!placed) continue;
+      }
+
+      acceptedMasterPositions.push({x:px,y:py});
+    }
+
+    const fadeStep=profile.tierId==='master'?4:(profile.tierId==='platinum'?5:4);
+    const staggeredDuration=duration+i*fadeStep;
+    addFx({
+      type:'masteryDodgeTrail',
+      tierId:profile.tierId,
+      x:px,
+      y:py,
+      angle,
+      seed,
+      index:i,
+      fadeOrder:i,
+      fadeGroupSize:count,
+      burstType,
+      sizeBias,
+      dodgeFxId:entity?._dodgeUseId||null,
+      primary:profile.primary,
+      secondary:profile.secondary,
+      accent:profile.accent||profile.secondary,
+      dur:staggeredDuration,
+      maxDur:staggeredDuration
+    });
+  }
+  return true;
+}
+window.duels2EmitMasteryDodgeTrailFx=duels2EmitMasteryDodgeTrailFx;
+
+// duels2UpdateMasteryDodgeTrails: 로컬·원격 플레이어의 회피 이동을 추적해 등급별 트레일을 공통 생성한다. ()
+function duels2UpdateMasteryDodgeTrails() {
+  if (!gameOn) return;
+  const now=performance.now();
+  const players=[];
+  const addPlayer=(entity)=>{if(entity && !players.includes(entity)) players.push(entity);};
+  addPlayer(L);
+  addPlayer(typeof R!=='undefined'?R:null);
+  if (DUELS2_PLAYER_REGISTRY?.entitiesByPid instanceof Map) {
+    for (const entity of DUELS2_PLAYER_REGISTRY.entitiesByPid.values()) addPlayer(entity);
+  }
+
+  for (const entity of players) {
+    if (!entity?.dodging) {
+      entity._masteryDodgeFxNextAt=0;
+      entity._masteryDodgeFxLastX=Number(entity?.x)||0;
+      entity._masteryDodgeFxLastY=Number(entity?.y)||0;
+      continue;
+    }
+
+    const profile=duels2ResolveMasteryDodgeFxProfile(entity);
+    if (!profile) continue;
+    const lastX=Number.isFinite(entity._masteryDodgeFxLastX)?entity._masteryDodgeFxLastX:entity.x;
+    const lastY=Number.isFinite(entity._masteryDodgeFxLastY)?entity._masteryDodgeFxLastY:entity.y;
+    const dx=(Number(entity.x)||0)-lastX;
+    const dy=(Number(entity.y)||0)-lastY;
+    const distance=Math.hypot(dx,dy);
+    const angle=distance>0.01?Math.atan2(dy,dx):(Number(entity.angle)||0);
+    entity._masteryDodgeFxTravelDistance=(Number(entity._masteryDodgeFxTravelDistance)||0)+distance;
+
+    const startX=Number.isFinite(entity._masteryDodgeFxStartX)?entity._masteryDodgeFxStartX:(Number(entity.x)||0);
+    const startY=Number.isFinite(entity._masteryDodgeFxStartY)?entity._masteryDodgeFxStartY:(Number(entity.y)||0);
+    const displacement=Math.hypot((Number(entity.x)||0)-startX,(Number(entity.y)||0)-startY);
+    const estimatedTotal=Math.max(48,Number(entity.dodgeDistance)||0,displacement+20);
+    const progress=Math.max(0,Math.min(1,displacement/estimatedTotal));
+
+    if (!entity._masteryDodgeFxNextAt || now>=entity._masteryDodgeFxNextAt) {
+      duels2EmitMasteryDodgeTrailFx(entity,profile,{angle,speed:distance,mode:'travel',progress});
+      const nextDelay=profile.tierId==='master'
+        ? (profile.travelIntervalMs||78)
+        : profile.intervalMs;
+      entity._masteryDodgeFxNextAt=now+nextDelay;
+    }
+    entity._masteryDodgeFxLastX=Number(entity.x)||0;
+    entity._masteryDodgeFxLastY=Number(entity.y)||0;
+  }
+}
+window.duels2UpdateMasteryDodgeTrails=duels2UpdateMasteryDodgeTrails;
+
 // duels2ApplyMasteryCardStyle: 캐릭터 카드 하단에 레코드와 등급 외곽선을 적용한다. (card: 카드 요소, charId: 캐릭터 ID, pid: 소유 PID)
 function duels2ApplyMasteryCardStyle(card,charId,pid=null) {
   if (!card || !charId) return null;
@@ -29689,8 +30031,36 @@ function tryDodge() {
   duels2RouteDodgeUsePrimaryOverride(L, {reason:'tryDodge:primary-override-dash'});
 
   emitFx({type:'dodge', x:L.x, y:L.y, radius:L.radius+8, dur:12, maxDur:12});
+  const _masteryDodgeProfile=duels2ResolveMasteryDodgeFxProfile(L);
+  if(_masteryDodgeProfile && L._masteryDodgeFxStartId!==L._dodgeUseId){
+    L._masteryDodgeFxStartId=L._dodgeUseId;
+    L._masteryDodgeFxEndId=null;
+    duels2EmitMasteryDodgeTrailFx(L,_masteryDodgeProfile,{angle:Math.atan2(dy||0,dx||0),speed:0,mode:'start'});
+    const _masteryFirstDelay=_masteryDodgeProfile.tierId==='master'
+      ? (_masteryDodgeProfile.travelIntervalMs||78)
+      : _masteryDodgeProfile.intervalMs;
+    L._masteryDodgeFxNextAt=performance.now()+_masteryFirstDelay;
+    L._masteryDodgeFxLastX=L.x;
+    L._masteryDodgeFxLastY=L.y;
+    L._masteryDodgeFxStartX=L.x;
+    L._masteryDodgeFxStartY=L.y;
+    L._masteryDodgeFxTravelDistance=0;
+  }
 
   const onDodgeEnd = () => {
+    const _masteryDodgeEndProfile=duels2ResolveMasteryDodgeFxProfile(L);
+    if(_masteryDodgeEndProfile && L._masteryDodgeFxEndId!==L._dodgeUseId){
+      L._masteryDodgeFxEndId=L._dodgeUseId;
+      const _lastX=Number.isFinite(L._masteryDodgeFxLastX)?L._masteryDodgeFxLastX:L.x;
+      const _lastY=Number.isFinite(L._masteryDodgeFxLastY)?L._masteryDodgeFxLastY:L.y;
+      const _endDx=L.x-_lastX;
+      const _endDy=L.y-_lastY;
+      duels2EmitMasteryDodgeTrailFx(L,_masteryDodgeEndProfile,{
+        angle:Math.hypot(_endDx,_endDy)>.01?Math.atan2(_endDy,_endDx):(Number(L.angle)||0),
+        speed:Math.hypot(_endDx,_endDy),
+        mode:'end'
+      });
+    }
     L.dodging = false;
     if (!L._dodgeResultFinalSent) {
       duels2SendLocalDodgeResultFinal?.(L, {dodgeId:L._dodgeUseId || null, just:!!L._currentDodgeJust, x:L.x, y:L.y, phase:'dodge-end'});
@@ -39853,11 +40223,155 @@ function draw() {
     ctx.fillText(`MAP: ${currentMap.name} · ${currentMap.type}`, WORLD_W/2, WORLD_H-18);
   }
 
+  duels2UpdateMasteryDodgeTrails?.();
+
   fxList.forEach(f => {
     const a=f.dur/f.maxDur;
     // 등록된 Visual Effect Spec이 있으면 공통 렌더러가 처리하고, 미등록 FX만 레거시 분기로 넘긴다.
     if (duels2RenderVisualEffectSpec(f, {ctx, alpha:a, now:_drawNow})) return;
-    if (f.type==='justdodge') {
+    if (f.type==='masteryDodgeTrail') {
+      const progress=1-Math.max(0,Math.min(1,f.dur/Math.max(1,f.maxDur)));
+      // 수명의 앞부분에는 선명도를 유지하고 후반부에 빠르게 사라져,
+      // 같은 묶음의 표식이 생성 순서대로 눈에 띄게 소멸한다.
+      const fadeStart=f.tierId==='master'?.48:(f.tierId==='platinum'?.42:.46);
+      const fadeProgress=Math.max(0,Math.min(1,(progress-fadeStart)/(1-fadeStart)));
+      const alpha=1-(fadeProgress*fadeProgress*(3-2*fadeProgress));
+      const seed=Number(f.seed)||0;
+      ctx.save();
+      ctx.translate(f.x,f.y);
+      if(f.tierId!=='diamond' && f.tierId!=='platinum' && f.tierId!=='master'){
+        ctx.rotate((Number(f.angle)||0)+progress*0.18);
+      }
+
+      if(f.tierId==='diamond'){
+        // 다이아: 기존의 단순 마름모 잔광 방식을 유지하고 생성 위치만 더 넓게 분산한다.
+        const size=8+(f.index||0)*4+progress*8;
+        ctx.rotate(Math.PI/4);
+        ctx.shadowColor=`rgba(${f.primary||'104,186,255'},${alpha*.38})`;
+        ctx.shadowBlur=6;
+        ctx.strokeStyle=`rgba(${f.primary||'104,186,255'},${alpha*.82})`;
+        ctx.lineWidth=1.6;
+        ctx.strokeRect(-size/2,-size/2,size,size);
+        ctx.shadowBlur=3;
+        ctx.strokeStyle=`rgba(${f.secondary||'157,232,255'},${alpha*.42})`;
+        ctx.lineWidth=1;
+        ctx.strokeRect(-size*.28,-size*.28,size*.56,size*.56);
+      }else if(f.tierId==='platinum'){
+        // 플레티넘: 십자 표식, 아주 작은 네모, 별빛이 섞여 흩어진다.
+        const idx=Number(f.index)||0;
+        const seed=Number(f.seed)||0;
+        const variant=idx%3;
+        const mainColor=f.primary||'220,244,255';
+        const subColor=f.secondary||'154,255,221';
+        const localX=Math.sin(seed*2.41+idx*1.37)*(5+idx*2);
+        const localY=Math.cos(seed*2.89+idx*1.11)*(5+idx*2);
+        ctx.translate(localX,localY);
+
+        if(variant===0){
+          // 십자 표식
+          const arm=5.5+progress*3;
+          ctx.shadowColor=`rgba(${mainColor},${alpha*.52})`;
+          ctx.shadowBlur=7;
+          ctx.strokeStyle=`rgba(${mainColor},${alpha*.76})`;
+          ctx.lineWidth=1.25;
+          ctx.beginPath();
+          ctx.moveTo(-arm,0);
+          ctx.lineTo(arm,0);
+          ctx.moveTo(0,-arm);
+          ctx.lineTo(0,arm);
+          ctx.stroke();
+
+          const dot=1.15;
+          ctx.fillStyle=`rgba(${subColor},${alpha*.72})`;
+          ctx.fillRect(-dot/2,-dot/2,dot,dot);
+        }else if(variant===1){
+          // 아주 작은 네모 묶음
+          const base=1.4+progress*.4;
+          ctx.shadowColor=`rgba(${subColor},${alpha*.42})`;
+          ctx.shadowBlur=5;
+          for(let s=0;s<2;s++){
+            const ox=(s-.5)*3.6;
+            const oy=Math.sin(seed*1.7+s*1.9)*2.0;
+            const size=base+(s===1?.35:0);
+            const color=s%2===0?mainColor:subColor;
+            ctx.fillStyle=`rgba(${color},${alpha*(s===1?.70:.52)})`;
+            ctx.fillRect(ox-size/2,oy-size/2,size,size);
+          }
+        }else{
+          // 네 갈래 별 모양
+          const outer=5.8+progress*3.2;
+          const inner=1.35+progress*.45;
+          ctx.shadowColor=`rgba(${mainColor},${alpha*.56})`;
+          ctx.shadowBlur=8;
+          ctx.fillStyle=`rgba(${mainColor},${alpha*.70})`;
+          ctx.beginPath();
+          ctx.moveTo(0,-outer);
+          ctx.lineTo(inner,-inner);
+          ctx.lineTo(outer,0);
+          ctx.lineTo(inner,inner);
+          ctx.lineTo(0,outer);
+          ctx.lineTo(-inner,inner);
+          ctx.lineTo(-outer,0);
+          ctx.lineTo(-inner,-inner);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle=`rgba(${subColor},${alpha*.58})`;
+          ctx.fillRect(-.75,-.75,1.5,1.5);
+        }
+      }else{
+        // 마스터: 크기가 다른 사각 홀로그램과 데이터 스캔선이 이동 궤적을 따라 남는다.
+        const idx=Number(f.index)||0;
+        const burstType=f.burstType||'travel';
+        const sizeBias=Math.max(0,Math.min(1,Number(f.sizeBias)||.4));
+
+        let size;
+        if(burstType==='travel'){
+          size=8+sizeBias*8+progress*2.5;
+        }else{
+          size=9+sizeBias*11+progress*3;
+        }
+        size=Math.min(size,23);
+
+        const palette=[
+          f.secondary||'168,108,255',
+          f.primary||'255,227,79',
+          f.accent||'255,157,56'
+        ];
+        const paletteOffset=Math.abs(Math.floor((Number(f.seed)||0)*10))%palette.length;
+        const color=palette[(idx+paletteOffset)%palette.length];
+        const isMain=(burstType!=='travel' && idx===0);
+
+        const glowAlpha=isMain?alpha*.52:alpha*(burstType==='travel'?.34:.30);
+        const edgeAlpha=isMain?alpha*.78:alpha*(burstType==='travel'?.58:.54);
+        ctx.shadowColor=`rgba(${color},${glowAlpha})`;
+        ctx.shadowBlur=isMain?8:(burstType==='travel'?5:6);
+        ctx.strokeStyle=`rgba(${color},${edgeAlpha})`;
+        ctx.lineWidth=isMain?1.8:1.1;
+        ctx.strokeRect(-size/2,-size/2,size,size);
+
+        if(isMain){
+          ctx.fillStyle=`rgba(${color},${alpha*.08})`;
+          ctx.fillRect(-size/2,-size/2,size,size);
+          const inner=size*.58;
+          ctx.shadowBlur=4;
+          ctx.strokeStyle=`rgba(${f.primary||'255,227,79'},${alpha*.28})`;
+          ctx.lineWidth=.8;
+          ctx.strokeRect(-inner/2,-inner/2,inner,inner);
+        }else if((burstType!=='travel' && idx===1) || (burstType==='travel' && idx===0)){
+          ctx.fillStyle=`rgba(${color},${alpha*.045})`;
+          ctx.fillRect(-size/2,-size/2,size,size);
+        }
+
+        if(idx>=2){
+          const pixel=1.1;
+          ctx.shadowBlur=2;
+          ctx.fillStyle=`rgba(${f.primary||'255,227,79'},${alpha*.40})`;
+          ctx.fillRect(size*.62,-pixel/2,pixel,pixel);
+        }
+      }
+      ctx.restore();
+    } else if (f.type==='justdodge') {
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,f.r),0,Math.PI*2);
       ctx.strokeStyle=`rgba(255,210,40,${a*.9})`; ctx.lineWidth=3; ctx.stroke();
       ctx.fillStyle=`rgba(255,210,40,${a*.12})`; ctx.fill();
@@ -58967,7 +59481,7 @@ function doRematch(options = {}) {
 // 리매치 시 랜덤 캐릭터 선택 잠금 해제 상태를 확인한다.
 function duels2GetRematchRandomSelectionFixSummary() {
   return {
-    version:'0.39.1',
+    version:'0.39.2',
     randomButtonDisabled:!!document.getElementById('random-btn')?.disabled,
     selectedCharacterId:selCharId,
     matchPhase:window._duels2MatchPhase || 'unknown',
@@ -60219,8 +60733,11 @@ function loop() {
     }
     // 가호 회피 화염자국 생성
     if (L._reikaBlessed && L.dodging) {
-      if (!L._reikaTrailLast || Math.hypot(L.x-L._reikaTrailLast.x, L.y-L._reikaTrailLast.y) > 14) {
-        const previousTrailPoint = L._reikaTrailLast ? {x:L._reikaTrailLast.x, y:L._reikaTrailLast.y} : {x:L.x, y:L.y};
+      // 새 회피의 첫 좌표는 시작점으로만 저장한다. 이전 회피 좌표와 연결하지 않는다.
+      if (!L._reikaTrailLast) {
+        L._reikaTrailLast = {x:L.x, y:L.y};
+      } else if (Math.hypot(L.x-L._reikaTrailLast.x, L.y-L._reikaTrailLast.y) > 14) {
+        const previousTrailPoint = {x:L._reikaTrailLast.x, y:L._reikaTrailLast.y};
         L._reikaTrailLast = {x:L.x, y:L.y};
         if (!L._reikaFireTrails) L._reikaFireTrails = [];
         const fireTrailField = {
@@ -60238,6 +60755,9 @@ function loop() {
           route:'network.send.reika-fire-trail'
         }));
       }
+    } else {
+      // 회피 또는 가호가 끝나면 다음 회피가 이전 좌표에서 이어지지 않도록 초기화한다.
+      L._reikaTrailLast = null;
     }
     // 화염자국 만료 + 충돌
     if (L._reikaFireTrails?.length > 0) {
@@ -61635,7 +62155,7 @@ function openDevPanel(opt = {}) {
 
   // 헤더
   const hdr = _devEl('div','display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #2a2a3a;padding-bottom:6px;');
-  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.39.1'));
+  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.39.2'));
   const hdrBtns = _devEl('div','display:flex;gap:4px;');
     hdrBtns.appendChild(_devBtn(_devPanelSide==='right'?'◀ 왼쪽':'▶ 오른쪽', ()=>{ _devPanelSide=_devPanelSide==='right'?'left':'right'; duels2SafeLocalStorageSetItem('devSide',_devPanelSide); refreshDevPanel(); }));
   hdrBtns.appendChild(_devBtn('✕', ()=>{ panel.remove(); }));
@@ -62078,7 +62598,7 @@ function duels2GetMultiPeerNetworkAuditSummary() {
 
 const DUELS2_RUNTIME_BUGFIX_038_STEP = Object.freeze({
   step:'Step 242 - Movement, Health Display & Remote Character Bugfix',
-  version:'0.39.1',
+  version:'0.39.2',
   fixes:Object.freeze([
     'primitive-skill-balance-values-preserved',
     'single-main-loop-generation-guard',
@@ -63203,7 +63723,7 @@ window.duels2GetResidualCollisionMigrationSummary = function duels2GetResidualCo
 // duels2GetFinalCombatGeometryMigrationSummary: 이번 전투 기하 판정 마이그레이션 상태를 반환한다.
 window.duels2GetFinalCombatGeometryMigrationSummary = function duels2GetFinalCombatGeometryMigrationSummary() {
   return {
-    version:'0.39.1',
+    version:'0.39.2',
     shapes:['circle','cone','line','orientedRect','annulus','ctx'],
     migrated:['konyeong.lmb-rect','konyeong.counter-circle','peluna.lmb-annulus','sherina.rmb-circle-knockback'],
     directMathHypotCount:(document.documentElement.innerHTML.match(/Math\.hypot\s*\(/g)||[]).length,
@@ -63255,7 +63775,7 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
 </script>
 
 <style>
-/* ── 0.39.1 듀얼즈 계정 UI ── */
+/* ── 0.39.2 듀얼즈 계정 UI ── */
 #duels2-account-gate{position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0a0a0cf5;font-family:'Courier New',monospace;color:#d6e8f5}
 #duels2-account-gate.hidden{display:none}
 .duels2-account-panel{position:relative;position:relative;box-sizing:border-box;width:min(92vw,470px);max-height:none;overflow:hidden;padding:32px 34px 28px;border:1px solid #2a4a6a;border-radius:2px;background:#0a0a0c;box-shadow:0 0 0 1px #101b26,0 0 34px #44aaff24}
@@ -63318,7 +63838,7 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
     </section>
     <div class="duels2-account-config-error" id="duels2-account-config-error"></div>
     <div class="duels2-account-msg" id="duels2-account-message"></div>
-    <div class="duels2-account-version">v0.39.1</div>
+    <div class="duels2-account-version">v0.39.2</div>
   </div>
 </div>
 
