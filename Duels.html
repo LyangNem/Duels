@@ -36158,7 +36158,16 @@ function duels2CreatePerformanceProfiler() {
   // setEnabled: 프로파일러 표시와 측정을 명시적으로 켜거나 끈다. (enabled: 새 활성 상태)
   function setEnabled(enabled) {
     const next = !!enabled;
-    if (state.enabled === next) return state.enabled;
+
+    // 활성 상태인데 rAF 루프만 끊긴 경우에는 상태를 바꾸지 않고 측정 루프만 복구한다.
+    if (state.enabled === next) {
+      if (next && !state.rafId) {
+        state.lastFrameAt = 0;
+        state.rafId = window.requestAnimationFrame(frameLoop);
+      }
+      return state.enabled;
+    }
+
     state.enabled = next;
     const overlay = ensureOverlay();
     overlay.style.display = next ? 'block' : 'none';
@@ -36216,10 +36225,103 @@ function duels2CreatePerformanceProfiler() {
     };
   }
 
+  // resetSamples: 누적된 프레임·업데이트·렌더 측정값과 긴 프레임 카운터를 초기화한다. ()
+  function resetSamples() {
+    state.frameSamples.length=0;
+    state.updateSamples.length=0;
+    state.renderSamples.length=0;
+    state.longFrames25=0;
+    state.longFrames50=0;
+    state.worstFrame=0;
+    state.lastFrameAt=0;
+    state.lastUiAt=0;
+    if(state.enabled){
+      const overlay=ensureOverlay();
+      overlay.textContent='PERFORMANCE  측정값 초기화됨';
+    }
+    notifyDevListeners();
+    return getSnapshot();
+  }
+
+  // runSelfTest: 프로파일러 연결 상태와 주요 측정 경로를 점검한다. ()
+  async function runSelfTest() {
+    const wasEnabled=state.enabled;
+    if(!wasEnabled) setEnabled(true);
+    else if(!state.rafId) {
+      state.lastFrameAt=0;
+      state.rafId=window.requestAnimationFrame(frameLoop);
+    }
+
+    const before=getSnapshot();
+    const started=performance.now();
+
+    recordUpdate(.25);
+    recordRender(.25);
+
+    // 프로파일러 루프와 별개로 브라우저 rAF 자체가 실제 호출되는지 검사한다.
+    let rafProbeDelta=0;
+    let rafProbePassed=false;
+    const rafProbe=new Promise(resolve=>{
+      let first=0;
+      const timeout=window.setTimeout(()=>resolve(false),700);
+      window.requestAnimationFrame(t1=>{
+        first=t1;
+        window.requestAnimationFrame(t2=>{
+          window.clearTimeout(timeout);
+          rafProbeDelta=Math.max(0,t2-first);
+          rafProbePassed=Number.isFinite(rafProbeDelta) && rafProbeDelta>0;
+          resolve(rafProbePassed);
+        });
+      });
+    });
+
+    await rafProbe;
+
+    // 프로파일러 frameLoop가 샘플을 기록할 시간을 조금 더 준다.
+    const deadline=performance.now()+500;
+    while(state.frameSamples.length<=before.sampleCount && performance.now()<deadline){
+      await new Promise(resolve=>window.setTimeout(resolve,30));
+    }
+
+    const after=getSnapshot();
+    const documentVisible=!document.hidden;
+    const profilerSampleAdvanced=after.sampleCount>before.sampleCount;
+    const frameSampling=profilerSampleAdvanced || rafProbePassed;
+
+    const checks={
+      enabled:state.enabled===true,
+      frameSampling,
+      frameLoopSampling:profilerSampleAdvanced,
+      rafProbe:rafProbePassed,
+      rafProbeDelta,
+      documentVisible,
+      updateSampling:after.update.current>0,
+      renderSampling:after.render.current>0,
+      objectSnapshot:Number.isFinite(after.counts.total),
+      overlayMounted:!!document.getElementById('duels2-performance-profiler'),
+      commandAvailable:typeof window.duels2TogglePerformanceProfiler==='function',
+      elapsedMs:performance.now()-started,
+    };
+
+    checks.ok=
+      checks.enabled &&
+      checks.frameSampling &&
+      checks.updateSampling &&
+      checks.renderSampling &&
+      checks.objectSnapshot &&
+      checks.overlayMounted &&
+      checks.commandAvailable;
+
+    if(!wasEnabled) setEnabled(false);
+    return checks;
+  }
+
   const api = Object.freeze({
     get enabled(){ return state.enabled; },
     setEnabled,
     toggle,
+    resetSamples,
+    runSelfTest,
     recordUpdate,
     recordRender,
     getSnapshot,
@@ -44717,7 +44819,16 @@ function duels2ApplyDevCommandDirect(packet, opt = {}) {
   if (d.cmd === 'targetFlag') { const target = duels2ResolveDevCommandTarget(d, opt); duels2RouteSetDevFlag(target, d.flag, d.val, {reason:'devCmd.targetFlag', route:opt.route || 'debug.devCmd'}); return {handled:true, result:'targetFlag'}; }
   if (d.cmd === 'setTargetHP') { const target = duels2ResolveDevCommandTarget(d, opt); duels2RouteEntityHealthDebugSet(target, d.val, {reason:'dev.command.setTargetHP'}); return {handled:true, result:'setTargetHP'}; }
   if (d.cmd === 'setTargetST') { const target = duels2ResolveDevCommandTarget(d, opt); setEntityStaminaValue(target, d.val); return {handled:true, result:'setTargetST'}; }
-  if (d.cmd === 'forceAction') { devForceEntityActionByKey?.(d.targetKey || 'self', d.action); return {handled:true, result:'forceAction'}; }
+  if (d.cmd === 'forceAction') {
+    const targetKey=d.targetKey||'self';
+    const handled=targetKey==='self'
+      ? devExecuteLocalForcedAction(d.action)
+      : devForceEntityActionByKey(targetKey,d.action);
+    return {
+      handled:!!handled,
+      result:handled?`forceAction:${d.action}`:`forceAction-failed:${d.action}`
+    };
+  }
   if (d.cmd === 'spawnBot') { devSpawnBot?.(d.botType || 'dummy', {fromPeer:true, x:Number.isFinite(d.x)?d.x:R.x, y:Number.isFinite(d.y)?d.y:R.y, id:d.id}); return {handled:true, result:'spawnBot'}; }
   if (d.cmd === 'debugBotDamage') { const _db=(_trainingBots||[]).find(b=>b.id===d.id || b._peerDebugId===d.id) || (_debugPlayers||[]).find(p=>p.id===d.id || p._peerDebugId===d.id); if(_db) applyDamage(_db, Math.max(0, Math.round(d.damage||0)), {fromNetwork:true, rawDamage:true, source:R}); return {handled:true, result:'debugBotDamage'}; }
   if (d.cmd === 'despawnNearestBot') { devRemoveNearestBot?.(); return {handled:true, result:'despawnNearestBot'}; }
@@ -61601,7 +61712,18 @@ document.addEventListener('keydown', (e) => {
   }
   e.preventDefault();
   window._devUnlocked = true;
-  toggleDevPanel();
+  try{
+    toggleDevPanel();
+  }catch(error){
+    console.error('[DEV PANEL] open failed',error);
+    const old=document.getElementById('dev-panel-open-error');
+    old?.remove();
+    const notice=document.createElement('pre');
+    notice.id='dev-panel-open-error';
+    notice.style.cssText='position:fixed;top:48px;right:12px;z-index:12000;max-width:520px;padding:10px;background:#180b0b;color:#f99;border:1px solid #733;white-space:pre-wrap;';
+    notice.textContent=`개발자 모드 진입 오류\n${error?.stack||error}`;
+    document.body.appendChild(notice);
+  }
 });
 
 // ── DevToolsCore ─────────────────────────────────────────────
@@ -62140,39 +62262,127 @@ function devForceCharacterLikeAction(entity, action) {
   return true;
 }
 
-function devForceEntityActionByKey(key, action) {
-  if (key === 'peerPlayer' && !_trainingMode && typeof send === 'function') { send({type:'devCmd',cmd:'forceAction',action}); return; }
-  const entity = devFindTargetByKey(key);
-  if (!entity) return;
+// devExecuteLocalForcedAction: 네트워크 또는 개발자 UI가 현재 클라이언트의 로컬 플레이어에게 강제 입력을 실행한다. (action: dodge/lmb/rmb/counter)
+function devExecuteLocalForcedAction(action) {
+  if (!L || !action) return false;
+
   if (action === 'dodge') {
-    if (entity === L) {
-      const savedSkip = window._skipDodgeStam;
-      window._skipDodgeStam = true;
-      try { tryDodge(); } finally { window._skipDodgeStam = savedSkip; }
-    } else devDodgeEntityAway(entity);
-    return;
+    const savedSkip=window._skipDodgeStam;
+    window._skipDodgeStam=true;
+    try{
+      tryDodge();
+      return true;
+    }finally{
+      window._skipDodgeStam=savedSkip;
+    }
   }
-  if (entity === L) {
-    const id = getLocalCharacterId();
-    const angle = getAngle();
-    const savedBypass = window._autoAttackStamBypass;
-    window._autoAttackStamBypass = true;
-    try {
-      if (action === 'lmb') { L.lmbCooldown = 0; if (id==='raise') { SKILLS.raise.lmbStart(); L._raiseClicks=1; SKILLS.raise.lmbRelease(angle,{fromDev:true}); } else if (id==='hatsuhats') { SKILLS.hatsuhats.lmbStart(); L._hatsDragTotalLen=duels2GetSkillBalance('hatsuhats','lmb').dragThreshold+1; SKILLS.hatsuhats.lmbRelease(angle,{fromDev:true}); } else SKILLS[id]?.lmb?.(angle, {fromDev:true, noPredelay:true}); }
-      if (action === 'rmb') { L.rmbCooldown = 0; SKILLS[id]?.rmb?.(angle, {fromDev:true, noPredelay:true}); }
-      if (action === 'counter') { L.counterReady = true; L.counterExpiry = performance.now()+5000; L._counterPredelayEnd = performance.now() + BALANCE.counter.delay + 80; runSkillInputContext('counter', () => SKILLS[id]?.counter?.(angle, {fromDev:true}), {charId:id, source:'dev_action', tags:['dev_counter'], route:'dev.action.counter'}); }
-    } finally { window._autoAttackStamBypass = savedBypass; }
-    return;
+
+  const id=getLocalCharacterId();
+  const angle=getAngle();
+  const savedBypass=window._autoAttackStamBypass;
+  window._autoAttackStamBypass=true;
+
+  try{
+    if(action==='lmb'){
+      L.lmbCooldown=0;
+      if(id==='raise'){
+        SKILLS.raise.lmbStart();
+        L._raiseClicks=1;
+        SKILLS.raise.lmbRelease(angle,{fromDev:true,fromRemoteDev:true});
+      }else if(id==='hatsuhats'){
+        SKILLS.hatsuhats.lmbStart();
+        L._hatsDragTotalLen=duels2GetSkillBalance('hatsuhats','lmb').dragThreshold+1;
+        SKILLS.hatsuhats.lmbRelease(angle,{fromDev:true,fromRemoteDev:true});
+      }else{
+        SKILLS[id]?.lmb?.(angle,{fromDev:true,fromRemoteDev:true,noPredelay:true});
+      }
+      return true;
+    }
+
+    if(action==='rmb'){
+      L.rmbCooldown=0;
+      SKILLS[id]?.rmb?.(angle,{fromDev:true,fromRemoteDev:true,noPredelay:true});
+      return true;
+    }
+
+    if(action==='counter'){
+      L.counterReady=true;
+      L.counterExpiry=performance.now()+5000;
+      L._counterPredelayEnd=performance.now()+BALANCE.counter.delay+80;
+      runSkillInputContext(
+        'counter',
+        ()=>SKILLS[id]?.counter?.(angle,{fromDev:true,fromRemoteDev:true}),
+        {
+          charId:id,
+          source:'dev_action',
+          tags:['dev_counter','remote_dev_action'],
+          route:'dev.action.counter'
+        }
+      );
+      return true;
+    }
+  }finally{
+    window._autoAttackStamBypass=savedBypass;
   }
-  if (entity.charDef && devForceCharacterLikeAction(entity, action)) return;
-  if (entity.isBot) { devForceTrainingBotAction(entity, action); return; }
-  const ang = Math.atan2((L.y||0)-(entity.y||0),(L.x||0)-(entity.x||0));
-  if (action === 'lmb' || action === 'rmb' || action === 'counter') {
-    const dmg = action === 'counter' ? 25 : action === 'rmb' ? 18 : 10;
-    emitFx({type:'drillHit', x:entity.x, y:entity.y, angle:ang, len:180, width:action==='counter'?70:40, col:action==='counter'?'255,220,60':'180,220,255', dur:10, maxDur:10});
-    if (DUELS2_ENTITY_RUNTIME_CONTRACT.distanceBetween(L, entity) < 200 + DUELS2_ENTITY_RUNTIME_CONTRACT.getRadius(L)) applyDamage(L, dmg, {source:entity, fromDev:true});
-  }
+
+  return false;
 }
+window.devExecuteLocalForcedAction=devExecuteLocalForcedAction;
+
+// devForceEntityActionByKey: 선택한 디버그 대상에게 강제 행동을 실행하며 원격 플레이어는 해당 클라이언트에 명령을 보낸다. (key: 대상 키, action: 행동 종류)
+function devForceEntityActionByKey(key, action) {
+  if(key==='peerPlayer' && !_trainingMode && typeof send==='function'){
+    send({
+      type:'devCmd',
+      cmd:'forceAction',
+      targetKey:'self',
+      action,
+      requestId:`dev-force-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,7)}`
+    });
+    return true;
+  }
+
+  const entity=devFindTargetByKey(key);
+  if(!entity) return false;
+
+  if(entity===L){
+    return devExecuteLocalForcedAction(action);
+  }
+
+  if(action==='dodge'){
+    devDodgeEntityAway(entity);
+    return true;
+  }
+
+  if(entity.charDef && devForceCharacterLikeAction(entity,action)) return true;
+  if(entity.isBot){
+    devForceTrainingBotAction(entity,action);
+    return true;
+  }
+
+  const ang=Math.atan2((L.y||0)-(entity.y||0),(L.x||0)-(entity.x||0));
+  if(action==='lmb' || action==='rmb' || action==='counter'){
+    const dmg=action==='counter'?25:action==='rmb'?18:10;
+    emitFx({
+      type:'drillHit',
+      x:entity.x,
+      y:entity.y,
+      angle:ang,
+      len:180,
+      width:action==='counter'?70:40,
+      col:action==='counter'?'255,220,60':'180,220,255',
+      dur:10,
+      maxDur:10
+    });
+    if(DUELS2_ENTITY_RUNTIME_CONTRACT.distanceBetween(L,entity)<200+DUELS2_ENTITY_RUNTIME_CONTRACT.getRadius(L)){
+      applyDamage(L,dmg,{source:entity,fromDev:true});
+    }
+    return true;
+  }
+
+  return false;
+}
+window.devForceEntityActionByKey=devForceEntityActionByKey;
 function _devFold(title, key, builder) {
   const openKey = '_devOpenFoldKey';
   const box = _devEl('div','border:1px solid #272738;border-radius:5px;margin:6px 0;background:rgba(255,255,255,0.025);');
@@ -62455,25 +62665,96 @@ function devRemoveNearestBot() {
 
 // devCreateSectionCard: 개발자 패널의 기능 묶음을 카드 형태로 생성한다. (title: 섹션명, description: 보조 설명)
 function devRenderBaseTab(wrap) {
-  wrap.appendChild(_devEl('div','', ''));
   const title=_devEl('div','');
   title.className='dev-section-line';
-  title.textContent='개발자 도구';
+  title.textContent='대상 제어';
   wrap.appendChild(title);
+
   const desc=_devEl('div','');
   desc.className='dev-help-line';
-  desc.textContent='상단 탭에서 필요한 기능을 선택하세요. 상태·엔티티·런타임·로그 화면은 성능 프로파일러로 통합했습니다.';
+  desc.textContent='대상별 수치, 상태이상, 버프, 강제행동을 조정하고 더미·봇을 관리합니다.';
   wrap.appendChild(desc);
 
-  const status=_devPre('dt-dev-overview','120px');
-  status.textContent=[
-    `버전: 0.39.2`,
-    `계정: ${duels2GetCurrentAccountId?.()||'-'}`,
-    `프로파일러: ${DUELS2_PERFORMANCE_PROFILER.enabled?'켜짐':'꺼짐'}`,
-    `현재 맵: ${currentMap?.name||'-'}`,
-    `선택 대상: ${devGetSelectedTargetEntry?.()?.label||'나'}`,
-  ].join('\n');
-  wrap.appendChild(status);
+  const entries=typeof devGetTargetEntries==='function'
+    ? devGetTargetEntries()
+    : [];
+  for(const entry of entries){
+    if(typeof buildDevTargetPanel==='function'){
+      wrap.appendChild(buildDevTargetPanel(entry));
+    }
+  }
+
+  const summonTitle=_devEl('div','');
+  summonTitle.className='dev-section-line';
+  summonTitle.textContent='더미 / 봇';
+  wrap.appendChild(summonTitle);
+
+  wrap.appendChild(_devRow([
+    _devBtn('더미 소환',()=>{
+      if(typeof devSpawnBot==='function') devSpawnBot('dummy');
+      refreshDevPanel();
+    }),
+    _devBtn('근거리 봇 소환',()=>{
+      if(typeof devSpawnBot==='function') devSpawnBot('melee');
+      refreshDevPanel();
+    }),
+    _devBtn('원거리 봇 소환',()=>{
+      if(typeof devSpawnBot==='function') devSpawnBot('ranged');
+      refreshDevPanel();
+    }),
+    _devBtn('가까운 소환체 제거',()=>{
+      if(typeof devRemoveNearestBot==='function') devRemoveNearestBot();
+      refreshDevPanel();
+    })
+  ]));
+
+  const stateTitle=_devEl('div','');
+  stateTitle.className='dev-section-line';
+  stateTitle.textContent='빠른 상태';
+  wrap.appendChild(stateTitle);
+
+  const stateView=_devPre('dt-base-state','96px');
+
+  // updateBaseState: 기본 탭의 간단한 전투 상태를 주기적으로 갱신한다. ()
+  const updateBaseState=()=>{
+    if(!document.getElementById('dt-base-state')) return;
+
+    const now=performance.now();
+    const remaining=end=>{
+      const value=Number(end)||0;
+      return value>now?`${((value-now)/1000).toFixed(1)}s`:'-';
+    };
+
+    const localHealth=typeof L!=='undefined' ? Math.round(Number(L.health)||0) : 0;
+    const localMaxHealth=typeof L!=='undefined' ? Math.round(Number(L.maxHealth)||0) : 0;
+    const localStamina=typeof L!=='undefined' ? Math.round(Number(L.stamina)||0) : 0;
+    const remoteHealth=typeof R!=='undefined' ? Math.round(Number(R.health)||0) : 0;
+    const remoteMaxHealth=typeof R!=='undefined' ? Math.round(Number(R.maxHealth)||0) : 0;
+    const fxCount=typeof fxList!=='undefined' && Array.isArray(fxList)
+      ? fxList.length
+      : 0;
+    const botCount=typeof _trainingBots!=='undefined' && Array.isArray(_trainingBots)
+      ? _trainingBots.length
+      : 0;
+
+    stateView.textContent=[
+      `L HP ${localHealth}/${localMaxHealth}   ST ${localStamina}`,
+      `R HP ${remoteHealth}/${remoteMaxHealth}`,
+      `L 기절 ${remaining(typeof L!=='undefined'?L.stunEnd:0)}   속박 ${remaining(typeof L!=='undefined'?L.bindEnd:0)}   감전 ${remaining(typeof L!=='undefined'?L._zapEnd:0)}`,
+      `FX ${fxCount}   봇/더미 ${botCount}`,
+    ].join('\n');
+  };
+
+  updateBaseState();
+  const stateTimer=setInterval(()=>{
+    if(!document.getElementById('dt-base-state')){
+      clearInterval(stateTimer);
+      return;
+    }
+    updateBaseState();
+  },200);
+
+  wrap.appendChild(stateView);
 }
 
 function devRenderPerformanceTab(wrap) {
@@ -62492,8 +62773,34 @@ function devRenderPerformanceTab(wrap) {
     DUELS2_PERFORMANCE_PROFILER.enabled?'프로파일러 끄기':'프로파일러 켜기',
     ()=>{duels2TogglePerformanceProfiler();refreshDevPanel();}
   );
+  const diagnosticView=_devPre('dt-performance-diagnostic','90px');
+  diagnosticView.textContent='자가 진단을 실행하면 측정 경로 연결 상태를 확인합니다.';
+
   wrap.appendChild(_devRow([
     toggle,
+    _devBtn('측정값 초기화',()=>{
+      DUELS2_PERFORMANCE_PROFILER.resetSamples();
+    }),
+    _devBtn('자가 진단',async()=>{
+      diagnosticView.textContent='진단 실행 중...';
+      try{
+        const result=await DUELS2_PERFORMANCE_PROFILER.runSelfTest();
+        diagnosticView.textContent=[
+          `결과: ${result.ok?'정상':'오류'}`,
+          `프레임 샘플: ${result.frameSampling?'정상':'실패'}`,
+          `  프로파일러 루프: ${result.frameLoopSampling?'정상':'대기/중단'}`,
+          `  브라우저 rAF: ${result.rafProbe?'정상':'실패'}${result.rafProbe?` (${Number(result.rafProbeDelta||0).toFixed(2)}ms)`:''}`,
+          `  탭 표시 상태: ${result.documentVisible?'활성':'백그라운드'}`,
+          `업데이트 측정: ${result.updateSampling?'정상':'실패'}`,
+          `렌더 측정: ${result.renderSampling?'정상':'실패'}`,
+          `객체 집계: ${result.objectSnapshot?'정상':'실패'}`,
+          `오버레이: ${result.overlayMounted?'정상':'실패'}`,
+          `.performance 명령: ${result.commandAvailable?'정상':'실패'}`,
+        ].join('\n');
+      }catch(error){
+        diagnosticView.textContent=`진단 오류\n${error?.stack||error}`;
+      }
+    }),
     _devBtn('측정값 복사',async()=>{
       const value=DUELS2_PERFORMANCE_PROFILER.formatSnapshot();
       try{await navigator.clipboard.writeText(value);}
@@ -62516,6 +62823,7 @@ function devRenderPerformanceTab(wrap) {
   });
   stateView.textContent=DUELS2_PERFORMANCE_PROFILER.formatSnapshot();
   wrap.appendChild(stateView);
+  wrap.appendChild(diagnosticView);
 }
 
 function devRenderAccountTab(wrap) {
@@ -62633,6 +62941,7 @@ function toggleDevPanel() {
   return openDevPanel({force:true});
 }
 function openDevPanel(opt = {}) {
+  document.getElementById('dev-panel-open-error')?.remove();
   if (typeof duels2CanUseDebugTools !== 'function' || !duels2CanUseDebugTools()) {
     window._devUnlocked = false;
     document.getElementById('dev-panel')?.remove();
@@ -62697,12 +63006,22 @@ function openDevPanel(opt = {}) {
   panel.appendChild(_devTabBar(TABS,panel));
   panel.appendChild(tabContent);
 
-  if(_devActiveTab==='base') devRenderBaseTab(tabContent);
-  else if(_devActiveTab==='performance') devRenderPerformanceTab(tabContent);
-  else if(_devActiveTab==='account') devRenderAccountTab(tabContent);
-  else if(_devActiveTab==='record') devRenderRecordTab(tabContent);
-  else if(_devActiveTab==='map') devRenderMapTab(tabContent);
-  else if(_devActiveTab==='control') devRenderControlTab(tabContent);
+  try{
+    if(_devActiveTab==='base') devRenderBaseTab(tabContent);
+    else if(_devActiveTab==='performance') devRenderPerformanceTab(tabContent);
+    else if(_devActiveTab==='account') devRenderAccountTab(tabContent);
+    else if(_devActiveTab==='record') devRenderRecordTab(tabContent);
+    else if(_devActiveTab==='map') devRenderMapTab(tabContent);
+    else if(_devActiveTab==='control') devRenderControlTab(tabContent);
+  }catch(error){
+    console.error('[DEV PANEL] tab render failed',error);
+    const errorBox=_devEl(
+      'pre',
+      'margin:10px;padding:10px;border:1px solid #733;background:#180b0b;color:#f99;white-space:pre-wrap;',
+      `탭 렌더 오류\n${error?.stack||error}`
+    );
+    tabContent.appendChild(errorBox);
+  }
 
   const resizeHandle = _devEl('div','');
   resizeHandle.className = 'dev-resize-handle ' + (_devPanelSide === 'right' ? 'left' : 'right');
