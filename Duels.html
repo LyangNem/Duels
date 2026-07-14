@@ -6237,7 +6237,13 @@ const DUELS2_SKILL_EXECUTOR_RUNTIME = (() => {
       slot,
       source,
       route,
-      tags: uniqueTags(ctxInput.tags, extra.tags, ['skill_executor'])
+      // 슬롯 문자열과 별개로 모든 평타가 공유하는 표준 태그를 실행기에서 생성한다.
+      tags: uniqueTags(
+        ctxInput.tags,
+        extra.tags,
+        ['skill_executor', `slot_${slot}`],
+        slot==='lmb' ? ['lmb','basic_attack'] : []
+      )
     };
     const costSpec = typeof duels2BuildSkillCostSpecForExecutor === 'function'
       ? duels2BuildSkillCostSpecForExecutor(input, {
@@ -6328,6 +6334,20 @@ const DUELS2_SKILL_EXECUTOR_RUNTIME = (() => {
           pushHistory('skipped', {executorId, skillName, ctx:snapshotCtx(ctx), reason:'missing-handler'});
           return undefined;
         }
+        const actor=ctx.sourceEntity||ctxInput.sourceEntity||extra.actor||L;
+        const previousLmbAttacking=actor?._lmbAttacking;
+        if(actor){
+          actor._lastExecutedActionSlot=slot;
+          actor._lastExecutedActionAt=performance.now();
+          if(slot==='lmb'){
+            actor._lmbAttacking=true;
+            actor._lastBasicAttackContext={
+              ...ctx,
+              tags:_tagList(ctx.tags),
+              sourceEntity:actor
+            };
+          }
+        }
         try {
           const value = handler(ctx);
           counters.succeeded += 1;
@@ -6351,8 +6371,19 @@ const DUELS2_SKILL_EXECUTOR_RUNTIME = (() => {
           }
           pushHistory('error', {executorId, skillName, ctx:snapshotCtx(ctx), message:err?.message || String(err || 'error')});
           throw err;
+        } finally {
+          if(actor) actor._lmbAttacking=previousLmbAttacking;
         }
-      }, {...extra, slot, route, tags:uniqueTags(extra.tags, ['skill_executor'])});
+      }, {
+        ...extra,
+        slot,
+        route,
+        tags:uniqueTags(
+          extra.tags,
+          ['skill_executor', `slot_${slot}`],
+          slot==='lmb' ? ['lmb','basic_attack'] : []
+        )
+      });
     } catch (err) {
       if (!dispatchedCtx) {
         counters.failed += 1;
@@ -8699,10 +8730,35 @@ const DUELS2_COMPLEX_RMB_COST_BRANCH_RUNTIME = (() => {
       } else if (actor?.rmbCooldown > 0 || actor?._erapabiPredelay) state = makeState(normalizedKey, 'blocked', 'fortify-busy', {actor, reason:'cooldown-or-predelay', costMode:'no-cost-blocked', route:opt.route || 'complex-rmb.erapabi.fortify-busy'});
       else state = makeState(normalizedKey, 'cost', 'fortify-cost', {actor, amount:Number(B.rmb?.cost || 0), costMode:'fixed-stamina-cost', route:opt.route || 'complex-rmb.erapabi.fortify-cost'});
     } else if (normalizedKey === 'prill.rmb') {
-      const B = BALANCE?.prill?.rmb || {};
-      if (actor?.rmbCooldown > 0) state = makeState(normalizedKey, 'blocked', 'cooldown', {actor, reason:'rmb-cooldown', costMode:'no-cost-blocked', route:opt.route || 'complex-rmb.prill.cooldown'});
-      else if (actor?._prillZoneActive || actor?._prillZonePredelaying) state = makeState(normalizedKey, 'cost', 'zone-reuse-then-new-zone-cost', {actor, amount:Number(B.cost || 0), costMode:'zone-reuse-then-normal-cost', route:opt.route || 'complex-rmb.prill.zone-reuse-cost', detail:{active:!!actor?._prillZoneActive, predelaying:!!actor?._prillZonePredelaying}});
-      else state = makeState(normalizedKey, 'cost', 'new-zone-cost', {actor, amount:Number(B.cost || 0), costMode:'fixed-stamina-cost', route:opt.route || 'complex-rmb.prill.new-zone-cost'});
+      const B=BALANCE?.prill?.rmb||{};
+      // 활성 구역 재입력은 기존 구역을 종료·강화하는 무비용 재사용이다.
+      // 쿨다운과 스테미나 검사는 새 구역을 생성하는 최초 사용에만 적용한다.
+      if(actor?._prillZoneActive||actor?._prillZonePredelaying){
+        state=makeState(normalizedKey,'no-cost','zone-reuse-promote',{
+          actor,
+          amount:0,
+          costMode:'cost-free-reuse',
+          route:opt.route||'complex-rmb.prill.zone-reuse-no-cost',
+          detail:{
+            active:!!actor?._prillZoneActive,
+            predelaying:!!actor?._prillZonePredelaying
+          }
+        });
+      }else if(actor?.rmbCooldown>0){
+        state=makeState(normalizedKey,'blocked','cooldown',{
+          actor,
+          reason:'rmb-cooldown',
+          costMode:'no-cost-blocked',
+          route:opt.route||'complex-rmb.prill.cooldown'
+        });
+      }else{
+        state=makeState(normalizedKey,'cost','new-zone-cost',{
+          actor,
+          amount:Number(B.cost||0),
+          costMode:'fixed-stamina-cost',
+          route:opt.route||'complex-rmb.prill.new-zone-cost'
+        });
+      }
     } else if (normalizedKey === 'tau.rmb') {
       const B = BALANCE?.tau?.rmb || {};
       if (actor?.rmbCooldown > 0 && !actor?._tauDashInterval) state = makeState(normalizedKey, 'blocked', 'cooldown', {actor, reason:'rmb-cooldown', costMode:'no-cost-blocked', route:opt.route || 'complex-rmb.tau.cooldown'});
@@ -11124,32 +11180,52 @@ window.CombatRuntimeAPI = Object.assign(window.CombatRuntimeAPI || {}, {
 
 // duels2ResolveKanRmbTarget: 칸 RMB의 비용 선행 대상 탐색을 공통 Target-Gated RMB 런타임으로 위임한다. (actor: 사용자, balance: duels2GetSkillBalance('kan','rmb'), opt: route 옵션)
 function duels2ResolveKanRmbTarget(actor = L, balance = duels2GetSkillBalance('kan','rmb'), opt = {}) {
-  const candidates = duels2CollectFormerRsTargets(opt.candidateRoute || 'target.rs-loop-replaced');
-  return DUELS2_TARGET_GATED_RMB_RUNTIME.resolveNearestTargetBeforeCost('kan.rmb', actor || L, {
+  const user=actor||L;
+  const now=performance.now();
+  const cache=user._targetGatedRmbResolutionCache;
+
+  // 비용 실행기와 실제 스킬 함수가 같은 캐시를 사용한다.
+  if(cache?.key==='kan.rmb'&&now<cache.expiresAt){
+    if(!cache.target) return {found:false,target:null,candidates:[],cached:true,key:'kan.rmb'};
+    const liveDistance=Math.hypot((cache.target.x||0)-(user.x||0),(cache.target.y||0)-(user.y||0));
+    const liveThreshold=Number(balance?.pullRange||0)+(Number(cache.target.radius)||20);
+    if(getEntityHealth(cache.target)>0&&liveDistance<liveThreshold){
+      return {...cache,found:true,distance:liveDistance,threshold:liveThreshold,cached:true};
+    }
+    user._targetGatedRmbResolutionCache=null;
+  }
+
+  const candidates=duels2CollectFormerRsTargets(opt.candidateRoute||'target.rs-loop-replaced');
+  const resolved=DUELS2_TARGET_GATED_RMB_RUNTIME.resolveNearestTargetBeforeCost('kan.rmb',user,{
     candidates,
-    range:Number(balance?.pullRange || 0),
+    range:Number(balance?.pullRange||0),
     charId:'kan',
     slot:'rmb',
-    route:opt.route || 'target-gated-rmb.kan.rmb.before-cost',
-    reason:opt.reason || 'kan.rmb.requires-target-before-cost',
+    route:opt.route||'target-gated-rmb.kan.rmb.before-cost',
+    reason:opt.reason||'kan.rmb.requires-target-before-cost',
     targetRule:'nearest-former-rs-target-inside-pull-range-plus-target-radius',
     costPath:'kan.rmb.cost',
     rangePath:'kan.rmb.pullRange'
   });
+
+  user._targetGatedRmbResolutionCache={
+    ...resolved,
+    key:'kan.rmb',
+    target:resolved?.target||null,
+    expiresAt:now+(resolved?.target?40:180)
+  };
+  return resolved;
 }
 
 // duels2GetKanRmbTargetStateForSkillExecution: 선집행 대상 게이트에서 이미 확정한 칸 RMB 대상을 재사용하고, 없으면 기존 대상 선행 탐색으로 fallback한다. (actor: 사용자, balance: duels2GetSkillBalance('kan','rmb'), opt: route 옵션)
 function duels2GetKanRmbTargetStateForSkillExecution(actor = L, balance = duels2GetSkillBalance('kan','rmb'), opt = {}) {
-  const ctx = window.DUELS2_SKILL_ACTION_CONTEXT_RUNTIME?.getCurrent?.(null) || L?._actionCtx || null;
-  const cached = ctx?._targetGatedRmb?.['kan.rmb'];
-  if (cached?.target) {
-    return {
-      ...cached,
-      reused:true,
-      reuseRoute:opt.route || 'kan.rmb.target-before-cost.cached'
-    };
+  const user=actor||L;
+  const ctx=window.DUELS2_SKILL_ACTION_CONTEXT_RUNTIME?.getCurrent?.(null)||L?._actionCtx||null;
+  const actionCached=ctx?._targetGatedRmb?.['kan.rmb'];
+  if(actionCached?.target){
+    return {...actionCached,reused:true,reuseRoute:opt.route||'kan.rmb.target-before-cost.cached'};
   }
-  return duels2ResolveKanRmbTarget(actor || L, balance, opt || {});
+  return duels2ResolveKanRmbTarget(user,balance,opt||{});
 }
 
 const DUELS2_TARGET_GATED_RMB_COST_EXECUTOR_PREP_STEP = Object.freeze({
@@ -13426,6 +13502,19 @@ function shouldBlockCombatApplication(target, ctx = {}) {
 }
 
 function applyDamageResult(target, amount, ctx = {}) {
+  const activeCtx=
+    ctx.actionCtx ||
+    window._hitActionCtx ||
+    L?._actionCtx ||
+    null;
+  if(activeCtx){
+    ctx={
+      ...ctx,
+      actionCtx:ctx.actionCtx||activeCtx,
+      slot:ctx.slot||activeCtx.slot,
+      hitTags:ctx.hitTags||activeCtx.tags
+    };
+  }
   const source = getDefaultDamageSource(ctx);
   const resultBase = {attempted:true, target, source, rawAmount:amount, ctx};
   if (!target) return finishHitResult(makeHitResult({...resultBase, invalid:true, reason:'no_target'}));
@@ -13600,6 +13689,7 @@ function duels2NormalizeCombatResult(result) {
     touched: hitResultDidTouch(result),
     hit: !!result.hit,
     damaged: !!result.damaged,
+    delegatedDamage: !!result.delegatedDamage,
     healed: !!result.healed,
     blocked: !!result.blocked,
     invalid: !!result.invalid,
@@ -13714,12 +13804,133 @@ function duels2RecordLegacyCombatResult(result) {
   return result;
 }
 
+// duels2TryConsumeStunShotFromResolvedHit: 모든 피해 경로의 최종 HitResult에서 로컬 평타 적중을 감지해 스턴샷을 소비한다. (result: 확정 HitResult)
+// duels2IsLocalControlledCombatSource: 객체 래퍼·PlayerSlot·소유 오브젝트를 포함해 로컬 플레이어가 만든 공격인지 판정한다. (source: 공격 원인)
+function duels2IsLocalControlledCombatSource(source) {
+  if(!source) return false;
+  if(source===L) return true;
+
+  const localPid=DUELS2_PLAYER_REGISTRY?.localPid||getPlayerPid?.(L)||'P1';
+  const sourcePid=
+    getPlayerPid?.(source) ||
+    source.sourcePid ||
+    source.pid ||
+    source.ownerPid ||
+    source.controllerPid ||
+    null;
+  if(sourcePid&&String(sourcePid)===String(localPid)) return true;
+
+  const controllerId=duels2ResolveControllerId?.(source,null);
+  if(controllerId==='local'||controllerId===localPid) return true;
+
+  const ownerId=duels2ResolveOwnerId?.(source,null);
+  const localOwnerId=duels2ResolveOwnerId?.(L,localPid);
+  if(ownerId!==null&&ownerId!==undefined&&String(ownerId)===String(localOwnerId)) return true;
+
+  const sourceEntity=source.entity||source.sourceEntity||null;
+  return !!sourceEntity&&sourceEntity!==source&&duels2IsLocalControlledCombatSource(sourceEntity);
+}
+window.duels2IsLocalControlledCombatSource=duels2IsLocalControlledCombatSource;
+
+// duels2ResolveBasicAttackProvenance: 피해 문맥이 공통 평타에서 발생했는지 슬롯·태그·실행기 상태로 판정한다. (ctx: 피해 문맥, source: 공격자)
+function duels2ResolveBasicAttackProvenance(ctx={},source=L) {
+  const actionCtx=
+    ctx.actionCtx ||
+    window._hitActionCtx ||
+    source?._actionCtx ||
+    source?._lastBasicAttackContext ||
+    null;
+  const tags=new Set([
+    ..._tagList(ctx.hitTags),
+    ..._tagList(ctx.tags),
+    ..._tagList(actionCtx?.tags)
+  ]);
+  const slot=String(
+    ctx.slot ||
+    actionCtx?.slot ||
+    (tags.has('slot_lmb') ? 'lmb' : '')
+  ).toLowerCase();
+
+  const isBasicAttack=
+    slot==='lmb' ||
+    tags.has('lmb') ||
+    tags.has('slot_lmb') ||
+    tags.has('basic_attack') ||
+    tags.has('basic-attack') ||
+    source?._lmbAttacking===true;
+
+  return {isBasicAttack,slot,tags,actionCtx};
+}
+window.duels2ResolveBasicAttackProvenance=duels2ResolveBasicAttackProvenance;
+
+// duels2TryConsumeStunShotFromDamageApplication: 실제 피해 적용 어댑터가 성공한 즉시 스턴샷을 소비한다. (target: 대상, application: 피해 적용 결과, ctx: 피해 문맥)
+function duels2TryConsumeStunShotFromDamageApplication(target,application,ctx={}) {
+  if(!application?.ok||!target) return false;
+  if(getAugCount('stun_shot')<=0||!L._stunShotReady) return false;
+
+  const source=
+    ctx.source ||
+    ctx.actionCtx?.sourceEntity ||
+    getCombatSource(L);
+  if(!duels2IsLocalControlledCombatSource(source)) return false;
+
+  const provenance=duels2ResolveBasicAttackProvenance(ctx,source);
+  if(!provenance.isBasicAttack) return false;
+
+  return applyStunShot(
+    [target],
+    provenance.actionCtx||getImplicitSkillActionContext('lmb',{
+      sourceEntity:L,
+      source:'damage-application-boundary',
+      tags:['lmb','basic_attack','stun_shot']
+    }),
+    {
+      slot:'lmb',
+      lmbAttack:true,
+      hitTags:Array.from(provenance.tags)
+    }
+  );
+}
+window.duels2TryConsumeStunShotFromDamageApplication=duels2TryConsumeStunShotFromDamageApplication;
+
+// duels2TryConsumeStunShotFromResolvedHit: 실제 HP 감소와 원격 위임 피해를 모두 유효 적중으로 처리한다. (result: 확정 HitResult)
+function duels2TryConsumeStunShotFromResolvedHit(result) {
+  if(!result||!hitResultDidApply(result)) return false;
+  const causedDamage=result.damaged===true||result.delegatedDamage===true;
+  if(!causedDamage) return false;
+  if(getAugCount('stun_shot')<=0||!L._stunShotReady) return false;
+
+  const ctx=result.ctx||{};
+  const actionCtx=ctx.actionCtx||result.actionCtx||window._hitActionCtx||L._actionCtx||null;
+  const source=result.source||ctx.source||actionCtx?.sourceEntity||getCombatSource(L);
+  if(!duels2IsLocalControlledCombatSource(source)) return false;
+
+  const provenance=duels2ResolveBasicAttackProvenance(ctx,source);
+  if(!provenance.isBasicAttack) return false;
+
+  return applyStunShot(
+    [result.target],
+    provenance.actionCtx||actionCtx||getImplicitSkillActionContext('lmb',{
+      sourceEntity:L,
+      source:'resolved-hit-final-boundary',
+      tags:['lmb','basic_attack','stun_shot']
+    }),
+    {
+      slot:'lmb',
+      lmbAttack:true,
+      hitTags:Array.from(provenance.tags)
+    }
+  );
+}
+window.duels2TryConsumeStunShotFromResolvedHit=duels2TryConsumeStunShotFromResolvedHit;
+
 // duels2InstallLegacyCombatEventBridge: 기존 finishHitResult를 감싸 모든 레거시 전투 결과가 이벤트 버스에 남도록 한다.
 function duels2InstallLegacyCombatEventBridge() {
   if (duels2LegacyCombatEventBridgeInstalled) return window.DUELS2_COMBAT_LEGACY_EVENT_BRIDGE;
   const originalFinishHitResult = finishHitResult;
   finishHitResult = function duels2FinishHitResultEventBridge(result) {
-    const finalized = originalFinishHitResult(result);
+    const finalized=originalFinishHitResult(result);
+    duels2TryConsumeStunShotFromResolvedHit(finalized);
     duels2RecordLegacyCombatResult(finalized);
     return finalized;
   };
@@ -14295,27 +14506,38 @@ function applyBleedOnDamageTaken(target, dmg, ctx = {}) {
   emitFx({type:'reikaBurnTick', x:target.x||0, y:target.y||0, r:0, maxR:(getEntityRadius(target)||20)+12, dur:8, maxDur:8, col:'150,0,25'});
 }
 
+const DUELS2_RESISTANCE_STATUS_KEYS = new Set([
+  'freeze','stun','sleep','bind','slow','zap','disc'
+]);
+
+// getEntityResistDur: 대상의 저항 증강 수에 따라 제어 효과 지속시간을 계산한다. (entity: 효과 대상, dur: 원본 지속시간)
 function getEntityResistDur(entity, dur) {
-  if (!dur) return dur;
-  const count = getEntityAugCount(entity, 'resistance');
-  return count > 0 ? dur * Math.max(0.1, 1 - (AUG_VALS.resistance.ccReduction/100) * count) : dur;
+  const base=Math.max(0,Number(dur)||0);
+  if(base<=0 || !entity) return base;
+  const count=Math.max(0,Number(getEntityAugCount(entity,'resistance'))||0);
+  if(count<=0) return base;
+  const reduction=(Number(AUG_VALS.resistance.ccReduction)||0)/100;
+  return base*Math.max(0.1,1-reduction*count);
 }
 
+// duels2ResolveStatusDurationForTarget: 공통 상태 적용 직전에 저항을 정확히 한 번 반영한다. (target: 대상, id: 상태 키, dur: 원본 지속시간, ctx: 적용 문맥, opt: 적용 옵션)
+function duels2ResolveStatusDurationForTarget(target,id,dur,ctx={},opt={}) {
+  const base=Math.max(0,Number(dur)||0);
+  if(base<=0) return 0;
+  if(!DUELS2_RESISTANCE_STATUS_KEYS.has(String(id||''))) return base;
+  if(opt.resistanceApplied===true || ctx.resistanceApplied===true) return base;
+  return getEntityResistDur(target,base);
+}
+window.duels2ResolveStatusDurationForTarget=duels2ResolveStatusDurationForTarget;
+
+// normalizeCCForPlayerRuntime: CC payload 구조와 넉백 방향만 정규화하며 지속시간 저항은 최종 상태 라우터가 담당한다. (target: 대상, cc: CC payload, source: 원인, ctx: 문맥)
 function normalizeCCForPlayerRuntime(target, cc, source = L, ctx = {}) {
   if (!target || !cc) return null;
-  const out = {...cc};
-  if (cc.freezeDur) out.freezeDur = getEntityResistDur(target, cc.freezeDur);
-  if (cc.stunDur) out.stunDur = getEntityResistDur(target, cc.stunDur);
-  if (cc.sleepDur) out.sleepDur = getEntityResistDur(target, cc.sleepDur);
-  if (cc.bindDur) out.bindDur = getEntityResistDur(target, cc.bindDur);
-  if (cc.slowDur) out.slowDur = getEntityResistDur(target, cc.slowDur);
-  if (cc.zapDur) out.zapDur = getEntityResistDur(target, cc.zapDur);
-  if (cc.discDur) out.discDur = getEntityResistDur(target, cc.discDur);
-  // BURN/POISON/BLEED/받피증 같은 지속 상태는 기존 규칙처럼 저항으로 길이를 줄이지 않는다.
-  if (out.knockbackPower !== undefined && out.knockbackAngle === undefined) {
-    const _ox = Number.isFinite(out.originX) ? out.originX : (source?.x || L.x);
-    const _oy = Number.isFinite(out.originY) ? out.originY : (source?.y || L.y);
-    out.knockbackAngle = Math.atan2((target.y || 0) - _oy, (target.x || 0) - _ox);
+  const out={...cc};
+  if(out.knockbackPower!==undefined && out.knockbackAngle===undefined){
+    const ox=Number.isFinite(out.originX)?out.originX:(source?.x||L.x);
+    const oy=Number.isFinite(out.originY)?out.originY:(source?.y||L.y);
+    out.knockbackAngle=Math.atan2((target.y||0)-oy,(target.x||0)-ox);
   }
   return out;
 }
@@ -14325,7 +14547,8 @@ function sendCCToRemotePlayerOwner(target, cc, source = L, ctx = {}) {
   const targetPid = getPlayerPid(target);
   const sourcePid = getPlayerPid(source) || getPlayerPid(L) || DUELS2_PLAYER_REGISTRY.localPid || 'P1';
   if (!targetPid) return false;
-  const payload = normalizeCCForPlayerRuntime(target, cc, source, ctx) || {...cc};
+  // 원본 지속시간을 owner에게 전달한다. 저항은 실제 대상 클라이언트의 최종 상태 라우터에서 한 번만 계산한다.
+  const payload=normalizeCCForPlayerRuntime(target,cc,source,ctx)||{...cc};
   // 상태이상과 강제이동을 하나의 권한 패킷으로 보낸다. 분리 패킷의 순서 역전이나 일부 누락으로
   // 넉백만 사라지는 현상을 막고, 실제 source/target 식별자를 그대로 보존한다.
   send({
@@ -14348,18 +14571,24 @@ function applyPlayerRuntimeCC(target, cc, source = L, ctx = {}) {
   if(!targetable && !hasKnockback) return false;
   if(target.alive===false||target.isAlive===false||getEntityHealth(target)<=0) return false;
 
-  // 실제 원격 플레이어에게는 원본 지속시간을 owner에게 보내고, 로컬 프록시에는 저항 적용된 CC를 표시한다.
-  sendCCToRemotePlayerOwner(target, cc, source, ctx);
-  const normalized = normalizeCCForPlayerRuntime(target, cc, source, ctx);
-  if (!normalized) return false;
-
-  // 로컬 플레이어에게 들어오는 네트워크 CC의 DOT는 owner 쪽에서만 피해를 계산한다.
-  const localCtx = {...ctx, target, playerRuntimeCC:true};
-  if (target === L && !ctx.fromDev && (normalized.burnDur || normalized.poisonDur || normalized.bleedDur || normalized.freezeDur)) {
-    localCtx.fromNetwork = ctx.fromNetwork === true ? true : ctx.fromNetwork;
+  // 실제 원격 플레이어의 CC 종료시각은 피격자(owner)가 자신의 저항을 적용한 뒤 state 스냅샷으로 확정한다.
+  // 공격자 화면에서 상대 프록시에 추정 지속시간을 먼저 적용하면 실제 행동 제한과 표시 시간이 달라진다.
+  const sentToOwner=sendCCToRemotePlayerOwner(target,cc,source,ctx);
+  if(target!==L && !_trainingMode && !ctx.fromNetwork){
+    target._ccAuthorityPendingAt=performance.now();
+    target._ccAuthorityPendingKeys=legacyCCKeys(cc);
+    if(window._devUnlocked) recordCombatLog('ccDealt',{...cc,authorityPending:true});
+    return sentToOwner;
   }
-  applyTargetCCState(target, normalized, source, localCtx);
-  if (window._devUnlocked) recordCombatLog(target === L ? 'ccTaken' : 'ccDealt', normalized);
+
+  const normalized=normalizeCCForPlayerRuntime(target,cc,source,ctx);
+  if(!normalized) return false;
+  const localCtx={...ctx,target,playerRuntimeCC:true};
+  if(target===L && !ctx.fromDev && (normalized.burnDur||normalized.poisonDur||normalized.bleedDur||normalized.freezeDur)){
+    localCtx.fromNetwork=ctx.fromNetwork===true?true:ctx.fromNetwork;
+  }
+  applyTargetCCState(target,normalized,source,localCtx);
+  if(window._devUnlocked) recordCombatLog(target===L?'ccTaken':'ccDealt',normalized);
   return true;
 }
 
@@ -17726,26 +17955,76 @@ function duels2RouteCommitStatusRuntimeEnd(target, key, end, extra = {}, opt = {
 
 // duels2RouteApplyUnifiedStatus: 일반/특수 상태 적용 입구를 하나로 정리한다. (applyUnifiedCC의 실제 책임)
 function duels2RouteApplyUnifiedStatus(target, id, dur, source = L, ctx = {}, opt = {}) {
-  if (!target || !id || !dur) return false;
+  if(!target||!id||!dur) return false;
   ensureCombatTargetRuntime(target);
-  const route = opt.route || 'status.apply-route';
-  const reason = opt.reason || 'apply-unified-cc';
-  if (duels2IsSpecialAppliedStatus(id)) {
-    const applied = duels2RouteApplySpecialStatus(target, id, dur, source, ctx, {...opt, reason, route});
+  const route=opt.route||'status.apply-route';
+  const reason=opt.reason||'apply-unified-cc';
+  const originalDuration=Math.max(0,Number(dur)||0);
+  const effectiveDuration=duels2ResolveStatusDurationForTarget(
+    target,
+    id,
+    originalDuration,
+    ctx,
+    opt
+  );
+  if(effectiveDuration<=0) return false;
+
+  const routedOpt={
+    ...opt,
+    resistanceApplied:true,
+    originalDuration,
+    effectiveDuration,
+    reason,
+    route
+  };
+  const routedCtx={...ctx,resistanceApplied:true};
+
+  if(duels2IsSpecialAppliedStatus(id)){
+    const applied=duels2RouteApplySpecialStatus(
+      target,
+      id,
+      effectiveDuration,
+      source,
+      routedCtx,
+      routedOpt
+    );
     duels2RecordStatusApplyEndResponsibility({
-      type:'status.apply-entry.special', operation:'apply', key:id, route, reason,
-      target:duels2GetStatusMutationIdentity?.(target), duration:dur, applied:!!applied,
+      type:'status.apply-entry.special',
+      operation:'apply',
+      key:id,
+      route,
+      reason,
+      target:duels2GetStatusMutationIdentity?.(target),
+      duration:effectiveDuration,
+      originalDuration,
+      resistanceReduced:effectiveDuration<originalDuration,
+      applied:!!applied
     });
     return applied;
   }
-  const now = performance.now();
-  const extra = duels2RouteBuildStatusExtra(id, opt, ctx, {reason, route});
-  const committed = duels2RouteCommitStatusRuntimeEnd(target, id, now + dur, extra, {reason, key:id, route, now});
-  // DMG TAKEN은 statuses.vuln을 calculateDamage가 직접 읽는다. modifier 중복 적용을 피한다.
-  duels2RouteApplyStatusSideEffects?.(target, id, extra, {reason, key:id, route});
+
+  const now=performance.now();
+  const extra=duels2RouteBuildStatusExtra(id,routedOpt,routedCtx,{reason,route});
+  const committed=duels2RouteCommitStatusRuntimeEnd(
+    target,
+    id,
+    now+effectiveDuration,
+    extra,
+    {reason,key:id,route,now}
+  );
+  duels2RouteApplyStatusSideEffects?.(target,id,extra,{reason,key:id,route});
   duels2RecordStatusApplyEndResponsibility({
-    type:'status.apply-entry.standard', operation:'apply', key:id, route, reason,
-    target:duels2GetStatusMutationIdentity?.(target), duration:dur, committed:!!committed, extraKeys:Object.keys(extra || {}),
+    type:'status.apply-entry.standard',
+    operation:'apply',
+    key:id,
+    route,
+    reason,
+    target:duels2GetStatusMutationIdentity?.(target),
+    duration:effectiveDuration,
+    originalDuration,
+    resistanceReduced:effectiveDuration<originalDuration,
+    committed:!!committed,
+    extraKeys:Object.keys(extra||{})
   });
   return committed;
 }
@@ -18964,16 +19243,46 @@ function syncLegacyBuffVisuals(now = performance.now()) {
 
   syncTeamSupportZoneBuffs(now);
 
-  // 상대 상태 패킷으로 확인 가능한 버프도 같은 표시 시스템에 태운다.
-  if (R?.erapabiFortify) applyBuffStatus(R, 'def', Math.round((1-duels2GetSkillBalance('erapabi','rmb').reduction)*100), 250, {sourceId:'peer_erapabi_def', id:'peer_erapabi_def'}); else clearBuffStatus(R, 'peer_erapabi_def');
-  if (R?.fortressActive) applyBuffStatus(R, 'def', AUG_VALS.fortress.reduction, 250, {sourceId:'peer_fortress_def', id:'peer_fortress_def'}); else clearBuffStatus(R, 'peer_fortress_def');
-  if ((R?.nsonyaStacks||0) >= 1) {
-    applyBuffStatus(R, 'spd', Math.round((duels2GetSkillBalance('nsonya','rmb').speedMult-1)*100), 250, {sourceId:'peer_nsonya_spd', id:'peer_nsonya_spd', hidden:false});
-    if ((R?.nsonyaStacks||0) >= 2) applyBuffStatus(R, 'stam_regen', Math.round((duels2GetSkillBalance('nsonya','rmb').stamRegenMult-1)*100), 250, {sourceId:'peer_nsonya_stam_regen', id:'peer_nsonya_stam_regen', hidden:false}); else clearBuffStatus(R, 'peer_nsonya_stam_regen');
-    if ((R?.nsonyaStacks||0) >= 3) applyBuffStatus(R, 'regen_delay', Math.round(duels2GetSkillBalance('nsonya','rmb').regenIdleReduce/1000*20), 250, {sourceId:'peer_nsonya_regen_delay', id:'peer_nsonya_regen_delay', hidden:false}); else clearBuffStatus(R, 'peer_nsonya_regen_delay');
-    applyBuffStatus(R,'nsonya_stage',R.nsonyaStacks,250,{sourceId:'peer_nsonya_stage',id:'peer_nsonya_stage',label:'',suffix:'',signMode:'none',text:romanStage(R.nsonyaStacks), hidden:true});
-  } else { clearBuffStatus(R, 'peer_nsonya_spd'); clearBuffStatus(R,'peer_nsonya_stam_regen'); clearBuffStatus(R,'peer_nsonya_regen_delay'); clearBuffStatus(R,'peer_nsonya_stage'); }
-  if (R?._syaInvisible) applyBuffStatus(R, 'spd', Math.round((duels2GetSkillBalance('sya','rmb').speedBoost-1)*100), 250, {sourceId:'peer_sya_spd', id:'peer_sya_spd'}); else clearBuffStatus(R, 'peer_sya_spd');
+  // 상대 상태 패킷으로 확인 가능한 버프는 실제 활성 원격 엔티티에서 표시한다.
+  const peerVisualEntity=duels2GetPrimaryRemoteOpponent?.()||R||null;
+  if(peerVisualEntity?.erapabiFortify){
+    applyBuffStatus(peerVisualEntity,'def',Math.round((1-duels2GetSkillBalance('erapabi','rmb').reduction)*100),500,{sourceId:'peer_erapabi_def',id:'peer_erapabi_def'});
+  }else if(peerVisualEntity){
+    clearBuffStatus(peerVisualEntity,'peer_erapabi_def');
+  }
+
+  const fortressVisualActive=!!(
+    peerVisualEntity?.fortressActive ||
+    (
+      peerVisualEntity?._fortressRemoteLastTrueAt &&
+      now-peerVisualEntity._fortressRemoteLastTrueAt<420
+    )
+  );
+  if(fortressVisualActive){
+    // 기존 엔트리를 유지한 채 만료시간만 연장해 글자 객체가 제거·재생성되지 않게 한다.
+    applyBuffStatus(
+      peerVisualEntity,
+      'def',
+      AUG_VALS.fortress.reduction,
+      520,
+      {
+        sourceId:'peer_fortress_def',
+        id:'peer_fortress_def',
+        label:'DEF',
+        hidden:false
+      }
+    );
+  }else if(peerVisualEntity){
+    clearBuffStatus(peerVisualEntity,'peer_fortress_def');
+  }
+
+  if ((peerVisualEntity?.nsonyaStacks||0) >= 1) {
+    applyBuffStatus(peerVisualEntity, 'spd', Math.round((duels2GetSkillBalance('nsonya','rmb').speedMult-1)*100), 250, {sourceId:'peer_nsonya_spd', id:'peer_nsonya_spd', hidden:false});
+    if ((peerVisualEntity?.nsonyaStacks||0) >= 2) applyBuffStatus(peerVisualEntity, 'stam_regen', Math.round((duels2GetSkillBalance('nsonya','rmb').stamRegenMult-1)*100), 250, {sourceId:'peer_nsonya_stam_regen', id:'peer_nsonya_stam_regen', hidden:false}); else clearBuffStatus(peerVisualEntity, 'peer_nsonya_stam_regen');
+    if ((peerVisualEntity?.nsonyaStacks||0) >= 3) applyBuffStatus(peerVisualEntity, 'regen_delay', Math.round(duels2GetSkillBalance('nsonya','rmb').regenIdleReduce/1000*20), 250, {sourceId:'peer_nsonya_regen_delay', id:'peer_nsonya_regen_delay', hidden:false}); else clearBuffStatus(peerVisualEntity, 'peer_nsonya_regen_delay');
+    applyBuffStatus(peerVisualEntity,'nsonya_stage',peerVisualEntity.nsonyaStacks,250,{sourceId:'peer_nsonya_stage',id:'peer_nsonya_stage',label:'',suffix:'',signMode:'none',text:romanStage(peerVisualEntity.nsonyaStacks), hidden:true});
+  } else { clearBuffStatus(peerVisualEntity, 'peer_nsonya_spd'); clearBuffStatus(peerVisualEntity,'peer_nsonya_stam_regen'); clearBuffStatus(peerVisualEntity,'peer_nsonya_regen_delay'); clearBuffStatus(peerVisualEntity,'peer_nsonya_stage'); }
+  if (peerVisualEntity?._syaInvisible) applyBuffStatus(peerVisualEntity, 'spd', Math.round((duels2GetSkillBalance('sya','rmb').speedBoost-1)*100), 250, {sourceId:'peer_sya_spd', id:'peer_sya_spd'}); else clearBuffStatus(peerVisualEntity, 'peer_sya_spd');
 }
 
 function getBuffDisplayEntries(t, now = performance.now()) {
@@ -19092,29 +19401,47 @@ function getCCDisplayEntries(t, now = performance.now()) {
   return entries;
 }
 
+// duels2GetStaticStatusDisplayPriority: 효과 종류와 ID만으로 변하지 않는 정렬 우선순위를 만든다. (entry: 상태 표시 항목)
+function duels2GetStaticStatusDisplayPriority(entry) {
+  const kind=String(entry?.kind||'status');
+  const id=String(entry?.id||entry?.label||'unknown');
+  const label=String(entry?.label||'');
+  return `${kind}:${id}:${label}`;
+}
+
 function getCombinedStatusEntries(t, now = performance.now()) {
-  const debuffs = getCCDisplayEntries(t, now);
-  const buffs = getBuffDisplayEntries(t, now).map(b => ({
-    kind:'buff', id:b.kind, label:b.label, color:b.color, percent:b.percent, suffix:b.suffix || BUFF_VIS[b.kind]?.suffix || '%',
-    signMode:b.signMode || BUFF_VIS[b.kind]?.signMode || '', text:b.text || null, end:b.expiresAt || 0,
-    remaining:b.expiresAt ? b.expiresAt - now : -1, appliedAt:b.appliedAt || 0, zone:false
+  const debuffs=getCCDisplayEntries(t,now);
+  const buffs=getBuffDisplayEntries(t,now).map(b=>({
+    kind:'buff',
+    id:b.kind,
+    label:b.label,
+    color:b.color,
+    percent:b.percent,
+    suffix:b.suffix||BUFF_VIS[b.kind]?.suffix||'%',
+    signMode:b.signMode||BUFF_VIS[b.kind]?.signMode||'',
+    text:b.text||null,
+    end:b.expiresAt||0,
+    remaining:b.expiresAt?b.expiresAt-now:-1,
+    appliedAt:b.appliedAt||0,
+    zone:false
   }));
-  const entries = [...debuffs, ...buffs];
-  entries.sort((a,b)=>{
-    const ar = a.remaining < 0 ? -Infinity : a.remaining;
-    const br = b.remaining < 0 ? -Infinity : b.remaining;
-    if (br !== ar) return br - ar;
-    return (b.appliedAt || 0) - (a.appliedAt || 0);
-  });
+
+  const entries=[...debuffs,...buffs];
+  for(const entry of entries){
+    entry._staticDisplayPriority=duels2GetStaticStatusDisplayPriority(entry);
+  }
+
+  // 남은 시간, 원본 지속시간, 부여 시각, 수집 순서를 정렬에 사용하지 않는다.
+  // 같은 활성 효과 조합은 모든 프레임에서 항상 완전히 동일한 순서를 가진다.
+  entries.sort((a,b)=>
+    String(a._staticDisplayPriority).localeCompare(String(b._staticDisplayPriority))
+  );
   return entries;
 }
 
 function getRecentActiveStatusColor(t, now = performance.now()) {
-  const entries = getCombinedStatusEntries(t, now);
-  if (!entries.length) return null;
-  let newest = entries[0];
-  for (const e of entries) if ((e.appliedAt || 0) >= (newest.appliedAt || 0)) newest = e;
-  return newest.color;
+  const entries=getCombinedStatusEntries(t,now);
+  return entries.length?entries[0].color:null;
 }
 
 function drawEntityBuffStack(t, baseY = null) {
@@ -21961,7 +22288,19 @@ function duels2ResolveDamageTargetPath(targets, amount, opt = {}) {
       window._hitTargets = windowTargets;
       window._hitTarget = windowTargets[0] || null;
     }
-    if (opt.applyStunShot === true && windowTargets.length > 0 && source === L) applyStunShot();
+    const stunActionCtx=
+      actionCtx ||
+      getActiveHitActionContext() ||
+      getImplicitSkillActionContext(
+        opt.slot || opt.ctx?.slot || (opt.lmbAttack===false?'skill':'lmb'),
+        {sourceEntity:L,source:opt.reason||route,tags:hitTags||[]}
+      );
+    const isLocalBasicAttack=
+      source===L &&
+      windowTargets.length>0 &&
+      (opt.lmbAttack===true || stunActionCtx?.slot==='lmb' || slot==='lmb') &&
+      opt.disableStunShot!==true;
+    // 스턴샷 소비는 finishHitResult 최종 경계에서 모든 피해 경로에 공통 적용한다.
     duels2RecordDamageTargetPath({
       type:'damage.target-path.resolve',
       route,
@@ -22442,8 +22781,37 @@ function duels2RouteApplyDamageToTarget(target, amount, ctx = {}, opt = {}) {
   // 모든 실제 피해 적용 경로의 최종 공통 경계에서 피격음을 보장한다.
   // 같은 렌더 프레임의 중복 요청은 Audio Runtime이 종류별 한 번으로 합친다.
   const _actualAppliedDamage = Math.max(0, Number(result?.actualDamage ?? (hpBefore - hpAfter)) || 0);
-  if (result?.ok && (_actualAppliedDamage > 0 || result?.delegated === true || Number(result?.amount || 0) > 0)) {
+  if(result?.ok&&(_actualAppliedDamage>0||result?.delegated===true||Number(result?.amount||0)>0)){
     playHitSfx?.();
+
+    // 상위 공통 피해 경로가 레거시 숫자를 억제한 경우 여기서 단 한 번 표시한다.
+    if(ctx?.suppressLegacyDamageFeedback&&typeof _addDmgNum==='function'){
+      const targetKind=String(getTargetKind?.(target)||target?.kind||target?.type||'');
+      const isNonPlayerTarget=targetKind!=='player'&&!target?.playerLike;
+      if(isNonPlayerTarget){
+        const shownDamage=Math.max(
+          0,
+          Math.round(_actualAppliedDamage||Number(result?.amount)||Number(amount)||0)
+        );
+        if(shownDamage>0){
+          const pos=duels2GetVisibleCombatPosition?.(target)||{
+            x:Number(target?.x)||0,
+            y:Number(target?.y)||0
+          };
+          const radius=Math.max(0,Number(target?.radius??target?.r??20)||20);
+          _addDmgNum(
+            'dealt',
+            shownDamage,
+            pos.x,
+            pos.y-radius-10,
+            getHitTargetKey?.(target)
+          );
+        }
+      }
+    }
+
+    // HitResult 생성 여부와 무관하게 실제 피해 어댑터 성공 경계에서 평타 증강을 처리한다.
+    duels2TryConsumeStunShotFromDamageApplication?.(target,result,ctx);
   }
   duels2RecordDamageApplicationBranch({
     type:'damage.apply-adapter',
@@ -24860,6 +25228,11 @@ duels2RegisterSimpleGameplayEventHandler('roundScoreSync', d => {
   matchState.localWins = Number(d.peerWins) || 0;
   matchState.peerWins = Number(d.localWins) || 0;
   if (Number.isFinite(Number(d.round))) matchState.round = Math.max(matchState.round || 1, Number(d.round));
+  const pending=matchState._pendingAuthorityRoundOutcome;
+  if(pending&&token>=pending.roundToken){
+    pending.scoreSynced=true;
+    duels2ResolvePendingDuelRoundOutcome();
+  }
   updateRoundScoreDisplay?.();
   const sub = document.getElementById('round-result-sub');
   if (sub) sub.textContent = `${matchState.localWins} — ${matchState.peerWins}`;
@@ -25093,6 +25466,7 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     doRematch({mode:'full-rematch',reason:'rematch-accept'});
   }, 520);
   duels2RegisterSimpleGameplayEventHandler('betweenData', d => {
+    if(matchState._matchOver||matchState._pendingAuthorityRoundOutcome?.waitingMatchOver) return;
     matchState._charChoices=Array.isArray(d.charChoices)?d.charChoices:[];
     matchState._augChoices=Array.isArray(d.augChoices)?d.augChoices:[];
     matchState.lastWinner=d.winner==='peer'?'local':'peer'; showBetweenScreen();
@@ -25101,10 +25475,18 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     matchState._peerSelectedChar=d.charId??null; matchState._peerSelectedAug=d.augId??null; matchState._peerBetweenReady=true;
     const peerPid=duels2GetPrimaryOpponentPid?.()||'P2';
     if(Number.isFinite(Number(d.masteryPoints))) duels2SetRemoteCharacterMastery(peerPid,d.masteryCharId||d.charId||peerCharId,d.masteryPoints);
-    if(d.augId){matchState.peerAugments.push(d.augId);matchState._pendingPeerAugHudId=d.augId;}
+    if(d.augId){
+      const selectionKey=`${Math.max(1,Number(matchState.round)||1)}:${d.augId}`;
+      if(matchState._lastPeerBetweenAugSelectionKey!==selectionKey){
+        matchState.peerAugments.push(d.augId);
+        matchState._lastPeerBetweenAugSelectionKey=selectionKey;
+      }
+      matchState._pendingPeerAugHudId=d.augId;
+    }
     renderAugHud?.(); refreshLiveHud?.(); updatePeerAugDisplay(); checkBetweenBothReady();
   }, 520);
   duels2RegisterSimpleGameplayEventHandler('roundStart', d => {
+    if(matchState._matchOver||matchState._pendingAuthorityRoundOutcome?.waitingMatchOver) return;
     currentMap=_gameMaps[d.mapIdx??0]??_gameMaps[0];
     if(!matchState._betweenStarted){matchState._betweenStarted=true;if(matchState._peerSelectedChar)peerCharId=matchState._peerSelectedChar;updatePeerAugDisplay();}
     startBetweenCountdown(3);
@@ -25123,7 +25505,7 @@ function duels2RegisterExtendedLegacyEventHandlers() {
       }
       updateRoundScoreDisplay?.();
     }
-    showMatchOver(localPid === d.winnerPid);
+    duels2FinalizeMatchRuntime(localPid===d.winnerPid,{winnerPid:d.winnerPid,roundToken:d.roundToken});
   }, 520);
   duels2RegisterSimpleGameplayEventHandler('fx', d => {
     const fx={...d.fx,_receivedAt:performance.now()};
@@ -25173,13 +25555,36 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     const e=duels2ResolvePacketSourceEntity(d);e._levinaSpear={x:d.x,y:d.y,dx:d.dx,dy:d.dy,speed:d.speed,radius:d.radius,birthTime:d.birthTime||performance.now(),pathRadius:d.pathRadius,knockbackPower:d.knockbackPower,type:d.type,state:d.state||'flying',waypoints:(d.waypoints||[]).map(w=>({x:w.x,y:w.y,kind:w.kind||'lmb'})),_hitCd:{},_retHitCd:{}};
   }, 510);
   duels2RegisterSimpleGameplayEventHandler('levinaAddWP', d => {const e=duels2ResolvePacketSourceEntity(d);if(e._levinaSpear){e._levinaSpear.waypoints.push({x:d.x,y:d.y,kind:d.kind||'lmb'});e._levinaSpear.state='flying';}}, 510);
-  duels2RegisterSimpleGameplayEventHandler('levinaSpearDir', d => {
-    const e=duels2ResolvePacketSourceEntity(d);if(!e._levinaSpear&&d.type)e._levinaSpear={x:d.x,y:d.y,dx:d.dx,dy:d.dy,speed:d.speed||12,radius:d.radius||12,type:d.type||'lmb',state:d.state||'flying',birthTime:d.birthTime||performance.now(),pathRadius:d.pathRadius,knockbackPower:d.knockbackPower,waypoints:[],_hitSeg:new Set(),_retHitSeg:new Set()};
-    if(e._levinaSpear){e._levinaSpear.x=d.x;e._levinaSpear.y=d.y;e._levinaSpear.dx=d.dx;e._levinaSpear.dy=d.dy;e._levinaSpear.state=d.state||'flying';}
-  }, 510);
+  duels2RegisterSimpleGameplayEventHandler('levinaSpearDir',d=>{
+    const e=duels2ResolvePacketSourceEntity(d);
+    if(!e._levinaSpear&&d.type){
+      e._levinaSpear={
+        x:d.x,y:d.y,netX:d.x,netY:d.y,
+        dx:d.dx,dy:d.dy,speed:d.speed||12,radius:d.radius||12,
+        type:d.type||'lmb',state:d.state||'flying',
+        birthTime:d.birthTime||performance.now(),
+        pathRadius:d.pathRadius,knockbackPower:d.knockbackPower,
+        waypoints:[],_hitSeg:new Set(),_retHitSeg:new Set()
+      };
+    }
+    if(e._levinaSpear){
+      duels2PushRemoteLevinaSpearSample(e._levinaSpear,d,'levinaSpearDir');
+    }
+  },510);
   duels2RegisterSimpleGameplayEventHandler('levinaSpearClear', d => {duels2ResolvePacketSourceEntity(d)._levinaSpear=null;}, 510);
   duels2RegisterSimpleGameplayEventHandler('levinaSpearParried', d => {if(L._levinaSpear){L._levinaSpear.state='returning';L._levinaSpear.waypoints=[];L._levinaSpear.x=d.x;L._levinaSpear.y=d.y;}}, 510);
-  duels2RegisterSimpleGameplayEventHandler('ruvuHammerThrow', d => {const e=duels2ResolvePacketSourceEntity(d);e._ruvuHammer={x:d.x,y:d.y,dx:d.dx,dy:d.dy,speed:d.speed,radius:d.radius,maxRange:d.maxRange,traveled:0,returning:false,returnStart:0,returnSX:d.x,returnSY:d.y};}, 510);
+  duels2RegisterSimpleGameplayEventHandler('ruvuHammerThrow',d=>{
+    const e=duels2ResolvePacketSourceEntity(d);
+    e._ruvuHammer={
+      x:d.x,y:d.y,tx:d.x,ty:d.y,
+      dx:d.dx,dy:d.dy,speed:d.speed,radius:d.radius,maxRange:d.maxRange,
+      traveled:0,_stopped:false,returning:false,
+      returnStart:0,returnSX:d.x,returnSY:d.y
+    };
+  },510);
+  duels2RegisterSimpleGameplayEventHandler('ruvuHammerClear',d=>{
+    duels2ResolvePacketSourceEntity(d)._ruvuHammer=null;
+  },510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerParried', d => {if(L._ruvuHammer&&!L._ruvuHammer.returning){L._ruvuHammer.returning=true;L._ruvuHammer.returnStart=performance.now();L._ruvuHammer.returnSX=d.x;L._ruvuHammer.returnSY=d.y;L._ruvuHammer._returnHit=true;L._ruvuHammer._hitR=true;clearTimeout(L._ruvuHammer._timer);}}, 510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerHitMe', d => {_addDmgNum('dealt',Math.round(d.damage),R.x,R.y-R.radius-10,getHitTargetKey(R));addShake(Math.min(4+d.damage*0.12,10),14);playHitSfx();applyLifesteal(d.damage);applyPoison(d.damage);}, 510);
   duels2RegisterSimpleGameplayEventHandler('pull', d => {if(!L.burrowing&&!L.dodging)applyTargetMoveTo(L,d.tx,d.ty,d.dur||220);}, 510);
@@ -25228,7 +25633,12 @@ duels2RegisterSimpleGameplayEventHandler('projectileLifecycleState', d => {
   }
   return false;
 }, 516);
-  duels2RegisterSimpleGameplayEventHandler('minionHit', d => {const m=localMinions.find(x=>x.id===d.id);if(m)damageLocalMinion(m,d.damage,d.cc);}, 510);
+  duels2RegisterSimpleGameplayEventHandler('minionHit',d=>{
+    const m=localMinions.find(x=>x.id===d.id);
+    if(!m) return false;
+    const sourceEntity=duels2ResolvePacketSourceEntity?.(d)||R;
+    return damageLocalMinion(m,d.damage,d.cc,sourceEntity);
+  },510);
   duels2RegisterSimpleGameplayEventHandler('minionDied', d => {const i=peerMinions.findIndex(x=>x.id===d.id);if(i!==-1)peerMinions.splice(i,1);}, 510);
 }
 
@@ -25566,12 +25976,18 @@ function onData(d) {
       matchState.localWins = Number(d.peerWins) || 0;
       matchState.peerWins = Number(d.localWins) || 0;
       if (Number.isFinite(Number(d.round))) matchState.round = Math.max(matchState.round || 1, Number(d.round));
+      const pending=matchState._pendingAuthorityRoundOutcome;
+      if(pending&&token>=pending.roundToken){
+        pending.scoreSynced=true;
+        duels2ResolvePendingDuelRoundOutcome();
+      }
       updateRoundScoreDisplay?.();
       const sub = document.getElementById('round-result-sub');
       if (sub) sub.textContent = `${matchState.localWins} — ${matchState.peerWins}`;
       break;
     }
     case 'betweenData':
+      if(matchState._matchOver||matchState._pendingAuthorityRoundOutcome?.waitingMatchOver) break;
       matchState._charChoices  = Array.isArray(d.charChoices) ? d.charChoices : [];
       matchState._augChoices   = Array.isArray(d.augChoices) ? d.augChoices : [];
       matchState.lastWinner    = d.winner === 'peer' ? 'local' : 'peer'; // 호스트 기준 반전
@@ -25582,11 +25998,20 @@ function onData(d) {
       matchState._peerSelectedAug  = d.augId  ?? null;
       matchState._peerBetweenReady = true;
       // 증강 추가
-      if (d.augId) { matchState.peerAugments.push(d.augId); matchState._pendingPeerAugHudId = d.augId; } renderAugHud?.(); refreshLiveHud?.();
+      if(d.augId){
+        const selectionKey=`${Math.max(1,Number(matchState.round)||1)}:${d.augId}`;
+        if(matchState._lastPeerBetweenAugSelectionKey!==selectionKey){
+          matchState.peerAugments.push(d.augId);
+          matchState._lastPeerBetweenAugSelectionKey=selectionKey;
+        }
+        matchState._pendingPeerAugHudId=d.augId;
+      }
+      renderAugHud?.(); refreshLiveHud?.();
       updatePeerAugDisplay();
       checkBetweenBothReady(); break;
     // ── 라운드 시작 동기화 (호스트→참가자)
     case 'roundStart':
+      if(matchState._matchOver||matchState._pendingAuthorityRoundOutcome?.waitingMatchOver) break;
       currentMap = _gameMaps[d.mapIdx ?? 0] ?? _gameMaps[0]; // 3. 맵 변경
       if (!matchState._betweenStarted) {
         matchState._betweenStarted = true;
@@ -25609,7 +26034,7 @@ function onData(d) {
         }
         updateRoundScoreDisplay?.();
       }
-      showMatchOver(localPid === d.winnerPid);
+      duels2FinalizeMatchRuntime(localPid===d.winnerPid,{winnerPid:d.winnerPid,roundToken:d.roundToken});
       break;
     }
     case 'debugMapChange':
@@ -25769,11 +26194,8 @@ function onData(d) {
           pathRadius:d.pathRadius, knockbackPower:d.knockbackPower,
           waypoints:[], _hitSeg:new Set(), _retHitSeg:new Set()};
       }
-      if (sourceEntity._levinaSpear) {
-        // 위치 보정 + 방향 업데이트 (데드 레커닝 수정)
-        sourceEntity._levinaSpear.x = d.x; sourceEntity._levinaSpear.y = d.y;
-        sourceEntity._levinaSpear.dx = d.dx; sourceEntity._levinaSpear.dy = d.dy;
-        sourceEntity._levinaSpear.state = d.state||'flying';
+      if(sourceEntity._levinaSpear){
+        duels2PushRemoteLevinaSpearSample(sourceEntity._levinaSpear,d,'levinaSpearDir-switch');
       } break;
     }
     case 'levinaSpearClear': {
@@ -25990,8 +26412,11 @@ function onData(d) {
       }); break;
     // ── 소환수 피해 수신 ──────────────────────────────────────
     case 'minionHit': {
-      const lm = localMinions.find(m => m.id === d.id);
-      if (lm) damageLocalMinion(lm, d.damage, d.cc);
+      const lm=localMinions.find(m=>m.id===d.id);
+      if(lm){
+        const sourceEntity=duels2ResolvePacketSourceEntity?.(d)||R;
+        damageLocalMinion(lm,d.damage,d.cc,sourceEntity);
+      }
       break;
     }
     case 'minionDied': {
@@ -27254,12 +27679,21 @@ const DUELS2_SUMMON_RUNTIME = (() => {
       speed:Number(overrides.speed ?? spec.speed ?? 3) || 0,
       summonSpecId:String(type),
       visualProfile:overrides.visualProfile || spec.visualProfile || 'standard',
-      attackable:overrides.attackable ?? spec.attackable ?? false,
+      attackable:overrides.attackable ?? spec.attackable ?? (maxHp>0),
       targetable:overrides.targetable ?? spec.targetable ?? true,
       _stateData:{},
       ...overrides,
     };
-    normalizeCombatEntityTeam(entity, 'local');
+    // 체력이 있는 소환 엔티티는 명시적인 비전투 오브젝트가 아닌 한 공통 피격 대상이다.
+    const explicitlyNonCombat=
+      entity.damageable===false ||
+      entity.combatObject===false ||
+      entity.nonCombatObject===true ||
+      entity.intangible===true;
+    entity.attackable=!explicitlyNonCombat&&maxHp>0;
+    entity.targetable=!explicitlyNonCombat;
+    if(!entity._stateData||typeof entity._stateData!=='object') entity._stateData={};
+    normalizeCombatEntityTeam(entity,'local');
     _attachTargetMethods(entity);
     localMinions.push(entity);
     spec.onSpawn?.(entity, {runtime:DUELS2_SUMMON_RUNTIME, spec});
@@ -27269,8 +27703,20 @@ const DUELS2_SUMMON_RUNTIME = (() => {
 
   // tick: 공통 강제이동·행동 차단·벽/월드 경계를 처리한 뒤 Spec AI를 실행한다. (entity/dt/physDt/now)
   function tick(entity, dt, physDt, now) {
-    const spec = duels2ResolveSummonSpec(entity?.summonSpecId || entity?.type);
-    if (!entity || !spec) return false;
+    const spec=duels2ResolveSummonSpec(entity?.summonSpecId||entity?.type);
+    if(!entity||!spec) return false;
+
+    const explicitlyNonCombat=
+      entity.damageable===false ||
+      entity.combatObject===false ||
+      entity.nonCombatObject===true ||
+      entity.intangible===true;
+    if(!explicitlyNonCombat&&getEntityMaxHealth(entity)>0){
+      entity.attackable=true;
+      entity.targetable=true;
+      if(typeof entity.applyDamage!=='function') _attachTargetMethods(entity);
+    }
+
     const forced = isForcedTargetMotionActive(entity, now);
     if (forced) applyTargetKnockbackMotion(entity, physDt);
     else syncFreeTargetMotion(entity);
@@ -27317,8 +27763,16 @@ const DUELS2_SUMMON_RUNTIME = (() => {
       id:entity.id, charId:entity.charId, type:entity.type, kind:entity.kind || spec?.entityKind || 'minion',
       summonSpecId:entity.summonSpecId || entity.type,
       x:entity.x, y:entity.y, radius:entity.radius, hp:getEntityHealth(entity), maxHp:getEntityMaxHealth(entity),
-      color:entity.color, speed:entity.speed, ownerId:entity.ownerId, teamId:getTeamId(entity),
-      attackable:entity.attackable === true, targetable:entity.targetable !== false,
+      color:entity.color, speed:entity.speed,
+      ownerId:entity.ownerId,
+      ownerPid:getPlayerPid?.(entity.sourceEntity)||getPlayerPid?.(L)||null,
+      ownerTeamId:getTeamId(entity.sourceEntity)||getTeamId(L)||getTeamId(entity),
+      teamId:getTeamId(entity),
+      attackable:entity.attackable===true,
+      targetable:entity.targetable!==false,
+      damageable:entity.damageable!==false,
+      nonCombatObject:entity.nonCombatObject===true,
+      intangible:entity.intangible===true,
       visualProfile:entity.visualProfile || spec?.visualProfile || 'standard',
     };
     const extra = spec?.serialize?.(entity, options) || {};
@@ -27329,22 +27783,46 @@ const DUELS2_SUMMON_RUNTIME = (() => {
   // hydrateRemote: 수신 스냅샷을 기존 원격 엔티티에 병합하거나 새 엔티티로 복원한다. (snapshot/existing/owner)
   function hydrateRemote(snapshot, existing = null, owner = null) {
     if (!snapshot?.type) return null;
-    const spec = duels2ResolveSummonSpec(snapshot.summonSpecId || snapshot.type);
-    const entity = existing || {};
-    Object.assign(entity, snapshot, {
-      summonSpecId:snapshot.summonSpecId || snapshot.type,
-      visualProfile:snapshot.visualProfile || spec?.visualProfile || 'standard',
-      tx:Number(snapshot.x) || 0,
-      ty:Number(snapshot.y) || 0,
-      kind:snapshot.kind || spec?.entityKind || 'minion',
-      attackable:snapshot.attackable ?? spec?.attackable ?? false,
-      targetable:snapshot.targetable ?? spec?.targetable ?? true,
-      ownerId:snapshot.ownerId || getOwnerId(owner) || 'peer',
-      teamId:snapshot.teamId || getTeamId(owner) || 'peer',
+    const spec=duels2ResolveSummonSpec(snapshot.summonSpecId||snapshot.type);
+    const entity=existing||{};
+
+    // 송신자 기준 local 표시는 수신 측에서 실제 원격 플레이어의 소유·팀으로 변환한다.
+    const remoteOwnerId=
+      getOwnerId(owner) ||
+      getPlayerPid?.(owner) ||
+      snapshot.ownerPid ||
+      snapshot.sourcePid ||
+      'peer';
+    const remoteTeamId=
+      getTeamId(owner) ||
+      owner?.teamId ||
+      snapshot.ownerTeamId ||
+      'peer';
+
+    Object.assign(entity,snapshot,{
+      summonSpecId:snapshot.summonSpecId||snapshot.type,
+      visualProfile:snapshot.visualProfile||spec?.visualProfile||'standard',
+      tx:Number(snapshot.x)||0,
+      ty:Number(snapshot.y)||0,
+      kind:snapshot.kind||spec?.entityKind||'minion',
+      attackable:snapshot.attackable??spec?.attackable??(Number(snapshot.maxHp??snapshot.hp??0)>0),
+      targetable:snapshot.targetable??spec?.targetable??true,
+      ownerId:remoteOwnerId,
+      teamId:remoteTeamId,
+      sourceEntity:owner||entity.sourceEntity||null,
     });
-    normalizeCombatEntityTeam(entity, 'peer');
+    const explicitlyNonCombat=
+      entity.damageable===false ||
+      entity.combatObject===false ||
+      entity.nonCombatObject===true ||
+      entity.intangible===true;
+    const summonMaxHealth=Number(entity.maxHp??entity.maxHealth??entity.hp??entity.health??0);
+    entity.attackable=!explicitlyNonCombat&&summonMaxHealth>0;
+    entity.targetable=!explicitlyNonCombat;
+    if(!entity._stateData||typeof entity._stateData!=='object') entity._stateData={};
+    normalizeCombatEntityTeam(entity,'peer');
     _attachTargetMethods(entity);
-    spec?.hydrate?.(entity, snapshot, {owner, runtime:DUELS2_SUMMON_RUNTIME, spec});
+    spec?.hydrate?.(entity,snapshot,{owner,runtime:DUELS2_SUMMON_RUNTIME,spec});
     bump(snapshot.type, 'hydrated');
     return entity;
   }
@@ -27809,9 +28287,10 @@ function _attachTargetMethods(m) {
   ensureCombatTargetRuntime(m, {kind:m?.isBot ? 'trainingBot' : (m?.kind || m?.type || 'minion'), ownerId:m?.isBot ? 'peer' : (m?.ownerId || 'peer'), teamId:m?.isBot ? getTeamId(R) || 'peer' : (m?.teamId || 'peer')});
   m.applyDamage = function(dmg, ctx = {}) {
     if (this.hp !== undefined && this.hp <= 0) return false;
-    const _src = getDefaultDamageSource(ctx);
-    if (isFriendlyCombatEffect(_src, this, ctx)) return false;
-    ctx = {...ctx, source:_src};
+    const _src=getDefaultDamageSource(ctx);
+    normalizeCombatEntityTeam(this,this.ownerId==='local'?'local':'peer');
+    if(!ctx.authoritativeRemoteDamage&&isFriendlyCombatEffect(_src,this,ctx)) return false;
+    ctx={...ctx,source:_src};
     const _d = getOutgoingAugmentedDamage(dmg, ctx);
     if (this.isBot && !this.isDummyPlayer && !this.isTrainingDummyClone) {
       if (this.peerDebugSpawned && !ctx.fromNetwork && !ctx.silent && typeof send === 'function') {
@@ -27837,10 +28316,18 @@ function _attachTargetMethods(m) {
       if (_trainingMode && _d > 0) duels2TrackTrainingDamageStats(this, _d, {reason:'training-dummy-like-damage'});
       return true;
     }
-    if (!ctx.fromNetwork && !ctx.silent) send({type:'minionHit', id:this.id, damage:_d});
-    damageEntityHealthRaw(this, _d); // 로컬 hp 즉시 감소
-    this.hp = getEntityHealth(this);
-    this._lastDmgAt = performance.now();
+    if(!ctx.fromNetwork&&!ctx.silent) send({
+      type:'minionHit',
+      id:this.id,
+      damage:_d,
+      sourcePid:getPlayerPid?.(_src)||getPlayerPid?.(L)||null
+    });
+    damageEntityHealthRaw(this,_d);
+    const nextHealth=getEntityHealth(this);
+    this.hp=nextHealth;
+    this.health=nextHealth;
+    duels2RouteEntityHealthAliasSync?.(this,{reason:'minion.applyDamage:alias-sync'});
+    this._lastDmgAt=performance.now();
     if(!ctx.suppressLegacyDamageFeedback)_addDmgNum('dealt', Math.round(_d), this.x, this.y-this.radius-10, getHitTargetKey(this));
     addShake(Math.min(4+_d*0.12,10), 14); playHitSfx();
     if (!ctx.noLifesteal) applyLifesteal(_d);
@@ -27874,11 +28361,43 @@ function spawnMinion(charId, type, x, y, overrides = {}) {
 }
 
 // ── 로컬 소환수 피해 처리 ───────────────────────────────────
-function damageLocalMinion(m, dmg, cc) {
-  // legacy wrapper. 실제 처리 경로는 applyDamage/applyCC로 통일한다.
-  if (!m || m.hp <= 0) return;
-  if (dmg > 0) applyDamage(m, dmg, {fromNetwork:true, source:R});
-  if (cc) applyCC(m, cc, R, {fromNetwork:true});
+function damageLocalMinion(m,dmg,cc,sourceEntity=null) {
+  if(!m||getEntityHealth(m)<=0) return false;
+  const source=sourceEntity||R;
+
+  // minionHit은 공격자 측에서 이미 적중을 확정한 권한 패킷이다.
+  // 수신 측의 임시 팀 별칭 때문에 아군 판정으로 다시 차단하지 않는다.
+  if(Number(dmg)>0){
+    const before=getEntityHealth(m);
+    const result=applyDamage(m,Number(dmg),{
+      fromNetwork:true,
+      authoritativeRemoteDamage:true,
+      source,
+      suppressLegacyDamageFeedback:true,
+      noLifesteal:true,
+      noPoison:true
+    });
+    duels2RouteEntityHealthAliasSync?.(m,{
+      reason:'network.minionHit:authoritative-damage-sync'
+    });
+    m.hp=getEntityHealth(m);
+    m.health=getEntityHealth(m);
+    m._lastDmgAt=performance.now();
+    m.hitFlash=6;
+    if(getEntityHealth(m)<=0){
+      m.alive=false;
+      m.isAlive=false;
+    }
+    return !!result||getEntityHealth(m)<before;
+  }
+  if(cc){
+    applyCC(m,cc,source,{
+      fromNetwork:true,
+      authoritativeRemoteDamage:true
+    });
+    return true;
+  }
+  return false;
 }
 
 
@@ -28290,21 +28809,44 @@ function hitRemoteRaw(dmg) {
 }
 
 // ── 스턴샷: 4초마다 다음 평타 0.5초 기절 (평타에서만, 소환수 명중은 무시) ─────
-function applyStunShot() {
-  if (getAugCount('stun_shot') <= 0) return;
-  if (!L._stunShotReady) return;
-  if (!canUseAugmentHookFromContext('stun_shot')) return;
-  const _targets = (window._hitTargets?.length ? window._hitTargets : (window._hitTarget ? [window._hitTarget] : []))
-    .filter(Boolean);
-  if (_targets.length === 0) return;
-  const _uniqTargets = [...new Set(_targets)];
-  L._stunShotReady = false;
-  // 스턴샷은 쿨다운(AUG_VALS.stun_shot.cd)만큼 기절시키는 것이 아니라,
-  // 1중첩 0.3초, 중첩당 +0.3초만 기절시킨다.
-  const _stunDur = 300 * getAugCount('stun_shot');
-  stunRemote(_stunDur, _uniqTargets);
-  const _stunCd = AUG_VALS.stun_shot.cd * 1000; // 중첩으로 쿨다운 단축 없음
-  setTimeout(() => { if (gameOn) L._stunShotReady = true; }, _stunCd);
+// applyStunShot: 실제 피해가 적용된 대상과 공격 문맥을 기준으로 스턴샷을 한 번 소비한다. (targets: 피격 대상 배열, actionCtx: 공격 문맥, opt: slot/lmbAttack/hitTags)
+function applyStunShot(targets = null, actionCtx = null, opt = {}) {
+  const stack=getAugCount('stun_shot');
+  if(stack<=0 || !L._stunShotReady) return false;
+
+  const explicitTargets=Array.isArray(targets)
+    ? targets
+    : (targets ? [targets] : []);
+  const fallbackTargets=window._hitTargets?.length
+    ? window._hitTargets
+    : (window._hitTarget ? [window._hitTarget] : []);
+  const uniqueTargets=[...new Set((explicitTargets.length?explicitTargets:fallbackTargets).filter(Boolean))];
+  if(uniqueTargets.length===0) return false;
+
+  // 명시 문맥이 없는 레거시 피해 경로는 applyStunShot을 요청한 평타 경로로만 LMB 문맥을 복원한다.
+  const resolvedCtx=
+    actionCtx ||
+    getActiveHitActionContext() ||
+    getImplicitSkillActionContext(opt.slot || 'lmb', {
+      sourceEntity:L,
+      source:'stun_shot_fallback',
+      tags:opt.hitTags || []
+    });
+
+  const eligible=
+    canUseAugmentHookForContext(resolvedCtx,'stun_shot') ||
+    opt.lmbAttack===true;
+  if(!eligible) return false;
+
+  L._stunShotReady=false;
+  const stunDuration=300*stack;
+  stunRemote(stunDuration,uniqueTargets);
+
+  const cooldownMs=AUG_VALS.stun_shot.cd*1000;
+  setTimeout(()=>{
+    if(gameOn) L._stunShotReady=true;
+  },cooldownMs);
+  return true;
 }
 
 // ── 흡혈: 공격력의 10% 회복 ──────────────────────────────
@@ -28363,7 +28905,12 @@ function getActiveOrImplicitHitActionContext(slot = null, extra = {}) {
 function damageSkillTargets(targets, dmg, opt = {}) {
   const list = duels2NormalizeDamageTargetList(targets);
   if (list.length === 0) return false;
-  const sourceContext = opt._resolvedDamageSourceContext || duels2RouteResolveDamageSourceContext(opt, {route:'damage.skill-targets.source', reason:'damageSkillTargets', defaultSlot:opt.slot || 'skill'});
+  const sourceContext = opt._resolvedDamageSourceContext || duels2RouteResolveDamageSourceContext(opt, {
+    route:'damage.skill-targets.source',
+    reason:'damageSkillTargets',
+    // 명시 슬롯/문맥이 없는 레거시 호출은 이 함수가 스턴샷 적용을 요청하는 평타 피해 경로이므로 LMB로 복원한다.
+    defaultSlot:opt.slot || opt.actionCtx?.slot || opt.ctx?.slot || 'lmb'
+  });
   const source = sourceContext.source;
   const actionCtx = sourceContext.actionCtx;
   return withCombatSource(source, () => {
@@ -28507,11 +29054,14 @@ function damageBulletTargets(b, targets, opt = {}) {
   try {
     return withCombatSource(source, () => {
       let any=false;
+      const appliedTargets=[];
       for(const target of list){
         const feedbackEventId=`projectile:${b?.id||'anon'}:${phase}:${getHitTargetKey(target)}`;
-        const result=applyDamageResult(target,b?.damage||0,{actionCtx,source,slot:actionCtx?.slot||b?._skillSlot||'skill',hitEventId:feedbackEventId,feedbackEventId,suppressLegacyDamageFeedback:true});
-        any=hitResultDidApply(result)||any;
+        const result=applyDamageResult(target,b?.damage||0,{actionCtx,source,slot:actionCtx?.slot||b?._skillSlot||(b?._lmbAttack?'lmb':'skill'),hitEventId:feedbackEventId,feedbackEventId,suppressLegacyDamageFeedback:true});
+        if(hitResultDidApply(result)){any=true;appliedTargets.push(target);}
       }
+      const isBasicProjectile=source===L&&appliedTargets.length>0&&(opt.lmbAttack===true||b?._lmbAttack===true||actionCtx?.slot==='lmb');
+      // 투사체도 finishHitResult 최종 경계에서 동일하게 스턴샷을 소비한다.
       return any;
     });
   } finally {
@@ -31498,12 +32048,29 @@ const SKILLS = {
       if (held >= B.lmbCharge.chargeTime) {
         // 차징 완료: 일직선 내려치기
         if (!useStam(B.lmbCharge.cost)) return;
-        const cos = Math.cos(angle), sin = Math.sin(angle);
-        L._lmbAttacking = true;
-        if (hitCtxAll({x:L.x, y:L.y, cos, sin, len:augMeleeRange(B.lmbCharge.length), width:augMeleeRange(B.lmbCharge.width)}, B.lmbCharge.damage)) {
-          bindRemote(B.lmbCharge.bindDur);
-        }
-        L._lmbAttacking = false;
+        const cos=Math.cos(angle),sin=Math.sin(angle);
+        const _chargeShape={
+          x:L.x,
+          y:L.y,
+          cos,
+          sin,
+          len:augMeleeRange(B.lmbCharge.length),
+          width:augMeleeRange(B.lmbCharge.width)
+        };
+        L._lmbAttacking=true;
+        const _chargeCandidates=getTargetsInCtx(_chargeShape,null,{source:L,team:'enemy'});
+        const _chargeResult=duels2ResolveDamageTargetPath(_chargeCandidates,B.lmbCharge.damage,{
+          source:L,
+          slot:'lmb',
+          actionCtx:getActiveHitActionContext() || getImplicitSkillActionContext('lmb',{sourceEntity:L,source:'mehugu.lmb.charge'}),
+          hitTags:['lmb','attack','melee','charge','bind'],
+          cc:{bindDur:B.lmbCharge.bindDur},
+          windowTargetMode:'applied',
+          restoreWindow:false,
+          route:'character.mehugu.lmb-charge.damage-and-bind',
+          reason:'mehugu-lmb-charge'
+        });
+        L._lmbAttacking=false;
         emitFx({type:'ropeSlam', x:L.x, y:L.y, angle, len:augMeleeRange(B.lmbCharge.length), width:augMeleeRange(B.lmbCharge.width), dur:12, maxDur:12});
         L.lmbCooldown = B.lmbCharge.cd; L.lastAttackTime = performance.now();
       } else {
@@ -32547,8 +33114,10 @@ const SKILLS = {
       if (L.rmbCooldown > 0) return;
       // 비용보다 대상 탐색이 먼저 필요한 RMB이므로, Skill Cost Executor가 선확정한 대상이 있으면 재사용하고 없으면 기존 대상 선행 탐색으로 fallback한다.
       const _kanTargetState = duels2GetKanRmbTargetStateForSkillExecution(L, B, {route:'kan.rmb.target-before-cost'});
-      const _kanTarget = _kanTargetState.target;
-      if (!_kanTarget) return;
+      const _kanTarget=_kanTargetState.target;
+      if(!_kanTarget){
+        return;
+      }
       if (!useStam(B.cost)) return;
 
       const kbAngle = Math.atan2(_kanTarget.y - L.y, _kanTarget.x - L.x);
@@ -32953,7 +33522,7 @@ const SKILLS = {
 
       // ── 재사용: 현재 구역 유지(부스트로 전환) → 새 구역 시작 ──
       if (L._prillZoneActive || L._prillZonePredelaying) {
-        duels2RecordSpecialRmbGuard('prill', 'zone-reuse-before-new-zone', {route:'skill.rmb.prill.pre-cost.zone-reuse', actor:L, costMode:'zone-reuse-then-normal-cost', detail:{active:!!L._prillZoneActive, predelaying:!!L._prillZonePredelaying}});
+        duels2RecordSpecialRmbGuard('prill','zone-reuse-promote-no-cost',{route:'skill.rmb.prill.pre-cost.zone-reuse',actor:L,costMode:'cost-free-reuse',detail:{active:!!L._prillZoneActive,predelaying:!!L._prillZonePredelaying}});
         _prillFinalBranchPrep = duels2PrepareComplexRmbFinalBranch('prill', 'zone-reuse-before-cost-state-mutation', {route:'skill.prill.rmb.zone-reuse.final-prep', actor:L, stateMutationBeforeCost:true, detail:{active:!!L._prillZoneActive, predelaying:!!L._prillZonePredelaying, hasPos:!!L._prillZonePos}});
         const elapsed = now - (L._prillZoneStartTime || now);
         const boostDur = Math.max(1000, elapsed * 2);
@@ -33200,19 +33769,40 @@ const SKILLS = {
       const B = duels2GetSkillBalance('yui','lmb');
       if (L.lmbCooldown > 0) return;
       if (!useStam(B.cost)) return;
-      // 부채꼴 베기: 공격 판정만 big_weapon을 받고, 후속 이동거리는 원본 사거리를 사용한다.
-      const _yuiHitRange = augMeleeRange(B.range);
-      const hit = hitCtxAll({x:L.x, y:L.y, angle, range:_yuiHitRange, halfAngle:B.halfAngle}, B.damage);
-      emitFx({type:'yuiSlash', x:L.x, y:L.y, angle, range:_yuiHitRange, halfAngle:B.halfAngle, dur:25, maxDur:25});
-      // 적중 시 마우스 방향 이동 + 사운드
-      if (hit) {
+      // 부채꼴 베기: 실제 피해 적용 대상을 받아 적중 후 이동과 직접 연결한다.
+      const _yuiHitRange=augMeleeRange(B.range);
+      const _yuiShape={x:L.x,y:L.y,angle,range:_yuiHitRange,halfAngle:B.halfAngle};
+      const _yuiCandidates=getTargetsInCtx(_yuiShape,null,{source:L,team:'enemy'});
+      const _yuiResult=duels2ResolveDamageTargetPath(_yuiCandidates,B.damage,{
+        source:L,
+        slot:'lmb',
+        actionCtx:getActiveHitActionContext() || getImplicitSkillActionContext('lmb',{
+          sourceEntity:L,
+          source:'yui.lmb'
+        }),
+        hitTags:['lmb','attack','melee','teleport-on-hit'],
+        windowTargetMode:'applied',
+        restoreWindow:false,
+        route:'character.yui.lmb.damage',
+        reason:'yui-lmb'
+      });
+      emitFx({type:'yuiSlash',x:L.x,y:L.y,angle,range:_yuiHitRange,halfAngle:B.halfAngle,dur:25,maxDur:25});
+
+      // 피해가 실제로 적용된 대상이 하나 이상일 때만 마우스 방향으로 이동한다.
+      const _yuiDidHit=!!(_yuiResult?.anyApplied||_yuiResult?.anyTouched||(_yuiResult?.results||[]).some(result=>hitResultDidApply(result)));
+      if(_yuiDidHit){
         playHitSfx();
-        const _dist = B.range * B.tpMult;
-        const _tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(angle)*_dist));
-        const _ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(angle)*_dist));
-        const _sx = L.x, _sy = L.y;
-        duels2MovementTeleport(L,_tx,_ty,{reason:'yui.lmb.hit-teleport',route:'character.yui.lmb.teleport',resolveWall:true});
-        emitFx({type:'yuiTp', x:_sx, y:_sy, tx:L.x, ty:L.y, dur:12, maxDur:12});
+        const _dist=B.range*B.tpMult;
+        const _sx=L.x,_sy=L.y;
+        const _tx=Math.max(L.radius,Math.min(WORLD_W-L.radius,_sx+Math.cos(angle)*_dist));
+        const _ty=Math.max(L.radius,Math.min(WORLD_H-L.radius,_sy+Math.sin(angle)*_dist));
+        const _moved=duels2MovementTeleportInternal(L,_tx,_ty,{reason:'yui.lmb.hit-teleport',route:'character.yui.lmb.teleport',slot:'lmb'});
+        if(_moved){
+          resolveWall(L);
+          L.tx=L.x;
+          L.ty=L.y;
+          emitFx({type:'yuiTp',x:_sx,y:_sy,tx:L.x,ty:L.y,dur:12,maxDur:12});
+        }
       }
       L.lmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
@@ -37334,40 +37924,144 @@ duels2RegisterPlayerStateSpecialField('character-flags',(remote,d)=>{
   remote.prillZone=d.prillZone??null;
   remote.nsonyaStacks=d.nsonyaStacks??0;
   remote.reikaBlessed=d.reikaBlessed??false;
-  remote.fortressActive=d.fortressActive??false;
+
+  // 절대방어 표시는 단일 누락/지연 스냅샷으로 꺼지지 않도록 마지막 true 수신 시각을 보존한다.
+  const incomingFortressActive=d.fortressActive===true;
+  if(incomingFortressActive){
+    remote._fortressRemoteLastTrueAt=performance.now();
+    remote.fortressActive=true;
+  }else{
+    const fortressGraceActive=
+      remote._fortressRemoteLastTrueAt &&
+      performance.now()-remote._fortressRemoteLastTrueAt<420;
+    remote.fortressActive=!!fortressGraceActive;
+  }
+
   remote._pelunaEmpowered=!!d.pelunaEmpowered;
   return true;
 },{priority:100});
 
 // 레비나 창 특수 필드: 원격 창 스냅샷을 기존 객체에 병합하거나 제거한다.
+// duels2PushRemoteLevinaSpearSample: 전용 이벤트와 일반 상태 스냅샷의 창 좌표를 같은 보간 버퍼에 넣는다. (spear: 원격 창, sample: x/y/dx/dy/state, source: 샘플 경로)
+function duels2PushRemoteLevinaSpearSample(spear,sample={},source='network') {
+  if(!spear||!Number.isFinite(Number(sample.x))||!Number.isFinite(Number(sample.y))) return false;
+  const receivedAt=performance.now();
+  const previousAt=Number(spear._lastNetAt)||receivedAt-34;
+  const currentX=Number.isFinite(Number(spear.x))?Number(spear.x):Number(sample.x);
+  const currentY=Number.isFinite(Number(spear.y))?Number(spear.y):Number(sample.y);
+  const targetX=Number(sample.x);
+  const targetY=Number(sample.y);
+
+  // 같은 좌표의 중복 샘플은 메타만 갱신하고 보간 시작점을 다시 리셋하지 않는다.
+  const duplicate=
+    Number.isFinite(Number(spear._interpToX)) &&
+    Math.abs(Number(spear._interpToX)-targetX)<0.01 &&
+    Math.abs(Number(spear._interpToY)-targetY)<0.01;
+
+  if(!duplicate){
+    spear._interpFromX=currentX;
+    spear._interpFromY=currentY;
+    spear._interpToX=targetX;
+    spear._interpToY=targetY;
+    spear._interpStart=receivedAt;
+    spear._interpDuration=Math.max(16,Math.min(80,receivedAt-previousAt));
+  }
+
+  if(Number.isFinite(Number(sample.dx))) spear.dx=Number(sample.dx);
+  if(Number.isFinite(Number(sample.dy))) spear.dy=Number(sample.dy);
+  if(Number.isFinite(Number(sample.speed))) spear.speed=Number(sample.speed);
+  if(Number.isFinite(Number(sample.radius))) spear.radius=Number(sample.radius);
+  if(sample.state) spear.state=sample.state;
+  spear._lastNetAt=receivedAt;
+  spear._lastNetSource=source;
+  return true;
+}
+window.duels2PushRemoteLevinaSpearSample=duels2PushRemoteLevinaSpearSample;
+
 duels2RegisterPlayerStateSpecialField('levina-spear',(remote,d)=>{
-  if (d.levinaSpear) {
-    if (!remote._levinaSpear) remote._levinaSpear={_hitSeg:new Set(),_retHitSeg:new Set(),waypoints:[]};
-    const prevHitSeg = remote._levinaSpear._hitSeg instanceof Set ? remote._levinaSpear._hitSeg : new Set();
-    const prevRetHitSeg = remote._levinaSpear._retHitSeg instanceof Set ? remote._levinaSpear._retHitSeg : new Set();
-    Object.assign(remote._levinaSpear,d.levinaSpear);
-    remote._levinaSpear._hitSeg = prevHitSeg;
-    remote._levinaSpear._retHitSeg = prevRetHitSeg;
-    if (!Array.isArray(remote._levinaSpear.waypoints)) remote._levinaSpear.waypoints=[];
-  } else if (d.levinaSpear === null) remote._levinaSpear=null;
-  return d.levinaSpear;
+  const snapshot=d.levinaSpear;
+  if(snapshot){
+    if(!remote._levinaSpear){
+      remote._levinaSpear={
+        x:Number(snapshot.x)||0,
+        y:Number(snapshot.y)||0,
+        _hitSeg:new Set(),
+        _retHitSeg:new Set(),
+        waypoints:[]
+      };
+    }
+    const spear=remote._levinaSpear;
+    const prevHitSeg=spear._hitSeg instanceof Set?spear._hitSeg:new Set();
+    const prevRetHitSeg=spear._retHitSeg instanceof Set?spear._retHitSeg:new Set();
+    const {
+      x:_sampleX,
+      y:_sampleY,
+      _hitSeg:_ignoredHitSeg,
+      _retHitSeg:_ignoredRetHitSeg,
+      _interpFromX:_ignoredFromX,
+      _interpFromY:_ignoredFromY,
+      _interpToX:_ignoredToX,
+      _interpToY:_ignoredToY,
+      _interpStart:_ignoredStart,
+      _interpDuration:_ignoredDuration,
+      ...meta
+    }=snapshot;
+    Object.assign(spear,meta);
+    spear._hitSeg=prevHitSeg;
+    spear._retHitSeg=prevRetHitSeg;
+    if(!Array.isArray(spear.waypoints)) spear.waypoints=[];
+    duels2PushRemoteLevinaSpearSample(spear,snapshot,'player-state');
+  }else if(snapshot===null){
+    remote._levinaSpear=null;
+  }
+  return snapshot;
 },{priority:90});
 
 // 루뷰 망치 특수 필드: 원격 망치 목표 좌표와 회수 시작 상태를 복원한다.
 duels2RegisterPlayerStateSpecialField('ruvu-hammer',(remote,d)=>{
-  if (d.ruvuHammer) {
-    if (!remote._ruvuHammer) remote._ruvuHammer={x:d.ruvuHammer.x,y:d.ruvuHammer.y,tx:d.ruvuHammer.x,ty:d.ruvuHammer.y,returning:false,returnStart:0,returnSX:0,returnSY:0};
-    remote._ruvuHammer.tx=d.ruvuHammer.x;
-    remote._ruvuHammer.ty=d.ruvuHammer.y;
-    remote._ruvuHammer.returning=!!d.ruvuHammer.returning;
-    if (d.ruvuHammer.returning && !remote._ruvuHammer._wasReturning) {
-      remote._ruvuHammer._wasReturning=true;
-      remote._ruvuHammer.returnStart=performance.now();
-      remote._ruvuHammer.returnSX=d.ruvuHammer.returnSX||d.ruvuHammer.x;
-      remote._ruvuHammer.returnSY=d.ruvuHammer.returnSY||d.ruvuHammer.y;
+  const snapshot=d.ruvuHammer;
+  if(snapshot){
+    if(!remote._ruvuHammer){
+      remote._ruvuHammer={
+        x:snapshot.x,
+        y:snapshot.y,
+        tx:snapshot.x,
+        ty:snapshot.y,
+        dx:snapshot.dx,
+        dy:snapshot.dy,
+        speed:snapshot.speed,
+        radius:snapshot.radius,
+        maxRange:snapshot.maxRange,
+        traveled:snapshot.traveled||0,
+        returning:false,
+        returnStart:0,
+        returnSX:snapshot.x,
+        returnSY:snapshot.y
+      };
     }
-  } else if (d.ruvuHammer === null) remote._ruvuHammer=null;
-  return d.ruvuHammer;
+    const hammer=remote._ruvuHammer;
+    hammer.tx=snapshot.x;
+    hammer.ty=snapshot.y;
+    if(Number.isFinite(snapshot.dx)) hammer.dx=snapshot.dx;
+    if(Number.isFinite(snapshot.dy)) hammer.dy=snapshot.dy;
+    if(Number.isFinite(snapshot.speed)) hammer.speed=snapshot.speed;
+    if(Number.isFinite(snapshot.radius)) hammer.radius=snapshot.radius;
+    if(Number.isFinite(snapshot.maxRange)) hammer.maxRange=snapshot.maxRange;
+    if(Number.isFinite(snapshot.traveled)) hammer.traveled=snapshot.traveled;
+    hammer._stopped=!!snapshot.stopped;
+    hammer.returning=!!snapshot.returning;
+    if(snapshot.returning && !hammer._wasReturning){
+      hammer._wasReturning=true;
+      hammer.returnStart=performance.now();
+      hammer.returnSX=snapshot.returnSX||snapshot.x;
+      hammer.returnSY=snapshot.returnSY||snapshot.y;
+    }else if(!snapshot.returning){
+      hammer._wasReturning=false;
+    }
+  }else if(snapshot===null){
+    remote._ruvuHammer=null;
+  }
+  return snapshot;
 },{priority:80});
 
 // 특수 state 복원 모듈: 캐릭터별 state 필드를 Registry 기반 Hydration으로 실행한다.
@@ -37509,8 +38203,12 @@ function duels2LegacyDoRMB() {
     checkCooldown:false
   });
   if (!_rmbBaseGuard.allowed) return;
-  if (hasEntityFunctionalRuntime(L, 'cleaningZone') && L._prillZoneActive) {
-    duels2RecordSpecialRmbGuard('prill', 'input-cleaning-zone-route', {route:'input.rmb.prill-cleaning-zone.special-rmb', actor:L, costMode:'zone-reuse-then-normal-cost'});
+  if(hasEntityFunctionalRuntime(L,'cleaningZone') && (L._prillZoneActive||L._prillZonePredelaying)){
+    duels2RecordSpecialRmbGuard('prill','input-cleaning-zone-reuse',{
+      route:'input.rmb.prill-cleaning-zone.special-rmb',
+      actor:L,
+      costMode:'cost-free-reuse'
+    });
     L._isRmbContext = true;
     try {
       duels2ExecuteLocalSkillSlot('rmb', getAngle(), {charId:'prill', tags:['manual_rmb'], route:'input.rmb.prill-cleaning-zone'});
@@ -43073,7 +43771,9 @@ function draw() {
     ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
   }
   // 루뷰 망치 렌더링 (상대방)
-  if (gameOn && peerCharId==='ruvu' && R._ruvuHammer) {
+  const _renderRemoteHammerOwner=(duels2GetActiveRemotePlayers?.()||[]).find(entity=>entity&&entity!==L&&entity._ruvuHammer)||(R?._ruvuHammer?R:null);
+  if(_renderRemoteHammerOwner&&R&&R!==_renderRemoteHammerOwner) R._ruvuHammer=_renderRemoteHammerOwner._ruvuHammer;
+  if (gameOn && R._ruvuHammer) {
     const _rhd = R._ruvuHammer;
     const _rha = _rhd.returning ? 0.55 : 1.0;
     const _rhpulse = 0.7+0.3*Math.sin(performance.now()*0.014);
@@ -47491,14 +48191,70 @@ function duels2IsPrimaryInputOverrideActive(entity, action = 'dash', opt = {}) {
   return result;
 }
 
+// duels2ResumeInterruptedDodgeChain: 다른 이동 행동이 현재 회피를 끊었을 때 보존한 연속회피를 행동 종료 후 재개한다. (entity: 플레이어, opt: reason/delay)
+function duels2ResumeInterruptedDodgeChain(entity, opt = {}) {
+  if(!entity?._pendingInterruptedDodgeFollowup) return false;
+  entity._pendingInterruptedDodgeFollowup=false;
+  const delay=Math.max(0,Number(opt.delay)||0);
+  setTimeout(()=>{
+    if(!gameOn||entity.dodging) return;
+    const previousSkip=window._skipDodgeStam;
+    window._skipDodgeStam=true;
+    try{
+      tryDodge();
+    }finally{
+      window._skipDodgeStam=previousSkip;
+    }
+  },delay);
+  return true;
+}
+
 // duels2ExecutePrimaryOverrideDashAction: 변경된 LMB 확정 트리거가 대시 행동 모듈을 실행한다. (angle: 대시 방향 각도, opt: route/reason 옵션)
 function duels2ExecutePrimaryOverrideDashAction(angle, opt = {}) {
   if (!duels2IsPrimaryInputOverrideActive(L, 'dash', {reason:opt.reason || 'execute-primary-override-dash'})) return false;
   if (!duels2HasPostDodgePrimaryDashModule(L, {reason:opt.reason || 'execute-primary-override-dash'})) return false;
   const override = L._primaryInputOverride || {};
   const P = override.params || {};
-  const cost = Number(P.cost ?? duels2GetSkillBalance('lian','shieldDash').cost);
-  if (!useStam(cost)) return true;
+  const cost=Number(P.cost??duels2GetSkillBalance('lian','shieldDash').cost);
+  if(!useStam(cost)) return true;
+
+  // 현재 회피 이동만 종료하고 연속회피의 남은 충전은 방패돌진 이후에 이어서 사용한다.
+  if(L.dodging||_dodgeInterval){
+    const remainingCharges=Math.max(0,Number(L._dodgeChargesLeft)||0);
+
+    if(!L._dodgeResultFinalSent){
+      duels2SendLocalDodgeResultFinal?.(L,{
+        dodgeId:L._dodgeUseId||null,
+        just:!!L._currentDodgeJust,
+        x:L.x,
+        y:L.y,
+        phase:'dodge-interrupted-by-movement'
+      });
+      L._dodgeResultFinalSent=true;
+    }
+
+    // 첫 회피의 종료 콜백이 실행되지 않으므로 남은 충전을 여기서 정확히 한 번 소비한다.
+    if(remainingCharges>0){
+      L._dodgeChargesLeft=remainingCharges-1;
+      L._pendingInterruptedDodgeFollowup=true;
+    }else{
+      L._pendingInterruptedDodgeFollowup=false;
+      L._dodgeChargesLeft=getAugCount('double_dodge');
+    }
+
+    try{DUELS2_MOVEMENT_TIMELINE_RUNTIME?.cancel?.(L,'shield-dash-interrupt-current-dodge');}catch(_){}
+    if(_dodgeInterval){
+      try{clearInterval(_dodgeInterval);}catch(_){}
+      _dodgeInterval=null;
+    }
+
+    L.dodging=false;
+    L.invincible=0;
+    L.justCheck=null;
+    L.tx=L.x;
+    L.ty=L.y;
+  }
+
   L._primaryInputOverride.consumed = true;
   duels2ClearPrimaryInputOverride(L, {reason:'primary-override-dash-consumed'});
   const range = Number(P.range ?? duels2GetSkillBalance('lian','shieldDash').range);
@@ -47535,6 +48291,19 @@ function duels2ExecutePrimaryOverrideDashAction(angle, opt = {}) {
       },
       onTickReason:'primary-override-dash.onTick-hit-check',
       onTickRoute:'movement.skill-dash.onTick.primary-override-hit',
+      onFinish:()=>{
+        duels2ResumeInterruptedDodgeChain(L,{
+          reason:'primary-override-dash-finished',
+          delay:0
+        });
+      },
+      onCancel:()=>{
+        // 방패돌진 자체가 벽·상태·게임 흐름으로 취소돼도 남은 연속회피를 잃지 않는다.
+        duels2ResumeInterruptedDodgeChain(L,{
+          reason:'primary-override-dash-cancelled',
+          delay:0
+        });
+      },
       finishReason:'primary-override-dash.complete',
       finishRoute:'movement.skill-dash.finish.primary-override',
       stopReason:'primary-override-dash.game-stopped',
@@ -59696,6 +60465,22 @@ function endGame(won, roundTokenOverride = null) {
   matchState._roundResolutionToken = roundToken;
   _doEndGame(true, roundToken);
 }
+// duels2ResolvePendingDuelRoundOutcome: 비호스트가 권한 점수를 받은 뒤에만 다음 라운드 또는 최종 결과 대기를 확정한다. ()
+function duels2ResolvePendingDuelRoundOutcome() {
+  const pending=matchState._pendingAuthorityRoundOutcome;
+  if(!pending||!pending.resultOverlayFinished||!pending.scoreSynced) return false;
+  const fmt=matchState.format=duels2NormalizeMatchFormat(matchState.format);
+  const matchDone=matchState.localWins>=fmt.winsNeeded||matchState.peerWins>=fmt.winsNeeded;
+  if(matchDone){
+    pending.waitingMatchOver=true;
+    return true;
+  }
+  matchState._pendingAuthorityRoundOutcome=null;
+  matchState.round=Math.max(matchState.round||1,pending.roundToken+1);
+  startBetweenRound(pending.won);
+  return true;
+}
+
 function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)) {
   if (matchState._lastScoredRoundToken === roundToken) return;
   if (!gameOn && won) return; // 이미 처리됨 방어
@@ -59739,24 +60524,59 @@ function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)
         localWins:Number(matchState.localWins)||0,
         peerWins:Number(matchState.peerWins)||0
       });
-      showMatchOver(winnerPid === authorityLocalPid);
+      duels2FinalizeMatchRuntime(winnerPid===authorityLocalPid,{winnerPid,roundToken});
     }
     // 비권한 클라이언트는 점수 동기화 이전의 로컬 추정으로 최종 결과를 결정하지 않고 matchOver 권한 패킷을 기다린다.
   } else {
-    // 라운드 종료 → 결과 표시 후 라운드 사이 화면
-    matchState.round++;
-    showRoundResult(won, () => startBetweenRound(won));
+    // 점수 권한자는 즉시 다음 라운드로 진행한다. 비권한자는 권한 점수 동기화 전 준비 화면을 열지 않는다.
+    if(duels2IsDuelScoreAuthority()){
+      matchState.round++;
+      showRoundResult(won,()=>startBetweenRound(won));
+    }else{
+      matchState._pendingAuthorityRoundOutcome={
+        won:!!won,
+        roundToken,
+        scoreSynced:false,
+        resultOverlayFinished:false,
+        waitingMatchOver:false
+      };
+      showRoundResult(won,()=>{
+        const pending=matchState._pendingAuthorityRoundOutcome;
+        if(!pending||pending.roundToken!==roundToken) return;
+        pending.resultOverlayFinished=true;
+        duels2ResolvePendingDuelRoundOutcome();
+      });
+    }
   }
 }
+
+// duels2FinalizeMatchRuntime: 최종 결과 시 양쪽의 전투·라운드 전환을 원자적으로 종료한다. (won: 로컬 승리 여부, meta: winnerPid/roundToken)
+function duels2FinalizeMatchRuntime(won,meta={}) {
+  matchState._matchOver=true;
+  matchState._pendingAuthorityRoundOutcome=null;
+  matchState._betweenStarted=true;
+  matchState._finalMatchToken=meta.roundToken??matchState.round??1;
+  gameOn=false;
+  L._dying=false;
+  clearTimeout(window._dyingTimer);
+  clearTimeout(window._gameTimer);
+  if(_stateInterval){clearInterval(_stateInterval);_stateInterval=null;}
+  if(_dodgeInterval){clearInterval(_dodgeInterval);_dodgeInterval=null;}
+  const roundOverlay=document.getElementById('round-result-overlay');
+  if(roundOverlay) roundOverlay.style.display='none';
+  const between=document.getElementById('scr-between');
+  if(between) between.classList.add('hidden');
+  showMatchOver(!!won);
+  return true;
+}
+window.duels2FinalizeMatchRuntime=duels2FinalizeMatchRuntime;
 
 function showMatchOver(won) {
   // duels2GuardPrematureMatchOver: 필요 승수에 도달하지 않은 상태에서 잘못 호출된 최종 승리 화면을 라운드 사이 화면으로 되돌린다.
   const _fmt = matchState.format = duels2NormalizeMatchFormat(matchState.format);
   const _leadingWins = Math.max(Number(matchState.localWins) || 0, Number(matchState.peerWins) || 0);
-  if (_leadingWins < _fmt.winsNeeded) {
-    matchState._matchOver = false;
-    startBetweenRound(!!won);
-    return;
+  if(_leadingWins<_fmt.winsNeeded){
+    matchState._matchOver=true;
   }
   matchState._matchOver = true; // 매치 완전 종료 플래그
   const ov=document.getElementById('result-oveleulay');
@@ -59811,6 +60631,7 @@ function duels2PickAugmentsByRarityDistribution(pool, count, opt={}) {
 }
 
 function startBetweenRound(iWon) {
+  if(matchState._matchOver||matchState._pendingAuthorityRoundOutcome?.waitingMatchOver) return false;
   // 호스트가 선택지 생성 후 broadcast
   if (isHost) {
     // 3개 랜덤 캐릭터 (disabled 제외)
@@ -59833,6 +60654,9 @@ function startBetweenRound(iWon) {
 function duels2EnsureBetweenRoundChoices(){if(!Array.isArray(matchState._charChoices)||!matchState._charChoices.length){matchState._charChoices=Object.values(CHARACTERS).filter(c=>!c.disabled).sort(()=>Math.random()-0.5).slice(0,5).map(c=>c.id);}if(!Array.isArray(matchState._augChoices)||!matchState._augChoices.length){matchState._augChoices=duels2PickAugmentsByRarityDistribution(AUGMENTS,Math.min(5,AUGMENTS.length),{ownedIds:matchState.localAugments||[]}).map(a=>a.id);}}
 
 function showBetweenScreen() {
+  if(matchState._matchOver||matchState._pendingAuthorityRoundOutcome?.waitingMatchOver) return false;
+  duels2CaptureBetweenRoundHudSnapshot();
+  window._duels2MatchPhase='between-round';
   duels2EnsureBetweenRoundChoices();
   matchState._selectedChar = null;
   matchState._selectedAug  = null;
@@ -59980,11 +60804,12 @@ function showBetweenScreen() {
     });
   }
 
-  window._duels2MatchPhase = 'between-round';
+  window._duels2MatchPhase='between-round';
+  renderAugHud();
   showScr('scr-between', {force:true});
 }
 
-function _mkCharIcon(isRival) {
+function _mkCharIcon(isRival, charIdOverride = null) {
   const div = document.createElement('div');
   div.className = 'aug-icon' + (isRival ? ' peer-aug' : '');
   const letterSpan = document.createElement('span');
@@ -59996,7 +60821,9 @@ function _mkCharIcon(isRival) {
   div.appendChild(tip);
   const refresh = () => {
     const rival = isRival ? duels2GetPrimaryRemoteOpponent?.() : null;
-    const ch = isRival ? rival?.charDef : L.charDef;
+    const ch = charIdOverride
+      ? CHARACTERS?.[charIdOverride]
+      : (isRival ? rival?.charDef : L.charDef);
     if (!ch) return;
     letterSpan.textContent = (ch.id || '?').charAt(0).toUpperCase();
     div.style.color = ch.color || (isRival ? '#f88' : '#4af');
@@ -60019,23 +60846,63 @@ function _mkCharIcon(isRival) {
   return div;
 }
 
-// duels2GetVisibleAugmentsDuringSelection: 선택 화면에서는 이전 라운드까지 확정된 증강만 반환하고 이번 턴 대기 항목은 숨긴다. (side: 'local' 또는 'peer')
+// duels2CaptureBetweenRoundHudSnapshot: 라운드 종료 순간의 캐릭터와 확정 증강을 준비 화면 표시용으로 고정한다. ()
+function duels2CaptureBetweenRoundHudSnapshot() {
+  const remote=duels2GetPrimaryRemoteOpponent?.()||R||null;
+  const localCharId=selCharId||L?.charDef?.id||null;
+  const peerRoundCharId=peerCharId||remote?.charDef?.id||null;
+  matchState._betweenHudSnapshot={
+    roundToken:Math.max(1,Number(matchState.round)||1),
+    localCharId,
+    peerCharId:peerRoundCharId,
+    localAugments:[...(matchState.localAugments||[])],
+    peerAugments:[...(matchState.peerAugments||[])]
+  };
+  return matchState._betweenHudSnapshot;
+}
+
+// duels2ClearRoundHudSnapshot: 완전 리매치에서 이전 매치의 캐릭터·증강 표시 캐시를 모두 제거한다. ()
+function duels2ClearRoundHudSnapshot() {
+  matchState._betweenHudSnapshot=null;
+  matchState._peerSelectedChar=null;
+  matchState._peerSelectedAug=null;
+  matchState._selectedChar=null;
+  matchState._selectedAug=null;
+  matchState._pendingLocalAugHudId=null;
+  matchState._pendingPeerAugHudId=null;
+}
+
+// duels2GetRoundHudView: 현재 화면 단계에 맞는 캐릭터·증강 표시 데이터를 반환한다. ()
+function duels2GetRoundHudView() {
+  const phase=String(window._duels2MatchPhase||'');
+  if(phase==='between-round' && matchState._betweenHudSnapshot){
+    return {...matchState._betweenHudSnapshot,mode:'between'};
+  }
+  if(phase==='select' || phase==='start-aug'){
+    return {localCharId:null,peerCharId:null,localAugments:[],peerAugments:[],mode:'selection'};
+  }
+  const remote=duels2GetPrimaryRemoteOpponent?.()||R||null;
+  return {
+    localCharId:selCharId||L?.charDef?.id||null,
+    peerCharId:peerCharId||remote?.charDef?.id||null,
+    localAugments:[...(matchState.localAugments||[])],
+    peerAugments:[...(matchState.peerAugments||[])],
+    mode:'live'
+  };
+}
+
+// duels2GetVisibleAugmentsDuringSelection: HUD 뷰에 확정된 증강만 반환한다. (side: local/peer)
 function duels2GetVisibleAugmentsDuringSelection(side = 'local') {
-  const source = side === 'peer' ? (matchState.peerAugments || []) : (matchState.localAugments || []);
-  const visible = [...source];
-  if (gameOn) return visible;
-  const pendingId = side === 'peer' ? matchState._pendingPeerAugHudId : matchState._pendingLocalAugHudId;
-  if (!pendingId) return visible;
-  const index = visible.lastIndexOf(pendingId);
-  if (index >= 0) visible.splice(index, 1);
-  return visible;
+  const view=duels2GetRoundHudView();
+  return side==='peer'?[...(view.peerAugments||[])]:[...(view.localAugments||[])];
 }
 
 function renderAugHud() {
+  const view=duels2GetRoundHudView();
   const el = document.getElementById('aug-hud');
   if (el) {
     el.innerHTML = '';
-    if (L.charDef) el.appendChild(_mkCharIcon(false));
+    if(view.localCharId) el.appendChild(_mkCharIcon(false,view.localCharId));
     duels2GetVisibleAugmentsDuringSelection('local').forEach(aid => {
       const aug = AUGMENTS.find(a => a.id === aid);
       if (!aug) return;
@@ -60048,7 +60915,7 @@ function renderAugHud() {
   const pel = document.getElementById('peer-aug-hud');
   if (pel) {
     pel.innerHTML = '';
-    if (duels2GetPrimaryRemoteOpponent?.()?.charDef) pel.appendChild(_mkCharIcon(true));
+    if(view.peerCharId) pel.appendChild(_mkCharIcon(true,view.peerCharId));
     duels2GetVisibleAugmentsDuringSelection('peer').forEach(aid => {
       const aug = AUGMENTS.find(a => a.id === aid);
       if (!aug) return;
@@ -60062,7 +60929,7 @@ function renderAugHud() {
   const divider = document.getElementById('aug-divider');
   if (divider) {
     divider.style.display =
-      (!!duels2GetPrimaryRemoteOpponent?.())
+      (view.localCharId||view.peerCharId||(view.localAugments||[]).length||(view.peerAugments||[]).length)
       ? 'block' : 'none';
   }
 }
@@ -60099,6 +60966,7 @@ function doRematch(options = {}) {
   R.elinSpirit=null; R.ropeOrb=null; R.toolbox=null;
   R._syaInvisible=false; R._syaHitRevealEnd=0; // 라운드 시작 시 스야 은신 해제
   R.erapabiFortify=false; R.nsonyaStacks=0; R.burrowEntry=null; R._ruvuHammer=null;
+  R.fortressActive=false; R._fortressRemoteLastTrueAt=0;
   R.smokeRevealStart=0; R.smokeRevealDur=0; R._sorFields=duels2ClearFieldCollection('peerSorFields', R._sorFields, {reason:'rematch.reset'}); R._peerKiForecastAreas = new Map(); R._peerKiForecastAreaState=null; R._localKiForecastRewardCandidate = null;
   L.orb=null;
   resetMinions();
@@ -60122,10 +60990,17 @@ function doRematch(options = {}) {
       return;
     }
     matchState.localWins=0; matchState.peerWins=0; matchState.round=1;
-    matchState.localAugments=[]; matchState.peerAugments=[]; matchState._pendingLocalAugHudId=null; matchState._pendingPeerAugHudId=null;
+    matchState.localAugments=[]; matchState.peerAugments=[];
+    matchState._lastPeerBetweenAugSelectionKey=null;
+    duels2ClearRoundHudSnapshot();
     duels2ResetDuelScoreAuthorityState('full-rematch');
     matchState._matchOver = false; // 플래그 초기화
-    document.querySelectorAll('.char-card').forEach(c => { c.classList.remove('sel'); c.style.pointerEvents=''; });
+    document.querySelectorAll('#scr-select .char-card').forEach(card => {
+      card.classList.remove('sel','selection-locked','record-detail-open');
+      card.style.pointerEvents='';
+      card.style.cursor='';
+      card.removeAttribute('aria-disabled');
+    });
     document.getElementById('confirm-btn').disabled=false;
     const randomBtn = document.getElementById('random-btn');
     if (randomBtn) randomBtn.disabled = false;
@@ -60138,8 +61013,16 @@ function doRematch(options = {}) {
     document.getElementById('aug-hud').innerHTML='';
     document.getElementById('peer-aug-hud').innerHTML='';
     const d=document.getElementById('aug-divider'); if(d) d.style.display='none';
+    renderAugHud();
     localReady=false; peerReady=false;
     window._duels2MatchPhase = 'select';
+    const selectScreen=document.getElementById('scr-select');
+    if(selectScreen){
+      selectScreen.style.pointerEvents='';
+      selectScreen.removeAttribute('aria-hidden');
+    }
+    const charGrid=document.getElementById('char-grid');
+    if(charGrid) charGrid.style.pointerEvents='';
     showScr('scr-select', {force:true, reason:'full-rematch'});
   }
 }
@@ -60201,6 +61084,7 @@ function resetL() {
   L.lastHitTime=0; L.lastAttackTime=0; L.lastRegenTick=performance.now();
   L.invincible=0; L.hitFlash=0; L._preFlashColor=null; L._dying=false;
   L.dodging=false; L.justCheck=null; L.orb=null; L._toolboxHealTick=0; L._guardDodgeEnd=0;
+  L._pendingInterruptedDodgeFollowup=false;
   L._dodgeChargesLeft = getAugCount('double_dodge');
   L.burrowing=false; L.burrowEntry=null; duels2RouteResetStatusRuntime?.(L, {reason:'resetL:status-runtime', route:'status.reset-route'});
   L._drillCharging=false; L._drillChargeStart=0; L._drillDrained=0; L._drillFrozenT=null;
@@ -60264,6 +61148,9 @@ function resetL() {
   L._kiRmbActive=false; L._kiRmbReady=false; L._kiCombo=0; L._kiFinalHit=0; L._kiRmbX=0; L._kiRmbY=0; L._kiDodgeRecovered=false; L._kiRmbStart=0; L._kiRmbToken=0; L._kiRmbFadeStart=0; L._kiRmbFadeEnd=0; L._kiRmbFadeDrain=false; L._kiRmbReadyAt=0; L._kiAfterTeleDodge=false; L._kiLmbToken=0; L._kiRmbLmbStart=0; L._kiWasDodging=false; L._kiWasDodging2=false; L._peerJustDodged=false; L._kiRmbRmbStart=0; L._kiPendingDodgeRewards=new Map(); L._kiProcessedDodgeRewards=new Set(); L._peerKiForecastAreas=new Map(); L._peerKiForecastAreaState=null; L._localKiForecastRewardCandidate=null; L._kiInvalidatedDodgeRewardIds=new Set(); L._kiRewardGrantSeq=0;
   L._levinaSpear=null; L._levinaSpearSyncTick=0; L._levinaLmbWpCd=0; L._levinaRmbWpCd=0;
   R._levinaSpear=null;
+  for(const remoteEntity of (duels2GetActiveRemotePlayers?.()||[])){
+    if(remoteEntity&&remoteEntity!==L) remoteEntity._levinaSpear=null;
+  }
     if (_dodgeInterval) { clearInterval(_dodgeInterval); _dodgeInterval=null; }
 }
 
@@ -60843,17 +61730,31 @@ function loop() {
         birthTime:_sp.birthTime, pathRadius:_sp.pathRadius, knockbackPower:_sp.knockbackPower});
     }
   }
-  // 상대 레비나 창 데드 레커닝 (로컬 시뮬레이션 — 매 프레임 직접 이동)
-  if (R._levinaSpear && R._levinaSpear.state === 'flying') {
-    const _rsp = R._levinaSpear;
-    if (_rsp.dx !== undefined && _rsp.dy !== undefined) {
-      duels2AdvanceProjectileVector(_rsp,_rsp.speed || 12);
+  // 원격 창은 패킷이 실제로 귀속된 원격 엔티티 객체에서 갱신한다.
+  // R은 호환 별칭일 뿐이므로 활성 원격 플레이어 전체를 조회해 객체 불일치로 창이 멈추는 문제를 막는다.
+  const remoteSpearOwners=[];
+  const activeRemotePlayers=duels2GetActiveRemotePlayers?.()||[];
+  for(const remoteEntity of activeRemotePlayers){
+    if(remoteEntity&&remoteEntity!==L&&remoteEntity._levinaSpear&&!remoteSpearOwners.includes(remoteEntity)){
+      remoteSpearOwners.push(remoteEntity);
     }
-  } else if (R._levinaSpear && R._levinaSpear.state === 'returning') {
-    // 귀환 중: R 위치가 없으니 단순히 마지막 방향으로 이동
-    const _rsp = R._levinaSpear;
-    if (_rsp.dx !== undefined) {
-      duels2AdvanceProjectileVector(_rsp,_rsp.speed || 12);
+  }
+  if(R&&R!==L&&R._levinaSpear&&!remoteSpearOwners.includes(R)) remoteSpearOwners.push(R);
+
+  for(const remoteEntity of remoteSpearOwners){
+    const spear=remoteEntity._levinaSpear;
+    if(!spear) continue;
+    if(Number.isFinite(spear._interpToX)&&Number.isFinite(spear._interpToY)){
+      const duration=Math.max(16,Number(spear._interpDuration)||34);
+      const elapsed=Math.max(0,now-(spear._interpStart||now));
+      const progress=Math.min(1,elapsed/duration);
+      spear.x=(spear._interpFromX??spear.x)+((spear._interpToX??spear.x)-(spear._interpFromX??spear.x))*progress;
+      spear.y=(spear._interpFromY??spear.y)+((spear._interpToY??spear.y)-(spear._interpFromY??spear.y))*progress;
+      if(progress>=1&&elapsed>duration&&(spear.state==='flying'||spear.state==='returning')){
+        const extraFrames=Math.min(2,(elapsed-duration)/Math.max(1,FRAME_MS));
+        spear.x=(spear._interpToX??spear.x)+(Number(spear.dx)||0)*(Number(spear.speed)||0)*extraFrames;
+        spear.y=(spear._interpToY??spear.y)+(Number(spear.dy)||0)*(Number(spear.speed)||0)*extraFrames;
+      }
     }
   }
 
@@ -61542,19 +62443,27 @@ function loop() {
       }
     }
   }
-  // 상대 망치: 독립 시뮬레이션 제거 — state 패킷으로 동기화된 위치만 사용
-  // (귀환 보간만 로컬에서 처리)
-  if (peerCharId==='ruvu' && R._ruvuHammer) {
-    const _rh = R._ruvuHammer;
+  // 원격 망치는 패킷이 귀속된 실제 원격 엔티티에서 처리한다.
+  const _remoteHammerOwner=(duels2GetActiveRemotePlayers?.()||[]).find(entity=>entity&&entity!==L&&entity._ruvuHammer)
+    || (R?._ruvuHammer?R:null);
+  if(_remoteHammerOwner?._ruvuHammer){
+    const _rh=_remoteHammerOwner._ruvuHammer;
+    // 기존 렌더러의 R 호환 참조도 같은 객체를 보게 한다.
+    if(R&&R!==_remoteHammerOwner) R._ruvuHammer=_rh;
+    if(!_rh.returning && Number.isFinite(_rh.tx) && Number.isFinite(_rh.ty)){
+      const correction=Math.min(1,Math.max(0.18,dt*0.45));
+      _rh.x+=(_rh.tx-_rh.x)*correction;
+      _rh.y+=(_rh.ty-_rh.y)*correction;
+    }
     if (_rh.returning) {
       // returnStart가 없으면 지금부터 시작
       if (!_rh.returnStart) _rh.returnStart = now;
-      const _remoteReturnMotion = duels2AdvanceProjectileTimedToward(_rh,R.x,R.y,{now,startAt:_rh.returnStart,startX:_rh.returnSX,startY:_rh.returnSY,duration:350,easing:'easeOutQuad'});
+      const _remoteReturnMotion = duels2AdvanceProjectileTimedToward(_rh,_remoteHammerOwner.x,_remoteHammerOwner.y,{now,startAt:_rh.returnStart,startX:_rh.returnSX,startY:_rh.returnSY,duration:350,easing:'easeOutQuad'});
 
       // 귀환 중 피격 판정 (null 처리보다 먼저)
       if (!_rh._returnHit) {
         const _HR2 = 16 * ((_rh.radius || duels2GetSkillBalance('ruvu','rmb').hammerRadius) / duels2GetSkillBalance('ruvu','rmb').hammerRadius);
-        if (duels2EntityMatchesHitbox(L,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:false},{source:R,x:_rh.x,y:_rh.y})) {
+        if (duels2EntityMatchesHitbox(L,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:false},{source:_remoteHammerOwner,x:_rh.x,y:_rh.y})) {
           _rh._returnHit = true;
           if (!_trainingMode) {
             send({type:'ruvuHammerHitMe', damage: applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage)});
@@ -61562,7 +62471,7 @@ function loop() {
           } else {
             // 훈련장: 망치 위치 기준 가장 가까운 타겟에 피해
             for (const _t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
-              if (duels2EntityMatchesHitbox(_t,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:true},{source:R,x:_rh.x,y:_rh.y})) {
+              if (duels2EntityMatchesHitbox(_t,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:true},{source:_remoteHammerOwner,x:_rh.x,y:_rh.y})) {
                 if (_t.applyDamage) _t.applyDamage(duels2GetSkillBalance('ruvu','rmb').hammerDamage);
               }
             }
@@ -61571,7 +62480,7 @@ function loop() {
         }
       }
 
-      if (_remoteReturnMotion.arrived) R._ruvuHammer = null;
+      if(_remoteReturnMotion.arrived){_remoteHammerOwner._ruvuHammer=null;if(R&&R!==_remoteHammerOwner)R._ruvuHammer=null;}
     }
     // 전진 중: dx/dy/speed로 직접 이동 시뮬레이션 (히트 판정 정확도 향상)
     else if (_rh.dx !== undefined && !_rh._stopped) {
@@ -61585,14 +62494,14 @@ function loop() {
       // 훈련장: duels2CollectFormerRsTargets('target.rs-loop-replaced') 전체, PvP: L 위치 기준
       let _hammerHit = false;
       if (!_trainingMode) {
-        if (duels2EntityMatchesHitbox(L,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:false},{source:R,x:_rh.x,y:_rh.y})) {
+        if (duels2EntityMatchesHitbox(L,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:false},{source:_remoteHammerOwner,x:_rh.x,y:_rh.y})) {
           _rh._hitR = true; _hammerHit = true;
           send({type:'ruvuHammerHitMe', damage: applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage)});
           receiveHit(applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage));
         }
       } else {
         for (const _t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
-          if (duels2EntityMatchesHitbox(_t,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:true},{source:R,x:_rh.x,y:_rh.y})) {
+          if (duels2EntityMatchesHitbox(_t,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:true},{source:_remoteHammerOwner,x:_rh.x,y:_rh.y})) {
             _rh._hitR = true; _hammerHit = true;
             if (_t.applyDamage) _t.applyDamage(duels2GetSkillBalance('ruvu','rmb').hammerDamage);
           }
@@ -63260,11 +64169,21 @@ function duels2BuildNetworkCombatSnapshotDirect(entity = L, opt = {}) {
     statusSnapshot: getNetStatusSnapshot?.(entity),
     botSnapshot: duels2BuildNetworkDebugBotSnapshotList({reason:'state-packet', route:'network.state.debug-bot-list'}),
     ruvuHammer: (hasEntityFunctionalRuntime(entity, 'hammerAnchor') && entity._ruvuHammer)
-      ? { x:entity._ruvuHammer.x, y:entity._ruvuHammer.y,
-          returning:entity._ruvuHammer.returning,
+      ? {
+          x:entity._ruvuHammer.x,
+          y:entity._ruvuHammer.y,
+          dx:entity._ruvuHammer.dx,
+          dy:entity._ruvuHammer.dy,
+          speed:entity._ruvuHammer.speed,
+          radius:entity._ruvuHammer.radius,
+          maxRange:entity._ruvuHammer.maxRange,
+          traveled:entity._ruvuHammer.traveled||0,
+          stopped:!!entity._ruvuHammer._stopped,
+          returning:!!entity._ruvuHammer.returning,
           returnStart:entity._ruvuHammer.returnStart||0,
           returnSX:entity._ruvuHammer.returnSX||0,
-          returnSY:entity._ruvuHammer.returnSY||0 }
+          returnSY:entity._ruvuHammer.returnSY||0
+        }
       : null,
     prillZone: (hasEntityFunctionalRuntime(entity, 'cleaningZone') && entity._prillZonePos && (entity._prillZoneActive || (entity._prillZoneBoosted && now < (entity._prillZoneExpiry||0))))
       ? { x:entity._prillZonePos.x, y:entity._prillZonePos.y, angle:entity._prillZonePos.angle,
