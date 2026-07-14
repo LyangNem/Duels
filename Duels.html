@@ -130,7 +130,7 @@ window.duels2OpenHelpTab=duels2OpenHelpTab;
 
 /* ── 리셋 & 기본 ── */
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0a0a0c;color:#e0e0e0;font-family:'Courier New',monospace;
+body{background:#0a0a0c;color:#e0e0e0;font-family:var(--font-ui);
      user-select:none;overflow:hidden;height:100%;min-height:100vh;}
 
 /* ── 3:2 캔버스 래퍼 ── */
@@ -161,7 +161,7 @@ h2{font-size:1.4em;letter-spacing:3px;color:#6bf;margin-bottom:18px;}
 .status.ok{color:#4a8;}.status.err{color:#f44;}
 /* ── 버튼 ── */
 .btn{background:transparent;color:#adf;border:1px solid #2a4a6a;padding:11px 28px;
-     font-size:14px;font-family:'Courier New',monospace;letter-spacing:2px;cursor:pointer;
+     font-size:14px;font-family:var(--font-ui);letter-spacing:2px;cursor:pointer;
      border-radius:2px;margin:5px;transition:all .15s;text-transform:uppercase;}
 .btn:hover{background:#1a2a3a;border-color:#4af;color:#fff;}
 .btn:disabled{opacity:.4;cursor:not-allowed;}
@@ -171,7 +171,7 @@ h2{font-size:1.4em;letter-spacing:3px;color:#6bf;margin-bottom:18px;}
 
 /* ── 입력, 코드박스 ── */
 input[type=text]{background:#111318;color:#adf;border:1px solid #2a4a6a;padding:10px 16px;
-                 font-size:18px;font-family:'Courier New',monospace;letter-spacing:6px;
+                 font-size:18px;font-family:var(--font-ui);letter-spacing:6px;
                  border-radius:2px;width:220px;text-align:center;outline:none;}
 input[type=text]:focus{border-color:#4af;}
 .code-box{font-size:2.8em;font-weight:bold;color:#fa0;letter-spacing:10px;padding:18px 40px;
@@ -276,7 +276,7 @@ input[type=text]:focus{border-color:#4af;}
 
 /* ── 매치 포맷 선택 ── */
 .format-row{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px;color:#99b;letter-spacing:1px;}
-.format-row select{background:#111318;color:#adf;border:1px solid #2a4a6a;padding:6px 12px;font-family:'Courier New',monospace;font-size:13px;border-radius:2px;cursor:pointer;}
+.format-row select{background:#111318;color:#adf;border:1px solid #2a4a6a;padding:6px 12px;font-family:var(--font-ui);font-size:13px;border-radius:2px;cursor:pointer;}
 .format-row select:focus{border-color:#4af;outline:none;}
 
 /* ── 라운드 스코어 ── */
@@ -364,7 +364,7 @@ input[type=text]:focus{border-color:#4af;}
   display:flex; justify-content:space-between; align-items:center;
   padding:5px 12px;
   border-bottom:1px solid #333;
-  font-family:'Courier New',monospace; font-size:11px;
+  font-family:var(--font-ui); font-size:11px;
   color:#556; letter-spacing:2px;
   flex-shrink:0;
 }
@@ -378,7 +378,7 @@ input[type=text]:focus{border-color:#4af;}
 #chat-history-list::-webkit-scrollbar-track { background:transparent; }
 #chat-history-list::-webkit-scrollbar-thumb { background:#333; border-radius:2px; }
 .chat-history-msg {
-  font-family:'Courier New',monospace; font-size:13px;
+  font-family:var(--font-ui); font-size:13px;
   padding:3px 8px; border-radius:3px;
   letter-spacing:.5px; word-break:break-all;
   background:rgba(255,255,255,0.04);
@@ -387,7 +387,7 @@ input[type=text]:focus{border-color:#4af;}
 .chat-history-msg.peer { color:#ffb870; border-left:2px solid #ffb870; }
 .chat-history-time { color:#445; font-size:10px; margin-left:6px; }
 .chat-msg {
-  font-family:'Courier New',monospace; font-size:14px;
+  font-family:var(--font-ui); font-size:14px;
   color:#eee; background:rgba(0,0,0,0.65);
   padding:5px 12px; border-radius:4px;
   letter-spacing:.5px; max-width:100%;
@@ -405,7 +405,7 @@ input[type=text]:focus{border-color:#4af;}
 #chat-input {
   width:100%; box-sizing:border-box;
   background:rgba(0,0,0,0.82); border:1px solid #666;
-  color:#eee; font-family:'Courier New',monospace; font-size:14px;
+  color:#eee; font-family:var(--font-ui); font-size:14px;
   padding:7px 12px; border-radius:4px; outline:none;
   letter-spacing:.5px;
 }
@@ -745,7 +745,7 @@ input[type=text]:focus{border-color:#4af;}
 
 /* 도움말: 기존 듀얼즈 UI와 같은 각진 패널, 얇은 테두리, 푸른 발광을 사용한다. */
 .duels-help-entry{margin-top:18px;text-align:center;position:relative;z-index:10}
-.duels-help-open{background:transparent;border:0;color:#667;font:12px 'Courier New',monospace;letter-spacing:2px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;padding:4px 8px}
+.duels-help-open{background:transparent;border:0;color:#667;font:500 12px var(--font-ui);letter-spacing:2px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;padding:4px 8px}
 .duels-help-open:hover{color:#8bd;text-shadow:0 0 8px #4af8}
 .duels-help-panel{width:min(760px,calc(100vw - 36px));max-height:min(590px,72vh);overflow:auto;margin:14px auto 0;background:linear-gradient(180deg,#0d1520 0%,#091019 100%);border:1px solid #29435c;box-shadow:0 0 0 1px #09111b,0 0 24px #249cff22;padding:0;text-align:left;color:#91a1b2;font-size:12px;letter-spacing:.4px}
 .duels-help-panel[hidden]{display:none!important}
@@ -753,7 +753,7 @@ input[type=text]:focus{border-color:#4af;}
 .duels-help-close{width:30px;height:28px;background:#0b131c;border:1px solid #24394c;color:#789;font-size:20px;line-height:20px;cursor:pointer}
 .duels-help-close:hover{color:#fff;border-color:#4af;box-shadow:0 0 10px #4af5}
 .duels-help-tabs{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #22364a}
-.duels-help-tab{height:38px;background:#0a121b;border:0;border-right:1px solid #1d3042;color:#65788b;font:11px 'Courier New',monospace;letter-spacing:2px;cursor:pointer}
+.duels-help-tab{height:38px;background:#0a121b;border:0;border-right:1px solid #1d3042;color:#65788b;font:600 11px var(--font-ui);letter-spacing:2px;cursor:pointer}
 .duels-help-tab:last-child{border-right:0}
 .duels-help-tab:hover{color:#9cd;background:#0d1924}
 .duels-help-tab.active{color:#dff;background:#102130;box-shadow:inset 0 -2px #49b8ff;text-shadow:0 0 8px #4af8}
@@ -766,7 +766,7 @@ input[type=text]:focus{border-color:#4af;}
 .duels-help-note{grid-template-columns:128px 1fr}.duels-help-note>b{color:#b9d4e8}
 .duels-help-control-group{margin-bottom:14px}
 .duels-help-row{display:grid;grid-template-columns:160px 1fr;gap:12px;align-items:center;min-height:31px;border-bottom:1px dashed #192b3b}
-.duels-help-row kbd{display:inline-block;width:max-content;min-width:82px;padding:3px 8px;background:#09111a;border:1px solid #2c4b64;color:#c6e8ff;font:11px 'Courier New',monospace;letter-spacing:1px;box-shadow:inset 0 0 8px #0008}
+.duels-help-row kbd{display:inline-block;width:max-content;min-width:82px;padding:3px 8px;background:#09111a;border:1px solid #2c4b64;color:#c6e8ff;font:600 11px var(--font-ui);letter-spacing:1px;box-shadow:inset 0 0 8px #0008}
 .duels-help-status-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;align-items:stretch}
 .duels-help-status-columns>.duels-help-section-title{grid-column:1/-1;margin-bottom:2px}
 .duels-help-status{display:flex;flex-direction:column;justify-content:flex-start;min-width:0;padding:9px 11px;margin:0;background:#0a121a;border:1px solid #16293a}
@@ -784,6 +784,106 @@ input[type=text]:focus{border-color:#4af;}
 .char-card>.char-tooltip,.start-aug-char-card>.char-tooltip{display:none!important;}
 .duels2-global-char-tooltip{display:none;position:fixed;z-index:20000;pointer-events:none;max-width:min(560px,calc(100vw - 20px));background:#0d1520;border:1px solid #2a4a6a;border-radius:4px;padding:10px 14px;font-size:11px;color:#778;line-height:1.7;text-align:left;white-space:normal;box-shadow:0 8px 28px rgba(0,0,0,.55),0 0 12px rgba(68,170,255,.16);box-sizing:border-box;}
 </style>
+
+<style id="duels2-modern-font-system">
+:root{
+  --font-ui:"SUIT Variable","SUIT","Pretendard Variable","Pretendard","Wanted Sans","Noto Sans KR","Apple SD Gothic Neo","Segoe UI",Arial,sans-serif;
+  --font-display:"SUIT Variable","SUIT","Pretendard Variable","Pretendard","Wanted Sans","Noto Sans KR","Apple SD Gothic Neo","Segoe UI",Arial,sans-serif;
+  --font-mono:"SFMono-Regular","Cascadia Code","Roboto Mono","Noto Sans Mono CJK KR",Consolas,monospace;
+}
+
+/* 전체 UI는 너무 반듯하지 않도록 가벼운 굵기와 좁은 자간을 사용한다. */
+html,body,button,input,select,textarea{
+  font-family:var(--font-ui);
+  font-kerning:normal;
+  font-synthesis:none;
+  text-rendering:optimizeLegibility;
+}
+body{
+  font-weight:400;
+  letter-spacing:-.018em;
+}
+button,input,select,textarea{font:inherit}
+
+/* 제목은 존재감은 유지하되 과한 자간과 무거운 굵기를 줄인다. */
+h1,h2,
+.duels-help-header,
+.duels-help-section-title{
+  font-family:var(--font-display);
+  font-weight:650;
+}
+h1{
+  letter-spacing:.07em;
+  line-height:1.08;
+}
+h2{
+  letter-spacing:.035em;
+  line-height:1.22;
+}
+
+/* 버튼과 탭은 단단한 인상보다 부드러운 중간 굵기를 사용한다. */
+.btn,
+.duels-help-open,
+.duels-help-tab,
+.duels-help-close{
+  font-family:var(--font-ui);
+  font-weight:560;
+}
+.btn{
+  letter-spacing:.025em;
+}
+.duels-help-tab{
+  letter-spacing:.035em;
+}
+
+/* 카드와 HUD도 굵기 대비를 줄여 전체적으로 부드럽게 연결한다. */
+.char-card,
+.char-name,
+.char-stats,
+.char-tooltip,
+.char-mastery,
+.status,
+.sub,
+.record-delta-toast,
+#duels2-account-gate,
+#duels2-account-chip{
+  font-family:var(--font-ui);
+}
+.char-name{font-weight:620;letter-spacing:.01em}
+.char-stats,.char-tooltip{font-weight:400;letter-spacing:-.01em}
+.char-mastery{font-weight:620}
+.status,.sub{font-weight:430}
+
+/* 코드와 수치만 고정폭을 유지하되 굵기와 자간을 과하게 주지 않는다. */
+.code-box,
+input[type=text],
+.duels-help-row kbd,
+[data-mono],
+.mono{
+  font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+}
+.code-box{
+  font-weight:650;
+  letter-spacing:.09em;
+}
+input[type=text]{
+  font-weight:560;
+  letter-spacing:.07em;
+}
+.duels-help-row kbd{
+  font-weight:560;
+  letter-spacing:.015em;
+}
+
+button,
+select,
+input,
+option{
+  font-family:inherit;
+}
+</style>
+
 </head>
 <body>
 
@@ -1958,7 +2058,7 @@ window.duels2GetAlphaCompletionStatus = duels2GetAlphaCompletionStatus;
   if (isMobile) {
     document.body.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a0c;margin:0;';
     document.body.innerHTML =
-      '<div style="text-align:center;color:#adf;font-family:Courier New,monospace;padding:40px;max-width:420px;">'
+      '<div style="text-align:center;color:#adf;font-family:var(--font-ui);padding:40px;max-width:420px;">'
       + '<div style="font-size:2em;letter-spacing:4px;color:#f44;margin-bottom:24px;">⚠ 플레이 불가</div>'
       + '<div style="font-size:.9em;color:#778;letter-spacing:2px;line-height:2.4;">'
       + '이 게임은 PC에서만 플레이 가능합니다.<br>키보드와 마우스가 필요합니다.<br><br>'
@@ -18966,7 +19066,7 @@ function drawEntityCCStack(t, baseY = null) {
   ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
 
   const bottomY = baseY ?? ((t.y || 0) - (getEntityRadius(t) || 20) - 38);
-  ctx.font = 'bold 13px Courier New';
+  ctx.font = 'bold 13px Pretendard';
   ctx.textAlign = 'center';
   for (let i = 0; i < entries.length; i++) {
     const e = entries[i];
@@ -27343,11 +27443,11 @@ duels2RegisterSummonOverlaySpec('herjang.cannon.overlay', {
         const remaining = Math.max(0,m._leashBreakAt-performance.now());
         const alpha = 0.3 + 0.4*(1-Math.min(1,remaining/BC.leashDelay));
         ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(L.x,L.y); ctx.strokeStyle=`rgba(255,80,80,${alpha})`; ctx.lineWidth=2; ctx.setLineDash([8,6]); ctx.stroke();
-        ctx.fillStyle=`rgba(255,80,80,${alpha})`; ctx.font='bold 10px Courier New'; ctx.textAlign='center'; ctx.fillText(`파괴 ${(remaining/1000).toFixed(1)}s`,m.x,m.y+m.radius+14);
+        ctx.fillStyle=`rgba(255,80,80,${alpha})`; ctx.font='bold 10px Pretendard'; ctx.textAlign='center'; ctx.fillText(`파괴 ${(remaining/1000).toFixed(1)}s`,m.x,m.y+m.radius+14);
       }
     }
     if (m._carried && !isPeer) {
-      ctx.fillStyle='rgba(255,220,80,0.9)'; ctx.font='bold 9px Courier New'; ctx.textAlign='center'; ctx.fillText('운반중',m.x,m.y-m.radius-12);
+      ctx.fillStyle='rgba(255,220,80,0.9)'; ctx.font='bold 9px Pretendard'; ctx.textAlign='center'; ctx.fillText('운반중',m.x,m.y-m.radius-12);
     }
   }
 });
@@ -27533,7 +27633,7 @@ MINION_DEFS['herjang_mini'] = {
     ctx.fillStyle=Math.max(0,m.hp/m.maxHp)>0.4?'#5eead4':'#f55';
     ctx.fillRect(bx,by,bw*Math.max(0,m.hp/m.maxHp),bh);
     ctx.fillStyle=isPeer?'rgba(38,198,218,0.45)':'rgba(38,198,218,0.85)';
-    ctx.font='bold 8px Courier New'; ctx.textAlign='center';
+    ctx.font='bold 8px Pretendard'; ctx.textAlign='center';
     ctx.fillText('간이대포', m.x, m.y-m.radius-19);
     ctx.globalAlpha=1; ctx.restore();
   },
@@ -27896,7 +27996,7 @@ function _drawMinionOverlay(m, isPeer) {
 // DUELS2_VISUAL_TYPOGRAPHY_TOKENS: 소환수·설치형 등 공통 이름표가 참조하는 단일 타이포그래피 데이터 소스다. (tokenId별 폰트/색/정렬/알파 수치)
 const DUELS2_VISUAL_TYPOGRAPHY_TOKENS = Object.freeze({
   summonLabel:Object.freeze({
-    fontFamily:'Courier New',
+    fontFamily:'Pretendard',
     fontSize:10,
     fontWeight:'bold',
     color:'#f5f7ff',
@@ -38592,7 +38692,7 @@ function drawLevinaSpears() {
         ctx.strokeStyle = _dc; ctx.lineWidth = 2.5; ctx.stroke();
         ctx.beginPath(); ctx.arc(_ww.x, _ww.y, 5, 0, Math.PI*2);
         ctx.fillStyle = _dc; ctx.fill();
-        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.font='bold 10px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.font='bold 10px Pretendard'; ctx.textAlign='center'; ctx.textBaseline='middle';
         ctx.fillText(String(_wi+1), _ww.x, _ww.y); ctx.restore();
       }
       ctx.restore();
@@ -38993,7 +39093,7 @@ duels2RegisterVisualEffectRenderer('shape.labeledCircle', (fx, env) => {
   const label = fx.label ?? options.label;
   if (label) {
     ctx.fillStyle = duels2VisualRgba(fx.labelColor || options.labelColor || stroke || '255,255,255', alpha * Number(fx.labelAlpha ?? options.labelAlpha ?? .8));
-    ctx.font = fx.labelFont || options.labelFont || 'bold 12px Courier New';
+    ctx.font = fx.labelFont || options.labelFont || 'bold 12px Pretendard';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(String(label), Number(fx.x)||0, (Number(fx.y)||0) + Number(options.labelOffsetY || 0));
   }
@@ -39126,8 +39226,8 @@ duels2RegisterVisualEffectRenderer('shape.flyingWeapon', (fx, env) => {
   ['elinExplosion',{rendererId:'shape.multiCircle',rendererOptions:{radiusMode:'expand',rings:[{scale:1,fillColor:'200,216,240',fillAlpha:.22,strokeColor:'200,216,240',strokeAlpha:.9,lineWidth:3.5},{scale:.45,fillColor:'220,235,255',fillAlpha:.3,strokeColor:'230,242,255',strokeAlpha:.6,lineWidth:2}]}}],
   ['aoe',{rendererId:'shape.multiCircle',rendererOptions:{radiusMode:'static',rings:[{scale:1,fillColor:'255,20,147',fillAlpha:.18,strokeColor:'255,100,180',strokeAlpha:.9,lineWidth:3},{scale:.6,strokeColor:'255,150,200',strokeAlpha:.4,lineWidth:1.5}]}}],
   ['smash',{rendererId:'shape.multiCircle',rendererOptions:{radiusMode:'static',rings:[{scale:1,fillColor:'121,85,72',fillAlpha:.25,strokeColor:'161,115,102',strokeAlpha:.9,lineWidth:3.5},{scale:.55,strokeColor:'200,160,140',strokeAlpha:.5,lineWidth:2}]}}],
-  ['slowZoneAppear',{rendererId:'shape.labeledCircle',rendererOptions:{fillColor:'80,180,255',fillAlpha:.08,strokeColor:'100,190,255',strokeAlpha:.6,lineWidth:2,lineDash:[8,6],label:'SLOW',labelColor:'130,210,255',labelAlpha:.65,labelFont:'bold 12px Courier New',labelOffsetY:4,pulse:true,pulseSpeed:.004}}],
-  ['sorField',{rendererId:'shape.labeledCircle',rendererOptions:{fillColor:'255,225,40',fillAlpha:.10,strokeColor:'255,225,40',strokeAlpha:.8,lineWidth:2.5,lineDash:[8,5],label:'ZAP',labelColor:'255,225,40',labelAlpha:.8,labelFont:'bold 14px Courier New',labelOffsetY:5,pulse:true,pulseSpeed:.006}}],
+  ['slowZoneAppear',{rendererId:'shape.labeledCircle',rendererOptions:{fillColor:'80,180,255',fillAlpha:.08,strokeColor:'100,190,255',strokeAlpha:.6,lineWidth:2,lineDash:[8,6],label:'SLOW',labelColor:'130,210,255',labelAlpha:.65,labelFont:'bold 12px Pretendard',labelOffsetY:4,pulse:true,pulseSpeed:.004}}],
+  ['sorField',{rendererId:'shape.labeledCircle',rendererOptions:{fillColor:'255,225,40',fillAlpha:.10,strokeColor:'255,225,40',strokeAlpha:.8,lineWidth:2.5,lineDash:[8,5],label:'ZAP',labelColor:'255,225,40',labelAlpha:.8,labelFont:'bold 14px Pretendard',labelOffsetY:5,pulse:true,pulseSpeed:.006}}],
 ].forEach(([type,spec])=>duels2RegisterVisualEffectSpec(type,spec));
 
 
@@ -40217,7 +40317,7 @@ function draw() {
         ctx.strokeRect(x+0.5, y+0.5, tileSize-1, tileSize-1);
       }
     }
-    ctx.font='bold 13px Courier New';
+    ctx.font='bold 13px Pretendard';
     ctx.fillStyle='rgba(100,160,255,0.35)';
     ctx.textAlign='center';
     ctx.fillText(`MAP: ${currentMap.name} · ${currentMap.type}`, WORLD_W/2, WORLD_H-18);
@@ -40597,7 +40697,7 @@ function draw() {
       ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
       // 중앙 ZAP 텍스트
       ctx.fillStyle=`rgba(255,225,40,${a*0.8})`;
-      ctx.font=`bold 14px Courier New`; ctx.textAlign='center';
+      ctx.font=`bold 14px Pretendard`; ctx.textAlign='center';
       ctx.fillText('ZAP', f.x, f.y + 5);
     } else if (f.type==='pullInField') {
       const _pCol = f.col || '180,100,255';
@@ -40732,7 +40832,7 @@ function draw() {
       ctx.fillStyle=`rgba(80,180,255,${a*0.08*(0.7+0.3*pulse)})`; ctx.fill();
       ctx.strokeStyle=`rgba(100,190,255,${a*0.6})`; ctx.lineWidth=2;
       ctx.setLineDash([8,6]); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle=`rgba(130,210,255,${a*0.65})`; ctx.font='bold 12px Courier New'; ctx.textAlign='center';
+      ctx.fillStyle=`rgba(130,210,255,${a*0.65})`; ctx.font='bold 12px Pretendard'; ctx.textAlign='center';
       ctx.fillText('SLOW', f.x, f.y+4);
     } else if (f.type==='tauSlash') {
       // 타우 낫 — 민트(오버차지 시 황금) 부채꼴
@@ -42279,7 +42379,7 @@ function draw() {
           ctx.strokeStyle = `rgba(255,255,255,0.8)`; ctx.lineWidth = 3; ctx.setLineDash([]); ctx.stroke();
         }
       }
-      ctx.fillStyle='rgba(220,225,255,0.85)'; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+      ctx.fillStyle='rgba(220,225,255,0.85)'; ctx.font='bold 11px Pretendard'; ctx.textAlign='center';
       ctx.fillText('LMB / RMB', L._kiRmbX, L._kiRmbY - _kB.aoeRange - 8);
     } else if (_isFading && L._kiRmbFadeDrain) {
       // RMB 재입력 후 소멸 구간: 게이지가 빠지며 사라진다.
@@ -42320,7 +42420,7 @@ function draw() {
         ctx.strokeStyle=`rgba(255,105,180,${0.7*pulseZ})`; ctx.lineWidth=2.5;
         ctx.setLineDash([8,5]); ctx.strokeRect(0,-zoneShape.halfWidth,zoneShape.length,zoneShape.width); ctx.setLineDash([]);
         ctx.restore();
-        ctx.fillStyle='rgba(255,200,225,0.9)'; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
+        ctx.fillStyle='rgba(255,200,225,0.9)'; ctx.font='bold 13px Pretendard'; ctx.textAlign='center';
         const labelX = zoneShape.labelX;
         const labelY = zoneShape.labelY;
         ctx.fillText('×'+L._prillZoneHitsLeft, labelX, labelY);
@@ -42331,7 +42431,7 @@ function draw() {
         ctx.strokeStyle=`rgba(255,180,215,${(0.35+0.2*pulseZ2)*timeLeft})`; ctx.lineWidth=2;
         ctx.setLineDash([5,6]); ctx.strokeRect(0,-zoneShape.halfWidth,zoneShape.length,zoneShape.width); ctx.setLineDash([]);
         ctx.restore();
-        ctx.fillStyle=`rgba(255,180,215,${0.75*timeLeft})`; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+        ctx.fillStyle=`rgba(255,180,215,${0.75*timeLeft})`; ctx.font='bold 11px Pretendard'; ctx.textAlign='center';
         const lx2 = zoneShape.labelX;
         const ly2 = zoneShape.labelY;
         ctx.fillText('+50%', lx2, ly2);
@@ -42352,7 +42452,7 @@ function draw() {
       ctx.strokeStyle=`rgba(255,180,215,${(0.35+0.2*pulseZ)*timeLeft})`; ctx.lineWidth=2;
       ctx.setLineDash([5,6]); ctx.strokeRect(0,-oldZoneShape.halfWidth,oldZoneShape.length,oldZoneShape.width); ctx.setLineDash([]);
       ctx.restore();
-      ctx.fillStyle=`rgba(255,180,215,${0.6*timeLeft})`; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+      ctx.fillStyle=`rgba(255,180,215,${0.6*timeLeft})`; ctx.font='bold 11px Pretendard'; ctx.textAlign='center';
       const lx = oldZoneShape.labelX;
       const ly = oldZoneShape.labelY;
       ctx.fillText('+50%', lx, ly);
@@ -42374,7 +42474,7 @@ function draw() {
       if (rpz.hitsLeft > 0) {
         const lxRP = peerZoneShape.labelX;
         const lyRP = peerZoneShape.labelY;
-        ctx.fillStyle='rgba(255,180,180,0.85)'; ctx.font='bold 12px Courier New'; ctx.textAlign='center';
+        ctx.fillStyle='rgba(255,180,180,0.85)'; ctx.font='bold 12px Pretendard'; ctx.textAlign='center';
         ctx.fillText('×'+rpz.hitsLeft, lxRP, lyRP);
       }
     } else if (rpz.boosted) {
@@ -42454,7 +42554,7 @@ function draw() {
     ctx.fillStyle=`rgba(${col},${0.15+0.1*pulse})`; ctx.fill();
     ctx.strokeStyle=`rgba(${col},${0.7+0.3*pulse})`; ctx.lineWidth=2.5;
     ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle=`rgba(${col},0.9)`; ctx.font='bold 13px Courier New'; ctx.textAlign='center';
+    ctx.fillStyle=`rgba(${col},0.9)`; ctx.font='bold 13px Pretendard'; ctx.textAlign='center';
     ctx.fillText('굴', entry.x, entry.y+5);
   };
   if (gameOn && hasEntityFunctionalRuntime(L, 'chargeSlash') && L.burrowEntry) burrowMarker(L.burrowEntry,'160,90,40');
@@ -42871,7 +42971,7 @@ function draw() {
     ctx.strokeStyle = `rgba(220,220,220,${pulse * 0.7})`; ctx.lineWidth = 2;
     ctx.setLineDash([10, 7]); ctx.stroke(); ctx.setLineDash([]);
     // 연막 내부 선
-    ctx.fillStyle = `rgba(200,200,200,${pulse * 0.45})`; ctx.font = 'bold 13px Courier New'; ctx.textAlign='center';
+    ctx.fillStyle = `rgba(200,200,200,${pulse * 0.45})`; ctx.font = 'bold 13px Pretendard'; ctx.textAlign='center';
     ctx.fillText('SMOKE', s.x, s.y + 5);
   });
 
@@ -43024,7 +43124,7 @@ function draw() {
       ctx.strokeStyle=`rgba(255,225,40,${_sfA*(0.6+0.3*_pulse)})`; ctx.lineWidth=2.5;
       ctx.setLineDash([8,5]); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle=`rgba(255,225,40,${_sfA*0.8})`;
-      ctx.font='bold 14px Courier New'; ctx.textAlign='center';
+      ctx.font='bold 14px Pretendard'; ctx.textAlign='center';
       ctx.fillText('ZAP', f.x, f.y + 5);
     }
   }
@@ -43058,7 +43158,7 @@ function draw() {
       ctx.fillStyle = bot.color + '44'; ctx.fill();
       ctx.strokeStyle = bot.color; ctx.lineWidth = 2.5; ctx.stroke();
       // 캐릭터 이름 레이블
-      ctx.fillStyle = bot.color; ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'center';
+      ctx.fillStyle = bot.color; ctx.font = 'bold 11px Pretendard'; ctx.textAlign = 'center';
       const _bCharName = bot.charName || (bot.type==='melee'?'근거리':bot.type==='ranged'?'원거리':'더미');
       ctx.fillText(_bCharName, bot.x, bot.y - bot.radius - 6);
       // HP 바
@@ -43090,7 +43190,7 @@ function draw() {
   // 훈련장 통계는 updateLocalHud에서 처리
 
   ctx.save();
-  ctx.font='12px Courier New';
+  ctx.font='12px Pretendard';
   ctx.fillStyle='rgba(180,200,255,.65)'; ctx.textAlign='left';
   ctx.fillText(`${L.charDef?.name||''}  |  ${isHost?'방장':'참가자'}`, 10, 20);
   drawMinimap();
@@ -43325,7 +43425,7 @@ function duels2RenderEntityOverlaySpec(specId, entity, state = {}) {
         ctx.globalAlpha = 1;
         if (state.label || spec.completeLabel) {
           ctx.fillStyle = state.labelColor || spec.labelColor || state.completeColor || spec.completeColor || '#fff';
-          ctx.font = spec.labelFont || 'bold 10px Courier New';
+          ctx.font = spec.labelFont || 'bold 10px Pretendard';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
           ctx.fillText(state.label || spec.completeLabel, entity.x, Number(state.labelY ?? (entity.y + entity.radius + 28)));
@@ -43404,8 +43504,8 @@ function duels2RenderEntityOverlaySpec(specId, entity, state = {}) {
   } finally { ctx.restore(); }
 }
 
-duels2RegisterEntityOverlaySpec('reika.energy', {type:'arc', radiusOffset:8, lineWidth:3.5, completePulse:true, completePulseRadiusOffset:12, completePulseLineWidth:1.5, completePulseDash:[4,4], completePulseSpeed:.012, completeLabel:'SOLAR', labelFont:'bold 10px Courier New'});
-duels2RegisterEntityOverlaySpec('kan.gauge', {type:'arc', radiusOffset:8, lineWidth:3.5, completePulse:true, completePulseRadiusOffset:12, completePulseLineWidth:1.5, completePulseDash:[4,4], completePulseSpeed:.014, completeLabel:'MAX', labelFont:'bold 10px Courier New'});
+duels2RegisterEntityOverlaySpec('reika.energy', {type:'arc', radiusOffset:8, lineWidth:3.5, completePulse:true, completePulseRadiusOffset:12, completePulseLineWidth:1.5, completePulseDash:[4,4], completePulseSpeed:.012, completeLabel:'SOLAR', labelFont:'bold 10px Pretendard'});
+duels2RegisterEntityOverlaySpec('kan.gauge', {type:'arc', radiusOffset:8, lineWidth:3.5, completePulse:true, completePulseRadiusOffset:12, completePulseLineWidth:1.5, completePulseDash:[4,4], completePulseSpeed:.014, completeLabel:'MAX', labelFont:'bold 10px Pretendard'});
 duels2RegisterEntityOverlaySpec('standard.reload', {type:'arc', radiusOffset:8, lineWidth:3});
 duels2RegisterEntityOverlaySpec('meramona.stars', {type:'orbit-stars', orbitRadiusOffset:16, outerRadius:8, innerRadius:3.5, rotationSpeed:.0015, color:'#fff', shadowColor:'#ff21da', shadowBlur:8});
 duels2RegisterEntityOverlaySpec('meramona.stack', {type:'arc', radiusOffset:8, lineWidth:3, color:'#ff21da'});
@@ -43552,7 +43652,7 @@ function drawPlayer(p, label) {
   const hcol=pct>0.5?'#4af':pct>0.25?'#fa0':'#f44';
   ctx.fillStyle='#161616'; ctx.fillRect(bx,by,bw,bh);
   ctx.fillStyle=hcol; ctx.fillRect(bx,by,bw*pct,bh);
-  ctx.fillStyle='rgba(255,255,255,.6)'; ctx.font='11px Courier New'; ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,255,255,.6)'; ctx.font='11px Pretendard'; ctx.textAlign='center';
   ctx.fillText(label,p.x,p.y-p.radius-26);
 
   const sbw=48,sbh=4,sbx=p.x-sbw/2,sby=p.y+p.radius+7;
@@ -43594,7 +43694,7 @@ function drawPlayer(p, label) {
       const cCol = _cPct > 0.4 ? 'rgba(255,105,180,0.9)' : 'rgba(255,60,100,0.9)';
       ctx.fillStyle=cCol; ctx.fillRect(cbx, cby, cbw*_cPct, cbh);
       // 콤보 단계 점 (● ●●)
-      ctx.font='bold 9px Courier New'; ctx.textAlign='center';
+      ctx.font='bold 9px Pretendard'; ctx.textAlign='center';
       ctx.fillStyle='rgba(255,200,225,0.9)';
       ctx.fillText('●'.repeat(L._prillCombo), p.x, cby+cbh+10);
     }
@@ -43603,7 +43703,7 @@ function drawPlayer(p, label) {
   const _nsStack = p?._nsonyaStacks || p?.nsonyaStacks || 0;
   if (_nsStack > 0) {
     const _roman = ['', 'I', 'II', 'III'][Math.min(3, _nsStack)] || String(_nsStack);
-    ctx.font='bold 12px Courier New'; ctx.textAlign='center'; ctx.fillStyle=p.charDef?.color || p.defaultColor || '#78dcff';
+    ctx.font='bold 12px Pretendard'; ctx.textAlign='center'; ctx.fillStyle=p.charDef?.color || p.defaultColor || '#78dcff';
     ctx.fillText(_roman, p.x, sby+sbh+17);
   }
 
@@ -43673,7 +43773,7 @@ function drawPlayer(p, label) {
 
   // 타우 스택/오버차지 — 스테미나 바 아래
   if (p===L && hasEntityFunctionalRuntime(L, 'scytheOvercharge')) {
-    ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+    ctx.font='bold 11px Pretendard'; ctx.textAlign='center';
     if (L._tauOveleucharge) {
       ctx.fillStyle='rgba(0,255,200,0.95)';
       ctx.fillText('⚡', p.x, sby+sbh+13);
@@ -43688,7 +43788,7 @@ function drawPlayer(p, label) {
     if (L._stunShotReady) _tags.push('🌀스턴');
     if (L._pierceShotReady) _tags.push('🏹관통');
     if (_tags.length > 0) {
-      ctx.font='bold 10px Courier New'; ctx.textAlign='center';
+      ctx.font='bold 10px Pretendard'; ctx.textAlign='center';
       ctx.fillStyle='rgba(255,215,0,0.9)';
       ctx.fillText(_tags.join('  '), p.x, sby+sbh+25);
     }
@@ -43700,7 +43800,7 @@ function drawPlayer(p, label) {
     ctx.beginPath(); ctx.arc(p.x,p.y,p.radius+16,0,Math.PI*2);
     ctx.strokeStyle=`rgba(255,119,0,${pulse})`; ctx.lineWidth=3;
     ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle='rgba(255,150,0,0.95)'; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,150,0,0.95)'; ctx.font='bold 11px Pretendard'; ctx.textAlign='center';
     ctx.fillText('⚔', p.x, sby+sbh+13);
   }
   // 리안 백업 위치 점선 표시
@@ -43737,7 +43837,7 @@ function drawPlayer(p, label) {
       }
       // 번호 표시 (가장 최근=1)
       const num = _stack.length - i;
-      ctx.fillStyle=`rgba(255,200,100,${alpha})`; ctx.font='bold 10px Courier New'; ctx.textAlign='center';
+      ctx.fillStyle=`rgba(255,200,100,${alpha})`; ctx.font='bold 10px Pretendard'; ctx.textAlign='center';
       ctx.fillText(String(num), bp.x, bp.y + 4);
     });
     ctx.restore();
@@ -43758,7 +43858,7 @@ function drawPlayer(p, label) {
         ctx.beginPath(); ctx.arc(p.x, p.y, p.radius+12, 0, Math.PI*2);
         ctx.strokeStyle = `rgba(186,230,253,${pulse*0.8})`; ctx.lineWidth=2;
         ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle='rgba(56,189,248,0.95)'; ctx.font='bold 11px Courier New'; ctx.textAlign='center';
+        ctx.fillStyle='rgba(56,189,248,0.95)'; ctx.font='bold 11px Pretendard'; ctx.textAlign='center';
         ctx.fillText('LASER', p.x, sby+sbh+13);
       }
     }
@@ -55001,7 +55101,7 @@ const DUELS2_DEPLOYABLE_RENDERER_REGISTRY = Object.freeze({
     ctx.setLineDash([3, 4]); ctx.stroke(); ctx.setLineDash([]);
     ctx.beginPath(); ctx.arc(render.x, render.y, armed ? 3 : 4, 0, Math.PI*2);
     ctx.fillStyle = `rgba(200,140,0,${armed ? alpha * 2 : 0.75})`; ctx.fill();
-    ctx.fillStyle = `rgba(220,160,0,${armed ? alpha * 2.5 : 0.9})`; ctx.font = 'bold 9px Courier New'; ctx.textAlign = 'center';
+    ctx.fillStyle = `rgba(220,160,0,${armed ? alpha * 2.5 : 0.9})`; ctx.font = 'bold 9px Pretendard'; ctx.textAlign = 'center';
     ctx.fillText(String(index + 1), render.x, render.y - radius - 4);
   },
   'peluna-anvil':(render, anvil, index, context = {}) => {
@@ -58172,7 +58272,7 @@ function _buildTrainingHud() {
   const btn = (label, color, fn) => {
     const b = document.createElement('button');
     b.innerHTML = label;
-    b.style.cssText = `background:#0d1118;border:1px solid ${color};color:${color};padding:6px 14px;font-family:Courier New,monospace;font-size:11px;letter-spacing:1px;cursor:pointer;border-radius:2px;`;
+    b.style.cssText = `background:#0d1118;border:1px solid ${color};color:${color};padding:6px 14px;font-family:var(--font-ui);font-size:11px;letter-spacing:1px;cursor:pointer;border-radius:2px;`;
     b.onmouseenter = () => b.style.background = color + '22';
     b.onmouseleave = () => b.style.background = '#0d1118';
     b.onclick = fn;
@@ -58188,7 +58288,7 @@ function _buildTrainingHud() {
   document.getElementById('training-stats')?.remove();
   const sv = document.createElement('div');
   sv.id = 'training-stats';
-  sv.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);color:#aaa;font-family:Courier New,monospace;font-size:11px;text-align:center;letter-spacing:1px;pointer-events:none;z-index:150;';
+  sv.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);color:#aaa;font-family:var(--font-ui);font-size:11px;text-align:center;letter-spacing:1px;pointer-events:none;z-index:150;';
   document.body.appendChild(sv);
 }
 
@@ -58228,13 +58328,13 @@ function openTrainingCharSelect() {
   if (sp) { sp.remove(); return; }
   sp = document.createElement('div');
   sp.id = 'training-char-panel';
-  sp.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#0d1520;border:1px solid #2a4a3a;padding:16px 20px;z-index:300;font-family:Courier New,monospace;font-size:12px;color:#aaa;letter-spacing:1px;border-radius:3px;max-width:680px;';
+  sp.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#0d1520;border:1px solid #2a4a3a;padding:16px 20px;z-index:300;font-family:var(--font-ui);font-size:12px;color:#aaa;letter-spacing:1px;border-radius:3px;max-width:680px;';
   const grid = document.createElement('div');
   grid.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;max-height:300px;overflow-y:auto;';
   duels2GetCharacterSelectionOrder().forEach(ch => {
     const btn = document.createElement('button');
     btn.textContent = ch.name;
-    btn.style.cssText = `background:#111;border:1px solid ${ch.color||'#334'};color:${ch.color||'#aaa'};padding:5px 12px;cursor:pointer;font-family:Courier New,monospace;font-size:11px;border-radius:2px;`;
+    btn.style.cssText = `background:#111;border:1px solid ${ch.color||'#334'};color:${ch.color||'#aaa'};padding:5px 12px;cursor:pointer;font-family:var(--font-ui);font-size:11px;border-radius:2px;`;
     btn.onclick = () => {
       selCharId = ch.id;
       resetMinions();
@@ -58252,7 +58352,7 @@ function openTrainingCharSelect() {
   sp.appendChild(grid);
   const closeBtn = document.createElement('button');
   closeBtn.textContent = '닫기';
-  closeBtn.style.cssText = 'margin-top:10px;background:#111;border:1px solid #334;color:#778;padding:4px 12px;cursor:pointer;font-family:Courier New,monospace;font-size:11px;';
+  closeBtn.style.cssText = 'margin-top:10px;background:#111;border:1px solid #334;color:#778;padding:4px 12px;cursor:pointer;font-family:var(--font-ui);font-size:11px;';
   closeBtn.onclick = () => sp.remove();
   sp.appendChild(closeBtn);
   document.body.appendChild(sp);
@@ -58268,11 +58368,11 @@ function openTrainingAugPanel() {
   const titleRow = document.createElement('div');
   titleRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;position:sticky;top:0;background:#0a0a12;z-index:1;padding-bottom:6px;';
   const titleTxt = document.createElement('span');
-  titleTxt.style.cssText = 'color:#fa8;font-family:Courier New,monospace;font-size:13px;letter-spacing:2px;';
+  titleTxt.style.cssText = 'color:#fa8;font-family:var(--font-ui);font-size:13px;letter-spacing:2px;';
   titleTxt.textContent = '── 증강 ── 좌클릭: 획득  우클릭: 제거';
   const closeBtn2 = document.createElement('button');
   closeBtn2.textContent = '✕';
-  closeBtn2.style.cssText = 'background:none;border:1px solid #555;color:#888;cursor:pointer;padding:2px 8px;font-family:Courier New,monospace;border-radius:3px;';
+  closeBtn2.style.cssText = 'background:none;border:1px solid #555;color:#888;cursor:pointer;padding:2px 8px;font-family:var(--font-ui);border-radius:3px;';
   closeBtn2.onclick = e => preserveUiScroll(()=>{ e.preventDefault(); sp.remove(); });
   titleRow.append(titleTxt, closeBtn2);
   sp.appendChild(titleRow);
@@ -58286,7 +58386,7 @@ function openTrainingAugPanel() {
       const card = document.createElement('div');
       card.setAttribute('role','button');
       const cnt = getAugCount(aug.id);
-      card.style.cssText = `width:112px;padding:9px 7px;border:1px solid ${cnt>0?'#fa8':'#333'};border-radius:4px;background:${cnt>0?'#1a1200':'#111'};cursor:pointer;text-align:center;user-select:none;font-family:Courier New,monospace;`;
+      card.style.cssText = `width:112px;padding:9px 7px;border:1px solid ${cnt>0?'#fa8':'#333'};border-radius:4px;background:${cnt>0?'#1a1200':'#111'};cursor:pointer;text-align:center;user-select:none;font-family:var(--font-ui);`;
       card.innerHTML = `<div style="font-size:20px">${aug.emoji}</div><div style="font-size:12px;color:#fa8;margin:3px 0">${aug.name}</div><div style="font-size:10px;color:${augRarityColor(aug.rarity)}">${augRarityLabel(aug.rarity)}</div><div style="font-size:13px;color:#fff;margin-top:4px;font-weight:bold">${cnt > 0 ? '×'+cnt : ''}</div>`;
       card.title = aug.desc;
       card.addEventListener('click', e => preserveUiScroll(()=>{ e.preventDefault(); matchState.localAugments.push(aug.id); if (gameOn) resetL(); refreshLiveHud(); renderCards(); }));
@@ -58322,7 +58422,7 @@ function openTrainingSettings() {
   const ts = _trainingSettings;
   const sp = document.createElement('div');
   sp.id = 'training-settings-panel';
-  sp.style.cssText = 'position:fixed;bottom:55px;left:50%;transform:translateX(-50%);background:#0a0d14;border:1px solid #2a3a5a;border-radius:4px;padding:16px 20px;z-index:300;font-family:Courier New,monospace;font-size:12px;color:#aaa;letter-spacing:1px;min-width:340px;';
+  sp.style.cssText = 'position:fixed;bottom:55px;left:50%;transform:translateX(-50%);background:#0a0d14;border:1px solid #2a3a5a;border-radius:4px;padding:16px 20px;z-index:300;font-family:var(--font-ui);font-size:12px;color:#aaa;letter-spacing:1px;min-width:340px;';
 
   const row = (label, el) => {
     const d = document.createElement('div');
@@ -58336,7 +58436,7 @@ function openTrainingSettings() {
   };
   const sel = (opts, cur, fn) => {
     const s = document.createElement('select');
-    s.style.cssText = 'background:#111;border:1px solid #334;color:#aaa;padding:2px 6px;font-family:Courier New;font-size:11px;';
+    s.style.cssText = 'background:#111;border:1px solid #334;color:#aaa;padding:2px 6px;font-family:var(--font-ui);font-size:11px;';
     opts.forEach(([v,t]) => { const o=document.createElement('option'); o.value=v; o.textContent=t; if(v===cur)o.selected=true; s.appendChild(o); });
     s.onchange = e => fn(e.target.value); return s;
   };
@@ -58831,7 +58931,7 @@ function duels2RenderMultiplayerHud() {
     const team = getTeamId(entity) || _defaultTeamForPid(pid);
     const local = pid === DUELS2_PLAYER_REGISTRY.localPid;
     const playerName = globalThis.duels2ResolveHudPlayerName?.(pid, entity, {local}) || (local ? '플레이어' : '상대');
-    return `<div style="min-width:150px;padding:6px 8px;background:#07101ddd;border:1px solid ${local?'#4af':'#345'};font:10px Courier New;color:#dcecff;">`+
+    return `<div style="min-width:150px;padding:6px 8px;background:#07101ddd;border:1px solid ${local?'#4af':'#345'};font:500 10px var(--font-ui);color:#dcecff;">`+
       `<div><b>${duels2EscapeHudText?.(playerName) || playerName}</b> · ${duels2EscapeHudText?.(charName) || charName} · ${team.replace('team:','')} ${ready?'✓':''}</div>`+
       `<div style="height:5px;background:#182433;margin-top:4px;"><div style="height:100%;width:${Math.max(0,Math.min(100,hp/maxHp*100))}%;background:${entity.color || '#4af'};"></div></div>`+
       `<div style="margin-top:2px;color:#9ab;">${Math.round(hp)} / ${Math.round(maxHp)}</div></div>`;
@@ -61088,7 +61188,7 @@ function _devEl(tag, css, html='') {
 }
 function _devBtn(label, fn, active=false) {
   const b = _devEl('button',
-    `background:${active?'#2a1a00':'#111'};border:1px solid ${active?'#fa8':'#444'};color:${active?'#fa8':'#aaa'};padding:4px 9px;font-family:Courier New,monospace;font-size:12px;cursor:pointer;border-radius:3px;margin:2px;`);
+    `background:${active?'#2a1a00':'#111'};border:1px solid ${active?'#fa8':'#444'};color:${active?'#fa8':'#aaa'};padding:4px 9px;font-family:var(--font-ui);font-size:12px;cursor:pointer;border-radius:3px;margin:2px;`);
   b.type = 'button';
   b.textContent = label;
   b.onclick = e => { e?.preventDefault?.(); e?.stopPropagation?.(); return preserveUiScroll(() => fn?.(e)); };
@@ -61165,7 +61265,7 @@ function _devTabBar(tabs, container) {
   const bar = _devEl('div','display:flex;gap:2px;margin-bottom:6px;flex-wrap:wrap;');
   tabs.forEach(([id, label]) => {
     const b = _devEl('button',
-      `padding:4px 10px;font-family:Courier New,monospace;font-size:12px;cursor:pointer;border-radius:3px 3px 0 0;border:1px solid ${_devActiveTab===id?'#fa8':'#333'};background:${_devActiveTab===id?'#2a1a00':'#111'};color:${_devActiveTab===id?'#fa8':'#666'};`);
+      `padding:4px 10px;font-family:var(--font-ui);font-size:12px;cursor:pointer;border-radius:3px 3px 0 0;border:1px solid ${_devActiveTab===id?'#fa8':'#333'};background:${_devActiveTab===id?'#2a1a00':'#111'};color:${_devActiveTab===id?'#fa8':'#666'};`);
     b.textContent = label;
     b.onclick = e => { e?.preventDefault?.(); e?.stopPropagation?.(); preserveUiScroll(() => { _devActiveTab=id; duels2SafeLocalStorageSetItem('devTab',id); refreshDevPanel(); }); };
     bar.appendChild(b);
@@ -61718,7 +61818,7 @@ function _devFold(title, key, builder) {
 function _devMiniSlider(key, id, kind, value, min, max, onInput, allowOver=false) {
   const row = _devEl('div','class:dev-value-row;');
   row.className = 'dev-value-row';
-  const num = _devEl('input','background:#111;border:1px solid #445;color:#fff;padding:5px;font-family:Courier New,monospace;');
+  const num = _devEl('input','background:#111;border:1px solid #445;color:#fff;padding:5px;font-family:var(--font-ui);');
   const rangeMax = allowOver ? Math.max(max, Number(value) || max) : max;
   num.type='number'; num.min=String(min); if (!allowOver) num.max=String(max); num.value=String(value);
   const range = _devEl('input','accent-color:#aaf;'); range.type='range'; range.min=String(min); range.max=String(rangeMax); range.value=String(Math.max(min, Math.min(rangeMax, value)));
@@ -61728,7 +61828,7 @@ function _devMiniSlider(key, id, kind, value, min, max, onInput, allowOver=false
   return row;
 }
 function _devModeSelect(key, id, cur, onChange) {
-  const sel=_devEl('select','background:#111;border:1px solid #445;color:#ccd;padding:5px;font-family:Courier New,monospace;');
+  const sel=_devEl('select','background:#111;border:1px solid #445;color:#ccd;padding:5px;font-family:var(--font-ui);');
   [['pct','%'],['flat','고정']].forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;if(v===cur)o.selected=true;sel.appendChild(o);});
   sel.onchange=()=>preserveUiScroll(()=>{_devSetMode(key,id,sel.value);onChange?.(sel.value);});
   return sel;
@@ -62135,7 +62235,7 @@ function openDevPanel(opt = {}) {
 
   if (_devPanelCollapsed) {
     // 접힌 상태 — 미니 바
-    panel.style.cssText = `position:fixed;top:48px;${sideStyle}background:rgba(10,10,18,0.82);border:1px solid #fa8;border-radius:6px;padding:5px 10px;z-index:9999;font-family:Courier New,monospace;font-size:9px;color:#fa8;display:flex;align-items:center;gap:8px;backdrop-filter:blur(4px);`;
+    panel.style.cssText = `position:fixed;top:48px;${sideStyle}background:rgba(10,10,18,0.82);border:1px solid #fa8;border-radius:6px;padding:5px 10px;z-index:9999;font-family:var(--font-ui);font-size:9px;color:#fa8;display:flex;align-items:center;gap:8px;backdrop-filter:blur(4px);`;
     const now = performance.now();
     const rem = e => e&&e>now?((e-now)/1000).toFixed(0)+'s':'-';
     panel.innerHTML = `<span style="opacity:0.6;">[DEBUG]</span> <span>HP:${Math.round(L.health||0)}</span> <span>ST:${Math.round(L.stamina||0)}</span> <span>fx:${typeof fxList!=='undefined'?fxList.length:0}</span>`;
@@ -62148,7 +62248,7 @@ function openDevPanel(opt = {}) {
   }
 
   const _devSavedW = duels2SafeLocalStorageGetItem('devPanelWidth') || '560px';
-  panel.style.cssText = `position:fixed;top:48px;${sideStyle}width:${_devSavedW};max-width:92vw;max-height:calc(100vh - 96px);overflow:auto;resize:both;background:rgba(10,10,18,0.9);border:1px solid #fa8;border-radius:8px;padding:10px;z-index:9999;font-family:Courier New,monospace;font-size:12px;color:#ccc;backdrop-filter:blur(4px);pointer-events:auto;`;
+  panel.style.cssText = `position:fixed;top:48px;${sideStyle}width:${_devSavedW};max-width:92vw;max-height:calc(100vh - 96px);overflow:auto;resize:both;background:rgba(10,10,18,0.9);border:1px solid #fa8;border-radius:8px;padding:10px;z-index:9999;font-family:var(--font-ui);font-size:12px;color:#ccc;backdrop-filter:blur(4px);pointer-events:auto;`;
   panel.dataset.combatPassthrough='false';
   const blockGamePointer = ev => ev.stopPropagation();
   for (const type of ['pointerdown','pointerup','mousedown','mouseup','click','dblclick','contextmenu','wheel']) panel.addEventListener(type, blockGamePointer);
@@ -62206,7 +62306,7 @@ function _devInitMiniHUD() {
   if (hud) return;
   hud = document.createElement('div');
   hud.id = 'dev-mini-hud';
-  hud.style.cssText = 'position:fixed;top:6px;right:6px;background:rgba(0,0,0,0.55);border-radius:4px;padding:3px 7px;font-family:Courier New,monospace;font-size:8px;color:#fa8;z-index:8000;pointer-events:none;line-height:1.5;display:none;';
+  hud.style.cssText = 'position:fixed;top:6px;right:6px;background:rgba(0,0,0,0.55);border-radius:4px;padding:3px 7px;font-family:var(--font-ui);font-size:8px;color:#fa8;z-index:8000;pointer-events:none;line-height:1.5;display:none;';
   document.body.appendChild(hud);
   setInterval(()=>{
     if (!window._devUnlocked) { hud.style.display='none'; return; }
@@ -63776,7 +63876,7 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
 
 <style>
 /* ── 0.39.2 듀얼즈 계정 UI ── */
-#duels2-account-gate{position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0a0a0cf5;font-family:'Courier New',monospace;color:#d6e8f5}
+#duels2-account-gate{position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0a0a0cf5;font-family:var(--font-ui);color:#d6e8f5}
 #duels2-account-gate.hidden{display:none}
 .duels2-account-panel{position:relative;position:relative;box-sizing:border-box;width:min(92vw,470px);max-height:none;overflow:hidden;padding:32px 34px 28px;border:1px solid #2a4a6a;border-radius:2px;background:#0a0a0c;box-shadow:0 0 0 1px #101b26,0 0 34px #44aaff24}
 .duels2-account-panel::before,.duels2-account-panel::after{content:'';position:absolute;width:18px;height:18px;pointer-events:none}
@@ -63790,7 +63890,7 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
 .duels2-account-section{display:none}.duels2-account-section.active{display:block}
 .duels2-account-field{display:grid;grid-template-columns:106px minmax(0,1fr);align-items:center;gap:12px;margin:12px 0}
 .duels2-account-field label{font-size:11px;color:#7890a6;letter-spacing:1.5px;text-align:right}
-.duels2-account-field input{width:100%;box-sizing:border-box;background:#0d1015;color:#cce9ff;border:1px solid #2a4a6a;border-radius:2px;padding:10px 12px;font-family:'Courier New',monospace;font-size:13px;letter-spacing:1px;outline:none;user-select:text}
+.duels2-account-field input{width:100%;box-sizing:border-box;background:#0d1015;color:#cce9ff;border:1px solid #2a4a6a;border-radius:2px;padding:10px 12px;font-family:var(--font-ui);font-size:13px;letter-spacing:1px;outline:none;user-select:text}
 .duels2-account-field input:focus{border-color:#4af;background:#101820;box-shadow:0 0 0 1px #44aaff33,0 0 12px #44aaff1f}
 .duels2-account-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:23px}
 .duels2-account-actions .btn.big{min-width:180px;font-size:14px;padding:12px 34px}
