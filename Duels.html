@@ -37018,9 +37018,21 @@ document.addEventListener('contextmenu', e => {
   if (_chatOpen) _closeChat();
 }, true);
 
+// duels2GetMovementKeyFromKeyboardEvent: 키보드 이벤트에서 이동에 사용하는 WASD 키만 정규화한다. (event: KeyboardEvent 또는 키보드 형태의 이벤트 객체)
+function duels2GetMovementKeyFromKeyboardEvent(event) {
+  const key = typeof event?.key === 'string' ? event.key.toLowerCase() : '';
+  if (key === 'w' || key === 'a' || key === 's' || key === 'd') return key;
+
+  const code = typeof event?.code === 'string' ? event.code : '';
+  const codeMatch = /^Key([WASD])$/.exec(code);
+  return codeMatch ? codeMatch[1].toLowerCase() : null;
+}
+window.duels2GetMovementKeyFromKeyboardEvent = duels2GetMovementKeyFromKeyboardEvent;
+
 document.addEventListener('keydown', e => {
   _sfxCtx.state === 'suspended' && _sfxCtx.resume();
-  keys[e.key.toLowerCase()]=true;
+  const movementKey = duels2GetMovementKeyFromKeyboardEvent(e);
+  if (movementKey) keys[movementKey] = true;
 
   if (e.key === 'Enter' && !_chatOpen) {
     const _activeScr = ['scr-select','scr-between','scr-start-aug'].some(
@@ -37068,7 +37080,10 @@ document.addEventListener('keydown', e => {
     }
   }
 });
-document.addEventListener('keyup', e => { keys[e.key.toLowerCase()]=false; });
+document.addEventListener('keyup', e => {
+  const movementKey = duels2GetMovementKeyFromKeyboardEvent(e);
+  if (movementKey) keys[movementKey] = false;
+});
 
 
 // ============================================================================
