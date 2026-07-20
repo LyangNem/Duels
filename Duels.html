@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Duels</title>
-<meta name="duels-version" content="0.39.2">
+<meta name="duels-version" content="0.39.3">
 <script async src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js">
 // duels2GetAugmentVisibilityAndFastRegenSummary: 증강 HUD 공개 시점과 빠른 재생 효과 변경 상태를 반환한다. ()
 function duels2GetAugmentVisibilityAndFastRegenSummary() {
@@ -1029,7 +1029,7 @@ option{
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.39.2</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.39.3</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1463,7 +1463,7 @@ option{
  * - 캐릭터별로 피해/피격/사망/상태이상 코드를 따로 만들지 않는다.
  * - CombatResolver 외부에서 HP와 전투 피드백을 제각각 처리하지 않는다.
  */
-const DUELS2_ALPHA_VERSION = '0.39.2';
+const DUELS2_ALPHA_VERSION = '0.39.3';
 // DUELS2_RUNTIME_DIAGNOSTICS_ENABLED: 개발 단계의 전투·상태·모션·모듈 감사 이력 수집 여부다. 출시 실행에서는 사용하지 않으므로 비활성화한다.
 const DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = false;
 window.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = DUELS2_RUNTIME_DIAGNOSTICS_ENABLED;
@@ -1957,7 +1957,7 @@ window.DUELS2_STATIC_REGRESSION_AUDIT_STEP = DUELS2_STATIC_REGRESSION_AUDIT_STEP
 // DUELS2_FINAL_RELEASE_AUDIT_STEP: Step 229 최종 릴리스 감사 범위와 자동/수동 검증 상태를 선언한다.
 const DUELS2_FINAL_RELEASE_AUDIT_STEP = Object.freeze({
   step:'Step 229 - Final Release Audit & Regression Checklist',
-  releaseLabel:'0.39.2',
+  releaseLabel:'0.39.3',
   staticAuditComplete:true,
   browserGameplayValidation:'manual-pending',
   twoPlayerNetworkValidation:'manual-pending',
@@ -2029,7 +2029,7 @@ window.duels2GetFinalReleaseAuditSummary = duels2GetFinalReleaseAuditSummary;
 // DUELS2_ALPHA_RELEASE_DECISION_STEP: Step 230의 Alpha 완료 판정 규칙과 현재 수동 검증 게이트 상태를 선언한다.
 const DUELS2_ALPHA_RELEASE_DECISION_STEP = Object.freeze({
   step:'Step 230 - Alpha Release Decision Gate & Completion Status',
-  releaseCandidateLabel:'0.39.2',
+  releaseCandidateLabel:'0.39.3',
   completionRule:'all-required-checks-passed',
   manualValidationRequired:true,
   automaticPromotionDisabled:true,
@@ -2076,7 +2076,7 @@ function duels2GetAlphaCompletionStatus() {
   const decision = duels2EvaluateAlphaReleaseDecision();
   return {
     version:DUELS2_ALPHA_VERSION,
-    uiVersion:'0.39.2',
+    uiVersion:'0.39.3',
     singleFileOnly:DUELS2_ALPHA_SINGLE_FILE_ONLY,
     staticAuditPassed:releaseAudit.staticAuditPassed,
     approved:decision.approved,
@@ -2199,6 +2199,12 @@ const FRAME_MS = 1000 / 60;
 //   - 타이밍 동기화가 필요한 FX에는 id를 붙이고 fxClear 패킷으로 제거해라.
 //   - 수신 측에서는 _receivedAt = performance.now()를 넣어 렌더링 기준시간으로 사용.
 // ================================================================
+
+// 레테 우편함의 공격 범위와 편지 이동 사거리 비율을 한곳에서 관리한다.
+const DUELS2_LETE_MAILBOX_RANGE = Object.freeze({
+  attackRange: 400,
+  letterTravelRatio: 2 / 3,
+});
 
 const BALANCE = {
 
@@ -2499,7 +2505,7 @@ const BALANCE = {
       range:          1100,
       explosionRange: 80,
       damage:         15,   // 10 → 15
-      healAmount:     25,
+      healAmount:     30,
       cd:             600,
     },
     rmb: {                  // 유령친구 — 소환 / 돌진 명령
@@ -2523,11 +2529,11 @@ const BALANCE = {
       maxHp:         130,
       speed:         3.0,   // 2.6 → 3.0
       radius:        18,
-      meleeRange:    80,
+      meleeRange:    110,
       meleeHalfAngle: Math.PI / 2,
       meleeDamage:   15,    // 10 → 15
-      meleeInterval: 1000,  // 1200 → 1000ms
-      stopRange:     90,
+      meleeInterval: 600,   // 공격 간격 0.6초
+      stopRange:     100,
       dashDamage:    15,    // 10 → 15
       dashKnockback: 200,   // 돌진 넉백 추가
       dashDur:       350,
@@ -2587,7 +2593,8 @@ const BALANCE = {
       halfAngle:   Math.PI / 3,   // 60° 양쪽 = 120° 총 범위
       damage:      15,            // 가장자리 피해
       centerDmg:   30,            // 중앙(30° 이내) 2배
-      centerAngle: Math.PI / 30,   // 중앙 판정 각도
+      centerAngleBonus: 0.30,    // 중앙 크리티컬 판정 범위 증가율
+      centerAngle: (Math.PI / 30) * (1 + 0.30),
       cd:          380,
     },
     rmb: {
@@ -2679,7 +2686,7 @@ const BALANCE = {
       drainPerTick: 20,   // 틱당 저장량 소진
       range:        2500, // 사거리 (맵 끝까지)
     },
-    damageThreshold: 1.75,     // maxHealth * this 이상 저장 시 궁 해금
+    damageThreshold: 2.0,      // 최대 체력의 200% 피해 저장 시 파비 레이저 활성화
     counter: {
       frontRange:   170,
       frontAngle:   Math.PI * 0.6,
@@ -2899,7 +2906,7 @@ const BALANCE = {
       maxDamage:  90,
       minSpeed:   18,
       maxSpeed:   44,
-      radius:     8,
+      radius:     10,
       range:      1400,
       minCost:    15,
       maxCost:    80,
@@ -2912,7 +2919,7 @@ const BALANCE = {
       pellets:        7,
       spread:         0.70,
       speed:          22,
-      radius:         8,
+      radius:         10,
       damage:         5,
       range:          340,
       knockbackPower: 580,
@@ -2974,7 +2981,7 @@ const BALANCE = {
       cost:        20,
       speed:       20,
       radius:      10,
-      damage:      20,
+      damage:      15,
       range:       900,
       recoilDist:  50,
       cd:          480,
@@ -2998,7 +3005,7 @@ const BALANCE = {
       maxHp:        100,      // 110 → 100
       radius:       22,
       atkRange:     520,
-      damage:       20,
+      damage:       15,
       shotSpeed:    16,
       shotRadius:   15,       // 10 → 15
       shotRange:    900,
@@ -3006,7 +3013,6 @@ const BALANCE = {
       spread:       0.105,    // ±6도 (라디안)
       leashRange:   600,      // 이 거리 초과 시 1초 후 파괴
       leashDelay:   1000,
-      leashStamRefund: 50,
     },
     counter: {
       aoeRange:    130,
@@ -3142,16 +3148,16 @@ const BALANCE = {
     speed:  4.25,
     radius: 20,
     lmb: {
-      cost:           30,
+      cost:           20,
       predelay:       300,        // 선딜레이 (ms)
       ringOuter:      160,        // 원주 바깥 반경
       ringInner:      100,         // 원주 안쪽 반경 (이 안은 피해 X) — 얇은 링
       damage:         25,
-      cd:             600,
+      cd:             450,
       // 강화 (모루 지대 내부)
       empoweredPredelay: 0,
       empoweredInner:    0,       // 강화 시 원 내부도 피해
-      empoweredDamage:   35,
+      empoweredDamage:   40,
     },
     rmb: {
       cost:           100,
@@ -3259,6 +3265,7 @@ const BALANCE = {
       maxDur:      5000,
       speedBoost:  1.3,
       detectRange: 80,
+      fadeInDur:   400,
       freezeDur:   500,
       attackBoostCount: 2,
       attackCdMult: 0.35,
@@ -3432,7 +3439,7 @@ const BALANCE = {
     speed:  4.25,
     radius: 20,
     // 공통
-    magMax:     16,
+    magMax:     12,
     reloadTime: 1500,
     // 권총 (LMB 기본)
     pistol: {
@@ -3495,16 +3502,16 @@ const BALANCE = {
       healRatio:  0.20,
     },
     rmb: {
-      cost:       100,       // 스테미나 100 소모
-      healRatio:  0.60,
-      stunDur:    1000,      // 1초 행동불능 (선딜레이)
+      cost:       50,
+      healRatio:  0.40,
+      stunDur:    800,      // 0.8초 수면
       cd:         1000,
     },
     counter: {
       damage:     15,
       meleeRange: 130,
       halfAngle:  0.9,
-      sleepDur:   1000,
+      sleepDur:   800,
       cd:         700,
     },
   },
@@ -3555,7 +3562,7 @@ const BALANCE = {
       teleWindow:  750,
       teleCost:    20,
       hitInterval: 170,
-      lmbHealRatio: 0.10,  // 0.15 → 0.10
+      lmbHealRatio: 0.20,  // 현재 평타 코인은 비활성화되어 있으나 공통 코인 비율과 일치
       cd:          750,
     },
     rmb: {
@@ -3565,7 +3572,7 @@ const BALANCE = {
       damageDelay:     500,
       damage:          50,    // 60 → 50
       activateDelay:   500,
-      healRatio:       0.10,  // 0.15 → 0.10
+      healRatio:       0.20,  // 코인 체력·스테미나 회복 20%
       teleRange:       280,
       cd:              1200,
     },
@@ -3574,7 +3581,7 @@ const BALANCE = {
       width:        70,
       damage:       25,
       teleBackDist: 220,
-      healRatio:    0.10,  // 0.15 → 0.10
+      healRatio:    0.20,  // 코인 체력·스테미나 회복 20%
       knockbackPower: 420,
       cd:           500,
     },
@@ -3588,7 +3595,7 @@ const BALANCE = {
     radius: 20,
     lmb: {
       cost:       40,
-      damage:     60,
+      damage:     50,
       strikeLength: 128,
       strikeWidth:  72,
       cd:         760,
@@ -3631,14 +3638,14 @@ const BALANCE = {
     },
     rmb: {
       cost:          100,
-      placeDist:     95,
+      placeDist:     95,        // 우편함 설치 거리
       mailboxHp:     90,
       mailboxRadius: 23,
-      fireRange:     400,
+      fireRange:     DUELS2_LETE_MAILBOX_RANGE.attackRange,
       fireInterval:  3000,
       letterSpeed:   12,
       letterRadius:  11,
-      letterRange:   420,
+      letterRange:   DUELS2_LETE_MAILBOX_RANGE.attackRange * DUELS2_LETE_MAILBOX_RANGE.letterTravelRatio,
       staminaRatio:  0.33,
       maxGround:     3,
       recallCd:      450,
@@ -3744,13 +3751,13 @@ const BALANCE = {
     radius: 20,
 
     lmb: {
-      cost:       20,
+      cost:       25,
       speed:      17,
       radius:     14,   // 크기 증가
       range:      450,  // 중거리
       damage:     20,   // 12 → 20
       spread:     40,
-      zapDur:     3000,
+      zapDur:     2000,
       cd:         400,
     },
     rmb: {
@@ -3760,7 +3767,7 @@ const BALANCE = {
       throwRange: 800,
       fieldRadius:120,
       fieldDur:   4000,
-      zapDur:     3000,
+      zapDur:     2000,
       damage:     10,
       cd:         800,
     },
@@ -3769,7 +3776,7 @@ const BALANCE = {
       width:        90,   // 폭 증가
       damage:       15,
       knockbackPower:420,
-      zapDur:       3000,
+      zapDur:       2000,
       cd:           300,
     },
   },
@@ -3787,6 +3794,15 @@ const DODGE_INVMS = BALANCE.dodge.invincible;
 const REGEN_IDLE = BALANCE.regen.idle;
 const REGEN_TICK = BALANCE.regen.tick;
 const REGEN_AMT  = BALANCE.regen.amount;
+
+// duels2GetRelativeIncreasePercent: 기준값에서 변경값으로 증가한 비율을 백분율 정수로 반환한다. (baseValue: 기준 수치, increasedValue: 증가 후 수치)
+function duels2GetRelativeIncreasePercent(baseValue, increasedValue) {
+  const base = Number(baseValue);
+  const increased = Number(increasedValue);
+  if (!Number.isFinite(base) || base <= 0 || !Number.isFinite(increased)) return 0;
+  return Math.round(((increased / base) - 1) * 100);
+}
+window.duels2GetRelativeIncreasePercent = duels2GetRelativeIncreasePercent;
 
 // ============================================================
 // 02. GAME DATA / STATE - characters, maps, augments, players
@@ -3935,7 +3951,7 @@ const CHARACTERS = {
       { key:'LMB', name:'유령구체', cost: duels2GetSkillBalance('elin','lmb').cost,
         desc:`벽과 적을 관통하는 구체 발사. 탄착지점에서 폭발해 피해 및 유령 체력 ${duels2GetSkillBalance('elin','lmb').healAmount} 회복 (${duels2GetSkillBalance('elin','lmb').damage})` },
       { key:'RMB', name:'유령친구', cost: `${duels2GetSkillBalance('elin','rmb').summonCost}/20`,
-        desc:`유령 소환. 유령이 있으면 가장 가까운 적에게 직선 돌진 명령. 돌진 적중 시 넉백 (${duels2GetSkillBalance('elin','spirit').dashDamage})` },
+        desc:`유령 소환. 유령은 적과 ${duels2GetSkillBalance('elin','spirit').stopRange} 거리까지 접근하며, 사거리 ${duels2GetSkillBalance('elin','spirit').meleeRange} 안에서 ${duels2GetSkillBalance('elin','spirit').meleeInterval/1000}초마다 공격 (${duels2GetSkillBalance('elin','spirit').meleeDamage}). 재사용 시 가장 가까운 적에게 돌진 및 넉백 (${duels2GetSkillBalance('elin','spirit').dashDamage})` },
       { key:'L-Shift', name:'순간이동', cost: 0,
         desc:`유령 위치에서 엘린 방향으로 투사체 발사. 도달 시 유령이 엘린 위치로 순간이동하며 주변 폭발 및 넉백 (${duels2GetSkillBalance('elin','counter').damage})` },
     ],
@@ -3967,7 +3983,7 @@ const CHARACTERS = {
     statsText: [['체력',String(duels2GetSkillBalance('maisil','hp'))],['이동속도','빠름'],['스타일','조건형 근거리 딜러']],
     desc:      '가위를 능숙하게 다루는 캐릭터',
     skills: [
-      { key:'LMB',     name:'가위질',     cost:duels2GetSkillBalance('maisil','lmb').cost,     desc:`가위 잘라내기. 중앙은 2배 피해 (${duels2GetSkillBalance('maisil','lmb').damage}/${duels2GetSkillBalance('maisil','lmb').centerDmg})` },
+      { key:'LMB',     name:'가위질',     cost:duels2GetSkillBalance('maisil','lmb').cost,     desc:`가위 잘라내기. 중앙 크리티컬 판정 범위 +${Math.round(duels2GetSkillBalance('maisil','lmb').centerAngleBonus*100)}%, 중앙은 2배 피해 (${duels2GetSkillBalance('maisil','lmb').damage}/${duels2GetSkillBalance('maisil','lmb').centerDmg})` },
       { key:'RMB',     name:'가위 찌르기', cost:duels2GetSkillBalance('maisil','rmb').cost,     desc:`찌르기 후 적을 소폭 끌어당김` },
       { key:'L-Shift', name:'가위 던지기', cost:0,                           desc:`커다란 가위를 던져 최대 사거리 도달 후 귀환 (${duels2GetSkillBalance('maisil','counter').damage})` },
     ],
@@ -3984,7 +4000,7 @@ const CHARACTERS = {
     desc:      '차지 타입 아머로 받은 피해를 축적해 궁극 레이저로 터뜨리는 캐릭터',
     skills: [
       { key:'LMB',     name:'레이저 연사',   cost:duels2GetSkillBalance('erapabi','lmb').cost,  desc:`레이저를 2발씩 2회 발사 (탄당 ${duels2GetSkillBalance('erapabi','lmb').damage})` },
-      { key:'RMB',     name:'버티기/파비 레이저', cost:`${duels2GetSkillBalance('erapabi','rmb').cost}`, desc:`3초간 피해 50% 감소. 받은 피해를 일정량 이상 저장 시 파비 레이저로 변경` },
+      { key:'RMB',     name:'버티기/파비 레이저', cost:`${duels2GetSkillBalance('erapabi','rmb').cost}`, desc:`${duels2GetSkillBalance('erapabi','rmb').duration/1000}초간 피해 ${Math.round((1-duels2GetSkillBalance('erapabi','rmb').reduction)*100)}% 감소. 최대 체력의 ${Math.round(duels2GetSkillBalance('erapabi','damageThreshold')*100)}%만큼 피해를 저장하면 파비 레이저로 변경` },
       { key:'L-Shift', name:'한바퀴 회전',   cost:0,  desc:`가로축 회전으로 앞뒤 피해 및 넉백 (${duels2GetSkillBalance('erapabi','counter').damage})` },
     ],
   },
@@ -4069,9 +4085,9 @@ const CHARACTERS = {
     desc:      '원거리에서 강한 한방으로 게임을 터뜨리는 캐릭터',
     skills: [
       { key:'LMB',     name:'저격',    cost:`${duels2GetSkillBalance('cherity','lmb').minCost}~${duels2GetSkillBalance('cherity','lmb').maxCost}`,
-        desc:`이동을 정지하며 차징. 길게 차징할수록 피해 및 탄속 증가. 70% 이상 차징 시 벽 관통 (${duels2GetSkillBalance('cherity','lmb').minDamage}~${duels2GetSkillBalance('cherity','lmb').maxDamage})` },
+        desc:`이동을 정지하며 차징. 길게 차징할수록 피해 및 탄속 증가. 70% 이상 차징 시 벽 관통. 탄환 크기 ${duels2GetSkillBalance('cherity','lmb').radius} (${duels2GetSkillBalance('cherity','lmb').minDamage}~${duels2GetSkillBalance('cherity','lmb').maxDamage})` },
       { key:'RMB',     name:'물러서!', cost:duels2GetSkillBalance('cherity','rmb').cost,
-        desc:`후방으로 슬라이딩 후 근거리 대응 산탄 발사. 적중 시 강한 넉백 (탄당 ${duels2GetSkillBalance('cherity','rmb').damage})` },
+        desc:`후방으로 슬라이딩 후 탄환 크기 ${duels2GetSkillBalance('cherity','rmb').radius}의 근거리 대응 산탄 발사. 적중 시 강한 넉백 (탄당 ${duels2GetSkillBalance('cherity','rmb').damage})` },
       { key:'L-Shift', name:'연막탄',  cost:0,
         desc:`연막탄 투척. 착탄 시 범위 내 피해 및 넉백. 연막 내 플레이어는 은신. 가까운 적은 확인 가능 (${duels2GetSkillBalance('cherity','counter').damage})` },
     ],
@@ -4109,7 +4125,7 @@ const CHARACTERS = {
       { key:'LMB',     name:'미니 대포',     cost:duels2GetSkillBalance('herjang','lmb').cost,
         desc:`대포를 발사하고 반동으로 뒤로 넉백 (${duels2GetSkillBalance('herjang','lmb').damage})` },
       { key:'RMB',     name:'이동형 대포',   cost:`${duels2GetSkillBalance('herjang','rmb').summonCost}/${duels2GetSkillBalance('herjang','rmb').burstCost}`,
-        desc:`대포 설치. 대포가 있으면 슬로우 포탄 ${duels2GetSkillBalance('herjang','rmb').burstCount}발 점사 지시. 대포에 가까이 가면 들고 이동 가능. 대포가 멀어지면 파괴되며 스테미나 ${duels2GetSkillBalance('herjang','cannon').leashStamRefund} 회복 (탄당 ${duels2GetSkillBalance('herjang','rmb').burstDamage})` },
+        desc:`대포 설치. 대포는 ${duels2GetSkillBalance('herjang','cannon').fireInterval/1000}초마다 자동 공격 (${duels2GetSkillBalance('herjang','cannon').damage}). 재사용 시 슬로우 포탄 ${duels2GetSkillBalance('herjang','rmb').burstCount}발 점사 지시 (탄당 ${duels2GetSkillBalance('herjang','rmb').burstDamage}). 가까이 가면 들고 이동 가능하며, 너무 멀어지면 보상 없이 파괴됨` },
       { key:'L-Shift', name:'간이 대포',     cost:0,
         desc:`제자리에 간이 대포 생성 및 주변 넉백 피해. 간이 대포가 적을 자동 공격 (${duels2GetSkillBalance('herjang','counter').damage})` },
     ],
@@ -4202,7 +4218,7 @@ const CHARACTERS = {
     desc:      '모루로 자신의 망치를 강화하는 캐릭터',
     skills: [
       { key:'LMB', name:'망치질', cost:duels2GetSkillBalance('peluna','lmb').cost,
-        desc:`0.3초 선딜레이 후 원주 범위 피해 (${duels2GetSkillBalance('peluna','lmb').damage})` },
+        desc:`${duels2GetSkillBalance('peluna','lmb').predelay/1000}초 선딜레이 후 원주 범위 피해 (${duels2GetSkillBalance('peluna','lmb').damage}). 강화 중에는 선딜레이 없이 ${duels2GetSkillBalance('peluna','lmb').cd/1000}초 간격으로 원형 공격하며 피해 ${duels2GetSkillBalance('peluna','lmb').empoweredDamage} (+${duels2GetRelativeIncreasePercent(duels2GetSkillBalance('peluna','lmb').damage,duels2GetSkillBalance('peluna','lmb').empoweredDamage)}%)` },
       { key:'RMB', name:'모루 던지기', cost:duels2GetSkillBalance('peluna','rmb').cost,
         desc:`모루를 던져 피해. 착탄 지점에 체력 ${duels2GetSkillBalance('peluna','rmb').anvilHealth}의 타격 가능한 모루 생성 (${duels2GetSkillBalance('peluna','rmb').damage})` },
       { key:'L-Shift', name:'인력 망치', cost:0,
@@ -4242,7 +4258,7 @@ const CHARACTERS = {
       { key:'LMB',     name:'대낫베기',  cost:duels2GetSkillBalance('sya','lmb').cost,
         desc:`대낫으로 부채꼴 횡베기. (${duels2GetSkillBalance('sya','lmb').damage})` },
       { key:'RMB',     name:'서리안개 은신',      cost:`${duels2GetSkillBalance('sya','rmb').activationCost}~${duels2GetSkillBalance('sya','rmb').activationCost + duels2GetSkillBalance('sya','rmb').staminaDrain * (duels2GetSkillBalance('sya','rmb').maxDur/1000)}`,
-        desc:`최대 ${duels2GetSkillBalance('sya','rmb').maxDur/1000}초 은신+이속 +${Math.round((duels2GetSkillBalance('sya','rmb').speedBoost-1)*100)}%. 적 접근 시 해제 및 ${duels2GetSkillBalance('sya','rmb').freezeDur/1000}초 빙결, 다음 3회 공격속도 대폭 상승` },
+        desc:`${duels2GetSkillBalance('sya','rmb').fadeInDur/1000}초에 걸쳐 은신하며 최대 ${duels2GetSkillBalance('sya','rmb').maxDur/1000}초 유지, 이동속도 +${Math.round((duels2GetSkillBalance('sya','rmb').speedBoost-1)*100)}%. 적 접근 시 해제 및 ${duels2GetSkillBalance('sya','rmb').freezeDur/1000}초 빙결, 다음 ${duels2GetSkillBalance('sya','rmb').attackBoostCount}회 공격속도 대폭 상승` },
       { key:'L-Shift', name:'서리폭풍 베기', cost:0,
         desc:`주변 원형 베기. 적중 시 ${duels2GetSkillBalance('sya','counter').freezeDur/1000}초 빙결 (${duels2GetSkillBalance('sya','counter').damage})` },
     ],
@@ -4428,11 +4444,11 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     desc:      '감전을 이용해 상대의 행동을 제한하는 캐릭터',
     skills: [
       { key:'LMB',     name:'배터리',   cost:duels2GetSkillBalance('sor','lmb').cost,
-        desc:`전파 발사. ${duels2GetSkillBalance('sor','lmb').zapDur/1000}초 감전으로 스테미나 회복 속도 감소. 정전기장 통과 또는 감전된 적 타격 시 방전시켜 일시적으로 스테미나 회복 완전 정지 (${duels2GetSkillBalance('sor','lmb').damage})` },
+        desc:`전파를 발사해 피해 ${duels2GetSkillBalance('sor','lmb').damage} 및 감전 ${duels2GetSkillBalance('sor','lmb').zapDur/1000}초. 정전기장 통과 또는 이미 감전된 적 타격 시 방전시켜 일시적으로 스테미나 회복 완전 정지` },
       { key:'RMB',     name:'정전기장', cost:duels2GetSkillBalance('sor','rmb').cost,
-        desc:`배터리를 던져 정전기장 생성. 범위 내 적 ${duels2GetSkillBalance('sor','rmb').zapDur/1000}초 감전 (${duels2GetSkillBalance('sor','rmb').damage})` },
+        desc:`배터리를 던져 정전기장 생성. 범위 내 적에게 피해 ${duels2GetSkillBalance('sor','rmb').damage} 및 감전 ${duels2GetSkillBalance('sor','rmb').zapDur/1000}초` },
       { key:'L-Shift', name:'정전기',   cost:0,
-        desc:`전방 넓은 일자 공격. 넉백 및 ${duels2GetSkillBalance('sor','counter').zapDur/1000}초 감전. 감전 중인 적 적중 시 방전 (${duels2GetSkillBalance('sor','counter').damage})` },
+        desc:`전방 넓은 일자 공격으로 피해 ${duels2GetSkillBalance('sor','counter').damage}, 넉백 및 감전 ${duels2GetSkillBalance('sor','counter').zapDur/1000}초. 감전 중인 적 적중 시 방전` },
     ],
   },
 
@@ -4488,7 +4504,7 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
       { key:'LMB', name:'우편이야.', cost:duels2GetSkillBalance('lete','lmb').cost,
         desc:`우편을 빠르게 날림. 사거리 끝에 도달 시 귀환 (${duels2GetSkillBalance('lete','lmb').damage})` },
       { key:'RMB', name:'한서린 우편함', cost:duels2GetSkillBalance('lete','rmb').cost,
-        desc:`우편함 설치 및 재사용 시 회수. 사거리 안의 가까운 아군에게 편지를 날려 휙득 시 스테미나를 ${Math.round(duels2GetSkillBalance('lete','rmb').staminaRatio*100)}% 휙득` },
+        desc:`조준 방향 ${duels2GetSkillBalance('lete','rmb').placeDist} 거리 앞에 우편함 설치, 재사용 시 회수. 우편함은 ${duels2GetSkillBalance('lete','rmb').fireRange} 범위의 가까운 아군을 인식해 공격 범위의 2/3인 약 ${Number(duels2GetSkillBalance('lete','rmb').letterRange.toFixed(1))} 거리까지 편지를 날리며, 획득 시 스테미나 ${Math.round(duels2GetSkillBalance('lete','rmb').staminaRatio*100)}% 회복` },
       { key:'L-Shift', name:'우편함도 무기', cost:0,
         desc:`우편함을 휘두르고 편지를 날림. 설치된 우편함이 있으면 편지만 날림 (${duels2GetSkillBalance('lete','counter').damage})` },
     ],
@@ -19215,7 +19231,11 @@ function syncLegacyBuffVisuals(now = performance.now()) {
   if (L._fortressActive) applyBuffStatus(L, 'def', AUG_VALS.fortress.reduction, 200, {sourceId:'fortress_def', id:'fortress_def'}); else clearBuffStatus(L, 'fortress_def');
   if (L._prillBoostExpiry && L._prillBoostExpiry > now) syncTimedBuff(L, 'dmg', Math.round(duels2GetSkillBalance('prill','counter').boostMult*100), L._prillBoostExpiry, 'prill_counter_dmg'); else clearBuffStatus(L, 'prill_counter_dmg');
   // 프릴 청소구역은 팀 보조 지대로 동작하므로 syncTeamSupportZoneBuffs()에서 아군 전체를 처리한다.
-  if ((L._pelunaEmpowerExpiry && L._pelunaEmpowerExpiry > now) || (typeof _pelunaIsEmpowered === 'function' && _pelunaIsEmpowered())) syncTimedBuff(L, 'dmg', 40, Math.max(L._pelunaEmpowerExpiry||0, now+250), 'peluna_dmg'); else clearBuffStatus(L, 'peluna_dmg');
+  if ((L._pelunaEmpowerExpiry && L._pelunaEmpowerExpiry > now) || (typeof _pelunaIsEmpowered === 'function' && _pelunaIsEmpowered())) {
+    const pelunaLmb = duels2GetSkillBalance('peluna','lmb');
+    const damageIncreasePercent = duels2GetRelativeIncreasePercent(pelunaLmb.damage, pelunaLmb.empoweredDamage);
+    syncTimedBuff(L, 'dmg', damageIncreasePercent, Math.max(L._pelunaEmpowerExpiry||0, now+250), 'peluna_dmg');
+  } else clearBuffStatus(L, 'peluna_dmg');
   const _mvCnt = getAugCount('movement'); if (_mvCnt>0) applyBuffStatus(L,'spd',AUG_VALS.movement.speedBonus*_mvCnt,250,{sourceId:'aug_movement',id:'aug_movement'}); else clearBuffStatus(L,'aug_movement');
   const _opCnt = getAugCount('overpower'); if (_opCnt>0) { applyBuffStatus(L,'dmg',AUG_VALS.overpower.bonus*_opCnt,250,{sourceId:'aug_overpower_dmg',id:'aug_overpower_dmg'}); applyBuffStatus(L,'spd',AUG_VALS.overpower.bonus*_opCnt,250,{sourceId:'aug_overpower_spd',id:'aug_overpower_spd'}); } else { clearBuffStatus(L,'aug_overpower_dmg'); clearBuffStatus(L,'aug_overpower_spd'); }
   const _swiftCnt = getAugCount('swift_regen'); if (_swiftCnt>0) applyBuffStatus(L,'stam_regen',AUG_VALS.swift_regen.regenBonus*_swiftCnt,250,{sourceId:'aug_swift_regen',id:'aug_swift_regen'}); else clearBuffStatus(L,'aug_swift_regen');
@@ -28099,7 +28119,6 @@ MINION_DEFS['herjang_cannon'] = {
       if (!m._leashBreakAt) m._leashBreakAt = now + BC.leashDelay;
       if (now >= m._leashBreakAt) {
         duels2RouteEntityHealthKill(m, {reason:'herjangCannon:leash-destroy'}); // 파괴
-        L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + BC.leashStamRefund);
         return;
       }
     } else {
@@ -35735,6 +35754,7 @@ const SKILLS = {
       L._ruliAdjustHeld=true;
       L._ruliAdjustStartedAt=performance.now();
       L._ruliAdjustLastStepAt=L._ruliAdjustStartedAt;
+      L.lastAttackTime=L._ruliAdjustStartedAt;
       L._ruliAdjustDidStep=false;
       L._rmbAttacking=false;
       const token=(L._ruliAdjustToken||0)+1;
@@ -35749,6 +35769,7 @@ const SKILLS = {
         duels2SetSteppedRangeState(L,current-1,B,{angle:liveAngle});
         L._ruliAdjustDidStep=true;
         L._ruliAdjustLastStepAt=performance.now();
+        L.lastAttackTime=L._ruliAdjustLastStepAt;
         L.rmbCooldown=B.cd;
       },Math.max(1,Number(B.holdMs)||200));
     },
@@ -35769,6 +35790,7 @@ const SKILLS = {
       const next=Math.min(Math.max(1,Number(B.stages)||7),current+1);
       if(next!==current) duels2SetSteppedRangeState(L,next,B,{angle});
       L.rmbCooldown=B.cd;
+      L.lastAttackTime=performance.now();
     },
     // rmb: 일반 슬롯 실행에서도 최대 단계에서 순환하지 않고 한 단계만 증가한다. (angle: 조준각)
     rmb(angle) {
@@ -35778,6 +35800,7 @@ const SKILLS = {
       const next=Math.min(Math.max(1,Number(B.stages)||7),current+1);
       if(next!==current) duels2SetSteppedRangeState(L,next,B,{angle});
       L.rmbCooldown=B.cd;
+      L.lastAttackTime=performance.now();
     },
     // counter: 7단계부터 1단계까지 되감으며 피해와 넉백을 함께 적용한다. (angle: 초기 조준각)
     counter(angle) {
@@ -44829,7 +44852,8 @@ function drawPlayer(p, label) {
   if (p === R && hasEntityFunctionalRuntime(R, 'stealthInvisible') && R._syaInvisible) {
     const _rNow = performance.now();
     const _elapsed = R._syaInvisStart ? (_rNow - R._syaInvisStart) : 99999;
-    const _fadeAlpha = Math.max(0, 1 - _elapsed / 700); // 700ms 후 완전 투명
+    const _fadeInDur = Math.max(1, duels2GetSkillBalance('sya','rmb').fadeInDur);
+    const _fadeAlpha = Math.max(0, 1 - _elapsed / _fadeInDur);
     // 노출 중이면 깜빡임 alpha 사용
     let _drawAlpha = _fadeAlpha;
     if (R._syaHitRevealEnd && _rNow < R._syaHitRevealEnd) {
@@ -44860,7 +44884,7 @@ function drawPlayer(p, label) {
   const _syaInvisSelf = (p === L && hasEntityFunctionalRuntime(L, 'stealthInvisible') && L._syaInvisible);
   // 선딜레이(노란색) 중엔 완전 불투명 — 아닐 때만 반투명
   if (_syaInvisSelf && L.color !== '#ffd700') {
-    const _syaFadeT = Math.min(1, (performance.now() - (L._syaInvisStart||0)) / 800);
+    const _syaFadeT = Math.min(1, (performance.now() - (L._syaInvisStart||0)) / Math.max(1, duels2GetSkillBalance('sya','rmb').fadeInDur));
     ctx.globalAlpha = 1.0 - _syaFadeT * 0.75; // 1.0 → 0.25으로 서서히 투명
   }
 
@@ -61031,7 +61055,7 @@ function doRematch(options = {}) {
 // 리매치 시 랜덤 캐릭터 선택 잠금 해제 상태를 확인한다.
 function duels2GetRematchRandomSelectionFixSummary() {
   return {
-    version:'0.39.2',
+    version:'0.39.3',
     randomButtonDisabled:!!document.getElementById('random-btn')?.disabled,
     selectedCharacterId:selCharId,
     matchPhase:window._duels2MatchPhase || 'unknown',
@@ -63888,7 +63912,7 @@ function openDevPanel(opt = {}) {
 
   // 헤더
   const hdr = _devEl('div','display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #29251f;padding:8px 10px;');
-  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.39.2'));
+  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.39.3'));
   const hdrBtns = _devEl('div','display:flex;gap:4px;');
     hdrBtns.appendChild(_devBtn(_devPanelSide==='right'?'◀ 왼쪽':'▶ 오른쪽', ()=>{ _devPanelSide=_devPanelSide==='right'?'left':'right'; duels2SafeLocalStorageSetItem('devSide',_devPanelSide); refreshDevPanel(); }));
   hdrBtns.appendChild(_devBtn('✕', ()=>{ panel.remove(); }));
@@ -64343,7 +64367,7 @@ function duels2GetMultiPeerNetworkAuditSummary() {
 
 const DUELS2_RUNTIME_BUGFIX_038_STEP = Object.freeze({
   step:'Step 242 - Movement, Health Display & Remote Character Bugfix',
-  version:'0.39.2',
+  version:'0.39.3',
   fixes:Object.freeze([
     'primitive-skill-balance-values-preserved',
     'single-main-loop-generation-guard',
@@ -65468,7 +65492,7 @@ window.duels2GetResidualCollisionMigrationSummary = function duels2GetResidualCo
 // duels2GetFinalCombatGeometryMigrationSummary: 이번 전투 기하 판정 마이그레이션 상태를 반환한다.
 window.duels2GetFinalCombatGeometryMigrationSummary = function duels2GetFinalCombatGeometryMigrationSummary() {
   return {
-    version:'0.39.2',
+    version:'0.39.3',
     shapes:['circle','cone','line','orientedRect','annulus','ctx'],
     migrated:['konyeong.lmb-rect','konyeong.counter-circle','peluna.lmb-annulus','sherina.rmb-circle-knockback'],
     directMathHypotCount:(document.documentElement.innerHTML.match(/Math\.hypot\s*\(/g)||[]).length,
@@ -65583,7 +65607,7 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
     </section>
     <div class="duels2-account-config-error" id="duels2-account-config-error"></div>
     <div class="duels2-account-msg" id="duels2-account-message"></div>
-    <div class="duels2-account-version">v0.39.2</div>
+    <div class="duels2-account-version">v0.39.3</div>
   </div>
 </div>
 
