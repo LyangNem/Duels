@@ -54,7 +54,8 @@ function duels2GetPelunaLevinaInputRenderFixSummary() {
     levinaHoldStaminaDrain:false,
     levinaAutoPrimaryBlocked:true,
     levinaRecallLockRemainingMs:Math.max(0, (_levinaRecallLockUntil || 0) - performance.now()),
-    recallDelayMs:400
+    recallDelayMs:400,
+    levinaAimLineOrigin:'current-spear-position'
   };
 }
 window.duels2GetPelunaLevinaInputRenderFixSummary = duels2GetPelunaLevinaInputRenderFixSummary;
@@ -23478,13 +23479,73 @@ function drawTargetStatusLabels(t, labelY) {
 const cam = {x:0, y:0};
 // ── 화면 흔들림 ──────────────────────────────────────────
 // ── 효과음 (Web Audio API — 저지연) ─────────────────────
-const _sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+let _sfxCtx = null;
 let _hitBuffer = null;
-fetch('https://Lyangnem.github.io/Duels/hitted.mp3')
-  .then(r => r.arrayBuffer())
-  .then(buf => _sfxCtx.decodeAudioData(buf))
-  .then(decoded => { _hitBuffer = decoded; })
-  .catch(() => {});
+let _shootBuffer = null;
+const DUELS2_SFX_ENCODED_BUFFERS = new Map();
+const DUELS2_SFX_DECODE_PROMISES = new Map();
+
+// duels2GetOrCreateSfxContext: 실제 사용자 입력 중에만 Web Audio 컨텍스트를 생성한다. ()
+function duels2GetOrCreateSfxContext() {
+  if (_sfxCtx && _sfxCtx.state !== 'closed') return _sfxCtx;
+  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+  if (typeof AudioContextCtor !== 'function') return null;
+  _sfxCtx = new AudioContextCtor();
+  return _sfxCtx;
+}
+
+// duels2AssignDecodedSfxBuffer: 디코딩한 효과음을 종류별 런타임 변수에 저장한다. (kind: hit/shoot, buffer: AudioBuffer)
+function duels2AssignDecodedSfxBuffer(kind, buffer) {
+  if (kind === 'hit') _hitBuffer = buffer;
+  if (kind === 'shoot') _shootBuffer = buffer;
+  return buffer;
+}
+
+// duels2DecodeSfxKind: 사용자 입력으로 열린 AudioContext에서 원본 음원을 한 번만 디코딩한다. (kind: hit/shoot)
+function duels2DecodeSfxKind(kind) {
+  const context = _sfxCtx;
+  const encoded = DUELS2_SFX_ENCODED_BUFFERS.get(kind);
+  if (!context || context.state === 'closed' || !encoded) return Promise.resolve(null);
+  if (DUELS2_SFX_DECODE_PROMISES.has(kind)) return DUELS2_SFX_DECODE_PROMISES.get(kind);
+  const promise = context.decodeAudioData(encoded.slice(0))
+    .then(buffer => duels2AssignDecodedSfxBuffer(kind, buffer))
+    .catch(() => null)
+    .finally(() => DUELS2_SFX_DECODE_PROMISES.delete(kind));
+  DUELS2_SFX_DECODE_PROMISES.set(kind, promise);
+  return promise;
+}
+
+// duels2UnlockSfxAudio: 클릭·키 입력의 사용자 제스처 안에서 AudioContext를 생성·재개하고 음원을 준비한다. ()
+async function duels2UnlockSfxAudio() {
+  const context = duels2GetOrCreateSfxContext();
+  if (!context) return false;
+  try {
+    if (context.state === 'suspended') await context.resume();
+    if (context.state !== 'running') return false;
+    await Promise.allSettled(['hit','shoot'].map(duels2DecodeSfxKind));
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+window.duels2UnlockSfxAudio = duels2UnlockSfxAudio;
+
+// duels2LoadSfxAsset: 외부 음원은 먼저 바이트만 받아 두고 AudioContext 생성은 사용자 입력까지 미룬다. (kind/url)
+function duels2LoadSfxAsset(kind, url) {
+  fetch(url)
+    .then(response => response.ok ? response.arrayBuffer() : Promise.reject(new Error(`HTTP ${response.status}`)))
+    .then(buffer => {
+      DUELS2_SFX_ENCODED_BUFFERS.set(kind, buffer);
+      if (_sfxCtx?.state === 'running') void duels2DecodeSfxKind(kind);
+    })
+    .catch(() => {});
+}
+
+duels2LoadSfxAsset('hit', 'https://Lyangnem.github.io/Duels/hitted.mp3');
+
+// 페이지 어디서든 최초 클릭·키 입력을 오디오 해제 제스처로 사용한다.
+document.addEventListener('pointerdown', () => { void duels2UnlockSfxAudio(); }, {capture:true});
+document.addEventListener('keydown', () => { void duels2UnlockSfxAudio(); }, {capture:true});
 // DUELS2_AUDIO_RUNTIME: 같은 실행 순간의 효과음 요청을 종류별로 하나만 남기고, 서로 다른 종류는 각각 한 번씩 함께 재생한다.
 const DUELS2_AUDIO_RUNTIME = {
   // activeByKind: 이미 재생 중인 음원을 종류별 Set으로 추적한다. 이후 시점의 같은 소리를 끊지 않는다.
@@ -23508,8 +23569,7 @@ function duels2GetActiveSfxSet(kind) {
 
 // duels2StartSfxNow: 한 종류의 효과음을 즉시 한 번 재생한다. 이미 재생 중인 같은 종류의 소리는 중단하지 않는다. (kind: 효과음 종류, buffer: AudioBuffer)
 function duels2StartSfxNow(kind,buffer){
-  if(!buffer) return false;
-  if(_sfxCtx.state==='suspended'){try{_sfxCtx.resume();}catch(_){ }}
+  if(!buffer || !_sfxCtx || _sfxCtx.state !== 'running') return false;
   const source=_sfxCtx.createBufferSource();
   const gain=_sfxCtx.createGain();
   source.buffer=buffer;
@@ -23568,12 +23628,7 @@ function playHitSfx() {
   return duels2PlaySfxKind('hit',_hitBuffer);
 }
 
-let _shootBuffer = null;
-fetch('https://Lyangnem.github.io/Duels/shoot.mp3')
-  .then(r => r.arrayBuffer())
-  .then(buf => _sfxCtx.decodeAudioData(buf))
-  .then(decoded => { _shootBuffer = decoded; })
-  .catch(() => {});
+duels2LoadSfxAsset('shoot', 'https://Lyangnem.github.io/Duels/shoot.mp3');
 
 // playShootSfx: 현재 렌더 프레임의 발사음을 한 번만 예약한다. ()
 function playShootSfx() {
@@ -23910,9 +23965,15 @@ function duels2SetPlayerLobbySelection(pid, patch = {}) {
   }
   DUELS2_MULTIPLAYER_LOBBY_STATE.revision += 1;
   const localPid = DUELS2_PLAYER_REGISTRY.localPid || 'P1';
+  const primaryOpponentPid = typeof duels2GetPrimaryOpponentPid === 'function'
+    ? duels2GetPrimaryOpponentPid(localPid)
+    : null;
+  const compatibilityPeerPid = primaryOpponentPid && primaryOpponentPid !== localPid
+    ? primaryOpponentPid
+    : (localPid === 'P1' ? 'P2' : 'P1');
   localReady = !!DUELS2_MULTIPLAYER_LOBBY_STATE.readyByPid.get(localPid);
-  peerReady = !!DUELS2_MULTIPLAYER_LOBBY_STATE.readyByPid.get('P2');
-  peerCharId = DUELS2_MULTIPLAYER_LOBBY_STATE.charByPid.get('P2') || peerCharId;
+  peerReady = !!DUELS2_MULTIPLAYER_LOBBY_STATE.readyByPid.get(compatibilityPeerPid);
+  peerCharId = DUELS2_MULTIPLAYER_LOBBY_STATE.charByPid.get(compatibilityPeerPid) || peerCharId;
   duels2RenderMultiplayerLobbyStatus?.();
   return true;
 }
@@ -25207,10 +25268,13 @@ duels2RegisterSimpleGameplayEventHandler('playerLeave', d => {
 
 // ready: PID별 캐릭터 선택·준비 상태를 갱신하고 시작 조건을 재평가한다.
 duels2RegisterSimpleGameplayEventHandler('ready', d => {
-  const readyPid = PLAYER_SLOT_IDS.includes(d.sourcePid || d.pid) ? (d.sourcePid || d.pid) : 'P2';
+  const localPid = DUELS2_PLAYER_REGISTRY?.localPid || (isHost ? 'P1' : 'P2');
+  const explicitReadyPid = PLAYER_SLOT_IDS.includes(d.sourcePid || d.pid) ? (d.sourcePid || d.pid) : null;
+  const readyPid = explicitReadyPid && explicitReadyPid !== localPid ? explicitReadyPid : duels2ResolveCompatibilityRemotePid(localPid);
   const _readySnapshot=d.characterSnapshot&&typeof d.characterSnapshot==='object'?d.characterSnapshot:d;
   const _readyCharId=_readySnapshot.charId||d.charId;
   duels2SetPlayerLobbySelection(readyPid, {charId:_readyCharId, ready:true});
+  duels2CommitRemoteCharacterIdentity?.(readyPid, _readyCharId, {reason:'network.ready.character-identity'});
   if(Number.isFinite(Number(_readySnapshot.masteryPoints ?? d.masteryPoints))) duels2SetRemoteCharacterMastery(readyPid,_readyCharId,_readySnapshot.masteryPoints ?? d.masteryPoints);
   duels2SetRemoteCharacterRecordStats?.(readyPid,_readyCharId,_readySnapshot.recordStats||d.recordStats||null);
   checkBothReady();
@@ -25250,6 +25314,14 @@ duels2RegisterSimpleGameplayEventHandler('roundScoreSync', d => {
   matchState.localWins = Number(d.peerWins) || 0;
   matchState.peerWins = Number(d.localWins) || 0;
   if (Number.isFinite(Number(d.round))) matchState.round = Math.max(matchState.round || 1, Number(d.round));
+  if(!matchState._authorityScoreSyncByRound) matchState._authorityScoreSyncByRound=Object.create(null);
+  matchState._authorityScoreSyncByRound[token]={
+    token,
+    localWins:matchState.localWins,
+    peerWins:matchState.peerWins,
+    round:Number(d.round)||matchState.round||token,
+    receivedAt:performance.now()
+  };
   const pending=matchState._pendingAuthorityRoundOutcome;
   if(pending&&token>=pending.roundToken){
     pending.scoreSynced=true;
@@ -25510,7 +25582,14 @@ function duels2RegisterExtendedLegacyEventHandlers() {
   duels2RegisterSimpleGameplayEventHandler('roundStart', d => {
     if(matchState._matchOver||matchState._pendingAuthorityRoundOutcome?.waitingMatchOver) return;
     currentMap=_gameMaps[d.mapIdx??0]??_gameMaps[0];
-    if(!matchState._betweenStarted){matchState._betweenStarted=true;if(matchState._peerSelectedChar)peerCharId=matchState._peerSelectedChar;updatePeerAugDisplay();}
+    if(!matchState._betweenStarted){
+      matchState._betweenStarted=true;
+      if(matchState._peerSelectedChar){
+        const remotePid=duels2ResolveCompatibilityRemotePid();
+        duels2CommitRemoteCharacterIdentity?.(remotePid,matchState._peerSelectedChar,{reason:'network.round-start.character-identity'});
+      }
+      updatePeerAugDisplay();
+    }
     startBetweenCountdown(3);
   }, 520);
   // matchOver: 점수 권한자가 확정한 승자 PID와 절대 점수를 적용한 뒤 로컬 관점 결과 화면을 연다. (d: winnerPid/localWins/peerWins 포함 패킷)
@@ -25564,8 +25643,9 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     const e=duels2ResolvePacketSourceEntity(d);e._syaHitRevealEnd=performance.now()+d.dur;
   }, 510);
   duels2RegisterSimpleGameplayEventHandler('charChange', d => {
-    const e=duels2ResolvePacketSourceEntity(d);const pid=getPlayerPid(e)||d.sourcePid||'P2';if(pid==='P2')peerCharId=d.charId;
-    duels2ApplyCharacterDefinitionToEntity(e,d.charId,{reason:'network.char-change'});if(d.color){e.color=d.color;e.defaultColor=d.color;}if(Number.isFinite(Number(d.radius)))e.radius=Number(d.radius);duels2SetPlayerLobbySelection?.(pid,{charId:d.charId});if(Number.isFinite(Number(d.masteryPoints)))duels2SetRemoteCharacterMastery(pid,d.charId,d.masteryPoints);renderAugHud?.();
+    const e=duels2ResolvePacketSourceEntity(d);const pid=getPlayerPid(e)||d.sourcePid||duels2ResolveCompatibilityRemotePid();
+    duels2CommitRemoteCharacterIdentity?.(pid,d.charId,{reason:'network.char-change'});
+    if(d.color){e.color=d.color;e.defaultColor=d.color;}if(Number.isFinite(Number(d.radius)))e.radius=Number(d.radius);if(Number.isFinite(Number(d.masteryPoints)))duels2SetRemoteCharacterMastery(pid,d.charId,d.masteryPoints);renderAugHud?.();updateRemoteHud?.();
   }, 510);
   duels2RegisterSimpleGameplayEventHandler('colorChange', d => {duels2ResolvePacketSourceEntity(d).color=d.color;}, 510);
   duels2RegisterSimpleGameplayEventHandler('freezeApply', d => receiveFreeze(d.dur), 510);
@@ -25781,6 +25861,39 @@ window.duels2GetStateSnapshotMigrationSummary = duels2GetStateSnapshotMigrationS
 
 // Incoming packets: onData()
 
+const DUELS2_REMOTE_CHARACTER_IDENTITY_PACKET_TYPES = new Set(['state','ready','charChange']);
+
+// duels2ResolveCompatibilityRemotePid: 1대1 호환 HUD가 사용할 실제 상대 PID를 반환한다. (localPid: 현재 로컬 PID)
+function duels2ResolveCompatibilityRemotePid(localPid = DUELS2_PLAYER_REGISTRY?.localPid || 'P1') {
+  const registered = PLAYER_SLOT_IDS.find(pid => pid !== localPid && DUELS2_PLAYER_REGISTRY?.entitiesByPid?.get?.(pid));
+  if (registered) return registered;
+  const selected = PLAYER_SLOT_IDS.find(pid => pid !== localPid && DUELS2_MULTIPLAYER_LOBBY_STATE?.charByPid?.has?.(pid));
+  return selected || (localPid === 'P1' ? 'P2' : 'P1');
+}
+
+// duels2CommitRemoteCharacterIdentity: 상대 캐릭터 ID를 엔티티·로비·호환 HUD에 한 번에 확정한다. (pid/charId/options)
+function duels2CommitRemoteCharacterIdentity(pid, charId, options = {}) {
+  const localPid = DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || (isHost ? 'P1' : 'P2');
+  const resolvedPid = PLAYER_SLOT_IDS.includes(pid) ? pid : duels2ResolveCompatibilityRemotePid(localPid);
+  const id = String(charId || '').trim();
+  if (!id || resolvedPid === localPid || !CHARACTERS?.[id]) return {applied:false, reason:'invalid-remote-character', pid:resolvedPid, charId:id||null};
+  const entity = DUELS2_PLAYER_REGISTRY?.entitiesByPid?.get?.(resolvedPid)
+    || duels2ResolveRemotePlayerFromPacket?.({pid:resolvedPid, sourcePid:resolvedPid})
+    || (resolvedPid === duels2ResolveCompatibilityRemotePid(localPid) ? R : null);
+  duels2SetPlayerLobbySelection?.(resolvedPid, {charId:id});
+  if (entity && entity !== L) {
+    entity._duels2NetworkCharId = id;
+    entity.charId = id;
+    if (entity.charDef?.id !== id) {
+      try { duels2ApplyCharacterDefinitionToEntity(entity, id, {reason:options.reason || 'network.remote-character-identity'}); } catch (_) {}
+    }
+  }
+  const compatibilityPid = duels2ResolveCompatibilityRemotePid(localPid);
+  if (resolvedPid === compatibilityPid || entity === R) peerCharId = id;
+  return {applied:true, pid:resolvedPid, charId:id, entity:entity || null};
+}
+window.duels2CommitRemoteCharacterIdentity = duels2CommitRemoteCharacterIdentity;
+
 function onData(d) {
   d = duels2NormalizeGameplayEventPacket(d, 'receive');
   if (!d) return false;
@@ -25804,26 +25917,13 @@ function onData(d) {
     if(_nameEntity&&_safeDisplayName)_nameEntity._displayName=_safeDisplayName;
     globalThis.duels2RefreshHudNames?.();
   }
-  // 원격 캐릭터 ID는 모든 상태 패킷 수신 직후 엔티티와 로비 상태에 확정 저장한다.
-  // 후속 디스패처가 패킷을 소비하더라도 캐릭터 위 이름 렌더가 ID를 잃지 않게 한다.
-  if (d.charId) {
-    const _localCharPid = globalThis.DUELS2_PLAYER_REGISTRY?.localPid || (globalThis.isHost === true ? 'P1' : 'P2');
-    const _packetCharPid = String(d.sourcePid || d.pid || '').trim();
-    const _remoteCharPid = (!_packetCharPid || _packetCharPid === _localCharPid)
-      ? (_localCharPid === 'P1' ? 'P2' : 'P1')
-      : _packetCharPid;
-    const _remoteCharEntity = globalThis.DUELS2_PLAYER_REGISTRY?.entitiesByPid?.get?.(_remoteCharPid)
-      || globalThis.duels2GetPrimaryRemoteOpponent?.()
-      || globalThis.R;
-    if (_remoteCharEntity && _remoteCharEntity !== globalThis.L) {
-      _remoteCharEntity._duels2NetworkCharId = String(d.charId);
-      _remoteCharEntity.charId = String(d.charId);
-      if (!_remoteCharEntity.charDef || _remoteCharEntity.charDef.id !== d.charId) {
-        try { duels2ApplyCharacterDefinitionToEntity(_remoteCharEntity, String(d.charId), {reason:'network.packet.character-label'}); } catch (_) {}
-      }
-    }
-    try { duels2SetPlayerLobbySelection?.(_remoteCharPid, {charId:String(d.charId)}); } catch (_) {}
-    if (_remoteCharEntity === globalThis.R || _remoteCharPid !== _localCharPid) peerCharId = String(d.charId);
+  // 캐릭터 ID는 실제 캐릭터 정체성을 나타내는 패킷에서만 반영한다.
+  // 공격 문맥의 charId나 대상 캐릭터 ID가 상대 HUD를 덮어쓰지 못하게 한다.
+  if (d.charId && DUELS2_REMOTE_CHARACTER_IDENTITY_PACKET_TYPES.has(d.type)) {
+    const localCharPid = DUELS2_PLAYER_REGISTRY?.localPid || (isHost === true ? 'P1' : 'P2');
+    const explicitPid = PLAYER_SLOT_IDS.includes(d.sourcePid) ? d.sourcePid : (PLAYER_SLOT_IDS.includes(d.pid) ? d.pid : null);
+    const remoteCharPid = explicitPid && explicitPid !== localCharPid ? explicitPid : duels2ResolveCompatibilityRemotePid(localCharPid);
+    duels2CommitRemoteCharacterIdentity(remoteCharPid, d.charId, {reason:`network.${d.type}.character-identity`});
   }
   if (d.deviceIdentityId) matchState._remoteDeviceIdentityId=String(d.deviceIdentityId);
   if (d.recordIdentityId && d.recordIdentityId !== DUELS2_LOCAL_RECORD_IDENTITY) {
@@ -26037,7 +26137,10 @@ function onData(d) {
       currentMap = _gameMaps[d.mapIdx ?? 0] ?? _gameMaps[0]; // 3. 맵 변경
       if (!matchState._betweenStarted) {
         matchState._betweenStarted = true;
-        if (matchState._peerSelectedChar) peerCharId = matchState._peerSelectedChar;
+        if (matchState._peerSelectedChar) {
+          const remotePid=duels2ResolveCompatibilityRemotePid();
+          duels2CommitRemoteCharacterIdentity?.(remotePid,matchState._peerSelectedChar,{reason:'legacy.round-start.character-identity'});
+        }
         updatePeerAugDisplay();
       }
       startBetweenCountdown(3); // 피어도 동시에 카운트다운 시작
@@ -36341,7 +36444,7 @@ function duels2FinishLevinaRecallHold() {
 }
 
 CANVAS.addEventListener('mousedown', e => {
-  _sfxCtx.state === 'suspended' && _sfxCtx.resume();
+  void duels2UnlockSfxAudio();
   if (!gameOn) return;
   e.preventDefault();
   const slot = e.button === 0 ? 'lmb' : (e.button === 2 ? 'rmb' : null);
@@ -37032,7 +37135,7 @@ function duels2GetMovementKeyFromKeyboardEvent(event) {
 window.duels2GetMovementKeyFromKeyboardEvent = duels2GetMovementKeyFromKeyboardEvent;
 
 document.addEventListener('keydown', e => {
-  _sfxCtx.state === 'suspended' && _sfxCtx.resume();
+  void duels2UnlockSfxAudio();
   const movementKey = duels2GetMovementKeyFromKeyboardEvent(e);
   if (movementKey) keys[movementKey] = true;
 
@@ -37887,9 +37990,7 @@ function duels2HydrateRemotePlayerCoreState(remote, snapshot={}, context={}) {
   if (!remote) return {ok:false, reason:'missing-remote'};
   const remotePid = context.remotePid || getPlayerPid(remote) || snapshot.pid || snapshot.sourcePid;
   if (snapshot.charId) {
-    duels2ApplyCharacterDefinitionToEntity(remote, snapshot.charId, {reason:'network.state.remote-character'});
-    duels2SetPlayerLobbySelection?.(remotePid, {charId:snapshot.charId});
-    if (remotePid === 'P2') peerCharId = snapshot.charId;
+    duels2CommitRemoteCharacterIdentity?.(remotePid, snapshot.charId, {reason:'network.state.remote-character'});
   }
   const first = context.firstRemoteState ?? (remote._networkStateReady !== true);
   if (first) duels2RoutePositionSync(remote, snapshot.x, snapshot.y, {reason:'network.state:first-remote-position', route:'position.remote-first-sync'});
@@ -39992,7 +40093,7 @@ function drawLevinaSpears() {
       }
       ctx.restore();
     } else if (_isLocal && !_isRet) {
-      // 경유지 없음: 전역 조준선이 창 위치를 커버하지 않으므로 별도 처리 불필요
+      // 경유지가 없어도 전역 조준선은 현재 창 위치에서 마우스까지 이어진다.
     }
   }
   // 레비나 회수 홀드는 공통 ArcGauge 모듈에 진행률만 전달한다. ()
@@ -44355,14 +44456,18 @@ function draw() {
     }
   }
 
-  // 모든 캐릭터 마우스 조준선 — 레비나는 마지막 경유지에서 시작
+  // 모든 캐릭터 마우스 조준선 — 레비나 창에 남은 이동 경로가 있으면 마지막 경유지에서, 없으면 현재 창 위치에서 시작한다.
   {
-    const _aimX = (hasEntityFunctionalRuntime(L, 'spearAnchor') && L._levinaSpear && !L._levinaSpear.state?.startsWith?.('ret') && L._levinaSpear.state !== 'returning' && L._levinaSpear.waypoints?.length > 0)
-      ? L._levinaSpear.waypoints[L._levinaSpear.waypoints.length - 1].x
-      : L.x;
-    const _aimY = (hasEntityFunctionalRuntime(L, 'spearAnchor') && L._levinaSpear && L._levinaSpear.state !== 'returning' && L._levinaSpear.waypoints?.length > 0)
-      ? L._levinaSpear.waypoints[L._levinaSpear.waypoints.length - 1].y
-      : L.y;
+    const _aimAnchor = hasEntityFunctionalRuntime(L, 'spearAnchor') ? L._levinaSpear : null;
+    const _remainingWaypoints = Array.isArray(_aimAnchor?.waypoints) ? _aimAnchor.waypoints : [];
+    const _lastWaypoint = _remainingWaypoints.length > 0
+      ? _remainingWaypoints[_remainingWaypoints.length - 1]
+      : null;
+    const _routeStillActive = _aimAnchor?.state === 'flying' && _lastWaypoint;
+    const _aimAnchorX = Number(_routeStillActive ? _lastWaypoint.x : _aimAnchor?.x);
+    const _aimAnchorY = Number(_routeStillActive ? _lastWaypoint.y : _aimAnchor?.y);
+    const _aimX = Number.isFinite(_aimAnchorX) ? _aimAnchorX : L.x;
+    const _aimY = Number.isFinite(_aimAnchorY) ? _aimAnchorY : L.y;
     ctx.beginPath(); ctx.moveTo(_aimX, _aimY); ctx.lineTo(mouseX, mouseY);
     ctx.strokeStyle = 'rgba(255,80,80,0.2)';
     ctx.lineWidth   = 1.5;
@@ -60302,8 +60407,8 @@ function duels2RenderMultiplayerHud() {
   panel.innerHTML = entries.map(({pid,entity}) => {
     const hp = Math.max(0, getEntityHealth(entity));
     const maxHp = Math.max(1, getEntityMaxHealth(entity));
-    const charId = DUELS2_MULTIPLAYER_LOBBY_STATE.charByPid.get(pid) || entity.charDef?.id || entity.charId || '?';
-    const charName = entity.charDef?.name || CHARACTERS?.[charId]?.name || charId || '캐릭터';
+    const charId = entity._duels2NetworkCharId || DUELS2_MULTIPLAYER_LOBBY_STATE.charByPid.get(pid) || entity.charDef?.id || entity.charId || '?';
+    const charName = CHARACTERS?.[charId]?.name || ((entity.charDef?.id === charId || charId === '?') ? entity.charDef?.name : '') || charId || '캐릭터';
     const ready = DUELS2_MULTIPLAYER_LOBBY_STATE.readyByPid.get(pid) === true;
     const team = getTeamId(entity) || _defaultTeamForPid(pid);
     const local = pid === DUELS2_PLAYER_REGISTRY.localPid;
@@ -60391,8 +60496,8 @@ function updateRemoteHud() {
     || DUELS2_MULTIPLAYER_LOBBY_STATE?.charByPid?.get?.(pid)
     || matchState?.charByPid?.get?.(pid)
     || (remote === R ? peerCharId : null);
-  const charName = remote?.charDef?.name
-    || CHARACTERS?.[remoteCharId]?.name
+  const charName = CHARACTERS?.[remoteCharId]?.name
+    || ((remote?.charDef?.id === remoteCharId || !remoteCharId) ? remote?.charDef?.name : '')
     || (remoteCharId ? String(remoteCharId) : '캐릭터 확인 중');
   const hp=Math.max(0,getEntityHealth(remote));
   const maxHp=Math.max(1,getEntityMaxHealth(remote));
@@ -60451,6 +60556,7 @@ function duels2ResetDuelScoreAuthorityState(reason = 'match-reset') {
   matchState._lastScoredRoundToken = null;
   matchState._roundResolutionToken = null;
   matchState._sentDuelDeathEventId = null;
+  matchState._authorityScoreSyncByRound = Object.create(null);
   matchState._duelScoreAuthorityResetReason = reason;
 }
 
@@ -60522,6 +60628,21 @@ function duels2ResolvePendingDuelRoundOutcome() {
   return true;
 }
 
+// duels2GetRoundResolutionHealthSummary: 사망·점수 동기화 경쟁 상태와 현재 대기 상태를 점검한다. ()
+function duels2GetRoundResolutionHealthSummary() {
+  const pending=matchState?._pendingAuthorityRoundOutcome||null;
+  return {
+    roundToken:duels2GetDuelRoundToken?.(),
+    resolutionToken:matchState?._roundResolutionToken??null,
+    lastScoredRoundToken:matchState?._lastScoredRoundToken??null,
+    pending:pending?{...pending}:null,
+    cachedAuthorityRounds:Object.keys(matchState?._authorityScoreSyncByRound||{}),
+    gameOn:!!gameOn,
+    dying:!!L?._dying
+  };
+}
+window.duels2GetRoundResolutionHealthSummary=duels2GetRoundResolutionHealthSummary;
+
 function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)) {
   if (matchState._lastScoredRoundToken === roundToken) return;
   if (!gameOn && won) return; // 이미 처리됨 방어
@@ -60538,7 +60659,7 @@ function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)
   duels2AwardRecordForCompletedRound(!!won, roundToken);
   updateRoundScoreDisplay?.();
   if (duels2IsDuelScoreAuthority() && scoreChanged) {
-    send({
+    const scorePacket={
       type:'roundScoreSync',
       sourcePid:DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || 'P1',
       authorityPid:'P1',
@@ -60546,7 +60667,12 @@ function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)
       localWins:Number(matchState.localWins)||0,
       peerWins:Number(matchState.peerWins)||0,
       round:Number(matchState.round)||1
-    });
+    };
+    send(scorePacket);
+    // 절대 점수 패킷은 멱등이므로 사망 처리 경쟁 상태에 대비해 한 번 더 보낸다.
+    setTimeout(()=>{
+      if(matchState._lastScoredRoundToken===roundToken && !globalThis._duels2OpponentDeparted) send({...scorePacket});
+    },220);
   }
 
   const fmt = matchState.format = duels2NormalizeMatchFormat(matchState.format);
@@ -60574,10 +60700,11 @@ function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)
       matchState.round++;
       showRoundResult(won,()=>startBetweenRound(won));
     }else{
+      const cachedAuthorityScore=matchState._authorityScoreSyncByRound?.[roundToken]||null;
       matchState._pendingAuthorityRoundOutcome={
         won:!!won,
         roundToken,
-        scoreSynced:false,
+        scoreSynced:!!cachedAuthorityScore,
         resultOverlayFinished:false,
         waitingMatchOver:false
       };
@@ -64905,7 +65032,7 @@ window.duels2GetLocalDisplayName=duels2GetLocalDisplayName;window.duels2GetPlaye
 const _duels2OriginalUpdateLocalHud=window.updateLocalHud;
 window.updateLocalHud=function(){_duels2OriginalUpdateLocalHud?.();const el=document.getElementById('local-label');if(el&&globalThis.L){const hp=Math.max(0,Math.round(getEntityHealth(L)));const max=Math.max(1,Math.round(getEntityMaxHealth(L)));const ch=L.charDef?.name||CHARACTERS?.[L.charId]?.name||'캐릭터';el.textContent=`${duels2GetLocalDisplayName()}: ${hp} / ${max}`;}};
 const _duels2OriginalUpdateRemoteHud=window.updateRemoteHud;
-window.updateRemoteHud=function(){_duels2OriginalUpdateRemoteHud?.();const r=duels2GetPrimaryRemoteOpponent?.();const el=document.getElementById('remote-label');if(r&&el){const pid=getPlayerPid(r)||'P2';const hp=Math.max(0,Math.round(getEntityHealth(r)));const max=Math.max(1,Math.round(getEntityMaxHealth(r)));const ch=r.charDef?.name||CHARACTERS?.[r.charId]?.name||'캐릭터';el.textContent=`${duels2GetPlayerDisplayName(pid,r)} · ${ch}: ${hp} / ${max}`;}};
+window.updateRemoteHud=function(){_duels2OriginalUpdateRemoteHud?.();const r=duels2GetPrimaryRemoteOpponent?.();const el=document.getElementById('remote-label');if(r&&el){const pid=getPlayerPid(r)||duels2ResolveCompatibilityRemotePid?.()||'P2';const hp=Math.max(0,Math.round(getEntityHealth(r)));const max=Math.max(1,Math.round(getEntityMaxHealth(r)));const ch=globalThis.duels2CharacterName?.(pid,r)||CHARACTERS?.[r._duels2NetworkCharId||r.charId||r.charDef?.id]?.name||'캐릭터';el.textContent=`${duels2GetPlayerDisplayName(pid,r)} · ${ch}: ${hp} / ${max}`;}};
 
 // 멀티 HUD의 P1/P2 표기도 표시 이름으로 변경한다.
 const _duels2OriginalRenderMultiHud=window.duels2RenderMultiplayerHud;
@@ -66191,12 +66318,15 @@ window.duels2AccountSaveNow=duels2AccountSaveNow;window.duels2AccountLogout=duel
   function duels2CharacterName(pid,entity){
     const rawCharDef=entity?.charDef;
     const localPid=globalThis.DUELS2_PLAYER_REGISTRY?.localPid||'P1';
-    const charId=(typeof rawCharDef==='string'?rawCharDef:rawCharDef?.id)
-      || entity?.charId||entity?.characterId||entity?._charId||entity?.selectedCharId
+    const charId=entity?._duels2NetworkCharId
       || globalThis.DUELS2_MULTIPLAYER_LOBBY_STATE?.charByPid?.get?.(pid)
       || globalThis.matchState?.charByPid?.get?.(pid)
+      || entity?.charId||entity?.characterId||entity?._charId||entity?.selectedCharId
+      || (typeof rawCharDef==='string'?rawCharDef:rawCharDef?.id)
       || (entity===globalThis.R||pid!==localPid?globalThis.peerCharId:null);
-    return String((typeof rawCharDef==='object'?rawCharDef?.name:'')||(charId && typeof CHARACTERS !== 'undefined' ? CHARACTERS?.[charId]?.name : '')||charId||'상대 캐릭터');
+    const indexedName=charId && typeof CHARACTERS !== 'undefined' ? CHARACTERS?.[charId]?.name : '';
+    const matchingRawName=(typeof rawCharDef==='object' && (!charId || rawCharDef?.id===charId))?rawCharDef?.name:'';
+    return String(indexedName||matchingRawName||charId||'상대 캐릭터');
   }
 
   // duels2ResolveOverheadPlayerLabel: 내 캐릭터 위에는 닉네임, 상대 캐릭터 위에는 캐릭터 이름을 표시한다. (entity/fallback)
