@@ -1399,8 +1399,8 @@ option{
  *
  *
  * Step 57 원칙:
- * - 레거시 duels2CollectFormerRsTargets('target.rs-loop-replaced') 순회를 새 판정식으로 재구현하지 않고, 기존 Rs wrapper와 동일한 수집 조건을 duels2CollectFormerRsTargets()로 옮긴다.
- * - 개별 스킬/루프의 직접 duels2CollectFormerRsTargets('target.rs-loop-replaced') 호출은 공통 Damage Target Collection 경로를 타는 helper로 치환한다.
+ * - 레거시 getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 순회를 새 판정식으로 재구현하지 않고, 기존 Rs wrapper와 동일한 수집 조건을 duels2CollectFormerRsTargets()로 옮긴다.
+ * - 개별 스킬/루프의 직접 getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 호출은 공통 Damage Target Collection 경로를 타는 helper로 치환한다.
  * - 이번 단계는 판정 결과를 바꾸는 것이 아니라 남은 레거시 호출 표면을 줄이는 스윕이다.
  *
  * Step 60 원칙:
@@ -12907,17 +12907,32 @@ function duels2TargetPassesCollectionRelation(source, target, opt = {}) {
   return duels2RelationIsEnemy(source, target);
 }
 
+// duels2IsDamageableCombatTargetCandidate: 플래그 초기화 시점과 무관하게 실제 피격 가능한 전투 엔티티인지 판정한다. (target: 검사 대상, opt: aliveOnly/requireRadius 옵션)
+function duels2IsDamageableCombatTargetCandidate(target, opt = {}) {
+  if (!target) return false;
+  const explicitlyNonCombat =
+    target.damageable === false ||
+    target.combatObject === false ||
+    target.nonCombatObject === true ||
+    target.intangible === true ||
+    target.targetable === false;
+  if (explicitlyNonCombat) return false;
+  if (opt.aliveOnly !== false && !(window.DUELS2_ENTITY_RUNTIME_CONTRACT?.isAlive(target) ?? duels2IsEntityAliveDirect(target))) return false;
+  if (opt.requireRadius !== false && getEntityRadius(target) <= 0) return false;
+  return getEntityMaxHealth(target) > 0 || getEntityHealth(target) > 0 || typeof target.applyDamage === 'function';
+}
+
 // duels2GetTargetCollectionCandidates: 명시 targets 또는 현재 전투 엔티티 목록에서 후보군을 수집한다. (opt: source/team/aliveOnly/targets 옵션)
 function duels2GetTargetCollectionCandidates(opt = {}) {
   const source = opt.source || getCombatSource(L);
   if (Array.isArray(opt.targets)) {
     const explicit = opt.targets.filter(Boolean);
-    // 명시적 플레이어 배열을 쓰는 구형 shape 공격도 attackable 전투 객체를 빠뜨리지 않는다.
-    // 캐릭터/소환수 타입을 검사하지 않고 공통 attackable 정책과 진영 관계만 사용한다.
+    // 구형 공격이 [R]·플레이어 전용 배열을 넘겨도 모든 피해 가능 전투 엔티티를 보충한다.
+    // attackable 플래그는 네트워크 hydrate/tick 순서에 따라 늦게 설정될 수 있으므로 단독 기준으로 사용하지 않는다.
     if (opt.shape && !opt.playersOnly && opt.includeAttackableObjects !== false) {
       const seen = new Set(explicit.map(target => getHitTargetKey?.(target) || target.id || target.pid || target));
       for (const target of getCombatEntities({aliveOnly:opt.aliveOnly !== false})) {
-        if (!target || target.attackable !== true || target.targetable === false) continue;
+        if (!duels2IsDamageableCombatTargetCandidate(target, opt)) continue;
         if (!duels2TargetPassesCollectionKindFilter(target, opt)) continue;
         if (!duels2TargetPassesCollectionRelation(source, target, opt)) continue;
         const key = getHitTargetKey?.(target) || target.id || target.pid || target;
@@ -13272,7 +13287,7 @@ function romanStage(n) {
 
 // ── Combat Query API 2C --------------------------------------------------
 // L/R 직접 참조를 줄이기 위한 공식 판정 입구.
-// 새 코드와 리팩터링 대상 스킬은 duels2CollectFormerRsTargets('target.rs-loop-replaced') 대신 queryTargets()/getEnemyTargets()를 사용한다.
+// 새 코드와 리팩터링 대상 스킬은 getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 대신 queryTargets()/getEnemyTargets()를 사용한다.
 function _getCandidateTargetsForQuery(q) {
   q = q || {};
   return duels2RouteCollectDamageTargets({
@@ -15875,7 +15890,7 @@ setTimeout(syncLegacyEntitiesToRegistry, 0);
 // ============================================================
 // 2.0.0-Alpha Step 57 — Rs Loop Replacement Sweep
 // ============================================================
-// 레거시 duels2CollectFormerRsTargets('target.rs-loop-replaced') 직접 호출을 점진 제거하기 위해 동일 조건의 공식 수집 helper를 둔다.
+// 레거시 getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 직접 호출을 점진 제거하기 위해 동일 조건의 공식 수집 helper를 둔다.
 const DUELS2_RS_LOOP_REPLACEMENT_SWEEP_VERSION = 1;
 
 // duels2NormalizeFormerRsTarget: 레거시 Rs wrapper가 보장하던 combat runtime 기본값을 대상에 붙인다. (target: 수집된 후보 대상)
@@ -15885,7 +15900,7 @@ function duels2NormalizeFormerRsTarget(target) {
   return ensureCombatTargetRuntime(target, {kind:target.kind || target.type || (target.isBot ? 'trainingBot' : 'minion'), ownerId:target.ownerId || 'peer', teamId:target.teamId || 'peer'});
 }
 
-// duels2CollectFormerRsTargetsDirect: duels2CollectFormerRsTargets('target.rs-loop-replaced')와 같은 조건의 적 타겟 목록을 Damage Target Collection 경유로 수집한다. (route: 호출 경로명, opt: source/aliveOnly 등 수집 옵션)
+// duels2CollectFormerRsTargetsDirect: getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})와 같은 조건의 적 타겟 목록을 Damage Target Collection 경유로 수집한다. (route: 호출 경로명, opt: source/aliveOnly 등 수집 옵션)
 function duels2CollectFormerRsTargetsDirect(route = 'target.former-rs', opt = {}) {
   const src = getCombatSource(opt.source || L);
   return duels2RouteCollectDamageTargets({
@@ -15939,7 +15954,7 @@ function duels2InstallRsLoopReplacementSweep() {
   return router;
 }
 
-// duels2CollectFormerRsTargets: 기존 duels2CollectFormerRsTargets('target.rs-loop-replaced') 호출부를 대체하는 공식 helper다. (route: 호출 경로명, opt: source/aliveOnly 등 수집 옵션)
+// duels2CollectFormerRsTargets: 기존 getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 호출부를 대체하는 공식 helper다. (route: 호출 경로명, opt: source/aliveOnly 등 수집 옵션)
 function duels2CollectFormerRsTargets(route = 'target.former-rs', opt = {}) {
   const router = window.DUELS2_RS_LOOP_REPLACEMENT_SWEEP;
   if (router?.collect) return router.collect(route, opt);
@@ -15947,6 +15962,20 @@ function duels2CollectFormerRsTargets(route = 'target.former-rs', opt = {}) {
 }
 
 duels2InstallRsLoopReplacementSweep();
+
+// duels2GetSummonDamagePathFixSummary: 모든 공격 경로의 소환수 후보 보충 정책을 요약한다. ()
+function duels2GetSummonDamagePathFixSummary() {
+  return {
+    version:2,
+    explicitTargetExpansion:'damageable-combat-entity',
+    attackableFlagRequired:false,
+    canonicalEnemyCollector:'getEnemyTargets',
+    coveredShapes:['circle','ctx','line','segment','cone','projectile-swept','field'],
+    coveredEntities:['player','summon','minion','turret','deployable','trainingDummy','trainingBot']
+  };
+}
+window.duels2GetSummonDamagePathFixSummary = duels2GetSummonDamagePathFixSummary;
+
 
 // ============================================================
 // 2.0.0-Alpha Step 58 — Damage Path Completion Audit
@@ -26607,7 +26636,7 @@ function onData(d) {
         if (ci!==-1) {
           const _jb = localBullets[ci];
           if (_jb.isRocket) {
-            const _jHits = duels2CollectFormerRsTargets('target.rs-loop-replaced').filter(t => duels2CircleContainsEntity(_jb.x, _jb.y, _jb.explosionRange, t));
+            const _jHits = getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}).filter(t => duels2CircleContainsEntity(_jb.x, _jb.y, _jb.explosionRange, t));
             if (_jHits.length) { window._hitTargets=_jHits; window._hitTarget=_jHits[0]; hitRemote(_jb.explosionDamage); }
             emitFx({type:'rocketExplosion',x:_jb.x,y:_jb.y,r:0,maxR:_jb.explosionRange,dur:22,maxDur:22});
           }
@@ -27610,7 +27639,7 @@ function hitCtxSpirit(ctx, dmg, cc, opt = {}) {
 // 소환수 추가 시 refreshEnemyTargets()에 push만 하면 됨
 let _enemyTargets = [];
 function refreshEnemyTargets(source = getCombatSource(L)) {
-  // 새 AI/디버깅 코드는 getEnemyTargets(source)와 동기화한다. duels2CollectFormerRsTargets('target.rs-loop-replaced')는 레거시 호환 래퍼다.
+  // 새 AI/디버깅 코드는 getEnemyTargets(source)와 동기화한다. getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})는 레거시 호환 래퍼다.
   _enemyTargets = getEnemyTargets(source, {aliveOnly:true});
 }
 
@@ -28618,7 +28647,7 @@ function damageLocalMinion(m,dmg,cc,sourceEntity=null) {
 }
 
 
-// ── 범위 내 모든 적 타겟 피해+CC (duels2CollectFormerRsTargets('target.rs-loop-replaced') 전체) ─────────────
+// ── 범위 내 모든 적 타겟 피해+CC (getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 전체) ─────────────
 function hitAllInRange(cx, cy, range, dmg, cc, opt = {}) {
   // PlayerSlot 2C: 모든 범위 피해는 source/team 기준 target query를 쓴다.
   const actionCtx = opt.actionCtx || getActiveHitActionContext();
@@ -29364,9 +29393,9 @@ function applyDmgAugs(dmg) {
 }
 
 // 플레이어 직접 타격 (투사체 루프 등 좌표 없이 확정 명중 시)
-// ── 범위 피해: duels2CollectFormerRsTargets('target.rs-loop-replaced') 전체에 동일 적용 ──────────────────────
+// ── 범위 피해: getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 전체에 동일 적용 ──────────────────────
 function hitInRange(cx, cy, range, dmg, opt = {}) {
-  // PlayerSlot 2C: 원형 범위 피해도 duels2CollectFormerRsTargets('target.rs-loop-replaced') 배열을 직접 넘기지 않고 source 기준 queryTargets()를 탄다.
+  // PlayerSlot 2C: 원형 범위 피해도 getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 배열을 직접 넘기지 않고 source 기준 queryTargets()를 탄다.
   const actionCtx = opt.actionCtx || getActiveHitActionContext();
   const source = opt.source || getActionSourceEntity(actionCtx, getCombatSource(L));
   const hits = getTargetsInCircle(cx, cy, range, null, {source, team:opt.team || 'enemy'});
@@ -30629,7 +30658,7 @@ function getNearestAutoTarget() {
   const nearest = duels2FindNearestTargetFromPoint(
     L.x,
     L.y,
-    duels2CollectFormerRsTargets('target.rs-loop-replaced')
+    getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})
   );
   return nearest?.target ? {t:nearest.target, d:nearest.distance} : null;
 }
@@ -31258,7 +31287,7 @@ const SK = {
     const nearest = duels2FindNearestTargetFromPoint(
       L.x,
       L.y,
-      duels2CollectFormerRsTargets('target.rs-loop-replaced')
+      getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})
     );
     return nearest?.target ? Math.atan2(nearest.target.y-L.y, nearest.target.x-L.x) : getAngle();
   },
@@ -31268,7 +31297,7 @@ const SK = {
     const nearest = duels2FindNearestTargetFromPoint(
       L.x,
       L.y,
-      duels2CollectFormerRsTargets('target.rs-loop-replaced')
+      getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})
     );
     return Number.isFinite(nearest?.distance) ? nearest.distance : Infinity;
   },
@@ -31911,7 +31940,7 @@ const SKILLS = {
       if (!useStam(B.cost)) return;
       if (L.orb) { clearTimeout(L.orb._timer); L.orb = null; }
       const _meleeShape = {x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle};
-      const _meleeTargets = duels2CollectFormerRsTargets('target.rs-loop-replaced').filter(t => intersectsCtx(_meleeShape, t.x, t.y, t.radius));
+      const _meleeTargets = getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}).filter(t => intersectsCtx(_meleeShape, t.x, t.y, t.radius));
       if (_meleeTargets.length > 0) {
         hitCtx(_meleeShape, B.meleeDamage);
         addShake(2,6); playHitSfx();
@@ -32736,7 +32765,7 @@ const SKILLS = {
       const cos = Math.cos(angle), sin = Math.sin(angle);
       const baseSpread = B.range * 0.12;
       // 모든 타겟에 대해 독립적으로 판정
-      for (const _t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
+      for (const _t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
         const _dx2 = _t.x - L.x, _dy2 = _t.y - L.y;
         const _fwd2  =  _dx2 * cos + _dy2 * sin;
         const _perp2 = -_dx2 * sin + _dy2 * cos;
@@ -33573,7 +33602,7 @@ const SKILLS = {
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
         const tipThresh = B.aoeRange * B.tipRatio;
-        // duels2CollectFormerRsTargets('target.rs-loop-replaced') 전체 순회 — 피해/슬로우/넉백 모두 대상 종류를 보지 않고 공통 경로로 처리한다.
+        // getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 전체 순회 — 피해/슬로우/넉백 모두 대상 종류를 보지 않고 공통 경로로 처리한다.
         const _cHits = queryEnemyTargets(L, {shape:'circle', x:L.x, y:L.y, range:B.aoeRange}, {route:'hitbox.konyeong.counter'});
         for (const _t of _cHits) {
           const _outerBand = !duels2CircleContainsEntity(L.x, L.y, tipThresh, _t);
@@ -34724,7 +34753,7 @@ const SKILLS = {
           const a = Math.atan2(ty-L.y, tx-L.x);
           return Math.abs(((a-angle)+Math.PI*3)%(Math.PI*2)-Math.PI) < B.halfAngle;
         };
-        for (const _t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
+        for (const _t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
           if (!_check(_t.x, _t.y, _t.radius)) continue;
           damageSkillProfileTargets([_t], B.damage, {slot:'counter'});
           applyCC(_t, {freezeDur:B.freezeDur});
@@ -34802,7 +34831,7 @@ const SKILLS = {
       const dx = Math.cos(angle), dy = Math.sin(angle);
       const px = -dy, py = dx;
       const _loopHits = [];
-      for (const t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
+      for (const t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
         const tx = t.x-ox, ty = t.y-oy;
         const along = tx*dx + ty*dy;
         const perp  = Math.abs(tx*px + ty*py);
@@ -36226,7 +36255,7 @@ const SKILLS = {
       applyCC(target, {zapDur: dur, discDur: strong ? DISC_DUR : 0, strong:!!strong});
     },
     _applyZap(strong) {
-      for (const t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) SKILLS.sor._applyZapTo(t, duels2GetSkillBalance('sor','lmb').zapDur, strong);
+      for (const t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) SKILLS.sor._applyZapTo(t, duels2GetSkillBalance('sor','lmb').zapDur, strong);
     },
 
     lmb(angle) {
@@ -39581,7 +39610,7 @@ function moveBullets(dt=1) {
         let _htx=(_trainingMode && R._homingX!=null)?R._homingX:R.x;
         let _hty=(_trainingMode && R._homingY!=null)?R._homingY:R.y;
         let _hd=Math.hypot(_htx-b.x,_hty-b.y);
-        for (const _rt of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
+        for (const _rt of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
           const _pd=Math.hypot(_rt.x-b.x,_rt.y-b.y);
           if (_pd<_hd){_hd=_pd;_htx=_rt.x;_hty=_rt.y;}
         }
@@ -39595,11 +39624,11 @@ function moveBullets(dt=1) {
     }
     const oob = b.x<0||b.x>WORLD_W||b.y<0||b.y>WORLD_H;
     const hitWall = bulletHitsWall(b) && !b.pierceWalls;
-    // hitEnemy: duels2CollectFormerRsTargets('target.rs-loop-replaced') 전체 순회 — swept collision (빠른 탄환이 소환수를 뚫는 현상 방지)
+    // hitEnemy: getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 전체 순회 — swept collision (빠른 탄환이 소환수를 뚫는 현상 방지)
     const _bSpd = (Number(b.speed)||0) * dt; // 이번 프레임 이동거리
     const _hitTargets = duels2CollectProjectileSweptTargets(
       b,
-      duels2CollectFormerRsTargets('target.rs-loop-replaced'),
+      getEnemyTargets(getCombatSource(L), {aliveOnly:true, route:'projectile.local.swept-targets', reason:'projectile-swept-collision'}),
       _bSpd,
       {stride:10, route:'projectile.local.swept-circle'}
     );
@@ -39663,7 +39692,7 @@ function moveBullets(dt=1) {
       if (hitWall || oob || hitEnemy || rangeOut) {
         // 폭발 범위 내 모든 타겟에 피해 + 근접 기절
         const _expHits = [], _stunHits = [];
-        for (const t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
+        for (const t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
           const _dist = Math.hypot(b.x-t.x, b.y-t.y);
           if (_dist < b.explosionRange + t.radius) _expHits.push(t);
           if (b.stunRange && _dist < b.stunRange + t.radius) _stunHits.push(t);
@@ -39855,7 +39884,7 @@ function moveBullets(dt=1) {
         const _fn = performance.now();
         if (!L._sorFields) L._sorFields = [];
         duels2RegisterFieldObject('localSorFields', L._sorFields, {x:b.x, y:b.y, radius:b.fieldRadius, expiry:_fn+b.fieldDur, ownerId:L.pid||L.id||null, teamId:(typeof getTeamId==='function'?getTeamId(L):L.teamId)||null, sourceEntity:L, moduleId:'effect.zap.static-field', delivery:'field', timing:'persistent', policyFamily:'persistent', route:'field.local.static-field', actionCtx:createActionContext?.({sourceEntity:L, slot:'rmb', delivery:'field', timing:'persistent', tags:['field','persistent','zap']})||null}, {route:'field.local.static-field'});
-        for (const t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
+        for (const t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
           if (Math.hypot(t.x-b.x, t.y-b.y) < b.fieldRadius + (t.radius||20)) {
             duels2RouteProjectileImpactDirectDamage(b, t, {route:'projectile.impact.direct-target', impactId:'impact.on-hit'});
             SKILLS.sor._applyZapTo(t, b.zapDur, false);
@@ -61988,7 +62017,7 @@ function loop() {
       const _pullDistance = getGravityFieldPullDistance(_piCount, _piRange);
       const _dur = 90;
       send({type:'gravityPull', cx:L.x, cy:L.y, range:_piRange, distance:_pullDistance, dur:_dur, sourceRadius:getEntityRadius(L)});
-      runGravityFieldPull(L, _piRange, _pullDistance, duels2CollectFormerRsTargets('target.rs-loop-replaced'), _dur);
+      runGravityFieldPull(L, _piRange, _pullDistance, getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}), _dur);
     }
   }
   // 정전기장 틱: 범위 내 모든 적 타겟 감전 + 만료 정리
@@ -62076,7 +62105,7 @@ function loop() {
         send({type:'levinaSpearDir', dx:0, dy:0, x:_sp.x, y:_sp.y, state:'stopped'});
       }
       // 비행 중 적 타격 (세그먼트당 1회, state가 이미 returning으로 바뀌었으면 건너뜀)
-      if (_sp.state === 'flying') for (const _t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
+      if (_sp.state === 'flying') for (const _t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
         const _tkey = getHitTargetKey(_t);
         if (!_sp._hitSeg) _sp._hitSeg = new Set();
         if (_sp._hitSeg.has(_tkey)) continue;
@@ -62091,7 +62120,7 @@ function loop() {
       const _retSpd = BALANCE.levina[_sp.type]?.retSpeed || _sp.speed * 1.65;
       duels2AdvanceProjectileToward(_sp,L.x,L.y,_retSpd);
       // 귀환 중 타격
-      for (const _t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
+      for (const _t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
         const _tkey = getHitTargetKey(_t);
         if (!_sp._retHitSeg) _sp._retHitSeg = new Set();
         if (_sp._retHitSeg.has(_tkey)) continue;
@@ -62590,7 +62619,7 @@ function loop() {
       L._syaInvisible = false;
       send({type:'syaInvis', v:false});
     } else {
-      // 적 감지: 가까이 오면 은신 해제 + 빙결. 타겟 종류는 duels2CollectFormerRsTargets('target.rs-loop-replaced') 공통 resolver로만 판단한다.
+      // 적 감지: 가까이 오면 은신 해제 + 빙결. 타겟 종류는 getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 공통 resolver로만 판단한다.
       const _detected = getTargetsInCircle(L.x, L.y, B.detectRange);
       if (_detected.length > 0) {
         L._syaInvisible = false;
@@ -62603,7 +62632,7 @@ function loop() {
     }
   }
 
-  // 스야 은신 처리는 위의 공통 duels2CollectFormerRsTargets('target.rs-loop-replaced') 감지 블록에서만 처리한다.
+  // 스야 은신 처리는 위의 공통 getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 감지 블록에서만 처리한다.
 
 
   // 스야 은신 처리
@@ -62792,7 +62821,7 @@ function loop() {
         // PvP 히트 판정은 피격자(상대방) 화면에서 처리. 훈련장에서는 로컬 더미/봇을 직접 타격.
         if (_trainingMode) {
           const _HR = 16 * ((_h.radius || duels2GetSkillBalance('ruvu','rmb').hammerRadius) / duels2GetSkillBalance('ruvu','rmb').hammerRadius);
-          const _targets = duels2QueryHitboxTargets({shape:'circle',radius:_HR,relation:'enemy',includePlayers:true,includeSummons:true},{source:L,x:_h.x,y:_h.y,targets:duels2CollectFormerRsTargets('target.rs-loop-replaced')});
+          const _targets = duels2QueryHitboxTargets({shape:'circle',radius:_HR,relation:'enemy',includePlayers:true,includeSummons:true},{source:L,x:_h.x,y:_h.y,targets:getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})});
           const _fresh = getFreshHitTargets(_targets, _h._hitTargetIds || (_h._hitTargetIds = new Set()));
           if (_fresh.length) {
             damageSkillProfileTargets(_fresh, duels2GetSkillBalance('ruvu','rmb').hammerDamage, {slot:'rmb', source:'ruvuHammer'});
@@ -62821,7 +62850,7 @@ function loop() {
       // PvP 귀환 중 피격 판정은 피격자 화면에서 처리. 훈련장에서는 로컬 더미/봇을 직접 타격.
       if (_trainingMode) {
         const _HR = 16 * ((_h.radius || duels2GetSkillBalance('ruvu','rmb').hammerRadius) / duels2GetSkillBalance('ruvu','rmb').hammerRadius);
-        const _targets = duels2QueryHitboxTargets({shape:'circle',radius:_HR,relation:'enemy',includePlayers:true,includeSummons:true},{source:L,x:_h.x,y:_h.y,targets:duels2CollectFormerRsTargets('target.rs-loop-replaced')});
+        const _targets = duels2QueryHitboxTargets({shape:'circle',radius:_HR,relation:'enemy',includePlayers:true,includeSummons:true},{source:L,x:_h.x,y:_h.y,targets:getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})});
         const _fresh = getFreshHitTargets(_targets, _h._returnHitTargetIds || (_h._returnHitTargetIds = new Set()));
         if (_fresh.length) {
           damageSkillProfileTargets(_fresh, duels2GetSkillBalance('ruvu','rmb').hammerDamage, {slot:'rmb', source:'ruvuHammerReturn'});
@@ -62870,7 +62899,7 @@ function loop() {
             receiveHit(applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage));
           } else {
             // 훈련장: 망치 위치 기준 가장 가까운 타겟에 피해
-            for (const _t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
+            for (const _t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
               if (duels2EntityMatchesHitbox(_t,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:true},{source:_remoteHammerOwner,x:_rh.x,y:_rh.y})) {
                 if (_t.applyDamage) _t.applyDamage(duels2GetSkillBalance('ruvu','rmb').hammerDamage);
               }
@@ -62891,7 +62920,7 @@ function loop() {
 
     if (!_rh.returning && !_rh._hitR && !_rh._stopped) {
       const _HR2 = 16 * ((_rh.radius || duels2GetSkillBalance('ruvu','rmb').hammerRadius) / duels2GetSkillBalance('ruvu','rmb').hammerRadius);
-      // 훈련장: duels2CollectFormerRsTargets('target.rs-loop-replaced') 전체, PvP: L 위치 기준
+      // 훈련장: getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'}) 전체, PvP: L 위치 기준
       let _hammerHit = false;
       if (!_trainingMode) {
         if (duels2EntityMatchesHitbox(L,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:false},{source:_remoteHammerOwner,x:_rh.x,y:_rh.y})) {
@@ -62900,7 +62929,7 @@ function loop() {
           receiveHit(applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage));
         }
       } else {
-        for (const _t of duels2CollectFormerRsTargets('target.rs-loop-replaced')) {
+        for (const _t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
           if (duels2EntityMatchesHitbox(_t,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:true},{source:_remoteHammerOwner,x:_rh.x,y:_rh.y})) {
             _rh._hitR = true; _hammerHit = true;
             if (_t.applyDamage) _t.applyDamage(duels2GetSkillBalance('ruvu','rmb').hammerDamage);
