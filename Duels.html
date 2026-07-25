@@ -13336,9 +13336,66 @@ duels2InstallDirectTargetReferenceSweep();
 function getDefaultDamageSource(ctx = {}) {
   return duels2ResolveDamageSourceDirect({ctx, actionCtx:ctx.actionCtx}, L);
 }
+// duels2ResolveEntityAuthoritySide: 엔티티의 실제 로컬/원격 권위 편을 PID·플레이어 정체성·미러 컬렉션으로 판정한다.
+// ownerId의 임시 local/peer 문자열은 비플레이어 객체의 마지막 보조 정보로만 사용한다.
+function duels2ResolveEntityAuthoritySide(entity, visited = new Set()) {
+  if (!entity || visited.has(entity)) return null;
+  visited.add(entity);
+
+  if (entity === L) return 'local';
+  if (entity === R) return 'remote';
+  if (typeof localMinions !== 'undefined' && (localMinions || []).includes(entity)) return 'local';
+  if (typeof peerMinions !== 'undefined' && (peerMinions || []).includes(entity)) return 'remote';
+
+  const localPid = String(DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || 'P1');
+  const entityPid = getPlayerPid?.(entity) || entity.sourcePid || entity.controllerPid || entity.ownerPid || null;
+  if (entityPid !== null && entityPid !== undefined && String(entityPid)) {
+    return String(entityPid) === localPid ? 'local' : 'remote';
+  }
+
+  const nested = entity.sourceEntity || entity.entity || entity.ownerEntity || entity.controllerEntity || null;
+  if (nested && nested !== entity) {
+    const nestedSide = duels2ResolveEntityAuthoritySide(nested, visited);
+    if (nestedSide) return nestedSide;
+  }
+
+  // 플레이어 객체는 임시 ownerId 문자열로 분류하지 않는다. 잘못 hydrate된 ownerId가
+  // 플레이어 대 플레이어 피해를 아군 판정으로 바꾸는 회귀를 막는다.
+  if (!isCombatPlayerEntity?.(entity)) {
+    const ownerId = String(entity.ownerId ?? '');
+    if (ownerId === 'local') return 'local';
+    if (ownerId === 'peer' || ownerId.startsWith('peer:')) return 'remote';
+  }
+  return null;
+}
+
+// duels2ResolveAuthoritativeMirrorRelation: 확정 가능한 권위 편이 양쪽 모두 있을 때만 관계를 반환한다.
+function duels2ResolveAuthoritativeMirrorRelation(source, target) {
+  if (!source || !target) return null;
+  const sourceSide = duels2ResolveEntityAuthoritySide(source);
+  const targetSide = duels2ResolveEntityAuthoritySide(target);
+  if (!sourceSide || !targetSide) return null;
+  return sourceSide === targetSide ? 'ally' : 'enemy';
+}
+// duels2GetCombatRelationAndPoisonFixSummary: 플레이어 타격 관계와 독 증강 발동 경로의 현재 상태를 반환한다.
+function duels2GetCombatRelationAndPoisonFixSummary() {
+  return {
+    relationAuthority:'pid-player-identity-mirror-collection',
+    playerOwnerStringFallback:false,
+    poisonSourceAuthority:'duels2IsLocalControlledCombatSource',
+    poisonUsesResolvedTarget:true,
+  };
+}
+window.duels2GetCombatRelationAndPoisonFixSummary = duels2GetCombatRelationAndPoisonFixSummary;
+
 function isFriendlyCombatEffect(source, target, ctx = {}) {
   if (!source || !target || source === target) return false;
   if (ctx.allowFriendlyFire === true || ctx.team === 'ally' || ctx.team === 'self') return false;
+  // peerMinions/localMinions 같은 권위 미러 컬렉션은 hydrate 직후 owner/team 캐시보다 신뢰도가 높다.
+  // 공격 후보 단계에서 적으로 확정된 원격 소환수를 최종 피해 단계에서 아군으로 재분류하지 않는다.
+  const authoritativeRelation = duels2ResolveAuthoritativeMirrorRelation(source, target);
+  if (authoritativeRelation === 'enemy') return false;
+  if (authoritativeRelation === 'ally') return true;
   return isAlly(source, target);
 }
 function romanStage(n) {
@@ -13626,7 +13683,9 @@ function applyDamageResult(target, amount, ctx = {}) {
   }
 
   let dmg = Math.max(0, Math.round(amount));
-  let nextCtx = {...ctx, source};
+  // 독 증강은 최종 HitResult에서 확정 대상을 직접 사용한다. 하위 레거시 applyDamage가 전역 타겟을 읽어
+  // 중복/누락시키지 않도록 공통 피해 경로임을 표시한다.
+  let nextCtx = {...ctx, source, _centralPoison:duels2IsLocalControlledCombatSource(source) && ctx.noPoison !== true};
   if (isTargetStatusActive(target, 'sleep')) clearTargetStatus(target, 'sleep');
   if (target !== L && !nextCtx._calculated && typeof calculateDamage === 'function') {
     const calcCtx = {
@@ -13678,6 +13737,11 @@ function applyDamageResult(target, amount, ctx = {}) {
   }));
   if(finalResult.damaged&&nextCtx.feedbackEventId&&duels2ShouldEmitImmediateDamageFeedback(target,nextCtx)){
     duels2AddDamageNumberOnce(nextCtx.feedbackEventId,'dealt',finalResult.damageAmount,target.x||0,(target.y||0)-(target.radius||20)-10,getHitTargetKey(target));
+  }
+  // 피해 적용이 확정된 바로 그 대상을 독 증강 대상으로 사용한다. 전역 _hitTargets에 의존하지 않는다.
+  if (ok && duels2IsLocalControlledCombatSource(source) && !ctx.noPoison && ctx.damageType !== 'poison') {
+    const poisonBase = finalResult.damageAmount > 0 ? finalResult.damageAmount : dmg;
+    applyPoison(poisonBase, [target], {source, actionCtx:nextCtx.actionCtx, slot:nextCtx.slot});
   }
   return finalResult;
 }
@@ -20926,6 +20990,19 @@ function duels2RouteApplyCCPayloadStatus(target, key, dur, source = L, ctx = {},
   return result;
 }
 
+// duels2ShouldOwnDotDamage: DOT 피해 틱을 이 클라이언트가 실행해야 하는지 판정한다. (target: 상태 대상, ctx: 네트워크/로컬 적용 문맥)
+function duels2ShouldOwnDotDamage(target, ctx = {}) {
+  if (!target) return false;
+  if (_trainingMode) return true;
+  if (target === L) return true;
+  if (Array.isArray(localMinions) && localMinions.includes(target)) return true;
+  if (target._isLocalOwned === true || target.localOwned === true) return true;
+  // 로컬에서 직접 상태를 적용하는 경우에는 대상 소유자에게 전송하기 전의 로컬 확정 경로다.
+  // 원격 플레이어는 applyPlayerRuntimeCC에서 owner에게 위임하고 여기까지 오지 않는다.
+  return ctx.fromNetwork !== true;
+}
+window.duels2ShouldOwnDotDamage = duels2ShouldOwnDotDamage;
+
 // duels2RouteApplyTargetCCPayloadStatuses: CC payload의 상태 항목만 공통 라우터로 적용한다.
 function duels2RouteApplyTargetCCPayloadStatuses(target, cc, source = L, ctx = {}, opt = {}) {
   if (!target || !cc) return false;
@@ -20946,9 +21023,10 @@ function duels2RouteApplyTargetCCPayloadStatuses(target, cc, source = L, ctx = {
   applyOne('slow', cc.slowDur, {slowFactor:cc.slowFactor ?? 0.5});
   applyOne('zap', cc.zapDur, {strong:!!cc.strong});
   applyOne('disc', cc.discDur);
-  applyOne('burn', cc.burnDur, {dealDamage:!ctx.fromNetwork});
-  applyOne('poison', cc.poisonDur, {dealDamage:!ctx.fromNetwork, poisonValue:cc.poisonValue, poisonMode:cc.poisonMode, poisonFlatValue:cc.poisonFlatValue});
-  applyOne('bleed', cc.bleedDur, {dealDamage:!ctx.fromNetwork});
+  const ownsDotDamage = duels2ShouldOwnDotDamage(target, ctx);
+  applyOne('burn', cc.burnDur, {dealDamage:ownsDotDamage});
+  applyOne('poison', cc.poisonDur, {dealDamage:ownsDotDamage, poisonValue:cc.poisonValue, poisonMode:cc.poisonMode, poisonFlatValue:cc.poisonFlatValue});
+  applyOne('bleed', cc.bleedDur, {dealDamage:ownsDotDamage});
   applyOne('dmg_down', cc.dmgDownDur, {dmgDownPct:cc.dmgDownPct ?? 10});
   applyOne('vuln', cc.vulnDur, {vulnPct:cc.vulnPct ?? 25, vulnFlat:cc.vulnFlat ?? 0, vulnMode:cc.vulnMode || 'pct'});
   applyOne('atk_rate_down', cc.atkRateDownDur, {atkRateDownPct:cc.atkRateDownPct ?? 30});
@@ -28659,7 +28737,7 @@ function _attachTargetMethods(m) {
       _applyBotDamage(this, _d);
       addShake(Math.min(4+_d*0.12,10), 14); playHitSfx();
       if (!ctx.noLifesteal) applyLifesteal(_d);
-      if (!ctx.noPoison) applyPoison(_d);
+      if (!ctx.noPoison && !ctx._centralPoison) applyPoison(_d, [this], ctx);
       if (_trainingMode && _d > 0) duels2TrackTrainingDamageStats(this, _d, {reason:'training-bot-damage'});
       return true;
     }
@@ -28672,7 +28750,7 @@ function _attachTargetMethods(m) {
       if(!ctx.suppressLegacyDamageFeedback)_addDmgNum('dealt', Math.round(_d), this.x, this.y-(this.radius||20)-10, getHitTargetKey(this));
       addShake(Math.min(4+_d*0.12,10), 14); playHitSfx();
       if (!ctx.noLifesteal) applyLifesteal(_d);
-      if (!ctx.noPoison) applyPoison(_d);
+      if (!ctx.noPoison && !ctx._centralPoison) applyPoison(_d, [this], ctx);
       if (_trainingMode && _d > 0) duels2TrackTrainingDamageStats(this, _d, {reason:'training-dummy-like-damage'});
       return true;
     }
@@ -28695,7 +28773,7 @@ function _attachTargetMethods(m) {
     if(!ctx.suppressLegacyDamageFeedback)_addDmgNum('dealt', Math.round(_d), this.x, this.y-this.radius-10, getHitTargetKey(this));
     addShake(Math.min(4+_d*0.12,10), 14); playHitSfx();
     if (!ctx.noLifesteal) applyLifesteal(_d);
-    if (!ctx.noPoison) applyPoison(_d);
+    if (!ctx.noPoison && !ctx._centralPoison) applyPoison(_d, [this], ctx);
     return true;
   };
   m.applyCC = function(cc, source = L, ctx = {}) {
@@ -29238,14 +29316,27 @@ function applyLifesteal(dmg) {
 
 // ── 독: 입힌 피해량 기준 지속 피해 ──────────────────────────
 let _poisonTimer = null;
-function applyPoison(baseDmg) {
+// applyPoison: 독 증강을 확정된 피해 대상에 적용한다. (baseDmg: 실제/위임 피해량, explicitTargets: 확정 대상 배열, ctx: 공격 문맥)
+function applyPoison(baseDmg, explicitTargets = null, ctx = {}) {
   const cnt = getAugCount('poison');
-  if (cnt <= 0) return;
-  const targets = [...new Set((window._hitTargets?.length ? window._hitTargets : (window._hitTarget ? [window._hitTarget] : [])).filter(Boolean))];
-  if (targets.length === 0) return;
+  if (cnt <= 0) return false;
+  const sourceTargets = Array.isArray(explicitTargets)
+    ? explicitTargets
+    : (explicitTargets ? [explicitTargets] : (window._hitTargets?.length ? window._hitTargets : (window._hitTarget ? [window._hitTarget] : [])));
+  const targets = [...new Set((sourceTargets || []).filter(t => t && !isFriendlyCombatEffect(ctx.source || L, t, ctx)))];
+  if (targets.length === 0) return false;
   const perSec = Math.max(1, Math.ceil((baseDmg || 0) * (AUG_VALS.poison.dpsRatio/100) * cnt));
   L._poisonExpiry = performance.now() + AUG_VALS.poison.dur * 1000;
-  for (const t of targets) applyCC(t, {poisonDur:AUG_VALS.poison.dur * 1000, poisonValue:AUG_VALS.poison.dpsRatio * cnt, poisonMode:'dealt', poisonFlatValue:perSec});
+  let applied = false;
+  for (const t of targets) {
+    applied = applyCC(t, {
+      poisonDur:AUG_VALS.poison.dur * 1000,
+      poisonValue:AUG_VALS.poison.dpsRatio * cnt,
+      poisonMode:'dealt',
+      poisonFlatValue:perSec
+    }, ctx.source || L, {...ctx, slot:ctx.slot || 'augment', augmentId:'poison'}) || applied;
+  }
+  return applied;
 }
 
 
