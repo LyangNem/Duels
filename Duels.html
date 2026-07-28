@@ -25731,9 +25731,8 @@ async function hostGame() {
   peer.on('connection', c => {
     const assignedPid = duels2AllocateRemotePlayerPid();
     if (!assignedPid) {
-      const spectatorId = duels2RegisterSpectatorConnection(c);
-      setStatus('host-status',`P2 경기 참가 중 · ${spectatorId} 관전자 연결`,'ok');
-      setupConn(c, {remotePid:spectatorId, hostSide:true, role:'spectator'});
+      setStatus('host-status','P2 경기 참가 중 · 추가 참가 요청 거절','');
+      setupConn(c, {remotePid:null, hostSide:true, role:'full'});
       return;
     }
     duels2RegisterPeerConnection(assignedPid, c);
@@ -25780,7 +25779,8 @@ async function joinGame() {
     setStatus('join-status','서버 접속 완료, 방 연결 중...','');
     conn = peer.connect(code, { reliable: true });
     isHost = false;
-    duels2RegisterPeerConnection('P1', conn);
+    // 참가 승인 전에는 전투 연결로 등록하지 않는다. 호스트의 peerAssign을 받은 뒤에만 P1 연결을 확정한다.
+    conn._duels2JoinPending = true;
     setupConn(conn, {joinTimeout, remotePid:'P1', hostSide:false});
   });
   peer.on('error', e => {
@@ -25813,6 +25813,12 @@ function setupConn(connection, opt = {}) {
   if (!c) return;
   c.on('open', () => {
     if (joinTimeout) clearTimeout(joinTimeout);
+    if (connectionRole === 'full') {
+      DUELS2_MULTI_PEER_CONNECTION_ROUTER.roleByConnection.set(c, 'full');
+      duels2SendPacketOnConnection(c, {type:'roomFull', message:'이미 플레이어가 가득 찼습니다'});
+      setTimeout(() => { try { c.close(); } catch (_) {} }, 80);
+      return;
+    }
     if (connectionRole === 'spectator') {
       DUELS2_MULTI_PEER_CONNECTION_ROUTER.roleByConnection.set(c, 'spectator');
     } else {
@@ -25842,10 +25848,12 @@ function setupConn(connection, opt = {}) {
     const mayOpenInitialSelect = ['boot','lobby','select'].includes(matchPhase)
       && !matchState?._betweenStarted
       && !['scr-between','scr-start-aug'].includes(window._duels2ActiveScreenId);
-    if (mayOpenInitialSelect && connectionRole !== 'spectator') {
+    // 호스트는 정상 플레이어 연결을 받은 즉시 선택 화면으로 이동한다.
+    // 참가자는 아직 방 정원 판정을 받지 않았으므로 peerAssign 전에는 입장 화면을 벗어나지 않는다.
+    if (mayOpenInitialSelect && opt.hostSide && connectionRole === 'player') {
       localReady=false; peerReady=false;
       window._duels2MatchPhase = 'select';
-      showScr('scr-select', {reason:'initial-connection-open'});
+      showScr('scr-select', {reason:'host-player-connection-open'});
     }
     duels2RequestAllDeployableSnapshots?.({reason:'connection-open'});
     duels2SendAllDeployableSnapshots?.({reason:'connection-open', route:'network.deployable-snapshot.connection-open'});
@@ -25857,6 +25865,21 @@ function setupConn(connection, opt = {}) {
       {...packet, sourcePid:packet?.sourcePid || packet?.pid || assignedSourcePid},
       'receive'
     ) || {...packet, sourcePid:packet?.sourcePid || packet?.pid || assignedSourcePid};
+    if (normalized.type === 'roomFull') {
+      c._duels2RoomFullRejected = true;
+      c._duels2JoinPending = false;
+      if (joinTimeout) clearTimeout(joinTimeout);
+      // 정원이 찬 방은 선택/게임 화면에 진입시키지 않고 방 입장 화면에서 즉시 거절한다.
+      window._duels2MatchPhase = 'lobby';
+      showScr('scr-join', {reason:'room-full-before-admission'});
+      setStatus('join-status', normalized.message || '이미 플레이어가 가득 찼습니다', 'err');
+      setTimeout(() => {
+        try { c.close(); } catch (_) {}
+        try { peer?.destroy?.(); } catch (_) {}
+        if (conn === c) conn = null;
+      }, 0);
+      return;
+    }
     if (isHost && incomingRole === 'player' && normalized.type === 'peerResumeRequest') {
       const claimed = duels2ClaimReconnectSlot(c.peer || normalized.peerId, normalized.requestedPid);
       if (claimed && claimed.pid !== remotePid) {
@@ -25891,6 +25914,19 @@ function setupConn(connection, opt = {}) {
   c.on('close', () => {
     const pid = DUELS2_MULTI_PEER_CONNECTION_ROUTER.pidByConnection.get(c) || remotePid;
     const closingRole = DUELS2_MULTI_PEER_CONNECTION_ROUTER.roleByConnection.get(c) || connectionRole;
+    if (closingRole === 'full' || c._duels2RoomFullRejected) {
+      if (!isHost) {
+        showScr('scr-join', {reason:'room-full-connection-closed'});
+        setStatus('join-status','이미 플레이어가 가득 찼습니다','err');
+      }
+      return;
+    }
+    if (!isHost && c._duels2JoinPending) {
+      c._duels2JoinPending = false;
+      showScr('scr-join', {reason:'join-closed-before-admission'});
+      setStatus('join-status','방 입장에 실패했습니다. 다시 시도해주세요.','err');
+      return;
+    }
     if (closingRole === 'spectator') {
       duels2UnregisterSpectatorConnection(pid);
       if (isHost) setStatus('host-status',`관전자 연결 종료 · 경기 참가자 P1/P2 유지`,'');
@@ -26051,7 +26087,7 @@ window.duels2GetMultiPeerFinalizationSummary = duels2GetMultiPeerFinalizationSum
 const DUELS2_EVENT_HANDLER_MIGRATION_STEP9 = Object.freeze({
   version:1,
   migratedTypes:Object.freeze([
-    'peerHello','peerResumeRequest','playerJoin','playerLeave','ready','startAugReady',
+    'peerHello','peerResumeRequest','roomFull','playerJoin','playerLeave','ready','startAugReady',
     'matchFormat','roundScoreSync','debugMapChange','fxClear','kiForecastArea',
     'kiForecastAreaClear','kiForecastRewardGrant','chat','chatTyping','ruvuHammerClear'
   ])
@@ -26803,6 +26839,9 @@ function onData(d) {
   if (modularDispatch.handled) return modularDispatch.result;
   switch (d.type) {
     case 'peerAssign': {
+      // peerAssign이 참가 승인 응답이다. 이 시점 전에는 참가자를 플레이어로 등록하거나 선택 화면을 열지 않는다.
+      if (conn) conn._duels2JoinPending = false;
+      if (!isHost && conn) duels2RegisterPeerConnection(d.hostPid || 'P1', conn);
       if (d.role === 'spectator') {
         duels2SetLocalSpectatorMode(true);
         try { sessionStorage.removeItem('duels2.resumePid'); } catch (_) {}
@@ -26829,6 +26868,19 @@ function onData(d) {
         const pid = item?.pid;
         if (!item?.occupied || !PLAYER_SLOT_IDS.includes(pid) || pid === DUELS2_PLAYER_REGISTRY.localPid) continue;
         duels2ResolveRemotePlayerFromPacket({pid, ownerId:item.ownerId || `peer:${pid}`, teamId:item.teamId || _defaultTeamForPid(pid)});
+      }
+      // 참가 승인이 완료된 뒤에만 방 입장 화면에서 캐릭터 선택 화면으로 이동한다.
+      if (!isHost && d.role !== 'spectator') {
+        const matchPhase = window._duels2MatchPhase || 'boot';
+        const mayOpenInitialSelect = ['boot','lobby','select'].includes(matchPhase)
+          && !matchState?._betweenStarted
+          && !['scr-between','scr-start-aug'].includes(window._duels2ActiveScreenId);
+        if (mayOpenInitialSelect) {
+          localReady = false;
+          peerReady = false;
+          window._duels2MatchPhase = 'select';
+          showScr('scr-select', {reason:'join-admission-approved'});
+        }
       }
       // 재접속 또는 중도 참가 직후 모든 참가자의 활성 전투 객체를 다시 요청한다.
       setTimeout(() => duels2RequestCombatObjectResnapshot?.(), 120);
