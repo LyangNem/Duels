@@ -457,7 +457,7 @@ input[type=text]:focus{border-color:#4af;}
   text-align:center; background:#0d1015; position:relative;
 }
 .start-aug-char-card.me { opacity:1; }
-.start-aug-char-card.peer { opacity:0.65; }
+.start-aug-char-card.peer { opacity:1; }
 .start-aug-grid { display:grid; grid-template-columns:repeat(5,155px); gap:10px; justify-content:center; }
 .start-aug-item {
   width:155px; min-height:180px; padding:14px 10px; border:1px solid #2a3a4a; border-radius:4px;
@@ -3594,7 +3594,7 @@ const BALANCE = {
 
   // ── 루네프 ──────────────────────────────────────────────────
   runef: {
-    hp:     90,
+    hp:     80,
     speed:  4.0,
     radius: 20,
     lmb: {
@@ -4134,7 +4134,7 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('shubi','hp'),
     speed:     duels2GetSkillBalance('shubi','speed'),
     radius:    duels2GetSkillBalance('shubi','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('shubi','hp'))],['이동속도','보통'],['스타일','조건형 딜러']],
+    statsText: [['체력', String(duels2GetSkillBalance('shubi','hp'))],['이동속도','보통'],['스타일','파워형 근거리 딜러']],
     desc:      '샷건으로 근거리를 장악하는 캐릭터',
     skills: [
       { key:'LMB',     name:'샷건',   cost:duels2GetSkillBalance('shubi','lmb').cost,  desc:`샷건 ${duels2GetSkillBalance('shubi','lmb').pellets}발 발사 (탄당 ${duels2GetSkillBalance('shubi','lmb').damage})` },
@@ -5112,7 +5112,7 @@ const AUG_VALS = {
   protection:  { reduction: 15 },
   overpower:   { bonus: 10 },
   stun_shot:   { cd: 4 },
-  speed_shot:  { speedBonus: 50, radiusPenalty: 20 },
+  speed_shot:  { speedBonus: 35, radiusPenalty: 20 },
   fortress:    { idleTime: 5, reduction: 80 },
   counter_def: { window: 2, reduction: 30, window2: 2, reduction2: 20 },
   big_weapon:  { rangeBonus: 25, dmgPenalty: 10 },
