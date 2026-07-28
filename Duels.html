@@ -6,8 +6,9 @@
 <title>Duels</title>
 <!-- duels2-inline-favicon: 로컬 서버가 존재하지 않는 /favicon.ico를 자동 요청하지 않도록 단일 파일 내부 아이콘을 사용한다. -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2712%27 fill=%27%230a0a0c%27/%3E%3Cpath d=%27M17 13l14 14-5 5-14-14zm30 0l5 5-14 14-5-5zM28 35l5-5 19 19-5 5zm8 0l-5-5-19 19 5 5z%27 fill=%27%2344aaff%27/%3E%3C/svg%3E">
-<meta name="duels-version" content="0.39.11">
-<script async src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js">
+<meta name="duels-version" content="">
+<script async src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script>
 // duels2GetAugmentVisibilityAndFastRegenSummary: 증강 HUD 공개 시점과 빠른 재생 효과 변경 상태를 반환한다. ()
 function duels2GetAugmentVisibilityAndFastRegenSummary() {
   return {
@@ -108,22 +109,251 @@ window.duels2GetSummonBehaviorMigrationSummary = duels2GetSummonBehaviorMigratio
 function duels2GetRootRegressionFixSummary(){return {debugCharacterChange:'target-key-routed',debugPointerPolicy:'controls-only',jerryImpactIdempotent:true,jerryKnockback:'combat-resolver-radial',leteReturnSync:'projectileVisualState',leteSupportPeerArrival:true,audio:'kind-channel-replace-hit-ducking'};}
 window.duels2GetRootRegressionFixSummary=duels2GetRootRegressionFixSummary;
 
+// DUELS_PATCH_NOTES_URL: GitHub에 올린 패치노트 원문 주소다. JSON 또는 제목 기반 텍스트 파일을 지원한다.
+const DUELS_PATCH_NOTES_URL='https://raw.githubusercontent.com/LyangNem/Duels/main/Patch-notes.json';
+let duels2PatchNotesLoaded=false;
+let DUELS2_ALPHA_VERSION='';
+
+// duels2GetCurrentVersion: 패치노트에서 불러온 현재 게임 버전을 반환한다. ()
+function duels2GetCurrentVersion(){
+  return DUELS2_ALPHA_VERSION;
+}
+
+// duels2ApplyPatchNoteVersion: 패치노트 version을 게임 전체 버전의 단일 기준으로 적용한다. (version: 패치노트 JSON의 version 값)
+function duels2ApplyPatchNoteVersion(version){
+  const next=String(version||'').trim();
+  if(!next)throw new Error('패치노트에 version 값이 없습니다.');
+  DUELS2_ALPHA_VERSION=next;
+  window.DUELS2_ALPHA_VERSION=next;
+  const meta=document.querySelector('meta[name="duels-version"]');
+  if(meta)meta.content=next;
+  document.querySelectorAll('[data-duels-version-text]').forEach(node=>{
+    const mode=node.dataset.duelsVersionText;
+    node.textContent=mode==='prefix-v-space'?`v ${next}`:`v${next}`;
+  });
+  document.querySelectorAll('[data-duels-version-only]').forEach(node=>{node.textContent=next;});
+  document.title='Duels';
+  if(window.DUELS2_FINAL_RELEASE_AUDIT_STEP)window.DUELS2_FINAL_RELEASE_AUDIT_STEP.releaseLabel=next;
+  if(window.DUELS2_ALPHA_RELEASE_DECISION_STEP)window.DUELS2_ALPHA_RELEASE_DECISION_STEP.releaseCandidateLabel=next;
+  window.dispatchEvent(new CustomEvent('duels-version-changed',{detail:{version:next}}));
+  return next;
+}
+window.duels2GetCurrentVersion=duels2GetCurrentVersion;
+window.duels2ApplyPatchNoteVersion=duels2ApplyPatchNoteVersion;
+
+// duels2CloseLobbyInfoPanels: 로비의 도움말·패치노트 패널을 모두 닫는다. (exceptId: 닫지 않을 패널 id)
+function duels2CloseLobbyInfoPanels(exceptId=''){
+  ['duels-help-panel','duels-patch-panel'].forEach(id=>{
+    if(id===exceptId)return;
+    const panel=document.getElementById(id);
+    if(panel)panel.hidden=true;
+  });
+}
+
 // duels2ToggleHelpPanel: 로비 도움말 패널을 열거나 닫는다. (forceOpen: true면 열기, false면 닫기, 생략하면 토글)
 function duels2ToggleHelpPanel(forceOpen){
   const panel=document.getElementById('duels-help-panel');
   if(!panel)return;
   const shouldOpen=typeof forceOpen==='boolean'?forceOpen:panel.hidden;
+  if(shouldOpen)duels2CloseLobbyInfoPanels('duels-help-panel');
   panel.hidden=!shouldOpen;
   if(shouldOpen)duels2OpenHelpTab('how');
 }
+
 // duels2OpenHelpTab: 도움말 분류를 전환한다. (tabId: how, controls, status 중 하나)
 function duels2OpenHelpTab(tabId){
   const id=['how','controls','status'].includes(tabId)?tabId:'how';
   document.querySelectorAll('[data-help-tab]').forEach(button=>button.classList.toggle('active',button.dataset.helpTab===id));
   document.querySelectorAll('[data-help-page]').forEach(page=>page.classList.toggle('active',page.dataset.helpPage===id));
 }
+
+// duels2TogglePatchNotesPanel: 패치노트 패널을 열거나 닫고 필요할 때 GitHub 원문을 불러온다. (forceOpen: true면 열기, false면 닫기, 생략하면 토글)
+function duels2TogglePatchNotesPanel(forceOpen){
+  const panel=document.getElementById('duels-patch-panel');
+  if(!panel)return;
+  const shouldOpen=typeof forceOpen==='boolean'?forceOpen:panel.hidden;
+  if(shouldOpen)duels2CloseLobbyInfoPanels('duels-patch-panel');
+  panel.hidden=!shouldOpen;
+  if(shouldOpen){
+    duels2OpenPatchNotesTab('features');
+    if(!duels2PatchNotesLoaded)duels2LoadPatchNotes();
+  }
+}
+
+// duels2OpenPatchNotesTab: 패치노트 분류를 도움말과 같은 탭 UI로 전환한다. (tabId: features, balance, bugfixes 중 하나)
+function duels2OpenPatchNotesTab(tabId){
+  const id=['features','balance','bugfixes'].includes(tabId)?tabId:'features';
+  document.querySelectorAll('[data-patch-tab]').forEach(button=>button.classList.toggle('active',button.dataset.patchTab===id));
+  document.querySelectorAll('[data-patch-page]').forEach(page=>page.classList.toggle('active',page.dataset.patchPage===id));
+}
+
+
+// duels2NormalizePatchNoteItem: 문자열 또는 캐릭터별 여러 변경사항 객체를 공통 표시 구조로 정규화한다. (item: 문자열 또는 {character, changes} 객체)
+function duels2NormalizePatchNoteItem(item){
+  if(typeof item==='string'){
+    const change=item.trim();
+    return change?{character:'',changes:[change]}:null;
+  }
+  if(!item||typeof item!=='object')return null;
+  const character=String(item.character||item.characterName||item.target||item.name||'').trim();
+  const rawChanges=item.changes??item.descriptions??item.items??item.description??item.text??item.change??item.details;
+  const changes=(Array.isArray(rawChanges)?rawChanges:[rawChanges])
+    .flatMap(value=>typeof value==='string'?value.split(/\r?\n/):[])
+    .map(value=>value.replace(/^[-*•]\s*/, '').trim())
+    .filter(Boolean);
+  return changes.length?{character,changes}:null;
+}
+
+// duels2NormalizePatchNotes: GitHub 원문의 여러 필드명과 캐릭터별 항목을 세 개의 고정 분류로 정규화한다. (source: 파싱된 JSON 객체)
+function duels2NormalizePatchNotes(source){
+  const value=source&&typeof source==='object'?source:{};
+  const list=(...keys)=>{
+    for(const key of keys){
+      const candidate=value[key];
+      if(Array.isArray(candidate))return candidate.map(duels2NormalizePatchNoteItem).filter(Boolean);
+      if(typeof candidate==='string')return candidate.split(/\r?\n/).map(item=>duels2NormalizePatchNoteItem(item.replace(/^[-*•]\s*/, '').trim())).filter(Boolean);
+    }
+    return [];
+  };
+  return {
+    version:String(value.version||value.title||'').trim(),
+    date:String(value.date||value.updatedAt||value.updated||'').trim(),
+    features:list('features','additions','added','newFeatures'),
+    balance:list('balance','balanceChanges','balancing'),
+    bugfixes:list('bugfixes','bugFixes','fixes','bugs')
+  };
+}
+
+// duels2ParsePatchNotesText: 제목과 '> 캐릭터 이름' 묶음을 사용하는 텍스트 패치노트를 변환한다. (text: GitHub 원문 문자열)
+function duels2ParsePatchNotesText(text){
+  const result={version:'',date:'',features:[],balance:[],bugfixes:[]};
+  let section='';
+  let currentGroup=null;
+  String(text||'').split(/\r?\n/).forEach(raw=>{
+    const line=raw.trim();
+    if(!line)return;
+    const heading=line.replace(/^#+\s*/, '').replace(/[:：]$/, '').trim();
+    if(/^(추가 기능|추가|신규 기능|features?|additions?)$/i.test(heading)){section='features';currentGroup=null;return;}
+    if(/^(밸런스 조정|밸런스|balance(?: changes?)?)$/i.test(heading)){section='balance';currentGroup=null;return;}
+    if(/^(버그 수정|버그|bug ?fixes?|fixes)$/i.test(heading)){section='bugfixes';currentGroup=null;return;}
+    if(section){
+      const characterHeading=line.match(/^>\s*(.+)$/);
+      if(characterHeading&&section!=='features'){
+        currentGroup={character:characterHeading[1].trim(),changes:[]};
+        result[section].push(currentGroup);
+        return;
+      }
+      const change=line.replace(/^[-*•]\s*/, '').trim();
+      if(currentGroup&&section!=='features')currentGroup.changes.push(change);
+      else result[section].push({character:'',changes:[change]});
+    }else if(!result.version)result.version=heading;
+  });
+  return result;
+}
+
+// duels2RenderPatchNotesSection: 캐릭터 제목 아래에 여러 변경 설명을 묶어 안전하게 표시한다. (containerId: 목록 요소 id, items: 정규화된 항목 배열)
+function duels2RenderPatchNotesSection(containerId,items){
+  const container=document.getElementById(containerId);
+  if(!container)return;
+  container.replaceChildren();
+  const list=Array.isArray(items)?items:[];
+  if(!list.length){
+    const empty=document.createElement('li');
+    empty.className='duels-patch-empty';
+    empty.textContent='등록된 내용이 없습니다.';
+    container.appendChild(empty);
+    return;
+  }
+  list.forEach(raw=>{
+    const entry=duels2NormalizePatchNoteItem(raw);
+    if(!entry)return;
+    const item=document.createElement('li');
+    item.className=entry.character?'duels-patch-group':'duels-patch-single';
+    if(entry.character){
+      const character=document.createElement('div');
+      character.className='duels-patch-character';
+      character.textContent=entry.character;
+      item.appendChild(character);
+    }
+    const changes=document.createElement('div');
+    changes.className='duels-patch-changes';
+    entry.changes.forEach(change=>{
+      const description=document.createElement('div');
+      description.className='duels-patch-description';
+      description.textContent=change;
+      changes.appendChild(description);
+    });
+    item.appendChild(changes);
+    container.appendChild(item);
+  });
+}
+
+// duels2RenderPatchNotes: 정규화된 패치노트를 패널에 표시한다. (notes: version/date/features/balance/bugfixes 객체)
+function duels2RenderPatchNotes(notes){
+  duels2ApplyPatchNoteVersion(notes.version);
+  const meta=document.getElementById('duels-patch-meta');
+  if(meta){
+    const parts=[notes.version,notes.date].filter(Boolean);
+    meta.textContent=parts.join(' · ')||'LATEST PATCH';
+  }
+  duels2RenderPatchNotesSection('duels-patch-features',notes.features);
+  duels2RenderPatchNotesSection('duels-patch-balance',notes.balance);
+  duels2RenderPatchNotesSection('duels-patch-bugfixes',notes.bugfixes);
+  const state=document.getElementById('duels-patch-state');
+  if(state)state.textContent='';
+}
+
+// duels2DescribePatchNoteJsonError: JSON.parse 오류의 문자 위치를 줄·칸으로 변환해 표시한다. (error: JSON.parse가 던진 오류, text: 원문 JSON)
+function duels2DescribePatchNoteJsonError(error,text){
+  const message=String(error?.message||'JSON 문법 오류');
+  const positionMatch=message.match(/position\s+(\d+)/i);
+  if(!positionMatch)return `패치노트 JSON 문법 오류: ${message}`;
+  const position=Math.max(0,Number(positionMatch[1])||0);
+  const before=String(text||'').slice(0,position);
+  const line=before.split(/\r?\n/).length;
+  const lastBreak=Math.max(before.lastIndexOf('\n'),before.lastIndexOf('\r'));
+  const column=position-lastBreak;
+  return `패치노트 JSON 문법 오류: ${line}번째 줄 ${column}번째 칸`;
+}
+
+// duels2LoadPatchNotes: 설정된 GitHub 원문을 캐시 없이 요청해 패치노트 패널에 표시한다. (forceReload: true면 이미 불러온 뒤에도 다시 요청)
+async function duels2LoadPatchNotes(forceReload=false){
+  if(duels2PatchNotesLoaded&&!forceReload)return;
+  const state=document.getElementById('duels-patch-state');
+  if(state)state.textContent='패치노트를 불러오는 중...';
+  try{
+    const separator=DUELS_PATCH_NOTES_URL.includes('?')?'&':'?';
+    const response=await fetch(`${DUELS_PATCH_NOTES_URL}${separator}t=${Date.now()}`,{cache:'no-store'});
+    if(!response.ok)throw new Error(`HTTP ${response.status}`);
+    const text=await response.text();
+    let parsed;
+    try{
+      parsed=duels2NormalizePatchNotes(JSON.parse(text));
+    }catch(parseError){
+      const trimmed=text.trimStart();
+      const appearsToBeJson=trimmed.startsWith('{')||trimmed.startsWith('[');
+      if(appearsToBeJson)throw new Error(duels2DescribePatchNoteJsonError(parseError,text));
+      parsed=duels2ParsePatchNotesText(text);
+    }
+    duels2RenderPatchNotes(parsed);
+    duels2PatchNotesLoaded=true;
+  }catch(error){
+    duels2PatchNotesLoaded=false;
+    if(state)state.textContent=`패치노트를 불러오지 못했습니다. (${error.message||'NETWORK ERROR'})`;
+  }
+}
+
 window.duels2ToggleHelpPanel=duels2ToggleHelpPanel;
 window.duels2OpenHelpTab=duels2OpenHelpTab;
+window.duels2TogglePatchNotesPanel=duels2TogglePatchNotesPanel;
+window.duels2LoadPatchNotes=duels2LoadPatchNotes;
+
+// duels2BootstrapPatchNotes: 페이지 시작 시 패치노트와 버전을 즉시 불러온다. ()
+function duels2BootstrapPatchNotes(){
+  duels2LoadPatchNotes().catch(()=>{});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',duels2BootstrapPatchNotes,{once:true});
+else duels2BootstrapPatchNotes();
 
 </script>
 <script>
@@ -761,6 +991,7 @@ input[type=text]:focus{border-color:#4af;}
 
 /* 도움말: 기존 듀얼즈 UI와 같은 각진 패널, 얇은 테두리, 푸른 발광을 사용한다. */
 .duels-help-entry{margin-top:18px;text-align:center;position:relative;z-index:10}
+.duels-lobby-info-actions{display:flex;align-items:center;justify-content:center;gap:8px}
 .duels-help-open{background:transparent;border:0;color:#667;font:500 12px var(--font-ui);letter-spacing:2px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;padding:4px 8px}
 .duels-help-open:hover{color:#8bd;text-shadow:0 0 8px #4af8}
 .duels-help-panel{width:min(760px,calc(100vw - 36px));max-height:min(590px,72vh);overflow:auto;margin:14px auto 0;background:linear-gradient(180deg,#0d1520 0%,#091019 100%);border:1px solid #29435c;box-shadow:0 0 0 1px #09111b,0 0 24px #249cff22;padding:0;text-align:left;color:#91a1b2;font-size:12px;letter-spacing:.4px}
@@ -789,7 +1020,43 @@ input[type=text]:focus{border-color:#4af;}
 .duels-help-status b{display:block;color:#c6d9e8;margin-bottom:4px;letter-spacing:1px}
 .duels-help-status span{display:block;color:#74889a;line-height:1.5;overflow-wrap:anywhere}
 .duels-help-footnote{margin:15px 0 0;color:#53697b;font-size:11px;border-top:1px solid #1b3041;padding-top:10px}
+.duels-patch-panel{max-height:min(590px,72vh);overflow:auto}
+.duels-patch-panel[hidden]{display:none!important}
+.duels-patch-meta{padding:10px 18px;border-bottom:1px solid #22364a;color:#7795aa;font-size:11px;letter-spacing:2px}
+.duels-patch-tabs{grid-template-columns:repeat(3,1fr)}
+.duels-patch-page{display:none;padding:18px 22px 20px;line-height:1.55}
+.duels-patch-page.active{display:block}
+.duels-patch-list{list-style:none;padding:0;margin:0}
+.duels-patch-list li{position:relative;margin:8px 0;padding:8px 10px 8px 24px;background:#0a121a;border-left:2px solid #27445e;color:#91a4b5;line-height:1.55;white-space:pre-wrap;user-select:text}
+.duels-patch-list li::before{content:'›';position:absolute;left:9px;color:#4faee8}
+.duels-patch-list li.duels-patch-group{padding-top:10px;padding-bottom:10px}
+.duels-patch-character{display:block;margin-bottom:6px;color:#c6d9e8;font-weight:700;letter-spacing:1px}
+.duels-patch-changes{padding-left:14px}
+.duels-patch-description{position:relative;color:#74889a;padding-left:10px;margin:3px 0}
+.duels-patch-description::before{content:'-';position:absolute;left:0;color:#60788b}
+.duels-patch-single .duels-patch-changes{padding-left:0}
+.duels-patch-list .duels-patch-empty{color:#526778}
+.duels-patch-list .duels-patch-empty::before{content:'–'}
+.duels-patch-state{min-height:18px;padding:0 18px 14px;color:#6f8496;font-size:11px;text-align:center}
 @media(max-width:700px){.duels-help-panel{max-height:68vh}.duels-help-status-columns{grid-template-columns:1fr}.duels-help-note{grid-template-columns:1fr}.duels-help-row{grid-template-columns:118px 1fr}.duels-help-page{padding:14px}}
+
+/* 게임 UI 공통 스크롤바: 브라우저 기본 흰색 스크롤바 대신 얇은 패널형 디자인을 사용한다. */
+/* Native scrollbars stay hidden; a transient in-game indicator is rendered while scrolling. */
+*{scrollbar-width:none}
+*::-webkit-scrollbar{width:0;height:0}
+*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent;border:0}
+.duels-scroll-indicator{
+  position:fixed;
+  z-index:2147483000;
+  pointer-events:none;
+  opacity:0;
+  background:rgba(116,164,198,.82);
+  box-shadow:0 0 0 1px rgba(8,18,27,.82),0 0 8px rgba(69,128,169,.28);
+  transition:opacity .18s ease;
+}
+.duels-scroll-indicator.is-visible{opacity:1}
+.duels-scroll-indicator.is-vertical{width:4px;min-height:18px}
+.duels-scroll-indicator.is-horizontal{height:4px;min-width:18px}
 
 </style>
 
@@ -798,7 +1065,7 @@ input[type=text]:focus{border-color:#4af;}
 .char-card.selection-locked{cursor:default!important;}
 /* 카드 내부 fixed 툴팁은 변형된 부모 좌표계 문제를 막기 위해 숨기고 전역 포털 툴팁만 사용한다. */
 .char-card>.char-tooltip,.start-aug-char-card>.char-tooltip{display:none!important;}
-.duels2-global-char-tooltip{display:none;position:fixed;z-index:20000;pointer-events:none;max-width:min(560px,calc(100vw - 20px));background:#0d1520;border:1px solid #2a4a6a;border-radius:4px;padding:10px 14px;font-size:11px;color:#778;line-height:1.7;text-align:left;white-space:normal;box-shadow:0 8px 28px rgba(0,0,0,.55),0 0 12px rgba(68,170,255,.16);box-sizing:border-box;}
+.duels2-global-char-tooltip{display:none;position:fixed;z-index:20000;pointer-events:none;max-width:none;background:#0d1520;border:1px solid #2a4a6a;border-radius:4px;padding:10px 14px;font-size:11px;color:#778;line-height:1.7;text-align:left;white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.55),0 0 12px rgba(68,170,255,.16);box-sizing:border-box;}
 </style>
 
 <style id="duels2-modern-font-system">
@@ -984,9 +1251,34 @@ option{
   </div>
   <p class="status" id="lobby-err"></p>
 
-  <!-- 도움말 -->
+  <!-- 도움말 / 패치노트 -->
   <div class="duels-help-entry">
-    <button type="button" class="duels-help-open" onclick="duels2ToggleHelpPanel()">※ 도움말</button>
+    <div class="duels-lobby-info-actions">
+      <button type="button" class="duels-help-open" onclick="duels2TogglePatchNotesPanel()">※ 패치노트</button>
+      <button type="button" class="duels-help-open" onclick="duels2ToggleHelpPanel()">※ 도움말</button>
+    </div>
+    <div id="duels-patch-panel" class="duels-help-panel duels-patch-panel" hidden>
+      <div class="duels-help-header">
+        <strong>PATCH NOTES</strong>
+        <button type="button" class="duels-help-close" onclick="duels2TogglePatchNotesPanel(false)" aria-label="패치노트 닫기">×</button>
+      </div>
+      <div class="duels-patch-meta"><span id="duels-patch-meta">LATEST PATCH</span></div>
+      <div class="duels-help-tabs duels-patch-tabs" role="tablist" aria-label="패치노트 분류">
+        <button type="button" class="duels-help-tab active" data-patch-tab="features" onclick="duels2OpenPatchNotesTab('features')">추가 기능</button>
+        <button type="button" class="duels-help-tab" data-patch-tab="balance" onclick="duels2OpenPatchNotesTab('balance')">밸런스 조정</button>
+        <button type="button" class="duels-help-tab" data-patch-tab="bugfixes" onclick="duels2OpenPatchNotesTab('bugfixes')">버그 수정</button>
+      </div>
+      <section class="duels-patch-page active" data-patch-page="features">
+        <ul id="duels-patch-features" class="duels-patch-list"></ul>
+      </section>
+      <section class="duels-patch-page" data-patch-page="balance">
+        <ul id="duels-patch-balance" class="duels-patch-list"></ul>
+      </section>
+      <section class="duels-patch-page" data-patch-page="bugfixes">
+        <ul id="duels-patch-bugfixes" class="duels-patch-list"></ul>
+      </section>
+      <div id="duels-patch-state" class="duels-patch-state"></div>
+    </div>
     <div id="duels-help-panel" class="duels-help-panel" hidden>
       <div class="duels-help-header">
         <strong>DUELS HELP</strong>
@@ -1045,7 +1337,7 @@ option{
     </div>
   </div>
 
-  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;">v 0.39.11</div>
+  <div style="position:absolute;bottom:16px;right:20px;font-size:11px;color:#446;letter-spacing:2px;text-shadow:0 0 8px #4af,0 0 18px #4af4;" data-duels-version-text="prefix-v-space">v</div>
 </div>
 
 <!-- 방 만들기 -->
@@ -1479,7 +1771,7 @@ option{
  * - 캐릭터별로 피해/피격/사망/상태이상 코드를 따로 만들지 않는다.
  * - CombatResolver 외부에서 HP와 전투 피드백을 제각각 처리하지 않는다.
  */
-const DUELS2_ALPHA_VERSION = '0.39.11';
+// DUELS2_ALPHA_VERSION은 패치노트 version에서 런타임에 설정된다.
 // DUELS2_RUNTIME_DIAGNOSTICS_ENABLED: 개발 단계의 전투·상태·모션·모듈 감사 이력 수집 여부다. 출시 실행에서는 사용하지 않으므로 비활성화한다.
 const DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = false;
 window.DUELS2_RUNTIME_DIAGNOSTICS_ENABLED = DUELS2_RUNTIME_DIAGNOSTICS_ENABLED;
@@ -1971,14 +2263,14 @@ window.DUELS2_STATIC_REGRESSION_AUDIT_STEP = DUELS2_STATIC_REGRESSION_AUDIT_STEP
 
 
 // DUELS2_FINAL_RELEASE_AUDIT_STEP: Step 229 최종 릴리스 감사 범위와 자동/수동 검증 상태를 선언한다.
-const DUELS2_FINAL_RELEASE_AUDIT_STEP = Object.freeze({
+const DUELS2_FINAL_RELEASE_AUDIT_STEP = {
   step:'Step 229 - Final Release Audit & Regression Checklist',
-  releaseLabel:'0.39.11',
+  releaseLabel:DUELS2_ALPHA_VERSION,
   staticAuditComplete:true,
   browserGameplayValidation:'manual-pending',
   twoPlayerNetworkValidation:'manual-pending',
   behaviorChange:false
-});
+};
 window.DUELS2_FINAL_RELEASE_AUDIT_STEP = DUELS2_FINAL_RELEASE_AUDIT_STEP;
 
 // DUELS2_FINAL_REGRESSION_CHECKLIST: 최종 Alpha 릴리스 전에 확인할 자동·수동 회귀 항목을 기능 영역별로 제공한다.
@@ -2043,14 +2335,14 @@ function duels2GetFinalReleaseAuditSummary() {
 window.duels2GetFinalReleaseAuditSummary = duels2GetFinalReleaseAuditSummary;
 
 // DUELS2_ALPHA_RELEASE_DECISION_STEP: Step 230의 Alpha 완료 판정 규칙과 현재 수동 검증 게이트 상태를 선언한다.
-const DUELS2_ALPHA_RELEASE_DECISION_STEP = Object.freeze({
+const DUELS2_ALPHA_RELEASE_DECISION_STEP = {
   step:'Step 230 - Alpha Release Decision Gate & Completion Status',
-  releaseCandidateLabel:'0.39.11',
+  releaseCandidateLabel:DUELS2_ALPHA_VERSION,
   completionRule:'all-required-checks-passed',
   manualValidationRequired:true,
   automaticPromotionDisabled:true,
   behaviorChange:false
-});
+};
 window.DUELS2_ALPHA_RELEASE_DECISION_STEP = DUELS2_ALPHA_RELEASE_DECISION_STEP;
 
 // duels2EvaluateAlphaReleaseDecision: 최종 회귀 점검표를 기준으로 Alpha 승인 가능 여부와 차단 항목을 계산한다. (options: checklistOverride 선택적 점검표)
@@ -2092,7 +2384,7 @@ function duels2GetAlphaCompletionStatus() {
   const decision = duels2EvaluateAlphaReleaseDecision();
   return {
     version:DUELS2_ALPHA_VERSION,
-    uiVersion:'0.39.11',
+    uiVersion:duels2GetCurrentVersion(),
     singleFileOnly:DUELS2_ALPHA_SINGLE_FILE_ONLY,
     staticAuditPassed:releaseAudit.staticAuditPassed,
     approved:decision.approved,
@@ -2346,13 +2638,13 @@ const BALANCE = {
     rmb: {
       cost:         25,
       healRadius:   275,
-      healAmount:   5,
-      healInterval: 500,
+      healAmount:   3,
+      healInterval: 250,
       cd:           300,
       cdRecall:     200,
     },
     counter: {
-      healAmount:     20,
+      healAmount:     40,
       damage:         25,
       range:          300,
       knockbackPower: 420,
@@ -2379,10 +2671,11 @@ const BALANCE = {
       cd:         350,
     },
     rmb: {
-      cost:    45,
-      dist:    320,
-      dur:     400,
-      cd:      900,
+      cost:          45,
+      dist:          320,
+      dur:           400,
+      steeringSpeed: 800, // 굴파기 중 이동 입력 방향으로 이동하는 초당 거리 (dist / dur 기준)
+      cd:            900,
     },
     counter: {
       range:          170,
@@ -2441,6 +2734,7 @@ const BALANCE = {
       range:     850,
       offset:    10,       // 좌우 총구 오프셋 (px)
       fireDelay: 80,       // 탄 사이 발사 딜레이 (ms)
+      burstCount: 3,       // 한 번에 발사하는 탄 수
       cd:        280,
     },
     rmb: {
@@ -2504,7 +2798,8 @@ const BALANCE = {
       damage:      15,
       bindDur:     2000,
       cd:          300,
-      swingDelay:  220,     // 두 번째 휘두르기 딜레이
+      swingCount:  2,       // 반격 휘두르기 횟수
+      swingDelay:  220,     // 휘두르기 사이 딜레이
     },
   },
 
@@ -2609,8 +2904,8 @@ const BALANCE = {
       halfAngle:   Math.PI / 3,   // 60° 양쪽 = 120° 총 범위
       damage:      15,            // 가장자리 피해
       centerDmg:   30,            // 중앙(30° 이내) 2배
-      centerAngleBonus: 0.30,    // 중앙 크리티컬 판정 범위 증가율
-      centerAngle: (Math.PI / 30) * (1 + 0.30),
+      centerAngleBonus: 0.60,    // 기본 6°에서 60% 증가 = 9.6°
+      centerAngle: (Math.PI / 30) * (1 + 0.60),
       cd:          380,
     },
     rmb: {
@@ -2722,10 +3017,10 @@ const BALANCE = {
     radius: 20,
 
     energyMax:       100,
-    energyChargeTime:30000, // 0→100 충전 시간 (ms)
+    energyChargeTime:25000, // 0→100 충전 시간 (ms)
     energyRate:      10,    // 초당 충전량 = energyMax / (energyChargeTime/1000)
     energyThreshold: 60,    // 가호 발동 최소 에너지
-    blessedDrain:    20,       // 가호 중 초당 에너지 소모
+    blessedDrain:    16,       // 가호 중 초당 에너지 소모
     blessedDur:      99999, // 가호 최대 지속 (ms, 에너지 소진이 우선)
 
     lmb: {
@@ -2890,7 +3185,7 @@ const BALANCE = {
       cd:          350,
     },
     rmb: {
-      cost:              70,
+      cost:              60,
       pullRange:         130,
       pullDur:           280,  // 끌어당기기 이동 시간
       lockDur:           500,  // 쌍방 행동불능 시간
@@ -3111,7 +3406,7 @@ const BALANCE = {
       tickInterval: 500,
       speed:        7,    // 기본 탄속
       speedSlow:    2.0,  // 적 감지 시 탄속
-      radius:       125,  // 크기 25% 증가
+      radius:       150,  // 기존 125 대비 20% 증가
       range:        820,
       cd:           400,
     },
@@ -3206,9 +3501,9 @@ const BALANCE = {
       halfAngle:    Math.PI * 0.4,
       minHalfAngle: 0.12,
       minRange:    112,
-      maxRange:    500,
+      maxRange:    575,
       minDamage:   15,   // 8 → 15
-      maxDamage:   35,
+      maxDamage:   45,
       dragThreshold: 20,
       maxDragDist: 350,
       cd:          400,
@@ -3239,7 +3534,7 @@ const BALANCE = {
       damage:     20,      // 에코 직격 피해
       radius:     10,
       speed:      20,
-      range:      600,
+      range:      798,      // 기존 600에서 33% 증가
       cd:         350,
       echoDur:    2500,    // 잔향 지속 ms (+1초)
       echoRadius: 18,      // 잔향 판정 반경
@@ -3250,6 +3545,8 @@ const BALANCE = {
       cost:       80,
       cd:         700,
       maxPaths:   3,       // 기억하는 최대 경로 수
+      knockbackRange: 150,
+      knockbackPower: 630, // 기존 420에서 50% 증가
     },
     counter: {
       cost:       0,
@@ -3319,6 +3616,7 @@ const BALANCE = {
       fireRange:      700,
       fireExpRadius:  120,
       fireExpDamage:  35,
+      fireBurnDur:    1000,
       iceDamage:      20,
       iceRange:       180,
       iceHalfAngle:   0.9,
@@ -3328,6 +3626,7 @@ const BALANCE = {
       lightningRadius: 90,
       lightningCount:  3,
       lightningInterval: 350,
+      lightningZapDur: 1000,
       cd:             500,
     },
     counter: {
@@ -3361,7 +3660,7 @@ const BALANCE = {
       cost:       100,
       damage:     15,
       radius:     30,
-      speed:      13,    // 11 * 1.2 = 13.2 ≈ 13
+      speed:      16.25, // 기존 13에서 25% 증가
       range:      550,
       zoneDur:    4000,
       zoneRadius: 200,
@@ -3419,7 +3718,7 @@ const BALANCE = {
     speed:  3.5,
     radius: 20,
     lmb: {
-      cost:       40,      // 스테미나 (전체 버스트)
+      cost:       35,      // 스테미나 (전체 버스트)
       damage:     5,       // 발당 피해
       spread:     0.17,    // 좌우 확산 각도
       fireDelay:  50,      // ms 발사 간격
@@ -3726,11 +4025,12 @@ const BALANCE = {
     speed:  4.5,
     radius: 20,
     lmb: {
-      cost:          20,
+      // 최초 투척 자체는 무료이며, 최초 경로를 포함한 모든 경로 생성 비용을 동일하게 사용한다.
+      cost:          10,
       wpCost:        10,
-      wpDelay:       300,
-      minDamage:     15,
-      maxDamage:     15,
+      wpDelay:       400,
+      minDamage:     10,
+      maxDamage:     10,
       dmgScaleTime:  0,
       speed:         12,
       retSpeed:      20,
@@ -3740,9 +4040,10 @@ const BALANCE = {
       cd:            400,
     },
     rmb: {
-      cost:          40,
+      // 최초 투척 자체는 무료이며, 최초 경로를 포함한 모든 경로 생성 비용을 동일하게 사용한다.
+      cost:          20,
       wpCost:        20,
-      wpDelay:       300,
+      wpDelay:       400,
       pathRadius:    18,
       knockbackPower:260,
       rmbBonusDamage: 15,
@@ -3833,12 +4134,12 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('shubi','hp'),
     speed:     duels2GetSkillBalance('shubi','speed'),
     radius:    duels2GetSkillBalance('shubi','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('shubi','hp'))],['이동속도','보통'],['스타일','파워형 근거리 딜러']],
+    statsText: [['체력', String(duels2GetSkillBalance('shubi','hp'))],['이동속도','보통'],['스타일','조건형 딜러']],
     desc:      '샷건으로 근거리를 장악하는 캐릭터',
     skills: [
-      { key:'LMB',     name:'샷건',   cost:duels2GetSkillBalance('shubi','lmb').cost,  desc:`샷건 ${duels2GetSkillBalance('shubi','lmb').pellets}발 중거리 발사 (탄당 ${duels2GetSkillBalance('shubi','lmb').damage})` },
-      { key:'RMB',     name:'반동샷', cost:duels2GetSkillBalance('shubi','rmb').cost,  desc:`샷건 ${duels2GetSkillBalance('shubi','rmb').pellets}발 발사 + 후방 빠른 이동 (탄당 ${duels2GetSkillBalance('shubi','rmb').damage})` },
-      { key:'L-Shift', name:'반격',   cost:0, desc:`강한 샷건 ${duels2GetSkillBalance('shubi','counter').pellets}발 발사 (탄당 ${duels2GetSkillBalance('shubi','counter').damage})` },
+      { key:'LMB',     name:'샷건',   cost:duels2GetSkillBalance('shubi','lmb').cost,  desc:`샷건 ${duels2GetSkillBalance('shubi','lmb').pellets}발 발사 (탄당 ${duels2GetSkillBalance('shubi','lmb').damage})` },
+      { key:'RMB',     name:'반동샷', cost:duels2GetSkillBalance('shubi','rmb').cost,  desc:`샷건 ${duels2GetSkillBalance('shubi','rmb').pellets}발 발사하며 반동으로 자체 넉백 (탄당 ${duels2GetSkillBalance('shubi','rmb').damage})` },
+      { key:'L-Shift', name:'반격',   cost:0, desc:`샷건 ${duels2GetSkillBalance('shubi','counter').pellets}발 발사 (탄당 ${duels2GetSkillBalance('shubi','counter').damage})` },
     ],
   },
 
@@ -3849,12 +4150,14 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('ruvu','hp'),
     speed:     duels2GetSkillBalance('ruvu','speed'),
     radius:    duels2GetSkillBalance('ruvu','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('ruvu','hp'))],['이동속도','보통'],['스타일','기동형 원거리 저격수']],
-    desc:      '망치로 못을 쳐날리는 캐릭터',
+    statsText: [['체력', String(duels2GetSkillBalance('ruvu','hp'))],['이동속도','보통'],['스타일','기동형 초장거리 저격수']],
+    desc:      '망치와 못으로 저격하는 캐릭터',
     skills: [
-      { key:'LMB',     name:'못망치',   cost:duels2GetSkillBalance('ruvu','lmb').cost, desc:`고속 못 발사 (${duels2GetSkillBalance('ruvu','lmb').damage})` },
-      { key:'RMB',     name:'망치 투척', cost:duels2GetSkillBalance('ruvu','rmb').cost, desc:`벽과 적 관통 망치 투척. LMB로 망치 위치로 돌진 / RMB로 망치 회수. ${duels2GetSkillBalance('ruvu','rmb').window/1000}초 내 미사용 시 자동 회수` },
-      { key:'L-Shift', name:'올려치기', cost:0, desc:`전방 근거리 올려치기 (${duels2GetSkillBalance('ruvu','counter').damage})` },
+      { key:'LMB',     name:'못',         cost:duels2GetSkillBalance('ruvu','lmb').cost, desc:`못을 망치로 쳐내 날리기 (${duels2GetSkillBalance('ruvu','lmb').damage})` },
+      { key:'RMB',     name:'망치 투척',   cost:duels2GetSkillBalance('ruvu','rmb').cost, desc:`벽과 적을 관통하는 망치 투척. ${duels2GetSkillBalance('ruvu','rmb').window/1000}초 후 자동으로 망치 회수` },
+      { key:'RMB/LMB', name:'망치 돌진',   cost:0, desc:`날아간 망치 위치로 돌진` },
+      { key:'RMB/RMB', name:'망치 회수',   cost:0, desc:`날아간 망치를 즉시 회수` },
+      { key:'L-Shift', name:'올려치기',     cost:0, desc:`망치 올려치기 (${duels2GetSkillBalance('ruvu','counter').damage})` },
     ],
   },
 
@@ -3866,10 +4169,11 @@ const CHARACTERS = {
     speed:     duels2GetSkillBalance('miaruky','speed'),
     radius:    duels2GetSkillBalance('miaruky','radius'),
     statsText: [['체력', String(duels2GetSkillBalance('miaruky','hp'))],['이동속도','느림'],['스타일','지속전투형 중거리 서포터']],
-    desc:      '공구함으로 회복지대를 생성하며 전투하는 캐릭터',
+    desc:      '공구함으로 회복지대를 생성하며 장기전을 이끄는 캐릭터',
     skills: [
-      { key:'LMB',     name:'공구함 공격', cost:duels2GetSkillBalance('miaruky','lmb').cost, desc:`근접 : 휘두르기 (${duels2GetSkillBalance('miaruky','lmb').meleeDamage}) / 원거리: 공구 투척 (${duels2GetSkillBalance('miaruky','lmb').throwDamage})` },
-      { key:'RMB',     name:'회복지대',   cost:duels2GetSkillBalance('miaruky','rmb').cost, desc:`공구함을 내려놓아 범위 내 체력 회복. 재사용 또는 평타로 회수` },
+      { key:'LMB RANGED', name:'공구 투척', cost:duels2GetSkillBalance('miaruky','lmb').cost, desc:`원거리 시 공구를 꺼내 투척 (${duels2GetSkillBalance('miaruky','lmb').throwDamage})` },
+      { key:'LMB MELEE',  name:'공구함 휘두르기', cost:duels2GetSkillBalance('miaruky','lmb').cost, desc:`근접 시 공구함 휘두르기 (${duels2GetSkillBalance('miaruky','lmb').meleeDamage})` },
+      { key:'RMB',     name:'회복지대',   cost:duels2GetSkillBalance('miaruky','rmb').cost, desc:`공구함을 내려놓아 범위 내 체력 회복. 재사용 또는 평타 사용 시 회수` },
       { key:'L-Shift', name:'회복 반격',  cost:0, desc:`체력 ${duels2GetSkillBalance('miaruky','counter').healAmount} 회복 및 원형 범위 공격 (${duels2GetSkillBalance('miaruky','counter').damage})` },
     ],
   },
@@ -3884,9 +4188,9 @@ const CHARACTERS = {
     statsText: [['체력', String(duels2GetSkillBalance('mainmad','hp'))],['이동속도','빠름'],['스타일','차징형 근거리 탱커']],
     desc:      '드릴 건틀렛을 차징해 한방 딜교환으로 승부수를 띄우는 캐릭터',
     skills: [
-      { key:'LMB',     name:'드릴 건틀렛', cost:`${duels2GetSkillBalance('mainmad','lmb').costMin}~${duels2GetSkillBalance('mainmad','lmb').costMax}`, desc:`누르고 있으면 차징 후 떼면 발동 (${duels2GetSkillBalance('mainmad','lmb').minDamage}~${duels2GetSkillBalance('mainmad','lmb').maxDamage})` },
+      { key:'LMB HOLD', name:'드릴 건틀렛', cost:`${duels2GetSkillBalance('mainmad','lmb').costMin}~${duels2GetSkillBalance('mainmad','lmb').costMax}`, desc:`누르고 있으면 차징 후 떼면 발동 (${duels2GetSkillBalance('mainmad','lmb').minDamage}~${duels2GetSkillBalance('mainmad','lmb').maxDamage})` },
       { key:'RMB',     name:'굴파기',      cost:duels2GetSkillBalance('mainmad','rmb').cost, desc:`지하로 땅을 파고 이동` },
-      { key:'L-Shift', name:'내려치기',    cost:0, desc:`원형 중거리 기절 및 피해 (${duels2GetSkillBalance('mainmad','counter').damage})` },
+      { key:'L-Shift', name:'내려치기',    cost:0, desc:`원형 범위를 내려치며 적중 시 기절 (${duels2GetSkillBalance('mainmad','counter').damage})` },
     ],
   },
 
@@ -3897,12 +4201,13 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('mehugu','hp'),
     speed:     duels2GetSkillBalance('mehugu','speed'),
     radius:    duels2GetSkillBalance('mehugu','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('mehugu','hp'))],['이동속도','보통'],['스타일','속박형 근거리 컨트롤러']],
-    desc:      '로프를 설치해 적을 속박하는 캐릭터',
+    statsText: [['체력', String(duels2GetSkillBalance('mehugu','hp'))],['이동속도','보통'],['스타일','행동제약형 근거리 컨트롤러']],
+    desc:      '로프를 이용해 상대의 움직임을 제한하는 캐릭터',
     skills: [
-      { key:'LMB',     name:'로프 스윙',    cost:duels2GetSkillBalance('mehugu','lmb').cost,      desc:`근거리 부채꼴 공격. 길게 누르면 일직선 내려쳐 속박 (${duels2GetSkillBalance('mehugu','lmb').damage}/${duels2GetSkillBalance('mehugu','lmbCharge').damage})` },
-      { key:'RMB',     name:'로프 설치',    cost:duels2GetSkillBalance('mehugu','rmb').cost,       desc:`구체를 설치하고 플레이어와 선으로 연결. 선에 닿은 적은 속박 및 피해 (${duels2GetSkillBalance('mehugu','rmb').damage})` },
-      { key:'L-Shift', name:'로프 난무',    cost:0,                             desc:`부채꼴로 로프를 2회 휘둘러 피해 및 속박 (${duels2GetSkillBalance('mehugu','counter').damage}×2)` },
+      { key:'LMB',      name:'로프 스윙',     cost:duels2GetSkillBalance('mehugu','lmb').cost, desc:`근거리 부채꼴 공격 (${duels2GetSkillBalance('mehugu','lmb').damage})` },
+      { key:'LMB HOLD', name:'로프 내려치기', cost:duels2GetSkillBalance('mehugu','lmb').cost, desc:`최대 차징 시 일직선으로 내려쳐 피해 및 속박 (${duels2GetSkillBalance('mehugu','lmbCharge').damage})` },
+      { key:'RMB',     name:'로프 설치',    cost:duels2GetSkillBalance('mehugu','rmb').cost,       desc:`로프를 설치하고 메후구와 연결. 로프에 닿은 적은 속박 및 피해 (${duels2GetSkillBalance('mehugu','rmb').damage})` },
+      { key:'L-Shift', name:'로프 난무',    cost:0,  desc:`부채꼴로 로프를 ${duels2GetSkillBalance('mehugu','counter').swingCount}회 휘둘러 피해 및 속박 (타당 ${duels2GetSkillBalance('mehugu','counter').damage})` },
     ],
   },
 
@@ -3913,12 +4218,13 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('lian','hp'),
     speed:     duels2GetSkillBalance('lian','speed'),
     radius:    duels2GetSkillBalance('lian','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('lian','hp'))],['이동속도','빠름'],['스타일','방어형 초근거리 암살자']],
-    desc:      '방패로 돌진하는 캐릭터',
+    statsText: [['체력', String(duels2GetSkillBalance('lian','hp'))],['이동속도','빠름'],['스타일','기동형 초근거리 암살자']],
+    desc:      '방패로 상대의 공격을 막아내며 돌진으로 피해를 입히는 캐릭터',
     skills: [
-      { key:'LMB',     name:'방패 스윙',     cost:duels2GetSkillBalance('lian','lmb').cost, desc:`근거리 부채꼴 피해. 적중한 투사체 방어 및 회피 직후 사용 시 방패 돌진 (${duels2GetSkillBalance('lian','lmb').damage}/${duels2GetSkillBalance('lian','shieldDash').damage})` },
-      { key:'RMB',     name:'백업',          cost:duels2GetSkillBalance('lian','rmb').cost, desc:`회피 위치를 최대 3회 기억 및 가장 최근 회피 위치로 귀환` },
-      { key:'L-Shift', name:'방패 올려치기', cost:0, desc:`근거리 방패 올려치기 (${duels2GetSkillBalance('lian','counter').damage})` },
+      { key:'LMB',          name:'방패 스윙',     cost:duels2GetSkillBalance('lian','lmb').cost, desc:`방패를 휘둘러 공격하고 방패에 적중한 투사체를 방어 (${duels2GetSkillBalance('lian','lmb').damage})` },
+      { key:'RMB',          name:'백업',          cost:duels2GetSkillBalance('lian','rmb').cost, desc:`최근 3회의 회피 위치를 기억하며 사용 시 가장 최근 회피 위치로 귀환` },
+      { key:'L-Shift',      name:'방패 올려치기', cost:0, desc:`방패 올려치기 (${duels2GetSkillBalance('lian','counter').damage})` },
+      { key:'L-Shift/LMB',  name:'방패 돌진',     cost:duels2GetSkillBalance('lian','shieldDash').cost, desc:`회피 직후 LMB로 전방 돌진 공격 (${duels2GetSkillBalance('lian','shieldDash').damage})` },
     ],
   },
 
@@ -3930,11 +4236,12 @@ const CHARACTERS = {
     speed:     duels2GetSkillBalance('tau','speed'),
     radius:    duels2GetSkillBalance('tau','radius'),
     statsText: [['체력', String(duels2GetSkillBalance('tau','hp'))],['이동속도','매우 빠름'],['스타일','콤보형 근거리 암살자']],
-    desc:      '스파크 낫과 체인으로 빠른 접근 후 암살을 가능하게 하는 캐릭터',
+    desc:      '스파크 낫을 이용한 변칙적인 움직임으로 전투하는 캐릭터',
     skills: [
-      { key:'LMB',     name:'스파크 낫',   cost:duels2GetSkillBalance('tau','lmb').cost,  desc:`낫을 휘두르기. 3번 적중 시 다음 공격이 최대체력 ${duels2GetSkillBalance('tau','lmb').overchargeRatio*100}% 추가 피해 (${duels2GetSkillBalance('tau','lmb').damage})` },
-      { key:'RMB',     name:'스파크 체인', cost:duels2GetSkillBalance('tau','rmb').cost,  desc:`낫을 던져 적중 시 해당 위치로 고속 돌진 후 피해. 미적중 시 효과 없음 (${duels2GetSkillBalance('tau','rmb').damage})` },
-      { key:'L-Shift', name:'스파크 웨이브', cost:0, desc:`낫을 한 바퀴 돌려 주변 광역 피해 및 다음 평타가 최대체력 비례 추가 피해 (${duels2GetSkillBalance('tau','counter').aoeDamage})` },
+      { key:'LMB',     name:'스파크 낫',   cost:duels2GetSkillBalance('tau','lmb').cost,  desc:`낫을 휘둘러 피해. 적중 시 스파크 충전 (${duels2GetSkillBalance('tau','lmb').damage})` },
+      { key:'LMB CRIT',  name:'', cost:duels2GetSkillBalance('tau','lmb').cost, desc:`최대체력 비례 추가 피해 (${duels2GetSkillBalance('tau','lmb').damage} + ${duels2GetSkillBalance('tau','lmb').overchargeRatio*100}%)` },
+      { key:'RMB',     name:'스파크 체인', cost:duels2GetSkillBalance('tau','rmb').cost,  desc:`낫을 던져 적중 시 해당 위치로 이동 후 피해. (${duels2GetSkillBalance('tau','rmb').damage})` },
+      { key:'L-Shift', name:'스파크 웨이브', cost:0, desc:`낫을 한 바퀴 돌려 주변 광역 피해 및 스파크 최대 충전 (${duels2GetSkillBalance('tau','counter').aoeDamage})` },
     ],
   },
 
@@ -3946,10 +4253,10 @@ const CHARACTERS = {
     speed:     duels2GetSkillBalance('veleu','speed'),
     radius:    duels2GetSkillBalance('veleu','radius'),
     statsText: [['체력', String(duels2GetSkillBalance('veleu','hp'))],['이동속도','매우 빠름'],['스타일','파워형 원거리 딜러']],
-    desc:      '로켓포로 게임을 끝장내는 캐릭터',
+    desc:      '강력한 로켓포로 게임을 끝장내는 캐릭터',
     skills: [
-      { key:'LMB',     name:'초콜릿 쌍권총',    cost:duels2GetSkillBalance('veleu','lmb').cost, desc:`쌍권총 3발 발사 (탄당 ${duels2GetSkillBalance('veleu','lmb').damage}).` },
-      { key:'RMB',     name:'초콜릿 로켓포',    cost:duels2GetSkillBalance('veleu','rmb').cost, desc:`강력한 초콜릿 로켓 발사. 폭발 범위 내 피해 및 발사 지점에 ${duels2GetSkillBalance('veleu','rmb').slowDur/1000}초 슬로우 지대, 근접 적중 시 기절 (${duels2GetSkillBalance('veleu','rmb').explosionDamage})` },
+      { key:'LMB',     name:'초콜릿 쌍권총',    cost:duels2GetSkillBalance('veleu','lmb').cost, desc:`쌍권총 ${duels2GetSkillBalance('veleu','lmb').burstCount}발 발사 (탄당 ${duels2GetSkillBalance('veleu','lmb').damage}).` },
+      { key:'RMB',     name:'초콜릿 로켓포',    cost:duels2GetSkillBalance('veleu','rmb').cost, desc:`강력한 초콜릿 로켓 발사. 폭발 범위 내 피해 및 슬로우 지대, 폭발 범위 중앙에 가까울 시 기절 (${duels2GetSkillBalance('veleu','rmb').explosionDamage})` },
       { key:'L-Shift', name:'초콜릿 폭탄 투척', cost:0, desc:`전방에 초콜릿 폭탄 ${duels2GetSkillBalance('veleu','counter').count}개를 일렬로 투척 (탄당 ${duels2GetSkillBalance('veleu','counter').damage})` },
     ],
   },
@@ -3961,16 +4268,23 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('elin','hp'),
     speed:     duels2GetSkillBalance('elin','speed'),
     radius:    duels2GetSkillBalance('elin','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('elin','hp'))],['이동속도','느림'],['스타일','소환형 초장거리 서포터']],
-    desc:      '유령 친구를 소환해 함께 전투하는 캐릭터',
+    statsText: [['체력', String(duels2GetSkillBalance('elin','hp'))],['이동속도','느림'],['스타일','지속전투형 초장거리 서포터']],
+    desc:      '유령 친구를 소환해 서포트하는 캐릭터',
     skills: [
-      { key:'LMB', name:'유령구체', cost: duels2GetSkillBalance('elin','lmb').cost,
+      { key:'LMB', name:'유령 구체', cost: duels2GetSkillBalance('elin','lmb').cost,
         desc:`벽과 적을 관통하는 구체 발사. 탄착지점에서 폭발해 피해 및 유령 체력 ${duels2GetSkillBalance('elin','lmb').healAmount} 회복 (${duels2GetSkillBalance('elin','lmb').damage})` },
-      { key:'RMB', name:'유령친구', cost: `${duels2GetSkillBalance('elin','rmb').summonCost}/20`,
-        desc:`유령 소환. 유령은 적과 ${duels2GetSkillBalance('elin','spirit').stopRange} 거리까지 접근하며, 사거리 ${duels2GetSkillBalance('elin','spirit').meleeRange} 안에서 ${duels2GetSkillBalance('elin','spirit').meleeInterval/1000}초마다 공격 (${duels2GetSkillBalance('elin','spirit').meleeDamage}). 재사용 시 가장 가까운 적에게 돌진 및 넉백 (${duels2GetSkillBalance('elin','spirit').dashDamage})` },
-      { key:'L-Shift', name:'순간이동', cost: 0,
-        desc:`유령 위치에서 엘린 방향으로 투사체 발사. 도달 시 유령이 엘린 위치로 순간이동하며 주변 폭발 및 넉백 (${duels2GetSkillBalance('elin','counter').damage})` },
+      { key:'RMB', name:'유령 친구', cost:duels2GetSkillBalance('elin','rmb').summonCost,
+        desc:`유령 소환` },
+      { key:'RMB/RMB', name:'돌진 명령', cost:20,
+        desc:`유령이 가장 가까운 적에게 돌진하여 피해 (${duels2GetSkillBalance('elin','spirit').dashDamage})` },
+      { key:'L-Shift', name:'도와줘!', cost: 0,
+        desc:`유령이 엘린에게 투사체 발사. 도달 시 유령이 엘린 위치로 순간이동하며 주변 피해 (${duels2GetSkillBalance('elin','counter').damage})` },
     ],
+    summonSpecs:[{name:'유령',stats:[
+      {key:'HEALTH',value:duels2GetSkillBalance('elin','spirit').maxHp},
+      {key:'MOVE SPEED',value:`매우 느림`},
+      {key:'AUTO ATTACK',value:`적을 추적해 근접 공격 (${duels2GetSkillBalance('elin','spirit').meleeDamage})`}
+    ]}],
   },
 
   nsonya: {
@@ -3983,9 +4297,14 @@ const CHARACTERS = {
     statsText: [['체력',String(duels2GetSkillBalance('nsonya','hp'))],['이동속도','매우 빠름'],['스타일','기동형 중거리 서포터']],
     desc:      '석궁 연사와 스피드 버프로 전장을 누비는 캐릭터',
     skills: [
-      { key:'LMB',     name:'석궁 연사', cost:duels2GetSkillBalance('nsonya','lmb').cost,    desc:`빠른 석궁 화살 연사 (${duels2GetSkillBalance('nsonya','lmb').damage})` },
-      { key:'RMB',     name:'볼륨 업!', cost:duels2GetSkillBalance('nsonya','rmb').cost,    desc:`선딜레이 후 버프 (최대 3중첩). 1단계:이동 속도 / 2단계:스테미나 회복 속도 / 3단계:자연회복 시작까지 ${duels2GetSkillBalance('nsonya','rmb').regenIdleReduce/1000}초 단축` },
-      { key:'L-Shift', name:'볼트 해제!', cost:0,                           desc:`전방에 8발 순차 부채꼴 연사 (발당 ${duels2GetSkillBalance('nsonya','counter').damage})` },
+      { key:'LMB',     name:'석궁 연사', cost:duels2GetSkillBalance('nsonya','lmb').cost, desc:`석궁 화살 연사 (${duels2GetSkillBalance('nsonya','lmb').damage})` },
+      { key:'RMB',     name:'볼륨 업!', cost:duels2GetSkillBalance('nsonya','rmb').cost, desc:`선딜레이 후 버프. 최대 3단계` },
+      { inlineStages:[
+        { key:'RMB I', text:`이동 속도 증가 ${duels2GetSkillBalance('nsonya','rmb').dur1/1000}초` },
+        { key:'RMB II', text:`스테미나 회복 속도 증가 ${duels2GetSkillBalance('nsonya','rmb').dur2/1000}초` },
+        { key:'RMB III', text:`자연회복 시작시간 단축 ${duels2GetSkillBalance('nsonya','rmb').dur3/1000}초` }
+      ], hideCost:true },
+      { key:'L-Shift', name:'볼트 해제!', cost:0, desc:`전방에 8발 부채꼴 연사 (발당 ${duels2GetSkillBalance('nsonya','counter').damage})` },
     ],
   },
 
@@ -3997,10 +4316,11 @@ const CHARACTERS = {
     speed:     duels2GetSkillBalance('maisil','speed'),
     radius:    duels2GetSkillBalance('maisil','radius'),
     statsText: [['체력',String(duels2GetSkillBalance('maisil','hp'))],['이동속도','빠름'],['스타일','조건형 근거리 딜러']],
-    desc:      '가위를 능숙하게 다루는 캐릭터',
+    desc:      '가위로 정확한 중앙 타격을 노리며 전투하는 캐릭터',
     skills: [
-      { key:'LMB',     name:'가위질',     cost:duels2GetSkillBalance('maisil','lmb').cost,     desc:`가위 잘라내기. 중앙 크리티컬 판정 범위 +${Math.round(duels2GetSkillBalance('maisil','lmb').centerAngleBonus*100)}%, 중앙은 2배 피해 (${duels2GetSkillBalance('maisil','lmb').damage}/${duels2GetSkillBalance('maisil','lmb').centerDmg})` },
-      { key:'RMB',     name:'가위 찌르기', cost:duels2GetSkillBalance('maisil','rmb').cost,     desc:`찌르기 후 적을 소폭 끌어당김` },
+      { key:'LMB',     name:'가위질',     cost:duels2GetSkillBalance('maisil','lmb').cost,     desc:`가위로 잘라 피해 (${duels2GetSkillBalance('maisil','lmb').damage})` },
+      { key:'LMB CRIT', name:'', cost:0, desc:`중앙에 적중 시 추가 피해 (${duels2GetSkillBalance('maisil','lmb').centerDmg})` },
+      { key:'RMB',     name:'가위 찌르기', cost:duels2GetSkillBalance('maisil','rmb').cost,     desc:`가위로 찌르기. 적 소폭 끌어당김` },
       { key:'L-Shift', name:'가위 던지기', cost:0,                           desc:`커다란 가위를 던져 최대 사거리 도달 후 귀환 (${duels2GetSkillBalance('maisil','counter').damage})` },
     ],
   },
@@ -4012,12 +4332,12 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('erapabi','hp'),
     speed:     duels2GetSkillBalance('erapabi','speed'),
     radius:    duels2GetSkillBalance('erapabi','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('erapabi','hp'))],['이동속도','빠름'],['스타일','파워형 원거리 탱커']],
-    desc:      '차지 타입 아머로 받은 피해를 축적해 궁극 레이저로 터뜨리는 캐릭터',
+    statsText: [['체력', String(duels2GetSkillBalance('erapabi','hp'))],['이동속도','빠름'],['스타일','반격형 원거리 탱커']],
+    desc:      '차지 타입 아머로 받은 피해를 축적하여 한방에 터뜨리는 캐릭터',
     skills: [
       { key:'LMB',     name:'레이저 연사',   cost:duels2GetSkillBalance('erapabi','lmb').cost,  desc:`레이저를 2발씩 2회 발사 (탄당 ${duels2GetSkillBalance('erapabi','lmb').damage})` },
       { key:'RMB',     name:'버티기/파비 레이저', cost:`${duels2GetSkillBalance('erapabi','rmb').cost}`, desc:`${duels2GetSkillBalance('erapabi','rmb').duration/1000}초간 피해 ${Math.round((1-duels2GetSkillBalance('erapabi','rmb').reduction)*100)}% 감소. 최대 체력의 ${Math.round(duels2GetSkillBalance('erapabi','damageThreshold')*100)}%만큼 피해를 저장하면 파비 레이저로 변경` },
-      { key:'L-Shift', name:'한바퀴 회전',   cost:0,  desc:`가로축 회전으로 앞뒤 피해 및 넉백 (${duels2GetSkillBalance('erapabi','counter').damage})` },
+      { key:'L-Shift', name:'한바퀴 회전',   cost:0,  desc:`땅을 짚고 빠르게 회전해 앞뒤 피해 (${duels2GetSkillBalance('erapabi','counter').damage})` },
     ],
   },
 
@@ -4028,15 +4348,21 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('reika','hp'),
     speed:     duels2GetSkillBalance('reika','speed'),
     radius:    duels2GetSkillBalance('reika','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('reika','hp'))],['이동속도','느림'],['스타일','각성형 근거리 딜러']],
+    statsText: [['체력', String(duels2GetSkillBalance('reika','hp'))],['이동속도','느림'],['스타일','성장형 근거리 딜러']],
     desc:      '태양의 가호로 각성해 강화된 공격을 퍼붓는 캐릭터',
     skills: [
-      { key:'LMB',     name:'태양의 대검',   cost:`${duels2GetSkillBalance('reika','lmb').cost}/${duels2GetSkillBalance('reika','lmbBlessed').cost}`,
-        desc:`선딜레이 후 전진 대검 휘두르기 (${duels2GetSkillBalance('reika','lmb').damage}). 가호 시, 태양의 파동 : 공격 사거리가 증가하며 주변 적을 불태움 (${duels2GetSkillBalance('reika','lmbBlessed').damage})` },
-      { key:'RMB',     name:'태양의 가호',   cost:`${duels2GetSkillBalance('reika','rmb').cost}/${duels2GetSkillBalance('reika','rmbBlessed').cost}`,
-        desc:`에너지 소모 후 폭발 및 화염 (${duels2GetSkillBalance('reika','rmb').damage}). 가호 시, 공중 강하 : 공중으로 잠시 떠오르며, 이후 검, 레이카 순서로 내려찍기 (${duels2GetSkillBalance('reika','rmbBlessed').slamDamage}/${duels2GetSkillBalance('reika','rmbBlessed').landDamage})` },
-      { key:'L-Shift', name:'반동제어불능!', cost:0,
-        desc:`전방 돌진 원형 피해 (${duels2GetSkillBalance('reika','counter').damage}). 가호 시, 적응완료! : 도착지점에서 폭발 및 화염 2초 (${duels2GetSkillBalance('reika','counterBlessed').explosionDamage})` },
+      { key:'LMB',       name:'태양의 대검',   cost:duels2GetSkillBalance('reika','lmb').cost,
+        desc:`선딜레이 후 대검 휘두르기. 반동으로 소폭 이동 (${duels2GetSkillBalance('reika','lmb').damage})` },
+      { key:'RMB',       name:'태양의 가호',   cost:duels2GetSkillBalance('reika','rmb').cost,
+        desc:`주변 폭발 및 화염. 가호 상태로 전환 (${duels2GetSkillBalance('reika','rmb').damage})` },
+      { key:'RMB/LMB',   name:'태양의 파동',   cost:duels2GetSkillBalance('reika','lmbBlessed').cost,
+        desc:`대검 휘두르기. 주변 적 화염 (${duels2GetSkillBalance('reika','lmbBlessed').damage})` },
+      { key:'RMB/RMB',   name:'공중 강하',     cost:duels2GetSkillBalance('reika','rmbBlessed').cost,
+        desc:`공중으로 떠오른 뒤 검과 레이카 순서로 내려찍기 (${duels2GetSkillBalance('reika','rmbBlessed').slamDamage}/${duels2GetSkillBalance('reika','rmbBlessed').landDamage})` },
+      { key:'RMB/L-Shift', name:'적응완료!',    cost:0,
+        desc:`전방으로 돌진 및 도착 지점에서 폭발 및 화염 (${duels2GetSkillBalance('reika','counterBlessed').damage}/${duels2GetSkillBalance('reika','counterBlessed').explosionDamage})` },
+      { key:'L-Shift',   name:'반동제어불능!', cost:0,
+        desc:`전방으로 돌진. 경로상의 적에게 피해 (${duels2GetSkillBalance('reika','counter').damage})` },
     ],
   },
 
@@ -4047,12 +4373,12 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('shairaz','hp'),
     speed:     duels2GetSkillBalance('shairaz','speed'),
     radius:    duels2GetSkillBalance('shairaz','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('shairaz','hp'))],['이동속도','느림'],['스타일','함정설치형 근거리 컨트롤러']],
-    desc:      '트랩으로 전장을 장악하는 캐릭터',
+    statsText: [['체력', String(duels2GetSkillBalance('shairaz','hp'))],['이동속도','느림'],['스타일','범위장악형 근거리 컨트롤러']],
+    desc:      '트랩으로 적을 기절시키고 일방적으로 공격하는 캐릭터',
     skills: [
-      { key:'LMB',     name:'소드오프',  cost:duels2GetSkillBalance('shairaz','lmb').cost,  desc:`단거리에 넓은 산탄 6발 (탄당 ${duels2GetSkillBalance('shairaz','lmb').damage})` },
-      { key:'RMB',     name:'트랩',      cost:duels2GetSkillBalance('shairaz','rmb').cost,  desc:`트랩 설치 (최대 ${duels2GetSkillBalance('shairaz','rmb').maxTraps}개). 밟을 시 피해 및 기절 ${duels2GetSkillBalance('shairaz','rmb').stunDur/1000}초 (${duels2GetSkillBalance('shairaz','rmb').damage})` },
-      { key:'L-Shift', name:'탕탕!',     cost:0,                          desc:`소드오프 2연사 (탄당 ${duels2GetSkillBalance('shairaz','counter').damage})` },
+      { key:'LMB',     name:'소드오프',  cost:duels2GetSkillBalance('shairaz','lmb').cost,  desc:`소드오프 ${duels2GetSkillBalance('shairaz','lmb').pellets}발 발사 (탄당 ${duels2GetSkillBalance('shairaz','lmb').damage})` },
+      { key:'RMB',     name:'트랩',      cost:duels2GetSkillBalance('shairaz','rmb').cost,  desc:`최대 ${duels2GetSkillBalance('shairaz','rmb').maxTraps}개의 트랩 설치. 적이 밟을 시 피해 및 기절 ${duels2GetSkillBalance('shairaz','rmb').stunDur/1000}초 (${duels2GetSkillBalance('shairaz','rmb').damage})` },
+      { key:'L-Shift', name:'탕탕!',     cost:0,                          desc:`소드오프 ${duels2GetSkillBalance('shairaz','counter').pellets}발 2연사 (탄당 ${duels2GetSkillBalance('shairaz','counter').damage})` },
     ],
   },
   phase: {
@@ -4062,12 +4388,12 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('phase','hp'),
     speed:     duels2GetSkillBalance('phase','speed'),
     radius:    duels2GetSkillBalance('phase','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('phase','hp'))],['이동속도','보통'],['스타일','버서커형 초근거리 암살자']],
+    statsText: [['체력', String(duels2GetSkillBalance('phase','hp'))],['이동속도','보통'],['스타일','반격형 초근거리 암살자']],
     desc:      '빠른 속공으로 적을 한번에 처치하는 캐릭터',
     skills: [
-      { key:'LMB',     name:'패스트 펀치', cost:duels2GetSkillBalance('phase','lmb').cost,  desc:`근거리 연속 펀치. 체력이 낮을수록 연사속도 증가 (${duels2GetSkillBalance('phase','lmb').damage})` },
+      { key:'LMB',     name:'패스트 펀치', cost:duels2GetSkillBalance('phase','lmb').cost,  desc:`근거리 연속 펀치. 체력이 낮을수록 공격 속도 증가 (${duels2GetSkillBalance('phase','lmb').damage})` },
       { key:'RMB',     name:'점프 업',    cost:duels2GetSkillBalance('phase','rmb').cost,  desc:`벽을 무시하며 지정 방향으로 점프` },
-      { key:'L-Shift', name:'그래핑',     cost:0,                        desc:`공격 후 적중 시 적을 끌어당김 (${duels2GetSkillBalance('phase','counter').damage})` },
+      { key:'L-Shift', name:'그래핑',     cost:0,                        desc:`적을 소폭 끌어당김 (${duels2GetSkillBalance('phase','counter').damage})` },
     ],
   },
 
@@ -4078,13 +4404,13 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('kan','hp'),
     speed:     duels2GetSkillBalance('kan','speed'),
     radius:    duels2GetSkillBalance('kan','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('kan','hp'))],['이동속도','매우 빠름'],['스타일','악식형 근거리 딜러']],
-    desc:      '악식 게이지를 쌓아 강력한 충격파를 발산하는 캐릭터',
+    statsText: [['체력', String(duels2GetSkillBalance('kan','hp'))],['이동속도','매우 빠름'],['스타일','성장형 초근거리 딜러']],
+    desc:      '적을 붙잡아 일방적으로 공격한 뒤 강력한 충격파로 적을 처치하는 캐릭터',
     skills: [
-      { key:'LMB',     name:'악식 건틀렛', cost:duels2GetSkillBalance('kan','lmb').cost,
-        desc:`근거리 부채꼴 공격. 피해는 악식 게이지에 비례하며 적중시 게이지 상승 (${duels2GetSkillBalance('kan','lmb').baseDamage}~${duels2GetSkillBalance('kan','lmb').baseDamage+duels2GetSkillBalance('kan','lmb').gaugeDamage})` },
-      { key:'RMB',     name:'붙들기',     cost:duels2GetSkillBalance('kan','rmb').cost,
-        desc:`근거리 상대를 붙들어 끌어당김. 이후 강하게 밀쳐내며 기절 부여` },
+      { key:'LMB',     name:'악식', cost:duels2GetSkillBalance('kan','lmb').cost,
+        desc:`팔의 기생 생물이 공격. 피해는 악식 게이지에 비례하며 적중 시 악식 게이지 상승 (${duels2GetSkillBalance('kan','lmb').baseDamage}~${duels2GetSkillBalance('kan','lmb').baseDamage+duels2GetSkillBalance('kan','lmb').gaugeDamage})` },
+      { key:'RMB MELEE', name:'붙들기',     cost:duels2GetSkillBalance('kan','rmb').cost,
+        desc:`근거리 시 상대를 붙들어 끌어당김. 이후 강하게 밀쳐내며 기절 부여` },
       { key:'L-Shift', name:'역류',       cost:0,
         desc:`악식 게이지를 모두 소모하여 충격파 발산. 게이지에 비례한 범위와 피해 (${duels2GetSkillBalance('kan','counter').minDamage}~${duels2GetSkillBalance('kan','counter').maxDamage})` },
     ],
@@ -4097,15 +4423,15 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('cherity','hp'),
     speed:     duels2GetSkillBalance('cherity','speed'),
     radius:    duels2GetSkillBalance('cherity','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('cherity','hp'))],['이동속도','보통'],['스타일','차징형 원거리 저격수']],
+    statsText: [['체력', String(duels2GetSkillBalance('cherity','hp'))],['이동속도','보통'],['스타일','차징형 초장거리 저격수']],
     desc:      '원거리에서 강한 한방으로 게임을 터뜨리는 캐릭터',
     skills: [
-      { key:'LMB',     name:'저격',    cost:`${duels2GetSkillBalance('cherity','lmb').minCost}~${duels2GetSkillBalance('cherity','lmb').maxCost}`,
-        desc:`이동을 정지하며 차징. 길게 차징할수록 피해 및 탄속 증가. 70% 이상 차징 시 벽 관통. 탄환 크기 ${duels2GetSkillBalance('cherity','lmb').radius} (${duels2GetSkillBalance('cherity','lmb').minDamage}~${duels2GetSkillBalance('cherity','lmb').maxDamage})` },
+      { key:'LMB HOLD', name:'저격',    cost:`${duels2GetSkillBalance('cherity','lmb').minCost}~${duels2GetSkillBalance('cherity','lmb').maxCost}`,
+        desc:`이동을 정지하며 최대 ${duels2GetSkillBalance('cherity','lmb').chargeTime/1000}초 차징. 비례해 피해 및 탄속 증가. 70% 이상 차징 시 벽 관통 (${duels2GetSkillBalance('cherity','lmb').minDamage}~${duels2GetSkillBalance('cherity','lmb').maxDamage})` },
       { key:'RMB',     name:'물러서!', cost:duels2GetSkillBalance('cherity','rmb').cost,
-        desc:`후방으로 슬라이딩 후 탄환 크기 ${duels2GetSkillBalance('cherity','rmb').radius}의 근거리 대응 산탄 발사. 적중 시 강한 넉백 (탄당 ${duels2GetSkillBalance('cherity','rmb').damage})` },
+        desc:`후방으로 슬라이딩 후 근거리 대응 스프레이 발사. 적중 시 강한 넉백 (탄당 ${duels2GetSkillBalance('cherity','rmb').damage})` },
       { key:'L-Shift', name:'연막탄',  cost:0,
-        desc:`연막탄 투척. 착탄 시 범위 내 피해 및 넉백. 연막 내 플레이어는 은신. 가까운 적은 확인 가능 (${duels2GetSkillBalance('cherity','counter').damage})` },
+        desc:`연막 생성 및 범위 내 피해 및 넉백. 연막 내 플레이어는 은신. 가까운 적은 확인 가능 (${duels2GetSkillBalance('cherity','counter').damage})` },
     ],
   },
 
@@ -4116,15 +4442,19 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('konyeong','hp'),
     speed:     duels2GetSkillBalance('konyeong','speed'),
     radius:    duels2GetSkillBalance('konyeong','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('konyeong','hp'))],['이동속도','빠름'],['스타일','거리조절형 중거리 딜러']],
+    statsText: [['체력', String(duels2GetSkillBalance('konyeong','hp'))],['이동속도','빠름'],['스타일','조건형 근거리 딜러']],
     desc:      '마시멜로 창으로 사거리 끝의 적에게 강한 피해를 주는 캐릭터',
     skills: [
       { key:'LMB',     name:'마시멜로 창',      cost:duels2GetSkillBalance('konyeong','lmb').cost,
-        desc:`창을 찔러 사거리 끝 적중 시 피해량 2배 (${duels2GetSkillBalance('konyeong','lmb').damage}/${duels2GetSkillBalance('konyeong','lmb').tipDamage})` },
+        desc:`창을 찔러 피해 (${duels2GetSkillBalance('konyeong','lmb').damage})` },
+      { key:'LMB CRIT', name:'', cost:duels2GetSkillBalance('konyeong','lmb').cost,
+        desc:`사거리 끝에 적중 시 추가 피해 (${duels2GetSkillBalance('konyeong','lmb').tipDamage})` },
       { key:'RMB',     name:'뜨거운 마시멜로',  cost:duels2GetSkillBalance('konyeong','rmb').cost,
-        desc:`짧은 선딜레이 후 전방을 내리쳐 피해와 넉백. 사거리 끝에 감속 지대 형성 (${duels2GetSkillBalance('konyeong','rmb').damage})` },
+        desc:`선딜레이 후 전방을 내리쳐 피해와 넉백. 사거리 끝에 감속 지대 형성 (${duels2GetSkillBalance('konyeong','rmb').damage})` },
       { key:'L-Shift', name:'저리가!',           cost:0,
-        desc:`마시멜로 창을 크게 휘둘러 원형 피해. 끝부분 적중 시 피해 2배, 넉백 및 감속 (${duels2GetSkillBalance('konyeong','counter').damage}/${duels2GetSkillBalance('konyeong','counter').tipDamage})` },
+        desc:`마시멜로 창을 크게 휘둘러 원형 피해. 넉백 및 감속 (${duels2GetSkillBalance('konyeong','counter').damage})` },
+      { key:'L-Shift', name:'',           cost:0,
+        desc:`사거리 끝에 적중 시 추가 피해 (${duels2GetSkillBalance('konyeong','counter').tipDamage})` },
     ],
   },
 
@@ -4135,16 +4465,24 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('herjang','hp'),
     speed:     duels2GetSkillBalance('herjang','speed'),
     radius:    duels2GetSkillBalance('herjang','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('herjang','hp'))],['이동속도','보통'],['스타일','소환형 원거리 저격수']],
+    statsText: [['체력', String(duels2GetSkillBalance('herjang','hp'))],['이동속도','보통'],['스타일','범위장악형 원거리 저격수']],
     desc:      '이동형 대포를 운용해 전장을 지배하는 캐릭터',
     skills: [
       { key:'LMB',     name:'미니 대포',     cost:duels2GetSkillBalance('herjang','lmb').cost,
         desc:`대포를 발사하고 반동으로 뒤로 넉백 (${duels2GetSkillBalance('herjang','lmb').damage})` },
-      { key:'RMB',     name:'이동형 대포',   cost:`${duels2GetSkillBalance('herjang','rmb').summonCost}/${duels2GetSkillBalance('herjang','rmb').burstCost}`,
-        desc:`대포 설치. 대포는 ${duels2GetSkillBalance('herjang','cannon').fireInterval/1000}초마다 자동 공격 (${duels2GetSkillBalance('herjang','cannon').damage}). 재사용 시 슬로우 포탄 ${duels2GetSkillBalance('herjang','rmb').burstCount}발 점사 지시 (탄당 ${duels2GetSkillBalance('herjang','rmb').burstDamage}). 가까이 가면 들고 이동 가능하며, 너무 멀어지면 보상 없이 파괴됨` },
+      { key:'RMB',     name:'이동형 대포',   cost:duels2GetSkillBalance('herjang','rmb').summonCost,
+        desc:`대포 설치` },
+      { key:'RMB/RMB', name:'점사 지시', cost:duels2GetSkillBalance('herjang','rmb').burstCost,
+        desc:`이동형 대포가 슬로우 포탄 ${duels2GetSkillBalance('herjang','rmb').burstCount}발 점사 (탄당 ${duels2GetSkillBalance('herjang','rmb').burstDamage})` },
       { key:'L-Shift', name:'간이 대포',     cost:0,
-        desc:`제자리에 간이 대포 생성 및 주변 넉백 피해. 간이 대포가 적을 자동 공격 (${duels2GetSkillBalance('herjang','counter').damage})` },
+        desc:`제자리에 간이 대포 생성 및 주변 넉백 피해 (${duels2GetSkillBalance('herjang','counter').damage})` },
     ],
+    summonSpecs:[{name:'대포',stats:[
+      {key:'HEALTH',value:duels2GetSkillBalance('herjang','cannon').maxHp},
+      {key:'MOVE SPEED',value:`없음`},
+      {key:'AUTO ATTACK',value:`가장 가까운 적에게 포탄 발사 (${duels2GetSkillBalance('herjang','cannon').damage})`},
+      {key:'ABILITY',value:'가까이 가면 들고 이동 가능 및 LMB 또는 RMB로 내려놓기. 대포와 헤르쟝이 일정 거리 이상 멀어지면 파괴'}
+    ]}],
   },
 
   hatsuhats: {
@@ -4154,15 +4492,15 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('hatsuhats','hp'),
     speed:     duels2GetSkillBalance('hatsuhats','speed'),
     radius:    duels2GetSkillBalance('hatsuhats','radius'),
-    statsText: [['체력',String(duels2GetSkillBalance('hatsuhats','hp'))],['이동속도','보통'],['스타일','드로잉형 중거리 암살자']],
+    statsText: [['체력',String(duels2GetSkillBalance('hatsuhats','hp'))],['이동속도','보통'],['스타일','지속전투형 중거리 암살자']],
     desc:      '붓으로 공격 범위를 자유롭게 조절하는 캐릭터',
     skills: [
-      { key:'LMB', name:'드로잉', cost:`${duels2GetSkillBalance('hatsuhats','lmb').minCost}~${duels2GetSkillBalance('hatsuhats','lmb').maxCost}`,
+      { key:'LMB DRAG', name:'드로잉', cost:`${duels2GetSkillBalance('hatsuhats','lmb').minCost}~${duels2GetSkillBalance('hatsuhats','lmb').maxCost}`,
         desc:`드래그로 사거리와 피해량을 조절. 공격범위가 작을수록 피해량 상승. (${duels2GetSkillBalance('hatsuhats','lmb').minDamage}~${duels2GetSkillBalance('hatsuhats','lmb').maxDamage})` },
-      { key:'RMB', name:'캔버스 위 세상', cost:`${duels2GetSkillBalance('hatsuhats','rmb').stamPerPx}/px`,
+      { key:'RMB DRAG', name:'캔버스 위 세상', cost:`${duels2GetSkillBalance('hatsuhats','rmb').stamPerPx}/px`,
         desc:`드래그 경로대로 돌진. 돌진 중 받는 피해 ${Math.round((1-duels2GetSkillBalance('hatsuhats','rmb').reduction)*100)}% 감소` },
       { key:'L-Shift', name:'마음대로', cost:0,
-        desc:`주변 원형 공격. (${duels2GetSkillBalance('hatsuhats','counter').damage})` },
+        desc:`붓을 휘둘러 원형 공격. (${duels2GetSkillBalance('hatsuhats','counter').damage})` },
     ],
   },
 
@@ -4173,15 +4511,19 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('prill','hp'),
     speed:     duels2GetSkillBalance('prill','speed'),
     radius:    duels2GetSkillBalance('prill','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('prill','hp'))], ['이동속도', '보통'], ['스타일', '콤보형 근거리 서포터']],
-    desc:      '빗자루로 청소구역을 청소하며 전투하는 캐릭터',
+    statsText: [['체력', String(duels2GetSkillBalance('prill','hp'))], ['이동속도', '보통'], ['스타일', '범위장악형 근거리 서포터']],
+    desc:      '빗자루로 청소구역을 청소한 뒤 버프를 받아 전투하는 캐릭터',
     skills: [
       { key:'LMB', name:'빗자루질', cost:duels2GetSkillBalance('prill','lmb').cost,
-        desc:`좌스윙 / 우스윙 / 전방 밀쳐내기 3타 콤보. ${duels2GetSkillBalance('prill','lmb').comboWindow/1000}초 내 재공격 시 콤보 유지 (${duels2GetSkillBalance('prill','lmb').swingDamage}/${duels2GetSkillBalance('prill','lmb').thrustDamage})` },
+        desc:`빗자루를 휘둘러 공격. ${duels2GetSkillBalance('prill','lmb').comboWindow/1000}초 내 재공격 시 콤보 유지 (${duels2GetSkillBalance('prill','lmb').swingDamage})` },
+      { key:'LMB III', name:'', cost:duels2GetSkillBalance('prill','lmb').cost,
+        desc:`3타째에 전방을 찔러 피해 및 넉백 (${duels2GetSkillBalance('prill','lmb').thrustDamage})` },
       { key:'RMB', name:'청소 구역', cost:duels2GetSkillBalance('prill','rmb').cost,
-        desc:`자신 이동 제한 후 청소 구역 표시. ${duels2GetSkillBalance('prill','rmb').hitInterval/1000}초마다 청소구역 청소 총 ${duels2GetSkillBalance('prill','rmb').hitCount}회. 재사용 시 취소 및 구역 내에서 피해 증가 +${duels2GetSkillBalance('prill','rmb').zoneDamageBoost*100}% (${duels2GetSkillBalance('prill','rmb').damage})` },
+        desc:`자신 이동 제한 후 청소 구역 표시. ${duels2GetSkillBalance('prill','rmb').hitInterval/1000}초마다 총 ${duels2GetSkillBalance('prill','rmb').hitCount}회 피해 (${duels2GetSkillBalance('prill','rmb').damage})` },
+      { key:'RMB/RMB', name:'청소 완료', cost:0,
+        desc:`청소를 완료하고 청소 시간에 비례해 청소 구역 내 피해 증가 +${duels2GetSkillBalance('prill','rmb').zoneDamageBoost*100}%` },
       { key:'L-Shift', name:'빗자루 올려치기', cost:0,
-        desc:`전방 넓은 부채꼴 올려치기. 적중 시 ${duels2GetSkillBalance('prill','counter').boostDur/1000}초간 피해 증가 +${duels2GetSkillBalance('prill','counter').boostMult*100}% (${duels2GetSkillBalance('prill','counter').damage})` },
+        desc:`빗자루 올려치기. 적중 시 ${duels2GetSkillBalance('prill','counter').boostDur/1000}초간 피해 증가 +${duels2GetSkillBalance('prill','counter').boostMult*100}% (${duels2GetSkillBalance('prill','counter').damage})` },
     ],
   },
 
@@ -4192,13 +4534,13 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('dazbin','hp'),
     speed:     duels2GetSkillBalance('dazbin','speed'),
     radius:    duels2GetSkillBalance('dazbin','radius'),
-    statsText: [['체력',String(duels2GetSkillBalance('dazbin','hp'))],['이동속도','빠름'],['스타일','압박형 원거리 컨트롤러']],
+    statsText: [['체력',String(duels2GetSkillBalance('dazbin','hp'))],['이동속도','빠름'],['스타일','범위장악형 중거리 컨트롤러']],
     desc:      '물의 정령과 파동으로 적을 압박하는 캐릭터',
     skills: [
       { key:'LMB', name:'물의 정령', cost:duels2GetSkillBalance('dazbin','lmb').cost,
-        desc:`물의 정령 발사. 적을 향해 유도 (${duels2GetSkillBalance('dazbin','lmb').damage})` },
+        desc:`물의 정령이 추적. 적을 향해 유도 (${duels2GetSkillBalance('dazbin','lmb').damage})` },
       { key:'RMB', name:'파동 구체', cost:duels2GetSkillBalance('dazbin','rmb').cost,
-        desc:`벽과 적 관통 파동 구체 발사. (${duels2GetSkillBalance('dazbin','rmb').damage}/s)` },
+        desc:`벽과 적 관통 파동 구체를 발사해 범위 내 적 감속 및 지속 피해 (${duels2GetSkillBalance('dazbin','rmb').damage}/s)` },
       { key:'L-Shift', name:'잠수', cost:0,
         desc:`원형 피해를 입히며 잠수 후 이동, 재출수 후 원형피해. 양 지점에 물구덩이 생성. (${duels2GetSkillBalance('dazbin','counter').damage})` },
     ],
@@ -4211,15 +4553,15 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('yui','hp'),
     speed:     duels2GetSkillBalance('yui','speed'),
     radius:    duels2GetSkillBalance('yui','radius'),
-    statsText: [['체력',String(duels2GetSkillBalance('yui','hp'))],['이동속도','빠름'],['스타일','순간이동형 근거리 암살자']],
-    desc:      '텔레포트와 스테미나 복원으로 싸우는 캐릭터',
+    statsText: [['체력',String(duels2GetSkillBalance('yui','hp'))],['이동속도','빠름'],['스타일','기동형 초근거리 암살자']],
+    desc:      '무한히 스테미나를 복원하며 텔레포트로 적에게 혼란을 주는 캐릭터',
     skills: [
       { key:'LMB', name:'텔레포트 단검', cost:duels2GetSkillBalance('yui','lmb').cost,
-        desc:`전방 부채꼴 베기. 적중 시 마우스 방향 순간이동 (${duels2GetSkillBalance('yui','lmb').damage})` },
+        desc:`전방 부채꼴 베기. 적중 시 순간이동 (${duels2GetSkillBalance('yui','lmb').damage})` },
       { key:'RMB', name:'공간 역행', cost:duels2GetSkillBalance('yui','rmb').cost,
-        desc:`${duels2GetSkillBalance('yui','rmb').rewindTime/1000}초 전의 위치로 되돌아감. 스테미나도 복원` },
+        desc:`${duels2GetSkillBalance('yui','rmb').rewindTime/1000}초 전의 위치로 되돌아가며 해당 시점으로 스테미나 복원` },
       { key:'L-Shift', name:'순간이동 베기', cost:0,
-        desc:`전방으로 순간이동하며 경로상 적에게 피해 (${duels2GetSkillBalance('yui','counter').damage})` },
+        desc:`전방으로 순간이동하며 경로상 적 피해 (${duels2GetSkillBalance('yui','counter').damage})` },
     ],
   },
 
@@ -4230,8 +4572,8 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('peluna','hp'),
     speed:     duels2GetSkillBalance('peluna','speed'),
     radius:    duels2GetSkillBalance('peluna','radius'),
-    statsText: [['체력',String(duels2GetSkillBalance('peluna','hp'))],['이동속도','빠름'],['스타일','평타강화형 근거리 탱커']],
-    desc:      '모루로 자신의 망치를 강화하는 캐릭터',
+    statsText: [['체력',String(duels2GetSkillBalance('peluna','hp'))],['이동속도','빠름'],['스타일','조건형 초근거리 탱커']],
+    desc:      '모루의 강화지대 내에서 전투하는 캐릭터',
     skills: [
       { key:'LMB', name:'망치질', cost:duels2GetSkillBalance('peluna','lmb').cost,
         desc:`${duels2GetSkillBalance('peluna','lmb').predelay/1000}초 선딜레이 후 원주 범위 피해 (${duels2GetSkillBalance('peluna','lmb').damage}). 강화 중에는 선딜레이 없이 ${duels2GetSkillBalance('peluna','lmb').cd/1000}초 간격으로 원형 공격하며 피해 ${duels2GetSkillBalance('peluna','lmb').empoweredDamage} (+${duels2GetRelativeIncreasePercent(duels2GetSkillBalance('peluna','lmb').damage,duels2GetSkillBalance('peluna','lmb').empoweredDamage)}%)` },
@@ -4240,6 +4582,11 @@ const CHARACTERS = {
       { key:'L-Shift', name:'인력 망치', cost:0,
         desc:`주변 적을 끌어당기고 피해 (${duels2GetSkillBalance('peluna','counter').damage}). ${duels2GetSkillBalance('peluna','counter').empowerDur/1000}초간 평타 강화` },
     ],
+    summonSpecs:[{name:'모루',stats:[
+      {key:'HEALTH',value:duels2GetSkillBalance('peluna','rmb').anvilHealth},
+      {key:'MOVE SPEED',value:`없음`},
+      {key:'ABILITY',value:`주변에 강화지대 생성`}
+    ]}],
   },
 
   sherina: {
@@ -4253,9 +4600,11 @@ const CHARACTERS = {
     desc:      '에코의 잔향을 이용해 공간을 장악하는 캐릭터',
     skills: [
       { key:'LMB', name:'소리의 활', cost:duels2GetSkillBalance('sherina','lmb').cost,
-        desc:`에코 발사. 경로에 ${duels2GetSkillBalance('sherina','lmb').echoDur/1000}초 잔향 남김 (${duels2GetSkillBalance('sherina','lmb').damage}/${duels2GetSkillBalance('sherina','lmb').echoDamage})` },
+        desc:`에코 발사. (${duels2GetSkillBalance('sherina','lmb').damage})` },
+      { key:'LMB REVERB', name:'', cost:duels2GetSkillBalance('sherina','lmb').cost,
+        desc:`에코 경로에 ${duels2GetSkillBalance('sherina','lmb').echoDur/1000}초동안 잔향이 남아 지속 피해 (${duels2GetSkillBalance('sherina','lmb').echoDamage}/s)` },
       { key:'RMB', name:'더블링', cost:duels2GetSkillBalance('sherina','rmb').cost,
-        desc:`최근 에코 경로 ${duels2GetSkillBalance('sherina','rmb').maxPaths}개에 파장을 보내 확장 공격. 주변 적을 넉백시킴` },
+        desc:`주변 적을 넉백하며 최근 에코 경로 ${duels2GetSkillBalance('sherina','rmb').maxPaths}개의 잔향 확장` },
       { key:'L-Shift', name:'백스텝', cost:0,
         desc:`부채꼴로 에코를 발사하며 뒤로 이동 (${duels2GetSkillBalance('sherina','counter').damage})` },
     ],
@@ -4268,13 +4617,15 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('sya','hp'),
     speed:     duels2GetSkillBalance('sya','speed'),
     radius:    duels2GetSkillBalance('sya','radius'),
-    statsText: [['체력',String(duels2GetSkillBalance('sya','hp'))],['이동속도','매우 빠름'],['스타일','기습형 근거리 암살자']],
-    desc:      '은신으로 기습하고 빙결로 제압하는 캐릭터',
+    statsText: [['체력',String(duels2GetSkillBalance('sya','hp'))],['이동속도','매우 빠름'],['스타일','파워형 근거리 암살자']],
+    desc:      '은신으로 기습해 빠르게 쏟아붓고 빠져나오는 캐릭터',
     skills: [
       { key:'LMB',     name:'대낫베기',  cost:duels2GetSkillBalance('sya','lmb').cost,
-        desc:`대낫으로 부채꼴 횡베기. (${duels2GetSkillBalance('sya','lmb').damage})` },
-      { key:'RMB',     name:'서리안개 은신',      cost:`${duels2GetSkillBalance('sya','rmb').activationCost}~${duels2GetSkillBalance('sya','rmb').activationCost + duels2GetSkillBalance('sya','rmb').staminaDrain * (duels2GetSkillBalance('sya','rmb').maxDur/1000)}`,
-        desc:`${duels2GetSkillBalance('sya','rmb').fadeInDur/1000}초에 걸쳐 은신하며 최대 ${duels2GetSkillBalance('sya','rmb').maxDur/1000}초 유지, 이동속도 +${Math.round((duels2GetSkillBalance('sya','rmb').speedBoost-1)*100)}%. 적 접근 시 해제 및 ${duels2GetSkillBalance('sya','rmb').freezeDur/1000}초 빙결, 다음 ${duels2GetSkillBalance('sya','rmb').attackBoostCount}회 공격속도 대폭 상승` },
+        desc:`대낫 횡베기. (${duels2GetSkillBalance('sya','lmb').damage})` },
+      { key:'RMB RANGED',     name:'서리안개 은신',      cost:`${duels2GetSkillBalance('sya','rmb').activationCost}~${duels2GetSkillBalance('sya','rmb').activationCost + duels2GetSkillBalance('sya','rmb').staminaDrain * (duels2GetSkillBalance('sya','rmb').maxDur/1000)}`,
+        desc:`서서히 은신. 최대 ${duels2GetSkillBalance('sya','rmb').maxDur/1000}초 유지 및 재사용으로 해제. 은신 도중 이동을 제외한 행동 시 일시적으로 모습 발각` },
+      { key:'RMB MELEE', name:'안개 기습', cost:0,
+        desc:`은신 중 적이 근접하면 은신을 해제하고 주변 적 ${duels2GetSkillBalance('sya','rmb').freezeDur/1000}초 빙결. 다음 평타 ${duels2GetSkillBalance('sya','rmb').attackBoostCount}회 공격속도 증가` },
       { key:'L-Shift', name:'서리폭풍 베기', cost:0,
         desc:`주변 원형 베기. 적중 시 ${duels2GetSkillBalance('sya','counter').freezeDur/1000}초 빙결 (${duels2GetSkillBalance('sya','counter').damage})` },
     ],
@@ -4287,15 +4638,21 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('runef','hp'),
     speed:     duels2GetSkillBalance('runef','speed'),
     radius:    duels2GetSkillBalance('runef','radius'),
-    statsText: [['체력',String(duels2GetSkillBalance('runef','hp'))],['이동속도','보통'],['스타일','콤보형 중거리 저격수']],
+    statsText: [['체력',String(duels2GetSkillBalance('runef','hp'))],['이동속도','보통'],['스타일','지속전투형 중거리 저격수']],
     desc:      '불·얼음·번개·바람 속성 마법을 구사하는 캐릭터',
     skills: [
       { key:'LMB', name:'마법탄', cost:duels2GetSkillBalance('runef','lmb').cost,
-        desc:`최대 2회 연사 가능. 이 경우 다음 마법탄의 피해 증가. (${duels2GetSkillBalance('runef','lmb').damage}/${duels2GetSkillBalance('runef','lmb').damage2})` },
-      { key:'RMB', name:'속성마법', cost:duels2GetSkillBalance('runef','rmb').cost,
-desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireExpDamage}) / 우클릭+좌클릭 : 빙결 (${duels2GetSkillBalance('runef','rmb').iceDamage}) / 우클릭+우클릭 : 낙뢰 3타 (타당 ${duels2GetSkillBalance('runef','rmb').lightningDamage})` },
-      { key:'L-Shift', name:'바람마법', cost:0,
-        desc:`전방으로 토네이도 생성. 적을 사거리 끝까지 밀어냄 (${duels2GetSkillBalance('runef','counter').damage})` },
+        desc:`마법 에너지 발사. 일정 시간 내 재사용 가능(${duels2GetSkillBalance('runef','lmb').damage})` },
+      { key:'LMB/LMB', name:'연쇄 마법탄', cost:duels2GetSkillBalance('runef','lmb').cost,
+        desc:`더 강한 마법 에너지 발사 (${duels2GetSkillBalance('runef','lmb').damage2})` },
+      { key:'RMB', name:'화염 마법', cost:duels2GetSkillBalance('runef','rmb').cost,
+        desc:`화염구를 발사해 폭발 피해 및 ${duels2GetSkillBalance('runef','rmb').fireBurnDur/1000}초 화염 (${duels2GetSkillBalance('runef','rmb').fireExpDamage})` },
+      { key:'RMB/LMB', name:'얼음 마법', cost:0,
+        desc:`부채꼴 범위에 피해 및 ${duels2GetSkillBalance('runef','rmb').iceFreezeDur/1000}초 빙결 (${duels2GetSkillBalance('runef','rmb').iceDamage})` },
+      { key:'RMB/RMB', name:'번개 마법', cost:0,
+        desc:`지정 위치에 낙뢰 ${duels2GetSkillBalance('runef','rmb').lightningCount}회 및 ${duels2GetSkillBalance('runef','rmb').lightningZapDur/1000}초 감전  (타당 ${duels2GetSkillBalance('runef','rmb').lightningDamage})` },
+      { key:'L-Shift', name:'바람 마법', cost:0,
+        desc:`벽 관통 토네이도 생성. 적을 사거리 끝까지 밀어냄 (${duels2GetSkillBalance('runef','counter').damage})` },
     ],
   },
 
@@ -4306,15 +4663,19 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('roon','hp'),
     speed:     duels2GetSkillBalance('roon','speed'),
     radius:    duels2GetSkillBalance('roon','radius'),
-    statsText: [['체력',String(duels2GetSkillBalance('roon','hp'))],['이동속도','빠름'],['스타일','빙결형 중거리 컨트롤러']],
-    desc:      '얼린 멜론으로 빙수 게이지를 채워 적을 얼리는 캐릭터',
+    statsText: [['체력',String(duels2GetSkillBalance('roon','hp'))],['이동속도','빠름'],['스타일','행동제약형 중거리 컨트롤러']],
+    desc:      '적을 얼리며 빙수로 움직임을 봉쇄하는 캐릭터',
     skills: [
       { key:'LMB', name:'얼린 멜론', cost:duels2GetSkillBalance('roon','lmb').cost,
-        desc:`얼린 멜론 2개 투척. ${duels2GetSkillBalance('roon','lmb').slushMax}회 적중 시 ${duels2GetSkillBalance('roon','lmb').freezeDur/1000}초 빙결. (${duels2GetSkillBalance('roon','lmb').damage})` },
+        desc:`얼린 멜론 2개 투척. 적중 시 빙수 게이지 증가 (${duels2GetSkillBalance('roon','lmb').damage})` },
+      { key:'LMB CRIT', name:'', cost:0,
+        desc:`빙수 게이지 최대치 도달 시 ${duels2GetSkillBalance('roon','lmb').freezeDur/1000}초 빙결` },
+      { key:'LMB FREEZE', name:'', cost:0,
+        desc:`빙결 지대 위의 적에게 적중 시 빙수 게이지가 더 빠르게 증가` },
       { key:'RMB', name:'빙수 지대', cost:duels2GetSkillBalance('roon','rmb').cost,
-        desc:`커다란 빙수 투척. 적중 시 지대 중앙으로 이동. 지대 안의 적은 빠져나가지 못하며 게이지 빠르게 증가. (${duels2GetSkillBalance('roon','rmb').damage})` },
+        desc:`커다란 빙수 투척. 적중 시 지대 중앙으로 이동. 지대 안에 적 감금. (${duels2GetSkillBalance('roon','rmb').damage})` },
       { key:'L-Shift', name:'급속 냉동', cost:0,
-        desc:`한기를 내보냄. 즉시 빙결 및 게이지 ${duels2GetSkillBalance('roon','counter').slushFill} 충전. (${duels2GetSkillBalance('roon','counter').damage})` },
+        desc:`한기를 내보내 즉시 빙결 및 게이지 충전. (${duels2GetSkillBalance('roon','counter').damage})` },
     ],
   },
 
@@ -4325,15 +4686,19 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('intu','hp'),
     speed:     duels2GetSkillBalance('intu','speed'),
     radius:    duels2GetSkillBalance('intu','radius'),
-    statsText: [['체력',String(duels2GetSkillBalance('intu','hp'))],['이동속도','빠름'],['스타일','무기전환형 원거리 딜러']],
+    statsText: [['체력',String(duels2GetSkillBalance('intu','hp'))],['이동속도','빠름'],['스타일','파워형 중거리 딜러']],
     desc:      '권총·산탄총·저격총을 상황에 맞게 사용하는 캐릭터',
     skills: [
-      { key:'LMB', name:'총기', cost:`${duels2GetSkillBalance('intu','pistol').cost}/${duels2GetSkillBalance('intu','shotgun').cost}`,
-        desc:`권총(${duels2GetSkillBalance('intu','pistol').damage}) / 산탄총(발당 ${duels2GetSkillBalance('intu','shotgun').damage}). 탄창 ${duels2GetSkillBalance('intu','magMax')}발, 소진 시 ${duels2GetSkillBalance('intu','reloadTime')/1000}초 재장전` },
-      { key:'RMB', name:'무기 스왑', cost:`${duels2GetSkillBalance('intu','pistol').cost}/${duels2GetSkillBalance('intu','shotgun').cost}`,
-        desc:`권총↔산탄총 전환 후 즉시 발사` },
-      { key:'L-Shift', name:'저격총', cost:0,
-        desc:`저격총 전환 후 즉시 발사. 적과 벽 관통 및 4초 유지 (${duels2GetSkillBalance('intu','sniper').damage})` },
+      { key:'LMB PISTOL', name:'권총 사격', cost:duels2GetSkillBalance('intu','pistol').cost,
+        desc:`권총 발사. (${duels2GetSkillBalance('intu','pistol').damage})` },
+      { key:'LMB SHOTGUN', name:'산탄총 사격', cost:duels2GetSkillBalance('intu','shotgun').cost,
+        desc:`산탄총 ${duels2GetSkillBalance('intu','shotgun').pellets}발 발사. (탄당 ${duels2GetSkillBalance('intu','shotgun').damage})` },
+      { key:'LMB SNIPER', name:'저격총 사격', cost:duels2GetSkillBalance('intu','sniper').cost,
+        desc:`적과 벽을 관통하는 저격탄 발사 (${duels2GetSkillBalance('intu','sniper').damage})` },
+      { key:'RMB', name:'무기 전환', cost:duels2GetSkillBalance('intu','rmb').cost,
+        desc:`권총 또는 산탄총으로 전환하며 즉시 발사, 탄창 ${duels2GetSkillBalance('intu','magMax')}발 및 소진 시 재장전 ${duels2GetSkillBalance('intu','reloadTime')/1000}초` },
+      { key:'L-Shift', name:'저격총 전환', cost:0,
+        desc:`${duels2GetSkillBalance('intu','sniper').counterDur/1000}초 동안 저격총으로 전환하며 즉사 발사` },
     ],
   },
 
@@ -4344,12 +4709,18 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('meramona','hp'),
     speed:     duels2GetSkillBalance('meramona','speed'),
     radius:    duels2GetSkillBalance('meramona','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('meramona','hp'))],['이동속도','보통'],['스타일','성장형 원거리 딜러']],
+    statsText: [['체력', String(duels2GetSkillBalance('meramona','hp'))],['이동속도','보통'],['스타일','성장형 중거리 딜러']],
     desc:      '정의를 수호하는 마법소녀 캐릭터',
     skills: [
-      { key:'LMB',     name:'정의의 이름으로!', cost:duels2GetSkillBalance('meramona','lmb').cost,  desc:`마법봉을 휘둘러 정의의 광선 발사 (${duels2GetSkillBalance('meramona','lmb').damage})` },
-      { key:'RMB',     name:'변신!',           cost:duels2GetSkillBalance('meramona','rmb').cost, desc:`${duels2GetSkillBalance('meramona','rmb').hitsRequired}회 타격 시 ${duels2GetSkillBalance('meramona','rmb').transformDur/1000}초 무적 후 마법소녀 폼으로 변신. 최대 4단계. 1:사거리↑ 2:이속↑ 3:공속↑ 4:광선 즉발 (${duels2GetSkillBalance('meramona','rmb').emergeDamage})` },
-      { key:'L-Shift', name:'지지않아!',       cost:0, desc:`주변 원형 공격. 적중 시 일시적으로 1단계 상승 (${duels2GetSkillBalance('meramona','counter').damage})` },
+      { key:'LMB',     name:'정의의 이름으로!', cost:duels2GetSkillBalance('meramona','lmb').cost, desc:`마법봉을 휘둘러 정의의 광선 발사 (${duels2GetSkillBalance('meramona','lmb').damage})` },
+      { key:'RMB',     name:'변신!', cost:duels2GetSkillBalance('meramona','rmb').cost, desc:`${duels2GetSkillBalance('meramona','rmb').hitsRequired}회 타격 시 사용 가능. ${duels2GetSkillBalance('meramona','rmb').transformDur/1000}초 무적 후 다음 단계로 변신하며 피해 및 넉백 (${duels2GetSkillBalance('meramona','rmb').emergeDamage})` },
+      { inlineStages:[
+        { key:'RMB I', text:'사거리 증가' },
+        { key:'RMB II', text:'이동속도 증가' },
+        { key:'RMB III', text:'공격속도 증가' },
+        { key:'RMB IV', text:'광선 탄속 제거' }
+      ], hideCost:true },
+      { key:'L-Shift', name:'지지않아!', cost:0, desc:`정의의 에너지 방출. 적중 시 ${duels2GetSkillBalance('meramona','counter').tempStageDur/1000}초간 1단계 상승 (${duels2GetSkillBalance('meramona','counter').damage})` },
     ],
   },
 
@@ -4360,15 +4731,19 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('tadta','hp'),
     speed:     duels2GetSkillBalance('tadta','speed'),
     radius:    duels2GetSkillBalance('tadta','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('tadta','hp'))],['이동속도','매우 느림'],['스타일','속박형 중거리 컨트롤러']],
+    statsText: [['체력', String(duels2GetSkillBalance('tadta','hp'))],['이동속도','매우 느림'],['스타일','범위장악형 중거리 컨트롤러']],
     desc:      '타락한 덩굴의 정령에게 잠식당한 캐릭터',
     skills: [
-      { key:'LMB',     name:'덩굴 씨앗', cost:duels2GetSkillBalance('tadta','lmb').cost,
+      { key:'LMB', name:'덩굴 씨앗', cost:duels2GetSkillBalance('tadta','lmb').cost,
         desc:`덩굴 씨앗 9발 연사 (발당 ${duels2GetSkillBalance('tadta','lmb').damage})` },
+      { key:'LMB BIND', name:'', cost:0,
+        desc:`덩굴 지대 위의 적에게 적중 시 ${duels2GetSkillBalance('tadta','rmb').bindDur/1000}초 속박` },
       { key:'RMB',     name:'덩굴 지대', cost:duels2GetSkillBalance('tadta','rmb').cost,
-        desc:`덩굴 지대 생성. 적을 감속시키며, 지대 위 적 타격 시 ${duels2GetSkillBalance('tadta','rmb').bindDur/1000}초 속박 (${duels2GetSkillBalance('tadta','rmb').tickDamage})` },
+        desc:`지정한 위치에 덩굴 지대 생성. 적을 감속시키며 지속 피해 (${duels2GetSkillBalance('tadta','rmb').tickDamage}/s)` },
       { key:'L-Shift', name:'덩굴 묶기', cost:0,
-        desc:`덩굴을 크게 2회 휘둘러 피해. 1타 감속, 2타 감속된 적 타격 시 ${duels2GetSkillBalance('tadta','counter').bindDur/1000}초 속박 (타당 ${duels2GetSkillBalance('tadta','counter').damage})` },
+        desc:`덩굴을 크게 2회 휘둘러 피해 및 슬로우 (타당 ${duels2GetSkillBalance('tadta','counter').damage})` },
+      { key:'L-Shift BIND', name:'', cost:0,
+        desc:`슬로우된 적에게 적중 시 ${duels2GetSkillBalance('tadta','counter').bindDur/1000}초 속박` },
     ],
   },
 
@@ -4379,11 +4754,13 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('nanamnang','hp'),
     speed:     duels2GetSkillBalance('nanamnang','speed'),
     radius:    duels2GetSkillBalance('nanamnang','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('nanamnang','hp'))],['이동속도','느림'],['스타일','회복형 중거리 탱커']],
+    statsText: [['체력', String(duels2GetSkillBalance('nanamnang','hp'))],['이동속도','느림'],['스타일','지속전투형 중거리 탱커']],
     desc:      '자는것이 좋은 소녀 캐릭터',
     skills: [
-      { key:'LMB',     name:'베개싸움', cost:duels2GetSkillBalance('nanamnang','lmb').cost,
-        desc:`배게 휘두르기. 차징 시 베개를 날림. 적중 시 잃은 체력의 ${Math.round(duels2GetSkillBalance('nanamnang','lmb').healRatio*100)}% 회복 (${duels2GetSkillBalance('nanamnang','lmb').damage}/${duels2GetSkillBalance('nanamnang','lmb').throwDamage})` },
+      { key:'LMB',      name:'베개 휘두르기', cost:duels2GetSkillBalance('nanamnang','lmb').cost,
+        desc:`베개를 휘둘러 공격. 적중 시 잃은 체력의 ${Math.round(duels2GetSkillBalance('nanamnang','lmb').healRatio*100)}% 회복 (${duels2GetSkillBalance('nanamnang','lmb').damage})` },
+      { key:'LMB HOLD', name:'베개 투척', cost:duels2GetSkillBalance('nanamnang','lmb').cost,
+        desc:`최대 차징 시 베개를 던짐. 적중 시 잃은 체력의 ${Math.round(duels2GetSkillBalance('nanamnang','lmb').healRatio*100)}% 회복 (${duels2GetSkillBalance('nanamnang','lmb').throwDamage})` },
       { key:'RMB',     name:'잘 자요',  cost:duels2GetSkillBalance('nanamnang','rmb').cost,
         desc:`${duels2GetSkillBalance('nanamnang','rmb').stunDur/1000}초 수면(타격 시 깨어남) 후 잃은 체력의 ${Math.round(duels2GetSkillBalance('nanamnang','rmb').healRatio*100)}% 회복` },
       { key:'L-Shift', name:'깊은 잠',  cost:0,
@@ -4399,14 +4776,16 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     speed:     duels2GetSkillBalance('raise','speed'),
     radius:    duels2GetSkillBalance('raise','radius'),
     statsText: [['체력', String(duels2GetSkillBalance('raise','hp'))],['이동속도','빠름'],['스타일','차징형 근거리 딜러']],
-    desc:      '기계팔을 충전시켜 강력한 공격을 구사하는 캐릭터',
+    desc:      '프로토타입 기계팔을 충전시켜 강력한 한방 공격을 구사하는 캐릭터',
     skills: [
       { key:'LMB',     name:'파워 펀치', cost:duels2GetSkillBalance('raise','lmb').clickCost,
-        desc:`연타 시 최대 ${duels2GetSkillBalance('raise','lmb').maxClicks}클릭까지 피해 증가, 최대 ${duels2GetSkillBalance('raise','lmb').maxWindow/1000}초까지 충전(이후엔 연타 유지 시 상태만 유지). 연타를 멈추면 발동. 최대충전 시 넉백 (${duels2GetSkillBalance('raise','lmb').minDamage}~${duels2GetSkillBalance('raise','lmb').maxDamage})` },
+        desc:`${duels2GetSkillBalance('raise','lmb').maxWindow/1000}초 동안 클릭 시 최대 ${duels2GetSkillBalance('raise','lmb').maxClicks}회 피해 증가. 연타를 중지하면 선딜레이 후 공격 및 최대충전 시 넉백 (${duels2GetSkillBalance('raise','lmb').minDamage}~${duels2GetSkillBalance('raise','lmb').maxDamage})` },
+      { key:'LMB CHARGED', name:'', cost:0,
+        desc:`충전 완료 후에도 연타 시 차징 상태 유지` },
       { key:'RMB',     name:'내려찍기',  cost:duels2GetSkillBalance('raise','rmb').cost,
-        desc:`빠르게 점프 후 내려치며 낙하해 범위 내 ${duels2GetSkillBalance('raise','rmb').stunDur/1000}초 기절` },
+        desc:`빠르게 점프 후 내려치며 낙하해 주변 적 ${duels2GetSkillBalance('raise','rmb').stunDur/1000}초 기절` },
       { key:'L-Shift', name:'방출',      cost:0,
-        desc:`원형 피해. 다음 파워 펀치가 33% 충전된 상태로 시작 (${duels2GetSkillBalance('raise','counter').damage})` },
+        desc:`기계팔의 열기를 방출하며 원형 피해. 다음 파워 펀치가 33% 충전된 상태로 시작 (${duels2GetSkillBalance('raise','counter').damage})` },
     ],
   },
 
@@ -4418,15 +4797,15 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('levina','hp'),
     speed:     duels2GetSkillBalance('levina','speed'),
     radius:    duels2GetSkillBalance('levina','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('levina','hp'))],['이동속도','매우 빠름'],['스타일','조작형 초장거리 저격수']],
+    statsText: [['체력', String(duels2GetSkillBalance('levina','hp'))],['이동속도','매우 빠름'],['스타일','파워형 초장거리 저격수']],
     desc:      '악마의 삼지창을 조종해 적을 공격하는 캐릭터',
     skills: [
       { key:'LMB',     name:'삼지창',       cost:duels2GetSkillBalance('levina','lmb').cost,
-        desc:`창을 던짐. 재사용 시 경로 추가 가능 (피해 ${duels2GetSkillBalance('levina','lmb').minDamage})`, wpCost:duels2GetSkillBalance('levina','lmb').wpCost },
+        desc:`창의 경로 지정. 창은 벽과 적을 관통 (${duels2GetSkillBalance('levina','lmb').minDamage})` },
       { key:'RMB',     name:'악마의 거래',   cost:duels2GetSkillBalance('levina','rmb').cost,
-        desc:`창을 던지며, 창이 더 빠르게 이동하며 벽 관통. 해당 경로에서 ${duels2GetSkillBalance('levina','rmb').rmbBonusDamage} 추가 피해 및 넉백`, wpCost:duels2GetSkillBalance('levina','rmb').wpCost },
+        desc:`창의 경로 지정. 창은 해당 경로에서 더 높은 피해로 더 빠르게 이동하며 적중한 적을 넉백시킴 (${duels2GetSkillBalance('levina','lmb').minDamage + duels2GetSkillBalance('levina','rmb').rmbBonusDamage})` },
       { key:'L-Shift', name:'영혼의 계약',   cost:0,
-        desc:`주변 피해 후 창 위치로 순간이동, 도착지 추가 피해 (${duels2GetSkillBalance('levina','counter').damage})` },
+        desc:`창의 위치로 순간이동하며 두 지점에서 피해 (${duels2GetSkillBalance('levina','counter').damage})` },
     ],
   },
 
@@ -4437,15 +4816,21 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('ki','hp'),
     speed:     duels2GetSkillBalance('ki','speed'),
     radius:    duels2GetSkillBalance('ki','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('ki','hp'))],['이동속도','빠름'],['스타일','기만형 근거리 딜러']],
-    desc:      '전설적인 도둑으로, 상대를 속이며 플레이하는 캐릭터',
+    statsText: [['체력', String(duels2GetSkillBalance('ki','hp'))],['이동속도','빠름'],['스타일','행동제약형 근거리 딜러']],
+    desc:      '예고장으로 상대의 회피를 이끌어내 이득을 취하는 캐릭터',
     skills: [
       { key:'LMB',     name:'손기술',   cost:duels2GetSkillBalance('ki','lmb').cost,
-        desc:`3연타 근거리 공격. 마지막 타격 적중 후 ${duels2GetSkillBalance('ki','lmb').teleWindow/1000}초 내 재입력으로 해당 방향 순간이동 (${duels2GetSkillBalance('ki','lmb').damage}/${duels2GetSkillBalance('ki','lmb').damage}/${duels2GetSkillBalance('ki','lmb').finalDamage})` },
+        desc:`3연타 근거리 공격. 마지막 타격 적중 시 재사용 활성화 (${duels2GetSkillBalance('ki','lmb').damage}/${duels2GetSkillBalance('ki','lmb').finalDamage})` },
+      { key:'LMB/LMB',     name:'추격',   cost:duels2GetSkillBalance('ki','lmb').cost,
+        desc:`짧은 거리 순간이동` },
       { key:'RMB',     name:'예고장',   cost:duels2GetSkillBalance('ki','rmb').cost,
-        desc:`예고장 표시 생성. 표시 범위 내 상대가 저스트 회피가 아닌 회피 사용 시 체력 및 스테미나 ${Math.round(duels2GetSkillBalance('ki','rmb').healRatio*100)}% 회복. LMB로 범위 내 광역 피해 / RMB로 순간이동 후 예고장 제거. (${duels2GetSkillBalance('ki','rmb').damage})` },
+        desc:`예고 지역 생성. 예고 지역 내 상대가 저스트 회피가 아닌 회피 사용 시 키의 체력 및 스테미나 ${Math.round(duels2GetSkillBalance('ki','rmb').healRatio*100)}% 회복` },
+      { key:'RMB/LMB', name:'예고 실행', cost:0,
+        desc:`예고 지역에 광역 피해 (${duels2GetSkillBalance('ki','rmb').damage})` },
+      { key:'RMB/RMB', name:'기만', cost:0,
+        desc:`순간이동 후 예고 취소` },
       { key:'L-Shift', name:'특수탈취', cost:0,
-        desc:`전방 일자 범위 공격 후 뒤로 순간이동. 적중 시 체력 및 스테미나 ${Math.round(duels2GetSkillBalance('ki','counter').healRatio*100)}% 회복 (${duels2GetSkillBalance('ki','counter').damage})` },
+        desc:`단거리 공격 후 뒤로 순간이동. 적중 시 키의 체력 및 스테미나 ${Math.round(duels2GetSkillBalance('ki','counter').healRatio*100)}% 회복 (${duels2GetSkillBalance('ki','counter').damage})` },
     ],
   },
 
@@ -4456,15 +4841,19 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('sor','hp'),
     speed:     duels2GetSkillBalance('sor','speed'),
     radius:    duels2GetSkillBalance('sor','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('sor','hp'))],['이동속도','보통'],['스타일','감전형 중거리 컨트롤러']],
+    statsText: [['체력', String(duels2GetSkillBalance('sor','hp'))],['이동속도','보통'],['스타일','행동제약형 중거리 컨트롤러']],
     desc:      '감전을 이용해 상대의 행동을 제한하는 캐릭터',
     skills: [
-      { key:'LMB',     name:'배터리',   cost:duels2GetSkillBalance('sor','lmb').cost,
-        desc:`전파를 발사해 피해 ${duels2GetSkillBalance('sor','lmb').damage} 및 감전 ${duels2GetSkillBalance('sor','lmb').zapDur/1000}초. 정전기장 통과 또는 이미 감전된 적 타격 시 방전시켜 일시적으로 스테미나 회복 완전 정지` },
+      { key:'LMB', name:'배터리', cost:duels2GetSkillBalance('sor','lmb').cost,
+        desc:`전파를 발사해 피해 및 ${duels2GetSkillBalance('sor','lmb').zapDur/1000}초 감전 (${duels2GetSkillBalance('sor','lmb').damage})` },
+      { key:'LMB DISCHARGE', name:'', cost:duels2GetSkillBalance('sor','lmb').cost,
+        desc:`전파가 정전기장을 통과하거나 이미 감전된 적을 타격하면 방전시켜 일시적으로 스테미나 회복 정지` },
       { key:'RMB',     name:'정전기장', cost:duels2GetSkillBalance('sor','rmb').cost,
-        desc:`배터리를 던져 정전기장 생성. 범위 내 적에게 피해 ${duels2GetSkillBalance('sor','rmb').damage} 및 감전 ${duels2GetSkillBalance('sor','rmb').zapDur/1000}초` },
-      { key:'L-Shift', name:'정전기',   cost:0,
-        desc:`전방 넓은 일자 공격으로 피해 ${duels2GetSkillBalance('sor','counter').damage}, 넉백 및 감전 ${duels2GetSkillBalance('sor','counter').zapDur/1000}초. 감전 중인 적 적중 시 방전` },
+        desc:`배터리를 던져 정전기장 생성. 범위 내 적에게 피해 ${duels2GetSkillBalance('sor','rmb').damage} 및 지속적으로 감전 ${duels2GetSkillBalance('sor','rmb').zapDur/1000}초 적용` },
+      { key:'L-Shift', name:'정전기 방출', cost:0,
+        desc:`전방에 피해 및 넉백과 감전 ${duels2GetSkillBalance('sor','counter').zapDur/1000}초 (${duels2GetSkillBalance('sor','counter').damage})` },
+      { key:'L-Shift DISCHARGE', name:'', cost:0,
+        desc:`감전된 적에게 적중 시 일시적으로 방전시켜 스테미나 회복 정지` },
     ],
   },
 
@@ -4475,7 +4864,7 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('jerry','hp'),
     speed:     duels2GetSkillBalance('jerry','speed'),
     radius:    duels2GetSkillBalance('jerry','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('jerry','hp'))],['이동속도','느림'],['스타일','파워형 근거리 딜러']],
+    statsText: [['체력', String(duels2GetSkillBalance('jerry','hp'))],['이동속도','느림'],['스타일','파워형 중거리 딜러']],
     desc:      '폭발물로 단거리 곡사와 근거리를 견제하는 캐릭터',
     skills: [
       { key:'LMB', name:'유탄발사기', cost:duels2GetSkillBalance('jerry','lmb').cost,
@@ -4495,15 +4884,17 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('ruli','hp'),
     speed:     duels2GetSkillBalance('ruli','speed'),
     radius:    duels2GetSkillBalance('ruli','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('ruli','hp'))],['이동속도','보통'],['스타일','거리조절형 중거리 딜러']],
+    statsText: [['체력', String(duels2GetSkillBalance('ruli','hp'))],['이동속도','보통'],['스타일','조건형 중거리 딜러']],
     desc:      '정확한 거리를 가늠하며 전투하는 캐릭터',
     skills: [
       { key:'LMB', name:'줄자', cost:duels2GetSkillBalance('ruli','lmb').cost,
         desc:`현재 단계의 사거리 끝에서 피해 (${duels2GetSkillBalance('ruli','lmb').damage})` },
-      { key:'RMB', name:'길이조절', cost:duels2GetSkillBalance('ruli','rmb').cost,
-        desc:`줄자의 타격 지점을 1~${duels2GetSkillBalance('ruli','rmb').stages}단계로 조정. 차징으로 단계 감소` },
+      { key:'RMB', name:'길이 증가', cost:duels2GetSkillBalance('ruli','rmb').cost,
+        desc:`줄자의 길이 증가` },
+      { key:'RMB HOLD', name:'길이 감소', cost:duels2GetSkillBalance('ruli','rmb').cost,
+        desc:`줄자의 길이 감소` },
       { key:'L-Shift', name:'되감기', cost:0,
-        desc:`줄자를 7단계까지 즉시 늘린 뒤 1단계까지 순차적으로 되감으며 피해 (${duels2GetSkillBalance('ruli','counter').damage}×7)` },
+        desc:`줄자를 7단계까지 즉시 늘린 뒤 1단계까지 순차적으로 되감으며 피해 (타당 ${duels2GetSkillBalance('ruli','counter').damage})` },
     ],
   },
 
@@ -4514,16 +4905,23 @@ desc:`우클릭 : 화염구 폭발 (${duels2GetSkillBalance('runef','rmb').fireE
     maxHealth: duels2GetSkillBalance('lete','hp'),
     speed:     duels2GetSkillBalance('lete','speed'),
     radius:    duels2GetSkillBalance('lete','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('lete','hp'))],['이동속도','빠름'],['스타일','유지형 중거리 서포터']],
+    statsText: [['체력', String(duels2GetSkillBalance('lete','hp'))],['이동속도','빠름'],['스타일','지속전투형 중거리 서포터']],
     desc:      '도착하지 못한 편지들의 한이 모여 탄생한 분실된 편지의 정령 캐릭터',
     skills: [
       { key:'LMB', name:'우편이야.', cost:duels2GetSkillBalance('lete','lmb').cost,
-        desc:`우편을 빠르게 날림. 사거리 끝에 도달 시 귀환 (${duels2GetSkillBalance('lete','lmb').damage})` },
+        desc:`우편 투척. 사거리 끝에 도달 시 귀환 (${duels2GetSkillBalance('lete','lmb').damage})` },
       { key:'RMB', name:'한서린 우편함', cost:duels2GetSkillBalance('lete','rmb').cost,
-        desc:`조준 방향 ${duels2GetSkillBalance('lete','rmb').placeDist} 거리 앞에 우편함 설치, 재사용 시 회수. 우편함은 ${duels2GetSkillBalance('lete','rmb').fireRange} 범위의 가까운 아군을 인식해 공격 범위의 2/3인 약 ${Number(duels2GetSkillBalance('lete','rmb').letterRange.toFixed(1))} 거리까지 편지를 날리며, 획득 시 스테미나 ${Math.round(duels2GetSkillBalance('lete','rmb').staminaRatio*100)}% 회복` },
+        desc:`우편함 설치 및 재사용으로 회수` },
+      { key:'RMB/L-Shift', name:'우편 지원', cost:0,
+        desc:`전방에 4통의 우편 투척. 사거리 끝에 도달 시 귀환 (타당 ${duels2GetSkillBalance('lete','counter').letterDamage})` },
       { key:'L-Shift', name:'우편함도 무기', cost:0,
-        desc:`우편함을 휘두르고 편지를 날림. 설치된 우편함이 있으면 편지만 날림 (${duels2GetSkillBalance('lete','counter').damage})` },
+        desc:`우편함을 휘두르며 전방에 4통의 우편 투척. 사거리 끝에 도달 시 귀환 (${duels2GetSkillBalance('lete','counter').damage}/타당 ${duels2GetSkillBalance('lete','counter').letterDamage})` },
     ],
+    summonSpecs:[{name:'우편함',stats:[
+      {key:'HEALTH',value:duels2GetSkillBalance('lete','rmb').mailboxHp},
+      {key:'MOVE SPEED',value:`없음`},
+      {key:'AUTO ATTACK',value:`${duels2GetSkillBalance('lete','rmb').fireRange} 범위 내 가까운 아군에게 지원 편지를 발사해 휙득 시 스테미나 ${Math.round(duels2GetSkillBalance('lete','rmb').staminaRatio*100)}% 회복`}
+    ]}],
   },
 
 };
@@ -4710,7 +5108,7 @@ const AUG_VALS = {
   lifesteal:   { ratio: 30, cdBonus: 20 },
   endurance:   { stamBonus: 35, speedPenalty: 10 },
   poison:      { dur: 2, dpsRatio: 15, dmgPenalty: 10 },
-  berserker:   { stamPerDmg: 4 },  // 피해 1당 스테미나 4 회복
+  berserker:   { stamPerDmg: 3 },  // 피해 1당 스테미나 3 회복
   protection:  { reduction: 15 },
   overpower:   { bonus: 10 },
   stun_shot:   { cd: 4 },
@@ -7594,7 +7992,7 @@ const DUELS2_SKILL_COST_EXECUTOR_RUNTIME = (() => {
     'mainmad.rmb':Object.freeze({reason:'rmb-special-gate-adoption:invulnerable-move', amount:45, specialRmbGate:'burrowing-active'}),
     'phase.rmb':Object.freeze({reason:'rmb-special-gate-adoption:invulnerable-jump', amount:40, specialRmbGate:'phase-jump-active'}),
     'raise.rmb':Object.freeze({reason:'rmb-special-gate-adoption:invulnerable-jump', amount:45, specialRmbGate:'raise-jump-active'}),
-    'kan.rmb':Object.freeze({reason:'target-gated-rmb-cost-executor-adoption', amount:70, targetRmbGate:'kan-target-before-cost'}),
+    'kan.rmb':Object.freeze({reason:'target-gated-rmb-cost-executor-adoption', amount:60, targetRmbGate:'kan-target-before-cost'}),
     'elin.rmb':Object.freeze({reason:'summon-command-rmb-cost-executor-adoption', summonCommandRmbGate:'elin-spirit-summon-command'}),
     'herjang.rmb':Object.freeze({reason:'summon-command-rmb-cost-executor-adoption', summonCommandRmbGate:'herjang-cannon-summon-command'}),
     'ruvu.rmb':Object.freeze({reason:'recall-toggle-rmb-cost-executor-adoption', amount:40, recallToggleRmbGate:'ruvu-hammer-recall-toggle'}),
@@ -16712,8 +17110,7 @@ function getPeerParryObjects() {
     list.push({
       x: spear.x, y: spear.y, radius: spear.radius || 18,
       parry() {
-        spear.state = 'returning';
-        spear.waypoints = [];
+        duels2BeginLevinaSpearRecall(spear, {copyForwardHits:false});
         send({type:'levinaSpearParried', x:spear.x, y:spear.y});
         emitFx({type:'parry', x:spear.x, y:spear.y, r:0, maxR:40, dur:12, maxDur:12});
       }
@@ -19312,24 +19709,30 @@ function getMiarukyToolboxHealPerSec() {
 // duels2RouteMiarukyToolboxRegenBuff: 공구함 회복지대를 직접 힐 tick이 아니라 기존 REGEN 버프/이펙트 모듈로 연결한다. (target: 적용 대상, active: 범위 안 여부, now: 현재 시각)
 function duels2RouteMiarukyToolboxRegenBuff(target, active = true, now = performance.now()) {
   if (!target) return false;
-  const id = 'miaruky_regen_flat';
+  const id = 'miaruky_heal_zone';
+  clearBuffStatus(target, 'miaruky_regen_flat');
   if (!active) {
     clearBuffStatus(target, id);
-    clearBuffStatus(target, 'miaruky_heal_zone');
     return false;
   }
   const perSec = getMiarukyToolboxHealPerSec();
   if (perSec <= 0) {
     clearBuffStatus(target, id);
-    clearBuffStatus(target, 'miaruky_heal_zone');
     return false;
   }
-  const B = duels2GetSkillBalance('miaruky','rmb');
-  duels2ApplyRegenFlatBuffEffect(target, B.healAmount, (B.healInterval || 500) + 220, {
-    sourceId:id, id, label:'REGEN', suffix:'/s', signMode:'none',
-    valueMode:'amount-per-tick', tickIntervalMs:B.healInterval || 500, moduleId:'effect.regen_flat.toolbox', resetTickOnApply:false
+  // 실제 회복은 syncTeamSupportZoneBuffs의 단일 tick 경로에서 처리하고,
+  // 이 상태는 REGEN 표시만 담당해 중복 회복을 방지한다.
+  applyBuffStatus(target, 'miaruky_heal_zone', perSec, 350, {
+    sourceId:id,
+    id,
+    label:'REGEN',
+    color:'170,255,90',
+    suffix:'/s',
+    signMode:'none',
+    applyModifier:false,
+    hidden:false,
+    text:`REGEN ${perSec}/s`
   });
-  clearBuffStatus(target, 'miaruky_heal_zone');
   return true;
 }
 function healAlliesInCircle(x, y, range, amount, source = L, opt = {}) {
@@ -19373,17 +19776,14 @@ function getLocalAllyEntitiesForBuff(owner = L) {
 }
 function isEntityInsideMiarukyToolbox(entity, owner = L) {
   const B = duels2GetSkillBalance('miaruky','rmb');
-  if (!(hasEntityFunctionalRuntime(owner, 'toolboxOrb') && owner.orb && !owner.orb.returning && entity)) return false;
-  return duels2EntityMatchesHitbox(entity, {
-    shape:'circle',
-    radius:Number(B.healRadius)||0,
-    relation:'ally'
-  }, {
-    source:owner,
-    x:Number(owner.orb.x)||0,
-    y:Number(owner.orb.y)||0,
-    route:'field.miaruky.toolbox.hitbox-query'
-  });
+  const orb = owner?.orb;
+  if (!entity || !owner || !orb || orb.returning || (orb.type && orb.type !== 'toolbox')) return false;
+  if (entity !== owner && !isSameTeam(entity, owner)) return false;
+  const ox = Number(orb.x);
+  const oy = Number(orb.y);
+  if (!Number.isFinite(ox) || !Number.isFinite(oy)) return false;
+  const radius = Math.max(0, Number(B.healRadius) || 0);
+  return Math.hypot((Number(entity.x)||0)-ox, (Number(entity.y)||0)-oy) <= radius + getEntityRadius(entity);
 }
 function isEntityInsidePrillZone(entity, owner = L, now = performance.now()) {
   if (!entity || !hasEntityFunctionalRuntime(owner, 'cleaningZone')) return false;
@@ -19399,11 +19799,23 @@ function isEntityInsidePrillZone(entity, owner = L, now = performance.now()) {
   return false;
 }
 function syncTeamSupportZoneBuffs(now = performance.now()) {
+  const miarukyRmb = duels2GetSkillBalance('miaruky','rmb');
   for (const a of getLocalAllyEntitiesForBuff(L)) {
-    if (isEntityInsideMiarukyToolbox(a, L)) {
-      duels2RouteMiarukyToolboxRegenBuff(a, true, now);
+    const insideMiarukyToolbox = isEntityInsideMiarukyToolbox(a, L);
+    duels2RouteMiarukyToolboxRegenBuff(a, insideMiarukyToolbox, now);
+    if (insideMiarukyToolbox) {
+      const interval = Math.max(50, Number(miarukyRmb.healInterval) || 500);
+      const nextTick = Number(a._miarukyToolboxNextHealAt) || (now + interval);
+      if (!a._miarukyToolboxNextHealAt) a._miarukyToolboxNextHealAt = nextTick;
+      if (now >= nextTick) {
+        const elapsedSteps = Math.max(1, Math.min(8, Math.floor((now - nextTick) / interval) + 1));
+        a._miarukyToolboxNextHealAt = nextTick + elapsedSteps * interval;
+        healEntityRaw(a, Math.max(0, Number(miarukyRmb.healAmount) || 0) * elapsedSteps, {
+          fx:true, source:L, route:'field.miaruky.toolbox.heal-tick', reason:'miaruky-toolbox-heal'
+        });
+      }
     } else {
-      duels2RouteMiarukyToolboxRegenBuff(a, false, now);
+      a._miarukyToolboxNextHealAt = 0;
     }
     if (isEntityInsidePrillZone(a, L, now)) syncTimedBuff(a, 'dmg', Math.round(duels2GetSkillBalance('prill','rmb').zoneDamageBoost*100), now+260, 'prill_zone_dmg');
     else clearBuffStatus(a, 'prill_zone_dmg');
@@ -26108,7 +26520,7 @@ function duels2RegisterExtendedLegacyEventHandlers() {
   duels2RegisterSimpleGameplayEventHandler('levinaSpear', d => {
     const e=duels2ResolvePacketSourceEntity(d);e._levinaSpear={x:d.x,y:d.y,dx:d.dx,dy:d.dy,speed:d.speed,radius:d.radius,birthTime:d.birthTime||performance.now(),pathRadius:d.pathRadius,knockbackPower:d.knockbackPower,type:d.type,state:d.state||'flying',waypoints:(d.waypoints||[]).map(w=>({x:w.x,y:w.y,kind:w.kind||'lmb'})),_hitCd:{},_retHitCd:{}};
   }, 510);
-  duels2RegisterSimpleGameplayEventHandler('levinaAddWP', d => {const e=duels2ResolvePacketSourceEntity(d);if(e._levinaSpear){e._levinaSpear.waypoints.push({x:d.x,y:d.y,kind:d.kind||'lmb'});e._levinaSpear.state='flying';}}, 510);
+  duels2RegisterSimpleGameplayEventHandler('levinaAddWP', d => {const e=duels2ResolvePacketSourceEntity(d);if(e._levinaSpear&&e._levinaSpear.state!=='returning'){const w={x:d.x,y:d.y,kind:d.kind||'lmb'};if(!Array.isArray(e._levinaSpear.waypoints))e._levinaSpear.waypoints=[];e._levinaSpear.waypoints.push(w);e._levinaSpear.state='flying';}}, 510);
   duels2RegisterSimpleGameplayEventHandler('levinaSpearDir',d=>{
     const e=duels2ResolvePacketSourceEntity(d);
     if(!e._levinaSpear&&d.type){
@@ -26123,10 +26535,11 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     }
     if(e._levinaSpear){
       duels2PushRemoteLevinaSpearSample(e._levinaSpear,d,'levinaSpearDir');
+      if (d.state === 'returning') { e._levinaSpear.waypoints = []; e._levinaSpear._pendingWaypoints = []; }
     }
   },510);
   duels2RegisterSimpleGameplayEventHandler('levinaSpearClear', d => {duels2ResolvePacketSourceEntity(d)._levinaSpear=null;}, 510);
-  duels2RegisterSimpleGameplayEventHandler('levinaSpearParried', d => {if(L._levinaSpear){L._levinaSpear.state='returning';L._levinaSpear.waypoints=[];L._levinaSpear.x=d.x;L._levinaSpear.y=d.y;}}, 510);
+  duels2RegisterSimpleGameplayEventHandler('levinaSpearParried', d => {if(L._levinaSpear)duels2BeginLevinaSpearRecall(L._levinaSpear,{x:d.x,y:d.y,copyForwardHits:false});}, 510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerThrow',d=>{
     const e=duels2ResolvePacketSourceEntity(d);
     e._ruvuHammer={
@@ -26760,8 +27173,10 @@ function onData(d) {
     }
     case 'levinaAddWP': {
       const sourceEntity = duels2ResolvePacketSourceEntity(d);
-      if (sourceEntity._levinaSpear) {
-        sourceEntity._levinaSpear.waypoints.push({x:d.x, y:d.y, kind:d.kind||'lmb'});
+      if (sourceEntity._levinaSpear && sourceEntity._levinaSpear.state !== 'returning') {
+        const waypoint = {x:d.x, y:d.y, kind:d.kind||'lmb'};
+        if (!Array.isArray(sourceEntity._levinaSpear.waypoints)) sourceEntity._levinaSpear.waypoints = [];
+        sourceEntity._levinaSpear.waypoints.push(waypoint);
         sourceEntity._levinaSpear.state = 'flying';
       }
       break;
@@ -26778,6 +27193,7 @@ function onData(d) {
       }
       if(sourceEntity._levinaSpear){
         duels2PushRemoteLevinaSpearSample(sourceEntity._levinaSpear,d,'levinaSpearDir-switch');
+        if (d.state === 'returning') { sourceEntity._levinaSpear.waypoints = []; sourceEntity._levinaSpear._pendingWaypoints = []; }
       } break;
     }
     case 'levinaSpearClear': {
@@ -26787,9 +27203,7 @@ function onData(d) {
     case 'levinaSpearParried':
       // 리안에게 패리당함 — 즉시 귀환 상태로 전환
       if (L._levinaSpear) {
-        L._levinaSpear.state = 'returning';
-        L._levinaSpear.waypoints = [];
-        L._levinaSpear.x = d.x; L._levinaSpear.y = d.y;
+        duels2BeginLevinaSpearRecall(L._levinaSpear, {x:d.x, y:d.y, copyForwardHits:false});
       } break;
     case 'ruvuHammerParried':
       // 리안에게 패리당함 — 즉시 귀환 시작, 귀환 히트 판정 차단
@@ -27772,6 +28186,56 @@ function duels2GetCharacterSelectionOrder(lastIds=['ruli']) {
   return Object.values(CHARACTERS).sort((a,b)=>(tail.has(a.id)?1:0)-(tail.has(b.id)?1:0));
 }
 
+// duels2GetCharacterMoveSpeedLabel: 캐릭터 카드의 이동속도 표시 문구를 반환한다. (ch: 캐릭터 정의)
+function duels2GetCharacterMoveSpeedLabel(ch) {
+  const speedEntry = (ch?.statsText || []).find(entry => entry?.[0] === '이동속도');
+  return String(speedEntry?.[1] || ch?.speed || '-');
+}
+
+// duels2BuildCharacterDescriptionHtml: 한줄 설명, 체력·이동속도, 스킬 목록 순서의 상세 설명 HTML을 만든다. 대괄호 입력 표기만 굵게 표시한다. (ch: 캐릭터 정의, options: 스테미나 비용 표시 여부 등)
+function duels2BuildCharacterDescriptionHtml(ch, options = {}) {
+  if (!ch) return '';
+  const includeCosts = options.includeCosts !== false;
+  const health = Number.isFinite(Number(ch.maxHealth)) ? Number(ch.maxHealth) : '-';
+  const moveSpeed = duels2GetCharacterMoveSpeedLabel(ch);
+  const skillsHtml = (ch.skills || []).map(skill => {
+    if (Array.isArray(skill.inlineStages)) {
+      return skill.inlineStages.map(stage =>
+        `<strong>[${stage.key}]</strong> ${stage.text}`
+      ).join(' ');
+    }
+
+    const costText = !includeCosts || skill.hideCost === true
+      ? ''
+      : (skill.wpCost
+          ? ` / 스테미나 ${skill.cost}/${skill.wpCost}`
+          : (skill.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${skill.cost}`));
+    const descriptionText = skill.desc
+      ? ` — ${skill.desc}`
+      : '';
+    const skillNameText = skill.name ? ` ${skill.name}` : '';
+    return `<strong>[${skill.key}]</strong>${skillNameText}${descriptionText}${costText}`;
+  }).join('<br>');
+  const summonSpecsHtml = (ch.summonSpecs || []).map(summon => {
+    const stats = summon.stats || [];
+    const healthStat = stats.find(stat => stat.key === 'HEALTH');
+    const moveSpeedStat = stats.find(stat => stat.key === 'MOVE SPEED');
+    const primaryStats = `<div style="margin:6px 0 10px;white-space:nowrap;">` +
+      `<strong>[HEALTH]</strong> ${healthStat?.value ?? '-'}` +
+      `<span style="display:inline-block;width:18px;"></span>` +
+      `<strong>[MOVE SPEED]</strong> ${moveSpeedStat?.value ?? '-'}</div>`;
+    const detailStats = stats.filter(stat => stat.key !== 'HEALTH' && stat.key !== 'MOVE SPEED')
+      .map(stat => `<strong>[${stat.key}]</strong> ${stat.value}`).join('<br>');
+    return `<br><br>${summon.name}${primaryStats}${detailStats}`;
+  }).join('');
+  return `${ch.desc}<br>` +
+    `<div style="margin:6px 0 10px;white-space:nowrap;">` +
+    `<strong>[HEALTH]</strong> ${health}` +
+    `<span style="display:inline-block;width:18px;"></span>` +
+    `<strong>[MOVE SPEED]</strong> ${moveSpeed}</div>` +
+    `${skillsHtml}${summonSpecsHtml}`;
+}
+
 // Lobby, character select setup / training screens
 let selCharId = null;
 document.addEventListener('DOMContentLoaded', () => {
@@ -27794,10 +28258,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.dataset.id = ch.id;
     card.dataset.id = ch.id;
     const statsHtml   = ch.statsText.map(([k,v]) => `<div><b>${k}</b><span>: ${v}</span></div>`).join('');
-    const tooltipHtml = `${ch.desc}<br><br>` + ch.skills.map(s =>
-      `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
-      (s.wpCost ? ` / 스테미나 ${s.cost}/${s.wpCost}` : (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`))
-    ).join('<br>');
+    const tooltipHtml = duels2BuildCharacterDescriptionHtml(ch);
     card.innerHTML = `
       <div class="char-tooltip">${tooltipHtml}</div>
       <div class="char-icon" style="background:${ch.color}22;border:3px solid ${ch.color};"></div>
@@ -31859,18 +32320,6 @@ function duels2ClearLeteGroundLetters(reason='lete-mailbox-state-change') {
 }
 window.duels2ClearLeteGroundLetters=duels2ClearLeteGroundLetters;
 
-// duels2FireLeteRecallSupportLetters: 우편함 회수 직전에 사거리 안의 모든 유효 아군에게 지원 우편을 한 장씩 발사한다. (mailbox: 회수할 우편함, balance: 우편함 수치)
-function duels2FireLeteRecallSupportLetters(mailbox, balance) {
-  const allies=duels2GetLeteMailEligibleAllies(mailbox,balance.fireRange);
-  for(const target of allies){
-    const angle=Math.atan2(target.y-mailbox.y,target.x-mailbox.x);
-    const b=duels2CreateLeteLetterProjectile(angle,balance,'support',{x:mailbox.x,y:mailbox.y,targetId:target.id||target.pid||null,targetX:target.x,targetY:target.y,staminaRatio:balance.staminaRatio});
-    duels2RouteProjectileDelivery(b,{applyPierce:false,sync:true,playSfx:false,moduleId:'delivery.lete-recall-support-mail',reason:'lete.mailbox.recall-support'});
-  }
-  if(allies.length) playShootSfx();
-  return allies.length;
-}
-
 // duels2RecallLeteMailboxOnly: 기존 비행 우편과 바닥 우편을 보존한 채 지정한 우편함 엔티티만 제거한다. (mailbox: 회수할 우편함, options: 제거 사유·네트워크 전송 여부)
 function duels2RecallLeteMailboxOnly(mailbox, options={}) {
   if (!mailbox) return false;
@@ -32356,8 +32805,8 @@ const SKILLS = {
   ruvu: {
     lmb(angle) {
       const B = duels2GetSkillBalance('ruvu','lmb');
-      if (!useStam(B.cost)) return;
       // ── 망치가 날아가는 중이면 LMB → 망치 위치로 돌진 ──
+      // RMB 후속 입력이므로 일반 LMB 못 발사 비용을 소모하지 않는다.
       if (L._ruvuHammer && !L._ruvuHammer.returning) {
         L._isRmbContext = true; // 연계 좌클릭은 등가교환 rmb 배율 적용
         const BR = duels2GetSkillBalance('ruvu','rmb');
@@ -32378,6 +32827,7 @@ const SKILLS = {
         return; // 못 발사 실행 안 함
       }
       // ── 일반 못 발사 ──
+      if (!useStam(B.cost)) return;
       const b={id:uid(), x:L.x, y:L.y, radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
                dx:Math.cos(angle), dy:Math.sin(angle), damage:B.damage, maxRange:B.range, traveled:0};
       duels2RouteProjectileDelivery(b, {applyPierce:true, sync:true, playSfx:true, reason:'legacy.apply-pierce-bullet-sfx'});
@@ -32506,6 +32956,10 @@ const SKILLS = {
         L._attackPreview = null;
         if (!gameOn || L._counterToken!==tok) return;
         L.color = L.defaultColor; L._preFlashColor = null; send({type:'colorChange', color:L.defaultColor});
+        duels2ExecuteCounterHealEffect(L, B.healAmount, {
+          fx:true, source:L, route:'character.miaruky.counter.self-heal',
+          reason:'miaruky-counter-heal', sourceLabel:'miaruky-counter-heal'
+        });
         hitCtxAll({x:L.x, y:L.y, range:B.range}, B.damage, {knockbackPower:B.knockbackPower});
         emitFx({type:'aoe', x:L.x, y:L.y, r:B.range, dur:18, maxDur:18});
         L.lastAttackTime = performance.now();
@@ -32579,7 +33033,7 @@ const SKILLS = {
       }, _drillPreDelay);
     },
 
-    // RMB: 굴파기 — 지하로 이동, 이 시간동안 쌍방 공격 불가
+    // RMB: 굴파기 — 지하로 이동하며 WASD 입력으로 진행 방향 조작
     rmb(angle) {
       if (L.burrowing) {
         duels2RecordSpecialRmbBlocked('mainmad', 'already-burrowing', 'already-burrowing', {route:'skill.rmb.mainmad.pre-cost.burrowing-block', actor:L});
@@ -32587,39 +33041,75 @@ const SKILLS = {
       }
       const B = duels2GetSkillBalance('mainmad','rmb');
       if (!useStam(B.cost)) return;
-      const dx = Math.cos(angle), dy = Math.sin(angle);
-      const ex = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + dx * B.dist));
-      const ey = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + dy * B.dist));
-      // 굴 입구 저장 (상대에게도 보임)
-      L.burrowEntry = {x:L.x, y:L.y};
-      L.burrowing   = true;
-      const _burrowIntervalKey = '_mainmadBurrowInterval';
-      duels2MovementStartCancelableDashTo?.(L, _burrowIntervalKey, ex, ey, B.dur, {
-        reason:'mainmad.rmb.burrow-move',
-        route:'movement.skill-dash.executor.burrow',
-        source:L,
-        easing:'quadraticInOut',
-        resolveWallEachTick:false,
-        replaceReason:'mainmad.rmb:replace-existing-burrow-dash',
-        replaceRoute:'movement.skill-dash.cancel.replace-burrow-executor',
-        finishReason:'mainmad.rmb.burrow:complete',
-        finishRoute:'movement.skill-dash.finish.burrow-executor',
-        stopReason:'mainmad.rmb.burrow:game-stopped',
-        stopRoute:'movement.skill-dash.cancel.game-stop-burrow-executor',
-        payload:{burrow:true, wallTraversal:'pass-through', invulnerableMovement:true},
-        onFinish(target, info) {
-          duels2ResolveWallTraversalLanding(target, {startX:target._moveStartX, startY:target._moveStartY, targetX:info?.x, targetY:info?.y});
+
+      const startX = L.x;
+      const startY = L.y;
+      const duration = Math.max(FRAME_MS, Number(B.dur) || 400);
+      const distance = Math.max(0, Number(B.dist) || 0);
+      const steeringSpeed = Math.max(0, Number(B.steeringSpeed) || (distance / duration * 1000));
+      let offsetX = 0;
+      let offsetY = 0;
+      let lastUpdateAt = performance.now();
+
+      L.burrowEntry = {x:startX, y:startY};
+      L.burrowing = true;
+      emitFx({type:'burrowEnter', x:startX, y:startY, r:L.radius+8, dur:14, maxDur:14});
+
+      const movement = duels2ExecuteMovementModule('command.standard', {
+        type:'timeline',
+        actor:L,
+        fromX:startX,
+        fromY:startY,
+        // Timeline은 생명주기만 담당한다. 실제 위치는 onUpdate에서 이동 입력으로만 계산한다.
+        toX:startX,
+        toY:startY,
+        duration,
+        easing:'linear',
+        route:'movement.mainmad.rmb.burrow-timeline',
+        resolveWall:false,
+        onUpdate:({target, progress}) => {
+          const now = performance.now();
+          const dtSec = Math.max(0, Math.min(0.1, (now-lastUpdateAt)/1000));
+          lastUpdateAt = now;
+          const steerX = (keys['d'] ? 1 : 0) - (keys['a'] ? 1 : 0);
+          const steerY = (keys['s'] ? 1 : 0) - (keys['w'] ? 1 : 0);
+          if (steerX || steerY) {
+            const len = Math.hypot(steerX, steerY) || 1;
+            offsetX += steerX / len * steeringSpeed * dtSec;
+            offsetY += steerY / len * steeringSpeed * dtSec;
+          }
+          // 조준 방향이나 스킬 사용 시점의 각도는 이동에 사용하지 않는다.
+          // 누르고 있는 이동키의 누적 경로만 굴파기 위치가 된다.
+          target.x = Math.max(target.radius, Math.min(WORLD_W-target.radius, startX + offsetX));
+          target.y = Math.max(target.radius, Math.min(WORLD_H-target.radius, startY + offsetY));
+          target.tx = target.x;
+          target.ty = target.y;
+        },
+        onCancel:({target}) => {
           target.burrowing = false;
           target.burrowEntry = null;
+          target.tx = target.x;
+          target.ty = target.y;
+        },
+        onComplete:({target}) => {
+          duels2ResolveWallTraversalLanding(target, {startX, startY, targetX:target.x, targetY:target.y});
+          target.burrowing = false;
+          target.burrowEntry = null;
+          target.tx = target.x;
+          target.ty = target.y;
           emitFx({type:'burrowExit', x:target.x, y:target.y, r:0, maxR:50, dur:14, maxDur:14});
-        },
-        onCancel(target) {
-          target.burrowing = false;
-          target.burrowEntry = null;
-        },
+        }
       });
-      emitFx({type:'burrowEnter', x:L.x, y:L.y, r:L.radius+8, dur:14, maxDur:14});
-      L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
+
+      if (!movement) {
+        L.burrowing = false;
+        L.burrowEntry = null;
+        L.tx = L.x;
+        L.ty = L.y;
+        return;
+      }
+      L.rmbCooldown = B.cd;
+      L.lastAttackTime = performance.now();
     },
 
     // L-Shift: 내려치기 — 원형 범위 기절 + 피해 + 넉백
@@ -32729,7 +33219,9 @@ const SKILLS = {
       const B = duels2GetSkillBalance('veleu','lmb');
       if (!useStam(B.cost)) return;
       playShootSfx();
-      const signs = L._veleuPhase === 0 ? [1, -1, 1] : [-1, 1, -1];
+      const burstCount = Math.max(1, Math.floor(B.burstCount));
+      const startSign = L._veleuPhase === 0 ? 1 : -1;
+      const signs = Array.from({length:burstCount}, (_, index) => startSign * (index % 2 === 0 ? 1 : -1));
       L._veleuPhase = 1 - L._veleuPhase;
       const _baseAngle = Number.isFinite(opt.forceAngle) ? opt.forceAngle : angle;
       const _ctx = cloneActionContextForProjectile(getActiveOrImplicitHitActionContext('lmb'));
@@ -32890,11 +33382,12 @@ const SKILLS = {
         L._attackPreview = null;
         if (!gameOn || L._counterToken !== tok) return;
         const angle = getAngle();
-        if (swingNum === 2) {
+        if (swingNum === B.swingCount) {
           L.color = L.defaultColor; L._preFlashColor = null;
           send({type:'colorChange', color:L.defaultColor});
         }
-        const swingAngle = angle + (swingNum === 1 ? -Math.PI*0.15 : Math.PI*0.15);
+        const swingProgress = B.swingCount <= 1 ? 0.5 : (swingNum - 1) / (B.swingCount - 1);
+        const swingAngle = angle + (-Math.PI * 0.15 + swingProgress * Math.PI * 0.3);
         const counterCtx = duels2GetRecentCounterActionContext(L);
         const swingShape = {x:L.x, y:L.y, angle:swingAngle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle};
         const _mhHits = getTargetsInCtx(swingShape, null, {source:L, team:'enemy'});
@@ -32908,8 +33401,12 @@ const SKILLS = {
         L.lastAttackTime = performance.now();
       };
 
-      setTimeout(() => doSwing(1), BALANCE.counter.delay);
-      setTimeout(() => doSwing(2), BALANCE.counter.delay + B.swingDelay);
+      for (let swingNum = 1; swingNum <= B.swingCount; swingNum += 1) {
+        setTimeout(
+          () => doSwing(swingNum),
+          BALANCE.counter.delay + (swingNum - 1) * B.swingDelay
+        );
+      }
     },
   },
 
@@ -34777,9 +35274,9 @@ const SKILLS = {
       }
       emitFx({type:'sherinaDoubling', x:L.x, y:L.y, paths, dur:20, maxDur:20});
       L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
-      // 넉백: FX 범위(반경 90px) 이내 적에게만
-      const _sherinaKnockTargets = queryEnemyTargets(L, {shape:'circle', x:L.x, y:L.y, range:150}, {route:'hitbox.sherina.rmb-knockback'});
-      for (const _t of _sherinaKnockTargets) applyCC(_t, {knockbackPower:420, knockbackAngle:Math.atan2(_t.y-L.y, _t.x-L.x)}, L, {slot:'rmb'});
+      // 넉백 범위와 힘은 셰리나 RMB 밸런스 데이터를 단일 기준으로 사용한다.
+      const _sherinaKnockTargets = queryEnemyTargets(L, {shape:'circle', x:L.x, y:L.y, range:B.knockbackRange}, {route:'hitbox.sherina.rmb-knockback'});
+      for (const _t of _sherinaKnockTargets) applyCC(_t, {knockbackPower:B.knockbackPower, knockbackAngle:Math.atan2(_t.y-L.y, _t.x-L.x)}, L, {slot:'rmb'});
     },
 
     counter(angle) {
@@ -35091,7 +35588,7 @@ const SKILLS = {
         id:uid(), x:_sx, y:_sy, radius:augBulletRadius(B.fireRadius),
         speed:augBulletSpeed(B.fireSpeed), dx:Math.cos(angle), dy:Math.sin(angle),
         damage:B.fireDamage, maxRange:B.fireRange, traveled:0,
-        isRunefFire:true, isExplosionWeapon:true, expRadius:augExplosionRange(B.fireExpRadius), expDamage:B.fireExpDamage,
+        isRunefFire:true, isExplosionWeapon:true, expRadius:augExplosionRange(B.fireExpRadius), expDamage:B.fireExpDamage, burnDur:B.fireBurnDur,
         color:'#ff2200',
       };
       duels2RouteProjectileDelivery(b, {applyPierce:false, sync:true, playSfx:true, reason:'legacy.bullet-sfx'});
@@ -35125,7 +35622,7 @@ const SKILLS = {
         const _lightningRadius = augExplosionRange(B.lightningRadius);
         emitFx({type:'runefLightning', x:_tx, y:_ty, r:_lightningRadius, dur:8, maxDur:8});
         const _lhits = hitCtx({x:_tx, y:_ty, range:_lightningRadius}, B.lightningDamage);
-        for (const _lt of _lhits) applyCC(_lt, {zapDur:1000});
+        for (const _lt of _lhits) applyCC(_lt, {zapDur:B.lightningZapDur});
       };
       // 첫 타 즉시 발동
       _fireLightning();
@@ -35567,18 +36064,35 @@ const SKILLS = {
         if (!gameOn || L._counterToken !== tok) return;
         L.color = L.defaultColor; L._preFlashColor = null;
         send({type: 'colorChange', color: L.defaultColor});
-        // 첫 번째 타격 — 시계방향 스윕 + 감속
+        // applyAdaptiveCounterCC: 각 타격 시 현재 슬로우 여부만으로 슬로우/속박을 결정한다. (targets: 이번 타격 대상 목록)
+        const applyAdaptiveCounterCC = (targets) => {
+          for (const target of targets) {
+            const hasSlow = isTargetStatusActive?.(target, 'slow') === true;
+            applyCC(
+              target,
+              hasSlow ? {bindDur:B.bindDur} : {slowDur:B.slowDur},
+              L,
+              {
+                slot:'counter', actionCtx:counterCtx,
+                route:hasSlow ? 'character.tadta.counter.adaptive-bind' : 'character.tadta.counter.adaptive-slow',
+                reason:hasSlow ? 'tadta-counter-bind-existing-slow' : 'tadta-counter-apply-slow'
+              }
+            );
+          }
+        };
+
+        // 첫 번째 타격 — 시계방향 스윕
         const _ang1 = getAngle();
         const counterCtx = duels2GetRecentCounterActionContext(L);
         const firstShape = {x: L.x, y: L.y, range: B.range};
         const firstHits = getTargetsInCtx(firstShape, null, {source:L, team:'enemy'});
         duels2ResolveDamageTargetPath(firstHits, B.damage, {
           source:L, slot:'counter', actionCtx:counterCtx,
-          hitTags:['counter','melee','area','slow'], cc:{slowDur:B.slowDur},
+          hitTags:['counter','melee','area'],
           windowTargetMode:'applied', restoreWindow:false,
-          route:'character.tadta.counter.first-swing', reason:'tadta-counter-first-damage-slow'
+          route:'character.tadta.counter.first-swing', reason:'tadta-counter-first-damage'
         });
-        L._tadtaCounterSlowedTargets = new Set(firstHits);
+        applyAdaptiveCounterCC(firstHits);
         addFx({type: 'syaSwing', x: L.x, y: L.y, col: '0,160,30', angle: _ang1, range: B.range, halfAngle: Math.PI, dur: 22, maxDur: 22});
         send({type: 'fx', fx: {type: 'syaSwing', x: L.x, y: L.y, col: '0,160,30', angle: _ang1, range: B.range, halfAngle: Math.PI, dur: 22, maxDur: 22}});
         L.lastAttackTime = performance.now();
@@ -35596,15 +36110,7 @@ const SKILLS = {
           });
           addFx({type: 'syaSwing', x: L.x, y: L.y, col: '0,210,50', angle: _ang2, range: B.range, halfAngle: Math.PI, ccw: true, dur: 22, maxDur: 22});
           send({type: 'fx', fx: {type: 'syaSwing', x: L.x, y: L.y, col: '0,210,50', angle: _ang2, range: B.range, halfAngle: Math.PI, ccw: true, dur: 22, maxDur: 22}});
-          for (const _bt of secondHits) {
-            const _hasVineSlow2 = L._tadtaVineZone && performance.now() < L._tadtaVineZone.expiry
-              && Math.hypot(_bt.x - L._tadtaVineZone.x, _bt.y - L._tadtaVineZone.y) < L._tadtaVineZone.r + _bt.radius;
-            const _wasSlowedByFirst = L._tadtaCounterSlowedTargets?.has(_bt) === true;
-            if (_wasSlowedByFirst || _hasVineSlow2 || isTargetStatusActive?.(_bt,'slow')) {
-              applyCC(_bt, {bindDur: B.bindDur}, L, {slot:'counter', actionCtx:counterCtx, route:'character.tadta.counter.second-bind', reason:'tadta-counter-bind'});
-            }
-          }
-          L._tadtaCounterSlowedTargets = null;
+          applyAdaptiveCounterCC(secondHits);
           L.lastAttackTime = performance.now();
         }, B.swingDelay);
       }, BALANCE.counter.delay);
@@ -36482,7 +36988,6 @@ const SKILLS = {
       if(existing) {
         // 우편함 회수 시 기존 바닥 우편은 정리하되, 이미 비행 중인 우편은 유지한다.
         duels2ClearLeteGroundLetters('lete-mailbox-recall');
-        duels2FireLeteRecallSupportLetters(existing,B);
         duels2RecallLeteMailboxOnly(existing,{reason:'lete-mailbox-recall',broadcast:true});
         L.rmbCooldown=B.recallCd||300;
         L.lastAttackTime=performance.now();
@@ -36666,9 +37171,9 @@ const SKILLS = {
 
 
   levina: {
-    // 레비나 창의 기본 피해를 유지 시간과 무관하게 15로 고정한다. ()
+    // 레비나 창의 기본 피해를 유지 시간과 무관하게 LMB 밸런스 값으로 고정한다. ()
     _dmg(sp) {
-      return 15;
+      return duels2GetSkillBalance('levina','lmb').minDamage;
     },
 
     lmb(angle, opt={}) {
@@ -36681,19 +37186,26 @@ const SKILLS = {
       const _wpY = _target ? _target.y : (_autoAimPoint ? _autoAimPoint.y : mouseY);
       const sp = L._levinaSpear;
       if (sp) {
-        // 창 존재 → LMB 경유지 추가
+        // 회수 중에는 모든 경로 입력을 차단한다.
+        if (sp.state === 'returning') return;
+        // 행동불능 중에는 기존 창에 새 경로를 추가할 수 없다.
+        if (duels2IsEntityActionBlockedDirect(L)) return;
+        // 창 존재 → LMB 경유지 추가.
         const _now = performance.now();
         if ((_now - (L._levinaLmbWpCd||0)) < B.wpDelay) return;
         if (!useStam(B.wpCost)) return;
         L._levinaLmbWpCd = _now;
-        sp.waypoints.push({x: _wpX, y: _wpY, kind:'lmb'});
+        const _waypoint = {x:_wpX, y:_wpY, kind:'lmb'};
+        if (!Array.isArray(sp.waypoints)) sp.waypoints = [];
+        sp.waypoints.push(_waypoint);
         sp.state = 'flying';
         sp._clearHitSegPending = true;
         send({type:'levinaAddWP', x:_wpX, y:_wpY, kind:'lmb', state:'flying'});
         return;
       }
       if (L.lmbCooldown > 0) return;
-      if (!useStam(B.cost)) return;
+      // 최초 투척도 첫 경로 생성으로 취급해 경로 비용만 지불한다.
+      if (!useStam(B.wpCost)) return;
       const _now = performance.now();
       const _levPierce = getAugCount('pierce_shot') > 0 && L._pierceShotReady;
       if (_levPierce) { L._pierceShotReady = false; L._pierceShotCd = _now + AUG_VALS.pierce_shot.cd*1000; L._pierceShotUsed = true; }
@@ -36713,8 +37225,12 @@ const SKILLS = {
       const B = duels2GetSkillBalance('levina','rmb');
       const sp = L._levinaSpear;
       if (sp) {
+        // 회수 중에는 모든 경로 입력을 차단한다.
+        if (sp.state === 'returning') return;
+        // 행동불능 중에는 기존 창에 새 경로를 추가할 수 없다.
+        if (duels2IsEntityActionBlockedDirect(L)) return;
         duels2RecordSpecialRmbGuard('levina', 'spear-waypoint-cost-branch', {route:'skill.rmb.levina.pre-cost.waypoint-branch', actor:L, costMode:'waypoint-cost', detail:{wpCost:B.wpCost}});
-        // 창 존재 → RMB 경유지 추가 (스테미나 더 많이 소모)
+        // 창 존재 → RMB 경유지 추가. 귀환 중이면 도착 후 다시 출발하도록 예약한다.
         const _now = performance.now();
         if ((_now - (L._levinaRmbWpCd||0)) < B.wpDelay) {
           duels2RecordSpecialRmbBlocked('levina', 'waypoint-delay', 'waypoint-delay', {route:'skill.rmb.levina.pre-cost.waypoint-delay', actor:L, detail:{wpDelay:B.wpDelay}});
@@ -36730,13 +37246,14 @@ const SKILLS = {
         if (!duels2UseExecutorPaidSkillCostOrLegacy(B.wpCost, 'rmb', {route:'skill-internal.levina.rmb.waypoint-cost', source:'skill-internal.levina.rmb'})) return;
         let _installed = false;
         try {
-          sp.waypoints.push({x:_wpX, y:_wpY, kind:'rmb'});
+          const _waypoint = {x:_wpX, y:_wpY, kind:'rmb'};
+          sp.waypoints.push(_waypoint);
           _installed = sp.waypoints.length > 0;
-          if (!_installed) throw new Error('levina-waypoint-install-failed');
-          L._levinaRmbWpCd = _now;
           sp.state = 'flying';
           sp._clearHitSegPending = true;
           send({type:'levinaAddWP', x:_wpX, y:_wpY, kind:'rmb', state:'flying'});
+          if (!_installed) throw new Error('levina-waypoint-install-failed');
+          L._levinaRmbWpCd = _now;
         } catch (_err) {
           L.stamina = Math.min(L._augStamMax ?? STAM_MAX, L.stamina + Number(B.wpCost || 0));
           console.error('[Levina] RMB waypoint install failed; stamina refunded.', _err);
@@ -36748,8 +37265,8 @@ const SKILLS = {
         duels2RecordComplexRmbCostBranch('levina', 'cooldown', 'blocked', {route:'skill.rmb.levina.pre-cost.cooldown', actor:L, costMode:'no-cost-blocked', reason:'rmb-cooldown', detail:{rmbCooldown:L.rmbCooldown}});
         return;
       }
-      duels2RecordSpecialRmbGuard('levina', 'spear-summon-cost-branch', {route:'skill.rmb.levina.pre-cost.summon-branch', actor:L, costMode:'normal-flat-cost', detail:{cost:B.cost}});
-      if (!duels2UseExecutorPaidSkillCostOrLegacy(B.cost, 'rmb', {route:'skill-internal.levina.rmb.summon-cost', source:'skill-internal.levina.rmb'})) return;
+      duels2RecordSpecialRmbGuard('levina', 'spear-summon-cost-branch', {route:'skill.rmb.levina.pre-cost.summon-branch', actor:L, costMode:'normal-flat-cost', detail:{cost:B.wpCost}});
+      if (!duels2UseExecutorPaidSkillCostOrLegacy(B.wpCost, 'rmb', {route:'skill-internal.levina.rmb.initial-waypoint-cost', source:'skill-internal.levina.rmb'})) return;
       const _now = performance.now();
       const _levPierceR = getAugCount('pierce_shot') > 0 && L._pierceShotReady;
       if (_levPierceR) { L._pierceShotReady = false; L._pierceShotCd = _now + AUG_VALS.pierce_shot.cd*1000; L._pierceShotUsed = true; }
@@ -37098,6 +37615,22 @@ CANVAS.addEventListener('mousemove', e => {
     }
   }
 });
+// duels2BeginLevinaSpearRecall: 레비나 창의 모든 경로를 폐기하고 새 경로 입력을 잠근 채 회수를 시작한다. (spear: 회수할 창, opt: 좌표·전송 여부)
+function duels2BeginLevinaSpearRecall(spear, opt={}) {
+  if (!spear) return false;
+  spear.state = 'returning';
+  spear.waypoints = [];
+  spear._pendingWaypoints = [];
+  spear._clearHitSegPending = false;
+  if (Number.isFinite(opt.x)) spear.x = opt.x;
+  if (Number.isFinite(opt.y)) spear.y = opt.y;
+  if (opt.copyForwardHits !== false) spear._retHitSeg = new Set(spear._hitSeg || []);
+  if (opt.sendDir) {
+    send({type:'levinaSpearDir', dx:0, dy:0, x:spear.x, y:spear.y, state:'returning'});
+  }
+  return true;
+}
+
 let _levinaRecallHoldTimer = null;
 let _levinaRecallHoldTriggered = false;
 let _levinaRecallHoldStartedAt = 0;
@@ -37123,10 +37656,7 @@ function duels2FinishLevinaRecallHold() {
   if (L._levinaSpear) {
     if (_levinaRecallHoldTriggered) {
       const sp = L._levinaSpear;
-      sp.state = 'returning';
-      sp.waypoints = [];
-      sp._retHitSeg = new Set(sp._hitSeg || []);
-      send({type:'levinaSpearDir', dx:0, dy:0, x:sp.x, y:sp.y, state:'returning'});
+      duels2BeginLevinaSpearRecall(sp, {sendDir:true});
     } else {
       runSkillInputContext('lmb', () => SKILLS.levina.lmb(getAngle()), {tags:['manual_lmb','spear','waypoint-release']});
     }
@@ -39506,7 +40036,7 @@ function duels2RegisterCoreProjectileImpactSpecs() {
       if (!(context.rangeOut || context.oob || context.hitWall || context.hitEnemy)) return {consumeFrame:true, triggered:false};
       emitFx({type:'runefFireExplosion', x:projectile.x, y:projectile.y, r:projectile.expRadius, dur:16, maxDur:16});
       duels2RouteProjectileImpactArea(projectile.x, projectile.y, projectile.expRadius, projectile.expDamage,
-        {knockbackPower:420, burnDur:1000, originX:projectile.x, originY:projectile.y},
+        {knockbackPower:420, burnDur:projectile.burnDur, originX:projectile.x, originY:projectile.y},
         {bullet:projectile, route:'projectile.impact.spec.runef-fire', knockbackOrigin:{x:projectile.x,y:projectile.y}});
       duels2RemoveLocalProjectileFromImpact(context);
       return {consumeFrame:true, triggered:true};
@@ -45962,8 +46492,8 @@ function drawPlayer(p, label) {
   if (p===L && hasEntityFunctionalRuntime(L, 'scytheOvercharge')) {
     ctx.font='bold 11px Pretendard'; ctx.textAlign='center';
     if (L._tauOveleucharge) {
-      ctx.fillStyle='rgba(0,255,200,0.95)';
-      ctx.fillText('⚡', p.x, sby+sbh+13);
+      ctx.fillStyle='rgba(255,215,0,0.95)';
+      ctx.fillText('●●●', p.x, sby+sbh+13);
     } else if (L._tauHitStack>0) {
       ctx.fillStyle='rgba(0,220,220,0.85)';
       ctx.fillText('●'.repeat(L._tauHitStack), p.x, sby+sbh+13);
@@ -48201,7 +48731,7 @@ duels2RegisterInputStateProfile('shared-charge-adapter', {
 // 레비나 회수 프로필: press는 충전 시작, release는 경과시간에 따라 경유지 또는 회수를 선택한다.
 duels2RegisterInputStateProfile('levina-recall-hold', {
   slot:'lmb', priority:500, mode:'hold-release-threshold', thresholdMs:300,
-  match({actor}) { return hasEntityFunctionalRuntime(actor, 'spearAnchor') && !!actor._levinaSpear; },
+  match({actor}) { return hasEntityFunctionalRuntime(actor, 'spearAnchor') && !!actor._levinaSpear && actor._levinaSpear.state !== 'returning'; },
   press() { duels2StartLevinaRecallHold(); },
   release({elapsedMs}) {
     _levinaRecallHoldTriggered = elapsedMs >= 300;
@@ -50732,7 +51262,9 @@ const DUELS2_PLAYER_BUILDABLE_CHARACTER_BLUEPRINTS = Object.freeze({
           {
             "module": "delivery.burst-projectile",
             "params": {
-              "count": 2
+              "count": {
+                "balancePath": "mehugu.counter.swingCount"
+              }
             }
           },
           {
@@ -61690,16 +62222,14 @@ function showBetweenScreen() {
     const ch = CHARACTERS[cid];
     if (!ch) return;
     const statsHtml = (ch.statsText||[]).map(([k,v])=>`<div><b>${k}</b>: ${v}</div>`).join('');
-    const skillsHtml = ch.skills.map(s =>
-      `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}`
-    ).join('<br>');
+    const tooltipHtml = duels2BuildCharacterDescriptionHtml(ch, { includeCosts:false });
     const card = document.createElement('div');
     card.className = 'char-card';
     card.dataset.id = ch.id;
     card.dataset.masteryPid = DUELS2_PLAYER_REGISTRY.localPid||'P1';
     card.style.cursor = 'pointer';
     card.innerHTML = `
-      <div class="char-tooltip">${ch.desc}<br><br>${skillsHtml}</div>
+      <div class="char-tooltip">${tooltipHtml}</div>
       <div class="char-icon" style="background:${ch.color}22;border:3px solid ${ch.color};"></div>
       <div class="char-name" style="color:${ch.color}">${ch.name}</div>
       <div class="char-stats">${statsHtml}</div>`;
@@ -61804,17 +62334,14 @@ function _mkCharIcon(isRival, charIdOverride = null) {
     letterSpan.textContent = (ch.id || '?').charAt(0).toUpperCase();
     div.style.color = ch.color || (isRival ? '#f88' : '#4af');
     div.style.borderColor = ch.color || (isRival ? '#f44' : '#2a4a6a');
-    const skillsHtml = (ch.skills || []).map(s =>
-      `<span style="color:#99c">[${s.key}]</span> ${s.name} — ${s.desc}` +
-      (s.wpCost ? ` / 스테미나 ${s.cost}/${s.wpCost}` : (s.cost === 0 ? ' / 스테미나 0' : ` / 스테미나 ${s.cost}`))
-    ).join('<br>');
+    const characterDescriptionHtml = duels2BuildCharacterDescriptionHtml(ch);
     const pid=isRival?(getPlayerPid?.(rival)||duels2GetPrimaryOpponentPid?.()||'P2'):(DUELS2_PLAYER_REGISTRY?.localPid||getPlayerPid?.(L)||'P1');
     const mastery=duels2GetCharacterMasteryView(ch.id,pid);
     div.querySelector('.mastery-hud-badge')?.remove();
     div.classList.add('mastery-hud-frame');
     div.style.setProperty('--mastery-gradient',mastery.tier.gradient);
     div.style.setProperty('--mastery-glow',mastery.tier.glow);
-    tip.innerHTML = `<b style="color:${ch.color}">${(isRival?'[상대] ':'') + ch.name}</b><br>${ch.desc}<br><span style="color:${mastery.tier.text};font-weight:bold;">레코드 ${mastery.label}</span><br><br>${skillsHtml}`;
+    tip.innerHTML = `<b style="color:${ch.color}">${(isRival?'[상대] ':'') + ch.name}</b><br><span style="color:${mastery.tier.text};font-weight:bold;">레코드 ${mastery.label}</span><br><br>${characterDescriptionHtml}`;
   };
   div.addEventListener('mouseenter', () => { refresh(); tip.style.display = 'block'; });
   div.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
@@ -62007,7 +62534,7 @@ function doRematch(options = {}) {
 // 리매치 시 랜덤 캐릭터 선택 잠금 해제 상태를 확인한다.
 function duels2GetRematchRandomSelectionFixSummary() {
   return {
-    version:'0.39.11',
+    version:duels2GetCurrentVersion(),
     randomButtonDisabled:!!document.getElementById('random-btn')?.disabled,
     selectedCharacterId:selCharId,
     matchPhase:window._duels2MatchPhase || 'unknown',
@@ -62691,13 +63218,8 @@ function loop() {
       if (_wp) {
         const _motion = duels2AdvanceProjectileToward(_sp,_wp.x,_wp.y,_segSpeed);
         const _dist = _motion.distance;
-        // LMB 경유지 세그먼트: 벽 충돌 시 즉시 귀환 (RMB 세그먼트 또는 관통샷 활성 시 관통)
-        if (!_isRmbSeg && !_sp.pierceShot && bulletHitsWall({x:_sp.x, y:_sp.y, radius:_sp.radius})) {
-          _sp.waypoints = [];
-          _sp.state = 'stopped';
-          _sp.dx = 0; _sp.dy = 0;
-          send({type:'levinaSpearDir', dx:0, dy:0, x:_sp.x, y:_sp.y, state:'stopped'});
-        } else if (_motion.arrived) {
+        // LMB와 RMB 경유지 모두 벽을 관통한다.
+        if (_motion.arrived) {
           _sp.waypoints.shift();
           _sp._clearHitSegPending = true; // 다음 프레임 시작에 초기화 → 같은 프레임 이중 피해 방지
           // 관통샷: 경로 한 번 이동 완료 시 소모
@@ -62721,7 +63243,10 @@ function loop() {
           _sp._hitSeg.add(_tkey);
           const _dmgVal = _isRmbSeg ? _spDmg + duels2GetSkillBalance('levina','rmb').rmbBonusDamage : _spDmg;
           damageSkillProfileTargets([_t], _dmgVal, {slot:_isRmbSeg ? 'rmb' : 'lmb', lmbAttack:!_isRmbSeg});
-          if (_isRmbSeg) applyCC(_t, {knockbackPower: _kbPower});
+          if (_isRmbSeg) {
+            const _impactAngle = Math.atan2(Number(_sp.dy) || 0, Number(_sp.dx) || 0);
+            applyCC(_t, {knockbackPower:_kbPower, knockbackAngle:_impactAngle, originX:_sp.x, originY:_sp.y});
+          }
         }
       }
     } else if (_sp.state === 'returning') {
@@ -62735,7 +63260,10 @@ function loop() {
         if (Math.hypot(_t.x - _sp.x, _t.y - _sp.y) < (_sp.pathRadius||_sp.radius) + (_t.radius||20)) {
           _sp._retHitSeg.add(_tkey);
           damageSkillProfileTargets([_t], _spDmg, {slot:_sp.type === 'rmb' ? 'rmb' : 'lmb', lmbAttack:_sp.type !== 'rmb'});
-          if (_sp.type === 'rmb') applyCC(_t, {knockbackPower: _kbPower});
+          if (_sp.type === 'rmb') {
+            const _impactAngle = Math.atan2(Number(_sp.dy) || 0, Number(_sp.dx) || 0);
+            applyCC(_t, {knockbackPower:_kbPower, knockbackAngle:_impactAngle, originX:_sp.x, originY:_sp.y});
+          }
         }
       }
       if (Math.hypot(L.x - _sp.x, L.y - _sp.y) < L.radius + _sp.radius) {
@@ -64925,7 +65453,7 @@ function openDevPanel(opt = {}) {
 
   // 헤더
   const hdr = _devEl('div','display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #29251f;padding:8px 10px;');
-  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;','[디버깅 탭] v0.39.11'));
+  hdr.appendChild(_devEl('span','color:#fa8;font-size:9px;letter-spacing:2px;',`[디버깅 탭] v${duels2GetCurrentVersion()}`));
   const hdrBtns = _devEl('div','display:flex;gap:4px;');
     hdrBtns.appendChild(_devBtn(_devPanelSide==='right'?'◀ 왼쪽':'▶ 오른쪽', ()=>{ _devPanelSide=_devPanelSide==='right'?'left':'right'; duels2SafeLocalStorageSetItem('devSide',_devPanelSide); refreshDevPanel(); }));
   hdrBtns.appendChild(_devBtn('✕', ()=>{ panel.remove(); }));
@@ -65385,7 +65913,7 @@ function duels2GetMultiPeerNetworkAuditSummary() {
 
 const DUELS2_RUNTIME_BUGFIX_038_STEP = Object.freeze({
   step:'Step 242 - Movement, Health Display & Remote Character Bugfix',
-  version:'0.39.11',
+  version:duels2GetCurrentVersion(),
   fixes:Object.freeze([
     'primitive-skill-balance-values-preserved',
     'single-main-loop-generation-guard',
@@ -66078,6 +66606,102 @@ function duels2GetCounterCcRootFixSummary(){
 }
 window.duels2GetCounterCcRootFixSummary=duels2GetCounterCcRootFixSummary;
 </script>
+
+<script>
+(() => {
+  'use strict';
+
+  const FADE_DELAY_MS = 620;
+  const EDGE_GAP_PX = 5;
+  const MIN_THUMB_PX = 18;
+  const indicators = new WeakMap();
+
+  // Returns whether an element currently has a usable scroll range on either axis.
+  function getScrollableAxes(element) {
+    if (!(element instanceof HTMLElement)) return { vertical: false, horizontal: false };
+    const style = getComputedStyle(element);
+    const allowsY = /(auto|scroll|overlay)/.test(style.overflowY);
+    const allowsX = /(auto|scroll|overlay)/.test(style.overflowX);
+    return {
+      vertical: allowsY && element.scrollHeight > element.clientHeight + 1,
+      horizontal: allowsX && element.scrollWidth > element.clientWidth + 1
+    };
+  }
+
+  // Creates one transient overlay thumb for an axis of a scrollable element.
+  function createIndicator(axis) {
+    const node = document.createElement('div');
+    node.className = `duels-scroll-indicator is-${axis}`;
+    document.body.appendChild(node);
+    return { node, fadeTimer: 0 };
+  }
+
+  // Gets or creates the indicator pair owned by a scrollable element.
+  function getIndicatorState(element) {
+    let state = indicators.get(element);
+    if (!state) {
+      state = { vertical: null, horizontal: null };
+      indicators.set(element, state);
+    }
+    return state;
+  }
+
+  // Positions one overlay thumb from the element's current scroll ratio.
+  function updateAxisIndicator(element, axis, state) {
+    const rect = element.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+
+    const vertical = axis === 'vertical';
+    const viewport = vertical ? element.clientHeight : element.clientWidth;
+    const content = vertical ? element.scrollHeight : element.scrollWidth;
+    const scroll = vertical ? element.scrollTop : element.scrollLeft;
+    if (content <= viewport + 1 || viewport <= 0) return;
+
+    const trackLength = Math.max(0, (vertical ? rect.height : rect.width) - EDGE_GAP_PX * 2);
+    const thumbLength = Math.max(MIN_THUMB_PX, Math.min(trackLength, trackLength * viewport / content));
+    const maxScroll = Math.max(1, content - viewport);
+    const travel = Math.max(0, trackLength - thumbLength);
+    const offset = travel * Math.max(0, Math.min(1, scroll / maxScroll));
+
+    if (vertical) {
+      state.node.style.height = `${thumbLength}px`;
+      state.node.style.left = `${Math.round(rect.right - EDGE_GAP_PX - 4)}px`;
+      state.node.style.top = `${Math.round(rect.top + EDGE_GAP_PX + offset)}px`;
+    } else {
+      state.node.style.width = `${thumbLength}px`;
+      state.node.style.left = `${Math.round(rect.left + EDGE_GAP_PX + offset)}px`;
+      state.node.style.top = `${Math.round(rect.bottom - EDGE_GAP_PX - 4)}px`;
+    }
+  }
+
+  // Shows the active axes and fades each thumb after scrolling stops.
+  function showScrollIndicators(element) {
+    const axes = getScrollableAxes(element);
+    if (!axes.vertical && !axes.horizontal) return;
+    const owner = getIndicatorState(element);
+
+    for (const axis of ['vertical', 'horizontal']) {
+      if (!axes[axis]) continue;
+      if (!owner[axis]) owner[axis] = createIndicator(axis);
+      const state = owner[axis];
+      updateAxisIndicator(element, axis, state);
+      state.node.classList.add('is-visible');
+      clearTimeout(state.fadeTimer);
+      state.fadeTimer = setTimeout(() => state.node.classList.remove('is-visible'), FADE_DELAY_MS);
+    }
+  }
+
+  // Uses capture so dynamically created panels do not need individual listeners.
+  document.addEventListener('scroll', event => {
+    const target = event.target === document ? document.scrollingElement : event.target;
+    if (target instanceof HTMLElement) showScrollIndicators(target);
+  }, true);
+
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('.duels-scroll-indicator').forEach(node => node.classList.remove('is-visible'));
+  }, { passive: true });
+})();
+</script>
 </body>
 </html>
 
@@ -66527,7 +67151,7 @@ window.duels2GetResidualCollisionMigrationSummary = function duels2GetResidualCo
 // duels2GetFinalCombatGeometryMigrationSummary: 이번 전투 기하 판정 마이그레이션 상태를 반환한다.
 window.duels2GetFinalCombatGeometryMigrationSummary = function duels2GetFinalCombatGeometryMigrationSummary() {
   return {
-    version:'0.39.11',
+    version:duels2GetCurrentVersion(),
     shapes:['circle','cone','line','orientedRect','annulus','ctx'],
     migrated:['konyeong.lmb-rect','konyeong.counter-circle','peluna.lmb-annulus','sherina.rmb-circle-knockback'],
     directMathHypotCount:(document.documentElement.innerHTML.match(/Math\.hypot\s*\(/g)||[]).length,
@@ -66642,7 +67266,7 @@ window.duels2GetCombatPipelineRepairSummary=duels2GetCombatPipelineRepairSummary
     </section>
     <div class="duels2-account-config-error" id="duels2-account-config-error"></div>
     <div class="duels2-account-msg" id="duels2-account-message"></div>
-    <div class="duels2-account-version">v0.39.11</div>
+    <div class="duels2-account-version" data-duels-version-text="prefix-v">v</div>
   </div>
 </div>
 
