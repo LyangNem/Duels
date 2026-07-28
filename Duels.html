@@ -648,6 +648,13 @@ input[type=text]:focus{border-color:#4af;}
   color:#637284;
   font-size:8px;
 }
+.char-record-ranking-list{display:flex;flex-direction:column;gap:7px;width:100%;}
+.char-record-ranking-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:6px;align-items:center;padding:5px 6px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);font-size:10px;}
+.char-record-ranking-rank{color:#ffd36a;font-weight:700;text-align:center;}
+.char-record-ranking-name{min-width:0;color:#e7f0fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.char-record-ranking-score{color:#9fd8ff;font-variant-numeric:tabular-nums;text-align:right;}
+.char-record-ranking-empty{color:#728396;text-align:center;font-size:10px;line-height:1.5;padding:12px 2px;}
+.char-record-detail[data-detail-mode="ranking"] .char-record-detail-title{color:#ffe08a;}
 
 
 /* ── 0.39.2 카드 가독성 및 레코드 상세 상태 수정 ── */
@@ -27495,6 +27502,86 @@ if(typeof duels2RegisterSimpleGameplayEventHandler==='function'){
   },1000);
 }
 
+const DUELS2_CHARACTER_RANKING_CACHE=new Map();
+const DUELS2_CHARACTER_RANKING_EXCLUDED_ACCOUNTS=new Set(['develop']);
+const DUELS2_CHARACTER_RANKING_CACHE_MS=30000;
+
+// duels2RenderCharacterRecordDetail: 카드 뒷면에 현재 계정의 캐릭터 통계를 표시한다. (container: 상세 패널, ch: 캐릭터 정의)
+function duels2RenderCharacterRecordDetail(container,ch,pid=null){
+  if(!container||!ch)return;
+  const localPid=DUELS2_PLAYER_REGISTRY?.localPid||'P1';
+  const isRemote=!!pid&&pid!==localPid;
+  const stats=isRemote
+    ? (window.duels2GetRemoteCharacterRecordStats?.(pid,ch.id)||{plays:0,wins:0,winRate:0})
+    : duels2GetCharacterRecordStats(ch.id);
+  const record=duels2GetCharacterMasteryView(ch.id,pid);
+  container.replaceChildren();
+  const title=document.createElement('div');title.className='char-record-detail-title';title.textContent=ch.name;container.appendChild(title);
+  const addRow=(label,value)=>{const row=document.createElement('div');row.className='char-record-detail-row';const key=document.createElement('b');key.textContent=label;const val=document.createElement('span');val.textContent=value;row.append(key,val);container.appendChild(row);};
+  addRow('플레이',`${stats.plays}회`);
+  addRow('승률',`${stats.plays?stats.winRate.toFixed(1):'0.0'}%`);
+  addRow('레코드',`${record.tier.name} · ${record.points}`);
+  const hint=document.createElement('div');hint.className='char-record-detail-hint';hint.textContent='좌클릭으로 돌아가기 · 우클릭은 랭킹';container.appendChild(hint);
+}
+window.duels2RenderCharacterRecordDetail=duels2RenderCharacterRecordDetail;
+
+// duels2NormalizeCharacterRankingEntries: 서버 응답을 안전한 캐릭터 랭킹 항목으로 정규화한다. (payload: 서버 응답, charId: 캐릭터 ID)
+function duels2NormalizeCharacterRankingEntries(payload,charId){
+  const source=Array.isArray(payload)?payload:Array.isArray(payload?.entries)?payload.entries:Array.isArray(payload?.ranking)?payload.ranking:Array.isArray(payload?.rankings)?payload.rankings:Array.isArray(payload?.data)?payload.data:[];
+  const seen=new Set();
+  return source.map(entry=>{
+    const accountId=duels2AccountNormalizeId(entry?.accountId??entry?.id??entry?.userId);
+    const displayName=String((entry?.displayName??entry?.name??accountId)||'이름 없음').trim().slice(0,24)||'이름 없음';
+    const nestedScore=entry?.characterRecords&&typeof entry.characterRecords==='object'?entry.characterRecords[charId]:undefined;
+    const score=Math.max(0,Math.floor(Number(entry?.score??entry?.points??entry?.masteryPoints??nestedScore)||0));
+    return {accountId,displayName,score};
+  }).filter(entry=>entry.accountId&&!DUELS2_CHARACTER_RANKING_EXCLUDED_ACCOUNTS.has(entry.accountId)&&!seen.has(entry.accountId)&&(seen.add(entry.accountId),true))
+    .sort((a,b)=>b.score-a.score||a.displayName.localeCompare(b.displayName,'ko'))
+    .slice(0,3);
+}
+window.duels2NormalizeCharacterRankingEntries=duels2NormalizeCharacterRankingEntries;
+
+// duels2LoadCharacterRanking: 계정 서버에서 캐릭터별 상위 레코드 3명을 조회한다. (charId: 캐릭터 ID, force: 캐시 무시 여부)
+async function duels2LoadCharacterRanking(charId,force=false){
+  if(!CHARACTERS[charId])throw new Error('존재하지 않는 캐릭터입니다.');
+  const cached=DUELS2_CHARACTER_RANKING_CACHE.get(charId);
+  if(!force&&cached&&Date.now()-cached.loadedAt<DUELS2_CHARACTER_RANKING_CACHE_MS)return cached.entries;
+  const body=await duels2AccountApiRequest('/ranking/character',{method:'POST',body:JSON.stringify({charId,limit:3,excludeAccountIds:[...DUELS2_CHARACTER_RANKING_EXCLUDED_ACCOUNTS]})});
+  const entries=duels2NormalizeCharacterRankingEntries(body,charId);
+  DUELS2_CHARACTER_RANKING_CACHE.set(charId,{entries,loadedAt:Date.now()});
+  return entries;
+}
+window.duels2LoadCharacterRanking=duels2LoadCharacterRanking;
+
+// duels2RenderCharacterRankingDetail: 카드 뒷면에 캐릭터 랭킹 1~3위를 비동기로 표시한다. (container: 상세 패널, ch: 캐릭터 정의)
+async function duels2RenderCharacterRankingDetail(container,ch){
+  if(!container||!ch)return;
+  const requestId=`${ch.id}:${Date.now()}:${Math.random()}`;
+  container.dataset.rankingRequestId=requestId;
+  container.replaceChildren();
+  const title=document.createElement('div');title.className='char-record-detail-title';title.textContent=`${ch.name} TOP 3`;container.appendChild(title);
+  const loading=document.createElement('div');loading.className='char-record-ranking-empty';loading.textContent='랭킹 불러오는 중…';container.appendChild(loading);
+  try{
+    const entries=await duels2LoadCharacterRanking(ch.id);
+    if(container.dataset.rankingRequestId!==requestId||container.dataset.detailMode!=='ranking')return;
+    container.replaceChildren(title);
+    if(!entries.length){const empty=document.createElement('div');empty.className='char-record-ranking-empty';empty.textContent='등록된 랭킹이 없습니다.';container.appendChild(empty);}
+    else{
+      const list=document.createElement('div');list.className='char-record-ranking-list';
+      entries.forEach((entry,index)=>{const row=document.createElement('div');row.className='char-record-ranking-row';const rank=document.createElement('span');rank.className='char-record-ranking-rank';rank.textContent=String(index+1);const name=document.createElement('span');name.className='char-record-ranking-name';name.textContent=entry.displayName;name.title=entry.displayName;const score=document.createElement('span');score.className='char-record-ranking-score';score.textContent=String(entry.score);row.append(rank,name,score);list.appendChild(row);});
+      container.appendChild(list);
+    }
+    const hint=document.createElement('div');hint.className='char-record-detail-hint';hint.textContent='우클릭으로 돌아가기 · develop 제외';container.appendChild(hint);
+  }catch(error){
+    if(container.dataset.rankingRequestId!==requestId||container.dataset.detailMode!=='ranking')return;
+    container.replaceChildren(title);
+    const failed=document.createElement('div');failed.className='char-record-ranking-empty';failed.textContent=error?.status===404?'랭킹 서버 기능이 아직 연결되지 않았습니다.':'랭킹을 불러오지 못했습니다.';container.appendChild(failed);
+    const hint=document.createElement('div');hint.className='char-record-detail-hint';hint.textContent='우클릭으로 돌아가기';container.appendChild(hint);
+    console.error('[Duels Ranking] load failed',error);
+  }
+}
+window.duels2RenderCharacterRankingDetail=duels2RenderCharacterRankingDetail;
+
 // duels2GetCharacterSelectionOrder: 캐릭터 선택 UI에서 지정 캐릭터를 마지막에 배치한다. (lastIds: 마지막에 둘 캐릭터 id 배열)
 function duels2GetCharacterSelectionOrder(lastIds=['ruli']) {
   const tail=new Set(lastIds);
@@ -27536,24 +27623,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const recordDetail=document.createElement('div');
     recordDetail.className='char-record-detail';
     card.appendChild(recordDetail);
-    const refreshRecordDetail=()=>{
-      const stats=duels2GetCharacterRecordStats(ch.id);
-      const record=duels2GetCharacterMasteryView(ch.id);
-      recordDetail.innerHTML=`
-        <div class="char-record-detail-title">${ch.name}</div>
-        <div class="char-record-detail-row"><b>플레이</b><span>${stats.plays}회</span></div>
-        <div class="char-record-detail-row"><b>승률</b><span>${stats.plays?stats.winRate.toFixed(1):'0.0'}%</span></div>
-        <div class="char-record-detail-row"><b>레코드</b><span>${record.tier.name} · ${record.points}</span></div>
-        <div class="char-record-detail-hint">우클릭으로 돌아가기</div>`;
-    };
-    card.addEventListener('contextmenu',e=>{
-      e.preventDefault();
-      e.stopPropagation();
-      const opening=!card.classList.contains('record-detail-open');
-      // 카드별 상세 상태를 독립적으로 관리해 여러 캐릭터 통계를 동시에 열 수 있다.
-      if(opening){refreshRecordDetail();card.classList.add('record-detail-open');}
-      else card.classList.remove('record-detail-open');
-    });
     if (ch.disabled) {
       card.style.opacity = '0.3';
       card.style.cursor = 'not-allowed';
@@ -66704,66 +66773,54 @@ async function duels2AccountAdminResetPassword(accountId,newPassword){
 }
 window.duels2AccountAdminResetPassword=duels2AccountAdminResetPassword;
 
-// duels2AttachRecordDetailToCard: 선택·증강·라운드 준비 카드에 독립적인 우클릭 통계 화면을 연결한다. (card: 카드 요소)
+// duels2AttachRecordDetailToCard: 모든 캐릭터 카드에 좌클릭 통계와 우클릭 랭킹을 연결한다. (card: 카드 요소)
 function duels2AttachRecordDetailToCard(card){
-  if(!card||card.dataset.recordDetailBound==='1')return;const charId=card.dataset.id;if(!charId||!CHARACTERS[charId])return;
+  if(!card||card.dataset.recordDetailBound==='1')return;
+  const charId=card.dataset.id||card.dataset.charId||card.dataset.characterId;
+  if(!charId||!CHARACTERS[charId])return;
   card.dataset.recordDetailBound='1';
-  card.addEventListener('contextmenu',event=>{event.preventDefault();event.stopPropagation();
-    let detail=card.querySelector(':scope > .char-record-detail');
-    if(!detail){detail=document.createElement('div');detail.className='char-record-detail';card.appendChild(detail);}
-    const opening=!card.classList.contains('record-detail-open');
-    if(opening){const pid=card.dataset.masteryPid||null;const stats=pid&&pid!==(DUELS2_PLAYER_REGISTRY?.localPid||'P1')?{plays:0,wins:0,winRate:0}:duels2GetCharacterRecordStats(charId);const record=duels2GetCharacterMasteryView(charId,pid);
-      detail.innerHTML=`<div class="char-record-detail-title">${CHARACTERS[charId].name}</div><div class="char-record-detail-row"><b>플레이</b><span>${stats.plays}회</span></div><div class="char-record-detail-row"><b>승률</b><span>${stats.plays?stats.winRate.toFixed(1):'0.0'}%</span></div><div class="char-record-detail-row"><b>레코드</b><span>${record.tier.name} · ${record.points}</span></div><div class="char-record-detail-hint">우클릭으로 돌아가기</div>`;
-      card.classList.add('record-detail-open');
-    }else card.classList.remove('record-detail-open');
+  card.addEventListener('click',event=>{
+    if(event.button!==0)return;
+    if(event.target instanceof Element&&event.target.closest('button,input,select,textarea,a'))return;
+    duels2ToggleRecordDetailCard(card,'stats');
   });
 }
+window.duels2AttachRecordDetailToCard=duels2AttachRecordDetailToCard;
 
-// duels2InstallRecordDetailObserver: 동적으로 생성되는 모든 캐릭터 카드에 우클릭 통계를 자동 연결한다. ()
+// duels2InstallRecordDetailObserver: 동적으로 생성되는 모든 캐릭터 카드에 상세 화면 조작을 자동 연결한다. ()
 function duels2InstallRecordDetailObserver(){
-  const bind=()=>document.querySelectorAll('.char-card[data-id],.start-aug-char-card[data-id]').forEach(duels2AttachRecordDetailToCard);bind();
+  const bind=()=>document.querySelectorAll('.char-card[data-id],.start-aug-char-card[data-id]').forEach(duels2AttachRecordDetailToCard);
+  bind();
   new MutationObserver(bind).observe(document.body,{subtree:true,childList:true});
 }
 
-
-// duels2ToggleRecordDetailCard: 캐릭터 카드의 앞면과 레코드 통계 화면을 전환한다. (card: 우클릭된 카드 요소)
-function duels2ToggleRecordDetailCard(card){
+// duels2ToggleRecordDetailCard: 캐릭터 카드의 통계 또는 랭킹 화면을 열고 같은 입력이면 닫는다. (card: 카드 요소, mode: stats/ranking)
+function duels2ToggleRecordDetailCard(card,mode='stats'){
   if(!card)return false;
-  if(globalThis.duels2IsGuestMode?.()){duels2ShowLoginRequired();return true;}
+  const safeMode=mode==='ranking'?'ranking':'stats';
+  if(safeMode==='stats'&&globalThis.duels2IsGuestMode?.()){duels2ShowLoginRequired();return true;}
   const charId=card.dataset.id||card.dataset.charId||card.dataset.characterId;
-  if(!charId||!CHARACTERS[charId])return false;
+  const ch=CHARACTERS[charId];
+  if(!ch)return false;
   let detail=card.querySelector(':scope > .char-record-detail');
-  if(!detail){
-    detail=document.createElement('div');
-    detail.className='char-record-detail';
-    card.appendChild(detail);
-  }
-  const opening=!card.classList.contains('record-detail-open');
-  if(!opening){
+  if(!detail){detail=document.createElement('div');detail.className='char-record-detail';card.appendChild(detail);}
+  const sameMode=card.classList.contains('record-detail-open')&&card.dataset.detailMode===safeMode;
+  if(sameMode){
     card.classList.remove('record-detail-open');
+    delete card.dataset.detailMode;
+    delete detail.dataset.detailMode;
     return true;
   }
-  const pid=card.dataset.masteryPid||null;
-  const localPid=window.DUELS2_PLAYER_REGISTRY?.localPid||'P1';
-  const isRemote=!!pid&&pid!==localPid;
-  const stats=isRemote
-    ? (window.duels2GetRemoteCharacterRecordStats?.(pid,charId)||{plays:0,wins:0,winRate:0})
-    : duels2GetCharacterRecordStats(charId);
-  const plays=Number(stats?.plays)||0;
-  const wins=Number(stats?.wins)||0;
-  const winRate=Number.isFinite(Number(stats?.winRate))?Number(stats.winRate):(plays?wins/plays*100:0);
-  const record=duels2GetCharacterMasteryView(charId,pid);
-  detail.innerHTML=`<div class="char-record-detail-title">${CHARACTERS[charId].name}</div>
-    <div class="char-record-detail-row"><b>플레이</b><span>${plays}회</span></div>
-    <div class="char-record-detail-row"><b>승률</b><span>${winRate.toFixed(1)}%</span></div>
-    <div class="char-record-detail-row"><b>레코드</b><span>${record.tier.name} · ${record.points}</span></div>
-    <div class="char-record-detail-hint">우클릭으로 돌아가기</div>`;
+  card.dataset.detailMode=safeMode;
+  detail.dataset.detailMode=safeMode;
   card.classList.add('record-detail-open');
+  if(safeMode==='ranking')duels2RenderCharacterRankingDetail(detail,ch);
+  else duels2RenderCharacterRecordDetail(detail,ch,card.dataset.masteryPid||null);
   return true;
 }
 window.duels2ToggleRecordDetailCard=duels2ToggleRecordDetailCard;
 
-// 카드가 동적으로 다시 만들어져도 우클릭이 사라지지 않도록 문서 캡처 단계에서 공통 처리한다.
+// 우클릭은 선택 처리와 분리해 항상 해당 캐릭터의 전체 랭킹을 연다.
 document.addEventListener('contextmenu',event=>{
   const rawTarget=event.target;
   if(!(rawTarget instanceof Element))return;
@@ -66773,7 +66830,7 @@ document.addEventListener('contextmenu',event=>{
   if(visibleScreen?.classList.contains('hidden'))return;
   event.preventDefault();
   event.stopImmediatePropagation();
-  duels2ToggleRecordDetailCard(card);
+  duels2ToggleRecordDetailCard(card,'ranking');
 },true);
 
 document.addEventListener('DOMContentLoaded',duels2InstallRecordDetailObserver);
