@@ -659,6 +659,8 @@ input[type=text]:focus{border-color:#4af;}
 .char-record-detail[data-detail-mode="ranking"].char-record-detail,
 .char-record-detail[data-detail-mode="ranking"] .char-record-detail-hint{line-height:1;}
 .char-card.record-detail-open .char-record-detail[data-detail-mode="ranking"]{gap:6px;}
+.char-top-player-badge{order:99;width:100%;box-sizing:border-box;margin-top:auto;padding-top:5px;color:#ffe36b;font-size:9px;font-weight:800;line-height:1;letter-spacing:.75px;text-align:center;text-shadow:0 0 5px rgba(255,214,72,.78);}
+.char-card.record-detail-open>.char-top-player-badge{visibility:hidden!important;}
 
 
 /* ── 0.39.2 카드 가독성 및 레코드 상세 상태 수정 ── */
@@ -27683,6 +27685,57 @@ async function duels2LoadCharacterRanking(charId,force=false){
   return entries;
 }
 window.duels2LoadCharacterRanking=duels2LoadCharacterRanking;
+
+const DUELS2_ALL_CHARACTER_RANKING_STATE={characters:{},loadedAt:0,promise:null};
+
+// duels2NormalizeAllCharacterRankings: 전체 캐릭터 랭킹 응답을 캐릭터 ID별 상위 3명 구조로 정규화한다. (payload: 서버 응답)
+function duels2NormalizeAllCharacterRankings(payload){
+  const source=payload?.characters&&typeof payload.characters==='object'&&!Array.isArray(payload.characters)?payload.characters:{};
+  const characters={};
+  for(const [charId,entries] of Object.entries(source)){
+    if(!CHARACTERS[charId])continue;
+    characters[charId]=duels2NormalizeCharacterRankingEntries(entries,charId);
+  }
+  return characters;
+}
+window.duels2NormalizeAllCharacterRankings=duels2NormalizeAllCharacterRankings;
+
+// duels2RefreshTopPlayerBadges: 현재 로그인 계정이 캐릭터 랭킹 1위인 기본 카드에 TOP-PLAYER 배지를 표시한다. ()
+function duels2RefreshTopPlayerBadges(){
+  const current=globalThis.DUELS2_GITHUB_ACCOUNT_STATE?.current;
+  const accountId=duels2AccountNormalizeId(current?.accountId);
+  const enabled=!!accountId&&!current?.isGuest&&accountId!=='develop';
+  document.querySelectorAll('.char-card[data-id]:not(.start-aug-char-card)').forEach(card=>{
+    const charId=card.dataset.id;
+    const topAccountId=duels2AccountNormalizeId(DUELS2_ALL_CHARACTER_RANKING_STATE.characters?.[charId]?.[0]?.accountId);
+    const shouldShow=enabled&&topAccountId===accountId;
+    let badge=card.querySelector(':scope > .char-top-player-badge');
+    if(shouldShow){
+      if(!badge){badge=document.createElement('div');badge.className='char-top-player-badge';badge.textContent='TOP-PLAYER';card.appendChild(badge);}
+      badge.hidden=false;
+    }else if(badge){
+      badge.remove();
+    }
+  });
+}
+window.duels2RefreshTopPlayerBadges=duels2RefreshTopPlayerBadges;
+
+// duels2LoadAllCharacterRankings: 전체 캐릭터 상위 랭킹을 한 요청으로 불러오고 TOP-PLAYER 배지를 갱신한다. (force: 캐시 무시 여부)
+async function duels2LoadAllCharacterRankings(force=false){
+  const state=DUELS2_ALL_CHARACTER_RANKING_STATE;
+  if(!force&&state.loadedAt&&Date.now()-state.loadedAt<DUELS2_CHARACTER_RANKING_CACHE_MS){duels2RefreshTopPlayerBadges();return state.characters;}
+  if(state.promise&&!force)return state.promise;
+  state.promise=(async()=>{
+    const body=await duels2AccountApiRequest('/ranking/characters?limit=3',{method:'GET'});
+    state.characters=duels2NormalizeAllCharacterRankings(body);
+    state.loadedAt=Date.now();
+    for(const [charId,entries] of Object.entries(state.characters)){DUELS2_CHARACTER_RANKING_CACHE.set(charId,{entries,loadedAt:state.loadedAt});}
+    duels2RefreshTopPlayerBadges();
+    return state.characters;
+  })();
+  try{return await state.promise;}finally{state.promise=null;}
+}
+window.duels2LoadAllCharacterRankings=duels2LoadAllCharacterRankings;
 
 // duels2RenderCharacterRankingDetail: 카드 뒷면에 캐릭터 랭킹 1~3위를 비동기로 표시한다. (container: 상세 패널, ch: 캐릭터 정의)
 async function duels2RenderCharacterRankingDetail(container,ch){
@@ -66769,6 +66822,7 @@ async function duels2AccountSaveNow(manual=false){
       await duels2AccountApiRequest('/account/save',{method:'PUT',body:JSON.stringify({accountId:payload.accountId,account:payload})});
       DUELS2_GITHUB_ACCOUNT_STATE.current=payload;
       duels2AccountUpdateChip('saved','저장됨');
+      queueMicrotask(()=>duels2LoadAllCharacterRankings?.(true).catch(error=>console.error('[Duels Ranking] refresh after save failed',error)));
       if(manual)duels2AccountSetMessage('계정 서버에 저장했습니다.','ok');
       return true;
     }catch(error){
@@ -66800,6 +66854,7 @@ function duels2AccountEnterGuest(){
   localStorage.setItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY,JSON.stringify({mode:'guest',updatedAt:Date.now()}));
   document.getElementById('duels2-account-gate')?.classList.add('hidden');
   duels2AccountUpdateChip('idle','레코드 저장 안 됨');
+  DUELS2_ALL_CHARACTER_RANKING_STATE.characters={};DUELS2_ALL_CHARACTER_RANKING_STATE.loadedAt=0;duels2RefreshTopPlayerBadges?.();
 }
 window.duels2AccountEnterGuest=duels2AccountEnterGuest;
 
@@ -66808,6 +66863,7 @@ function duels2AccountEnterGame(data,sha=null){
   duels2LockDebugTools?.();
   DUELS2_GITHUB_ACCOUNT_STATE.loading=true;DUELS2_GITHUB_ACCOUNT_STATE.current=data;DUELS2_GITHUB_ACCOUNT_STATE.fileSha=null;duels2AccountApplyPayload(data);DUELS2_GITHUB_ACCOUNT_STATE.loading=false;
   localStorage.setItem(DUELS2_GITHUB_ACCOUNT_LAST_ID_KEY,data.accountId);localStorage.setItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY,JSON.stringify({mode:'account',accountId:data.accountId,updatedAt:Date.now()}));document.getElementById('duels2-account-gate')?.classList.add('hidden');duels2AccountUpdateChip('saved','동기화됨');
+  queueMicrotask(()=>duels2LoadAllCharacterRankings?.(true).catch(error=>console.error('[Duels Ranking] bulk load failed',error)));
 }
 
 // duels2AccountRestoreSession: 최근 로그인 계정을 GitHub에서 다시 불러와 자동 로그인한다. ()
@@ -66859,6 +66915,7 @@ async function duels2AccountLogout(){
   localStorage.removeItem(DUELS2_GITHUB_ACCOUNT_SESSION_KEY);
   DUELS2_GITHUB_ACCOUNT_STATE.current=null;DUELS2_GITHUB_ACCOUNT_STATE.fileSha=null;DUELS2_GITHUB_ACCOUNT_STATE.dirty=false;
   duels2AccountApplyPayload({characterRecords:{},characterStats:{}});
+  DUELS2_ALL_CHARACTER_RANKING_STATE.characters={};DUELS2_ALL_CHARACTER_RANKING_STATE.loadedAt=0;duels2RefreshTopPlayerBadges?.();
   document.getElementById('duels2-account-gate')?.classList.remove('hidden');duels2AccountSetTab('login');duels2AccountUpdateChip();
 }
 
@@ -66915,7 +66972,7 @@ window.duels2AttachRecordDetailToCard=duels2AttachRecordDetailToCard;
 
 // duels2InstallRecordDetailObserver: 동적으로 생성되는 모든 캐릭터 카드에 상세 화면 조작을 자동 연결한다. ()
 function duels2InstallRecordDetailObserver(){
-  const bind=()=>document.querySelectorAll('.char-card[data-id],.start-aug-char-card[data-id]').forEach(duels2AttachRecordDetailToCard);
+  const bind=()=>{document.querySelectorAll('.char-card[data-id],.start-aug-char-card[data-id]').forEach(duels2AttachRecordDetailToCard);duels2RefreshTopPlayerBadges?.();};
   bind();
   new MutationObserver(bind).observe(document.body,{subtree:true,childList:true});
 }
