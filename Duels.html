@@ -1297,7 +1297,7 @@ option{
         <div class="duels-help-step"><b>3</b><span>공격·스킬·회피는 스테미나를 사용합니다. 스테미나가 부족하면 해당 행동을 사용할 수 없습니다.</span></div>
         <div class="duels-help-step"><b>4</b><span>공격을 정확한 순간에 회피하면 저스트 회피가 발생하고, 일정 시간 동안 반격기를 사용할 수 있습니다. 모든 반격기에는 넉백 또는 다른 CC기가 부여되어 있습니다.</span></div>
         <div class="duels-help-section-title">화면과 카드</div>
-        <div class="duels-help-note"><b>캐릭터 카드 우클릭</b><span>로그인 상태에서는 해당 캐릭터의 플레이 횟수, 승률, 레코드 점수를 확인할 수 있습니다. 다시 우클릭하면 원래 카드로 돌아옵니다.</span></div>
+        <div class="duels-help-note"><b>캐릭터 카드 우클릭</b><span>로그인 상태에서 우클릭할 때마다 카드 앞면 → 개인 통계 → 캐릭터 랭킹 → 카드 앞면 순서로 전환됩니다.</span></div>
         <div class="duels-help-note"><b>증강 선택</b><span>증강은 선택한 게임 동안 캐릭터 능력치를 강화하거나 새로운 효과를 부여합니다.</span></div>
         <div class="duels-help-note"><b>게스트 플레이</b><span>게임은 가능하지만 레코드와 통계는 저장되지 않습니다. 관련 정보를 확인하려면 로그인해야 합니다.</span></div>
       </section>
@@ -1317,7 +1317,8 @@ option{
         </div>
         <div class="duels-help-control-group">
           <div class="duels-help-section-title">기타</div>
-          <div class="duels-help-row"><kbd>카드 우클릭</kbd><span>캐릭터 통계 보기 / 원래 카드로 돌아가기</span></div>
+          <div class="duels-help-row"><kbd>카드 우클릭</kbd><span>카드 앞면 → 개인 통계 → 캐릭터 랭킹 순환</span></div>
+          <div class="duels-help-row"><kbd>ENTER</kbd><span>채팅 입력창 열기 · 입력한 메시지 전송</span></div>
         </div>
         <p class="duels-help-footnote">일부 캐릭터는 클릭, 홀드, 차징 또는 입력 조합에 따라 공격 방식이 달라집니다. 캐릭터 카드를 선택해 스킬 설명을 확인하세요.</p>
       </section>
@@ -3938,6 +3939,83 @@ const BALANCE = {
   },
 
 
+  // ── 클레아 ──────────────────────────────────────────────────
+  clea: {
+    hp:       100,
+    speed:    4.25,
+    radius:   20,
+    gaugeMax: 100,
+    lmb: {
+      cost:       2,
+      damage:     2,
+      speed:      22,
+      slowStages: [
+        { start:0.82, speed:9 },
+        { start:0.90, speed:3.5 },
+        { start:0.96, speed:0.8 },
+      ],
+      radius:     11,
+      range:      520,
+      cd:         50,
+      staminaOnHit: 1,
+    },
+    rmb: {
+      cost:            50,
+      duration:        5000,
+      gaugePerShot:    2,
+      shadowGaugeGain: 1,
+      cd:              300,
+    },
+    counter: {
+      damage:     20,
+      gaugeGain:  40,
+      dashDist:   300,
+      dashDur:    220,
+      width:      38,
+      cd:         500,
+    },
+  },
+
+
+  // ── 셸로 ────────────────────────────────────────────────────
+  shello: {
+    hp:     150,
+    speed:  4.25,
+    radius: 20,
+    lmb: {
+      cost:         18,
+      damage:       20,
+      orbitRange:   105,
+      shieldRadius: 48,
+      swingHalfArc: Math.PI * 0.45,
+      swingDur:     180,
+      cd:           420,
+    },
+    rmb: {
+      cost:         35,
+      duration:     200,
+      halfAngle:    Math.PI * 0.42,
+      shieldDist:   44,
+      shieldRadius: 48,
+      knockbackPower:420,
+      cd:           650,
+    },
+    counter: {
+      damage:          25,
+      orbitRange:      112,
+      shieldRadius:    48,
+      rotations:       2,
+      spinDur:         620,
+      parryThrowDist:  825,
+      parryThrowDur:   700,
+      parryFollowDur:  460,
+      parryShieldRadius:48,
+      knockbackPower:  420,
+      cd:              550,
+    },
+  },
+
+
   // ── 레테 ────────────────────────────────────────────────────
   lete: {
     hp:     110,
@@ -4897,6 +4975,7 @@ const CHARACTERS = {
     ],
   },
 
+
   lete: {
     id:        'lete',
     name:      '레테',
@@ -4923,6 +5002,46 @@ const CHARACTERS = {
     ]}],
   },
 
+
+  clea: {
+    id:        'clea',
+    name:      '클레아',
+    color:     '#213b5a',
+    maxHealth: duels2GetSkillBalance('clea','hp'),
+    speed:     duels2GetSkillBalance('clea','speed'),
+    radius:    duels2GetSkillBalance('clea','radius'),
+    statsText: [['체력', String(duels2GetSkillBalance('clea','hp'))],['이동속도','빠름'],['스타일','파워형 중거리 딜러']],
+    desc:      '빠른 연사속도와 무한히 충전하는 수리검으로 전투하는 캐릭터',
+    skills: [
+      { key:'LMB', name:'달 수리검', cost:duels2GetSkillBalance('clea','lmb').cost,
+        desc:`달 수리검을 던져 적중 시 달 그림자와 스테미나가 충전되며 날아갈수록 느려짐. 마우스 홀드 이용 불가 (${duels2GetSkillBalance('clea','lmb').damage})` },
+      { key:'RMB', name:'달 그림자', cost:duels2GetSkillBalance('clea','rmb').cost,
+        desc:`${duels2GetSkillBalance('clea','rmb').duration/1000}초 동안 평타마다 달 그림자를 소모해 추가 수리검을 발사. 추가 수리검은 달 그림자 충전량이 ${Math.round((1-(duels2GetSkillBalance('clea','rmb').shadowGaugeGain/Math.max(1,duels2GetSkillBalance('clea','lmb').damage)))*100)}% 낮음.` },
+      { key:'L-Shift', name:'슬라이딩', cost:0,
+        desc:`빠르게 슬라이딩하며 경로상의 적에게 피해. 적중 시 게이지 ${duels2GetSkillBalance('clea','counter').gaugeGain} 충전 (${duels2GetSkillBalance('clea','counter').damage})` },
+    ],
+  },
+
+  shello: {
+    id:        'shello',
+    name:      '셸로',
+    color:     '#522a50',
+    maxHealth: duels2GetSkillBalance('shello','hp'),
+    speed:     duels2GetSkillBalance('shello','speed'),
+    radius:    duels2GetSkillBalance('shello','radius'),
+    statsText: [['체력', String(duels2GetSkillBalance('shello','hp'))],['이동속도','빠름'],['스타일','조건형 근거리 탱커']],
+    desc:      '날카롭게 개조한 방패로 공격을 패리하는 캐릭터',
+    skills: [
+      { key:'LMB', name:'방패 베기', cost:duels2GetSkillBalance('shello','lmb').cost,
+        desc:`방패의 옆면으로 휘둘러 베어냄 (${duels2GetSkillBalance('shello','lmb').damage})` },
+      { key:'RMB', name:'방어자세', cost:duels2GetSkillBalance('shello','rmb').cost,
+        desc:`전방으로 방패를 내세워 ${duels2GetSkillBalance('shello','rmb').duration/1000}초 동안 해당 방향의 모든 공격을 방어. 패리 성공 시 패리 반격기 활성화` },
+      { key:'RMB/L-Shift', name:'쉴드 어택', cost:0,
+        desc:`방패를 먼저 날린 뒤 빠르게 따라감 (${duels2GetSkillBalance('shello','counter').damage})` },
+      { key:'L-Shift', name:'스피닝', cost:0,
+        desc:`방패를 던져 주변을 두 바퀴 회전시키며 피해 (${duels2GetSkillBalance('shello','counter').damage})` },
+    ],
+  },
 };
 
 // Maps — 타일맵 시스템
@@ -13105,6 +13224,244 @@ function revivePeerRuntimeProxy(dur = 1000) {
   return true;
 }
 
+// SHELLO_GUARD_FX_COLOR: 셸로 방어·패리 준비 상태에 사용하는 주황색이다.
+const SHELLO_GUARD_FX_COLOR='255,118,32';
+
+
+// duels2GetShelloShieldGeometry: 활성 셸로 방패의 실제 원형 충돌 정보를 반환한다. (entity: 셸로)
+function duels2GetShelloShieldGeometry(entity){
+  const P=entity;
+  if(!P||P.charDef?.id!=='shello'||(Number(P._shelloGuardEnd)||0)<=performance.now())return null;
+  const angle=Number(P._shelloGuardAngle)||0,dist=Math.max(0,Number(P._shelloGuardDist)||44),radius=Math.max(1,Number(P._shelloGuardRadius)||48);
+  return {x:P.x+Math.cos(angle)*dist,y:P.y+Math.sin(angle)*dist,angle,radius,halfAngle:Math.max(.05,Number(P._shelloGuardHalfAngle)||.8)};
+}
+
+// duels2RecolorBlockedAttackFx: 방패에 막힌 공격 이펙트를 지우지 않고 진한 회색으로 바꾼다. (x/y: 충돌 위치)
+function duels2RecolorBlockedAttackFx(x,y){
+  if(!Array.isArray(fxList))return;
+  let checked=0;
+  for(let i=fxList.length-1;i>=0&&checked<64;i--){
+    const f=fxList[i];checked++;
+    if(!f||f.dur<=0||['parry','shieldSwing','counterCharge','shelloOrbitShield'].includes(f.type))continue;
+    const fx=Number(f.x??f.cx??f.sx),fy=Number(f.y??f.cy??f.sy);
+    if(Number.isFinite(fx)&&Number.isFinite(fy)&&Math.hypot(fx-x,fy-y)<=120)f.col='45,45,45';
+  }
+}
+
+// duels2ActivateShelloParryFromGuard: 실제 방어 성공 시 패리 반격을 활성화하고 방어 지속시간을 초기화한다. (entity: 방어자, impact: 충돌점)
+function duels2ActivateShelloParryFromGuard(entity,impact={}){
+  const P=entity;
+  if(!P||P.charDef?.id!=='shello')return false;
+  const now=performance.now(),duration=Math.max(1,Number(P._shelloGuardDuration)||200);
+  P._shelloGuardEnd=now+duration;
+  if(P===L){
+    P._shelloGuardFxId=null;
+    duels2SetShelloCounterMode(P,'parry',5000);
+    const x=Number.isFinite(Number(impact.x))?Number(impact.x):(duels2GetShelloShieldGeometry(P)?.x??P.x);
+    const y=Number.isFinite(Number(impact.y))?Number(impact.y):(duels2GetShelloShieldGeometry(P)?.y??P.y);
+    duels2RecolorBlockedAttackFx(x,y);
+    emitFx({type:'parry',x,y,r:0,maxR:42,dur:9,maxDur:9,col:SHELLO_GUARD_FX_COLOR},{},{network:false});
+    if(typeof send==='function')send({type:'shelloGuardState',active:true,duration,angle:P._shelloGuardAngle,halfAngle:P._shelloGuardHalfAngle,shieldDist:P._shelloGuardDist,shieldRadius:P._shelloGuardRadius});
+  }
+  return true;
+}
+
+// duels2WouldShelloShieldBlockSource: 공격자 측에서 근접·폭발 공격이 원격 셸로 방패 방향에 막히는지 판정한다. 장판은 제외한다. (target/source/ctx: 전투 문맥)
+function duels2WouldShelloShieldBlockSource(target,source,ctx={}){
+  const g=duels2GetShelloShieldGeometry(target);
+  if(!g||duels2IsShelloFieldAttack(ctx))return false;
+  const ox=Number(ctx.explosionX??ctx.centerX??ctx.originX??source?.x),oy=Number(ctx.explosionY??ctx.centerY??ctx.originY??source?.y);
+  if(!Number.isFinite(ox)||!Number.isFinite(oy))return false;
+  const a=Math.atan2(oy-target.y,ox-target.x),diff=Math.abs(((a-g.angle)+Math.PI*3)%(Math.PI*2)-Math.PI);
+  return diff<=g.halfAngle;
+}
+
+// duels2FilterShelloShieldedTargets: 공격자 측 후보에서 방패에 막힌 셸로를 제외하고, 방어자에게 차단 성공 신호를 보낸다. (targets/ctx/source: 공격 정보)
+function duels2FilterShelloShieldedTargets(targets,ctx={},source=L){
+  const out=[];
+  for(const target of (targets||[])){
+    if(duels2WouldShelloShieldBlockSource(target,source,ctx)){
+      const g=duels2GetShelloShieldGeometry(target);
+      if(typeof send==='function')send({type:'shelloGuardContact',defenderPid:getPlayerPid(target),sourcePid:getPlayerPid(source),eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitId||ctx.attackId||null,impactX:g?.x,impactY:g?.y});
+      continue;
+    }
+    out.push(target);
+  }
+  return out;
+}
+
+// duels2TickShelloShieldProjectileCollider: 리안 방패처럼 셸로 방패 원 자체가 투사체 접촉을 먼저 감지한다. ()
+function duels2TickShelloShieldProjectileCollider(){
+  const g=duels2GetShelloShieldGeometry(L);
+  if(!g)return;
+  const cancelled=[];
+  if(Array.isArray(peerBullets))for(let i=peerBullets.length-1;i>=0;i--){
+    const b=peerBullets[i];if(!b)continue;
+    const ax=Number(b._prevX??b.x),ay=Number(b._prevY??b.y),bx=Number(b.x),by=Number(b.y);
+    const c=duels2ClosestPointOnSegment(ax,ay,bx,by,g.x,g.y),r=Math.max(1,Number(b.radius)||4);
+    if(Math.hypot(c.x-g.x,c.y-g.y)>g.radius+r){b._prevX=bx;b._prevY=by;continue;}
+    cancelled.push(b.id);
+    duels2RouteProjectileLifecycleRemoval(peerBullets,i,b,{collection:'peerBullets',route:'projectile.lifecycle.shello-shield'});
+    duels2ActivateShelloParryFromGuard(L,{x:c.x,y:c.y});
+  }
+  if(cancelled.length&&typeof send==='function')send({type:'cancelBullets',ids:cancelled});
+  // 레비나 창과 루뷰 망치는 셸로 방패 원에 직접 닿는 순간 일반 패리 오브젝트와 동일하게 즉시 회수한다.
+  for(const obj of getPeerParryObjects()){
+    if(!obj)continue;
+    const rr=Math.max(1,Number(obj.radius)||1)+g.radius;
+    if(Math.hypot((Number(obj.x)||0)-g.x,(Number(obj.y)||0)-g.y)>rr)continue;
+    // 창·망치 강제 회수도 방패가 공격을 막은 성공으로 취급한다.
+    // 실제 회수 전환에 성공한 첫 프레임에만 패리 반격과 방어 지속시간을 갱신한다.
+    const recalled=obj.parry()===true;
+    if(recalled)duels2ActivateShelloParryFromGuard(L,{x:Number(obj.x)||g.x,y:Number(obj.y)||g.y});
+  }
+}
+window.duels2TickShelloShieldProjectileCollider=duels2TickShelloShieldProjectileCollider;
+
+// duels2SetShelloCounterMode: 셸로의 단일 반격 슬롯을 마지막 획득 상태로 덮어쓴다. (entity: 셸로, mode: normal/parry, durationMs: 기본 활성 시간)
+function duels2SetShelloCounterMode(entity, mode='normal', durationMs=5000) {
+  const P=entity||L;
+  if(!P || P.charDef?.id!=='shello') return false;
+  const normalized=mode==='parry'?'parry':'normal';
+  const bonus=(P===L?getAugCount('careful_counter'):0)*AUG_VALS.careful_counter.windowBonus*1000;
+  P._shelloCounterMode=normalized;
+  P.counterReady=true;
+  P._counterPending=false;
+  P.counterExpiry=performance.now()+Math.max(0,Number(durationMs)||5000)+bonus;
+  P._shelloCounterAcquiredAt=performance.now();
+  return true;
+}
+window.duels2SetShelloCounterMode=duels2SetShelloCounterMode;
+
+// duels2IsShelloFieldAttack: 장판·지속 피해처럼 방패로 막을 수 없는 공격인지 판정한다. (ctx: 공격 문맥)
+function duels2IsShelloFieldAttack(ctx={}) {
+  const tags=[...(Array.isArray(ctx.hitTags)?ctx.hitTags:[]),...(Array.isArray(ctx.actionCtx?.tags)?ctx.actionCtx.tags:[])].map(v=>String(v).toLowerCase());
+  const delivery=String(ctx.delivery||ctx.actionCtx?.delivery||'').toLowerCase();
+  const timing=String(ctx.timing||ctx.actionCtx?.timing||'').toLowerCase();
+  const route=String(ctx.route||'').toLowerCase();
+  return delivery==='field'||delivery==='trap'||timing==='persistent'||tags.some(t=>['field','persistent','zone','ground','dot','poison','bleed','burn'].includes(t))||/(field|zone|ground|persistent|dot)/.test(route);
+}
+
+// duels2ClosestPointOnSegment: 선분에서 점에 가장 가까운 좌표를 반환한다. (ax/ay: 시작, bx/by: 끝, px/py: 점)
+function duels2ClosestPointOnSegment(ax,ay,bx,by,px,py){
+  const vx=bx-ax,vy=by-ay,den=vx*vx+vy*vy;
+  const t=den>0?Math.max(0,Math.min(1,((px-ax)*vx+(py-ay)*vy)/den)):0;
+  return {x:ax+vx*t,y:ay+vy*t,t};
+}
+
+// duels2ResolveShelloAttackOrigin: 공격 종류별로 방패가 바라봐야 할 공격 기원 좌표를 구한다. (entity: 방어자, ctx: 공격 문맥)
+function duels2ResolveShelloAttackOrigin(entity, ctx={}) {
+  const source=ctx.source||ctx.attacker||ctx.owner||null;
+  const pairs=[
+    [ctx.explosionX,ctx.explosionY],
+    [ctx.centerX,ctx.centerY],
+    [ctx.originX,ctx.originY],
+    [ctx.attackX,ctx.attackY],
+    [source?.x,source?.y]
+  ];
+  for(const [x,y] of pairs){
+    if(Number.isFinite(Number(x))&&Number.isFinite(Number(y)))return {x:Number(x),y:Number(y)};
+  }
+  const hitAngle=Number(ctx.hitAngle ?? ctx.knockbackAngle ?? ctx.actionCtx?.angle);
+  if(Number.isFinite(hitAngle)){
+    const dist=Math.max(80,(entity?.radius||20)*4);
+    return {x:(entity?.x||0)-Math.cos(hitAngle)*dist,y:(entity?.y||0)-Math.sin(hitAngle)*dist};
+  }
+  return null;
+}
+
+// duels2GetShelloGuardEventKey: 같은 지속 공격이 한 프레임마다 패리 성공을 중복 발생시키지 않도록 식별자를 만든다. (entity: 방어자, ctx: 공격 문맥)
+function duels2GetShelloGuardEventKey(entity,ctx={}){
+  const projectile=ctx.projectile||ctx.bullet||null;
+  const stable=ctx.feedbackEventId||ctx.eventId||ctx.hitId||ctx.attackId||projectile?.id||projectile?._id;
+  if(stable)return String(stable);
+  const source=ctx.source||ctx.attacker||null;
+  const sourceId=getCombatEntityIdForResult?.(source)||source?.id||source?.pid||'unknown';
+  const route=String(ctx.route||ctx.reason||ctx.delivery||'attack');
+  return `${sourceId}:${route}:${Math.floor(performance.now()/90)}`;
+}
+
+// duels2TryShelloGuardBlock: 방패 공간과 공격 기원 방향을 기준으로 셸로의 방어 및 패리 반격 획득을 처리한다. (entity: 피격 대상, ctx: 공격 문맥)
+function duels2TryShelloGuardBlock(entity, ctx = {}) {
+  const P=entity||L;
+  const now=performance.now();
+  if(!P || P.charDef?.id!=='shello' || (Number(P._shelloGuardEnd)||0)<=now) return false;
+  if(duels2IsShelloFieldAttack(ctx)) return false;
+
+  const guardAngle=Number(P._shelloGuardAngle)||0;
+  const guardHalf=Math.max(0.05,Number(P._shelloGuardHalfAngle)||0.8);
+  const guardDist=Math.max(0,Number(P._shelloGuardDist)||44);
+  const guardRadius=Math.max(1,Number(P._shelloGuardRadius)||48);
+  const shieldX=P.x+Math.cos(guardAngle)*guardDist;
+  const shieldY=P.y+Math.sin(guardAngle)*guardDist;
+  const projectile=ctx.projectile||ctx.bullet||null;
+  const delivery=String(ctx.delivery||ctx.actionCtx?.delivery||ctx.damageType||'').toLowerCase();
+  const isProjectile=!!projectile||['projectile','pellet','homing','pierce','hybrid'].includes(delivery);
+  let blocked=false;
+  let impactX=shieldX,impactY=shieldY;
+
+  if(isProjectile){
+    const bx=Number(ctx.projectileX ?? ctx.bulletX ?? projectile?.x);
+    const by=Number(ctx.projectileY ?? ctx.bulletY ?? projectile?.y);
+    if(Number.isFinite(bx)&&Number.isFinite(by)){
+      const dx=Number(projectile?.dx ?? ctx.travelX ?? ctx.velocityX)||0;
+      const dy=Number(projectile?.dy ?? ctx.travelY ?? ctx.velocityY)||0;
+      const speed=Math.max(1,Math.abs(Number(projectile?.speed)||0));
+      const step=Math.max(18,speed*2.25,guardRadius);
+      const ax=Number(ctx.prevProjectileX ?? ctx.prevBulletX);
+      const ay=Number(ctx.prevProjectileY ?? ctx.prevBulletY);
+      const segAx=Number.isFinite(ax)?ax:bx-dx*step;
+      const segAy=Number.isFinite(ay)?ay:by-dy*step;
+      const closest=duels2ClosestPointOnSegment(segAx,segAy,bx,by,shieldX,shieldY);
+      const pr=Math.max(1,Number(projectile?.radius)||Number(projectile?.r)||Number(ctx.projectileRadius)||4);
+      blocked=Math.hypot(closest.x-shieldX,closest.y-shieldY)<=guardRadius+pr;
+      impactX=closest.x; impactY=closest.y;
+      if(blocked&&projectile){
+        projectile._shelloGuardBlocked=true;
+        projectile._hitLocal=true;
+        projectile.dead=true;
+        projectile.life=0;
+      }
+    }
+  }else{
+    const origin=duels2ResolveShelloAttackOrigin(P,ctx);
+    if(origin){
+      const incoming=Math.atan2(origin.y-P.y,origin.x-P.x);
+      const diff=Math.abs(((incoming-guardAngle)+Math.PI*3)%(Math.PI*2)-Math.PI);
+      blocked=diff<=guardHalf;
+      if(blocked){
+        const vx=origin.x-shieldX,vy=origin.y-shieldY,len=Math.hypot(vx,vy)||1;
+        impactX=shieldX+(vx/len)*Math.min(guardRadius,len);
+        impactY=shieldY+(vy/len)*Math.min(guardRadius,len);
+      }
+    }
+  }
+  if(!blocked) return false;
+  ctx._shelloGuardBlocked=true;
+
+  // 방어에 성공할 때마다 방어자세의 남은 시간을 원래 지속시간으로 초기화한다.
+  const guardDuration=Math.max(1,Number(P._shelloGuardDuration)||Math.max(1,(Number(P._shelloGuardEnd)||now)-now));
+  P._shelloGuardEnd=now+guardDuration;
+
+  const key=duels2GetShelloGuardEventKey(P,ctx);
+  if(!P._shelloGuardRecent)P._shelloGuardRecent=new Map();
+  const prev=Number(P._shelloGuardRecent.get(key))||0;
+  P._shelloGuardRecent.set(key,now);
+  for(const [k,t] of P._shelloGuardRecent){if(now-t>700)P._shelloGuardRecent.delete(k);}
+  const firstBlock=now-prev>140;
+
+  // 실제 소유 클라이언트만 패리 반격 상태와 연출을 확정한다.
+  if(firstBlock && P===L){
+    duels2ActivateShelloParryFromGuard(P,{x:impactX,y:impactY});
+    if(typeof send==='function'){
+      const eventId=ctx.feedbackEventId||ctx.eventId||projectile?.id||null;
+      send({type:'shelloGuardResolved',eventId,blocked:true,impactX,impactY,guardDuration,sourcePid:getPlayerPid(ctx.source)||ctx.sourcePid||null});
+    }
+  }
+  return true;
+}
+
+
 function receiveHitEntity(entity, dmg, ctx = {}) {
   const P = entity || L;
   if (!P) return false;
@@ -13114,6 +13471,9 @@ function receiveHitEntity(entity, dmg, ctx = {}) {
   if (getEntityHealth(P) <= 0) return false;
   const now = performance.now();
   const source = ctx.source || getCombatSource(L);
+
+  // 상대 화면은 종료 상태 패킷만 기다리지 않고, 실제 패리 방패 적중 피해를 받은 즉시 그 방패 표시를 종료한다.
+  // 네트워크 패킷 순서나 원격 엔티티 스냅샷 갱신과 무관하게 적중한 방패가 관통해 보이지 않는다.
 
   if (hasEntityFunctionalRuntime(P, 'stealthInvisible') && P._syaInvisible) {
     P._syaHitRevealEnd = now + 800;
@@ -13135,6 +13495,10 @@ function receiveHitEntity(entity, dmg, ctx = {}) {
     return false;
   }
   if (P.invincible > 0) return false;
+
+  // 네트워크 hitMe도 방어자 소유 클라이언트에서 먼저 방패 판정을 확정한다.
+  // 막힌 경우 HP/피격 연출/적중 후속 처리를 전혀 실행하지 않고 공격자에게 차단 결과만 회신한다.
+  if (duels2TryShelloGuardBlock(P, {...ctx, source})) return false;
 
   _clearPlayerSleepOnHit(P);
 
@@ -14227,6 +14591,14 @@ function applyDamageResult(target, amount, ctx = {}) {
     return finishHitResult(makeHitResult({...resultBase, friendlyBlocked:true, blocked:true, reason:'friendly'}));
   }
 
+  // 셸로 방어자세는 공통 피해 확정 전에 MISS 결과를 반환해 공격자 적중 후속 효과까지 차단한다.
+  if (duels2TryShelloGuardBlock(target, ctx)) {
+    return finishHitResult(makeHitResult({
+      ...resultBase, source, target, hit:false, canTarget:true, blocked:true,
+      damaged:false, damageAmount:0, killed:false, reason:'guard_blocked', ctx:{...ctx, source}
+    }));
+  }
+
   // 투사체 충돌 객체가 없는 DOT/권위 피해도 피해 적용 입구에서 접촉이 확정된다.
   // 저스트 회피 성공 여부는 오직 회피한 로컬 플레이어의 80ms 창으로만 판정하며,
   // 성공 시 피해 차단과 counterReady 활성화를 하나의 원자적 결과로 반환한다.
@@ -14342,6 +14714,9 @@ function applyCCResult(target, cc, source = L, ctx = {}) {
     normalizedCC.knockbackAngle = duels2GetHitFeedbackAngle(target, source, ctx);
   }
   if (isFriendlyCombatEffect(source, target, ctx)) return finishHitResult(makeHitResult({...resultBase, friendlyBlocked:true, blocked:true, reason:'friendly'}));
+  if (duels2TryShelloGuardBlock(target, ctx)) {
+    return finishHitResult(makeHitResult({...resultBase, hit:false, canTarget:true, blocked:true, ccApplied:false, reason:'guard_blocked'}));
+  }
   const preBlock = shouldBlockCombatApplication(target, ctx);
   if (preBlock.blocked) return finishHitResult(makeHitResult({...resultBase, ...preBlock, hit:false}));
   let ok = false;
@@ -15645,10 +16020,12 @@ const R = {
     if (this === R && !_trainingMode && !ctx.fromNetwork) {
       {
         const directionPacket=duels2BuildHitDirectionPacket(this,ctx.source||L,ctx);
+        const delegatedEventId=ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||`hit:${uid()}`;
         send({
           type:'hitMe', targetPid:getPlayerPid(this)||'P2', sourcePid:DUELS2_PLAYER_REGISTRY.localPid||getPlayerPid(L)||'P1',
           damage:_d, fromThorn:!!ctx.fromThorn, noLifesteal:ctx.noLifesteal===true,
-          eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null,
+          eventId:delegatedEventId,
+          delivery:ctx.delivery||ctx.actionCtx?.delivery||null, timing:ctx.timing||ctx.actionCtx?.timing||null, route:ctx.route||null, moduleId:ctx.moduleId||ctx.actionCtx?.moduleId||null, shelloParryThrowSeq:Number(ctx.shelloParryThrowSeq||ctx.actionCtx?.shelloParryThrowSeq)||0, actionCtx:ctx.actionCtx||null,
           ...directionPacket,
           projectileX:Number.isFinite(Number(ctx.projectileX ?? ctx.bulletX ?? ctx.projectile?.x)) ? Number(ctx.projectileX ?? ctx.bulletX ?? ctx.projectile?.x) : undefined,
           projectileY:Number.isFinite(Number(ctx.projectileY ?? ctx.bulletY ?? ctx.projectile?.y)) ? Number(ctx.projectileY ?? ctx.bulletY ?? ctx.projectile?.y) : undefined,
@@ -15691,9 +16068,11 @@ function duels2CreateRemotePlayerEntity(pid, packet = {}) {
     if (!_trainingMode && !ctx.fromNetwork) {
       {
         const directionPacket=duels2BuildHitDirectionPacket(this,ctx.source||L,ctx);
+        const delegatedEventId=ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||`hit:${uid()}`;
         send({
           type:'hitMe', targetPid:pid, sourcePid:DUELS2_PLAYER_REGISTRY.localPid,
-          damage:amount, fromThorn:!!ctx.fromThorn, eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null,
+          damage:amount, fromThorn:!!ctx.fromThorn, eventId:delegatedEventId,
+          delivery:ctx.delivery||ctx.actionCtx?.delivery||null, timing:ctx.timing||ctx.actionCtx?.timing||null, route:ctx.route||null, moduleId:ctx.moduleId||ctx.actionCtx?.moduleId||null, shelloParryThrowSeq:Number(ctx.shelloParryThrowSeq||ctx.actionCtx?.shelloParryThrowSeq)||0, actionCtx:ctx.actionCtx||null,
           ...directionPacket,
           projectileX:Number.isFinite(Number(ctx.projectileX ?? ctx.bulletX ?? ctx.projectile?.x)) ? Number(ctx.projectileX ?? ctx.bulletX ?? ctx.projectile?.x) : undefined,
           projectileY:Number.isFinite(Number(ctx.projectileY ?? ctx.bulletY ?? ctx.projectile?.y)) ? Number(ctx.projectileY ?? ctx.bulletY ?? ctx.projectile?.y) : undefined,
@@ -17300,31 +17679,42 @@ function getTargetsInCtx(ctx, targets = null, opt = {}) {
 // 캐릭터 스킬 내부에서 R._특수오브젝트를 직접 분기하지 않도록 한 곳에서만 해석한다.
 function getPeerParryObjects() {
   const list = [];
-  const spear = R?._levinaSpear;
-  if (spear && spear.state !== 'returning') {
-    list.push({
-      x: spear.x, y: spear.y, radius: spear.radius || 18,
-      parry() {
-        duels2BeginLevinaSpearRecall(spear, {copyForwardHits:false});
-        send({type:'levinaSpearParried', x:spear.x, y:spear.y});
-        emitFx({type:'parry', x:spear.x, y:spear.y, r:0, maxR:40, dur:12, maxDur:12});
-      }
-    });
-  }
-  const hammer = R?._ruvuHammer;
-  if (hammer && !hammer.returning) {
-    list.push({
-      x: hammer.x, y: hammer.y, radius: hammer.radius || 26,
-      parry() {
-        hammer.returning = true;
-        hammer.returnStart = performance.now();
-        hammer.returnSX = hammer.x;
-        hammer.returnSY = hammer.y;
-        hammer._returnHit = true;
-        send({type:'ruvuHammerParried', x:hammer.x, y:hammer.y});
-        emitFx({type:'parry', x:hammer.x, y:hammer.y, r:0, maxR:40, dur:12, maxDur:12});
-      }
-    });
+  const owners=[...(duels2GetActiveRemotePlayers?.()||[]),R].filter((entity,index,all)=>entity&&entity!==L&&all.indexOf(entity)===index);
+  for(const owner of owners){
+    const ownerPid=getPlayerPid(owner)||owner.pid||null;
+    const spear=owner._levinaSpear;
+    if(spear&&spear.state!=='returning'){
+      list.push({
+        kind:'levinaSpear',owner,ownerPid,x:spear.x,y:spear.y,radius:spear.radius||18,
+        parry(){
+          if(spear.state==='returning')return false;
+          duels2BeginLevinaSpearRecall(spear,{copyForwardHits:false});
+          if(typeof send==='function')send({type:'levinaSpearParried',ownerPid,x:spear.x,y:spear.y});
+          emitFx({type:'parry',x:spear.x,y:spear.y,r:0,maxR:40,dur:12,maxDur:12});
+          return true;
+        }
+      });
+    }
+    const hammer=owner._ruvuHammer;
+    if(hammer&&!hammer.returning){
+      list.push({
+        kind:'ruvuHammer',owner,ownerPid,x:hammer.x,y:hammer.y,radius:hammer.radius||26,
+        parry(){
+          if(hammer.returning)return false;
+          clearTimeout(hammer._timer);hammer._timer=null;
+          hammer.returning=true;
+          hammer._stopped=false;
+          hammer.returnStart=performance.now();
+          hammer.returnSX=hammer.x;
+          hammer.returnSY=hammer.y;
+          hammer._returnHit=true;
+          hammer._hitR=true;
+          if(typeof send==='function')send({type:'ruvuHammerParried',ownerPid,hammerId:hammer.id||null,x:hammer.x,y:hammer.y});
+          emitFx({type:'parry',x:hammer.x,y:hammer.y,r:0,maxR:40,dur:12,maxDur:12});
+          return true;
+        }
+      });
+    }
   }
   return list;
 }
@@ -22575,7 +22965,14 @@ function duels2ClampForcedMotionDestination(target, tx, ty) {
 function duels2RouteStartEntityKnockback(target, vx, vy, frames = TARGET_KNOCKBACK_FRAMES, opt = {}) {
   if (!target || !Number.isFinite(vx) || !Number.isFinite(vy)) return false;
   const previous = duels2SnapshotForcedMotionRuntime(target);
+  const actionSnapshot=opt.preserveActionState?{counterToken:target._counterToken,counterPending:target._counterPending,counterPredelayEnd:target._counterPredelayEnd,attackPreview:target._attackPreview}:null;
   const ok = duels2StartEntityKnockbackDirect(target, vx, vy, frames);
+  if(ok&&actionSnapshot){
+    target._counterToken=actionSnapshot.counterToken;
+    target._counterPending=actionSnapshot.counterPending;
+    target._counterPredelayEnd=actionSnapshot.counterPredelayEnd;
+    target._attackPreview=actionSnapshot.attackPreview;
+  }
   if (!ok) return false;
   duels2RecordForcedMotionRuntimeRoute({
     type:'forced-motion.start',
@@ -24475,7 +24872,14 @@ window.duels2UnlockSfxAudio = duels2UnlockSfxAudio;
 // duels2BuildSfxAssetCandidates: 현재 배포된 HTML 위치를 우선으로 기존 MP3 음원의 후보 주소를 만든다. (filename: MP3 파일명)
 function duels2BuildSfxAssetCandidates(filename) {
   const candidates=[];
-  try { candidates.push(new URL(filename, document.baseURI).href); } catch (_) {}
+  // file://로 HTML을 직접 실행할 때 상대 경로를 만들면 브라우저가 로컬 Downloads 폴더의
+  // 존재하지 않는 MP3를 fetch/audio로 요청한다. 실제 배포 음원은 GitHub HTTPS 주소만 사용한다.
+  try {
+    const base=new URL(document.baseURI);
+    if(base.protocol==='http:' || base.protocol==='https:'){
+      candidates.push(new URL(filename,base).href);
+    }
+  } catch (_) {}
   candidates.push(`https://lyangnem.github.io/Duels/${filename}`);
   candidates.push(`https://raw.githubusercontent.com/LyangNem/Duels/main/${filename}`);
   return Array.from(new Set(candidates));
@@ -25939,6 +26343,10 @@ window.duels2DispatchGameplayEvent = duels2DispatchGameplayEvent;
   ['bulletSync',{family:'projectile',routing:'broadcast',required:['id'],source:'core'}],
   ['hitMe',{family:'combat-hit',routing:'target',required:['sourcePid','targetPid','damage'],source:'core'}],
   ['ccApply',{family:'combat-cc',routing:'target',required:['sourcePid','targetPid','cc'],source:'core'}],
+  ['shelloGuardState',{family:'character-state',routing:'broadcast',required:['sourcePid','duration','angle'],source:'core'}],
+  ['shelloGuardResolved',{family:'combat-result',routing:'broadcast',required:['sourcePid','blocked'],source:'core'}],
+  ['shelloGuardContact',{family:'combat-result',routing:'broadcast',required:['defenderPid'],source:'core'}],
+  ['shelloParryShieldObject',{family:'character-state',routing:'broadcast',required:['sourcePid','shieldId','active'],source:'core'}],
   ['fx',{family:'visual-effect',routing:'broadcast',required:['fx'],source:'core'}],
   ['dead',{family:'round-state',routing:'broadcast',source:'core'}],
   ['multiPlayerDead',{family:'round-state',routing:'broadcast',required:['victimPid'],source:'core'}],
@@ -27117,6 +27525,8 @@ function duels2RegisterCoreCombatEventHandlers() {
       source:sourceEntity,
       skipSourceModifiers:true,
       feedbackEventId:d.eventId || d.feedbackEventId || null,
+      eventId:d.eventId || d.feedbackEventId || null,
+      delivery:d.delivery||d.actionCtx?.delivery||null, timing:d.timing||d.actionCtx?.timing||null, route:d.route||'network.hitMe', moduleId:d.moduleId||d.actionCtx?.moduleId||null, shelloParryThrowSeq:Number(d.shelloParryThrowSeq||d.actionCtx?.shelloParryThrowSeq)||0, sourcePid:d.sourcePid||null, actionCtx:d.actionCtx||null,
       noLifesteal:d.noLifesteal===true,
       hitAngle:Number.isFinite(Number(d.hitAngle)) ? Number(d.hitAngle) : undefined,
       hitDirectionX:Number.isFinite(Number(d.hitDirectionX)) ? Number(d.hitDirectionX) : undefined,
@@ -27258,6 +27668,56 @@ function duels2RegisterCoreCombatEventHandlers() {
     sourceEntity.smokeRevealDur = d.dur;
     return sourceEntity;
   }, 500);
+
+  duels2RegisterSimpleGameplayEventHandler('shelloGuardState', d => {
+    const remoteActor=duels2ResolveRemotePlayerFromPacket(d)||R;
+    if(remoteActor?.charDef?.id!=='shello')return remoteActor;
+    const now=performance.now();
+    remoteActor._shelloGuardDuration=Math.max(0,Number(d.duration)||0);
+    remoteActor._shelloGuardEnd=now+remoteActor._shelloGuardDuration;
+    remoteActor._shelloGuardAngle=Number(d.angle)||0;
+    remoteActor._shelloGuardHalfAngle=Math.max(0.05,Number(d.halfAngle)||0.8);
+    remoteActor._shelloGuardDist=Math.max(0,Number(d.shieldDist)||44);
+    remoteActor._shelloGuardRadius=Math.max(1,Number(d.shieldRadius)||48);
+    return remoteActor;
+  }, 650);
+
+  duels2RegisterSimpleGameplayEventHandler('shelloGuardContact', d => {
+    const localPid=getPlayerPid(L),now=performance.now();
+    const key=String(d.eventId||`${d.sourcePid||'src'}:${Math.round(Number(d.impactX)||0)}:${Math.round(Number(d.impactY)||0)}`);
+    window._duels2ShelloGuardContactRecent=window._duels2ShelloGuardContactRecent||new Map();
+    const prev=Number(window._duels2ShelloGuardContactRecent.get(key))||0;
+    if(now-prev<120)return d;
+    window._duels2ShelloGuardContactRecent.set(key,now);
+    if(L?.charDef?.id==='shello'&&(!d.defenderPid||d.defenderPid===localPid))duels2ActivateShelloParryFromGuard(L,{x:d.impactX,y:d.impactY});
+    return d;
+  }, 650);
+
+  // 셸로 패리 방패 V3: 단 하나의 복제 객체 맵만 사용한다. 시작/이동/삭제를 같은 객체 ID로 처리한다.
+  window.DUELS2_SHELLO_PARRY_SHIELDS = window.DUELS2_SHELLO_PARRY_SHIELDS || new Map();
+  function duels2ApplyShelloParryShieldObject(d){
+    const id=String(d?.shieldId||'');
+    if(!id)return false;
+    if(String(d?.sourcePid||'')===String(getPlayerPid(L)||localPid||''))return false;
+    const map=window.DUELS2_SHELLO_PARRY_SHIELDS;
+    if(d.active===false){map.delete(id);return true;}
+    const prev=map.get(id)||{id,ownerPid:String(d.sourcePid||''),x:Number(d.x)||0,y:Number(d.y)||0,prevX:Number(d.x)||0,prevY:Number(d.y)||0,radius:48,local:false};
+    prev.prevX=Number.isFinite(prev.x)?prev.x:(Number(d.x)||0);
+    prev.prevY=Number.isFinite(prev.y)?prev.y:(Number(d.y)||0);
+    prev.x=Number(d.x)||0;prev.y=Number(d.y)||0;prev.radius=Math.max(1,Number(d.radius)||48);
+    prev.ownerPid=String(d.sourcePid||prev.ownerPid||'');prev.local=false;prev.updatedAt=performance.now();
+    map.set(id,prev);return true;
+  }
+  duels2RegisterSimpleGameplayEventHandler('shelloParryShieldObject',duels2ApplyShelloParryShieldObject,520);
+
+  duels2RegisterSimpleGameplayEventHandler('shelloGuardResolved', d => {
+    // 방어자에게서 돌아온 공격 결과 확인용이다. 별도의 전투 판정이나 MISS 타입을 만들지 않는다.
+    if(d.eventId){
+      window._duels2GuardResolvedEvents=window._duels2GuardResolvedEvents||new Map();
+      window._duels2GuardResolvedEvents.set(String(d.eventId),{blocked:d.blocked===true,at:performance.now()});
+    }
+    return d;
+  }, 650);
 
   duels2RegisterSimpleGameplayEventHandler('dmgDealtSync', d => {
     const sourceEntity = duels2ResolvePacketSourceEntity(d, R);
@@ -27435,7 +27895,7 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     }
   },510);
   duels2RegisterSimpleGameplayEventHandler('levinaSpearClear', d => {duels2ResolvePacketSourceEntity(d)._levinaSpear=null;}, 510);
-  duels2RegisterSimpleGameplayEventHandler('levinaSpearParried', d => {if(L._levinaSpear)duels2BeginLevinaSpearRecall(L._levinaSpear,{x:d.x,y:d.y,copyForwardHits:false});}, 510);
+  duels2RegisterSimpleGameplayEventHandler('levinaSpearParried', d => {if((!d.ownerPid||d.ownerPid===getPlayerPid(L))&&L._levinaSpear){L._levinaSpear.x=Number.isFinite(Number(d.x))?Number(d.x):L._levinaSpear.x;L._levinaSpear.y=Number.isFinite(Number(d.y))?Number(d.y):L._levinaSpear.y;duels2BeginLevinaSpearRecall(L._levinaSpear,{x:L._levinaSpear.x,y:L._levinaSpear.y,copyForwardHits:false});}}, 510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerThrow',d=>{duels2ApplyRemoteRuvuHammerThrow(d);},510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerClear',d=>{duels2ApplyRemoteRuvuHammerClear(d);},510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerRecall',d=>{
@@ -27451,7 +27911,7 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     hammer._manualRecall=true;
     hammer._deathRecall=d.reason==='revival-death';
   },510);
-  duels2RegisterSimpleGameplayEventHandler('ruvuHammerParried', d => {if(L._ruvuHammer&&!L._ruvuHammer.returning){L._ruvuHammer.returning=true;L._ruvuHammer.returnStart=performance.now();L._ruvuHammer.returnSX=d.x;L._ruvuHammer.returnSY=d.y;L._ruvuHammer._returnHit=true;L._ruvuHammer._hitR=true;clearTimeout(L._ruvuHammer._timer);}}, 510);
+  duels2RegisterSimpleGameplayEventHandler('ruvuHammerParried', d => {if((!d.ownerPid||d.ownerPid===getPlayerPid(L))&&L._ruvuHammer&&!L._ruvuHammer.returning){clearTimeout(L._ruvuHammer._timer);L._ruvuHammer._timer=null;L._ruvuHammer.x=Number.isFinite(Number(d.x))?Number(d.x):L._ruvuHammer.x;L._ruvuHammer.y=Number.isFinite(Number(d.y))?Number(d.y):L._ruvuHammer.y;L._ruvuHammer.returning=true;L._ruvuHammer._stopped=false;L._ruvuHammer.returnStart=performance.now();L._ruvuHammer.returnSX=L._ruvuHammer.x;L._ruvuHammer.returnSY=L._ruvuHammer.y;L._ruvuHammer._returnHit=true;L._ruvuHammer._hitR=true;}}, 510);
   const DUELS2_RUVU_HAMMER_FEEDBACK_EVENTS = new Map();
 duels2RegisterSimpleGameplayEventHandler('ruvuHammerHitMe', d => {
   const eventId=String(d.eventId||'');
@@ -27569,7 +28029,7 @@ function duels2HandleStateSnapshotEvent(d) {
       if (d.dodgeUseId && remote._dodgeUseId !== d.dodgeUseId) { remote._dodgeUseId = d.dodgeUseId; remote._dodgeUseAt = performance.now(); remote._dodgeResultKnown = !!d.dodgeResultKnown; remote._dodgeResultJust = !!d.dodgeResultJust; remote._dodgeResultFinal = !!d.dodgeResultKnown; }
       if (d.dodgeResultKnown) { remote._dodgeResultKnown = true; remote._dodgeResultJust = !!d.dodgeResultJust; remote._dodgeResultAt = performance.now(); if (remote._dodgeResultJust) { L._peerJustDodged = true; L._peerJustDodgeAt = remote._dodgeResultAt; remote._justDodgeAt = remote._dodgeResultAt; } }
       duels2RememberRemoteKiForecastAreaState?.(d.kiForecastArea || null);
-      remote._reviving=!!d.reviving; remote.counterReady=d.counterReady??false;
+      remote._reviving=!!d.reviving; remote.counterReady=d.counterReady??false; remote._shelloCounterMode=remote.charDef?.id==='shello'?(d.shelloCounterMode||null):null;
       duels2RouteSyncRemotePlayerStatusSnapshot?.(remote, d, {reason:'network.state:remote-player-status', route:'status.remote-player-sync'});
       if (d.statusSnapshot) applyNetStatusSnapshot?.(remote, d.statusSnapshot);
       if (d.botSnapshot) syncPeerDebugBots?.(d.botSnapshot);
@@ -27806,15 +28266,38 @@ function onData(d) {
       duels2HandleStateSnapshotEvent(d);
       break;
     }
+    case 'shelloGuardState': {
+      const remoteActor=duels2ResolveRemotePlayerFromPacket(d)||R;
+      if(remoteActor?.charDef?.id==='shello'){
+        const now=performance.now();
+        remoteActor._shelloGuardDuration=Math.max(0,Number(d.duration)||0);
+    remoteActor._shelloGuardEnd=now+remoteActor._shelloGuardDuration;
+        remoteActor._shelloGuardAngle=Number(d.angle)||0;
+        remoteActor._shelloGuardHalfAngle=Math.max(0.05,Number(d.halfAngle)||0.8);
+        remoteActor._shelloGuardDist=Math.max(0,Number(d.shieldDist)||44);
+        remoteActor._shelloGuardRadius=Math.max(1,Number(d.shieldRadius)||48);
+      }
+      break;
+    }
+    case 'shelloGuardResolved': {
+      if(d.eventId){
+        window._duels2GuardResolvedEvents=window._duels2GuardResolvedEvents||new Map();
+        window._duels2GuardResolvedEvents.set(String(d.eventId),{blocked:d.blocked===true,at:performance.now()});
+      }
+      break;
+    }
+    case 'attackVisual': {
+      const ownerPid = PLAYER_SLOT_IDS.includes(d.sourcePid || d.pid) ? (d.sourcePid || d.pid) : 'P2';
+      const remoteActor=duels2ResolveRemotePlayerFromPacket({pid:ownerPid,sourcePid:ownerPid,ownerId:d.ownerId,teamId:d.teamId})||R;
+      const remoteAngle=Number.isFinite(Number(d.angle))?Number(d.angle):0;
+      duels2TriggerActualAttackEmissionFeedback(remoteActor,remoteAngle,{route:'network.attackVisual',sync:false});
+      break;
+    }
     case 'bullet': {
       const ownerPid = PLAYER_SLOT_IDS.includes(d.sourcePid || d.pid) ? (d.sourcePid || d.pid) : 'P2';
       const bullet = duels2IndexRemoteCombatObject('bullets', duels2ObserveIncomingPeerProjectilePush(duels2NormalizeIncomingPeerBulletPacket(d), {route:'network.onData.bullet-push', packet:d}), ownerPid);
       peerBullets.push(bullet);
-      {
-        const remoteActor=duels2ResolveRemotePlayerFromPacket({pid:ownerPid})||R;
-        const remoteAngle=Math.hypot(Number(bullet?.dx)||0,Number(bullet?.dy)||0)>0.001 ? Math.atan2(Number(bullet.dy)||0,Number(bullet.dx)||0) : Number(bullet?.angle)||0;
-        duels2TriggerActualAttackEmissionFeedback(remoteActor,remoteAngle,{route:'network.bullet'});
-      }
+      // 공격 스퀴시는 별도 attackVisual 이벤트에서 처리한다. 탄환 수신으로 중복 추정하지 않는다.
       break;
     }
     case 'bulletSync': {
@@ -27824,7 +28307,7 @@ function onData(d) {
     }
     case 'hitMe': {
       const sourceEntity = duels2ResolveRemotePlayerFromPacket({pid:d.sourcePid || 'P2'}) || R;
-      const hitCtx={fromNetwork:true, source:sourceEntity, skipSourceModifiers:true, feedbackEventId:d.eventId,
+      const hitCtx={fromNetwork:true, source:sourceEntity, sourcePid:d.sourcePid||null, skipSourceModifiers:true, feedbackEventId:d.eventId,eventId:d.eventId,delivery:d.delivery||d.actionCtx?.delivery||null,timing:d.timing||d.actionCtx?.timing||null,route:d.route||'network.hitMe',moduleId:d.moduleId||d.actionCtx?.moduleId||null,shelloParryThrowSeq:Number(d.shelloParryThrowSeq||d.actionCtx?.shelloParryThrowSeq)||0,actionCtx:d.actionCtx||null,
         hitAngle:Number.isFinite(Number(d.hitAngle))?Number(d.hitAngle):undefined,
         hitDirectionX:Number.isFinite(Number(d.hitDirectionX))?Number(d.hitDirectionX):undefined,
         hitDirectionY:Number.isFinite(Number(d.hitDirectionY))?Number(d.hitDirectionY):undefined};
@@ -28155,14 +28638,15 @@ function onData(d) {
       sourceEntity._levinaSpear = null; break;
     }
     case 'levinaSpearParried':
-      // 리안에게 패리당함 — 즉시 귀환 상태로 전환
-      if (L._levinaSpear) {
+      // 방패에 패리당함 — 실제 소유자만 즉시 귀환 상태로 전환
+      if ((!d.ownerPid||d.ownerPid===getPlayerPid(L)) && L._levinaSpear) {
         duels2BeginLevinaSpearRecall(L._levinaSpear, {x:d.x, y:d.y, copyForwardHits:false});
       } break;
     case 'ruvuHammerParried':
-      // 리안에게 패리당함 — 즉시 귀환 시작, 귀환 히트 판정 차단
-      if (L._ruvuHammer && !L._ruvuHammer.returning) {
+      // 방패에 패리당함 — 실제 소유자만 즉시 귀환 시작
+      if ((!d.ownerPid||d.ownerPid===getPlayerPid(L)) && L._ruvuHammer && !L._ruvuHammer.returning) {
         L._ruvuHammer.returning = true;
+        L._ruvuHammer._stopped = false;
         L._ruvuHammer.returnStart = performance.now();
         L._ruvuHammer.returnSX = d.x;
         L._ruvuHammer.returnSY = d.y;
@@ -29018,7 +29502,7 @@ function duels2RenderCharacterRecordDetail(container,ch,pid=null){
   addRow('플레이',`${stats.plays}회`);
   addRow('승률',`${stats.plays?stats.winRate.toFixed(1):'0.0'}%`);
   addRow('레코드',`${record.tier.name} · ${record.points}`);
-  const hint=document.createElement('div');hint.className='char-record-detail-hint';hint.textContent='우클릭으로 다음';container.appendChild(hint);
+  const hint=document.createElement('div');hint.className='char-record-detail-hint';hint.textContent='우클릭: 캐릭터 랭킹';container.appendChild(hint);
 }
 window.duels2RenderCharacterRecordDetail=duels2RenderCharacterRecordDetail;
 
@@ -29119,19 +29603,19 @@ async function duels2RenderCharacterRankingDetail(container,ch){
       entries.forEach((entry,index)=>{const row=document.createElement('div');row.className='char-record-ranking-row';const tier=duels2GetCharacterMasteryTier(entry.score);row.dataset.recordTier=tier.id;const borderColor=tier.id==='none'?'#3d4650':tier.text;const borderGlow=tier.id==='none'?'rgba(38,46,56,.08)':tier.glow;row.style.setProperty('--ranking-tier-color',borderColor);row.style.setProperty('--ranking-tier-glow',borderGlow);const rank=document.createElement('span');rank.className='char-record-ranking-rank';rank.textContent=String(index+1);const name=document.createElement('span');name.className='char-record-ranking-name';name.textContent=entry.displayName;name.title=entry.displayName;const score=document.createElement('span');score.className='char-record-ranking-score';score.textContent=String(entry.score);row.append(rank,name,score);list.appendChild(row);});
       container.appendChild(list);
     }
-    const hint=document.createElement('div');hint.className='char-record-detail-hint';hint.textContent='우클릭으로 돌아가기';container.appendChild(hint);
+    const hint=document.createElement('div');hint.className='char-record-detail-hint';hint.textContent='우클릭: 카드 앞면';container.appendChild(hint);
   }catch(error){
     if(container.dataset.rankingRequestId!==requestId||container.dataset.detailMode!=='ranking')return;
     container.replaceChildren(title);
     const failed=document.createElement('div');failed.className='char-record-ranking-empty';failed.textContent=error?.status===404?'랭킹 서버 기능이 아직 연결되지 않았습니다.':'랭킹을 불러오지 못했습니다.';container.appendChild(failed);
-    const hint=document.createElement('div');hint.className='char-record-detail-hint';hint.textContent='우클릭으로 돌아가기';container.appendChild(hint);
+    const hint=document.createElement('div');hint.className='char-record-detail-hint';hint.textContent='우클릭: 카드 앞면';container.appendChild(hint);
     console.error('[Duels Ranking] load failed',error);
   }
 }
 window.duels2RenderCharacterRankingDetail=duels2RenderCharacterRankingDetail;
 
 // duels2GetCharacterSelectionOrder: 캐릭터 선택 UI에서 지정 캐릭터를 마지막에 배치한다. (lastIds: 마지막에 둘 캐릭터 id 배열)
-function duels2GetCharacterSelectionOrder(lastIds=['ruli']) {
+function duels2GetCharacterSelectionOrder(lastIds=['ruli','clea','shello']) {
   const tail=new Set(lastIds);
   return Object.values(CHARACTERS).sort((a,b)=>(tail.has(a.id)?1:0)-(tail.has(b.id)?1:0));
 }
@@ -29463,8 +29947,20 @@ function hitCtx(ctx, dmg, opt = {}) {
   const source = opt.source || getActionSourceEntity(activeCtx, getCombatSource(L));
   const slot = opt.slot || activeCtx?.slot || 'lmb';
   duels2TriggerCommittedHitboxFeedback({...ctx,...opt,slot},activeCtx,source,'hitCtx.commit');
-  const hits = getTargetsInCtx(ctx, opt.targets || null, {source, team:opt.team || 'enemy'});
-  damageSkillProfileTargets(hits, dmg, {slot, actionCtx:activeCtx, lmbAttack: opt.lmbAttack === true || slot === 'lmb', source, hitTags:opt.hitTags});
+  const rawCandidates = getTargetsInCtx(ctx, opt.targets || null, {source, team:opt.team || 'enemy'});
+  const candidates = duels2FilterShelloShieldedTargets(rawCandidates,{...ctx,...opt,actionCtx:activeCtx},source);
+  const summary=duels2ResolveDamageTargetPath(candidates,dmg,{
+    slot,
+    actionCtx:activeCtx,
+    lmbAttack:opt.lmbAttack===true||slot==='lmb',
+    source,
+    hitTags:opt.hitTags,
+    windowTargetMode:'applied',
+    restoreWindow:false,
+    route:'damage.hitCtx',
+    reason:'hitCtx'
+  });
+  const hits=(summary.applied||[]).map(result=>result.target).filter(Boolean);
   window._hitTargets = hits;
   window._hitTarget = hits[0] ?? null;
   return hits;
@@ -29477,7 +29973,8 @@ function hitCtxAll(ctx, dmg, cc, opt = {}) {
   const sourceContext = duels2RouteResolveDamageSourceContext({...opt, actionCtx:inheritedActionCtx, slot:inheritedSlot}, {route:'damage.hitCtxAll.source', reason:'hitCtxAll', defaultSlot:inheritedSlot});
   const source = sourceContext.source;
   duels2TriggerCommittedHitboxFeedback({...ctx,...opt,slot:inheritedSlot},sourceContext.actionCtx || inheritedActionCtx,source,'hitCtxAll.commit');
-  const hits = getTargetsInCtx(ctx, opt.targets || null, {source, team:opt.team || 'enemy'});
+  const rawHits = getTargetsInCtx(ctx, opt.targets || null, {source, team:opt.team || 'enemy'});
+  const hits = duels2FilterShelloShieldedTargets(rawHits,{...ctx,...opt,actionCtx:sourceContext.actionCtx||inheritedActionCtx},source);
   const impactContext = {
     ...sourceContext.ctx,
     slot:inheritedSlot,
@@ -30697,6 +31194,18 @@ function drawAttackPreview(preview) {
       ctx.arc(cx, cy, (_circleMeleeAug ? augMeleeRange(sh.r) : (sh.explosion ? augExplosionRange(sh.r) : sh.r)), 0, Math.PI * 2);
       ctx.globalAlpha = 0.18; ctx.fill();
       ctx.globalAlpha = 0.55; ctx.stroke();
+
+    } else if (sh.type === 'annulus' || sh.type === 'ring') {
+      const _annulusMeleeAug = !sh.noAug && sh.melee === true;
+      const outer = Math.max(0, _annulusMeleeAug ? augMeleeRange(sh.outer) : Number(sh.outer)||0);
+      const inner = Math.max(0, Math.min(outer, _annulusMeleeAug ? augMeleeRange(sh.inner) : Number(sh.inner)||0));
+      ctx.beginPath();
+      ctx.arc(cx, cy, outer, 0, Math.PI * 2);
+      if (inner > 0) ctx.arc(cx, cy, inner, 0, Math.PI * 2, true);
+      ctx.globalAlpha = 0.18; ctx.fill('evenodd');
+      ctx.globalAlpha = 0.55;
+      ctx.beginPath(); ctx.arc(cx, cy, outer, 0, Math.PI * 2); ctx.stroke();
+      if (inner > 0) { ctx.beginPath(); ctx.arc(cx, cy, inner, 0, Math.PI * 2); ctx.stroke(); }
 
     } else if (sh.type === 'sector') {
       const ha = sh.halfAngle;
@@ -32940,6 +33449,7 @@ function duels2RouteLocalJustDodgeConfirmed(entity = L, opt = {}) {
   entity._counterPending = true;
   entity.counterReady = true;
   entity.counterExpiry = performance.now() + BALANCE.counter.window;
+  if(entity.charDef?.id==='shello') duels2SetShelloCounterMode(entity,'normal',5000);
   if (getAugCount('heal_dodge') > 0) {
     healEntityRaw(entity, getEntityMaxHealth(entity) * (AUG_VALS.heal_dodge.healRatio/100) * getAugCount('heal_dodge'), {fx:false, source:entity, route:'augment.heal-dodge.local-player', reason:'local-just-dodge-confirmed'});
     addFx({type:'healPulse', x:px, y:py, r:0, maxR:30, dur:14, maxDur:14});
@@ -33029,8 +33539,11 @@ function tryDodge() {
     }
     if (L._counterPending) {
       L._counterPending = false;
-      L.counterReady  = true;
-      L.counterExpiry = performance.now() + 5000 + getAugCount('careful_counter') * AUG_VALS.careful_counter.windowBonus * 1000;
+      if(L.charDef?.id==='shello') duels2SetShelloCounterMode(L,'normal',5000);
+      else {
+        L.counterReady  = true;
+        L.counterExpiry = performance.now() + 5000 + getAugCount('careful_counter') * AUG_VALS.careful_counter.windowBonus * 1000;
+      }
     }
     // 자동 공격
     // 차징/드래그/홀드 중인 경우에도 자동공격은 나가지만, 기존 수동 차징 상태는 보존한다.
@@ -33862,6 +34375,7 @@ const SKILLS = {
         clearTimeout(L._ruvuHammer._timer);
         // 망치 귀환 애니메이션 시작
         L._ruvuHammer.returning = true;
+        L._ruvuHammer._stopped = false;
         L._ruvuHammer.returnStart = now;
         L._ruvuHammer.returnSX = L._ruvuHammer.x;
         L._ruvuHammer.returnSY = L._ruvuHammer.y;
@@ -33905,6 +34419,7 @@ const SKILLS = {
       L._ruvuHammer._timer = setTimeout(() => {
         if (!L._ruvuHammer || L._ruvuHammer.returning) return;
         L._ruvuHammer.returning = true;
+        L._ruvuHammer._stopped = false;
         L._ruvuHammer.returnStart = performance.now();
         L._ruvuHammer.returnSX = L._ruvuHammer.x;
         L._ruvuHammer.returnSY = L._ruvuHammer.y;
@@ -35398,9 +35913,11 @@ const SKILLS = {
       let hit = false;
       const gauge = L._kanGauge || 0;
       const dmg = Math.round(B.baseDamage + B.gaugeDamage * (gauge / duels2GetSkillBalance('kan','gaugeMax')));
-      const hits = hitCtx({x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle}, dmg);
-      if (hits.length > 0) {
-        const gaugeHits = hits.filter(isRemotePlayerTarget);
+      const kanCtx={x:L.x, y:L.y, angle, range:augMeleeRange(B.meleeRange), halfAngle:B.halfAngle};
+      const kanCandidates=duels2FilterShelloShieldedTargets(getTargetsInCtx(kanCtx,null,{source:L,team:'enemy'}),kanCtx,L);
+      const hits = hitCtx(kanCtx, dmg);
+      if (kanCandidates.length > 0 || hits.length > 0) {
+        const gaugeHits = kanCandidates.filter(isRemotePlayerTarget);
         if (gaugeHits.length > 0) {
           L._kanGauge = Math.min(duels2GetSkillBalance('kan','gaugeMax'), gauge + B.gaugeGain * gaugeHits.length);
         }
@@ -36177,7 +36694,7 @@ const SKILLS = {
       L._pelunaPreswing = true;
       L.lastAttackTime = performance.now();
       const tok = ++L._pelunaToken;
-      L._attackPreview = { shapes: [{ type: 'circle', r: B.ringOuter, melee:true }] };
+      L._attackPreview = { shapes: [{ type: 'annulus', inner:_inner, outer:B.ringOuter, melee:true }] };
       emitFx({type:'pelunaCharge', x:L.x, y:L.y, dur:Math.max(1,_predelay/FRAME_MS), maxDur:Math.max(1,_predelay/FRAME_MS)});
       setTimeout(() => {
         L._attackPreview = null;
@@ -38008,6 +38525,264 @@ const SKILLS = {
     },
   },
 
+
+  shello: {
+    // lmb: 단일 방패 효과가 캐릭터 전방의 짧은 호를 따라 움직이며 접촉 대상을 한 번 타격한다. (angle: 조준 방향)
+    lmb(angle) {
+      const B=duels2GetSkillBalance('shello','lmb');
+      if(L.lmbCooldown>0 || !useStam(B.cost)) return;
+      const halfArc=Math.max(0.05,Number(B.swingHalfArc)||Math.PI*0.45);
+      const start=angle-halfArc,end=angle+halfArc;
+      const hit=new Set(),started=performance.now();
+      const token=(L._shelloLmbToken||0)+1;L._shelloLmbToken=token;
+      emitFx({type:'shelloOrbitShield',cx:L.x,cy:L.y,startAngle:start,totalAngle:end-start,orbitRange:B.orbitRange,shieldRadius:B.shieldRadius,col:'82,42,80',dur:Math.max(1,B.swingDur/FRAME_MS),maxDur:Math.max(1,B.swingDur/FRAME_MS)});
+      const tick=()=>{
+        if(!gameOn||L?.charDef?.id!=='shello'||L._shelloLmbToken!==token)return;
+        const t=Math.min(1,(performance.now()-started)/Math.max(1,B.swingDur));
+        const a=start+(end-start)*t;
+        const x=L.x+Math.cos(a)*B.orbitRange,y=L.y+Math.sin(a)*B.orbitRange;
+        const targets=duels2QueryHitboxTargets({shape:'circle',radius:B.shieldRadius,relation:'enemy'},{source:L,x,y,targets:duels2CollectFormerRsTargets('target.shello.lmb')});
+        for(const target of targets){const key=getHitTargetKey(target);if(hit.has(key))continue;hit.add(key);duels2ApplyCombatObjectDirectDamage(target,B.damage,{source:L,route:'skill.shello.lmb.shield-edge',moduleId:'effect.damage.shello-lmb',delivery:'melee',timing:'continuous'});}
+        if(t<1)requestAnimationFrame(tick);else if(hit.size)playHitSfx();
+      };
+      requestAnimationFrame(tick);
+      L.lmbCooldown=B.cd;L.lastAttackTime=performance.now();
+    },
+    // rmb: 전방 방패 공간을 0.2초 동안 유지하고 범위 안 적을 강하게 밀어낸다. (angle: 조준 방향)
+    rmb(angle) {
+      const B=duels2GetSkillBalance('shello','rmb');
+      if(L.rmbCooldown>0 || !useStam(B.cost)) return;
+      const now=performance.now();
+      L._shelloGuardDuration=B.duration;L._shelloGuardEnd=now+B.duration;L._shelloGuardAngle=angle;L._shelloGuardHalfAngle=B.halfAngle;L._shelloGuardDist=B.shieldDist;L._shelloGuardRadius=B.shieldRadius;
+      if(typeof send==='function')send({type:'shelloGuardState',active:true,duration:B.duration,angle,halfAngle:B.halfAngle,shieldDist:B.shieldDist,shieldRadius:B.shieldRadius});
+      L._shelloGuardFxId=null;
+      const pushed=getTargetsInCtx({x:L.x,y:L.y,angle,range:B.shieldDist+B.shieldRadius,halfAngle:B.halfAngle},duels2CollectFormerRsTargets('target.shello.guard-knockback'),{source:L,team:'enemy'});
+      for(const target of pushed){
+        const away=Math.atan2((target.y||0)-L.y,(target.x||0)-L.x);
+        const scale=getTargetKnockbackScale(target);
+        const power=Number(B.knockbackPower)||420;
+        applyCC(target,{knockbackPower:power,knockbackAngle:away},L,{slot:'rmb',reason:'shello-guard-knockback',preserveActionState:true});
+      }
+      L.rmbCooldown=B.cd;L.lastAttackTime=now;
+    },
+    // counter: 단일 반격 슬롯의 최신 mode가 parry면 투척 추격, 아니면 두 바퀴 스피닝을 사용한다. (angle: 시작 방향)
+    counter(angle) {
+      const B=duels2GetSkillBalance('shello','counter');
+      if(!duels2CheckCounterReadyGuard(L,{route:'skill.counter.ready-check',source:'character-counter'}))return;
+      const mode=L._shelloCounterMode==='parry'?'parry':'normal';
+      duels2ConsumeCounterReadyGuard(L,{route:'skill.counter.ready-consume',source:'character-counter'});
+      L._shelloCounterMode=null;
+      duels2ApplyCounterCooldownToLocal(B.cd,{route:'skill.counter.cooldown',source:'character-counter'});
+      const tok=++L._counterToken;
+      if(mode==='parry'){
+        // 패리 투척의 실제 판정은 이동 선분을 방패 반지름만큼 확장한 범위다. 미리보기도 같은 길이와 폭을 사용한다.
+        L._attackPreview={shapes:[{type:'rect',len:B.parryThrowDist,width:B.parryShieldRadius,noAug:true,col:SHELLO_GUARD_FX_COLOR}]};
+        scheduleAction(BALANCE.counter.delay,()=>{
+          L._attackPreview=null;if(!gameOn||L._counterToken!==tok||L?.charDef?.id!=='shello')return;
+          const liveAngle=getAngle();
+          const started=performance.now(),hit=new Set(),token=(L._shelloParryThrowToken||0)+1;L._shelloParryThrowToken=token;
+          const sx=L.x+Math.cos(liveAngle)*(L.radius+B.parryShieldRadius*.42),sy=L.y+Math.sin(liveAngle)*(L.radius+B.parryShieldRadius*.42);
+          const ex=sx+Math.cos(liveAngle)*B.parryThrowDist,ey=sy+Math.sin(liveAngle)*B.parryThrowDist;
+          const shieldId=`shello-parry-${getPlayerPid(L)||localPid||'local'}-${token}-${Math.floor(performance.now())}`;
+          const shieldMap=window.DUELS2_SHELLO_PARRY_SHIELDS||(window.DUELS2_SHELLO_PARRY_SHIELDS=new Map());
+          const shieldObject={id:shieldId,ownerPid:getPlayerPid(L)||localPid||'',x:sx,y:sy,prevX:sx,prevY:sy,radius:B.parryShieldRadius,local:true,updatedAt:performance.now()};
+          shieldMap.set(shieldId,shieldObject);
+          let lastFlightSendAt=0;
+          const syncShield=(active,x,y,force=false)=>{
+            if(!active){shieldMap.delete(shieldId);send({type:'shelloParryShieldObject',shieldId,active:false,x,y});return;}
+            shieldObject.prevX=shieldObject.x;shieldObject.prevY=shieldObject.y;shieldObject.x=x;shieldObject.y=y;shieldObject.updatedAt=performance.now();
+            const now=performance.now();if(!force&&now-lastFlightSendAt<24)return;lastFlightSendAt=now;
+            send({type:'shelloParryShieldObject',shieldId,active:true,x,y,radius:B.parryShieldRadius});
+          };
+          syncShield(true,sx,sy,true);
+          let followStarted=false;
+          const beginFollow=(impactX,impactY)=>{
+            if(followStarted)return;followStarted=true;
+            L._shelloParryThrowToken++;
+            syncShield(false,impactX,impactY,true);
+            const frontOffset=Math.max(0,B.parryShieldRadius+L.radius*0.8);
+            const tx=Math.max(L.radius,Math.min(WORLD_W-L.radius,impactX+Math.cos(liveAngle)*frontOffset));
+            const ty=Math.max(L.radius,Math.min(WORLD_H-L.radius,impactY+Math.sin(liveAngle)*frontOffset));
+            const followFrames=Math.max(8,B.parryFollowDur/FRAME_MS);
+            emitFx({type:'dash',x:L.x,y:L.y,tx,ty,dur:followFrames,maxDur:followFrames,col:'82,42,80'});
+            emitFx({type:'shieldDash',x:L.x,y:L.y,angle:Math.atan2(ty-L.y,tx-L.x),range:Math.hypot(tx-L.x,ty-L.y),dur:followFrames,maxDur:followFrames,col:'82,42,80'});
+            duels2MovementStartCancelableDashTo?.(L,'_shelloParryFollowInterval',tx,ty,B.parryFollowDur,{reason:'shello.parry-counter.follow',route:'movement.skill-dash.executor.shello-parry-follow',source:L,payload:{easing:'easeOutQuad',executor:true,shieldWallPierce:true},finishReason:'shello.parry-counter.follow:complete',finishRoute:'movement.skill-dash.finish.shello-parry-follow',stopReason:'shello.parry-counter.follow:game-stopped',stopRoute:'movement.skill-dash.cancel.shello-parry-follow'});
+            const followToken=(L._shelloParryFollowToken||0)+1;L._shelloParryFollowToken=followToken;
+            scheduleAction(B.parryFollowDur+12,()=>{if(gameOn&&L?.charDef?.id==='shello'&&L._shelloParryFollowToken===followToken){L.x=tx;L.y=ty;}},{cancelOnRoundChange:true,cancelIfCharChanged:true});
+          };
+          const throwTick=()=>{
+            if(!gameOn||L?.charDef?.id!=='shello'||L._shelloParryThrowToken!==token||followStarted)return;
+            const t=Math.min(1,(performance.now()-started)/Math.max(1,B.parryThrowDur));
+            const x=sx+(ex-sx)*t,y=sy+(ey-sy)*t;
+            syncShield(true,x,y);
+            const targets=duels2QueryHitboxTargets({shape:'circle',radius:B.parryShieldRadius,relation:'enemy'},{source:L,x,y,targets:duels2CollectFormerRsTargets('target.shello.parry-counter')});
+            let firstImpact=null;
+            for(const target of targets){
+              const key=getHitTargetKey(target);if(hit.has(key))continue;hit.add(key);
+              const hitAngle=Math.atan2((target.y||y)-sy,(target.x||x)-sx);
+              const stopDist=Math.max(0,Math.hypot((target.x||x)-sx,(target.y||y)-sy)-(Number(target.radius)||20)-B.parryShieldRadius);
+              firstImpact={x:sx+Math.cos(hitAngle)*stopDist,y:sy+Math.sin(hitAngle)*stopDist,target};
+              duels2ApplyCombatObjectDirectDamage(target,B.damage,{source:L,route:'skill.shello.counter.parry-shield',moduleId:'effect.damage.shello-parry-counter',delivery:'projectile',timing:'continuous',projectileX:x,projectileY:y,shelloParryThrowSeq:token});
+              const parryPower=Number(B.knockbackPower)||420;
+              applyCC(target,{knockbackPower:parryPower,knockbackAngle:liveAngle},L,{slot:'counter',reason:'shello-parry-counter-knockback',preserveActionState:true});
+              break;
+            }
+            if(firstImpact){playHitSfx();beginFollow(firstImpact.x,firstImpact.y);return;}
+            if(t<1){requestAnimationFrame(throwTick);return;}
+            beginFollow(ex,ey);
+          };
+          requestAnimationFrame(throwTick);L.lastAttackTime=performance.now();
+        },{cancelOnRoundChange:true,cancelIfCharChanged:true});
+        return;
+      }
+      L._attackPreview={shapes:[{type:'annulus',inner:Math.max(0,B.orbitRange-B.shieldRadius),outer:B.orbitRange+B.shieldRadius,noAug:true}]};
+      scheduleAction(BALANCE.counter.delay,()=>{
+        L._attackPreview=null;if(!gameOn||L._counterToken!==tok)return;
+        const startAngle=getAngle(),started=performance.now(),rotations=Math.max(1,Number(B.rotations)||2),hitByRotation=Array.from({length:rotations},()=>new Set()),totalHits=new Set();
+        emitFx({type:'shelloOrbitShield',cx:L.x,cy:L.y,startAngle,totalAngle:Math.PI*2*rotations,orbitRange:B.orbitRange,shieldRadius:B.shieldRadius,col:'82,42,80',dur:Math.max(1,B.spinDur/FRAME_MS),maxDur:Math.max(1,B.spinDur/FRAME_MS)});
+        const spin=()=>{
+          if(!gameOn||L._counterToken!==tok)return;
+          const t=Math.min(1,(performance.now()-started)/Math.max(1,B.spinDur)),a=startAngle+t*Math.PI*2*rotations,rotationIndex=Math.min(rotations-1,Math.floor(Math.min(0.999999,t)*rotations)),hit=hitByRotation[rotationIndex];
+          const x=L.x+Math.cos(a)*B.orbitRange,y=L.y+Math.sin(a)*B.orbitRange;
+          const targets=duels2QueryHitboxTargets({shape:'circle',radius:B.shieldRadius,relation:'enemy'},{source:L,x,y,targets:duels2CollectFormerRsTargets('target.shello.counter')});
+          for(const target of targets){const key=getHitTargetKey(target);if(hit.has(key))continue;hit.add(key);totalHits.add(key);duels2ApplyCombatObjectDirectDamage(target,B.damage,{source:L,route:'skill.shello.counter.spinning',moduleId:'effect.damage.shello-counter',delivery:'area',timing:'continuous'});const kb=Number(B.knockbackPower)||420,ka=Math.atan2(target.y-L.y,target.x-L.x);applyCC(target,{knockbackPower:kb,knockbackAngle:ka},L,{slot:'counter',reason:'shello-spinning-knockback',preserveActionState:true});}
+          if(t<1)requestAnimationFrame(spin);else if(totalHits.size)playHitSfx();
+        };
+        requestAnimationFrame(spin);L.lastAttackTime=performance.now();
+      },{cancelOnRoundChange:true,cancelIfCharChanged:true});
+    },
+  },
+
+
+  clea: {
+    // _addGauge: 클레아의 달 그림자 게이지를 최대치 안에서 증가시킨다. (amount: 증가량)
+    _addGauge(amount) {
+      const max=Math.max(1,Number(duels2GetSkillBalance('clea','gaugeMax'))||100);
+      L._cleaGauge=Math.max(0,Math.min(max,(Number(L._cleaGauge)||0)+(Number(amount)||0)));
+      return L._cleaGauge;
+    },
+    // lmb: 기본 수리검과 달 그림자 추가 수리검을 같은 프레임에 좌우 평행 레인으로 발사한다. (angle: 조준 방향)
+    lmb(angle) {
+      const B=duels2GetSkillBalance('clea','lmb');
+      if(L.lmbCooldown>0 || !useStam(B.cost)) return;
+      const shadow=duels2GetSkillBalance('clea','rmb');
+      const active=(Number(L._cleaShadowEnd)||0)>performance.now();
+      const gaugeCost=Math.max(0,Number(shadow.gaugePerShot)||1);
+      const doubleShot=active && (Number(L._cleaGauge)||0)>=gaugeCost;
+      if(doubleShot) L._cleaGauge=Math.max(0,(Number(L._cleaGauge)||0)-gaugeCost);
+      // 기본탄과 추가탄은 같은 조준 방향으로 평행하게 이동한다. 추가탄은 작은 반지름만큼 안쪽으로 보정해 시각적 좌우 간격을 맞춘다.
+      // 클레아의 기본탄·추가탄은 소르 평타 탄환과 동일한 충돌 반지름을 사용한다.
+      const sorProjectileRadius=augBulletRadius(duels2GetSkillBalance('sor','lmb').radius);
+      const primaryRadius=sorProjectileRadius;
+      const shadowRadius=Math.max(3,sorProjectileRadius*0.72);
+      const primaryOffset=Math.max(10,B.radius*1.18);
+      const shadowOffset=primaryOffset;
+      const perpX=-Math.sin(angle), perpY=Math.cos(angle);
+      const originX=L.x, originY=L.y;
+      const spawnDistance=L.radius+16;
+      const volleyId=`clea_volley_${uid()}`;
+      const aimCos=Math.cos(angle), aimSin=Math.sin(angle);
+      // createShuriken: 클릭 순간 확정한 동일 좌표계로 탄환 객체를 미리 만든다. 지연 발사도 생성 좌표·방향을 다시 계산하지 않는다. (sideSign: 오른쪽 1/왼쪽 -1, gaugeGain: 적중 게이지 충전량, shadowShot: 추가탄 여부)
+      const createShuriken=(sideSign,gaugeGain,shadowShot=false)=>{
+        const sideOffset=shadowShot?shadowOffset:primaryOffset;
+        const laneOffset=sideOffset*sideSign;
+        const spawnX=originX+aimCos*spawnDistance+perpX*laneOffset;
+        const spawnY=originY+aimSin*spawnDistance+perpY*laneOffset;
+        return {
+          id:uid(),
+          x:spawnX,
+          y:spawnY,
+          dx:aimCos, dy:aimSin, speed:B.speed, baseSpeed:B.speed,
+          radius:shadowShot?shadowRadius:primaryRadius,
+          color:shadowShot?'#87c3f5':undefined,
+          damage:B.damage, maxRange:B.range, traveled:0,
+          // 두 탄환은 같은 volley 좌표계를 공유한다. 추가탄 등록 시점의 캐릭터 위치·이동 방향은 절대 참조하지 않는다.
+          cleaVolleyId:volleyId,
+          cleaOriginX:originX, cleaOriginY:originY,
+          cleaSpawnDistance:spawnDistance,
+          cleaLaneOffset:laneOffset,
+          cleaAimCos:aimCos, cleaAimSin:aimSin,
+          cleaPerpX:perpX, cleaPerpY:perpY,
+          isCleaShuriken:true, isCleaShadowShuriken:!!shadowShot,
+          cleaGaugeGain:Math.max(0,Number(gaugeGain)||0), cleaSlowStages:Array.isArray(B.slowStages)?B.slowStages.map(stage=>({...stage})):[],
+          _lmbAttack:true, actionCtx:createActionContext?.({sourceEntity:L,charId:'clea',slot:'lmb',delivery:'projectile',timing:'instant',tags:['lmb','projectile','shuriken',shadowShot?'shadow-followup':'primary']})||null
+        };
+      };
+      const primaryShuriken=createShuriken(1,B.damage,false);
+      const shadowShuriken=doubleShot?createShuriken(-1,Math.max(0,Number(shadow.shadowGaugeGain)||0),true):null;
+      duels2RouteProjectileDelivery(primaryShuriken,{applyPierce:true,sync:true,playSfx:true,moduleId:'delivery.projectile.clea-shuriken',reason:'clea.lmb.moon-shuriken.primary',angle});
+      if(shadowShuriken){
+        duels2RouteProjectileDelivery(shadowShuriken,{applyPierce:true,sync:true,playSfx:false,moduleId:'delivery.projectile.clea-shuriken',reason:'clea.lmb.moon-shuriken.shadow-followup',angle});
+      }
+      // 추가탄은 기본탄과 같은 프레임에 바로 등록되어 캐릭터 이동의 영향을 받지 않는다.
+      L.lmbCooldown=B.cd;
+      L.lastAttackTime=performance.now();
+    },
+    // rmb: 현재 게이지와 관계없이 달 그림자를 설정된 지속시간 동안 활성화한다. 게이지는 발사 시에만 소모된다. ()
+    rmb() {
+      const B=duels2GetSkillBalance('clea','rmb');
+      if(L.rmbCooldown>0 || !useStam(B.cost)) return;
+      L._cleaShadowEnd=performance.now()+B.duration;
+      L.rmbCooldown=B.cd;
+      L.lastAttackTime=performance.now();
+      emitFx({type:'aoe',x:L.x,y:L.y,r:52,col:'33,59,90',dur:18,maxDur:18});
+    },
+    // counter: 공통 반격 선딜레이 후 전방으로 슬라이딩하며 이동 선분에 닿은 적을 한 번씩 타격한다. (angle: 이동 방향)
+    counter(angle) {
+      const B=duels2GetSkillBalance('clea','counter');
+      if(!duels2CheckCounterReadyGuard(L,{route:'skill.counter.ready-check',source:'character-counter'})) return;
+      duels2ConsumeCounterReadyGuard(L,{route:'skill.counter.ready-consume',source:'character-counter'});
+      duels2ApplyCounterCooldownToLocal(B.cd,{route:'skill.counter.cooldown',source:'character-counter'});
+      const tok=++L._counterToken;
+      // 공통 미리보기 렌더러가 인식하는 직사각형 스키마를 사용한다.
+      L._attackPreview={shapes:[{type:'rect',len:B.dashDist,width:B.width,noAug:true,moveAttack:true}]};
+      scheduleAction(BALANCE.counter.delay,()=>{
+        L._attackPreview=null;
+        if(!gameOn || L._counterToken!==tok) return;
+        const sx=L.x, sy=L.y;
+        // 선딜레이가 끝나는 순간의 최신 조준 방향을 사용해 미리보기와 실제 슬라이딩 방향을 일치시킨다.
+        const liveAngle=getAngle();
+        const tx=Math.max(L.radius,Math.min(WORLD_W-L.radius,sx+Math.cos(liveAngle)*B.dashDist));
+        const ty=Math.max(L.radius,Math.min(WORLD_H-L.radius,sy+Math.sin(liveAngle)*B.dashDist));
+        const hitSet=new Set();
+        let prevX=L.x, prevY=L.y;
+        const actionCtx=createActionContext?.({sourceEntity:L,charId:'clea',slot:'counter',delivery:'dash',timing:'instant',tags:['counter','dash','slide']})||null;
+        // 슬라이딩의 직전 위치와 현재 위치 사이 선분을 검사하여 빠른 이동 중에도 적을 건너뛰지 않는다.
+        const applySlideHits=(fromX,fromY,toX,toY)=>{
+          const targets=getEnemyTargets(L,{aliveOnly:true,route:'attack.all-enemy-targets',reason:'clea-counter-slide-hit-scan'});
+          for(const target of targets){
+            const key=getHitTargetKey?.(target)??target.id??target.pid??target;
+            if(hitSet.has(key) || getEntityHealth(target)<=0) continue;
+            const targetRadius=Math.max(0,Number(getEntityRadius?.(target)??target.radius)||0);
+            const distance=duels2DistancePointToSegment(target.x,target.y,fromX,fromY,toX,toY).distance;
+            if(distance>(B.width/2)+targetRadius) continue;
+            hitSet.add(key);
+            damageSkillProfileTargets([target],B.damage,{slot:'counter',source:L,route:'skill.clea.counter.slide',actionCtx});
+            SKILLS.clea._addGauge(B.gaugeGain);
+          }
+        };
+        duels2MovementStartCancelableDashTo?.(L,'_cleaSlideInterval',tx,ty,B.dashDur,{
+          reason:'clea.counter.slide', route:'movement.skill-dash.executor.clea-slide', source:L,
+          easing:'easeOutQuad', resolveWallEachTick:true,
+          onTick:()=>{
+            const currentX=L.x, currentY=L.y;
+            applySlideHits(prevX,prevY,currentX,currentY);
+            prevX=currentX; prevY=currentY;
+          },
+          onFinish:()=>{
+            // 마지막 이동 프레임과 벽 보정으로 남은 짧은 구간도 반드시 검사한다.
+            applySlideHits(prevX,prevY,L.x,L.y);
+          },
+          finishReason:'clea.counter.slide:complete', finishRoute:'movement.skill-dash.finish.clea-slide',
+          stopReason:'clea.counter.slide:game-stopped', stopRoute:'movement.skill-dash.cancel.game-stop-clea-slide',
+          payload:{slide:true,executor:true}
+        });
+        emitFx({type:'reikaDash',x:sx,y:sy,tx,ty,width:B.width,dur:14,maxDur:14,col:'33,59,90',strokeCol:'92,150,205'});
+        L.lastAttackTime=performance.now();
+      },{cancelOnRoundChange:true,cancelIfCharChanged:true});
+    },
+  },
+
   lete: {
     lmb(angle) {
       const B=duels2GetSkillBalance('lete','lmb');
@@ -39412,15 +40187,16 @@ document.addEventListener('keydown', e => {
     });
     if (_counterGuard.allowed) {
       const _wasCounterReady = !!L.counterReady;
-      if(!_wasCounterReady)return;
+      const _shelloParryReady = L?.charDef?.id==='shello' && L._shelloCounterMode==='parry' && !!L.counterReady;
+      if(!_wasCounterReady && !_shelloParryReady)return;
       const _counterDelayMs=Math.max(0,Number(BALANCE.counter.delay||0));
       L._counterGlobalLockUntil=performance.now()+_counterDelayMs+300;
       setTimeout(()=>{if(performance.now()>=(L._counterGlobalLockUntil||0))L._counterGlobalLockUntil=0;},_counterDelayMs+320);
       const _predelayGuess = performance.now() + BALANCE.counter.delay + 80;
-      if (_wasCounterReady) {
+      if (_wasCounterReady || _shelloParryReady) {
         L._counterPredelayEnd = Math.max(L._counterPredelayEnd || 0, _predelayGuess);
         L._counterChargeFxLockUntil = performance.now() + 80;
-        emitFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:BALANCE.counter.delay/FRAME_MS, maxDur:BALANCE.counter.delay/FRAME_MS, _centralCounterFx:true});
+        emitFx({type:'counterCharge', x:L.x, y:L.y, r:30, maxR:30, dur:BALANCE.counter.delay/FRAME_MS, maxDur:BALANCE.counter.delay/FRAME_MS, col:_shelloParryReady?SHELLO_GUARD_FX_COLOR:undefined, _centralCounterFx:true});
       }
       L._isRmbContext = true;
       L._counterInputActive = true;
@@ -41706,9 +42482,32 @@ function moveBullets(dt=1) {
   for (let i=localBullets.length-1; i>=0; i--) {
     const b=localBullets[i];
 
+    if (b.isCleaShuriken) {
+      const ratio=(Number(b.maxRange)||0)>0?(Number(b.traveled)||0)/(Number(b.maxRange)||1):1;
+      const stages=Array.isArray(b.cleaSlowStages)?b.cleaSlowStages:[];
+      let nextSpeed=Math.max(0.1,Number(b.baseSpeed)||Number(b.speed)||22);
+      for(const stage of stages){
+        if(ratio>=Math.max(0,Math.min(1,Number(stage.start)||0))) nextSpeed=Math.max(0.1,Number(stage.speed)||nextSpeed);
+      }
+      b.speed=nextSpeed;
+    }
     const _localStep=(Number(b.speed)||0)*dt;
-    duels2AdvanceProjectileVector(b,_localStep);
-    b.traveled=(Number(b.traveled)||0)+_localStep;
+    if (b.isCleaShuriken && Number.isFinite(b.cleaOriginX) && Number.isFinite(b.cleaOriginY)) {
+      // 클레아 수리검은 발사 순간에 고정한 조준축을 따라 이동한다. 캐릭터의 이후 이동 방향이 탄환 간격에 영향을 주지 않는다.
+      b.traveled=(Number(b.traveled)||0)+_localStep;
+      const _forward=(Number(b.cleaSpawnDistance)||0)+(Number(b.traveled)||0);
+      const _cos=Number(b.cleaAimCos)||0;
+      const _sin=Number(b.cleaAimSin)||0;
+      const _perpX=Number(b.cleaPerpX)||0;
+      const _perpY=Number(b.cleaPerpY)||0;
+      const _lane=Number(b.cleaLaneOffset)||0;
+      b.x=Number(b.cleaOriginX)+_cos*_forward+_perpX*_lane;
+      b.y=Number(b.cleaOriginY)+_sin*_forward+_perpY*_lane;
+      b.dx=_cos; b.dy=_sin;
+    } else {
+      duels2AdvanceProjectileVector(b,_localStep);
+      b.traveled=(Number(b.traveled)||0)+_localStep;
+    }
     if (b.returnPolicy?.trajectoryAuthority === 'source') duels2SyncAuthoritativeProjectileTrajectory?.(b,false);
 
     // ── 다즈빈 평타: 호밍 처리 ──
@@ -42141,6 +42940,14 @@ function moveBullets(dt=1) {
         const damageTargets = b.pierceEnemies
           ? getFreshBulletHitTargets(b, window._hitTargets || [])
           : (window._hitTargets || []);
+        if (b.isCleaShuriken && damageTargets.length > 0) {
+          SKILLS.clea._addGauge((Number(b.cleaGaugeGain)||0) * damageTargets.length);
+          const staminaOnHit=Math.max(0,Number(duels2GetSkillBalance('clea','lmb').staminaOnHit)||0);
+          if(staminaOnHit>0){
+            const staminaMax=Math.max(0,Number(L._augStamMax ?? STAM_MAX)||0);
+            L.stamina=Math.min(staminaMax,(Number(L.stamina)||0)+staminaOnHit*damageTargets.length);
+          }
+        }
         duels2RouteProjectileImpactDamageTargets(b, damageTargets, {lmbAttack:!!b._lmbAttack});
 
         if (b.isNanPillow && damageTargets.length > 0) {
@@ -44428,6 +45235,18 @@ function draw() {
       ctx.closePath();
       ctx.fillStyle=`rgba(100,100,255,${a*0.25})`; ctx.fill();
       ctx.strokeStyle=`rgba(150,150,255,${a*0.9})`; ctx.lineWidth=2; ctx.stroke();
+    } else if (f.type==='shelloOrbitShield') {
+      const progress=Math.max(0,Math.min(1,1-f.dur/Math.max(1,f.maxDur)));
+      const a0=Number(f.startAngle)||0;
+      const ang=a0+(Number(f.totalAngle)||0)*progress;
+      const x=(Number(f.cx)||0)+Math.cos(ang)*(Number(f.orbitRange)||0);
+      const y=(Number(f.cy)||0)+Math.sin(ang)*(Number(f.orbitRange)||0);
+      const rr=Math.max(1,Number(f.shieldRadius)||48),col=f.col||'82,42,80';
+      ctx.beginPath();ctx.arc(x,y,rr,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${col},${0.34*a})`;ctx.fill();
+      ctx.strokeStyle=`rgba(${col},${0.98*a})`;ctx.lineWidth=4;ctx.stroke();
+      ctx.beginPath();ctx.arc(x,y,rr*0.63,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(220,180,215,${0.55*a})`;ctx.lineWidth=2;ctx.stroke();
     } else if (f.type==='aoe') {
       // 미아루키 반격: 즉시 풀사이즈 원 → 페이드아웃
       const _aoeCol = f.col || '255,20,147';
@@ -44574,16 +45393,18 @@ function draw() {
       ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1,rr*0.55), 0, Math.PI*2);
       ctx.strokeStyle=`rgba(255,255,180,${a*0.6})`; ctx.lineWidth=2; ctx.stroke();
     } else if (f.type==='shieldSwing') {
+      const shieldCol=f.col||'255,119,0';
       ctx.beginPath(); ctx.moveTo(f.x,f.y);
       ctx.arc(f.x,f.y,f.range,f.angle-f.halfAngle,f.angle+f.halfAngle);
       ctx.closePath();
-      ctx.fillStyle=`rgba(255,119,0,${a*0.22})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,160,50,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle=`rgba(${shieldCol},${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(${shieldCol},${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
     } else if (f.type==='shieldDash') {
       const rr=f.range*(1-f.dur/f.maxDur);
       const ex=f.x+Math.cos(f.angle)*rr, ey=f.y+Math.sin(f.angle)*rr;
       const g=ctx.createLinearGradient(f.x,f.y,ex,ey);
-      g.addColorStop(0,`rgba(255,119,0,${a*0.9})`); g.addColorStop(1,'rgba(255,220,50,0)');
+      const _sdCol=f.col||'255,119,0';
+      g.addColorStop(0,`rgba(${_sdCol},${a*0.9})`); g.addColorStop(1,`rgba(${_sdCol},0)`);
       ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(ex,ey);
       ctx.strokeStyle=g; ctx.lineWidth=12; ctx.stroke();
     } else if (f.type==='shieldUppercut') {
@@ -44601,8 +45422,8 @@ function draw() {
     } else if (f.type==='parry') {
       const rr=f.maxR*(1-f.dur/f.maxDur);
       ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,rr),0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,255,255,${a*0.45})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,220,80,${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle=`rgba(${f.col||'255,255,255'},${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(${f.col||'255,220,80'},${a*0.9})`; ctx.lineWidth=3; ctx.stroke();
     } else if (f.type==='backup') {
       ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(f.tx,f.ty);
       ctx.strokeStyle=`rgba(255,119,0,${a*0.7})`; ctx.lineWidth=2;
@@ -44788,18 +45609,20 @@ function draw() {
       ctx.fillStyle=`rgba(255,120,0,${a*0.25})`; ctx.fill();
       ctx.strokeStyle=`rgba(255,180,0,${a*0.9})`; ctx.lineWidth=4; ctx.stroke();
     } else if (f.type==='reikaDash') {
-      // 돌진 궤적 — 주황 직사각형
+      // 돌진 궤적 — 효과 소유자가 전달한 색을 사용하고, 미지정 시 레이카의 주황색을 유지한다.
       const cos=Math.cos(Math.atan2(f.ty-f.y, f.tx-f.x));
       const sin=Math.sin(Math.atan2(f.ty-f.y, f.tx-f.x));
       const len=Math.hypot(f.tx-f.x, f.ty-f.y), w=f.width;
+      const fillCol=f.col||'255,120,0';
+      const strokeCol=f.strokeCol||'255,170,50';
       ctx.beginPath();
       ctx.moveTo(f.x+cos*0-sin*(-w), f.y+sin*0+cos*(-w));
       ctx.lineTo(f.x+cos*len-sin*(-w), f.y+sin*len+cos*(-w));
       ctx.lineTo(f.x+cos*len-sin*(w), f.y+sin*len+cos*(w));
       ctx.lineTo(f.x+cos*0-sin*(w), f.y+sin*0+cos*(w));
       ctx.closePath();
-      ctx.fillStyle=`rgba(255,120,0,${a*0.22})`; ctx.fill();
-      ctx.strokeStyle=`rgba(255,170,50,${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
+      ctx.fillStyle=`rgba(${fillCol},${a*0.22})`; ctx.fill();
+      ctx.strokeStyle=`rgba(${strokeCol},${a*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
     } else if (f.type==='kiWarning') {
       const _kw_elapsed = f._receivedAt ? performance.now() - f._receivedAt : performance.now() - (f.startTime||performance.now());
       const _kw_a = Math.min(1, _kw_elapsed / 200) * a;
@@ -46483,6 +47306,24 @@ function draw() {
         ctx.beginPath(); ctx.arc(bullet.x, bullet.y, Math.max(0.5, bullet.radius*0.5), 0, Math.PI*2);
         ctx.strokeStyle=`rgba(150,180,255,${0.6*_wpulse})`; ctx.lineWidth=1.5; ctx.stroke();
 
+      } else if (bullet.isCleaShuriken) {
+        // 클레아 달 수리검 — 기본탄은 소르 평타 규격, 추가탄은 같은 형태를 유지한 축소 규격을 사용한다.
+        const _tRatio = bullet.maxRange ? bullet.traveled / bullet.maxRange : 0;
+        const _fadeStart = 0.70;
+        const _ha = _tRatio < _fadeStart ? 1.0 : Math.max(0, 1 - (_tRatio - _fadeStart) / (1 - _fadeStart));
+        const _cos = bullet.dx, _sin = bullet.dy;
+        const _h = (bullet.radius || 14) * 1.2;
+        const _p = (lx, ly) => ({x: bullet.x + _cos*lx - _sin*ly, y: bullet.y + _sin*lx + _cos*ly});
+        const _fill = bullet.isCleaShadowShuriken ? '135,195,245' : '33,59,90';
+        const _stroke = bullet.isCleaShadowShuriken ? '175,222,255' : '72,116,164';
+        ctx.beginPath();
+        ctx.moveTo(_p( _h, 0).x, _p( _h, 0).y);
+        ctx.lineTo(_p( 0,  _h).x, _p( 0,  _h).y);
+        ctx.lineTo(_p(-_h, 0).x, _p(-_h, 0).y);
+        ctx.lineTo(_p( 0, -_h).x, _p( 0, -_h).y);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(${_fill},${_ha*0.25})`; ctx.fill();
+        ctx.strokeStyle = `rgba(${_stroke},${_ha*0.95})`; ctx.lineWidth = 2; ctx.stroke();
       } else if (bullet.isSorBattery) {
         // 소르 배터리 — 하츠하츠 볼트 스타일, 하늘색
         const _tRatio = bullet.maxRange ? bullet.traveled / bullet.maxRange : 0;
@@ -47004,7 +47845,9 @@ function drawVignette() {
   } else if (hitAlpha > 0) {
     r = 220; g = 0; b = 0; a = hitAlpha;
   } else {
-    r = 255; g = 200; b = 0; a = counterAlpha;
+    if(L?.charDef?.id==='shello'&&L?._shelloCounterMode==='parry'){r=255;g=118;b=32;}
+    else {r=255;g=200;b=0;}
+    a = counterAlpha;
   }
 
   duels2RenderScreenOverlaySpec('combat.vignette', {rgb:[r,g,b], alpha:a});
@@ -47391,11 +48234,44 @@ function drawPlayer(p, label) {
     ctx.beginPath(); ctx.arc(p.x,p.y,p.radius+6,0,Math.PI*2);
     ctx.strokeStyle='rgba(200,220,255,.55)'; ctx.lineWidth=2; ctx.stroke();
   }
+  // 셸로 방패는 FX 수명에 의존하지 않고 동기화된 실제 방어 종료시각까지 직접 렌더한다.
+  if(p?.charDef?.id==='shello' && (Number(p._shelloGuardEnd)||0)>performance.now()){
+    const now=performance.now();
+    const ga=Number(p._shelloGuardAngle)||0;
+    const gr=(Number(p._shelloGuardDist)||44)+(Number(p._shelloGuardRadius)||48);
+    const gh=Math.max(.05,Number(p._shelloGuardHalfAngle)||.8);
+    const total=Math.max(1,Number(p._shelloGuardDuration)||200);
+    const remaining=Math.max(0,(Number(p._shelloGuardEnd)||0)-now);
+    const fade=Math.max(0,Math.min(1,remaining/total));
+    ctx.save();
+    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.arc(p.x,p.y,gr,ga-gh,ga+gh);ctx.closePath();
+    ctx.fillStyle=`rgba(${SHELLO_GUARD_FX_COLOR},${0.22*fade})`;ctx.fill();
+    ctx.strokeStyle=`rgba(${SHELLO_GUARD_FX_COLOR},${0.92*fade})`;ctx.lineWidth=3;ctx.stroke();
+    ctx.restore();
+  }
+  // 셸로 패리 방패 V3는 전용 객체 맵만 렌더한다. 이전 상태/FX 경로는 사용하지 않는다.
+  if(p===L){
+    const shieldMap=window.DUELS2_SHELLO_PARRY_SHIELDS;
+    if(shieldMap){
+      const now=performance.now();
+      for(const [shieldId,shield] of shieldMap){
+        if(!shield.local && now-(Number(shield.updatedAt)||0)>180){shieldMap.delete(shieldId);continue;}
+        const ownerPid=String(shield.ownerPid||'');
+        const localOwner=shield.local;
+        const remoteOwner=!localOwner&&ownerPid&&duels2GetActiveRemotePlayers().some(r=>String(getPlayerPid(r)||r.pid||'')===ownerPid);
+        if(!localOwner&&!remoteOwner)continue;
+        const x=Number(shield.x)||0,y=Number(shield.y)||0,rr=Math.max(1,Number(shield.radius)||48);
+        ctx.save();ctx.beginPath();ctx.arc(x,y,rr,0,Math.PI*2);ctx.fillStyle='rgba(82,42,80,0.34)';ctx.fill();ctx.strokeStyle='rgba(82,42,80,0.98)';ctx.lineWidth=4;ctx.stroke();
+        ctx.beginPath();ctx.arc(x,y,rr*.63,0,Math.PI*2);ctx.strokeStyle='rgba(220,180,215,0.55)';ctx.lineWidth=2;ctx.stroke();ctx.restore();
+      }
+    }
+  }
   const showCounter=!!p?.counterReady && (!p.counterExpiry || p.counterExpiry>performance.now());
   if (showCounter) {
     const pulse=0.6+0.4*Math.sin(performance.now()*0.008);
     ctx.beginPath(); ctx.arc(p.x,p.y,p.radius+10,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(255,210,40,${pulse})`; ctx.lineWidth=2.5; ctx.stroke();
+    const counterCol=(p?.charDef?.id==='shello'&&p?._shelloCounterMode==='parry')?SHELLO_GUARD_FX_COLOR:'255,210,40';
+    ctx.strokeStyle=`rgba(${counterCol},${pulse})`; ctx.lineWidth=2.5; ctx.stroke();
   }
   // 펠루나 무기 강화 상태에 주황색 링을 표시한다. ()
   const pelunaEmpowered = p === L
@@ -47455,23 +48331,25 @@ function drawPlayer(p, label) {
     ctx.fillRect(ibx,iby,ibw*_iPct,ibh);
     ctx.textAlign='center';
   }
-  // 프릴 콤보 유지 게이지 — 스테미나 바 아래
+  // 프릴 콤보 유지 게이지 — 캐릭터 주변의 호로 남은 시간을 표시한다.
   if (p===L && hasEntityFunctionalRuntime(L, 'cleaningZone') && (L._prillCombo||0) > 0) {
     const _cNow = performance.now();
     const _elapsed = _cNow - (L._prillLastHit||_cNow);
     const _cWindow = duels2GetSkillBalance('prill','lmb').comboWindow;
     const _cPct = Math.max(0, 1 - _elapsed / _cWindow);
     if (_cPct > 0) {
-      const cbw=sbw, cbh=4, cbx=sbx, cby=sby+sbh+3;
-      // 배경
-      ctx.fillStyle='#111'; ctx.fillRect(cbx, cby, cbw, cbh);
-      // 게이지 (남은 시간 비율, 분홍색 → 빨강 경고)
-      const cCol = _cPct > 0.4 ? 'rgba(255,105,180,0.9)' : 'rgba(255,60,100,0.9)';
-      ctx.fillStyle=cCol; ctx.fillRect(cbx, cby, cbw*_cPct, cbh);
-      // 콤보 단계 점 (● ●●)
+      const cRadius=Math.max(1,Number(p.radius||0)+8);
+      const cStart=-Math.PI/2;
+      const cCol=_cPct>0.4?'rgba(255,105,180,0.92)':'rgba(255,60,100,0.94)';
+      ctx.save();
+      ctx.beginPath(); ctx.arc(p.x,p.y,cRadius,0,Math.PI*2);
+      ctx.strokeStyle='rgba(45,20,35,0.72)'; ctx.lineWidth=3.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(p.x,p.y,cRadius,cStart,cStart+Math.PI*2*_cPct);
+      ctx.strokeStyle=cCol; ctx.lineWidth=3.5; ctx.lineCap='round'; ctx.stroke();
+      ctx.restore();
       ctx.font='bold 9px Pretendard'; ctx.textAlign='center';
       ctx.fillStyle='rgba(255,200,225,0.9)';
-      ctx.fillText('●'.repeat(L._prillCombo), p.x, cby+cbh+10);
+      ctx.fillText('●'.repeat(L._prillCombo),p.x,p.y+p.radius+19);
     }
   }
   // 엔소냐 단계 표시 — 본인/상대/아군 버프 수신자 모두 같은 필드로 표시한다.
@@ -47712,6 +48590,41 @@ function drawPlayer(p, label) {
       labelColor:'rgba(40,200,80,0.9)',
       labelY:sby+sbh+13
     });
+  }
+
+  // 클레아 달 그림자 게이지 — 활성화 중에는 기존 게이지만 밝게 빛나고, 바깥의 얇은 호가 회전한다.
+  if (p===L && p?.charDef?.id==='clea') {
+    const max=Math.max(1,Number(duels2GetSkillBalance('clea','gaugeMax'))||100);
+    const nowClea=performance.now();
+    const active=(Number(L._cleaShadowEnd)||0)>nowClea;
+    const gaugeProgress=Math.max(0,Math.min(1,(Number(L._cleaGauge)||0)/max));
+    duels2RenderEntityOverlaySpec('kan.gauge',p,{
+      progress:gaugeProgress,
+      color:active?'rgba(135,195,245,0.98)':'rgba(26,49,79,0.96)',
+      complete:gaugeProgress>=1,
+      completeColor:active?'rgba(205,235,255,1)':'rgba(190,225,255,1)',
+      labelColor:'rgba(160,210,255,0.95)',
+      labelY:sby+sbh+13
+    });
+    if(active){
+      const shadowDuration=Math.max(1,Number(duels2GetSkillBalance('clea','rmb').duration)||5000);
+      const remainingRatio=Math.max(0,Math.min(1,((Number(L._cleaShadowEnd)||0)-nowClea)/shadowDuration));
+      const rotation=(nowClea*0.004)%(Math.PI*2);
+      const arcLength=Math.PI*0.62*remainingRatio;
+      const ringRadius=Math.max(1,Number(p.radius||0)+13);
+      if(arcLength>0.001){
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,ringRadius,-Math.PI/2+rotation,-Math.PI/2+rotation+arcLength);
+        ctx.strokeStyle='rgba(190,225,255,0.96)';
+        ctx.lineWidth=1.8;
+        ctx.lineCap='round';
+        ctx.shadowColor='rgba(130,195,255,0.75)';
+        ctx.shadowBlur=6;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
   }
 
   // 인투 재장전 게이지 — Entity Overlay Spec
@@ -49602,6 +50515,7 @@ function duels2ShouldRunAutoPrimaryWhileMouseHeld(opt = {}) {
   const activeLmbSession = window.DUELS2_INPUT_STATE_RUNTIME?.getSession?.('lmb') || null;
   if (activeLmbSession?.profile && activeLmbSession.profile.mode !== 'instant') return false;
   if (duels2IsLocalSharedChargeInputRuntime('lmb')) return false;
+  if (L.charDef?.id === 'clea') return false;
   const blockedRuntimes = ['bombSlowField','scytheOvercharge','shieldDashParry','pullBoomerang','fortifyLaser','energyBlessed','spearAnchor'];
   return !blockedRuntimes.some(runtime => hasEntityCharacterRuntime(L, runtime, {route:'shared-charge.auto-primary-block', reason:'non-shared-manual-input-block'}));
 }
@@ -57635,6 +58549,17 @@ function duels2TriggerActualAttackEmissionFeedback(actor=L, angle=0, opt={}) {
   const safeAngle=Number.isFinite(Number(angle))?Number(angle):0;
   if (actor===L) duels2AddFireShake();
   duels2TriggerAttackVisual(actor,safeAngle);
+  // 로컬 공격 확정 순간을 상대에게 직접 전달한다. 탄환 수신 추정에 의존하지 않아 근접·범위·특수 공격도 동일하게 보인다.
+  if(actor===L && opt.sync!==false && typeof send==='function'){
+    const localPid=DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || 'P1';
+    send({
+      type:'attackVisual',
+      sourcePid:localPid,
+      pid:localPid,
+      angle:safeAngle,
+      eventId:`attack_visual_${localPid}_${Math.round(now)}_${Math.random().toString(36).slice(2,7)}`
+    });
+  }
   return true;
 }
 
@@ -63810,7 +64735,7 @@ function resetL() {
   L._tauHitStack=0; L._tauOveleucharge=false;
   L._counterToken=0;
   L._kbVX=0; L._kbVY=0; L._kbFrames=0;
-  L._backupPos=null; L._backupStack=[]; L._primaryInputOverride=null; L._shieldDashReady=false; L._shieldDashTimer=null; L._parryExpiry=0;
+  L._backupPos=null; L._backupStack=[]; L._shelloCounterMode=null; L._shelloGuardEnd=0; L._shelloGuardDuration=0; window.DUELS2_SHELLO_PARRY_SHIELDS?.clear?.(); L._primaryInputOverride=null; L._shieldDashReady=false; L._shieldDashTimer=null; L._parryExpiry=0;
   L._mhCharging=false; L._mhChargeStart=0; L._mhOrb=null; L._mhOrbTimer=null;
   // bindEnd is cleared by duels2RouteResetStatusRuntime above.
   L._nsonyaStacks=0; L._nsonyaExpiry={}; L._nsonyaPredelay=false;
@@ -63826,6 +64751,7 @@ function resetL() {
   L._reikaPreswing=false; L._reikaLmbPreswing=false; L._reikaJumping=false;
   L._reikaRBurning=null; L._reikaFireTrails=duels2ClearFieldCollection('localReikaFireTrails', L._reikaFireTrails, {reason:'resetL'}); R._reikaFireTrails=duels2ClearFieldCollection('peerReikaFireTrails', R._reikaFireTrails, {reason:'resetL'}); L._reikaTrailLast=null; // _burnEnd is cleared by duels2RouteResetStatusRuntime above.
   L._kanGauge=0;
+  L._cleaGauge=0; L._cleaShadowEnd=0; L._cleaThrowSide=1; clearInterval(L._cleaSlideInterval); L._cleaSlideInterval=null;
   L._attackPreview=null;
   L._cherityCharging=false; L._cherityChargeStart=0; L._cherityDrained=0; L._cherityFrozenT=null; L._smokeRevealSent=0;
   L._herCarrying=false; L._herCannon=null; L._herPickupCooldown=0; // 헤르쟝 대포 상태
@@ -64088,6 +65014,7 @@ function loop() {
 
   // 적 타겟 목록 갱신 (플레이어 + 소환수)
   refreshEnemyTargets();
+  duels2TickShelloShieldProjectileCollider();
 
   // 플레이어 벽 끼임 안전망: 순간이동·네트워크 보정·맵 교체 후에도 가장 가까운 빈 공간으로 복구한다.
   duels2RecoverEntityFromWall(L, {reason:'loop.local-player-wall-safety'});
@@ -66940,7 +67867,7 @@ function duels2BuildNetworkCombatSnapshotDirect(entity = L, opt = {}) {
     type:'state', pid:getPlayerPid(entity) || DUELS2_PLAYER_REGISTRY.localPid || 'P1', ownerId:entity.ownerId || 'local', teamId:getTeamId(entity), charId:entity.charDef?.id || entity.charId || null, sendTime: now, x:entity.x, y:entity.y, health:entity.health, maxHealth:entity.maxHealth, stamina:entity.stamina,
     merStage: hasEntityFunctionalRuntime(entity, 'transformStack') ? SKILLS.meramona._eff() : undefined,
     roonSlush: getRoonSlushValue(entity),
-    dodging:entity.dodging, dodgeUseId:entity._dodgeUseId || null, dodgeResultKnown:!!entity._dodgeResultKnown, dodgeResultJust:!!entity._currentDodgeJust, reviving:!!entity._reviving, counterReady:entity.counterReady,
+    dodging:entity.dodging, dodgeUseId:entity._dodgeUseId || null, dodgeResultKnown:!!entity._dodgeResultKnown, dodgeResultJust:!!entity._currentDodgeJust, reviving:!!entity._reviving, counterReady:entity.counterReady, shelloCounterMode:entity.charDef?.id==='shello'?(entity._shelloCounterMode||null):null,
     syaInvisible:!!entity._syaInvisible,
     syaHitRevealRemaining:Math.max(0, Number(entity._syaHitRevealEnd || 0) - now),
     kiForecastArea: duels2BuildLocalKiForecastAreaState?.(entity, now),
