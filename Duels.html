@@ -13211,6 +13211,8 @@ function receiveHitEntity(entity, dmg, ctx = {}) {
     send({type:'dmgDealtSync', damage: finalDmg, x: P.x, y: P.y - P.radius - 10,
           health:getEntityHealth(P), maxHealth:getEntityMaxHealth(P),
           hitAngle:duels2GetHitFeedbackAngle(P, source, ctx),
+          renderKnockbackDistance:duels2GetRenderKnockbackDistance(ctx),
+          knockbackPower:Number(ctx.knockbackPower ?? ctx.cc?.knockbackPower ?? ctx.knockback?.knockbackPower) || 0,
           feedbackEventId:ctx.feedbackEventId || ctx.eventId || null});
   }
 
@@ -24423,6 +24425,41 @@ function duels2AssignDecodedSfxBuffer(kind, buffer) {
   return buffer;
 }
 
+
+// duels2CreateFallbackSfxBuffer: 외부 mp3를 불러오지 못해도 효과음이 완전히 사라지지 않도록 짧은 합성 효과음을 만든다. (kind: hit/shoot)
+function duels2CreateFallbackSfxBuffer(kind) {
+  const context=_sfxCtx;
+  if(!context || context.state==='closed') return null;
+  const sampleRate=context.sampleRate || 44100;
+  const duration=kind==='hit' ? 0.115 : 0.085;
+  const length=Math.max(1,Math.floor(sampleRate*duration));
+  const buffer=context.createBuffer(1,length,sampleRate);
+  const data=buffer.getChannelData(0);
+  let noiseState=0x12345678;
+  for(let i=0;i<length;i++){
+    const t=i/sampleRate;
+    noiseState=(Math.imul(noiseState,1664525)+1013904223)|0;
+    const noise=((noiseState>>>8)/0x01000000)*2-1;
+    if(kind==='hit'){
+      const env=Math.pow(Math.max(0,1-t/duration),3.2);
+      const body=Math.sin(2*Math.PI*(145-55*(t/duration))*t);
+      data[i]=(body*0.72+noise*0.28)*env*0.72;
+    }else{
+      const env=Math.pow(Math.max(0,1-t/duration),4.4);
+      const sweep=Math.sin(2*Math.PI*(760-430*(t/duration))*t);
+      data[i]=(sweep*0.82+noise*0.18)*env*0.58;
+    }
+  }
+  return duels2AssignDecodedSfxBuffer(kind,buffer);
+}
+
+// duels2EnsureFallbackSfxBuffers: 네트워크 음원이 없거나 디코딩에 실패한 종류를 합성 버퍼로 보충한다. ()
+function duels2EnsureFallbackSfxBuffers(){
+  if(!_hitBuffer) duels2CreateFallbackSfxBuffer('hit');
+  if(!_shootBuffer) duels2CreateFallbackSfxBuffer('shoot');
+  return !!(_hitBuffer&&_shootBuffer);
+}
+
 // duels2DecodeSfxKind: 사용자 입력으로 열린 AudioContext에서 원본 음원을 한 번만 디코딩한다. (kind: hit/shoot)
 function duels2DecodeSfxKind(kind) {
   const context = _sfxCtx;
@@ -24433,7 +24470,7 @@ function duels2DecodeSfxKind(kind) {
   if (DUELS2_SFX_DECODE_PROMISES.has(kind)) return DUELS2_SFX_DECODE_PROMISES.get(kind);
   const promise = context.decodeAudioData(encoded.slice(0))
     .then(buffer => duels2AssignDecodedSfxBuffer(kind, buffer))
-    .catch(() => null)
+    .catch(() => duels2CreateFallbackSfxBuffer(kind))
     .finally(() => DUELS2_SFX_DECODE_PROMISES.delete(kind));
   DUELS2_SFX_DECODE_PROMISES.set(kind, promise);
   return promise;
@@ -24452,6 +24489,7 @@ async function duels2UnlockSfxAudio() {
       if (context.state === 'suspended') await context.resume();
       if (context.state !== 'running') return false;
       await Promise.allSettled(['hit','shoot'].map(duels2DecodeSfxKind));
+      duels2EnsureFallbackSfxBuffers();
       DUELS2_SFX_AUDIO_READY = true;
       return true;
     } catch (_) {
@@ -24472,21 +24510,30 @@ function duels2LoadSfxAsset(kind, url) {
       DUELS2_SFX_ENCODED_BUFFERS.set(kind, buffer);
       if (_sfxCtx?.state === 'running') void duels2DecodeSfxKind(kind);
     })
-    .catch(() => {});
+    .catch(() => {
+      if(_sfxCtx?.state==='running') duels2CreateFallbackSfxBuffer(kind);
+    });
 }
 
 duels2LoadSfxAsset('hit', 'https://Lyangnem.github.io/Duels/hitted.mp3');
 
 // 페이지 어디서든 최초 클릭·키 입력을 오디오 해제 제스처로 사용한다.
-document.addEventListener('pointerdown', () => { void duels2UnlockSfxAudio(); }, {capture:true});
-document.addEventListener('keydown', () => { void duels2UnlockSfxAudio(); }, {capture:true});
+document.addEventListener('pointerdown', () => { void duels2UnlockSfxAudio().then(()=>duels2FlushDeferredSfxKinds()); }, {capture:true});
+document.addEventListener('keydown', () => { void duels2UnlockSfxAudio().then(()=>duels2FlushDeferredSfxKinds()); }, {capture:true});
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden) void duels2UnlockSfxAudio().then(()=>duels2FlushDeferredSfxKinds());
+});
+window.addEventListener('focus', () => { void duels2UnlockSfxAudio().then(()=>duels2FlushDeferredSfxKinds()); });
 // DUELS2_AUDIO_RUNTIME: 같은 실행 순간의 효과음 요청을 종류별로 하나만 남기고, 서로 다른 종류는 각각 한 번씩 함께 재생한다.
 const DUELS2_AUDIO_RUNTIME = {
   // activeByKind: 이미 재생 중인 음원을 종류별 Set으로 추적한다. 이후 시점의 같은 소리를 끊지 않는다.
   activeByKind:new Map(),
   // pendingKinds: 현재 동기 실행 묶음에서 요청된 효과음 종류를 모은다.
   pendingKinds:new Map(),
+  // deferredKinds: 음원 디코딩 또는 AudioContext 재개 전 들어온 요청을 종류별 한 번 보존한다.
+  deferredKinds:new Set(),
   flushScheduled:false,
+  deferredFlushPromise:null,
   normalGain:0.5,
   batchSerial:0,
 };
@@ -24564,14 +24611,41 @@ function duels2ScheduleSfxFrameFlush(flush){
   setTimeout(flush, Math.max(0, Number(typeof FRAME_MS !== 'undefined' ? FRAME_MS : 16.6667) || 16.6667));
 }
 
-// duels2PlaySfxKind: 같은 렌더 프레임의 효과음을 종류별 하나로 예약한다. 서로 다른 종류는 같은 프레임에도 각각 유지한다. (kind: hit/shoot, buffer: AudioBuffer)
-function duels2PlaySfxKind(kind,buffer){
+// duels2QueueDecodedSfxKind: 디코딩된 음원을 현재 렌더 프레임 배치에 넣는다. (kind: 효과음 종류, buffer: AudioBuffer)
+function duels2QueueDecodedSfxKind(kind,buffer){
   if(!buffer) return false;
   DUELS2_AUDIO_RUNTIME.pendingKinds.set(kind,buffer);
   if(!DUELS2_AUDIO_RUNTIME.flushScheduled){
     DUELS2_AUDIO_RUNTIME.flushScheduled=true;
     duels2ScheduleSfxFrameFlush(duels2FlushSfxBatch);
   }
+  return true;
+}
+
+// duels2FlushDeferredSfxKinds: 준비 전에 들어온 효과음 요청을 AudioContext 재개·디코딩 후 종류별 한 번 재생한다. ()
+async function duels2FlushDeferredSfxKinds(){
+  if(DUELS2_AUDIO_RUNTIME.deferredFlushPromise) return DUELS2_AUDIO_RUNTIME.deferredFlushPromise;
+  DUELS2_AUDIO_RUNTIME.deferredFlushPromise=(async()=>{
+    const ready=await duels2UnlockSfxAudio();
+    if(!ready) return false;
+    const kinds=Array.from(DUELS2_AUDIO_RUNTIME.deferredKinds);
+    DUELS2_AUDIO_RUNTIME.deferredKinds.clear();
+    let queued=false;
+    for(const kind of kinds){
+      const buffer=await duels2DecodeSfxKind(kind);
+      if(duels2QueueDecodedSfxKind(kind,buffer)) queued=true;
+    }
+    return queued;
+  })().finally(()=>{ DUELS2_AUDIO_RUNTIME.deferredFlushPromise=null; });
+  return DUELS2_AUDIO_RUNTIME.deferredFlushPromise;
+}
+
+// duels2PlaySfxKind: 준비된 효과음은 즉시 배치하고, 준비 전 요청은 버리지 않고 해제·디코딩 완료 후 재생한다. (kind: hit/shoot, buffer: AudioBuffer)
+function duels2PlaySfxKind(kind,buffer){
+  const decoded=buffer || (kind==='hit' ? _hitBuffer : (kind==='shoot' ? _shootBuffer : null));
+  if(decoded && _sfxCtx?.state==='running') return duels2QueueDecodedSfxKind(kind,decoded);
+  DUELS2_AUDIO_RUNTIME.deferredKinds.add(kind);
+  void duels2FlushDeferredSfxKinds();
   return true;
 }
 
@@ -24853,41 +24927,102 @@ function duels2GetHitFeedbackRenderEntities(target) {
   return entities;
 }
 
-function duels2TriggerHitFeedback(target, damage, ctx={}, source=null) {
-  if (!target || duels2IsContinuousDamageFeedback(ctx)) return false;
-  const eventId = ctx.feedbackEventId || ctx.eventId || null;
-  const renderEntities=duels2GetHitFeedbackRenderEntities(target);
-  if (eventId && renderEntities.some(entity=>entity?._duels2LastHitFeedbackId===eventId)) return false;
-  const now = performance.now();
-  const angle = duels2GetHitFeedbackAngle(target, source, ctx);
-  const distance = 26;
-  const visualKey = duels2GetHitVisualKey(target);
-  const previousState = visualKey ? DUELS2_HIT_VISUAL_BY_KEY.get(visualKey) : null;
-  // 같은 순간의 산탄은 연출 밀림도 한 번만 시작한다. 시간차 연속타는 새로 시작한다.
-  const reusePrevious = previousState && now - previousState.startedAt < 55;
-  const visualState = reusePrevious ? previousState : {
+// duels2GetRenderKnockbackDistance: 실제 넉백 power와 지속 프레임으로 예상 이동 거리를 계산한다. 명시된 거리가 있으면 그 값을 우선한다. (ctx: 피해 문맥)
+function duels2GetRenderKnockbackDistance(ctx={}) {
+  const explicit=[ctx.knockbackDistance,ctx.actualKnockbackDistance,ctx.renderKnockbackDistance]
+    .map(Number).find(Number.isFinite);
+  if(Number.isFinite(explicit)) return Math.max(0,explicit);
+  const cc=ctx.cc || ctx.knockback || null;
+  const power=Number(ctx.knockbackPower ?? cc?.knockbackPower);
+  if(!Number.isFinite(power) || power<=0) return 0;
+  const scale=Number(ctx.knockbackScale ?? cc?.knockbackScale);
+  const resolvedScale=Number.isFinite(scale) ? scale : 1;
+  const frames=Math.max(1,Number(ctx.knockbackFrames ?? cc?.knockbackFrames ?? (typeof TARGET_KNOCKBACK_FRAMES!=='undefined' ? TARGET_KNOCKBACK_FRAMES : 12))||12);
+  const frameMs=Math.max(1,Number(typeof FRAME_MS!=='undefined' ? FRAME_MS : 16.6667)||16.6667);
+  return Math.abs(power*resolvedScale)*(frames*frameMs/1000);
+}
+
+// duels2ResolveRenderHitKnockback: 같은 순간에 합산된 확정 피해량으로 렌더 전용 밀림 단계를 결정한다. (damage: 합산 확정 피해, ctx: 피해 문맥)
+function duels2ResolveRenderHitKnockback(damage=0,ctx={}) {
+  const amount=Math.max(0,Number(damage)||0);
+  const knockbackDistance=duels2GetRenderKnockbackDistance(ctx);
+  if(amount<=5) return {tier:'tiny',distance:4,durationMs:105,flashMs:32,scaleX:0.045,scaleY:0.032,knockbackDistance};
+  if(amount>=40) return {tier:'strong',distance:44,durationMs:245,flashMs:82,scaleX:0.34,scaleY:0.255,knockbackDistance};
+  return {tier:'weak',distance:15,durationMs:155,flashMs:50,scaleX:0.13,scaleY:0.095,knockbackDistance};
+}
+
+// DUELS2_RENDER_HIT_BATCH_WINDOW_MS: 산탄·동시 폭발처럼 거의 동시에 확정된 피해를 하나의 렌더 피격으로 합산하는 시간창이다.
+const DUELS2_RENDER_HIT_BATCH_WINDOW_MS=48;
+const DUELS2_RENDER_HIT_BATCHES=new Map();
+
+// duels2CommitRenderHitBatch: 합산된 피해를 한 번의 렌더 넉백·스퀴시·피격 피드백으로 확정한다. (key: 대상 식별 키)
+function duels2CommitRenderHitBatch(key){
+  const batch=DUELS2_RENDER_HIT_BATCHES.get(key);
+  if(!batch) return false;
+  DUELS2_RENDER_HIT_BATCHES.delete(key);
+  const {target,source,renderEntities}=batch;
+  if(!target) return false;
+  const damage=Math.max(0,batch.damage);
+  const angle=(Math.abs(batch.vectorX)+Math.abs(batch.vectorY)>0.0001)
+    ? Math.atan2(batch.vectorY,batch.vectorX)
+    : duels2GetHitFeedbackAngle(target,source,batch.ctx);
+  const mergedCtx={...batch.ctx,renderKnockbackDistance:batch.maxKnockbackDistance};
+  const renderKnockback=duels2ResolveRenderHitKnockback(damage,mergedCtx);
+  const now=performance.now();
+  const visualState={
     startedAt:now,
-    durationMs:190,
-    offsetX:Math.cos(angle)*distance,
-    offsetY:Math.sin(angle)*distance,
-    flashMs:62
+    durationMs:renderKnockback.durationMs,
+    offsetX:Math.cos(angle)*renderKnockback.distance,
+    offsetY:Math.sin(angle)*renderKnockback.distance,
+    flashMs:renderKnockback.flashMs,
+    tier:renderKnockback.tier,
+    squashX:renderKnockback.scaleX,
+    squashY:renderKnockback.scaleY,
+    knockbackDistance:renderKnockback.knockbackDistance,
+    batchedDamage:damage
   };
-  if (visualKey) DUELS2_HIT_VISUAL_BY_KEY.set(visualKey, visualState);
+  DUELS2_HIT_VISUAL_BY_KEY.set(key,visualState);
   for(const entity of renderEntities){
-    if(eventId) entity._duels2LastHitFeedbackId=eventId;
-    entity._duels2HitVisual = visualState;
+    if(entity) entity._duels2HitVisual=visualState;
   }
   duels2QueueHitPitch(damage);
-  addFx({type:'hitImpactRing', x:target.x, y:target.y, r:Math.max(8, getEntityRadius(target)||20), maxR:Math.max(42, (getEntityRadius(target)||20)+34), dur:10, maxDur:10});
+  addFx({type:'hitImpactRing',x:target.x,y:target.y,r:Math.max(8,getEntityRadius(target)||20),maxR:Math.max(42,(getEntityRadius(target)||20)+(renderKnockback.tier==='strong'?48:34)),dur:renderKnockback.tier==='strong'?14:10,maxDur:renderKnockback.tier==='strong'?14:10});
+  const localOwner=typeof getOwnerId==='function'?getOwnerId(L):null;
+  const sourceOwner=typeof getOwnerId==='function'?getOwnerId(source):null;
+  const targetOwner=typeof getOwnerId==='function'?getOwnerId(target):null;
+  const targetPid=typeof getPlayerPid==='function'?getPlayerPid(target):null;
+  const localPid=DUELS2_PLAYER_REGISTRY?.localPid||(typeof getPlayerPid==='function'?getPlayerPid(L):null);
+  if(target===L||(targetPid&&localPid&&targetPid===localPid)||(localOwner!=null&&targetOwner===localOwner)) duels2QueueCombinedHitFeedback('victim',damage,key);
+  else if(source===L||(localOwner!=null&&sourceOwner===localOwner)) duels2QueueCombinedHitFeedback('attacker',damage,key);
+  return true;
+}
 
-  const localOwner = typeof getOwnerId === 'function' ? getOwnerId(L) : null;
-  const sourceOwner = typeof getOwnerId === 'function' ? getOwnerId(source) : null;
-  const targetOwner = typeof getOwnerId === 'function' ? getOwnerId(target) : null;
-  const targetPid=typeof getPlayerPid==='function' ? getPlayerPid(target) : null;
-  const localPid=DUELS2_PLAYER_REGISTRY?.localPid || (typeof getPlayerPid==='function' ? getPlayerPid(L) : null);
-  const feedbackKey=duels2GetHitVisualKey(target) || String(targetOwner ?? targetPid ?? 'global');
-  if (target === L || (targetPid && localPid && targetPid===localPid) || (localOwner != null && targetOwner === localOwner)) duels2QueueCombinedHitFeedback('victim', damage, feedbackKey);
-  else if (source === L || (localOwner != null && sourceOwner === localOwner)) duels2QueueCombinedHitFeedback('attacker', damage, feedbackKey);
+// duels2TriggerHitFeedback: 같은 대상에게 48ms 안에 확정된 피해를 합산한 뒤 한 번의 렌더 피격으로 재생한다. (target/damage/ctx/source)
+function duels2TriggerHitFeedback(target,damage,ctx={},source=null){
+  if(!target||duels2IsContinuousDamageFeedback(ctx)) return false;
+  const eventId=ctx.feedbackEventId||ctx.eventId||null;
+  const renderEntities=duels2GetHitFeedbackRenderEntities(target);
+  if(eventId&&renderEntities.some(entity=>entity?._duels2LastHitFeedbackId===eventId)) return false;
+  if(eventId) for(const entity of renderEntities) if(entity) entity._duels2LastHitFeedbackId=eventId;
+  const key=duels2GetHitVisualKey(target)||String(typeof getOwnerId==='function'?getOwnerId(target):'global');
+  const amount=Math.max(0,Number(damage)||0);
+  const angle=duels2GetHitFeedbackAngle(target,source,ctx);
+  let batch=DUELS2_RENDER_HIT_BATCHES.get(key);
+  if(!batch){
+    batch={target,source,ctx:{...ctx},renderEntities:[...renderEntities],damage:0,vectorX:0,vectorY:0,maxKnockbackDistance:0,timer:null};
+    DUELS2_RENDER_HIT_BATCHES.set(key,batch);
+    batch.timer=setTimeout(()=>duels2CommitRenderHitBatch(key),DUELS2_RENDER_HIT_BATCH_WINDOW_MS);
+  }else{
+    batch.target=target;
+    batch.source=source||batch.source;
+    batch.ctx={...batch.ctx,...ctx};
+    for(const entity of renderEntities) if(entity&&!batch.renderEntities.includes(entity)) batch.renderEntities.push(entity);
+  }
+  batch.damage+=amount;
+  const weight=Math.max(1,amount);
+  batch.vectorX+=Math.cos(angle)*weight;
+  batch.vectorY+=Math.sin(angle)*weight;
+  batch.maxKnockbackDistance=Math.max(batch.maxKnockbackDistance,duels2GetRenderKnockbackDistance(ctx));
   return true;
 }
 
@@ -24914,8 +25049,8 @@ function duels2GetEntityHitVisual(entity, now=performance.now()) {
     active:true,
     offsetX:state.offsetX*returnEase,
     offsetY:state.offsetY*returnEase,
-    scaleX:1 + 0.24*squashWave,
-    scaleY:1 - 0.18*squashWave,
+    scaleX:1 + (Number(state.squashX)||0.24)*squashWave,
+    scaleY:1 - (Number(state.squashY)||0.18)*squashWave,
     flash:(now-state.startedAt) < state.flashMs
   };
 }
@@ -27048,7 +27183,9 @@ function duels2RegisterCoreCombatEventHandlers() {
     duels2TriggerHitFeedback(sourceEntity, d.damage, {
       fromNetwork:true,
       feedbackEventId:d.feedbackEventId || d.eventId || null,
-      hitAngle:Number.isFinite(Number(d.hitAngle)) ? Number(d.hitAngle) : Math.atan2((sourceEntity.y||0)-(L.y||0),(sourceEntity.x||0)-(L.x||0))
+      hitAngle:Number.isFinite(Number(d.hitAngle)) ? Number(d.hitAngle) : Math.atan2((sourceEntity.y||0)-(L.y||0),(sourceEntity.x||0)-(L.x||0)),
+      renderKnockbackDistance:Number(d.renderKnockbackDistance)||0,
+      knockbackPower:Number(d.knockbackPower)||0
     }, L);
     updateRemoteHud?.();
     return sourceEntity;
@@ -28037,7 +28174,9 @@ function onData(d) {
       duels2TriggerHitFeedback(sourceEntity, d.damage, {
         fromNetwork:true,
         feedbackEventId:d.feedbackEventId || d.eventId || null,
-        hitAngle:Number.isFinite(Number(d.hitAngle)) ? Number(d.hitAngle) : Math.atan2((sourceEntity.y||0)-(L.y||0),(sourceEntity.x||0)-(L.x||0))
+        hitAngle:Number.isFinite(Number(d.hitAngle)) ? Number(d.hitAngle) : Math.atan2((sourceEntity.y||0)-(L.y||0),(sourceEntity.x||0)-(L.x||0)),
+      renderKnockbackDistance:Number(d.renderKnockbackDistance)||0,
+      knockbackPower:Number(d.knockbackPower)||0
       }, L);
         updateRemoteHud?.();
       break;
