@@ -24466,18 +24466,34 @@ async function duels2UnlockSfxAudio() {
 }
 window.duels2UnlockSfxAudio = duels2UnlockSfxAudio;
 
-// duels2LoadSfxAsset: 외부 음원은 먼저 바이트만 받아 두고 AudioContext 생성은 사용자 입력까지 미룬다. (kind/url)
-function duels2LoadSfxAsset(kind, url) {
-  fetch(url)
-    .then(response => response.ok ? response.arrayBuffer() : Promise.reject(new Error(`HTTP ${response.status}`)))
-    .then(buffer => {
-      DUELS2_SFX_ENCODED_BUFFERS.set(kind, buffer);
-      if (_sfxCtx?.state === 'running') void duels2DecodeSfxKind(kind);
-    })
-    .catch(() => {});
+// duels2BuildSfxAssetCandidates: 현재 배포된 HTML 위치를 우선으로 기존 MP3 음원의 후보 주소를 만든다. (filename: MP3 파일명)
+function duels2BuildSfxAssetCandidates(filename) {
+  const candidates=[];
+  try { candidates.push(new URL(filename, document.baseURI).href); } catch (_) {}
+  candidates.push(`https://lyangnem.github.io/Duels/${filename}`);
+  candidates.push(`https://raw.githubusercontent.com/LyangNem/Duels/main/${filename}`);
+  return Array.from(new Set(candidates));
 }
 
-duels2LoadSfxAsset('hit', 'https://Lyangnem.github.io/Duels/hitted.mp3');
+// duels2LoadSfxAsset: 기존 MP3 음원을 후보 주소 순서대로 받아 두고 AudioContext 생성은 사용자 입력까지 미룬다. (kind: hit/shoot, urls: 음원 주소 배열)
+async function duels2LoadSfxAsset(kind, urls) {
+  const candidates=Array.isArray(urls) ? urls : [urls];
+  for (const url of candidates) {
+    try {
+      const response=await fetch(url,{cache:'force-cache'});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const buffer=await response.arrayBuffer();
+      if (!buffer || buffer.byteLength===0) throw new Error('empty audio asset');
+      DUELS2_SFX_ENCODED_BUFFERS.set(kind,buffer);
+      if (_sfxCtx?.state==='running') void duels2DecodeSfxKind(kind);
+      return true;
+    } catch (_) {}
+  }
+  console.warn(`[DUELS SFX] ${kind} 음원을 불러오지 못했습니다.`, candidates);
+  return false;
+}
+
+void duels2LoadSfxAsset('hit', duels2BuildSfxAssetCandidates('hitted.mp3'));
 
 // 페이지 어디서든 최초 클릭·키 입력을 오디오 해제 제스처로 사용한다.
 document.addEventListener('pointerdown', () => { void duels2UnlockSfxAudio(); }, {capture:true});
@@ -24583,7 +24599,7 @@ function playHitSfx() {
   return duels2PlaySfxKind('hit',_hitBuffer);
 }
 
-duels2LoadSfxAsset('shoot', 'https://Lyangnem.github.io/Duels/shoot.mp3');
+void duels2LoadSfxAsset('shoot', duels2BuildSfxAssetCandidates('shoot.mp3'));
 
 // playShootSfx: 현재 렌더 프레임의 발사음을 한 번만 예약한다. ()
 function playShootSfx() {
