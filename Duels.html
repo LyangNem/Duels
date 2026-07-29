@@ -24496,8 +24496,23 @@ async function duels2LoadSfxAsset(kind, urls) {
 void duels2LoadSfxAsset('hit', duels2BuildSfxAssetCandidates('hitted.mp3'));
 
 // 페이지 어디서든 최초 클릭·키 입력을 오디오 해제 제스처로 사용한다.
-document.addEventListener('pointerdown', () => { void duels2UnlockSfxAudio(); }, {capture:true});
-document.addEventListener('keydown', () => { void duels2UnlockSfxAudio(); }, {capture:true});
+function duels2PrimeHtmlAudioFallback() {
+  for (const kind of ['hit','shoot']) {
+    for (const audio of duels2GetHtmlAudioPool(kind)) {
+      try {
+        audio.muted=true;
+        const promise=audio.play();
+        if(promise && typeof promise.then==='function') {
+          promise.then(()=>{ audio.pause(); audio.currentTime=0; audio.muted=false; }).catch(()=>{ audio.muted=false; });
+        } else {
+          audio.pause(); audio.currentTime=0; audio.muted=false;
+        }
+      } catch (_) { audio.muted=false; }
+    }
+  }
+}
+document.addEventListener('pointerdown', () => { void duels2UnlockSfxAudio(); duels2PrimeHtmlAudioFallback(); }, {capture:true,once:true});
+document.addEventListener('keydown', () => { void duels2UnlockSfxAudio(); duels2PrimeHtmlAudioFallback(); }, {capture:true,once:true});
 // DUELS2_AUDIO_RUNTIME: 같은 실행 순간의 효과음 요청을 종류별로 하나만 남기고, 서로 다른 종류는 각각 한 번씩 함께 재생한다.
 const DUELS2_AUDIO_RUNTIME = {
   // activeByKind: 이미 재생 중인 음원을 종류별 Set으로 추적한다. 이후 시점의 같은 소리를 끊지 않는다.
@@ -24583,14 +24598,74 @@ function duels2ScheduleSfxFrameFlush(flush){
 }
 
 // duels2PlaySfxKind: 같은 렌더 프레임의 효과음을 종류별 하나로 예약한다. 서로 다른 종류는 같은 프레임에도 각각 유지한다. (kind: hit/shoot, buffer: AudioBuffer)
-function duels2PlaySfxKind(kind,buffer){
-  if(!buffer) return false;
-  DUELS2_AUDIO_RUNTIME.pendingKinds.set(kind,buffer);
-  if(!DUELS2_AUDIO_RUNTIME.flushScheduled){
-    DUELS2_AUDIO_RUNTIME.flushScheduled=true;
-    duels2ScheduleSfxFrameFlush(duels2FlushSfxBatch);
+const DUELS2_HTML_AUDIO_RUNTIME = {
+  pools:new Map(),
+  urls:new Map([
+    ['hit', duels2BuildSfxAssetCandidates('hitted.mp3')],
+    ['shoot', duels2BuildSfxAssetCandidates('shoot.mp3')],
+  ]),
+  nextIndex:new Map(),
+};
+
+// duels2CreateHtmlAudioEntry: Web Audio 디코딩이 불가능한 배포 환경에서 기존 MP3 파일을 그대로 재생할 HTMLAudioElement를 만든다. (kind: hit/shoot)
+function duels2CreateHtmlAudioEntry(kind) {
+  const candidates=DUELS2_HTML_AUDIO_RUNTIME.urls.get(kind) || [];
+  const audio=new Audio();
+  audio.preload='auto';
+  audio.volume=DUELS2_AUDIO_RUNTIME.normalGain;
+  audio.playsInline=true;
+  let candidateIndex=0;
+  const applyCandidate=()=>{
+    if(candidateIndex>=candidates.length) return false;
+    audio.src=candidates[candidateIndex++];
+    audio.load();
+    return true;
+  };
+  audio.addEventListener('error',()=>{ applyCandidate(); });
+  applyCandidate();
+  return audio;
+}
+
+// duels2GetHtmlAudioPool: 같은 효과음이 겹쳐도 원본 MP3가 잘리지 않도록 작은 재생 풀을 반환한다. (kind: hit/shoot)
+function duels2GetHtmlAudioPool(kind) {
+  let pool=DUELS2_HTML_AUDIO_RUNTIME.pools.get(kind);
+  if(pool) return pool;
+  pool=Array.from({length:6},()=>duels2CreateHtmlAudioEntry(kind));
+  DUELS2_HTML_AUDIO_RUNTIME.pools.set(kind,pool);
+  DUELS2_HTML_AUDIO_RUNTIME.nextIndex.set(kind,0);
+  return pool;
+}
+
+// duels2PlayHtmlAudioKind: 기존 MP3를 브라우저 기본 오디오 경로로 재생한다. Web Audio 실패 시에만 사용한다. (kind: hit/shoot)
+function duels2PlayHtmlAudioKind(kind) {
+  const pool=duels2GetHtmlAudioPool(kind);
+  if(!pool.length) return false;
+  const index=DUELS2_HTML_AUDIO_RUNTIME.nextIndex.get(kind) || 0;
+  DUELS2_HTML_AUDIO_RUNTIME.nextIndex.set(kind,(index+1)%pool.length);
+  const audio=pool[index];
+  try {
+    audio.pause();
+    audio.currentTime=0;
+    audio.playbackRate=kind==='hit' ? duels2ConsumeHitPitch() : 1;
+    const promise=audio.play();
+    if(promise && typeof promise.catch==='function') promise.catch(()=>{});
+    return true;
+  } catch (_) {
+    return false;
   }
-  return true;
+}
+
+// duels2PlaySfxKind: Web Audio 버퍼가 준비되면 기존 저지연 경로를 사용하고, 준비되지 않았으면 같은 MP3를 HTMLAudioElement로 재생한다. (kind: hit/shoot, buffer: AudioBuffer)
+function duels2PlaySfxKind(kind,buffer){
+  if(buffer && _sfxCtx?.state==='running'){
+    DUELS2_AUDIO_RUNTIME.pendingKinds.set(kind,buffer);
+    if(!DUELS2_AUDIO_RUNTIME.flushScheduled){
+      DUELS2_AUDIO_RUNTIME.flushScheduled=true;
+      duels2ScheduleSfxFrameFlush(duels2FlushSfxBatch);
+    }
+    return true;
+  }
+  return duels2PlayHtmlAudioKind(kind);
 }
 
 // playHitSfx: 현재 렌더 프레임의 피격음을 한 번만 예약한다. ()
