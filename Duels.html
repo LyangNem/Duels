@@ -3883,7 +3883,7 @@ const BALANCE = {
     rmb: {
       cost:            50,
       aoeRange:        347,   // 386 * 0.9 ≈ 347
-      summonDist:      180,
+      summonDist:      270,
       damageDelay:     500,
       damage:          50,    // 60 → 50
       activateDelay:   500,
@@ -4134,7 +4134,7 @@ const CHARACTERS = {
     maxHealth: duels2GetSkillBalance('shubi','hp'),
     speed:     duels2GetSkillBalance('shubi','speed'),
     radius:    duels2GetSkillBalance('shubi','radius'),
-    statsText: [['체력', String(duels2GetSkillBalance('shubi','hp'))],['이동속도','보통'],['스타일','파워형 근거리 딜러']],
+    statsText: [['체력', String(duels2GetSkillBalance('shubi','hp'))],['이동속도','보통'],['스타일','조건형 딜러']],
     desc:      '샷건으로 근거리를 장악하는 캐릭터',
     skills: [
       { key:'LMB',     name:'샷건',   cost:duels2GetSkillBalance('shubi','lmb').cost,  desc:`샷건 ${duels2GetSkillBalance('shubi','lmb').pellets}발 발사 (탄당 ${duels2GetSkillBalance('shubi','lmb').damage})` },
@@ -5112,7 +5112,7 @@ const AUG_VALS = {
   protection:  { reduction: 15 },
   overpower:   { bonus: 10 },
   stun_shot:   { cd: 4 },
-  speed_shot:  { speedBonus: 35, radiusPenalty: 20 },
+  speed_shot:  { speedBonus: 30, radiusPenalty: 15 },
   fortress:    { idleTime: 5, reduction: 80 },
   counter_def: { window: 2, reduction: 30, window2: 2, reduction2: 20 },
   big_weapon:  { rangeBonus: 25, dmgPenalty: 10 },
@@ -6780,6 +6780,7 @@ const DUELS2_SKILL_EXECUTOR_RUNTIME = (() => {
         }
         try {
           const value = handler(ctx);
+          const actionSucceeded = value !== false && !ctx._duels2StaminaBlocked;
           counters.succeeded += 1;
           bump(counters.byResult, 'ok');
           if (ctx.counterPrep && typeof duels2FinalizeCounterSkillExecution === 'function') {
@@ -7115,7 +7116,7 @@ const DUELS2_SKILL_STAMINA_COST_GUARD_RUNTIME = (() => {
     const healthBefore = getActorHealthValue(actor);
     const autoBypass = !!(opt.autoBypass ?? window._autoAttackStamBypass);
     const isDodge = !!opt.isDodge;
-    const gumCount = (!isDodge && !autoBypass && typeof getAugCount === 'function') ? Math.max(0, Number(getAugCount('gum_shield') || 0)) : 0;
+    const gumCount = (!autoBypass && typeof getAugCount === 'function') ? Math.max(0, Number(getAugCount('gum_shield') || 0)) : 0;
     const gumRatio = Number(AUG_VALS?.gum_shield?.costRatio || 0);
     const gumHpCost = finalCost * gumRatio;
     const canNormal = autoBypass || staminaBefore >= finalCost;
@@ -12125,6 +12126,9 @@ function getStamCost(amt, kind='lmb') {
 }
 function useStamRaw(amt, isDodge=false, opt = {}) {
   amt = Math.max(0, Math.round(amt || 0));
+  const actionCtx = window.DUELS2_SKILL_ACTION_CONTEXT_RUNTIME?.getCurrent?.(null) || L?._actionCtx || null;
+  const markPaid = (payment) => { if (actionCtx) { actionCtx._duels2CostPaid = true; actionCtx._duels2CostPayment = payment; actionCtx._duels2StaminaBlocked = false; } };
+  const markBlocked = () => { if (actionCtx) actionCtx._duels2StaminaBlocked = true; };
   const rawKind = opt.kind || (isDodge ? 'dodge' : 'raw');
   const rawRoute = opt.route || duels2ResolveCurrentStaminaCostRoute(rawKind, isDodge ? 'useStamRaw.dodge' : 'useStamRaw');
   const costGuard = opt.skipStaminaCostGuard ? null : duels2EvaluateSkillStaminaCostGuard(amt, rawKind, {
@@ -12138,6 +12142,7 @@ function useStamRaw(amt, isDodge=false, opt = {}) {
   if (window._autoAttackStamBypass) {
     L.staminaUseTime = performance.now();
     duels2FinalizeSkillStaminaCostGuard(costGuard, true, {payment:'auto-bypass', staminaAfter:L.stamina, healthAfter:getEntityHealth(L)});
+    markPaid('auto-bypass');
     return true;
   }
   const stamMax = L._augStamMax ?? STAM_MAX;
@@ -12146,6 +12151,7 @@ function useStamRaw(amt, isDodge=false, opt = {}) {
     L.staminaUseTime = performance.now();
     if(window._devUnlocked) recordCombatLog('stamina',{kind:'max',cost:amt});
     duels2FinalizeSkillStaminaCostGuard(costGuard, true, {payment:'max-overflow', staminaAfter:L.stamina, healthAfter:getEntityHealth(L)});
+    markPaid('max-overflow');
     return true;
   }
   if (L.stamina >= amt) {
@@ -12153,9 +12159,19 @@ function useStamRaw(amt, isDodge=false, opt = {}) {
     L.staminaUseTime = performance.now();
     if(window._devUnlocked) recordCombatLog('stamina',{kind:'normal',cost:amt});
     duels2FinalizeSkillStaminaCostGuard(costGuard, true, {payment:'stamina', staminaAfter:L.stamina, healthAfter:getEntityHealth(L)});
+    markPaid('stamina');
     return true;
   }
-  if (!isDodge && getAugCount('gum_shield') > 0) {
+  // 차징이 정상적으로 시작된 뒤 다른 효과로 스테미나가 0이 된 경우, 해방 입력 자체는 소실시키지 않는다.
+  if (window._duels2ChargeReleaseStaminaFallback) {
+    L.stamina = 0;
+    L.staminaUseTime = performance.now();
+    window._duels2ChargeReleaseStaminaFallback = false;
+    duels2FinalizeSkillStaminaCostGuard(costGuard, true, {payment:'charge-release-fallback', staminaAfter:0, healthAfter:getEntityHealth(L)});
+    markPaid('charge-release-fallback');
+    return true;
+  }
+  if (getAugCount('gum_shield') > 0) {
     const hpCost = amt * AUG_VALS.gum_shield.costRatio;
     if (getEntityHealth(L) - hpCost > 1) {
       L.stamina = 0;
@@ -12163,10 +12179,12 @@ function useStamRaw(amt, isDodge=false, opt = {}) {
       L.staminaUseTime = performance.now();
       if(window._devUnlocked) recordCombatLog('stamina',{kind:'gumShield',cost:hpCost});
       duels2FinalizeSkillStaminaCostGuard(costGuard, true, {payment:'gum-shield', staminaAfter:L.stamina, healthAfter:getEntityHealth(L)});
+      markPaid('gum-shield');
       return true;
     }
   }
   duels2FinalizeSkillStaminaCostGuard(costGuard, false, {reason:'insufficient-stamina', staminaAfter:L.stamina, healthAfter:getEntityHealth(L)});
+  markBlocked();
   return false;
 }
 function useStamTyped(amt, kind='lmb', opt = {}) {
@@ -12900,6 +12918,120 @@ function _clearPlayerSleepOnHit(entity) {
     }
   }
 }
+
+// duels2ResetRevivalCombatState: 부활 시 캐릭터의 누적 게이지·단계·차징·설치물·비행 무기를 공통 초기 상태로 되돌린다. (entity: 부활 대상, opt: reason/route 실행 문맥)
+function duels2ResetRevivalCombatState(entity = L, opt = {}) {
+  if (!entity) return false;
+
+  // 진행 중인 차징·홀드·드래그·선딜레이·반격 예약을 모두 무효화한다.
+  entity._drillCharging=false; entity._drillChargeStart=0; entity._drillDrained=0; entity._drillFrozenT=null;
+  entity._mhCharging=false; entity._mhChargeStart=0;
+  entity._cherityCharging=false; entity._cherityChargeStart=0; entity._cherityDrained=0; entity._cherityFrozenT=null;
+  entity._nanCharging=false; entity._nanChargeStart=0;
+  entity._raiseCharging=false; entity._raiseChargeStart=0; entity._raiseClicks=0; entity._raiseLastClickTime=0; entity._raiseStaminaStarvedAt=0;
+  entity._hatsDrawing=false; entity._hatsFrozen=false; entity._hatsDragStart=null; entity._hatsDragPath=null; entity._hatsDragFarthest=null;
+  entity._hatsRmbDrawing=false; entity._hatsRmbPending=false; entity._hatsRmbFrozen=false; entity._hatsPath=null;
+  entity._nsonyaPredelay=false; entity._erapabiPredelay=false; entity._reikaPreswing=false; entity._reikaLmbPreswing=false;
+  entity._counterToken=(entity._counterToken||0)+1;
+  entity._drillToken=(entity._drillToken||0)+1;
+  entity._pelunaToken=(entity._pelunaToken||0)+1;
+  entity._attackPreview=null;
+
+  // 리안의 회피 위치 기록과 회피 후 LMB 대시 오버라이드를 사망 순간 함께 제거한다.
+  if (Array.isArray(entity._backupStack)) entity._backupStack.length = 0;
+  else entity._backupStack = [];
+  entity._backupPos = null;
+  duels2ClearPrimaryInputOverride?.(entity, {reason:'augment.revival.death-clear-lian-dodge-record'});
+
+  // 모든 대표 누적 자원·단계·게이지를 초기값으로 되돌린다.
+  entity._erapabiStoredDmg=0; entity._erapabiLaserActive=false; entity._erapabiLaserCharging=false; entity._erapabiFortify=false; entity._erapabiFortifyExpiry=0;
+  entity._reikaEnergy=0; entity._reikaBlessed=false; entity._reikaBlessedExpiry=0; entity._reikaRBurning=null;
+  entity._kanGauge=0;
+  entity._tauHitStack=0; entity._tauOveleucharge=false;
+  entity._nsonyaStacks=0; entity._nsonyaExpiry={};
+  entity._mehuguGauge=0; entity._mehuguStacks=0; entity._mehuguCharge=0;
+  entity._nanGauge=0; entity._nanStacks=0;
+  entity._cherityGauge=0; entity._cherityStacks=0;
+  entity._hatsGauge=0; entity._hatsStacks=0;
+  entity._meramonaGauge=0; entity._meramonaStars=0; entity._meramonaStack=0; entity._merTransforming=false;
+  entity._runefShot1=false; entity._runefRmbActive=false; entity._runefNextSpell='fire';
+  clearTimeout(entity._runefShot1Timer); clearTimeout(entity._runefRmbTimer);
+  entity._runefShot1Timer=null; entity._runefRmbTimer=null;
+  if (typeof SKILLS !== 'undefined' && SKILLS?.meramona) {
+    SKILLS.meramona._stage=0; SKILLS.meramona._tempEnd=0; SKILLS.meramona._tempBonus=0; SKILLS.meramona._tempStageExpires=[]; SKILLS.meramona._hitStack=0;
+  }
+  duels2ResetSteppedRangeState?.(entity,{stage:1,clearInput:true});
+
+  // 인투는 모든 탄창을 즉시 완전 재장전하고 재장전·저격 전환 예약을 끊는다.
+  entity._intuAmmo=duels2GetSkillBalance('intu','magMax');
+  entity._intuReloading=false; entity._intuReloadEnd=0; entity._intuCounterActive=false;
+  entity._intuSniperTok=(entity._intuSniperTok||0)+1;
+  if (entity._intuWeapon==='sniper') entity._intuWeapon=entity._intuPrevWeapon||'pistol';
+  entity._intuPrevWeapon=entity._intuWeapon||'pistol';
+  entity._intuLastSync='';
+
+  // 지속형 스킬은 부활 순간 종료한다.
+  entity._nsonyaRmbActive=false; entity._nsonyaRmbEnd=0;
+  entity._syaInvisible=false; entity._syaInvisEndAt=0; entity._syaAttackBoost=0;
+  entity._phaseChain=0; entity._raiseBoosted=false;
+
+  // 날아간 무기, 설치 회복지대, 샤이라즈 트랩은 사망 순간 즉시 회수·제거한다.
+  if (entity===L) {
+    entity._shairazTraps = duels2ClearDeployableKind?.('trap', 'local', entity, {
+      reason:'augment.revival.death-clear-shairaz-traps'
+    }) || [];
+    duels2SendDeployableSnapshot?.('trap', entity._shairazTraps, {
+      reason:'augment.revival.death-clear-shairaz-traps',
+      route:'network.deployable-snapshot.revival-death-clear'
+    });
+  } else if (Array.isArray(entity._shairazTraps)) {
+    entity._shairazTraps.length = 0;
+  }
+  // 루뷰 망치와 레비나 창은 삭제하지 않고 실제 회수 상태로 전환한다.
+  // 사망 회수는 일반 수동 회수와 동일하게 무기가 소유자에게 돌아오지만 반동 돌진은 발생하지 않는다.
+  const revivalRecallNow=performance.now();
+  if (entity._ruvuHammer) {
+    const hammer=entity._ruvuHammer;
+    clearTimeout(hammer._timer);
+    hammer._timer=null;
+    if (!hammer.returning) {
+      hammer.returning=true;
+      hammer.returnStart=revivalRecallNow;
+      hammer.returnSX=hammer.x;
+      hammer.returnSY=hammer.y;
+    }
+    hammer._manualRecall=true;
+    hammer._deathRecall=true;
+  }
+  if (entity._levinaSpear) {
+    duels2BeginLevinaSpearRecall(entity._levinaSpear,{
+      copyForwardHits:true,
+      sendDir:entity===L
+    });
+  }
+  entity._levinaSpearSyncTick=0; entity._levinaLmbWpCd=0; entity._levinaRmbWpCd=0;
+  if (entity.orb) clearTimeout(entity.orb._timer);
+  entity.orb=null; entity._toolboxHealTick=0; entity._miarukyToolboxNextHealAt=0;
+  if (entity===L && typeof send==='function') {
+    if (entity._ruvuHammer) {
+      send({
+        type:'ruvuHammerRecall',
+        x:entity._ruvuHammer.x,
+        y:entity._ruvuHammer.y,
+        returnStart:entity._ruvuHammer.returnStart,
+        reason:'revival-death'
+      });
+    }
+    send({type:'miarukyToolboxState',active:false});
+    send({type:'intuState',ammo:entity._intuAmmo,weapon:entity._intuWeapon||'pistol',reloading:false});
+  }
+
+  entity.counterReady=false; entity.counterExpiry=0; entity._counterPending=false;
+  entity.lmbCooldown=0; entity.rmbCooldown=0;
+  entity.lastAttackTime=performance.now();
+  return true;
+}
+
 function _applyPlayerDeathRuntime(entity, ctx = {}) {
   if (!entity || entity.health > 0) return false;
   if (isEntityInfiniteHP(entity)) { setEntityHealthValue(entity, getEntityMaxHealth(entity)); entity._dying=false; entity.hidden=false; entity.alive=true; entity.isAlive=true; return false; }
@@ -12912,6 +13044,7 @@ function _applyPlayerDeathRuntime(entity, ctx = {}) {
     }
     if ((entity._revivalCount||0) > 0) {
       entity._revivalCount--;
+      duels2ResetRevivalCombatState(entity, {reason:'augment.revival.death', route:'survival.revival.reset-combat-state-on-death'});
       setEntityHealthValue(entity, 1);
       entity.invincible = 9999;
       entity._reviving = true;
@@ -12922,9 +13055,6 @@ function _applyPlayerDeathRuntime(entity, ctx = {}) {
         setEntityHealthValue(entity, getEntityMaxHealth(entity));
         entity.invincible = 0;
         entity._reviving = false;
-        entity.counterReady = false;
-        entity.counterExpiry = 0;
-        entity._counterPending = false;
         entity.stamina = entity._augStamMax ?? STAM_MAX;
         window._skipDodgeStam = true;
         try { tryDodge(); }
@@ -12951,6 +13081,7 @@ function revivePeerRuntimeProxy(dur = 1000) {
   if (!R) return false;
   ensurePlayerRuntime(R, {attachMethods:false, pid:R.pid || 'P2', ownerId:R.ownerId || 'peer', teamId:R.teamId || 'team:P2'});
   const maxHp = Math.max(1, getEntityMaxHealth(R));
+  const reviveDuration = Math.max(0, Number(dur) || 0);
   setEntityHealthValue(R, Math.max(1, Math.min(maxHp, getEntityHealth(R) || 1)));
   R.hidden = false;
   R.alive = true;
@@ -12958,6 +13089,7 @@ function revivePeerRuntimeProxy(dur = 1000) {
   R._dying = false;
   R.burrowing = false;
   R._reviving = true;
+  emitFx({type:'aoe', x:R.x, y:R.y, r:40, dur:20, maxDur:20, col:'200,200,255'});
   clearTimeout(R._reviveProxyTimer);
   R._reviveProxyTimer = setTimeout(() => {
     setEntityHealthValue(R, Math.max(getEntityHealth(R), getEntityMaxHealth(R)));
@@ -12966,8 +13098,10 @@ function revivePeerRuntimeProxy(dur = 1000) {
     R.isAlive = true;
     R._dying = false;
     R._reviving = false;
+    emitFx({type:'aoe', x:R.x, y:R.y, r:50, dur:30, maxDur:30, col:'150,200,255'});
+    emitFx({type:'dodge', x:R.x, y:R.y, radius:(R.radius||20)+14, dur:16, maxDur:16});
     refreshEnemyTargets?.();
-  }, Math.max(0, dur || 0));
+  }, reviveDuration);
   refreshEnemyTargets?.();
   return true;
 }
@@ -13064,7 +13198,11 @@ function receiveHitEntity(entity, dmg, ctx = {}) {
   if (_infHpBefore && getEntityHealth(P) <= 0) setEntityHealthValue(P, 1);
   P.lastHitTime = now;
   P._lastDmgAt = now;
-  P.hitFlash = 14;
+  P.hitFlash = 4;
+  duels2TriggerHitFeedback(P, finalDmg, ctx, source);
+  // 플레이어가 소유한 실제 피격 경로에서 기본 넉백과 분리된 미세 넉백을 적용한다.
+  // 좌표만 보정하므로 선딜레이·차징·반격 준비·행동 토큰은 건드리지 않는다.
+  duels2ApplyMicroHitKnockback(P, source, ctx, finalDmg);
 
   applyBleedOnDamageTaken(P, finalDmg, ctx);
   _syncPlayerRuntimeHealth(P);
@@ -13072,6 +13210,7 @@ function receiveHitEntity(entity, dmg, ctx = {}) {
   if (P === L && typeof send === 'function') {
     send({type:'dmgDealtSync', damage: finalDmg, x: P.x, y: P.y - P.radius - 10,
           health:getEntityHealth(P), maxHealth:getEntityMaxHealth(P),
+          hitAngle:duels2GetHitFeedbackAngle(P, source, ctx),
           feedbackEventId:ctx.feedbackEventId || ctx.eventId || null});
   }
 
@@ -13102,7 +13241,6 @@ function receiveHitEntity(entity, dmg, ctx = {}) {
     send({type:'smokeReveal', dur:750});
   }
 
-  addShake(Math.min(6 + finalDmg * 0.18, 16), 20);
   playHitSfx();
   if (!ctx.suppressLegacyDamageFeedback && duels2ShouldEmitImmediateDamageFeedback(P, ctx)) {
     _addDmgNum(P === L ? 'recv' : 'dealt', finalDmg, P.x, P.y-P.radius-10, getHitTargetKey(P));
@@ -14177,6 +14315,9 @@ function applyDamageResult(target, amount, ctx = {}) {
     reason: ok ? null : (justDodgeTriggered ? 'just_dodge' : (preBlock.reason || 'blocked')),
     ctx: nextCtx,
   }));
+  if(finalResult.damaged){
+    duels2ApplyMicroHitKnockback(target, source, nextCtx, finalResult.damageAmount);
+  }
   if(finalResult.damaged&&nextCtx.feedbackEventId&&duels2ShouldEmitImmediateDamageFeedback(target,nextCtx)){
     duels2AddDamageNumberOnce(nextCtx.feedbackEventId,'dealt',finalResult.damageAmount,target.x||0,(target.y||0)-(target.radius||20)-10,getHitTargetKey(target));
   }
@@ -14192,21 +14333,27 @@ function applyCCResult(target, cc, source = L, ctx = {}) {
   source = source || getDefaultDamageSource(ctx);
   const resultBase = {attempted:true, target, source, ctx, rawAmount:0};
   if (!target || !cc) return finishHitResult(makeHitResult({...resultBase, invalid:true, reason:!target?'no_target':'no_cc'}));
+  const normalizedCC = {...cc};
+  const hasImpactCenter = [ctx.projectileX,ctx.projectileY,ctx.bulletX,ctx.bulletY,ctx.explosionX,ctx.explosionY,ctx.centerX,ctx.centerY,ctx.originX,ctx.originY]
+    .some(value => Number.isFinite(Number(value)));
+  if (normalizedCC.knockbackPower !== undefined && (hasImpactCenter || !Number.isFinite(Number(normalizedCC.knockbackAngle)))) {
+    normalizedCC.knockbackAngle = duels2GetHitFeedbackAngle(target, source, ctx);
+  }
   if (isFriendlyCombatEffect(source, target, ctx)) return finishHitResult(makeHitResult({...resultBase, friendlyBlocked:true, blocked:true, reason:'friendly'}));
   const preBlock = shouldBlockCombatApplication(target, ctx);
   if (preBlock.blocked) return finishHitResult(makeHitResult({...resultBase, ...preBlock, hit:false}));
   let ok = false;
-  if (isCombatPlayerEntity(target)) ok = !!applyPlayerRuntimeCC(target, cc, source, ctx);
+  if (isCombatPlayerEntity(target)) ok = !!applyPlayerRuntimeCC(target, normalizedCC, source, ctx);
   else if (typeof target.applyCC === 'function') {
-    const ret = target.applyCC(cc, source, ctx);
+    const ret = target.applyCC(normalizedCC, source, ctx);
     ok = ret !== false;
-  } else ok = !!applyTargetCCState(target, cc, source, ctx);
+  } else ok = !!applyTargetCCState(target, normalizedCC, source, ctx);
   return finishHitResult(makeHitResult({
     ...resultBase,
     hit: ok,
     canTarget: ok,
     ccApplied: ok,
-    statusApplied: ok ? legacyCCKeys(cc) : [],
+    statusApplied: ok ? legacyCCKeys(normalizedCC) : [],
     reason: ok ? null : 'cc_rejected',
   }));
 }
@@ -15132,10 +15279,20 @@ window.duels2ResolveStatusDurationForTarget=duels2ResolveStatusDurationForTarget
 function normalizeCCForPlayerRuntime(target, cc, source = L, ctx = {}) {
   if (!target || !cc) return null;
   const out={...cc};
-  if(out.knockbackPower!==undefined && out.knockbackAngle===undefined){
-    const ox=Number.isFinite(out.originX)?out.originX:(source?.x||L.x);
-    const oy=Number.isFinite(out.originY)?out.originY:(source?.y||L.y);
-    out.knockbackAngle=Math.atan2((target.y||0)-oy,(target.x||0)-ox);
+  const impactCtx={...ctx};
+  const centerKeys=['projectileX','projectileY','bulletX','bulletY','explosionX','explosionY','centerX','centerY','originX','originY'];
+  for(const key of centerKeys){
+    if(!Number.isFinite(Number(impactCtx[key])) && Number.isFinite(Number(out[key]))) impactCtx[key]=Number(out[key]);
+  }
+  const hasImpactCenter=centerKeys.some(key=>Number.isFinite(Number(impactCtx[key])));
+  if(out.knockbackPower!==undefined){
+    // 중심 좌표가 있는 공격은 기존에 들어 있던 공격자 기준 knockbackAngle을 신뢰하지 않는다.
+    // 투사체/폭발 중심 -> 대상 중심 방향으로 매번 다시 확정한다.
+    if(hasImpactCenter) out.knockbackAngle=duels2GetHitFeedbackAngle(target,source,impactCtx);
+    else if(!Number.isFinite(Number(out.knockbackAngle))) out.knockbackAngle=duels2GetHitFeedbackAngle(target,source,impactCtx);
+  }
+  for(const key of centerKeys){
+    if(Number.isFinite(Number(impactCtx[key]))) out[key]=Number(impactCtx[key]);
   }
   return out;
 }
@@ -15155,6 +15312,16 @@ function sendCCToRemotePlayerOwner(target, cc, source = L, ctx = {}) {
     sourcePid,
     cc:payload,
     actionCtx:ctx.actionCtx || null,
+    projectileX:payload.projectileX,
+    projectileY:payload.projectileY,
+    bulletX:payload.bulletX,
+    bulletY:payload.bulletY,
+    explosionX:payload.explosionX,
+    explosionY:payload.explosionY,
+    centerX:payload.centerX,
+    centerY:payload.centerY,
+    originX:payload.originX,
+    originY:payload.originY,
   });
   return true;
 }
@@ -15474,32 +15641,28 @@ const R = {
     // 실제 P2P 상대의 HP는 상대 소유 클라이언트만 변경한다. 공격자 화면의 미러 HP를 예측 차감하면
     // 회피·무적·피해감소 오차로 미러가 먼저 죽어 이후 충돌 대상에서 영구 제외될 수 있다.
     if (this === R && !_trainingMode && !ctx.fromNetwork) {
-      send({type:'hitMe', targetPid:getPlayerPid(this)||'P2', sourcePid:DUELS2_PLAYER_REGISTRY.localPid||getPlayerPid(L)||'P1', damage:_d, fromThorn:!!ctx.fromThorn, eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null});
+      {
+        const directionPacket=duels2BuildHitDirectionPacket(this,ctx.source||L,ctx);
+        send({
+          type:'hitMe', targetPid:getPlayerPid(this)||'P2', sourcePid:DUELS2_PLAYER_REGISTRY.localPid||getPlayerPid(L)||'P1',
+          damage:_d, fromThorn:!!ctx.fromThorn, eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null,
+          ...directionPacket,
+          projectileX:Number.isFinite(Number(ctx.projectileX ?? ctx.bulletX ?? ctx.projectile?.x)) ? Number(ctx.projectileX ?? ctx.bulletX ?? ctx.projectile?.x) : undefined,
+          projectileY:Number.isFinite(Number(ctx.projectileY ?? ctx.bulletY ?? ctx.projectile?.y)) ? Number(ctx.projectileY ?? ctx.bulletY ?? ctx.projectile?.y) : undefined,
+          explosionX:Number.isFinite(Number(ctx.explosionX ?? ctx.originX ?? ctx.centerX)) ? Number(ctx.explosionX ?? ctx.originX ?? ctx.centerX) : undefined,
+          explosionY:Number.isFinite(Number(ctx.explosionY ?? ctx.originY ?? ctx.centerY)) ? Number(ctx.explosionY ?? ctx.originY ?? ctx.centerY) : undefined
+        });
+        if (typeof duels2TriggerActualAttackEmissionFeedback === 'function') {
+          duels2TriggerActualAttackEmissionFeedback(L, directionPacket.hitAngle, {route:'remote-damage-delegated'});
+        }
+      }
       return {ok:true, applied:true, delegated:true, amount:_d};
     }
     return applyPlayerRuntimeDamage(this, _d, {...ctx, rawDamage:true, outgoingApplied:true, _calculated:true, target:this});
   },
-  applyCC(cc) {
-    if (!cc) return;
-    if (_trainingMode || this !== R) {
-      applyTargetCCState(this, cc);
-      return;
-    }
-    if (cc.knockbackPower !== undefined) {
-      const ang = cc.knockbackAngle ?? Math.atan2(this.y-L.y, this.x-L.x);
-      if (!this.burrowing) {
-        send({type:'knockback', vx:Math.cos(ang)*cc.knockbackPower, vy:Math.sin(ang)*cc.knockbackPower});
-        applyTargetKnockback(this, cc.knockbackPower, ang, cc.knockbackScale);
-      }
-    }
-    if (cc.pullTo) send({type:'pull', tx:cc.pullTo.x, ty:cc.pullTo.y, dur:cc.pullTo.dur ?? cc.pullDur ?? 220});
-    if (cc.freezeDur) send({type:'freezeApply', dur:cc.freezeDur});
-    if (cc.stunDur)  send({type:'stunned', dur:cc.stunDur});
-    if (cc.sleepDur) send({type:'asleep',  dur:cc.sleepDur});
-    if (cc.bindDur)  send({type:'bound',   dur:cc.bindDur});
-    if (cc.slowDur)  send({type:'slowPlayer', dur:cc.slowDur, factor:cc.slowFactor??0.5});
-    if (cc.zapDur)   send({type:'zapApply', dur:cc.zapDur, discDur:cc.discDur||0, strong:!!cc.strong});
-    if (cc.burnDur)  send({type:'burning', dur:cc.burnDur});
+  applyCC(cc, source = L, ctx = {}) {
+    if (!cc) return false;
+    return applyPlayerRuntimeCC(this, cc, source, ctx);
   },
 };
 
@@ -15523,16 +15686,28 @@ function duels2CreateRemotePlayerEntity(pid, packet = {}) {
     const amount = getOutgoingAugmentedDamage(dmg, ctx);
     // P3/P4도 P2와 동일하게 소유 클라이언트에 피해를 위임하고 로컬 미러 HP는 변경하지 않는다.
     if (!_trainingMode && !ctx.fromNetwork) {
-      send({type:'hitMe', targetPid:pid, sourcePid:DUELS2_PLAYER_REGISTRY.localPid, damage:amount, fromThorn:!!ctx.fromThorn, eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null});
+      {
+        const directionPacket=duels2BuildHitDirectionPacket(this,ctx.source||L,ctx);
+        send({
+          type:'hitMe', targetPid:pid, sourcePid:DUELS2_PLAYER_REGISTRY.localPid,
+          damage:amount, fromThorn:!!ctx.fromThorn, eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null,
+          ...directionPacket,
+          projectileX:Number.isFinite(Number(ctx.projectileX ?? ctx.bulletX ?? ctx.projectile?.x)) ? Number(ctx.projectileX ?? ctx.bulletX ?? ctx.projectile?.x) : undefined,
+          projectileY:Number.isFinite(Number(ctx.projectileY ?? ctx.bulletY ?? ctx.projectile?.y)) ? Number(ctx.projectileY ?? ctx.bulletY ?? ctx.projectile?.y) : undefined,
+          explosionX:Number.isFinite(Number(ctx.explosionX ?? ctx.originX ?? ctx.centerX)) ? Number(ctx.explosionX ?? ctx.originX ?? ctx.centerX) : undefined,
+          explosionY:Number.isFinite(Number(ctx.explosionY ?? ctx.originY ?? ctx.centerY)) ? Number(ctx.explosionY ?? ctx.originY ?? ctx.centerY) : undefined
+        });
+        if (typeof duels2TriggerActualAttackEmissionFeedback === 'function') {
+          duels2TriggerActualAttackEmissionFeedback(L, directionPacket.hitAngle, {route:'remote-damage-delegated'});
+        }
+      }
       return {ok:true, applied:true, delegated:true, amount};
     }
     return applyPlayerRuntimeDamage(this, amount, {...ctx, rawDamage:true, outgoingApplied:true, _calculated:true, target:this});
   };
-  entity.applyCC = function(cc) {
-    if (!cc) return;
-    if (_trainingMode) return applyTargetCCState(this, cc);
-    send({type:'ccApply', targetPid:pid, sourcePid:DUELS2_PLAYER_REGISTRY.localPid, cc:{...cc}});
-    applyTargetCCState(this, cc);
+  entity.applyCC = function(cc, source = L, ctx = {}) {
+    if (!cc) return false;
+    return applyPlayerRuntimeCC(this, cc, source, ctx);
   };
   duels2RegisterPlayerEntity(pid, entity, {ownerId:packet.ownerId || `peer:${pid}`, teamId:packet.teamId || _defaultTeamForPid(pid)});
   DUELS2_REMOTE_COMBAT_COLLECTIONS.playersByPid.set(pid, entity);
@@ -16717,8 +16892,14 @@ function duels2RouteResolveDamageSourceContext(opt = {}, routeOpt = {}) {
   const actionCtx = duels2ResolveDamageActionContextDirect({...opt, createImplicitActionCtx:opt.createImplicitActionCtx !== false}, source);
   const slot = duels2ResolveDamageSlotDirect({...opt, actionCtx}, routeOpt.defaultSlot || 'lmb');
   const ctxBase = opt.ctx && typeof opt.ctx === 'object' ? opt.ctx : {};
+  const impactKeys=['projectile','projectileX','projectileY','bullet','bulletX','bulletY','explosionX','explosionY','centerX','centerY','originX','originY','hitAngle','knockbackAngle','hitDirectionX','hitDirectionY','attackAngle','angle'];
+  const impactCtx={};
+  for(const key of impactKeys){
+    if(opt[key] !== undefined) impactCtx[key]=opt[key];
+  }
   const ctx = {
     ...ctxBase,
+    ...impactCtx,
     source,
     actionCtx:actionCtx || ctxBase.actionCtx || null,
     slot,
@@ -16935,6 +17116,17 @@ function duels2RouteApplyDamageProfile(profile) {
 
 // damageSkillProfileTargets: 스킬/장판/소환수 피해를 Damage Profile 경유로 적용하는 공식 wrapper다. (targets: 피해 대상, dmg: 피해량, opt: slot/source/actionCtx 등 피해 옵션)
 function damageSkillProfileTargets(targets, dmg, opt = {}) {
+  const normalizedSlot = String(opt.slot || '').toLowerCase();
+  if (normalizedSlot === 'counter') {
+    const sourceActor=(opt.source && typeof opt.source==='object') ? opt.source : L;
+    const now = performance.now();
+    if (sourceActor && now - Number(sourceActor._lastCounterEmissionFeedbackAt || 0) > 30) {
+      sourceActor._lastCounterEmissionFeedbackAt = now;
+      const feedbackAngle = Number.isFinite(Number(opt.hitAngle)) ? Number(opt.hitAngle)
+        : (Number.isFinite(Number(opt.ctx?.hitAngle)) ? Number(opt.ctx.hitAngle) : getAngle());
+      duels2TriggerActualAttackEmissionFeedback?.(sourceActor, feedbackAngle, {route:opt.route || 'counter.damage-profile.commit',actionCtx:opt.actionCtx||null});
+    }
+  }
   const router = window.DUELS2_DAMAGE_PROFILE_ROUTING;
   if (router?.build && router?.apply) {
     const profile = router.build(targets, dmg, opt, {route:opt.route || 'damage.profile.skill', reason:opt.reason || 'damageSkillProfileTargets', defaultSlot:opt.slot || 'skill'});
@@ -24235,6 +24427,8 @@ function duels2AssignDecodedSfxBuffer(kind, buffer) {
 function duels2DecodeSfxKind(kind) {
   const context = _sfxCtx;
   const encoded = DUELS2_SFX_ENCODED_BUFFERS.get(kind);
+  const decoded = kind === 'hit' ? _hitBuffer : (kind === 'shoot' ? _shootBuffer : null);
+  if (decoded) return Promise.resolve(decoded);
   if (!context || context.state === 'closed' || !encoded) return Promise.resolve(null);
   if (DUELS2_SFX_DECODE_PROMISES.has(kind)) return DUELS2_SFX_DECODE_PROMISES.get(kind);
   const promise = context.decodeAudioData(encoded.slice(0))
@@ -24246,17 +24440,27 @@ function duels2DecodeSfxKind(kind) {
 }
 
 // duels2UnlockSfxAudio: 클릭·키 입력의 사용자 제스처 안에서 AudioContext를 생성·재개하고 음원을 준비한다. ()
+let DUELS2_SFX_AUDIO_READY = false;
+let DUELS2_SFX_UNLOCK_PROMISE = null;
 async function duels2UnlockSfxAudio() {
-  const context = duels2GetOrCreateSfxContext();
-  if (!context) return false;
-  try {
-    if (context.state === 'suspended') await context.resume();
-    if (context.state !== 'running') return false;
-    await Promise.allSettled(['hit','shoot'].map(duels2DecodeSfxKind));
-    return true;
-  } catch (_) {
-    return false;
-  }
+  if (DUELS2_SFX_AUDIO_READY && _sfxCtx?.state === 'running') return true;
+  if (DUELS2_SFX_UNLOCK_PROMISE) return DUELS2_SFX_UNLOCK_PROMISE;
+  DUELS2_SFX_UNLOCK_PROMISE = (async () => {
+    const context = duels2GetOrCreateSfxContext();
+    if (!context) return false;
+    try {
+      if (context.state === 'suspended') await context.resume();
+      if (context.state !== 'running') return false;
+      await Promise.allSettled(['hit','shoot'].map(duels2DecodeSfxKind));
+      DUELS2_SFX_AUDIO_READY = true;
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      DUELS2_SFX_UNLOCK_PROMISE = null;
+    }
+  })();
+  return DUELS2_SFX_UNLOCK_PROMISE;
 }
 window.duels2UnlockSfxAudio = duels2UnlockSfxAudio;
 
@@ -24298,11 +24502,30 @@ function duels2GetActiveSfxSet(kind) {
 }
 
 // duels2StartSfxNow: 한 종류의 효과음을 즉시 한 번 재생한다. 이미 재생 중인 같은 종류의 소리는 중단하지 않는다. (kind: 효과음 종류, buffer: AudioBuffer)
+const DUELS2_HIT_PITCH_RUNTIME = {nextRate:1, serial:0};
+
+// duels2QueueHitPitch: 확정 피해량에 따라 다음 피격음의 피치를 준비한다. 큰 피해일수록 조금 낮고 묵직하게 들린다. (damage: 확정 피해량)
+function duels2QueueHitPitch(damage=0) {
+  const amount=Math.max(0,Number(damage)||0);
+  DUELS2_HIT_PITCH_RUNTIME.serial+=1;
+  const variation=((DUELS2_HIT_PITCH_RUNTIME.serial%5)-2)*0.012;
+  DUELS2_HIT_PITCH_RUNTIME.nextRate=Math.max(0.86,Math.min(1.08,1.045-Math.min(100,amount)*0.00145+variation));
+  return DUELS2_HIT_PITCH_RUNTIME.nextRate;
+}
+
+// duels2ConsumeHitPitch: 예약된 피격 피치를 한 번 사용하고 기본값으로 되돌린다. ()
+function duels2ConsumeHitPitch() {
+  const rate=Math.max(0.86,Math.min(1.08,Number(DUELS2_HIT_PITCH_RUNTIME.nextRate)||1));
+  DUELS2_HIT_PITCH_RUNTIME.nextRate=1;
+  return rate;
+}
+
 function duels2StartSfxNow(kind,buffer){
   if(!buffer || !_sfxCtx || _sfxCtx.state !== 'running') return false;
   const source=_sfxCtx.createBufferSource();
   const gain=_sfxCtx.createGain();
   source.buffer=buffer;
+  source.playbackRate.value=kind==='hit' ? duels2ConsumeHitPitch() : 1;
   gain.gain.value=DUELS2_AUDIO_RUNTIME.normalGain;
   source.connect(gain);
   gain.connect(_sfxCtx.destination);
@@ -24405,30 +24628,408 @@ function duels2GetRegressionFixBatchSummary() {
 window.duels2GetRegressionFixBatchSummary = duels2GetRegressionFixBatchSummary;
 
 
-// ── 화면 흔들림 (진동 방식) ──────────────────────────────
-const shake = {power:0, dur:0, maxDur:1, frame:0};
-function addShake(power, dur) {
-  // 더 강한 흔들림이 오면 덮어씀, 아니면 연장만
-  shake.power  = Math.max(shake.power, power);
-  shake.dur    = Math.max(shake.dur, dur);
-  shake.maxDur = shake.dur;
+// ── 통합 피격 화면 흔들림 ─────────────────────────────────
+// 기존 공격별 addShake 호출은 화면을 흔들지 않는다. 실제 피해가 확정된 순간에만
+// duels2TriggerHitFeedback이 공격자/피격자 역할에 맞는 흔들림을 한 번 생성한다.
+const shake = {power:0, startedAt:0, durationMs:0, seed:0};
+// 60 이상의 단일 확정 피해에서 월드 화면만 짧게 확대하는 강타 줌 상태다.
+const duels2StrongHitZoom = {startedAt:0, durationMs:0, peak:0};
+// 같은 순간에 들어온 다발 피해를 하나의 타격 묶음으로 합산한다.
+const DUELS2_HIT_FEEDBACK_BATCH = new Map();
+// duels2TriggerStrongHitZoom: 한 타격 묶음의 총 피해가 60 이상일 때 순간 확대를 시작한다. (damage: 묶음 총 피해량)
+function duels2TriggerStrongHitZoom(damage=0) {
+  const amount=Math.max(0,Number(damage)||0);
+  if(amount<60) return false;
+  const now=performance.now();
+  duels2StrongHitZoom.startedAt=now;
+  duels2StrongHitZoom.durationMs=82;
+  duels2StrongHitZoom.peak=Math.min(0.045,0.026+(amount-60)*0.00024);
+  return true;
 }
-function tickShake(dt) {
-  if (shake.dur <= 0) { shake.power = 0; return; }
-  shake.dur   -= dt;
-  shake.frame += dt;
-  if (shake.dur < 0) { shake.dur = 0; shake.power = 0; }
+// duels2QueueCombinedHitFeedback: 짧은 시간 안에 들어온 피해를 역할·대상별로 합산한다. 타이머를 만들지 않고 렌더 프레임에서 한 번만 비운다. (role: attacker/victim, damage: 확정 피해량, key: 타격 대상 키)
+function duels2QueueCombinedHitFeedback(role, damage=0, key='global') {
+  const amount=Math.max(0,Number(damage)||0);
+  if(amount<=0) return false;
+  const now=performance.now();
+  const bucketKey=`${role}:${key||'global'}`;
+  let bucket=DUELS2_HIT_FEEDBACK_BATCH.get(bucketKey);
+  if(!bucket){
+    bucket={role,total:0,flushAt:now+52};
+    DUELS2_HIT_FEEDBACK_BATCH.set(bucketKey,bucket);
+  }
+  bucket.total+=amount;
+  return true;
+}
+
+// duels2FlushCombinedHitFeedback: 만료된 피해 묶음을 현재 렌더 프레임에서 처리한다. setTimeout 누적으로 게임이 순간 멈추는 현상을 막는다. (now: 현재 시각)
+function duels2FlushCombinedHitFeedback(now=performance.now()) {
+  if(!DUELS2_HIT_FEEDBACK_BATCH.size) return;
+  for(const [key,bucket] of DUELS2_HIT_FEEDBACK_BATCH){
+    if(now < bucket.flushAt) continue;
+    DUELS2_HIT_FEEDBACK_BATCH.delete(key);
+    duels2AddHitShake(bucket.role,bucket.total);
+    duels2TriggerStrongHitZoom(bucket.total);
+  }
+}
+// duels2GetStrongHitZoomScale: 현재 강타 줌 배율을 반환한다. ()
+function duels2GetStrongHitZoomScale() {
+  const state=duels2StrongHitZoom;
+  if(!state.durationMs) return 1;
+  const t=(performance.now()-state.startedAt)/state.durationMs;
+  if(t>=1){ state.durationMs=0; state.peak=0; return 1; }
+  const clamped=Math.max(0,Math.min(1,t));
+  // 18ms 안에 빠르게 확대하고, 남은 시간 동안 곧바로 원래 배율로 돌아온다.
+  const attackRatio=0.23;
+  let wave;
+  if(clamped<attackRatio){
+    const a=clamped/attackRatio;
+    wave=1-Math.pow(1-a,3);
+  }else{
+    const r=(clamped-attackRatio)/(1-attackRatio);
+    wave=Math.pow(1-r,2.6);
+  }
+  return 1+state.peak*wave;
+}
+function addShake() { return false; }
+function duels2AddHitShake(role, damage=0) {
+  const now = performance.now();
+  const amount = Math.max(0, Number(damage)||0);
+  const isAttacker = role === 'attacker';
+  // 확정 피해량에 직접 비례한다. 약한 공격은 짧고 작게, 강한 공격은 확실하게 흔들린다.
+  const power = isAttacker
+    ? Math.max(5.2, Math.min(15.5, 4.5 + Math.sqrt(amount) * 1.18))
+    : Math.max(3.8, Math.min(11.5, 3.2 + Math.sqrt(amount) * 0.86));
+  const durationMs = isAttacker
+    ? Math.max(118, Math.min(210, 108 + Math.sqrt(amount) * 9.2))
+    : Math.max(102, Math.min(186, 94 + Math.sqrt(amount) * 7.0));
+  if (power >= shake.power || now >= shake.startedAt + shake.durationMs) {
+    shake.power = power;
+    shake.startedAt = now;
+    shake.durationMs = durationMs;
+    shake.seed = (shake.seed + 1) % 997;
+  } else {
+    shake.durationMs = Math.max(shake.durationMs, now - shake.startedAt + durationMs * 0.65);
+  }
+  return true;
+}
+// duels2AddFireShake: 공격 입력이 실제 명중하지 않아도 발사 반동을 느낄 수 있도록 약한 월드 흔들림을 추가한다. ()
+function duels2AddFireShake() {
+  const now = performance.now();
+  const power = 4.4;
+  const durationMs = 125;
+  if (shake.power <= power || now >= shake.startedAt + shake.durationMs) {
+    shake.power = power;
+    shake.startedAt = now;
+    shake.durationMs = durationMs;
+    shake.seed = (shake.seed + 1) % 997;
+  }
+  return true;
+}
+function tickShake() {
+  if (shake.power <= 0) return;
+  if (performance.now() >= shake.startedAt + shake.durationMs) shake.power = 0;
 }
 function getShakeOffset() {
-  if (shake.dur <= 0 || shake.power <= 0) return {x:0, y:0};
-  const decay = shake.dur / shake.maxDur;          // 1→0 선형 감쇠
-  const freq  = 1.8;                                // 진동 속도
-  const mag   = shake.power * decay;
-  // X축 진동 + Y축은 약 절반 크기로 위아래도 흔들림
-  const sx = Math.sin(shake.frame * freq * Math.PI) * mag;
-  const sy = Math.sin(shake.frame * freq * Math.PI * 1.3 + 1.2) * mag * 0.6;
-  return {x: sx, y: sy};
+  if (shake.power <= 0 || shake.durationMs <= 0) return {x:0, y:0};
+  const elapsed = performance.now() - shake.startedAt;
+  const t = Math.max(0, Math.min(1, elapsed / shake.durationMs));
+  if (t >= 1) return {x:0, y:0};
+  const decay = Math.pow(1-t, 1.55);
+  const phase = elapsed * 0.074 + shake.seed * 1.73;
+  const kick = t < 0.18 ? (1-t/0.18) : 0;
+  return {
+    x:(Math.sin(phase)+Math.sin(phase*2.17+0.6)*0.42)*shake.power*decay + shake.power*0.58*kick,
+    y:(Math.sin(phase*1.31+1.1)+Math.sin(phase*2.63)*0.34)*shake.power*0.72*decay - shake.power*0.24*kick
+  };
 }
+
+// duels2IsContinuousDamageFeedback: 장판·화상 같은 연속 피해가 매 틱 화면을 흔드는 것을 막는다. (ctx: 피해 문맥)
+function duels2IsContinuousDamageFeedback(ctx={}) {
+  const route = String(ctx.route || ctx.damageType || ctx.kind || '').toLowerCase();
+  return !!(ctx.dot || ctx.isDot || ctx.fromDot || ctx.fromBurn || ctx.fromPoison || ctx.fromBleed || ctx.tickDamage || route.includes('dot') || route.includes('tick') || route.includes('burn') || route.includes('poison') || route.includes('bleed'));
+}
+
+// duels2GetHitFeedbackAngle: 탄환 중심에서 피격 대상 중심으로 향하는 벡터를 최우선으로 사용한다. 탄환 중심 정보가 없을 때만 진행 벡터와 공격 각도를 사용한다. (target: 피격 대상, source: 공격 주체, ctx: 피해 문맥)
+function duels2GetHitFeedbackAngle(target, source, ctx={}) {
+  const projectile = ctx.projectile || ctx.bullet || ctx.attackObject || ctx.combatObject || null;
+  // 네트워크 수신 피해는 송신자가 실제 투사체/폭발 중심으로 계산한 방향을 그대로 사용한다.
+  // 수신 시점의 보간 좌표로 다시 계산하면 공격자 위치 방향으로 틀어질 수 있다.
+  if (ctx.fromNetwork === true) {
+    const nx=Number(ctx.hitDirectionX), ny=Number(ctx.hitDirectionY);
+    if(Number.isFinite(nx)&&Number.isFinite(ny)&&Math.hypot(nx,ny)>0.001) return Math.atan2(ny,nx);
+    if(Number.isFinite(Number(ctx.hitAngle))) return Number(ctx.hitAngle);
+  }
+  const centerCandidates=[
+    [ctx.projectileX,ctx.projectileY], [ctx.bulletX,ctx.bulletY], [ctx.hitSourceX,ctx.hitSourceY],
+    [ctx.originX,ctx.originY], [ctx.explosionX,ctx.explosionY], [ctx.centerX,ctx.centerY], [ctx.sourceX,ctx.sourceY],
+    [projectile?.x,projectile?.y], [projectile?.cx,projectile?.cy], [projectile?.centerX,projectile?.centerY], [projectile?.originX,projectile?.originY]
+  ];
+  if(target&&Number.isFinite(Number(target.x))&&Number.isFinite(Number(target.y))){
+    for(const pair of centerCandidates){
+      const px=Number(pair[0]), py=Number(pair[1]);
+      if(!Number.isFinite(px)||!Number.isFinite(py)) continue;
+      const dx=Number(target.x)-px, dy=Number(target.y)-py;
+      if(Math.hypot(dx,dy)>0.001) return Math.atan2(dy,dx);
+    }
+  }
+  const vectorCandidates=[
+    [ctx.hitDirectionX,ctx.hitDirectionY], [ctx.travelX,ctx.travelY], [ctx.velocityX,ctx.velocityY], [ctx.vx,ctx.vy],
+    [projectile?.vx,projectile?.vy], [projectile?.dx,projectile?.dy], [ctx.attackVectorX,ctx.attackVectorY], [ctx.dirX,ctx.dirY],
+    [Number.isFinite(Number(ctx.toX))&&Number.isFinite(Number(ctx.fromX))?Number(ctx.toX)-Number(ctx.fromX):NaN, Number.isFinite(Number(ctx.toY))&&Number.isFinite(Number(ctx.fromY))?Number(ctx.toY)-Number(ctx.fromY):NaN]
+  ];
+  for(const pair of vectorCandidates){
+    const x=Number(pair[0]), y=Number(pair[1]);
+    if(Number.isFinite(x)&&Number.isFinite(y)&&Math.hypot(x,y)>0.001) return Math.atan2(y,x);
+  }
+  const candidates=[ctx.visualKnockbackAngle,ctx.projectileAngle,ctx.travelAngle,ctx.hitAngle,ctx.attackAngle,ctx.knockbackAngle,ctx.angle,projectile?.angle];
+  for(const value of candidates) if(Number.isFinite(Number(value))) return Number(value);
+  if(source&&Number.isFinite(source.x)&&Number.isFinite(source.y)&&target&&Number.isFinite(target.x)&&Number.isFinite(target.y)){
+    const dx=target.x-source.x, dy=target.y-source.y;
+    if(Math.hypot(dx,dy)>0.001) return Math.atan2(dy,dx);
+  }
+  return 0;
+}
+
+// duels2BuildHitDirectionPacket: 네트워크 피해 패킷에 로컬에서 확정한 동일한 넉백 방향을 넣는다. (target/source/ctx)
+function duels2BuildHitDirectionPacket(target, source, ctx={}) {
+  const angle=duels2GetHitFeedbackAngle(target,source,ctx);
+  return {hitAngle:angle,hitDirectionX:Math.cos(angle),hitDirectionY:Math.sin(angle)};
+}
+
+// duels2ApplyMicroHitKnockback: 직접 피해를 받은 로컬 권위 대상의 좌표만 아주 조금 보정한다. 기본 넉백/경직/행동 취소와는 완전히 분리된다. (target: 피격 대상, source: 공격 주체, ctx: 피해 문맥, damage: 실제 피해량)
+function duels2ApplyMicroHitKnockback(target, source, ctx={}, damage=0) {
+  if (!target || duels2IsContinuousDamageFeedback(ctx)) return false;
+  if (target.burrowing || target.dodging || target._dying) return false;
+
+  const localPid = DUELS2_PLAYER_REGISTRY?.localPid || (typeof getPlayerPid === 'function' ? getPlayerPid(L) : null);
+  const targetPid = typeof getPlayerPid === 'function' ? getPlayerPid(target) : null;
+  const localOwner = typeof getOwnerId === 'function' ? getOwnerId(L) : null;
+  const targetOwner = typeof getOwnerId === 'function' ? getOwnerId(target) : null;
+  const isLocalPlayer = target === L || (!!localPid && !!targetPid && String(localPid) === String(targetPid));
+  const isLocalOwnedNonPlayer = !targetPid && (target.devSpawned || target.isTrainingDummy || target.isBot || (localOwner != null && targetOwner === localOwner));
+  if (!isLocalPlayer && !isLocalOwnedNonPlayer) return false;
+
+  // 같은 프레임에 겹치는 산탄은 한 번만 민다. 시간차 연속 공격은 각 타격마다 다시 적용된다.
+  const now = performance.now();
+  const lastAt = Number(target._duels2LastMicroHitKnockbackAt) || 0;
+  if (now - lastAt < 55) return false;
+  target._duels2LastMicroHitKnockbackAt = now;
+
+  const angle = duels2GetHitFeedbackAngle(target, source, ctx);
+  const distance = 6;
+  const radius = Math.max(0, Number(getEntityRadius(target)) || 0);
+  target.x = Math.max(radius, Math.min(WORLD_W-radius, (Number(target.x)||0) + Math.cos(angle)*distance));
+  target.y = Math.max(radius, Math.min(WORLD_H-radius, (Number(target.y)||0) + Math.sin(angle)*distance));
+
+  if (isLocalPlayer && typeof send === 'function') {
+    try { send({type:'pos', x:target.x, y:target.y, vx:0, vy:0, microHitOffset:true}); } catch (_) {}
+  }
+  return true;
+}
+
+// 플레이어 렌더 객체와 피해 적용 객체가 달라도 동일한 PID 키로 피격 연출 상태를 공유한다.
+const DUELS2_HIT_VISUAL_BY_KEY = new Map();
+function duels2GetHitVisualKey(entity) {
+  if (!entity) return null;
+  const pid = typeof getPlayerPid === 'function' ? getPlayerPid(entity) : null;
+  if (pid) return `player:${pid}`;
+  if (typeof getHitTargetKey === 'function') {
+    const key = getHitTargetKey(entity);
+    if (key) return `entity:${key}`;
+  }
+  return null;
+}
+
+// duels2TriggerHitFeedback: 실제 좌표를 건드리지 않고 피격 밀림·스퀴시·백색 플래시·노란 링·역할별 화면 흔들림을 시작한다. (target: 피격 엔티티, damage: 확정 피해량, ctx: 피해 문맥, source: 공격 주체)
+function duels2GetHitFeedbackRenderEntities(target) {
+  const entities=[];
+  const add=entity=>{ if(entity && !entities.includes(entity)) entities.push(entity); };
+  add(target);
+  const pid=typeof getPlayerPid==='function' ? getPlayerPid(target) : null;
+  const localPid=DUELS2_PLAYER_REGISTRY?.localPid || (typeof getPlayerPid==='function' ? getPlayerPid(L) : null);
+  if(pid && DUELS2_PLAYER_REGISTRY?.entitiesByPid instanceof Map) add(DUELS2_PLAYER_REGISTRY.entitiesByPid.get(pid));
+  if(target===L || (pid && localPid && pid===localPid)) add(L);
+  if(target===R || (pid && typeof getPlayerPid==='function' && getPlayerPid(R)===pid)) add(R);
+  return entities;
+}
+
+function duels2TriggerHitFeedback(target, damage, ctx={}, source=null) {
+  if (!target || duels2IsContinuousDamageFeedback(ctx)) return false;
+  const eventId = ctx.feedbackEventId || ctx.eventId || null;
+  const renderEntities=duels2GetHitFeedbackRenderEntities(target);
+  if (eventId && renderEntities.some(entity=>entity?._duels2LastHitFeedbackId===eventId)) return false;
+  const now = performance.now();
+  const angle = duels2GetHitFeedbackAngle(target, source, ctx);
+  const distance = 26;
+  const visualKey = duels2GetHitVisualKey(target);
+  const previousState = visualKey ? DUELS2_HIT_VISUAL_BY_KEY.get(visualKey) : null;
+  // 같은 순간의 산탄은 연출 밀림도 한 번만 시작한다. 시간차 연속타는 새로 시작한다.
+  const reusePrevious = previousState && now - previousState.startedAt < 55;
+  const visualState = reusePrevious ? previousState : {
+    startedAt:now,
+    durationMs:190,
+    offsetX:Math.cos(angle)*distance,
+    offsetY:Math.sin(angle)*distance,
+    flashMs:62
+  };
+  if (visualKey) DUELS2_HIT_VISUAL_BY_KEY.set(visualKey, visualState);
+  for(const entity of renderEntities){
+    if(eventId) entity._duels2LastHitFeedbackId=eventId;
+    entity._duels2HitVisual = visualState;
+  }
+  duels2QueueHitPitch(damage);
+  addFx({type:'hitImpactRing', x:target.x, y:target.y, r:Math.max(8, getEntityRadius(target)||20), maxR:Math.max(42, (getEntityRadius(target)||20)+34), dur:10, maxDur:10});
+
+  const localOwner = typeof getOwnerId === 'function' ? getOwnerId(L) : null;
+  const sourceOwner = typeof getOwnerId === 'function' ? getOwnerId(source) : null;
+  const targetOwner = typeof getOwnerId === 'function' ? getOwnerId(target) : null;
+  const targetPid=typeof getPlayerPid==='function' ? getPlayerPid(target) : null;
+  const localPid=DUELS2_PLAYER_REGISTRY?.localPid || (typeof getPlayerPid==='function' ? getPlayerPid(L) : null);
+  const feedbackKey=duels2GetHitVisualKey(target) || String(targetOwner ?? targetPid ?? 'global');
+  if (target === L || (targetPid && localPid && targetPid===localPid) || (localOwner != null && targetOwner === localOwner)) duels2QueueCombinedHitFeedback('victim', damage, feedbackKey);
+  else if (source === L || (localOwner != null && sourceOwner === localOwner)) duels2QueueCombinedHitFeedback('attacker', damage, feedbackKey);
+  return true;
+}
+
+// duels2GetEntityHitVisual: 현재 프레임의 렌더 전용 밀림·스퀴시·플래시 값을 계산한다. 실제 x/y에는 영향을 주지 않는다. (entity: 렌더 대상, now: 현재 시각)
+function duels2GetEntityHitVisual(entity, now=performance.now()) {
+  const visualKey = duels2GetHitVisualKey(entity);
+  const state = entity?._duels2HitVisual || (visualKey ? DUELS2_HIT_VISUAL_BY_KEY.get(visualKey) : null);
+  if (!state) return {active:false, offsetX:0, offsetY:0, scaleX:1, scaleY:1, flash:false};
+  // 최종 drawPlayer가 조회한 객체에도 상태를 붙여 이후 프레임에서 동일하게 유지한다.
+  if (entity && entity._duels2HitVisual !== state) entity._duels2HitVisual = state;
+  const t = Math.max(0, Math.min(1, (now-state.startedAt)/Math.max(1,state.durationMs)));
+  if (t >= 1) {
+    if (entity) entity._duels2HitVisual = null;
+    if (visualKey && DUELS2_HIT_VISUAL_BY_KEY.get(visualKey) === state) DUELS2_HIT_VISUAL_BY_KEY.delete(visualKey);
+    return {active:false, offsetX:0, offsetY:0, scaleX:1, scaleY:1, flash:false};
+  }
+  // 피격 직후 약 24ms 동안 최대 밀림을 유지한 뒤 빠르게 원위치로 돌아온다.
+  // 첫 프레임에만 보였다가 사라지는 문제를 막고, 실제 좌표 넉백과 명확히 구분되는 시각 반동을 만든다.
+  const holdRatio = Math.min(0.14, 24/Math.max(1,state.durationMs));
+  const returnT = t <= holdRatio ? 0 : (t-holdRatio)/Math.max(0.001,1-holdRatio);
+  const returnEase = t <= holdRatio ? 1 : Math.pow(1-returnT,2.35);
+  const squashWave = Math.sin(Math.PI * Math.min(1, t/0.72));
+  return {
+    active:true,
+    offsetX:state.offsetX*returnEase,
+    offsetY:state.offsetY*returnEase,
+    scaleX:1 + 0.24*squashWave,
+    scaleY:1 - 0.18*squashWave,
+    flash:(now-state.startedAt) < state.flashMs
+  };
+}
+// duels2GetEntityMotionVisual: 이동·정지·급격한 방향 전환을 작은 스퀴시/스트레치로 변환한다. 실제 좌표와 판정에는 영향을 주지 않는다. (entity: 렌더 대상, now: 현재 시각)
+function duels2GetEntityMotionVisual(entity, now=performance.now()) {
+  if (!entity) return {scaleX:1, scaleY:1, rotation:0, offsetX:0, offsetY:0};
+  const x = Number(entity.x)||0, y = Number(entity.y)||0;
+  let state = entity._duels2MotionVisual;
+  if (!state) {
+    state = entity._duels2MotionVisual = {x,y,t:now,speed:0,angle:0,pulse:0,pulseAt:now};
+    return {scaleX:1, scaleY:1, rotation:0, offsetX:0, offsetY:0};
+  }
+  const dt = Math.max(1, Math.min(80, now-state.t));
+  const dx=x-state.x, dy=y-state.y;
+  const dist=Math.hypot(dx,dy);
+  const speed=dist/dt;
+  const moving=speed>0.015;
+  const angle=moving?Math.atan2(dy,dx):state.angle;
+  if (moving && state.speed>0.015) {
+    const diff=Math.abs(Math.atan2(Math.sin(angle-state.angle),Math.cos(angle-state.angle)));
+    if (diff>1.15) { state.pulse=0.12; state.pulseAt=now; }
+  } else if (!moving && state.speed>0.02) {
+    state.pulse=0.09; state.pulseAt=now;
+  }
+  state.x=x; state.y=y; state.t=now; state.speed=speed; state.angle=angle;
+  const stride=moving ? Math.min(1, speed/0.22) : 0;
+  const bob=moving ? Math.sin(now*0.018)*0.015*stride : 0;
+  let pulse=0;
+  if (state.pulse>0) {
+    const pt=(now-state.pulseAt)/150;
+    if (pt<1) pulse=state.pulse*Math.sin(Math.PI*pt);
+    else state.pulse=0;
+  }
+  const wallState=entity._duels2WallPressureVisual;
+  if(wallState && now-wallState.lastAt<105){
+    const build=Math.min(1,(now-wallState.startedAt)/260);
+    const freshness=Math.max(0,1-(now-wallState.lastAt)/105);
+    const pressure=build*freshness;
+    // 전체 타원이 양쪽에서 눌리는 느낌을 줄이기 위해 압축량을 작게 제한하고,
+    // 중심을 벽 반대 방향으로 옮겨 벽에 닿은 면은 고정된 채 반대쪽만 안으로 접히게 보이게 한다.
+    const compression=0.085*pressure;
+    const lateral=0.034*pressure;
+    const radius=Math.max(1,Number(entity.radius)||20);
+    const centerShift=radius*compression*0.96;
+    return {
+      scaleX:1-compression,
+      scaleY:1+lateral,
+      rotation:Math.atan2(wallState.normalY,wallState.normalX),
+      offsetX:wallState.normalX*centerShift,
+      offsetY:wallState.normalY*centerShift
+    };
+  }
+  return {
+    scaleX:1 + 0.045*stride + bob - pulse*0.82,
+    scaleY:1 - 0.032*stride - bob + pulse*0.70,
+    rotation:angle,
+    offsetX:0,
+    offsetY:0
+  };
+}
+
+// duels2TriggerAttackVisual: 공격 순간 캐릭터 본체를 조준 반대 방향으로 살짝 밀고 눌러 반동감을 만든다. 실제 위치·판정에는 영향이 없다. (entity: 공격자, angle: 공격 방향)
+function duels2TriggerAttackVisual(entity, angle=0) {
+  if (!entity) return false;
+  const safeAngle=Number.isFinite(Number(angle))?Number(angle):0;
+  entity._duels2AttackVisual={startedAt:performance.now(),durationMs:125,angle:safeAngle};
+  return true;
+}
+
+// duels2GetEntityAttackVisual: 현재 공격 반동용 렌더 오프셋과 스퀴시를 반환한다. (entity: 렌더 대상, now: 현재 시각)
+function duels2GetEntityAttackVisual(entity, now=performance.now()) {
+  const state=entity?._duels2AttackVisual;
+  if(!state) return {active:false,offsetX:0,offsetY:0,scaleX:1,scaleY:1,rotation:0};
+  const t=Math.max(0,Math.min(1,(now-state.startedAt)/Math.max(1,state.durationMs)));
+  if(t>=1){ entity._duels2AttackVisual=null; return {active:false,offsetX:0,offsetY:0,scaleX:1,scaleY:1,rotation:0}; }
+  const wave=Math.sin(Math.PI*t);
+  const recoil=3.8*wave;
+  return {
+    active:true,
+    offsetX:-Math.cos(state.angle)*recoil,
+    offsetY:-Math.sin(state.angle)*recoil,
+    scaleX:1-0.10*wave,
+    scaleY:1+0.07*wave,
+    rotation:state.angle
+  };
+}
+
+// duels2GetWorldHpTrailRatio: 캐릭터 머리 위 체력바에서 즉시 감소한 실제 체력을 흰색 잔상이 뒤따라가게 한다. (entity: 대상, ratio: 현재 체력 비율, now: 현재 시각)
+function duels2GetWorldHpTrailRatio(entity, ratio, now=performance.now()) {
+  const safe=Math.max(0,Math.min(1,Number(ratio)||0));
+  let state=entity?._duels2WorldHpTrail;
+  if(!state){
+    state={shown:safe,lastRatio:safe,target:safe,delayUntil:0,lastAt:now};
+    if(entity) entity._duels2WorldHpTrail=state;
+    return safe;
+  }
+  const dt=Math.max(0,Math.min(80,now-(state.lastAt||now)));
+  state.lastAt=now;
+  if(safe<state.lastRatio-0.0001){
+    state.shown=Math.max(state.shown,state.lastRatio);
+    state.target=safe;
+    state.delayUntil=now+105;
+  }else if(safe>state.lastRatio+0.0001){
+    state.shown=safe; state.target=safe; state.delayUntil=now;
+  }else state.target=safe;
+  if(now>=state.delayUntil && state.shown>state.target){
+    const follow=1-Math.exp(-dt/145);
+    state.shown=Math.max(state.target,state.shown+(state.target-state.shown)*follow);
+    if(state.shown-state.target<0.001) state.shown=state.target;
+  }
+  state.lastRatio=safe;
+  return Math.max(safe,state.shown);
+}
+
 function updateCam() {
   cam.x = Math.max(0, Math.min(WORLD_W-CANVAS.width,  L.x-CANVAS.width/2));
   cam.y = Math.max(0, Math.min(WORLD_H-CANVAS.height, L.y-CANVAS.height/2));
@@ -25378,6 +25979,7 @@ const DUELS2_NETWORK_COMBAT_EVENT_PACKET_FAMILIES = Object.freeze({
   ruvuHammerClear:'summon-weapon',
   ruvuHammerParried:'summon-weapon',
   reviveBlink:'survival',
+  miarukyToolboxState:'summon-weapon',
   justDodge:'defense',
   intuState:'character-state',
   syaInvis:'character-state',
@@ -26291,7 +26893,23 @@ function duels2RegisterCoreCombatEventHandlers() {
   duels2RegisterSimpleGameplayEventHandler('hitMe', d => {
     if (d.targetPid && d.targetPid !== (DUELS2_PLAYER_REGISTRY.localPid || getPlayerPid(L) || 'P1')) return {ignored:true, reason:'target-mismatch'};
     const sourceEntity = duels2ResolvePacketSourceEntity(d, R);
-    const hitCtx = {fromNetwork:true, source:sourceEntity, skipSourceModifiers:true, feedbackEventId:d.eventId || d.feedbackEventId || null};
+    const hitCtx = {
+      fromNetwork:true,
+      source:sourceEntity,
+      skipSourceModifiers:true,
+      feedbackEventId:d.eventId || d.feedbackEventId || null,
+      hitAngle:Number.isFinite(Number(d.hitAngle)) ? Number(d.hitAngle) : undefined,
+      hitDirectionX:Number.isFinite(Number(d.hitDirectionX)) ? Number(d.hitDirectionX) : undefined,
+      hitDirectionY:Number.isFinite(Number(d.hitDirectionY)) ? Number(d.hitDirectionY) : undefined,
+      projectileX:Number.isFinite(Number(d.projectileX)) ? Number(d.projectileX) : undefined,
+      projectileY:Number.isFinite(Number(d.projectileY)) ? Number(d.projectileY) : undefined,
+      bulletX:Number.isFinite(Number(d.bulletX)) ? Number(d.bulletX) : undefined,
+      bulletY:Number.isFinite(Number(d.bulletY)) ? Number(d.bulletY) : undefined,
+      explosionX:Number.isFinite(Number(d.explosionX)) ? Number(d.explosionX) : undefined,
+      explosionY:Number.isFinite(Number(d.explosionY)) ? Number(d.explosionY) : undefined,
+      centerX:Number.isFinite(Number(d.centerX)) ? Number(d.centerX) : undefined,
+      centerY:Number.isFinite(Number(d.centerY)) ? Number(d.centerY) : undefined
+    };
     if (d.fromThorn) {
       L._suppressThorn = true;
       try { return receiveHit(d.damage, hitCtx); }
@@ -26317,7 +26935,14 @@ function duels2RegisterCoreCombatEventHandlers() {
     if (performance.now() < (Number(L._localJustDodgeDamageBlockUntil) || 0) || L.invincible > 0 || L.dodging) {
       return {blocked:true, reason:'local-dodge-or-invincible'};
     }
-    return applyCCResult(L, d.cc || {}, sourceEntity, {fromNetwork:true, actionCtx:d.actionCtx || null, route:'network.ccApply'});
+    return applyCCResult(L, d.cc || {}, sourceEntity, {
+      fromNetwork:true, actionCtx:d.actionCtx || null, route:'network.ccApply',
+      projectileX:d.projectileX ?? d.cc?.projectileX, projectileY:d.projectileY ?? d.cc?.projectileY,
+      bulletX:d.bulletX ?? d.cc?.bulletX, bulletY:d.bulletY ?? d.cc?.bulletY,
+      explosionX:d.explosionX ?? d.cc?.explosionX, explosionY:d.explosionY ?? d.cc?.explosionY,
+      centerX:d.centerX ?? d.cc?.centerX, centerY:d.centerY ?? d.cc?.centerY,
+      originX:d.originX ?? d.cc?.originX, originY:d.originY ?? d.cc?.originY
+    });
   }, 600);
 
   duels2RegisterSimpleGameplayEventHandler('deployableSnapshotRequest', d => {
@@ -26420,6 +27045,11 @@ function duels2RegisterCoreCombatEventHandlers() {
     if (Number.isFinite(d.maxHealth)) { sourceEntity.maxHealth = d.maxHealth; sourceEntity.maxHp = d.maxHealth; }
     if (Number.isFinite(d.health)) duels2RouteEntityHealthSync(sourceEntity, d.health, {reason:'network.handler.remote-health'});
     duels2AddDamageNumberOnce(d.feedbackEventId || d.eventId,'dealt',d.damage,d.x,d.y,`player:${sourcePid}`);
+    duels2TriggerHitFeedback(sourceEntity, d.damage, {
+      fromNetwork:true,
+      feedbackEventId:d.feedbackEventId || d.eventId || null,
+      hitAngle:Number.isFinite(Number(d.hitAngle)) ? Number(d.hitAngle) : Math.atan2((sourceEntity.y||0)-(L.y||0),(sourceEntity.x||0)-(L.x||0))
+    }, L);
     updateRemoteHud?.();
     return sourceEntity;
   }, 500);
@@ -26515,6 +27145,13 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     addFx(fx);
   }, 510);
   duels2RegisterSimpleGameplayEventHandler('reviveBlink', d => revivePeerRuntimeProxy(d.dur||1000), 510);
+  duels2RegisterSimpleGameplayEventHandler('miarukyToolboxState', d => {
+    if (!R) return;
+    R.toolbox = d.active === false ? null : {
+      x:Number(d.x) || 0,
+      y:Number(d.y) || 0,
+    };
+  }, 510);
   // 디버깅 패널 진입은 로컬 UI이므로 네트워크 알림을 처리하지 않는다.
   duels2RegisterSimpleGameplayEventHandler('devCmd', d => {
     duels2RouteApplyDevCommand(d,{fromPeer:true,defaultTarget:L,reason:'network.devCmd',route:'network.devCmd'});
@@ -26587,6 +27224,19 @@ function duels2RegisterExtendedLegacyEventHandlers() {
   },510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerClear',d=>{
     duels2ResolvePacketSourceEntity(d)._ruvuHammer=null;
+  },510);
+  duels2RegisterSimpleGameplayEventHandler('ruvuHammerRecall',d=>{
+    const e=duels2ResolvePacketSourceEntity(d);
+    const hammer=e?._ruvuHammer;
+    if(!hammer) return;
+    clearTimeout(hammer._timer);
+    hammer._timer=null;
+    hammer.returning=true;
+    hammer.returnStart=performance.now();
+    hammer.returnSX=Number.isFinite(Number(d.x))?Number(d.x):hammer.x;
+    hammer.returnSY=Number.isFinite(Number(d.y))?Number(d.y):hammer.y;
+    hammer._manualRecall=true;
+    hammer._deathRecall=d.reason==='revival-death';
   },510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerParried', d => {if(L._ruvuHammer&&!L._ruvuHammer.returning){L._ruvuHammer.returning=true;L._ruvuHammer.returnStart=performance.now();L._ruvuHammer.returnSX=d.x;L._ruvuHammer.returnSY=d.y;L._ruvuHammer._returnHit=true;L._ruvuHammer._hitR=true;clearTimeout(L._ruvuHammer._timer);}}, 510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerHitMe', d => {_addDmgNum('dealt',Math.round(d.damage),R.x,R.y-R.radius-10,getHitTargetKey(R));addShake(Math.min(4+d.damage*0.12,10),14);playHitSfx();applyLifesteal(d.damage);applyPoison(d.damage);}, 510);
@@ -26935,7 +27585,13 @@ function onData(d) {
     case 'bullet': {
       const ownerPid = PLAYER_SLOT_IDS.includes(d.sourcePid || d.pid) ? (d.sourcePid || d.pid) : 'P2';
       const bullet = duels2IndexRemoteCombatObject('bullets', duels2ObserveIncomingPeerProjectilePush(duels2NormalizeIncomingPeerBulletPacket(d), {route:'network.onData.bullet-push', packet:d}), ownerPid);
-      peerBullets.push(bullet); break;
+      peerBullets.push(bullet);
+      {
+        const remoteActor=duels2ResolveRemotePlayerFromPacket({pid:ownerPid})||R;
+        const remoteAngle=Math.hypot(Number(bullet?.dx)||0,Number(bullet?.dy)||0)>0.001 ? Math.atan2(Number(bullet.dy)||0,Number(bullet.dx)||0) : Number(bullet?.angle)||0;
+        duels2TriggerActualAttackEmissionFeedback(remoteActor,remoteAngle,{route:'network.bullet'});
+      }
+      break;
     }
     case 'bulletSync': {
       const _bs = peerBullets.find(b => b.id === d.id);
@@ -26944,13 +27600,32 @@ function onData(d) {
     }
     case 'hitMe': {
       const sourceEntity = duels2ResolveRemotePlayerFromPacket({pid:d.sourcePid || 'P2'}) || R;
-      if (d.fromThorn) { L._suppressThorn = true; receiveHit(d.damage, {fromNetwork:true, source:sourceEntity, skipSourceModifiers:true, feedbackEventId:d.eventId}); L._suppressThorn = false; }
-      else receiveHit(d.damage, {fromNetwork:true, source:sourceEntity, skipSourceModifiers:true, feedbackEventId:d.eventId});
+      const hitCtx={fromNetwork:true, source:sourceEntity, skipSourceModifiers:true, feedbackEventId:d.eventId,
+        hitAngle:Number.isFinite(Number(d.hitAngle))?Number(d.hitAngle):undefined,
+        hitDirectionX:Number.isFinite(Number(d.hitDirectionX))?Number(d.hitDirectionX):undefined,
+        hitDirectionY:Number.isFinite(Number(d.hitDirectionY))?Number(d.hitDirectionY):undefined};
+      if (d.fromThorn) { L._suppressThorn = true; receiveHit(d.damage, hitCtx); L._suppressThorn = false; }
+      else receiveHit(d.damage, hitCtx);
       break;
     }
     case 'ccApply': {
       const sourceEntity = duels2ResolveRemotePlayerFromPacket({pid:d.sourcePid || 'P2'}) || R;
-      applyTargetCCState(L, d.cc || {}, sourceEntity, {fromNetwork:true, actionCtx:d.actionCtx || null});
+      const ccCtx={
+        fromNetwork:true,
+        actionCtx:d.actionCtx || null,
+        route:'network.ccApply.legacy-switch',
+        projectileX:Number.isFinite(Number(d.projectileX ?? d.cc?.projectileX))?Number(d.projectileX ?? d.cc.projectileX):undefined,
+        projectileY:Number.isFinite(Number(d.projectileY ?? d.cc?.projectileY))?Number(d.projectileY ?? d.cc.projectileY):undefined,
+        bulletX:Number.isFinite(Number(d.bulletX ?? d.cc?.bulletX))?Number(d.bulletX ?? d.cc.bulletX):undefined,
+        bulletY:Number.isFinite(Number(d.bulletY ?? d.cc?.bulletY))?Number(d.bulletY ?? d.cc.bulletY):undefined,
+        explosionX:Number.isFinite(Number(d.explosionX ?? d.cc?.explosionX))?Number(d.explosionX ?? d.cc.explosionX):undefined,
+        explosionY:Number.isFinite(Number(d.explosionY ?? d.cc?.explosionY))?Number(d.explosionY ?? d.cc.explosionY):undefined,
+        centerX:Number.isFinite(Number(d.centerX ?? d.cc?.centerX))?Number(d.centerX ?? d.cc.centerX):undefined,
+        centerY:Number.isFinite(Number(d.centerY ?? d.cc?.centerY))?Number(d.centerY ?? d.cc.centerY):undefined,
+        originX:Number.isFinite(Number(d.originX ?? d.cc?.originX))?Number(d.originX ?? d.cc.originX):undefined,
+        originY:Number.isFinite(Number(d.originY ?? d.cc?.originY))?Number(d.originY ?? d.cc.originY):undefined,
+      };
+      applyCCResult(L, d.cc || {}, sourceEntity, ccCtx);
       break;
     }
     case 'dazWaveTick':
@@ -27124,6 +27799,9 @@ function onData(d) {
     }
     case 'reviveBlink':
       revivePeerRuntimeProxy(d.dur || 1000);
+      break;
+    case 'miarukyToolboxState':
+      if (R) R.toolbox = d.active === false ? null : {x:Number(d.x) || 0, y:Number(d.y) || 0};
       break;
     case 'devAlert':
       // 레거시 디버깅 진입 알림 패킷은 무시한다.
@@ -27356,7 +28034,12 @@ function onData(d) {
       if (Number.isFinite(d.maxHealth)) { sourceEntity.maxHealth = d.maxHealth; sourceEntity.maxHp = d.maxHealth; }
       if (Number.isFinite(d.health)) duels2RouteEntityHealthSync(sourceEntity, d.health, {reason:'network.state.remote-health'});
       duels2AddDamageNumberOnce(d.feedbackEventId || d.eventId,'dealt',d.damage,d.x,d.y,`player:${sourcePid}`);
-      updateRemoteHud?.();
+      duels2TriggerHitFeedback(sourceEntity, d.damage, {
+        fromNetwork:true,
+        feedbackEventId:d.feedbackEventId || d.eventId || null,
+        hitAngle:Number.isFinite(Number(d.hitAngle)) ? Number(d.hitAngle) : Math.atan2((sourceEntity.y||0)-(L.y||0),(sourceEntity.x||0)-(L.x||0))
+      }, L);
+        updateRemoteHud?.();
       break;
     }
     case 'zapApply': {
@@ -28549,10 +29232,22 @@ function _applyBotDamage(bot, dmg) {
   return result;
 }
 
+
+// duels2TriggerCommittedHitboxFeedback: 차징 해방·선딜레이 공격의 실제 판정 프레임에서만 반동 연출을 실행한다. 명중 여부와 무관하게 hitbox가 생성된 순간이 공격 확정 시점이다.
+function duels2TriggerCommittedHitboxFeedback(ctx = {}, actionCtx = null, source = L, route = 'hitbox.commit') {
+  if (!duels2IsLocalControlledCombatSource(source)) return false;
+  const angle=Number.isFinite(Number(ctx.angle))?Number(ctx.angle)
+    :(Number.isFinite(Number(ctx.cos))&&Number.isFinite(Number(ctx.sin))?Math.atan2(Number(ctx.sin),Number(ctx.cos)):getAngle());
+  // hitCtx/hitCtxAll은 실제 공격 판정이 생성된 순간에만 호출된다.
+  // 입력 시작·차징 유지·선딜레이 시작 단계에서는 이 함수가 실행되지 않으므로,
+  // 별도의 timing/tag 추측 없이 여기서 공격 확정 연출을 재생한다.
+  return duels2TriggerActualAttackEmissionFeedback(source,angle,{route,actionCtx});
+}
 function hitCtx(ctx, dmg, opt = {}) {
   const activeCtx = opt.actionCtx || getActiveHitActionContext?.() || duels2GetRecentCounterActionContext?.(L) || null;
   const source = opt.source || getActionSourceEntity(activeCtx, getCombatSource(L));
   const slot = opt.slot || activeCtx?.slot || 'lmb';
+  duels2TriggerCommittedHitboxFeedback({...ctx,...opt,slot},activeCtx,source,'hitCtx.commit');
   const hits = getTargetsInCtx(ctx, opt.targets || null, {source, team:opt.team || 'enemy'});
   damageSkillProfileTargets(hits, dmg, {slot, actionCtx:activeCtx, lmbAttack: opt.lmbAttack === true || slot === 'lmb', source, hitTags:opt.hitTags});
   window._hitTargets = hits;
@@ -28566,14 +29261,26 @@ function hitCtxAll(ctx, dmg, cc, opt = {}) {
   const inheritedSlot = opt.slot || inheritedActionCtx?.slot || 'lmb';
   const sourceContext = duels2RouteResolveDamageSourceContext({...opt, actionCtx:inheritedActionCtx, slot:inheritedSlot}, {route:'damage.hitCtxAll.source', reason:'hitCtxAll', defaultSlot:inheritedSlot});
   const source = sourceContext.source;
+  duels2TriggerCommittedHitboxFeedback({...ctx,...opt,slot:inheritedSlot},sourceContext.actionCtx || inheritedActionCtx,source,'hitCtxAll.commit');
   const hits = getTargetsInCtx(ctx, opt.targets || null, {source, team:opt.team || 'enemy'});
+  const impactContext = {
+    ...sourceContext.ctx,
+    slot:inheritedSlot,
+    ignoreInvincible:opt.ignoreInvincible === true,
+    centerX:Number.isFinite(Number(ctx?.x)) ? Number(ctx.x) : undefined,
+    centerY:Number.isFinite(Number(ctx?.y)) ? Number(ctx.y) : undefined,
+    explosionX:Number.isFinite(Number(ctx?.x)) ? Number(ctx.x) : undefined,
+    explosionY:Number.isFinite(Number(ctx?.y)) ? Number(ctx.y) : undefined,
+    originX:Number.isFinite(Number(opt.originX ?? ctx?.x)) ? Number(opt.originX ?? ctx.x) : undefined,
+    originY:Number.isFinite(Number(opt.originY ?? ctx?.y)) ? Number(opt.originY ?? ctx.y) : undefined
+  };
   const summary = duels2ResolveDamageTargetPath(hits, dmg, {
     source,
     cc,
     slot:inheritedSlot,
     actionCtx:sourceContext.actionCtx || inheritedActionCtx,
     hitTags:opt.hitTags,
-    ctx:{...sourceContext.ctx, slot:inheritedSlot, ignoreInvincible:opt.ignoreInvincible === true},
+    ctx:impactContext,
     windowTargetMode:'applied',
     restoreWindow:false,
     route:'damage.hitCtxAll',
@@ -30323,7 +31030,26 @@ function damageBulletTargets(b, targets, opt = {}) {
       const appliedTargets=[];
       for(const target of list){
         const feedbackEventId=`projectile:${b?.id||'anon'}:${phase}:${getHitTargetKey(target)}`;
-        const result=applyDamageResult(target,b?.damage||0,{actionCtx,source,slot:actionCtx?.slot||b?._skillSlot||(b?._lmbAttack?'lmb':'skill'),hitEventId:feedbackEventId,feedbackEventId,suppressLegacyDamageFeedback:true});
+        const result=applyDamageResult(target,b?.damage||0,{
+          actionCtx,
+          source,
+          slot:actionCtx?.slot||b?._skillSlot||(b?._lmbAttack?'lmb':'skill'),
+          hitEventId:feedbackEventId,
+          feedbackEventId,
+          suppressLegacyDamageFeedback:true,
+          projectile:b,
+          projectileX:Number(b?.x),
+          projectileY:Number(b?.y),
+          bulletX:Number(b?.x),
+          bulletY:Number(b?.y),
+          hitSourceX:Number(b?.x),
+          hitSourceY:Number(b?.y),
+          travelX:Number(b?.dx),
+          travelY:Number(b?.dy),
+          velocityX:Number.isFinite(Number(b?.vx))?Number(b.vx):Number(b?.dx),
+          velocityY:Number.isFinite(Number(b?.vy))?Number(b.vy):Number(b?.dy),
+          projectileAngle:Number.isFinite(Number(b?.angle))?Number(b.angle):(Math.hypot(Number(b?.dx)||0,Number(b?.dy)||0)>0.001?Math.atan2(Number(b.dy)||0,Number(b.dx)||0):undefined)
+        });
         if(hitResultDidApply(result)){any=true;appliedTargets.push(target);}
       }
       const isBasicProjectile=source===L&&appliedTargets.length>0&&(opt.lmbAttack===true||b?._lmbAttack===true||actionCtx?.slot==='lmb');
@@ -32781,6 +33507,8 @@ function duels2ExecuteSteppedRangePointHit(source, angle, stage, damage, opt={})
   const geometry=duels2GetSteppedRangeStrikeGeometry(source,angle,stage,rangeBalance,opt.strikeLength,opt.strikeWidth);
   const hitContext=duels2BuildSteppedRangeHitContext(source,angle,geometry);
   const actionCtx=createActionContext?.({sourceEntity:source,charId:opt.charId||source?.charDef?.id||'ruli',slot:opt.slot||'lmb',delivery:'area',timing:opt.timing||'instant',tags:['attack','step_range','precision_rect','wall_blocked',...(opt.tags||[])]})||null;
+  // 단계형 공격은 대상 유무와 무관하게 이 함수 호출 자체가 실제 타격 판정 생성 시점이다.
+  duels2TriggerActualAttackEmissionFeedback?.(source,angle,{route:opt.route||'damage.ruli.step-range.commit',actionCtx});
   if (_trainingMode) duels2ApplyTrainingCombatRelations?.();
   // 기존 캐릭터와 동일한 대상 수집기를 사용한다. 화면 직사각형의 안쪽 가장자리가 ctx 시작점이고 바깥쪽까지 depth만큼 진행한다.
   const targets=getTargetsInCtx(hitContext,null,{source,team:'enemy'});
@@ -32989,11 +33717,13 @@ const SKILLS = {
         duels2RecordSpecialRmbConsumed('miaruky', 'orb-recall', {route:'skill.rmb.miaruky.pre-cost.orb-recall', actor:L, detail:{orbType:L.orb.type || 'toolbox'}});
         clearTimeout(L.orb._timer);
         L.orb = null;
+        if (typeof send === 'function') send({type:'miarukyToolboxState',active:false});
         L.rmbCooldown = B.cdRecall;
         return;
       }
       if (!useStam(B.cost)) return;
       L.orb = {x:L.x, y:L.y, createdAt:performance.now(), returning:false, type:'toolbox'};
+      if (typeof send === 'function') send({type:'miarukyToolboxState',active:true,x:L.orb.x,y:L.orb.y});
       L.rmbCooldown = B.cd; L.lastAttackTime = performance.now();
     },
     counter(angle) {
@@ -33508,7 +34238,7 @@ const SKILLS = {
           obj.parry();
         }
       }
-      emitFx({type:'shieldSwing',x:L.x,y:L.y,angle,range:augMeleeRange(B.lmb.meleeRange),halfAngle:B.lmb.halfAngle,dur:10,maxDur:10});
+      emitFx({type:'shieldSwing',x:L.x,y:L.y,wallPressureActive:!!(L._duels2WallPressureVisual&&performance.now()-L._duels2WallPressureVisual.lastAt<120),wallPressureNormalX:L._duels2WallPressureVisual?.normalX||0,wallPressureNormalY:L._duels2WallPressureVisual?.normalY||0,angle,range:augMeleeRange(B.lmb.meleeRange),halfAngle:B.lmb.halfAngle,dur:10,maxDur:10});
       L.lmbCooldown=B.lmb.cd; L.lastAttackTime=performance.now();
     },
 
@@ -35211,6 +35941,8 @@ const SKILLS = {
         L._attackPreview = null;
         L._pelunaPreswing = false;
         if (!gameOn || L._pelunaToken !== tok) return;
+        // 선딜레이가 끝나 실제 공격 판정이 생성되는 이 시점에만 공격 반동 연출을 재생한다.
+        duels2TriggerActualAttackEmissionFeedback?.(L, Number.isFinite(angle) ? angle : getAngle(), {route:'peluna.lmb.predelay-commit'});
         // 원주 범위 피해 (ringInner ~ ringOuter): R, 봇, 소환수 모두 동일 경로
         const _outer = augMeleeRange(B.ringOuter);
         const _innerAug = _inner > 0 ? augMeleeRange(_inner) : 0;
@@ -35700,6 +36432,7 @@ const SKILLS = {
         playShootSfx();
         // 발사 시점의 위치와 방향 고정 (선딜레이 중 이동해도 발사 시점 기준)
         const _bAngle = Math.atan2(mouseY-L.y, mouseX-L.x);
+        duels2TriggerActualAttackEmissionFeedback?.(L,_bAngle,{route:'skill.runef.counter.tornado-emission',actionCtx:duels2GetRecentCounterActionContext?.(L)||null});
         const _bOriginX = L.x, _bOriginY = L.y;
         const _bDx = Math.cos(_bAngle), _bDy = Math.sin(_bAngle);
         const _windWidth = augBulletRadius(B.width); // 거대총알 증강 적용
@@ -36697,9 +37430,15 @@ const SKILLS = {
       if (L._kiRmbFadeEnd && performance.now() < L._kiRmbFadeEnd) return; // kiStrike 이팩트 중 차단
       if (!useStam(B.cost)) return;
       L._kiRmbActive = true;
-      // 마우스 방향으로 summonDist 앞에 소환
-      const _sx = Math.max(L.radius, Math.min(WORLD_W-L.radius, L.x + Math.cos(angle)*B.summonDist));
-      const _sy = Math.max(L.radius, Math.min(WORLD_H-L.radius, L.y + Math.sin(angle)*B.summonDist));
+      // 마우스로 지정한 지점에 설치하되, 최대 설치 사거리 안으로 제한한다.
+      const _targetX = Number.isFinite(mouseX) ? mouseX : L.x + Math.cos(angle) * B.summonDist;
+      const _targetY = Number.isFinite(mouseY) ? mouseY : L.y + Math.sin(angle) * B.summonDist;
+      const _placeDx = _targetX - L.x;
+      const _placeDy = _targetY - L.y;
+      const _placeDist = Math.hypot(_placeDx, _placeDy);
+      const _placeRatio = _placeDist > B.summonDist && _placeDist > 0 ? B.summonDist / _placeDist : 1;
+      const _sx = Math.max(L.radius, Math.min(WORLD_W - L.radius, L.x + _placeDx * _placeRatio));
+      const _sy = Math.max(L.radius, Math.min(WORLD_H - L.radius, L.y + _placeDy * _placeRatio));
       L._kiRmbX = _sx; L._kiRmbY = _sy;
       L._kiRmbReady = false;
       L._kiDodgeRecovered = false;
@@ -37718,14 +38457,15 @@ function duels2FinishLevinaRecallHold() {
 }
 
 CANVAS.addEventListener('mousedown', e => {
-  void duels2UnlockSfxAudio();
   if (!gameOn) return;
   e.preventDefault();
   const slot = e.button === 0 ? 'lmb' : (e.button === 2 ? 'rmb' : null);
   if (!slot) return;
+  const attackAngle=getAngle();
+  if ((L._counterPredelayEnd || 0) > performance.now()) return;
   duels2HandlePointerInputPhase('press', slot, {
     event:e,
-    angle:getAngle(),
+    angle:attackAngle,
     route:`input.pointer.${slot}.press`,
     reason:'canvas-mousedown'
   });
@@ -37750,16 +38490,8 @@ CANVAS.addEventListener('mouseleave', () => {
 });
 document.addEventListener('contextmenu', e => e.preventDefault());
 
-document.addEventListener('mouseup', e => {
-  const slot = e.button === 0 ? 'lmb' : (e.button === 2 ? 'rmb' : null);
-  if (!slot) return;
-  duels2HandlePointerInputPhase('document-release', slot, {
-    event:e,
-    angle:getAngle(),
-    route:`input.pointer.${slot}.document-release`,
-    reason:'document-mouseup'
-  });
-});
+// 마우스 해제는 CANVAS mouseup과 CANVAS mouseleave 경로에서만 처리한다.
+// document mouseup을 별도로 등록하면 동일 물리 입력이 release와 document-release로 중복 처리된다.
 
 // ── 채팅 시스템 ────────────────────────────────────────────
 let _chatOpen = false;
@@ -38451,6 +39183,7 @@ document.addEventListener('keydown', e => {
       }
       L._isRmbContext = true;
       L._counterInputActive = true;
+      L._counterCastStartedAt = performance.now();
       try { duels2ExecuteLocalSkillSlot('counter', Math.atan2(mouseY-L.y, mouseX-L.x), {tags:['manual_counter'], route:'input.counter', counterInputPrepId:_counterInputPrep?.counterPrepId || null}); }
       finally {
         if (_wasCounterReady && L.counterReady) L._counterPredelayEnd = 0;
@@ -39678,7 +40411,7 @@ function duels2LegacyDoRMB() {
     }
     return;
   }
-  if (hasEntityFunctionalRuntime(L, 'stealthInvisible') && L._syaInvisible) {
+  if (L.charDef?.id === 'sya' && L._syaInvisible) {
     duels2RecordSpecialRmbGuard('sya', 'input-stealth-route', {route:'input.rmb.sya-stealth.special-rmb', actor:L, costMode:'cost-free-toggle'});
     L._isRmbContext = true;
     try {
@@ -39849,6 +40582,20 @@ function duels2ResolveWallTraversalLanding(entity, opt = {}) {
   return _finishTraversal(duels2RecoverEntityFromWall(entity, {reason:'wall-traversal-landing-fallback'}));
 }
 
+// duels2RegisterWallPressureVisual: 벽을 향해 계속 이동할 때 충돌 법선 방향으로 캐릭터를 눌러 벽 압착 스퀴시를 만든다. 실제 충돌 크기에는 영향을 주지 않는다. (entity: 대상, normalX/normalY: 벽이 밀어낸 방향)
+function duels2RegisterWallPressureVisual(entity, normalX, normalY) {
+  if (!entity) return false;
+  const now = performance.now();
+  let state = entity._duels2WallPressureVisual;
+  const sameWall = state && now - state.lastAt < 90 && (state.normalX*normalX + state.normalY*normalY) > 0.55;
+  if (!sameWall) state = {startedAt:now, lastAt:now, normalX, normalY};
+  state.lastAt = now;
+  state.normalX = normalX;
+  state.normalY = normalY;
+  entity._duels2WallPressureVisual = state;
+  return true;
+}
+
 // resolveWall: 엔티티를 겹친 벽의 최소 침투 방향으로 밀고, 코너·다중 벽에 갇히면 가까운 빈 공간으로 복구한다. (p: 충돌 대상)
 function resolveWall(p) {
   if (!p || !currentMap?.walls) return false;
@@ -39863,10 +40610,12 @@ function resolveWall(p) {
       const oL=(p.x+r)-w.x, oR=(w.x+w.w)-(p.x-r);
       const oT=(p.y+r)-w.y, oB=(w.y+w.h)-(p.y-r);
       const m=Math.min(oL,oR,oT,oB);
-      if      (m===oL) p.x-=oL;
-      else if (m===oR) p.x+=oR;
-      else if (m===oT) p.y-=oT;
-      else             p.y+=oB;
+      let wallNormalX=0, wallNormalY=0;
+      if      (m===oL) { p.x-=oL; wallNormalX=-1; }
+      else if (m===oR) { p.x+=oR; wallNormalX= 1; }
+      else if (m===oT) { p.y-=oT; wallNormalY=-1; }
+      else             { p.y+=oB; wallNormalY= 1; }
+      duels2RegisterWallPressureVisual(p, wallNormalX, wallNormalY);
     }
     if (!passCollision) break;
   }
@@ -43001,8 +43750,16 @@ function draw() {
   }
   ctx.clearRect(0,0,CANVAS.width,CANVAS.height);
   updateCam();
+  duels2FlushCombinedHitFeedback(_drawNow);
+  tickShake();
   const so = getShakeOffset();
+  const strongHitZoomScale = duels2GetStrongHitZoomScale();
   ctx.save();
+  if (strongHitZoomScale !== 1) {
+    ctx.translate(CANVAS.width*0.5, CANVAS.height*0.5);
+    ctx.scale(strongHitZoomScale, strongHitZoomScale);
+    ctx.translate(-CANVAS.width*0.5, -CANVAS.height*0.5);
+  }
   ctx.translate(-cam.x + so.x, -cam.y + so.y);
 
   ctx.fillStyle='#0d0d0f'; ctx.fillRect(0,0,WORLD_W,WORLD_H);
@@ -43047,7 +43804,16 @@ function draw() {
     const a=f.dur/f.maxDur;
     // 등록된 Visual Effect Spec이 있으면 공통 렌더러가 처리하고, 미등록 FX만 레거시 분기로 넘긴다.
     if (duels2RenderVisualEffectSpec(f, {ctx, alpha:a, now:_drawNow})) return;
-    if (f.type==='masteryDodgeTrail') {
+    if (f.type==='hitImpactRing') {
+      const progress = 1-Math.max(0,Math.min(1,f.dur/Math.max(1,f.maxDur)));
+      const rr = (f.r||12) + ((f.maxR||48)-(f.r||12)) * (1-Math.pow(1-progress,3));
+      ctx.beginPath(); ctx.arc(f.x,f.y,Math.max(1,rr),0,Math.PI*2);
+      ctx.strokeStyle=`rgba(255,194,48,${a*0.42})`;
+      ctx.lineWidth=2.2*(1-progress)+0.8;
+      ctx.stroke();
+      ctx.fillStyle=`rgba(255,194,48,${a*0.025})`;
+      ctx.fill();
+    } else if (f.type==='masteryDodgeTrail') {
       const progress=1-Math.max(0,Math.min(1,f.dur/Math.max(1,f.maxDur)));
       // 수명의 앞부분에는 선명도를 유지하고 후반부에 빠르게 사라져,
       // 같은 묶음의 표식이 생성 순서대로 눈에 띄게 소멸한다.
@@ -46376,11 +47142,26 @@ function drawPlayer(p, label) {
     ctx.globalAlpha = 1.0 - _syaFadeT * 0.75; // 1.0 → 0.25으로 서서히 투명
   }
 
-  ctx.beginPath(); ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);
+  const _hitVisual = duels2GetEntityHitVisual(p, _statusNow);
+  const _motionVisual = duels2GetEntityMotionVisual(p, _statusNow);
+  const _attackVisual = duels2GetEntityAttackVisual(p, _statusNow);
+  const _bodyX = p.x + _hitVisual.offsetX + _attackVisual.offsetX + (_motionVisual.offsetX||0);
+  const _bodyY = p.y + _hitVisual.offsetY + _attackVisual.offsetY + (_motionVisual.offsetY||0);
+  ctx.save();
+  ctx.translate(_bodyX, _bodyY);
+  ctx.rotate(_attackVisual.active ? _attackVisual.rotation : _motionVisual.rotation);
+  ctx.scale(_hitVisual.scaleX * _motionVisual.scaleX * _attackVisual.scaleX, _hitVisual.scaleY * _motionVisual.scaleY * _attackVisual.scaleY);
+  ctx.beginPath(); ctx.arc(0,0,p.radius,0,Math.PI*2);
   ctx.fillStyle=p.color; ctx.fill();
   let stroke=p.color;
   if (p===L && L.invincible>0) stroke='#ffe040';
   ctx.strokeStyle=stroke; ctx.lineWidth=2.5; ctx.stroke();
+  // 피격 백색 플래시는 캐릭터 본체 원 안에만 덧그린다. 엔티티 색상·투사체·FX 색상은 변경하지 않는다.
+  if (_hitVisual.flash) {
+    ctx.beginPath(); ctx.arc(0,0,p.radius-0.75,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.92)'; ctx.fill();
+  }
+  ctx.restore();
 
   // CC 표시: 여러 효과는 위로 쌓고, 링은 가장 최근에 새로 걸린 CC 색을 사용
   drawEntityCCStack(p, p.y - p.radius - 38);
@@ -46419,7 +47200,11 @@ function drawPlayer(p, label) {
   const drawHp = Math.max(0, Math.min(drawMaxHp, Number(getEntityHealth(p)) || 0));
   const pct=Math.max(0,Math.min(1,drawHp/drawMaxHp));
   const hcol=pct>0.5?'#4af':pct>0.25?'#fa0':'#f44';
+  const trailPct=duels2GetWorldHpTrailRatio(p,pct,_statusNow);
   ctx.fillStyle='#161616'; ctx.fillRect(bx,by,bw,bh);
+  if(trailPct>pct+0.001){
+    ctx.fillStyle='rgba(255,255,255,0.88)'; ctx.fillRect(bx,by,bw*trailPct,bh);
+  }
   ctx.fillStyle=hcol; ctx.fillRect(bx,by,bw*pct,bh);
   ctx.fillStyle='rgba(255,255,255,.6)'; ctx.font='11px Pretendard'; ctx.textAlign='center';
   ctx.fillText(label,p.x,p.y-p.radius-26);
@@ -47850,9 +48635,12 @@ function duels2BuildCapabilityTaxonomyEntry(capability) {
 }
 
 // duels2BuildCharacterCapabilityTaxonomyProfile: 캐릭터 capability profile과 CHAR_SKILL_META taxonomy를 합친 profile을 만든다. (entity: 엔티티 또는 캐릭터 id)
+const DUELS2_CHARACTER_CAPABILITY_TAXONOMY_PROFILE_CACHE = new Map();
 function duels2BuildCharacterCapabilityTaxonomyProfile(entity) {
   const charId = duels2ReadEntityCharacterIdForBranch(entity);
   if (!charId) return {charId:null, primary:null, capabilities:[], skillEntries:[], capabilityEntries:[], domains:[], deliveries:[], timings:[], targets:[], tags:[], augmentHooks:[], autoProfiles:[]};
+  const cached = DUELS2_CHARACTER_CAPABILITY_TAXONOMY_PROFILE_CACHE.get(charId);
+  if (cached) return cached;
   const primary = duels2GetPrimaryCharacterCapability(charId);
   const listed = DUELS2_CHARACTER_CAPABILITY_PROFILE[charId] || [];
   const capabilities = Array.from(new Set([primary, `character:${charId}`, `identity:${charId}`, ...listed]));
@@ -47865,7 +48653,9 @@ function duels2BuildCharacterCapabilityTaxonomyProfile(entity) {
   const tags = duels2MergeUniqueTaxonomyValues(skillEntries.map(e => e.tags), capabilityEntries.map(e => e.tags), capabilities.map(c => `capability:${c}`), [`character:${charId}`]);
   const augmentHooks = duels2MergeUniqueTaxonomyValues(skillEntries.map(e => e.augmentHooks));
   const autoProfiles = duels2MergeUniqueTaxonomyValues(skillEntries.map(e => e.autoProfile));
-  return {charId, primary, capabilities, skillEntries, capabilityEntries, domains, deliveries, timings, targets, tags, augmentHooks, autoProfiles};
+  const profile = Object.freeze({charId, primary, capabilities, skillEntries, capabilityEntries, domains, deliveries, timings, targets, tags, augmentHooks, autoProfiles});
+  DUELS2_CHARACTER_CAPABILITY_TAXONOMY_PROFILE_CACHE.set(charId, profile);
+  return profile;
 }
 
 // duels2GetCharacterCapabilityProfile: 기존 capability profile API를 taxonomy-backed profile로 확장한다. (entity: 엔티티 또는 캐릭터 id)
@@ -48429,12 +49219,19 @@ function duels2GetSharedChargeInputModule(moduleId) {
 }
 
 // duels2ResolveSharedChargeInputModule: 엔티티와 입력 slot에 맞는 공유 차징/홀드 입력 모듈을 찾는다. (entity: 판정 대상, slot: 입력 slot, opt: route/reason 등 옵션)
-function duels2ResolveSharedChargeInputModule(entity = L, slot = 'lmb', opt = {}) {
-  for (const module of duels2ListSharedChargeInputModules(slot)) {
-    if (!duels2IsLegacySharedChargeModuleAllowed(module, entity)) continue;
-    if (hasEntityCharacterRuntime(entity, module.runtime, {...opt, route:opt.route || 'shared-charge.runtime-check'})) return module;
+const DUELS2_SHARED_CHARGE_INPUT_BY_CHAR_SLOT = (()=>{
+  const map=new Map();
+  for(const module of Object.values(DUELS2_SHARED_CHARGE_INPUT_MODULE_SCHEMA)){
+    for(const charId of module.legacyCharIds || []) map.set(`${charId}:${module.slot}`,module);
   }
-  return null;
+  return map;
+})();
+function duels2ResolveSharedChargeInputModule(entity = L, slot = 'lmb', opt = {}) {
+  const charId=entity?.charDef?.id || entity?.charId || null;
+  if(!charId) return null;
+  const module=DUELS2_SHARED_CHARGE_INPUT_BY_CHAR_SLOT.get(`${charId}:${slot}`) || null;
+  if(!module || !duels2IsLegacySharedChargeModuleAllowed(module,entity)) return null;
+  return module;
 }
 
 // duels2IsSharedChargeInputModuleActive: 공유 차징/홀드 입력 모듈의 실제 진행 플래그가 켜져 있는지 확인한다. (module: 모듈 스키마, entity: 판정 대상)
@@ -48520,7 +49317,13 @@ function duels2RouteSharedChargeInputRelease(slot = 'lmb', opt = {}) {
   const allowed = duels2CanReleaseSharedChargeInputModule(module, opt);
   duels2RecordSharedChargeInputModule({type:'shared-charge.release', route:opt.route || 'shared-charge.release', moduleId:module.id, runtime:module.runtime, slot:module.slot, allowed, activeBefore:wasActive, reason:opt.reason || 'release'});
   if (!allowed) return true;
-  runSkillInputContext(module.slot, () => duels2InvokeSharedChargeInputRelease(module, opt), {tags:[...(module.releaseTags || [])]});
+  const previousFallback = window._duels2ChargeReleaseStaminaFallback;
+  window._duels2ChargeReleaseStaminaFallback = !!(wasActive && (Number(L.stamina)||0) <= 0);
+  try {
+    runSkillInputContext(module.slot, () => duels2InvokeSharedChargeInputRelease(module, opt), {tags:[...(module.releaseTags || [])]});
+  } finally {
+    window._duels2ChargeReleaseStaminaFallback = previousFallback;
+  }
   return true;
 }
 
@@ -48596,6 +49399,7 @@ const DUELS2_INPUT_STATE_MODULE_PHASE = Object.freeze({
 window.DUELS2_INPUT_STATE_MODULE_PHASE = DUELS2_INPUT_STATE_MODULE_PHASE;
 
 const DUELS2_INPUT_STATE_PROFILE_REGISTRY = new Map();
+const DUELS2_INPUT_STATE_PROFILE_CACHE = new Map();
 
 // duels2RegisterInputStateProfile: 입력 상태 프로필을 Registry에 등록한다. (profileId: 고유 ID, profile: match/start/release 등의 데이터와 함수)
 function duels2RegisterInputStateProfile(profileId, profile = {}) {
@@ -48603,6 +49407,7 @@ function duels2RegisterInputStateProfile(profileId, profile = {}) {
   if (!id) throw new Error('Input state profile id is required');
   const normalized = Object.freeze({id, priority:Number(profile.priority)||0, slot:profile.slot || 'lmb', ...profile});
   DUELS2_INPUT_STATE_PROFILE_REGISTRY.set(id, normalized);
+  DUELS2_INPUT_STATE_PROFILE_CACHE.clear();
   return normalized;
 }
 window.duels2RegisterInputStateProfile = duels2RegisterInputStateProfile;
@@ -48611,10 +49416,17 @@ window.duels2RegisterInputStateProfile = duels2RegisterInputStateProfile;
 function duels2ResolveInputStateProfile(actor = L, slot = 'lmb', phase = 'press', payload = {}) {
   const runtime = window.DUELS2_INPUT_STATE_RUNTIME;
   const session = runtime?.getSession?.(slot) || null;
-  return [...DUELS2_INPUT_STATE_PROFILE_REGISTRY.values()]
-    .filter(profile => profile.slot === slot || profile.slot === 'all')
-    .sort((a,b) => (b.priority||0) - (a.priority||0))
-    .find(profile => typeof profile.match !== 'function' || profile.match({actor,slot,phase,payload,session})) || null;
+  let profiles = DUELS2_INPUT_STATE_PROFILE_CACHE.get(slot);
+  if (!profiles) {
+    profiles = Array.from(DUELS2_INPUT_STATE_PROFILE_REGISTRY.values())
+      .filter(profile => profile.slot === slot || profile.slot === 'all')
+      .sort((a,b) => (b.priority||0) - (a.priority||0));
+    DUELS2_INPUT_STATE_PROFILE_CACHE.set(slot, profiles);
+  }
+  for (const profile of profiles) {
+    if (typeof profile.match !== 'function' || profile.match({actor,slot,phase,payload,session})) return profile;
+  }
+  return null;
 }
 window.duels2ResolveInputStateProfile = duels2ResolveInputStateProfile;
 
@@ -48662,8 +49474,10 @@ const DUELS2_INPUT_STATE_RUNTIME = (() => {
       counters.press += 1;
       if (slot === 'lmb') mouseDown = true;
       if (slot === 'rmb') _rmbHeld = true;
+      const existingSession = getSession(slot);
+      if (existingSession && existingSession.profile?.mode !== 'instant') return false;
       const profile = duels2ResolveInputStateProfile(actor, slot, phase, payload);
-      const session = begin(slot, profile, payload);
+      const session = profile?.mode === 'instant' ? null : begin(slot, profile, payload);
       const handled = invoke(profile, 'press', {actor,slot,phase,payload,profile,session,runtime:api});
       if (handled) counters.handled += 1; else counters.fallback += 1;
       record({phase,slot,profileId:profile?.id || null,handled});
@@ -48675,8 +49489,14 @@ const DUELS2_INPUT_STATE_RUNTIME = (() => {
       if (slot === 'lmb') mouseDown = false;
       if (slot === 'rmb') _rmbHeld = false;
       const session = getSession(slot);
-      const profile = session?.profile || duels2ResolveInputStateProfile(actor, slot, phase, payload);
-      const elapsedMs = session ? Math.max(0, performance.now() - session.startedAt) : 0;
+      // 즉발 공격은 press에서 끝나며 세션을 만들지 않는다. release마다 전체 입력 프로필을 다시 검사하면
+      // 빠른 연타에서 shared-charge/character runtime match가 불필요하게 반복된다.
+      if (!session) {
+        record({phase,slot,profileId:null,handled:false,elapsedMs:0,fastPath:'instant-release-no-session'});
+        return false;
+      }
+      const profile = session.profile;
+      const elapsedMs = Math.max(0, performance.now() - session.startedAt);
       const handlerName = phase === 'document-release' ? 'documentRelease' : 'release';
       const handled = invoke(profile, handlerName, {actor,slot,phase,payload,profile,session,elapsedMs,runtime:api});
       if (phase === 'release' || phase === 'document-release' || handled) end(slot);
@@ -48728,25 +49548,25 @@ window.DUELS2_INPUT_STATE_RUNTIME = DUELS2_INPUT_STATE_RUNTIME;
 function duels2DispatchLegacyPointerPress(slot = 'lmb', payload = {}) {
   const angle = Number.isFinite(payload.angle) ? payload.angle : getAngle();
   if (slot === 'lmb') {
-    if (hasEntityFunctionalRuntime(L, 'raiseMark')) {
+    if (L.charDef?.id === 'raise') {
       if (L._raiseCharging) runSkillInputContext('lmb', () => SKILLS.raise.lmbClick(), {tags:['manual_lmb','multi_click']});
       else runSkillInputContext('lmb', () => SKILLS.raise.lmbStart(), {tags:['manual_lmb','multi_click_start']});
       return true;
     }
-    if (hasEntityFunctionalRuntime(L, 'forecastCard')) {
-      if (L._kiRmbActive && L._kiRmbReady) duels2ExecuteLocalSkillSlot('lmb', angle, {charId:'ki', method:'rmbLmb', tags:['manual_lmb','combo','teleport_option'], route:'input.lmb.ki-rmb-lmb'});
+    if (L.charDef?.id === 'ki') {
+      if (L._kiRmbActive && L._kiRmbReady) duels2ExecuteLocalSkillSlot('lmb', angle, {charId:'ki', method:'rmbLmb', angle, tags:['manual_lmb','combo','teleport_option'], route:'input.lmb.ki-rmb-lmb'});
       else runSkillInputContext('lmb', () => SKILLS.ki.lmb(angle), {tags:['manual_lmb','combo']});
       return true;
     }
     doLMB();
     return true;
   }
-  if (hasEntityFunctionalRuntime(L, 'forecastCard')) {
+  if (L.charDef?.id === 'ki') {
     if (L._kiRmbActive && L._kiRmbReady) runSkillInputContext('rmb', () => SKILLS.ki.rmbRmb(angle), {tags:['manual_rmb','teleport_option']});
     else runSkillInputContext('rmb', () => SKILLS.ki.rmb(angle), {tags:['manual_rmb','warning']});
     return true;
   }
-  if (hasEntityFunctionalRuntime(L, 'spearAnchor')) {
+  if (L.charDef?.id === 'levina') {
     runSkillInputContext('rmb', () => SKILLS.levina.rmb(angle), {tags:['manual_rmb','spear']});
     return true;
   }
@@ -49251,10 +50071,20 @@ function duels2RecordBroadFunctionalModuleRegistry(event) {
 }
 
 // hasEntityFunctionalRuntime: 특정 runtime variant 판정을 기능 모듈 레지스트리 경유로 수행한다. (entity: 판정 대상, runtimeKey: 정확한 runtime key, opt: route/reason 등 옵션)
+const DUELS2_FUNCTIONAL_RUNTIME_RESULT_CACHE = new WeakMap();
 function hasEntityFunctionalRuntime(entity, runtimeKey, opt = {}) {
+  if (!entity || (typeof entity !== 'object' && typeof entity !== 'function')) return false;
   const key = duels2NormalizeFunctionalRuntimeKey(runtimeKey);
+  const charId = duels2ReadEntityCharacterIdForBranch?.(entity) || 'unknown';
+  let cache = DUELS2_FUNCTIONAL_RUNTIME_RESULT_CACHE.get(entity);
+  if (!cache || cache.charId !== charId) {
+    cache = {charId, values:new Map()};
+    DUELS2_FUNCTIONAL_RUNTIME_RESULT_CACHE.set(entity, cache);
+  }
+  if (cache.values.has(key)) return cache.values.get(key);
   const moduleIds = duels2GetFunctionalModuleIdsForRuntime(key);
   const result = !!hasEntityCharacterRuntime(entity, key, {...opt, route:opt.route || 'functional-runtime.exact-variant'});
+  cache.values.set(key, result);
   duels2RecordBroadFunctionalModuleRegistry({
     type:'functional-runtime.check',
     route:opt.route || 'functional-runtime.exact-variant',
@@ -49263,7 +50093,7 @@ function hasEntityFunctionalRuntime(entity, runtimeKey, opt = {}) {
     moduleKey:duels2SummarizeFunctionalModuleIds(moduleIds),
     result,
     exactVariant:true,
-    charId:duels2ReadEntityCharacterIdForBranch?.(entity) || 'unknown',
+    charId,
     reason:opt.reason || 'functional-runtime-check',
   });
   return result;
@@ -56553,6 +57383,18 @@ function duels2RecordProjectileDeliveryExecutor(event = {}) {
   try { duels2RecordProjectileRuntimeExpansionSweep({phase:'delivery', ...event}); } catch (_) {}
 }
 
+// duels2TriggerActualAttackEmissionFeedback: 실제 공격 객체가 생성된 순간에만 발사 흔들림과 공격 스퀴시를 시작한다.
+function duels2TriggerActualAttackEmissionFeedback(actor=L, angle=0, opt={}) {
+  if (!actor) return false;
+  const now=performance.now();
+  if (now-(Number(actor._duels2LastActualAttackFeedbackAt)||0)<18) return false;
+  actor._duels2LastActualAttackFeedbackAt=now;
+  const safeAngle=Number.isFinite(Number(angle))?Number(angle):0;
+  if (actor===L) duels2AddFireShake();
+  duels2TriggerAttackVisual(actor,safeAngle);
+  return true;
+}
+
 // duels2RouteProjectileDelivery: 투사체 발사 공통 경계로, pierce 적용·localBullets push·네트워크 send·발사음 재생을 한 곳에서 처리한다. (bullet: 발사할 탄환 객체, opt: applyPierce/sync/playSfx/moduleId 옵션)
 function duels2DeliverProjectileInternal(bullet = {}, opt = {}) {
   const b = duels2NormalizeProjectileDeliveryBullet(bullet, opt);
@@ -56563,6 +57405,10 @@ function duels2DeliverProjectileInternal(bullet = {}, opt = {}) {
   const localHelperMeta = duels2AdoptLocalProjectileHelperRoutingMetadata?.(b, opt, moduleId, deliveryMeta, ownerTeamMeta) || null;
   if (opt.applyPierce === true) applyPierceShot(b);
   if (opt.push !== false) localBullets.push(b);
+  const emissionAngle = Number.isFinite(Number(opt.angle)) ? Number(opt.angle)
+    : (Number.isFinite(Number(b.angle)) ? Number(b.angle)
+    : (Math.hypot(Number(b.dx)||0,Number(b.dy)||0)>0.001 ? Math.atan2(Number(b.dy)||0,Number(b.dx)||0) : getAngle()));
+  duels2TriggerActualAttackEmissionFeedback(L, emissionAngle, {route:opt.route||opt.reason||'projectile.delivery'});
   if (opt.sync !== false) {
     const payload = duels2CloneProjectileNetworkPayload(b, opt);
     const localPid = DUELS2_PLAYER_REGISTRY?.localPid || getPlayerPid?.(L) || 'P1';
@@ -61795,8 +62641,8 @@ function duels2EnsureMultiplayerHud() {
 function duels2RenderMultiplayerHud() {
   const panel = duels2EnsureMultiplayerHud();
   const entries = PLAYER_SLOT_IDS.map(pid => ({pid, entity:DUELS2_PLAYER_REGISTRY.entitiesByPid.get(pid)})).filter(x => x.entity);
-  panel.style.display = 'none';
-  panel.innerHTML = entries.map(({pid,entity}) => {
+  if (panel.style.display !== 'none') panel.style.display = 'none';
+  const nextHtml = entries.map(({pid,entity}) => {
     const hp = Math.max(0, getEntityHealth(entity));
     const maxHp = Math.max(1, getEntityMaxHealth(entity));
     const charId = entity._duels2NetworkCharId || DUELS2_MULTIPLAYER_LOBBY_STATE.charByPid.get(pid) || entity.charDef?.id || entity.charId || '?';
@@ -61810,6 +62656,10 @@ function duels2RenderMultiplayerHud() {
       `<div style="height:5px;background:#182433;margin-top:4px;"><div style="height:100%;width:${Math.max(0,Math.min(100,hp/maxHp*100))}%;background:${entity.color || '#4af'};"></div></div>`+
       `<div style="margin-top:2px;color:#9ab;">${Math.round(hp)} / ${Math.round(maxHp)}</div></div>`;
   }).join('');
+  if (panel._duels2LastHtml !== nextHtml) {
+    panel._duels2LastHtml = nextHtml;
+    panel.innerHTML = nextHtml;
+  }
 }
 
 // duels2RenderMultiplayerLobbyStatus: 캐릭터 선택 화면 상태 문구를 PID별 준비 현황으로 갱신한다.
@@ -61827,10 +62677,64 @@ window.duels2RenderMultiplayerHud = duels2RenderMultiplayerHud;
 function duels2SetImmediateHudBar(element, ratio, origin = 'left center') {
   if (!element) return;
   const safeRatio = Math.max(0, Math.min(1, Number(ratio) || 0));
-  element.style.transition = 'none';
-  element.style.width = '100%';
-  element.style.transformOrigin = origin;
-  element.style.transform = `scaleX(${safeRatio})`;
+  const isHpBar = element.id === 'local-hp' || element.id === 'remote-hp';
+  const now = performance.now();
+
+  if (isHpBar) {
+    const parent=element.parentElement;
+    if (parent) {
+      parent.style.position='relative';
+      parent.style.overflow='hidden';
+      let trail=element._duels2HpTrailElement;
+      if (!trail || !trail.isConnected || trail.parentElement!==parent) {
+        trail=parent.querySelector(':scope > .duels2-hp-loss-trail');
+      }
+      if (!trail) {
+        trail=document.createElement('div');
+        trail.className='duels2-hp-loss-trail';
+        Object.assign(trail.style,{
+          position:'absolute',left:'0',top:'0',width:'100%',height:'100%',
+          background:'rgba(255,255,255,0.86)',transformOrigin:origin,
+          pointerEvents:'none',zIndex:'0',transition:'none'
+        });
+        parent.insertBefore(trail,element);
+      }
+      element._duels2HpTrailElement=trail;
+      element.style.position='relative';
+      element.style.zIndex='1';
+      let state=element._duels2HpTrailState;
+      if (!state) state=element._duels2HpTrailState={shown:safeRatio,target:safeRatio,lastRatio:safeRatio,delayUntil:0,lastAt:now};
+      const dt=Math.max(0,Math.min(80,now-state.lastAt||0));
+      state.lastAt=now;
+      if (safeRatio < state.lastRatio-0.0001) {
+        state.shown=Math.max(state.shown,state.lastRatio);
+        state.target=safeRatio;
+        state.delayUntil=now+105;
+      } else if (safeRatio > state.lastRatio+0.0001) {
+        state.shown=safeRatio;
+        state.target=safeRatio;
+        state.delayUntil=now;
+      } else {
+        state.target=safeRatio;
+      }
+      if (now>=state.delayUntil && state.shown>state.target) {
+        const follow=1-Math.exp(-dt/145);
+        state.shown=Math.max(state.target,state.shown+(state.target-state.shown)*follow);
+        if (state.shown-state.target<0.001) state.shown=state.target;
+      }
+      state.lastRatio=safeRatio;
+      const trailTransform=`scaleX(${Math.max(safeRatio,state.shown)})`;
+      const trailOpacity=state.shown>safeRatio+0.001?'1':'0';
+      if (trail.style.transform !== trailTransform) trail.style.transform=trailTransform;
+      if (trail.style.opacity !== trailOpacity) trail.style.opacity=trailOpacity;
+    }
+  }
+
+  if (element.style.transition !== 'none') element.style.transition = 'none';
+  if (element.style.width !== '100%') element.style.width = '100%';
+  if (element.style.transformOrigin !== origin) element.style.transformOrigin = origin;
+  const nextTransform = `scaleX(${safeRatio})`;
+  if (element.style.transform !== nextTransform) element.style.transform = nextTransform;
 }
 // updateLocalHud: 체력과 스테미나를 별도 표시 상태 없이 실제 엔티티 값에서 즉시 렌더한다.
 function updateLocalHud() {
@@ -61846,10 +62750,14 @@ function updateLocalHud() {
     ? duels2GetPlayerDisplayName(localPid, L)
     : (L?._displayName || DUELS2_GITHUB_ACCOUNT_STATE?.current?.displayName || '플레이어');
   const localCharName = L.charDef?.name || CHARACTERS?.[L.charDef?.id || L.charId]?.name || L.charDef?.id || L.charId || '캐릭터';
-  document.getElementById('local-label').textContent=`${localName} · ${localCharName}: ${Math.round(hp)} / ${Math.round(maxHp)}`;
+  const localLabel=document.getElementById('local-label');
+  const localLabelText=`${localName} · ${localCharName}: ${Math.round(hp)} / ${Math.round(maxHp)}`;
+  if (localLabel && localLabel.textContent !== localLabelText) localLabel.textContent=localLabelText;
   const cTxt=L.counterReady
     ?`  |  ⚡반격 가능 (${Math.max(0,Math.ceil((L.counterExpiry-performance.now())/1000))}초)`:'' ;
-  document.getElementById('hud-mid').textContent=`스테미나: ${Math.round(stamina)} / ${Math.round(stamMax)}${cTxt}`;
+  const hudMid=document.getElementById('hud-mid');
+  const hudMidText=`스테미나: ${Math.round(stamina)} / ${Math.round(stamMax)}${cTxt}`;
+  if (hudMid && hudMid.textContent !== hudMidText) hudMid.textContent=hudMidText;
 }
 // duels2GetPrimaryRemoteOpponent: HUD와 상대 캐릭터 표시용으로 현재 로컬 플레이어의 첫 활성 적을 반환한다. ()
 function duels2GetPrimaryRemoteOpponent() {
@@ -61893,7 +62801,7 @@ function updateRemoteHud() {
     || (remoteCharId ? String(remoteCharId) : '캐릭터 확인 중');
   const hp=Math.max(0,getEntityHealth(remote));
   const maxHp=Math.max(1,getEntityMaxHealth(remote));
-  if (hpBar) hpBar.style.width=(hp/maxHp*100)+'%';
+  duels2SetImmediateHudBar(hpBar, hp/maxHp, 'left center');
   if (label) label.textContent=`${remoteName} · ${charName}: ${Math.round(hp)} / ${Math.round(maxHp)}`;
   if (stBar) stBar.style.width=((Number(remote.stamina)||0)/STAM_MAX*100)+'%';
   duels2RenderMultiplayerHud?.();
@@ -63160,15 +64068,16 @@ function loop() {
 
   if (L.invincible>0) { L.invincible-=dt; if (L.invincible<0) L.invincible=0; }
   if (L.hitFlash>0) {
-    if (L._preFlashColor==null) L._preFlashColor=L.color;
     L.hitFlash-=dt;
-    L.color = L.hitFlash>0 ? 'white' : (L._preFlashColor??L.defaultColor);
-    if (L.hitFlash<=0) L._preFlashColor=null;
+    if (L.hitFlash<0) L.hitFlash=0;
   }
 
   if (duels2ShouldRunAutoPrimaryWhileMouseHeld({stunned, ePredelay, reason:'loop-auto-primary'})) doLMB();
-  // 공유 차징 입력: 마우스 누른 채 쿨다운 해제 시 자동 재시작
-  duels2HandlePointerInputPhase('auto-repeat', 'lmb', {route:'loop.input-state.auto-repeat', reason:'mouse-held-auto-restart'});
+  // 공유 차징 입력 자동 재시작은 실제 좌클릭을 누르고 있을 때만 검사한다.
+  // 이전에는 매 프레임 Input State 전체 프로필을 순회해 단순 연타 뒤에도 불필요한 비용이 계속 발생했다.
+  if (mouseDown === true) {
+    duels2HandlePointerInputPhase('auto-repeat', 'lmb', {route:'loop.input-state.auto-repeat', reason:'mouse-held-auto-restart'});
+  }
 
   // 넉백 / pull 이동 — 플레이어도 비플레이어와 같은 tickEntityForcedMotion을 사용
   tickEntityForcedMotion(L, physDt);
@@ -63294,10 +64203,22 @@ function loop() {
         if (Math.hypot(_t.x - _sp.x, _t.y - _sp.y) < _hitRad + (_t.radius||20)) {
           _sp._hitSeg.add(_tkey);
           const _dmgVal = _isRmbSeg ? _spDmg + duels2GetSkillBalance('levina','rmb').rmbBonusDamage : _spDmg;
-          damageSkillProfileTargets([_t], _dmgVal, {slot:_isRmbSeg ? 'rmb' : 'lmb', lmbAttack:!_isRmbSeg});
+          damageSkillProfileTargets([_t], _dmgVal, {
+            slot:_isRmbSeg ? 'rmb' : 'lmb', lmbAttack:!_isRmbSeg, source:L,
+            projectile:_sp, projectileX:_sp.x, projectileY:_sp.y,
+            centerX:_sp.x, centerY:_sp.y, originX:_sp.x, originY:_sp.y,
+            hitAngle:Math.atan2((_t.y||0)-(_sp.y||0), (_t.x||0)-(_sp.x||0)),
+            route:'levina-spear-forward-damage'
+          });
           if (_isRmbSeg) {
-            const _impactAngle = Math.atan2(Number(_sp.dy) || 0, Number(_sp.dx) || 0);
-            applyCC(_t, {knockbackPower:_kbPower, knockbackAngle:_impactAngle, originX:_sp.x, originY:_sp.y});
+            const _impactAngle = Math.atan2((_t.y||0)-(_sp.y||0), (_t.x||0)-(_sp.x||0));
+            applyCC(_t, {knockbackPower:_kbPower, knockbackAngle:_impactAngle}, L, {
+              projectileX:_sp.x, projectileY:_sp.y,
+              centerX:_sp.x, centerY:_sp.y,
+              originX:_sp.x, originY:_sp.y,
+              hitAngle:_impactAngle,
+              route:'levina-spear-segment-impact'
+            });
           }
         }
       }
@@ -63311,10 +64232,22 @@ function loop() {
         if (_sp._retHitSeg.has(_tkey)) continue;
         if (Math.hypot(_t.x - _sp.x, _t.y - _sp.y) < (_sp.pathRadius||_sp.radius) + (_t.radius||20)) {
           _sp._retHitSeg.add(_tkey);
-          damageSkillProfileTargets([_t], _spDmg, {slot:_sp.type === 'rmb' ? 'rmb' : 'lmb', lmbAttack:_sp.type !== 'rmb'});
+          damageSkillProfileTargets([_t], _spDmg, {
+            slot:_sp.type === 'rmb' ? 'rmb' : 'lmb', lmbAttack:_sp.type !== 'rmb', source:L,
+            projectile:_sp, projectileX:_sp.x, projectileY:_sp.y,
+            centerX:_sp.x, centerY:_sp.y, originX:_sp.x, originY:_sp.y,
+            hitAngle:Math.atan2((_t.y||0)-(_sp.y||0), (_t.x||0)-(_sp.x||0)),
+            route:'levina-spear-return-damage'
+          });
           if (_sp.type === 'rmb') {
-            const _impactAngle = Math.atan2(Number(_sp.dy) || 0, Number(_sp.dx) || 0);
-            applyCC(_t, {knockbackPower:_kbPower, knockbackAngle:_impactAngle, originX:_sp.x, originY:_sp.y});
+            const _impactAngle = Math.atan2((_t.y||0)-(_sp.y||0), (_t.x||0)-(_sp.x||0));
+            applyCC(_t, {knockbackPower:_kbPower, knockbackAngle:_impactAngle}, L, {
+              projectileX:_sp.x, projectileY:_sp.y,
+              centerX:_sp.x, centerY:_sp.y,
+              originX:_sp.x, originY:_sp.y,
+              hitAngle:_impactAngle,
+              route:'levina-spear-return-impact'
+            });
           }
         }
       }
@@ -64599,7 +65532,7 @@ function devSetEntityCharacterByKey(targetKey, ch) {
   if(!ch) return false;
   if(targetKey==='self'){
     const keepX=L.x,keepY=L.y;selCharId=ch.id;resetL();
-    const safe=resolveCirclePos?.(keepX,keepY,L.radius)||{x:keepX,y:keepY};L.x=safe.x;L.y=safe.y;L.tx=safe.x;L.ty=safe.y;
+    const safe=typeof resolveCirclePos==='function'?resolveCirclePos(keepX,keepY,L.radius):{x:keepX,y:keepY};L.x=safe.x;L.y=safe.y;L.tx=safe.x;L.ty=safe.y;
     if(!_trainingMode&&typeof send==='function')send({type:'devCmd',cmd:'peerChar',charId:ch.id});
   }else if(targetKey==='peerPlayer'){
     peerCharId=ch.id;applyCharBaseStatsToEntity(R,ch,{keepPos:true,keepHp:false,keepSt:false});
@@ -65765,7 +66698,7 @@ function duels2BuildNetworkCombatSnapshotDirect(entity = L, opt = {}) {
     syaInvisible:!!entity._syaInvisible,
     syaHitRevealRemaining:Math.max(0, Number(entity._syaHitRevealEnd || 0) - now),
     kiForecastArea: duels2BuildLocalKiForecastAreaState?.(entity, now),
-    toolbox: (hasEntityFunctionalRuntime(entity, 'toolboxOrb') && entity.orb && !entity.orb.returning)
+    toolbox: (entity.orb && !entity.orb.returning && (!entity.orb.type || entity.orb.type === 'toolbox'))
              ? {x:entity.orb.x, y:entity.orb.y} : null,
     burrowing:   entity.burrowing??false,
     phaseJumping: !!entity._phaseJumping,
@@ -66275,7 +67208,6 @@ window.duels2GetCoreRegressionFixSummary=()=>({
 
   // 준비 완료 카드는 포인터 입력을 유지하되 좌클릭 선택만 막는다.
   const unlockReadyCards=()=>document.querySelectorAll('.char-card.selection-locked,.char-mini-card.selection-locked').forEach(card=>{if(card.style.pointerEvents!=='auto')card.style.pointerEvents='auto';});
-  new MutationObserver(unlockReadyCards).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
   document.addEventListener('click',event=>{
     const card=event.target instanceof Element?event.target.closest('.selection-locked.char-card,.selection-locked.char-mini-card'):null;
     if(card){event.preventDefault();event.stopImmediatePropagation();}
@@ -66306,8 +67238,7 @@ window.duels2GetCoreRegressionFixSummary=()=>({
       if(rarityEl){const label=globalThis.augRarityLabel?.(aug.rarity)||String(aug.rarity).toUpperCase();if(rarityEl.textContent!==label)rarityEl.textContent=label;if(rarityEl.style.color!==color)rarityEl.style.color=color;}
     });
   };
-  new MutationObserver(syncAugCards).observe(document.documentElement,{subtree:true,childList:true});
-  setInterval(syncAugCards,500);
+  syncAugCards();
 
   // 상대 이탈 알림은 화면 전환 뒤에도 확실히 보이도록 공통 토스트를 사용한다.
   const showDeparture=()=>{
@@ -66382,7 +67313,6 @@ document.addEventListener('click',e=>{
   e.preventDefault();e.stopImmediatePropagation();
 },true);
 const keepReadyCardsInteractive=()=>document.querySelectorAll('.selection-locked.char-card,.selection-locked.char-mini-card').forEach(c=>{if(c.style.pointerEvents!=='auto')c.style.pointerEvents='auto';});
-new MutationObserver(keepReadyCardsInteractive).observe(document.documentElement,{subtree:true,attributes:true,childList:true,attributeFilter:['class','style']});
 keepReadyCardsInteractive();
 
 // 반격기 재입력은 key repeat/진행 상태에서만 차단한다. 최초 입력은 기존 스킬 경로에 그대로 전달한다.
@@ -66400,8 +67330,36 @@ const syncAugNameColors=()=>{
     const name=card.querySelector('.start-aug-name,.aug-pick-name');if(name)name.style.color=rarityNameColor(aug.rarity);
   });
 };
-new MutationObserver(syncAugNameColors).observe(document.documentElement,{subtree:true,childList:true});
-setInterval(syncAugNameColors,700);
+syncAugNameColors();
+
+// duels2ProcessAddedCardUi: 새로 생성된 카드만 초기화해 게임 프레임의 DOM 변경과 감시자 재귀를 분리한다. (root: 새로 추가된 DOM 루트)
+function duels2ProcessAddedCardUi(root){
+  if(!(root instanceof Element))return false;
+  const roots=[];
+  if(root.matches?.('.selection-locked.char-card,.selection-locked.char-mini-card,.start-aug-item,.aug-pick-card'))roots.push(root);
+  root.querySelectorAll?.('.selection-locked.char-card,.selection-locked.char-mini-card,.start-aug-item,.aug-pick-card').forEach(el=>roots.push(el));
+  let changed=false;
+  for(const el of roots){
+    if(el.matches('.selection-locked.char-card,.selection-locked.char-mini-card')&&el.style.pointerEvents!=='auto'){el.style.pointerEvents='auto';changed=true;}
+    if(el.matches('.start-aug-item,.aug-pick-card')){
+      const aug=globalThis.AUGMENTS?.find?.(a=>a.id===el.dataset.id);
+      if(!aug)continue;
+      const rarity=String(aug.rarity);
+      const color=globalThis.augRarityColor?.(aug.rarity)||rarityNameColor(aug.rarity);
+      if(el.dataset.rarity!==rarity)el.dataset.rarity=rarity;
+      if(el.style.getPropertyValue('--duels-aug-rarity')!==color)el.style.setProperty('--duels-aug-rarity',color);
+      const name=el.querySelector('.start-aug-name,.aug-pick-name');
+      if(name&&name.style.color!==color)name.style.color=color;
+      const rarityEl=el.querySelector('.start-aug-rarity');
+      if(rarityEl){const label=globalThis.augRarityLabel?.(aug.rarity)||rarity.toUpperCase();if(rarityEl.textContent!==label)rarityEl.textContent=label;if(rarityEl.style.color!==color)rarityEl.style.color=color;}
+      changed=true;
+    }
+  }
+  return changed;
+}
+new MutationObserver(records=>{
+  for(const record of records)for(const node of record.addedNodes)duels2ProcessAddedCardUi(node);
+}).observe(document.documentElement,{subtree:true,childList:true});
 
 // 상대 증강 선택 표시: 준비 패킷으로 받은 ID와 현재 카드 ID를 비교해 동일한 선택 강조를 적용한다.
 const syncPeerAugSelection=()=>{
@@ -66421,10 +67379,10 @@ try{
   bc.onmessage=e=>{
     const d=e.data||{};
     if(d.type==='duels2-presence'&&d.nonce!==localNonce){
-      globalThis.matchState._samePhysicalDeviceDetected=true;
+      (globalThis.matchState||(globalThis.matchState={}))._samePhysicalDeviceDetected=true;
       bc.postMessage({type:'duels2-presence-ack',nonce:localNonce});
     }else if(d.type==='duels2-presence-ack'&&d.nonce!==localNonce){
-      globalThis.matchState._samePhysicalDeviceDetected=true;
+      (globalThis.matchState||(globalThis.matchState={}))._samePhysicalDeviceDetected=true;
     }
   };
   bc.postMessage({type:'duels2-presence',nonce:localNonce});
@@ -66483,14 +67441,10 @@ function duels2GetPlayerDisplayName(pid,entity=null){
 window.duels2GetLocalDisplayName=duels2GetLocalDisplayName;window.duels2GetPlayerDisplayName=duels2GetPlayerDisplayName;
 
 // HUD의 PID 표기를 계정 표시 이름으로 통일한다.
+// 표시 이름은 아래 최종 HUD 렌더러에서 직접 생성한다. 중간 래퍼는 DOM을 중복 갱신하지 않는다.
 const _duels2OriginalUpdateLocalHud=window.updateLocalHud;
-window.updateLocalHud=function(){_duels2OriginalUpdateLocalHud?.();const el=document.getElementById('local-label');if(el&&globalThis.L){const hp=Math.max(0,Math.round(getEntityHealth(L)));const max=Math.max(1,Math.round(getEntityMaxHealth(L)));const ch=L.charDef?.name||CHARACTERS?.[L.charId]?.name||'캐릭터';el.textContent=`${duels2GetLocalDisplayName()}: ${hp} / ${max}`;}};
 const _duels2OriginalUpdateRemoteHud=window.updateRemoteHud;
-window.updateRemoteHud=function(){_duels2OriginalUpdateRemoteHud?.();const r=duels2GetPrimaryRemoteOpponent?.();const el=document.getElementById('remote-label');if(r&&el){const pid=getPlayerPid(r)||duels2ResolveCompatibilityRemotePid?.()||'P2';const hp=Math.max(0,Math.round(getEntityHealth(r)));const max=Math.max(1,Math.round(getEntityMaxHealth(r)));const ch=globalThis.duels2CharacterName?.(pid,r)||CHARACTERS?.[r._duels2NetworkCharId||r.charId||r.charDef?.id]?.name||'캐릭터';el.textContent=`${duels2GetPlayerDisplayName(pid,r)} · ${ch}: ${hp} / ${max}`;}};
-
-// 멀티 HUD의 P1/P2 표기도 표시 이름으로 변경한다.
 const _duels2OriginalRenderMultiHud=window.duels2RenderMultiplayerHud;
-window.duels2RenderMultiplayerHud=function(){_duels2OriginalRenderMultiHud?.();const panel=document.getElementById('multiplayer-hud');if(!panel)return;[...panel.children].forEach((card,i)=>{const pid=PLAYER_SLOT_IDS.filter(p=>DUELS2_PLAYER_REGISTRY.entitiesByPid.get(p))[i];if(!pid)return;const first=card.querySelector('div');if(first){const entity=DUELS2_PLAYER_REGISTRY.entitiesByPid.get(pid);first.innerHTML=first.innerHTML.replace(new RegExp(`<b>${pid}</b>`),`<b>${duels2GetPlayerDisplayName(pid,entity)}</b>`);}});};
 </script>
 
 
@@ -67648,9 +68602,26 @@ window.duels2AttachRecordDetailToCard=duels2AttachRecordDetailToCard;
 
 // duels2InstallRecordDetailObserver: 동적으로 생성되는 모든 캐릭터 카드에 상세 화면 조작을 자동 연결한다. ()
 function duels2InstallRecordDetailObserver(){
-  const bind=()=>{document.querySelectorAll('.char-card[data-id],.start-aug-char-card[data-id]').forEach(duels2AttachRecordDetailToCard);duels2RefreshTopPlayerBadges?.();};
-  bind();
-  new MutationObserver(bind).observe(document.body,{subtree:true,childList:true});
+  const selector='.char-card[data-id],.start-aug-char-card[data-id]';
+  const bindRoot=root=>{
+    if(!(root instanceof Element))return false;
+    if(root.matches?.(selector))duels2AttachRecordDetailToCard(root);
+    root.querySelectorAll?.(selector).forEach(duels2AttachRecordDetailToCard);
+    return true;
+  };
+  document.querySelectorAll(selector).forEach(duels2AttachRecordDetailToCard);
+  duels2RefreshTopPlayerBadges?.();
+  let badgeSyncQueued=false;
+  new MutationObserver(records=>{
+    let found=false;
+    for(const record of records){
+      for(const node of record.addedNodes)if(bindRoot(node))found=true;
+    }
+    if(found&&!badgeSyncQueued){
+      badgeSyncQueued=true;
+      requestAnimationFrame(()=>{badgeSyncQueued=false;duels2RefreshTopPlayerBadges?.();});
+    }
+  }).observe(document.body,{subtree:true,childList:true});
 }
 
 // duels2ShowRecordDetailMode: 캐릭터 카드에 지정 상세 화면을 표시한다. (card: 카드 요소, mode: stats/ranking)
@@ -67746,7 +68717,7 @@ window.duels2AccountSaveNow=duels2AccountSaveNow;window.duels2AccountLogout=duel
       const max=Math.max(1,Math.round(Number(globalThis.getEntityMaxHealth?.(local)??local.maxHealth??local.maxHp)||100));
       const ch=duels2ResolveHudCharacterName(pid,local);
       const el=document.getElementById('local-label');
-      if(el)el.textContent=`${duels2ResolveHudPlayerName(pid,local)} · ${ch}: ${hp} / ${max}`;
+      if(el){const next=`${duels2ResolveHudPlayerName(pid,local)} · ${ch}: ${hp} / ${max}`;if(el.textContent!==next)el.textContent=next;}
     }
     const remote=globalThis.duels2GetPrimaryRemoteOpponent?.()||globalThis.R||null;
     if(remote){
@@ -67755,7 +68726,7 @@ window.duels2AccountSaveNow=duels2AccountSaveNow;window.duels2AccountLogout=duel
       const max=Math.max(1,Math.round(Number(globalThis.getEntityMaxHealth?.(remote)??remote.maxHealth??remote.maxHp)||100));
       const ch=duels2ResolveHudCharacterName(pid,remote);
       const el=document.getElementById('remote-label');
-      if(el){const remoteName=(remote?._displayName||globalThis.DUELS2_PLAYER_DISPLAY_NAMES?.get?.(pid)||'상대');const safeRemoteName=(/^P[1-9]\d*$/i.test(String(remoteName).trim())?'상대':String(remoteName).trim()||'상대');el.textContent=`${safeRemoteName} · ${ch}: ${hp} / ${max}`;}
+      if(el){const remoteName=(remote?._displayName||globalThis.DUELS2_PLAYER_DISPLAY_NAMES?.get?.(pid)||'상대');const safeRemoteName=(/^P[1-9]\d*$/i.test(String(remoteName).trim())?'상대':String(remoteName).trim()||'상대');const next=`${safeRemoteName} · ${ch}: ${hp} / ${max}`;if(el.textContent!==next)el.textContent=next;}
     }
     const panel=document.getElementById('multiplayer-hud');
     if(panel){
@@ -67767,19 +68738,16 @@ window.duels2AccountSaveNow=duels2AccountSaveNow;window.duels2AccountLogout=duel
         const first=card.firstElementChild;if(!first)return;
         const current=first.textContent||'';
         const suffix=current.includes(' · ')?current.slice(current.indexOf(' · ')):'';
-        first.textContent=duels2ResolveHudPlayerName(pid,entity)+suffix;
+        const next=duels2ResolveHudPlayerName(pid,entity)+suffix;if(first.textContent!==next)first.textContent=next;
       });
     }
   }
 
-  const originalLocal=globalThis.updateLocalHud;
-  if(typeof originalLocal==='function')globalThis.updateLocalHud=function(...args){const result=originalLocal.apply(this,args);duels2ApplyFinalHudNames();return result;};
-  const originalRemote=globalThis.updateRemoteHud;
-  if(typeof originalRemote==='function')globalThis.updateRemoteHud=function(...args){const result=originalRemote.apply(this,args);duels2ApplyFinalHudNames();return result;};
-  const originalMulti=globalThis.duels2RenderMultiplayerHud;
-  if(typeof originalMulti==='function')globalThis.duels2RenderMultiplayerHud=function(...args){const result=originalMulti.apply(this,args);duels2ApplyFinalHudNames();return result;};
+  // 최종 이름 보정은 이름/계정 정보가 실제로 바뀌었을 때만 명시적으로 호출한다.
+  // 매 프레임 updateLocalHud/updateRemoteHud/duels2RenderMultiplayerHud를 다시 감싸지 않는다.
+  globalThis.duels2ApplyFinalHudNames=duels2ApplyFinalHudNames;
   // 오래된 HUD 보정 반복기는 최종 닉네임 표시를 덮어쓰므로 실행하지 않는다.
-  // HUD 갱신은 아래 최종 HUD 렌더 함수에서 직접 처리한다.
+  // HUD 갱신은 각 최종 HUD 렌더 함수에서 직접 처리한다.
 
   // duels2MarkOpponentDeparted: 이탈 상태를 기록하고 지정 alert를 반드시 한 번 표시한다. (reason: 이탈 원인)
   function duels2MarkOpponentDeparted(reason='player-departed'){
