@@ -24425,41 +24425,6 @@ function duels2AssignDecodedSfxBuffer(kind, buffer) {
   return buffer;
 }
 
-
-// duels2CreateFallbackSfxBuffer: 외부 mp3를 불러오지 못해도 효과음이 완전히 사라지지 않도록 짧은 합성 효과음을 만든다. (kind: hit/shoot)
-function duels2CreateFallbackSfxBuffer(kind) {
-  const context=_sfxCtx;
-  if(!context || context.state==='closed') return null;
-  const sampleRate=context.sampleRate || 44100;
-  const duration=kind==='hit' ? 0.115 : 0.085;
-  const length=Math.max(1,Math.floor(sampleRate*duration));
-  const buffer=context.createBuffer(1,length,sampleRate);
-  const data=buffer.getChannelData(0);
-  let noiseState=0x12345678;
-  for(let i=0;i<length;i++){
-    const t=i/sampleRate;
-    noiseState=(Math.imul(noiseState,1664525)+1013904223)|0;
-    const noise=((noiseState>>>8)/0x01000000)*2-1;
-    if(kind==='hit'){
-      const env=Math.pow(Math.max(0,1-t/duration),3.2);
-      const body=Math.sin(2*Math.PI*(145-55*(t/duration))*t);
-      data[i]=(body*0.72+noise*0.28)*env*0.72;
-    }else{
-      const env=Math.pow(Math.max(0,1-t/duration),4.4);
-      const sweep=Math.sin(2*Math.PI*(760-430*(t/duration))*t);
-      data[i]=(sweep*0.82+noise*0.18)*env*0.58;
-    }
-  }
-  return duels2AssignDecodedSfxBuffer(kind,buffer);
-}
-
-// duels2EnsureFallbackSfxBuffers: 네트워크 음원이 없거나 디코딩에 실패한 종류를 합성 버퍼로 보충한다. ()
-function duels2EnsureFallbackSfxBuffers(){
-  if(!_hitBuffer) duels2CreateFallbackSfxBuffer('hit');
-  if(!_shootBuffer) duels2CreateFallbackSfxBuffer('shoot');
-  return !!(_hitBuffer&&_shootBuffer);
-}
-
 // duels2DecodeSfxKind: 사용자 입력으로 열린 AudioContext에서 원본 음원을 한 번만 디코딩한다. (kind: hit/shoot)
 function duels2DecodeSfxKind(kind) {
   const context = _sfxCtx;
@@ -24470,7 +24435,7 @@ function duels2DecodeSfxKind(kind) {
   if (DUELS2_SFX_DECODE_PROMISES.has(kind)) return DUELS2_SFX_DECODE_PROMISES.get(kind);
   const promise = context.decodeAudioData(encoded.slice(0))
     .then(buffer => duels2AssignDecodedSfxBuffer(kind, buffer))
-    .catch(() => duels2CreateFallbackSfxBuffer(kind))
+    .catch(() => null)
     .finally(() => DUELS2_SFX_DECODE_PROMISES.delete(kind));
   DUELS2_SFX_DECODE_PROMISES.set(kind, promise);
   return promise;
@@ -24489,7 +24454,6 @@ async function duels2UnlockSfxAudio() {
       if (context.state === 'suspended') await context.resume();
       if (context.state !== 'running') return false;
       await Promise.allSettled(['hit','shoot'].map(duels2DecodeSfxKind));
-      duels2EnsureFallbackSfxBuffers();
       DUELS2_SFX_AUDIO_READY = true;
       return true;
     } catch (_) {
@@ -24510,30 +24474,21 @@ function duels2LoadSfxAsset(kind, url) {
       DUELS2_SFX_ENCODED_BUFFERS.set(kind, buffer);
       if (_sfxCtx?.state === 'running') void duels2DecodeSfxKind(kind);
     })
-    .catch(() => {
-      if(_sfxCtx?.state==='running') duels2CreateFallbackSfxBuffer(kind);
-    });
+    .catch(() => {});
 }
 
 duels2LoadSfxAsset('hit', 'https://Lyangnem.github.io/Duels/hitted.mp3');
 
 // 페이지 어디서든 최초 클릭·키 입력을 오디오 해제 제스처로 사용한다.
-document.addEventListener('pointerdown', () => { void duels2UnlockSfxAudio().then(()=>duels2FlushDeferredSfxKinds()); }, {capture:true});
-document.addEventListener('keydown', () => { void duels2UnlockSfxAudio().then(()=>duels2FlushDeferredSfxKinds()); }, {capture:true});
-document.addEventListener('visibilitychange', () => {
-  if(!document.hidden) void duels2UnlockSfxAudio().then(()=>duels2FlushDeferredSfxKinds());
-});
-window.addEventListener('focus', () => { void duels2UnlockSfxAudio().then(()=>duels2FlushDeferredSfxKinds()); });
+document.addEventListener('pointerdown', () => { void duels2UnlockSfxAudio(); }, {capture:true});
+document.addEventListener('keydown', () => { void duels2UnlockSfxAudio(); }, {capture:true});
 // DUELS2_AUDIO_RUNTIME: 같은 실행 순간의 효과음 요청을 종류별로 하나만 남기고, 서로 다른 종류는 각각 한 번씩 함께 재생한다.
 const DUELS2_AUDIO_RUNTIME = {
   // activeByKind: 이미 재생 중인 음원을 종류별 Set으로 추적한다. 이후 시점의 같은 소리를 끊지 않는다.
   activeByKind:new Map(),
   // pendingKinds: 현재 동기 실행 묶음에서 요청된 효과음 종류를 모은다.
   pendingKinds:new Map(),
-  // deferredKinds: 음원 디코딩 또는 AudioContext 재개 전 들어온 요청을 종류별 한 번 보존한다.
-  deferredKinds:new Set(),
   flushScheduled:false,
-  deferredFlushPromise:null,
   normalGain:0.5,
   batchSerial:0,
 };
@@ -24611,41 +24566,14 @@ function duels2ScheduleSfxFrameFlush(flush){
   setTimeout(flush, Math.max(0, Number(typeof FRAME_MS !== 'undefined' ? FRAME_MS : 16.6667) || 16.6667));
 }
 
-// duels2QueueDecodedSfxKind: 디코딩된 음원을 현재 렌더 프레임 배치에 넣는다. (kind: 효과음 종류, buffer: AudioBuffer)
-function duels2QueueDecodedSfxKind(kind,buffer){
+// duels2PlaySfxKind: 같은 렌더 프레임의 효과음을 종류별 하나로 예약한다. 서로 다른 종류는 같은 프레임에도 각각 유지한다. (kind: hit/shoot, buffer: AudioBuffer)
+function duels2PlaySfxKind(kind,buffer){
   if(!buffer) return false;
   DUELS2_AUDIO_RUNTIME.pendingKinds.set(kind,buffer);
   if(!DUELS2_AUDIO_RUNTIME.flushScheduled){
     DUELS2_AUDIO_RUNTIME.flushScheduled=true;
     duels2ScheduleSfxFrameFlush(duels2FlushSfxBatch);
   }
-  return true;
-}
-
-// duels2FlushDeferredSfxKinds: 준비 전에 들어온 효과음 요청을 AudioContext 재개·디코딩 후 종류별 한 번 재생한다. ()
-async function duels2FlushDeferredSfxKinds(){
-  if(DUELS2_AUDIO_RUNTIME.deferredFlushPromise) return DUELS2_AUDIO_RUNTIME.deferredFlushPromise;
-  DUELS2_AUDIO_RUNTIME.deferredFlushPromise=(async()=>{
-    const ready=await duels2UnlockSfxAudio();
-    if(!ready) return false;
-    const kinds=Array.from(DUELS2_AUDIO_RUNTIME.deferredKinds);
-    DUELS2_AUDIO_RUNTIME.deferredKinds.clear();
-    let queued=false;
-    for(const kind of kinds){
-      const buffer=await duels2DecodeSfxKind(kind);
-      if(duels2QueueDecodedSfxKind(kind,buffer)) queued=true;
-    }
-    return queued;
-  })().finally(()=>{ DUELS2_AUDIO_RUNTIME.deferredFlushPromise=null; });
-  return DUELS2_AUDIO_RUNTIME.deferredFlushPromise;
-}
-
-// duels2PlaySfxKind: 준비된 효과음은 즉시 배치하고, 준비 전 요청은 버리지 않고 해제·디코딩 완료 후 재생한다. (kind: hit/shoot, buffer: AudioBuffer)
-function duels2PlaySfxKind(kind,buffer){
-  const decoded=buffer || (kind==='hit' ? _hitBuffer : (kind==='shoot' ? _shootBuffer : null));
-  if(decoded && _sfxCtx?.state==='running') return duels2QueueDecodedSfxKind(kind,decoded);
-  DUELS2_AUDIO_RUNTIME.deferredKinds.add(kind);
-  void duels2FlushDeferredSfxKinds();
   return true;
 }
 
