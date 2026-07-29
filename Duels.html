@@ -24583,7 +24583,13 @@ function duels2FlushSfxBatch(){
   DUELS2_AUDIO_RUNTIME.batchSerial+=1;
   let played=false;
   for(const [kind,buffer] of batch){
-    if(duels2StartSfxNow(kind,buffer)) played=true;
+    // 같은 프레임의 동일 효과음은 재생 경로와 관계없이 정확히 한 번만 실행한다.
+    // Web Audio가 준비됐으면 그것만, 아니면 HTMLAudioElement만 사용한다.
+    if(buffer && _sfxCtx?.state==='running') {
+      if(duels2StartSfxNow(kind,buffer)) played=true;
+      continue;
+    }
+    if(duels2PlayHtmlAudioKind(kind)) played=true;
   }
   return played;
 }
@@ -24657,15 +24663,14 @@ function duels2PlayHtmlAudioKind(kind) {
 
 // duels2PlaySfxKind: Web Audio 버퍼가 준비되면 기존 저지연 경로를 사용하고, 준비되지 않았으면 같은 MP3를 HTMLAudioElement로 재생한다. (kind: hit/shoot, buffer: AudioBuffer)
 function duels2PlaySfxKind(kind,buffer){
-  if(buffer && _sfxCtx?.state==='running'){
-    DUELS2_AUDIO_RUNTIME.pendingKinds.set(kind,buffer);
-    if(!DUELS2_AUDIO_RUNTIME.flushScheduled){
-      DUELS2_AUDIO_RUNTIME.flushScheduled=true;
-      duels2ScheduleSfxFrameFlush(duels2FlushSfxBatch);
-    }
-    return true;
+  // Web Audio와 HTMLAudioElement 모두 같은 프레임 배치를 거치게 해
+  // 중복 호출이 들어와도 종류별 한 번만 재생한다.
+  DUELS2_AUDIO_RUNTIME.pendingKinds.set(kind,buffer || null);
+  if(!DUELS2_AUDIO_RUNTIME.flushScheduled){
+    DUELS2_AUDIO_RUNTIME.flushScheduled=true;
+    duels2ScheduleSfxFrameFlush(duels2FlushSfxBatch);
   }
-  return duels2PlayHtmlAudioKind(kind);
+  return true;
 }
 
 // playHitSfx: 현재 렌더 프레임의 피격음을 한 번만 예약한다. ()
