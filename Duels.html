@@ -13212,6 +13212,7 @@ function receiveHitEntity(entity, dmg, ctx = {}) {
           hitAngle:duels2GetHitFeedbackAngle(P, source, ctx),
           renderKnockbackDistance:duels2GetRenderKnockbackDistance(ctx),
           knockbackPower:Number(ctx.knockbackPower ?? ctx.cc?.knockbackPower ?? ctx.knockback?.knockbackPower) || 0,
+          noLifesteal:ctx.noLifesteal===true,
           feedbackEventId:ctx.feedbackEventId || ctx.eventId || null});
   }
 
@@ -15646,7 +15647,8 @@ const R = {
         const directionPacket=duels2BuildHitDirectionPacket(this,ctx.source||L,ctx);
         send({
           type:'hitMe', targetPid:getPlayerPid(this)||'P2', sourcePid:DUELS2_PLAYER_REGISTRY.localPid||getPlayerPid(L)||'P1',
-          damage:_d, fromThorn:!!ctx.fromThorn, eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null,
+          damage:_d, fromThorn:!!ctx.fromThorn, noLifesteal:ctx.noLifesteal===true,
+          eventId:ctx.feedbackEventId||ctx.eventId||ctx.hitEventId||null,
           ...directionPacket,
           projectileX:Number.isFinite(Number(ctx.projectileX ?? ctx.bulletX ?? ctx.projectile?.x)) ? Number(ctx.projectileX ?? ctx.bulletX ?? ctx.projectile?.x) : undefined,
           projectileY:Number.isFinite(Number(ctx.projectileY ?? ctx.bulletY ?? ctx.projectile?.y)) ? Number(ctx.projectileY ?? ctx.bulletY ?? ctx.projectile?.y) : undefined,
@@ -23756,6 +23758,11 @@ function duels2RouteApplyDamageToTarget(target, amount, ctx = {}, opt = {}) {
       }
     }
 
+    // target.applyDamage를 우회하는 어댑터는 레거시 대상 메서드 안의 흡혈 후처리를 타지 않으므로 공통 경계에서 한 번 보완한다.
+    if ((kind === 'training-policy' || kind === 'raw-health') && ctx?.source === L && ctx?.noLifesteal !== true && _actualAppliedDamage > 0) {
+      applyLifesteal(_actualAppliedDamage, {route:'damage.apply-adapter', reason:`${kind}-confirmed-damage`});
+    }
+
     // HitResult 생성 여부와 무관하게 실제 피해 어댑터 성공 경계에서 평타 증강을 처리한다.
     duels2TryConsumeStunShotFromDamageApplication?.(target,result,ctx);
   }
@@ -27110,6 +27117,7 @@ function duels2RegisterCoreCombatEventHandlers() {
       source:sourceEntity,
       skipSourceModifiers:true,
       feedbackEventId:d.eventId || d.feedbackEventId || null,
+      noLifesteal:d.noLifesteal===true,
       hitAngle:Number.isFinite(Number(d.hitAngle)) ? Number(d.hitAngle) : undefined,
       hitDirectionX:Number.isFinite(Number(d.hitDirectionX)) ? Number(d.hitDirectionX) : undefined,
       hitDirectionY:Number.isFinite(Number(d.hitDirectionY)) ? Number(d.hitDirectionY) : undefined,
@@ -27264,6 +27272,7 @@ function duels2RegisterCoreCombatEventHandlers() {
       renderKnockbackDistance:Number(d.renderKnockbackDistance)||0,
       knockbackPower:Number(d.knockbackPower)||0
     }, L);
+    if (d.noLifesteal !== true) applyLifesteal(d.damage, {route:'network.dmgDealtSync', reason:'remote-player-confirmed-damage'});
     updateRemoteHud?.();
     return sourceEntity;
   }, 500);
@@ -28253,6 +28262,7 @@ function onData(d) {
       renderKnockbackDistance:Number(d.renderKnockbackDistance)||0,
       knockbackPower:Number(d.knockbackPower)||0
       }, L);
+        if (d.noLifesteal !== true) applyLifesteal(d.damage, {route:'network.dmgDealtSync.legacy-switch', reason:'remote-player-confirmed-damage'});
         updateRemoteHud?.();
       break;
     }
@@ -31019,11 +31029,18 @@ function applyStunShot(targets = null, actionCtx = null, opt = {}) {
   return true;
 }
 
-// ── 흡혈: 공격력의 10% 회복 ──────────────────────────────
-function applyLifesteal(dmg) {
+// applyLifesteal: 실제로 확정된 피해량과 증강 설정값을 기준으로 로컬 플레이어를 회복한다. (dmg: 실제 적용 피해량, ctx: 회복 경로와 원인을 기록할 문맥)
+function applyLifesteal(dmg, ctx = {}) {
   const cnt = getAugCount('lifesteal');
-  if (cnt <= 0) return;
-  healEntityRaw(L, dmg * 0.15 * cnt, {fx:false});
+  const actualDamage = Math.max(0, Number(dmg) || 0);
+  if (cnt <= 0 || actualDamage <= 0) return 0;
+  const healAmount = actualDamage * (AUG_VALS.lifesteal.ratio / 100) * cnt;
+  return healEntityRaw(L, healAmount, {
+    fx:false,
+    source:L,
+    route:ctx.route || 'augment.lifesteal',
+    reason:ctx.reason || 'confirmed-damage'
+  });
 }
 
 // ── 독: 입힌 피해량 기준 지속 피해 ──────────────────────────
