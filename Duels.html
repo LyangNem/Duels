@@ -3881,7 +3881,8 @@ const BALANCE = {
       cd:          750,
     },
     rmb: {
-      cost:            50,
+      cost:            30,
+      followupLmbCost: 30,
       aoeRange:        347,   // 386 * 0.9 ≈ 347
       summonDist:      270,
       damageDelay:     500,
@@ -3944,8 +3945,8 @@ const BALANCE = {
     radius: 20,
     lmb: {
       cost:       20,
-      damage:     15,
-      speed:      16,
+      damage:     20,
+      speed:      20,
       returnSpd:  19,
       radius:     12,
       range:      560,
@@ -3953,16 +3954,14 @@ const BALANCE = {
     },
     rmb: {
       cost:          100,
-      placeDist:     95,        // 우편함 설치 거리
       mailboxHp:     90,
       mailboxRadius: 23,
-      fireRange:     DUELS2_LETE_MAILBOX_RANGE.attackRange,
-      fireInterval:  3000,
+      fireInterval:  2000,
       letterSpeed:   12,
       letterRadius:  11,
-      letterRange:   DUELS2_LETE_MAILBOX_RANGE.attackRange * DUELS2_LETE_MAILBOX_RANGE.letterTravelRatio,
+      letterRange:   400 * (2 / 3), // 기존 지원 우편 이동 사거리
       staminaRatio:  0.33,
-      maxGround:     3,
+      maxGround:     4,
       recallCd:      450,
       cd:            450,
     },
@@ -3970,11 +3969,11 @@ const BALANCE = {
       range:          190,
       halfAngle:      1.22,
       damage:         20,
-      knockbackPower: 430,
+      knockbackPower: 420,
       letterCount:    4,
       spread:         0.72,
-      letterDamage:   15,
-      letterSpeed:    18,
+      letterDamage:   20,
+      letterSpeed:    20,
       returnSpd:      20,
       letterRadius:   11,
       letterRange:    500,
@@ -4825,7 +4824,7 @@ const CHARACTERS = {
         desc:`짧은 거리 순간이동` },
       { key:'RMB',     name:'예고장',   cost:duels2GetSkillBalance('ki','rmb').cost,
         desc:`예고 지역 생성. 예고 지역 내 상대가 저스트 회피가 아닌 회피 사용 시 키의 체력 및 스테미나 ${Math.round(duels2GetSkillBalance('ki','rmb').healRatio*100)}% 회복` },
-      { key:'RMB/LMB', name:'예고 실행', cost:0,
+      { key:'RMB/LMB', name:'예고 실행', cost:duels2GetSkillBalance('ki','rmb').followupLmbCost,
         desc:`예고 지역에 광역 피해 (${duels2GetSkillBalance('ki','rmb').damage})` },
       { key:'RMB/RMB', name:'기만', cost:0,
         desc:`순간이동 후 예고 취소` },
@@ -4920,7 +4919,7 @@ const CHARACTERS = {
     summonSpecs:[{name:'우편함',stats:[
       {key:'HEALTH',value:duels2GetSkillBalance('lete','rmb').mailboxHp},
       {key:'MOVE SPEED',value:`없음`},
-      {key:'AUTO ATTACK',value:`${duels2GetSkillBalance('lete','rmb').fireRange} 범위 내 가까운 아군에게 지원 편지를 발사해 휙득 시 스테미나 ${Math.round(duels2GetSkillBalance('lete','rmb').staminaRatio*100)}% 회복`}
+      {key:'AUTO ATTACK',value:`가장 가까운 아군에게 지원 편지를 발사해 획득 시 스테미나 ${Math.round(duels2GetSkillBalance('lete','rmb').staminaRatio*100)}% 회복`}
     ]}],
   },
 
@@ -27012,11 +27011,65 @@ duels2RegisterSimpleGameplayEventHandler('chatTyping', d => {
   _showTyping(d.typing, sourcePid, d.name || sourceEntity?.charDef?.name || sourcePid);
 });
 
-// ruvuHammerClear: 실제 송신 PID의 루뷰 망치 상태를 제거한다.
-duels2RegisterSimpleGameplayEventHandler('ruvuHammerClear', d => {
-  const sourceEntity = duels2ResolvePacketSourceEntity(d);
-  if (sourceEntity) sourceEntity._ruvuHammer = null;
-});
+// DUELS2_RUVU_HAMMER_REMOTE_STATE: PID별 원격 망치의 최신 투척/제거 순번을 보관한다.
+const DUELS2_RUVU_HAMMER_REMOTE_STATE = new Map();
+
+function duels2ResolveRuvuHammerSourcePid(packet = {}, entity = null) {
+  return packet.sourcePid || packet.pid || getPlayerPid?.(entity) || null;
+}
+
+function duels2GetRuvuHammerRemoteState(sourcePid) {
+  if (!sourcePid) return null;
+  if (!DUELS2_RUVU_HAMMER_REMOTE_STATE.has(sourcePid)) DUELS2_RUVU_HAMMER_REMOTE_STATE.set(sourcePid,{revision:0,active:false,hammerId:null});
+  return DUELS2_RUVU_HAMMER_REMOTE_STATE.get(sourcePid);
+}
+
+function duels2CollectRuvuHammerRemoteEntities(packet = {}, sourceEntity = null) {
+  const sourcePid=duels2ResolveRuvuHammerSourcePid(packet,sourceEntity);
+  const hammerId=packet.hammerId||packet.eventId||packet.ruvuHammer?.id||null;
+  const list=[sourceEntity,R,...(duels2GetActiveRemotePlayers?.()||[])];
+  return list.filter((entity,index,all)=>{
+    if(!entity||entity===L||all.indexOf(entity)!==index) return false;
+    const pid=getPlayerPid?.(entity)||entity.pid||null;
+    return entity===sourceEntity||(sourcePid&&pid===sourcePid)||(hammerId&&entity._ruvuHammer?.id===hammerId);
+  });
+}
+
+function duels2ApplyRemoteRuvuHammerClear(packet = {}) {
+  const sourceEntity=duels2ResolvePacketSourceEntity(packet);
+  const sourcePid=duels2ResolveRuvuHammerSourcePid(packet,sourceEntity);
+  const state=duels2GetRuvuHammerRemoteState(sourcePid);
+  const revision=Math.max(0,Number(packet.hammerRevision??packet.revision)||0);
+  if(state&&revision&&revision<state.revision) return false;
+  if(state){state.revision=Math.max(state.revision,revision);state.active=false;state.hammerId=packet.hammerId||state.hammerId||null;}
+  for(const entity of duels2CollectRuvuHammerRemoteEntities(packet,sourceEntity)){
+    entity._ruvuHammer=null;
+    entity._ruvuHammerExplicitlyCleared=true;
+    entity._ruvuHammerClearedId=packet.hammerId||entity._ruvuHammerClearedId||null;
+    entity._ruvuHammerClearRevision=Math.max(Number(entity._ruvuHammerClearRevision)||0,revision);
+    entity._ruvuHammerClearUntil=Number.POSITIVE_INFINITY;
+  }
+  return true;
+}
+
+function duels2ApplyRemoteRuvuHammerThrow(packet = {}) {
+  const sourceEntity=duels2ResolvePacketSourceEntity(packet);
+  if(!sourceEntity||sourceEntity===L) return false;
+  const sourcePid=duels2ResolveRuvuHammerSourcePid(packet,sourceEntity);
+  const state=duels2GetRuvuHammerRemoteState(sourcePid);
+  const revision=Math.max(0,Number(packet.hammerRevision??packet.revision)||0);
+  const hammerId=packet.hammerId||packet.eventId||packet.ruvuHammer?.id||null;
+  if(state&&revision&&revision<state.revision) return false;
+  if(state&&!state.active&&revision&&revision===state.revision&&state.hammerId===hammerId) return false;
+  if(state){state.revision=Math.max(state.revision,revision);state.active=true;state.hammerId=hammerId;}
+  sourceEntity._ruvuHammerExplicitlyCleared=false;sourceEntity._ruvuHammerClearUntil=0;sourceEntity._ruvuHammerClearedId=null;sourceEntity._ruvuHammerClearRevision=0;
+  sourceEntity._ruvuHammer={id:hammerId,revision,x:packet.x,y:packet.y,tx:packet.x,ty:packet.y,dx:packet.dx,dy:packet.dy,speed:packet.speed,radius:packet.radius,maxRange:packet.maxRange,traveled:Number(packet.traveled)||0,_stopped:!!packet.stopped,returning:!!packet.returning,returnStart:Number(packet.returnStart)||0,returnSX:Number(packet.returnSX??packet.x)||0,returnSY:Number(packet.returnSY??packet.y)||0};
+  return true;
+}
+window.DUELS2_RUVU_HAMMER_REMOTE_STATE=DUELS2_RUVU_HAMMER_REMOTE_STATE;
+
+// ruvuHammerClear: 송신자의 망치와 R 호환 별칭을 모두 제거하고, 다음 명시적 투척 전까지 오래된 상태 스냅샷의 복원을 막는다.
+duels2RegisterSimpleGameplayEventHandler('ruvuHammerClear', d => { duels2ApplyRemoteRuvuHammerClear(d); });
 
 // duels2GetEventHandlerMigrationSummary: Step 9 Handler 이전과 남은 switch fallback 상태를 반환한다.
 function duels2GetEventHandlerMigrationSummary() {
@@ -27374,18 +27427,8 @@ function duels2RegisterExtendedLegacyEventHandlers() {
   },510);
   duels2RegisterSimpleGameplayEventHandler('levinaSpearClear', d => {duels2ResolvePacketSourceEntity(d)._levinaSpear=null;}, 510);
   duels2RegisterSimpleGameplayEventHandler('levinaSpearParried', d => {if(L._levinaSpear)duels2BeginLevinaSpearRecall(L._levinaSpear,{x:d.x,y:d.y,copyForwardHits:false});}, 510);
-  duels2RegisterSimpleGameplayEventHandler('ruvuHammerThrow',d=>{
-    const e=duels2ResolvePacketSourceEntity(d);
-    e._ruvuHammer={
-      x:d.x,y:d.y,tx:d.x,ty:d.y,
-      dx:d.dx,dy:d.dy,speed:d.speed,radius:d.radius,maxRange:d.maxRange,
-      traveled:0,_stopped:false,returning:false,
-      returnStart:0,returnSX:d.x,returnSY:d.y
-    };
-  },510);
-  duels2RegisterSimpleGameplayEventHandler('ruvuHammerClear',d=>{
-    duels2ResolvePacketSourceEntity(d)._ruvuHammer=null;
-  },510);
+  duels2RegisterSimpleGameplayEventHandler('ruvuHammerThrow',d=>{duels2ApplyRemoteRuvuHammerThrow(d);},510);
+  duels2RegisterSimpleGameplayEventHandler('ruvuHammerClear',d=>{duels2ApplyRemoteRuvuHammerClear(d);},510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerRecall',d=>{
     const e=duels2ResolvePacketSourceEntity(d);
     const hammer=e?._ruvuHammer;
@@ -27400,7 +27443,18 @@ function duels2RegisterExtendedLegacyEventHandlers() {
     hammer._deathRecall=d.reason==='revival-death';
   },510);
   duels2RegisterSimpleGameplayEventHandler('ruvuHammerParried', d => {if(L._ruvuHammer&&!L._ruvuHammer.returning){L._ruvuHammer.returning=true;L._ruvuHammer.returnStart=performance.now();L._ruvuHammer.returnSX=d.x;L._ruvuHammer.returnSY=d.y;L._ruvuHammer._returnHit=true;L._ruvuHammer._hitR=true;clearTimeout(L._ruvuHammer._timer);}}, 510);
-  duels2RegisterSimpleGameplayEventHandler('ruvuHammerHitMe', d => {_addDmgNum('dealt',Math.round(d.damage),R.x,R.y-R.radius-10,getHitTargetKey(R));addShake(Math.min(4+d.damage*0.12,10),14);playHitSfx();applyLifesteal(d.damage);applyPoison(d.damage);}, 510);
+  const DUELS2_RUVU_HAMMER_FEEDBACK_EVENTS = new Map();
+duels2RegisterSimpleGameplayEventHandler('ruvuHammerHitMe', d => {
+  const eventId=String(d.eventId||'');
+  const now=performance.now();
+  for(const [id,at] of DUELS2_RUVU_HAMMER_FEEDBACK_EVENTS){if(now-at>1500)DUELS2_RUVU_HAMMER_FEEDBACK_EVENTS.delete(id);}
+  if(eventId&&DUELS2_RUVU_HAMMER_FEEDBACK_EVENTS.has(eventId)) return;
+  if(eventId) DUELS2_RUVU_HAMMER_FEEDBACK_EVENTS.set(eventId,now);
+  // 피해 숫자·피격 연출은 피해 소유 클라이언트가 보내는 dmgDealtSync 한 경로에서만 표시한다.
+  // 이 전용 이벤트는 공격자 소유 증강 후속 효과만 처리한다.
+  applyLifesteal(d.damage);
+  applyPoison(d.damage);
+}, 510);
   duels2RegisterSimpleGameplayEventHandler('pull', d => {if(!L.burrowing&&!L.dodging)applyTargetMoveTo(L,d.tx,d.ty,d.dur||220);}, 510);
   duels2RegisterSimpleGameplayEventHandler('combatObjectResnapshotRequest', d => {const pid=d.requesterPid||d.sourcePid||d.pid;if(PLAYER_SLOT_IDS.includes(pid)&&pid!==DUELS2_PLAYER_REGISTRY.localPid)duels2SendLocalCombatObjectResnapshot(pid);}, 510);
   duels2RegisterSimpleGameplayEventHandler('dodgeIntent', d => {
@@ -28108,10 +28162,7 @@ function onData(d) {
         clearTimeout(L._ruvuHammer._timer);
       } break;
     case 'ruvuHammerHitMe':
-      // 피격자 화면에서 판정한 망치 피해 — 루뷰 화면에 통계/이펙트 표시
-      _addDmgNum('dealt', Math.round(d.damage), R.x, R.y-R.radius-10, getHitTargetKey(R));
-      addShake(Math.min(4+d.damage*0.12,10), 14);
-      playHitSfx(); applyLifesteal(d.damage); applyPoison(d.damage);
+      // 공용 gameplay event handler에서 한 번만 처리한다.
       break;
     case 'pull': {
       // 플레이어 pull도 더 이상 setInterval 전용 이동식을 쓰지 않는다.
@@ -28319,12 +28370,7 @@ function onData(d) {
       if (pi !== -1) peerMinions.splice(pi, 1);
       break;
     }
-    case 'ruvuHammerThrow': {
-      const sourceEntity = duels2ResolvePacketSourceEntity(d);
-      sourceEntity._ruvuHammer = { x:d.x, y:d.y, dx:d.dx, dy:d.dy, speed:d.speed, radius:d.radius, maxRange:d.maxRange,
-                        traveled:0, returning:false, returnStart:0, returnSX:d.x, returnSY:d.y };
-      break;
-    }
+    case 'ruvuHammerThrow': { duels2ApplyRemoteRuvuHammerThrow(d); break; }
     case 'chat': {
       const sourceEntity = duels2ResolvePacketSourceEntity(d);
       const sourcePid = getPlayerPid(sourceEntity) || d.sourcePid || 'P2';
@@ -28338,11 +28384,7 @@ function onData(d) {
       _showTyping(d.typing, sourcePid, d.name || sourceEntity?.charDef?.name || sourcePid);
       break;
     }
-    case 'ruvuHammerClear': {
-      const sourceEntity = duels2ResolvePacketSourceEntity(d);
-      sourceEntity._ruvuHammer = null;
-      break;
-    }
+    case 'ruvuHammerClear': { duels2ApplyRemoteRuvuHammerClear(d); break; }
   }
 }
 
@@ -30326,14 +30368,19 @@ MINION_DEFS['lete_mailbox'] = {
     const groundCount=Array.isArray(L._leteGroundLetters)?L._leteGroundLetters.length:0;
     if(groundCount>=B.maxGround) return;
     if((m._stateData.fireCd||0)>now) return;
-    const allies=duels2GetLeteMailEligibleAllies(m,B.fireRange);
-    const nearest=duels2FindNearestTargetFromPoint(m.x,m.y,allies,{maxRange:B.fireRange});
+    const allies=duels2GetLeteMailEligibleAllies(m);
+    const nearest=duels2FindNearestTargetFromPoint(m.x,m.y,allies);
     const target=nearest?.target;
     if(!target) return;
-    const actualDistance=Math.hypot(target.x-m.x,target.y-m.y);
-    if(actualDistance>B.fireRange) return;
     const angle=Math.atan2(target.y-m.y,target.x-m.x);
-    const b=duels2CreateLeteLetterProjectile(angle,B,'support',{x:m.x,y:m.y,targetId:target.id||target.pid||null,targetX:target.x,targetY:target.y,staminaRatio:B.staminaRatio});
+    const b=duels2CreateLeteLetterProjectile(angle,B,'support',{
+      x:m.x,y:m.y,
+      targetId:target.id||target.pid||null,
+      targetX:target.x,targetY:target.y,
+      // 대상 탐색 거리는 무제한이며, 우편은 기존 지원 우편 이동 사거리만큼 날아간다.
+      range:Number(B.letterRange)||(400*(2/3)),
+      staminaRatio:B.staminaRatio
+    });
     duels2RouteProjectileDelivery(b,{applyPierce:false,sync:true,playSfx:true,moduleId:'delivery.lete-support-mail',reason:'lete.mailbox.support'});
     m._stateData.fireCd=now+B.fireInterval;
   },
@@ -30343,7 +30390,7 @@ MINION_DEFS['lete_mailbox'] = {
       profileId:'standard', isPeer,
       color:CHARACTERS.lete.color,
       radius:m.radius,
-      rangeRadius:isPeer?0:B.fireRange,
+      rangeRadius:0,
       label:'우편함',
       profile:{
         localFill:'rgba(167,176,164,0.58)',
@@ -33243,13 +33290,10 @@ const SK = {
 
 
 
-// duels2GetLeteMailEligibleAllies: 우편함 사거리 안의 살아 있는 아군을 스테미나 상태와 무관하게 반환한다. (mailbox: 우편함 엔티티, range: 탐색 반경)
-function duels2GetLeteMailEligibleAllies(mailbox, range) {
+// duels2GetLeteMailEligibleAllies: 거리 제한 없이 살아 있는 아군을 반환한다. (mailbox: 우편함 엔티티)
+function duels2GetLeteMailEligibleAllies(mailbox) {
   const candidates=[L,...localMinions.filter(entity=>entity!==mailbox&&entity.hp>0&&Number.isFinite(entity.stamina))];
-  return candidates.filter(entity=>{
-    if(!entity||entity.hp===0) return false;
-    return Math.hypot(entity.x-mailbox.x,entity.y-mailbox.y)<=Number(range||0);
-  });
+  return candidates.filter(entity=>!!entity&&entity.hp!==0);
 }
 
 // duels2ClearLeteGroundLetters: 우편함 설치·회수 시 기존 바닥 우편만 모두 제거한다. (reason: 제거 사유)
@@ -33694,6 +33738,38 @@ function duels2ExecuteSteppedRangePointHit(source, angle, stage, damage, opt={})
   return {point:geometry,hitContext,targets,appliedTargets,applied:!!summary?.anyApplied,summary};
 }
 
+// duels2TryExecuteRuvuHammerDash: 루뷰의 RMB 후속 LMB를 일반 평타와 분리해 한 번만 소비한다. (angle: 입력 각도, opt: route 기록 옵션)
+function duels2TryExecuteRuvuHammerDash(angle, opt = {}) {
+  const hammer=L?._ruvuHammer;
+  if (!hammer || hammer.returning) return false;
+  const BR=duels2GetSkillBalance('ruvu','rmb');
+  L._isRmbContext=true;
+  try {
+    const hx=hammer.x, hy=hammer.y;
+    const toH=Math.atan2(hy-L.y,hx-L.x);
+    const tx=Math.max(L.radius,Math.min(WORLD_W-L.radius,hx+Math.cos(toH)*BR.lmbDashExtra));
+    const ty=Math.max(L.radius,Math.min(WORLD_H-L.radius,hy+Math.sin(toH)*BR.lmbDashExtra));
+    ruvuDash(tx,ty,BR.lmbDashDur,{reason:'ruvu.lmb.hammer-dash',route:opt.route||'movement.skill-dash.hammer',source:L});
+    emitFx({type:'dash',x:L.x,y:L.y,tx,ty,dur:10,maxDur:10});
+    const clearedHammerId=hammer.id||null;
+    const clearedHammerRevision=(Number(L._ruvuHammerRevision)||0)+1;
+    L._ruvuHammerRevision=clearedHammerRevision;
+    clearTimeout(hammer._timer);
+    L._ruvuHammer=null;
+    send({type:'ruvuHammerClear',sourcePid:getPlayerPid?.(L)||DUELS2_PLAYER_REGISTRY.localPid||'P1',hammerId:clearedHammerId,hammerRevision:clearedHammerRevision,reason:'lmb-hammer-dash'});
+    sendState?.();
+    try{sendPlayerState?.();}catch(_){}
+    L._ruvuSuppressLmbUntilRelease=true;
+    L.lmbCooldown=BR.cdAfterDash;
+    L.rmbCooldown=BR.cdAfterDash;
+    L.lastAttackTime=performance.now();
+    return true;
+  } finally {
+    L._isRmbContext=false;
+  }
+}
+window.duels2TryExecuteRuvuHammerDash=duels2TryExecuteRuvuHammerDash;
+
 const SKILLS = {
 
   shubi: {
@@ -33748,27 +33824,8 @@ const SKILLS = {
   ruvu: {
     lmb(angle) {
       const B = duels2GetSkillBalance('ruvu','lmb');
-      // ── 망치가 날아가는 중이면 LMB → 망치 위치로 돌진 ──
-      // RMB 후속 입력이므로 일반 LMB 못 발사 비용을 소모하지 않는다.
-      if (L._ruvuHammer && !L._ruvuHammer.returning) {
-        L._isRmbContext = true; // 연계 좌클릭은 등가교환 rmb 배율 적용
-        const BR = duels2GetSkillBalance('ruvu','rmb');
-        const hx = L._ruvuHammer.x, hy = L._ruvuHammer.y;
-        const toH = Math.atan2(hy - L.y, hx - L.x);
-        // 망치 위치 + dashExtra 방향으로 목적지 계산
-        const tx = Math.max(L.radius, Math.min(WORLD_W-L.radius, hx + Math.cos(toH)*BR.lmbDashExtra));
-        const ty = Math.max(L.radius, Math.min(WORLD_H-L.radius, hy + Math.sin(toH)*BR.lmbDashExtra));
-        ruvuDash(tx, ty, BR.lmbDashDur, {reason:'ruvu.lmb.hammer-dash', route:'movement.skill-dash.hammer', source:L});
-        emitFx({type:'dash', x:L.x, y:L.y, tx, ty, dur:10, maxDur:10});
-        // 망치 회수
-        clearTimeout(L._ruvuHammer._timer);
-        L._ruvuHammer = null;
-        send({type:'ruvuHammerClear'});
-        L._isRmbContext = false;
-        L.lmbCooldown = BR.cdAfterDash; // 버그5: 돌진 후 LMB 쿨 부여로 못 발사 중복 방지
-        L.rmbCooldown = BR.cdAfterDash; L.lastAttackTime = performance.now();
-        return; // 못 발사 실행 안 함
-      }
+      // 전용 입력 프로필을 거치지 않은 직접 호출도 같은 후속 입력 helper에서 한 번만 처리한다.
+      if (duels2TryExecuteRuvuHammerDash(angle,{route:'skill.ruvu.lmb.hammer-dash-fallback'})) return false;
       // ── 일반 못 발사 ──
       if (!useStam(B.cost)) return;
       const b={id:uid(), x:L.x, y:L.y, radius:augBulletRadius(B.radius), speed:augBulletSpeed(B.speed),
@@ -33811,7 +33868,12 @@ const SKILLS = {
 
       // ── 망치 던지기 ──
       const dx = Math.cos(angle), dy = Math.sin(angle);
+      const hammerId = uid();
+      const hammerRevision = (Number(L._ruvuHammerRevision) || 0) + 1;
+      L._ruvuHammerRevision = hammerRevision;
       L._ruvuHammer = {
+        id: hammerId,
+        revision: hammerRevision,
         x: L.x, y: L.y,
         dx, dy,
         speed: augBulletSpeed(B.hammerSpeed),
@@ -33830,7 +33892,7 @@ const SKILLS = {
         L._ruvuHammer.returnSX = L._ruvuHammer.x;
         L._ruvuHammer.returnSY = L._ruvuHammer.y;
       }, B.window);
-      send({type:'ruvuHammerThrow', x:L.x, y:L.y, dx, dy, speed:augBulletSpeed(B.hammerSpeed), radius:augBulletRadius(B.hammerRadius), maxRange:B.hammerRange});
+      send({type:'ruvuHammerThrow', sourcePid:getPlayerPid?.(L) || DUELS2_PLAYER_REGISTRY.localPid || 'P1', hammerId, hammerRevision, x:L.x, y:L.y, dx, dy, speed:augBulletSpeed(B.hammerSpeed), radius:augBulletRadius(B.hammerRadius), maxRange:B.hammerRange});
       emitFx({type:'ruvuHammerThrow', x:L.x, y:L.y, angle, dur:10, maxDur:10});
       L.rmbCooldown = B.cdPlace; L.lastAttackTime = now;
     },
@@ -37658,6 +37720,7 @@ const SKILLS = {
       }
       const B = duels2GetSkillBalance('ki','rmb');
       if (!L._kiRmbActive || !L._kiRmbReady) return;
+      if (!useStam(B.followupLmbCost)) return;
 
       // 전용 토큰 — _counterToken과 무관하게 이 발동만 추적
       L._kiLmbToken = (L._kiLmbToken || 0) + 1;
@@ -37940,18 +38003,16 @@ const SKILLS = {
       const B=duels2GetSkillBalance('lete','rmb');
       const existing=localMinions.find(m=>m.type==='lete_mailbox'&&m.hp>0);
       if(existing) {
-        // 우편함 회수 시 기존 바닥 우편은 정리하되, 이미 비행 중인 우편은 유지한다.
-        duels2ClearLeteGroundLetters('lete-mailbox-recall');
+        // 우편함만 회수하며 이미 발사되었거나 바닥에 놓인 우편은 유지한다.
         duels2RecallLeteMailboxOnly(existing,{reason:'lete-mailbox-recall',broadcast:true});
         L.rmbCooldown=B.recallCd||300;
         L.lastAttackTime=performance.now();
         return;
       }
       if(!useStam(B.cost)) return;
-      // 새 우편함 설치 시 이전 우편함이 남긴 바닥 우편을 모두 제거한다.
-      duels2ClearLeteGroundLetters('lete-mailbox-install');
-      const x=Math.max(B.mailboxRadius,Math.min(WORLD_W-B.mailboxRadius,L.x+Math.cos(angle)*B.placeDist));
-      const y=Math.max(B.mailboxRadius,Math.min(WORLD_H-B.mailboxRadius,L.y+Math.sin(angle)*B.placeDist));
+      // 설치 거리와 전방 오프셋 없이 레테의 현재 위치에 설치한다.
+      const x=Math.max(B.mailboxRadius,Math.min(WORLD_W-B.mailboxRadius,L.x));
+      const y=Math.max(B.mailboxRadius,Math.min(WORLD_H-B.mailboxRadius,L.y));
       L._leteMailbox=spawnMinion('lete','lete_mailbox',x,y,{maxHp:B.mailboxHp,hp:B.mailboxHp,radius:B.mailboxRadius,color:CHARACTERS.lete.color,speed:0,ownerId:'local',sourceEntity:L});
       // 우편함 설치 직후에는 발사하지 않고 첫 공격 주기가 지난 뒤에만 우편을 발사한다.
       if (L._leteMailbox) {
@@ -40359,47 +40420,26 @@ duels2RegisterPlayerStateSpecialField('levina-spear',(remote,d)=>{
 // 루뷰 망치 특수 필드: 원격 망치 목표 좌표와 회수 시작 상태를 복원한다.
 duels2RegisterPlayerStateSpecialField('ruvu-hammer',(remote,d)=>{
   const snapshot=d.ruvuHammer;
-  if(snapshot){
-    if(!remote._ruvuHammer){
-      remote._ruvuHammer={
-        x:snapshot.x,
-        y:snapshot.y,
-        tx:snapshot.x,
-        ty:snapshot.y,
-        dx:snapshot.dx,
-        dy:snapshot.dy,
-        speed:snapshot.speed,
-        radius:snapshot.radius,
-        maxRange:snapshot.maxRange,
-        traveled:snapshot.traveled||0,
-        returning:false,
-        returnStart:0,
-        returnSX:snapshot.x,
-        returnSY:snapshot.y
-      };
-    }
-    const hammer=remote._ruvuHammer;
-    hammer.tx=snapshot.x;
-    hammer.ty=snapshot.y;
-    if(Number.isFinite(snapshot.dx)) hammer.dx=snapshot.dx;
-    if(Number.isFinite(snapshot.dy)) hammer.dy=snapshot.dy;
-    if(Number.isFinite(snapshot.speed)) hammer.speed=snapshot.speed;
-    if(Number.isFinite(snapshot.radius)) hammer.radius=snapshot.radius;
-    if(Number.isFinite(snapshot.maxRange)) hammer.maxRange=snapshot.maxRange;
-    if(Number.isFinite(snapshot.traveled)) hammer.traveled=snapshot.traveled;
-    hammer._stopped=!!snapshot.stopped;
-    hammer.returning=!!snapshot.returning;
-    if(snapshot.returning && !hammer._wasReturning){
-      hammer._wasReturning=true;
-      hammer.returnStart=performance.now();
-      hammer.returnSX=snapshot.returnSX||snapshot.x;
-      hammer.returnSY=snapshot.returnSY||snapshot.y;
-    }else if(!snapshot.returning){
-      hammer._wasReturning=false;
-    }
-  }else if(snapshot===null){
-    remote._ruvuHammer=null;
+  const sourcePid=d.sourcePid||d.pid||getPlayerPid?.(remote)||null;
+  const revision=Math.max(0,Number(d.ruvuHammerRevision??snapshot?.revision)||0);
+  const state=duels2GetRuvuHammerRemoteState(sourcePid);
+  if(d.ruvuHammerActive===false||snapshot===null){
+    if(!state||!revision||revision>=state.revision) duels2ApplyRemoteRuvuHammerClear({...d,sourcePid,hammerId:d.ruvuHammerId||state?.hammerId||remote?._ruvuHammer?.id||null,hammerRevision:revision});
+    return null;
   }
+  if(!snapshot) return null;
+  const hammerId=snapshot.id||null;
+  if(state&&revision&&revision<state.revision) return null;
+  if(state&&!state.active&&revision&&revision===state.revision) return null;
+  if(remote._ruvuHammerClearRevision&&revision&&revision<=remote._ruvuHammerClearRevision) return null;
+  if(!remote._ruvuHammer||remote._ruvuHammer.id!==hammerId){
+    if(!duels2ApplyRemoteRuvuHammerThrow({...snapshot,sourcePid,hammerId,hammerRevision:revision})) return null;
+  }
+  const hammer=remote._ruvuHammer;if(!hammer)return null;
+  hammer.revision=revision;hammer.tx=snapshot.x;hammer.ty=snapshot.y;
+  if(Number.isFinite(snapshot.dx))hammer.dx=snapshot.dx;if(Number.isFinite(snapshot.dy))hammer.dy=snapshot.dy;if(Number.isFinite(snapshot.speed))hammer.speed=snapshot.speed;if(Number.isFinite(snapshot.radius))hammer.radius=snapshot.radius;if(Number.isFinite(snapshot.maxRange))hammer.maxRange=snapshot.maxRange;if(Number.isFinite(snapshot.traveled))hammer.traveled=snapshot.traveled;
+  hammer._stopped=!!snapshot.stopped;hammer.returning=!!snapshot.returning;
+  if(snapshot.returning&&!hammer._wasReturning){hammer._wasReturning=true;hammer.returnStart=performance.now();hammer.returnSX=snapshot.returnSX||snapshot.x;hammer.returnSY=snapshot.returnSY||snapshot.y;}else if(!snapshot.returning){hammer._wasReturning=false;}
   return snapshot;
 },{priority:80});
 
@@ -40531,6 +40571,9 @@ const getAngle = () => Math.atan2(mouseY-L.y, mouseX-L.x);
 
 // doLMB: 로컬 좌클릭 평타 입력을 슬롯 가드와 Skill Executor 경계로 실행한다. ()
 function duels2LegacyDoLMB() {
+  // 루뷰의 RMB/LMB 망치 돌진에 사용된 물리 클릭은 마우스를 놓을 때까지 완전히 소비한다.
+  // 돌진 직후 망치가 사라진 상태에서 홀드 자동 평타 루프가 같은 클릭을 일반 LMB로 재해석하는 것을 막는다.
+  if (L._ruvuSuppressLmbUntilRelease === true) return;
   const _lmbGuard = duels2EvaluateLocalSkillSlotGuard('lmb', {
     route:'input.lmb.guard',
     checkPrimaryLock:true,
@@ -46163,10 +46206,11 @@ function draw() {
     ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
   }
   // 루뷰 망치 렌더링 (상대방)
-  const _renderRemoteHammerOwner=(duels2GetActiveRemotePlayers?.()||[]).find(entity=>entity&&entity!==L&&entity._ruvuHammer)||(R?._ruvuHammer?R:null);
-  if(_renderRemoteHammerOwner&&R&&R!==_renderRemoteHammerOwner) R._ruvuHammer=_renderRemoteHammerOwner._ruvuHammer;
-  if (gameOn && R._ruvuHammer) {
-    const _rhd = R._ruvuHammer;
+  const _renderRemoteHammerCandidates=[...(duels2GetActiveRemotePlayers?.()||[]),R].filter((entity,index,list)=>entity&&entity!==L&&list.indexOf(entity)===index);
+  const _renderRemoteHammerOwner=_renderRemoteHammerCandidates.find(entity=>{const pid=getPlayerPid?.(entity)||entity.pid||null;const st=duels2GetRuvuHammerRemoteState(pid);return entity._ruvuHammer&&entity._ruvuHammerExplicitlyCleared!==true&&(!st||st.active!==false);});
+  if(!_renderRemoteHammerOwner && R) R._ruvuHammer=null;
+  if (gameOn && _renderRemoteHammerOwner?._ruvuHammer) {
+    const _rhd = _renderRemoteHammerOwner._ruvuHammer;
     const _rha = _rhd.returning ? 0.55 : 1.0;
     const _rhpulse = 0.7+0.3*Math.sin(performance.now()*0.014);
     const _rhR = 16 * ((_rhd.radius || duels2GetSkillBalance('ruvu','rmb').hammerRadius) / duels2GetSkillBalance('ruvu','rmb').hammerRadius);
@@ -46176,9 +46220,6 @@ function draw() {
     ctx.strokeStyle=`rgba(255,200,200,${_rha*0.85})`; ctx.lineWidth=2.5;
     ctx.beginPath(); ctx.moveTo(_rhd.x-8,_rhd.y); ctx.lineTo(_rhd.x+8,_rhd.y); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(_rhd.x,_rhd.y-8); ctx.lineTo(_rhd.x,_rhd.y+8); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(R.x,R.y); ctx.lineTo(_rhd.x,_rhd.y);
-    ctx.strokeStyle=`rgba(255,80,80,${_rha*0.2})`; ctx.lineWidth=1.5;
-    ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
   }
 
   // 미아루키 공구함 (회복지대)
@@ -49649,7 +49690,10 @@ const DUELS2_INPUT_STATE_RUNTIME = (() => {
 
     if (phase === 'release' || phase === 'document-release') {
       if (phase === 'release') counters.release += 1; else counters.documentRelease += 1;
-      if (slot === 'lmb') mouseDown = false;
+      if (slot === 'lmb') {
+        mouseDown = false;
+        L._ruvuSuppressLmbUntilRelease = false;
+      }
       if (slot === 'rmb') _rmbHeld = false;
       const session = getSession(slot);
       // 즉발 공격은 press에서 끝나며 세션을 만들지 않는다. release마다 전체 입력 프로필을 다시 검사하면
@@ -49670,6 +49714,9 @@ const DUELS2_INPUT_STATE_RUNTIME = (() => {
 
     if (phase === 'leave') {
       counters.leave += 1;
+      // 캔버스를 벗어나 mouseup이 누락돼도 루뷰 후속 LMB 소비 상태가 남지 않게 정리한다.
+      mouseDown = false;
+      L._ruvuSuppressLmbUntilRelease = false;
       let handled = false;
       for (const currentSlot of ['lmb','rmb']) {
         const session = getSession(currentSlot);
@@ -49778,6 +49825,22 @@ duels2RegisterInputStateProfile('levina-recall-hold', {
     _levinaRecallHoldTriggered = false;
     _levinaRecallHoldStartedAt = 0;
   }
+});
+
+// 루뷰 망치 돌진 프로필: RMB 후속 LMB를 일반 평타 Adapter보다 먼저 소비하고 release까지 세션을 유지한다.
+duels2RegisterInputStateProfile('ruvu-hammer-dash-followup', {
+  slot:'lmb', priority:500, mode:'hold-release', blocksAutoPrimary:true,
+  match({actor,slot,phase,session}) {
+    if (slot!=='lmb' || actor?.charDef?.id!=='ruvu') return false;
+    if (session?.profileId==='ruvu-hammer-dash-followup') return true;
+    return phase==='press' && !!actor._ruvuHammer && !actor._ruvuHammer.returning;
+  },
+  press({payload}) {
+    duels2TryExecuteRuvuHammerDash(Number.isFinite(payload.angle)?payload.angle:getAngle(),{route:'input.lmb.ruvu-hammer-dash-followup'});
+  },
+  release() { L._ruvuSuppressLmbUntilRelease=false; },
+  documentRelease() { L._ruvuSuppressLmbUntilRelease=false; },
+  leave() { L._ruvuSuppressLmbUntilRelease=false; }
 });
 
 // 일반 클릭 프로필: 상태 입력이 아닌 입력을 기존 Skill Executor Adapter로 전달한다.
@@ -65157,12 +65220,11 @@ function loop() {
     }
   }
   // 원격 망치는 패킷이 귀속된 실제 원격 엔티티에서 처리한다.
-  const _remoteHammerOwner=(duels2GetActiveRemotePlayers?.()||[]).find(entity=>entity&&entity!==L&&entity._ruvuHammer)
-    || (R?._ruvuHammer?R:null);
+  const _remoteHammerCandidates=[...(duels2GetActiveRemotePlayers?.()||[]),R].filter((entity,index,list)=>entity&&entity!==L&&list.indexOf(entity)===index);
+  const _remoteHammerOwner=_remoteHammerCandidates.find(entity=>{const pid=getPlayerPid?.(entity)||entity.pid||null;const st=duels2GetRuvuHammerRemoteState(pid);return entity._ruvuHammer&&entity._ruvuHammerExplicitlyCleared!==true&&(!st||st.active!==false);});
+  if(!_remoteHammerOwner && R) R._ruvuHammer=null;
   if(_remoteHammerOwner?._ruvuHammer){
     const _rh=_remoteHammerOwner._ruvuHammer;
-    // 기존 렌더러의 R 호환 참조도 같은 객체를 보게 한다.
-    if(R&&R!==_remoteHammerOwner) R._ruvuHammer=_rh;
     if(!_rh.returning && Number.isFinite(_rh.tx) && Number.isFinite(_rh.ty)){
       const correction=Math.min(1,Math.max(0.18,dt*0.45));
       _rh.x+=(_rh.tx-_rh.x)*correction;
@@ -65179,8 +65241,10 @@ function loop() {
         if (duels2EntityMatchesHitbox(L,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:false},{source:_remoteHammerOwner,x:_rh.x,y:_rh.y})) {
           _rh._returnHit = true;
           if (!_trainingMode) {
-            send({type:'ruvuHammerHitMe', damage: applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage)});
-            receiveHit(applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage));
+            const _hammerDamage1=applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage);
+            const _hammerEventId1=uid();
+            send({type:'ruvuHammerHitMe', eventId:_hammerEventId1, damage:_hammerDamage1});
+            receiveHit(_hammerDamage1,{fromNetwork:true,source:_remoteHammerOwner,skipSourceModifiers:true,feedbackEventId:_hammerEventId1,eventId:_hammerEventId1,projectileX:_rh.x,projectileY:_rh.y,centerX:_rh.x,centerY:_rh.y});
           } else {
             // 훈련장: 망치 위치 기준 가장 가까운 타겟에 피해
             for (const _t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
@@ -65209,8 +65273,10 @@ function loop() {
       if (!_trainingMode) {
         if (duels2EntityMatchesHitbox(L,{shape:'circle',radius:_HR2,relation:'enemy',includePlayers:true,includeSummons:false},{source:_remoteHammerOwner,x:_rh.x,y:_rh.y})) {
           _rh._hitR = true; _hammerHit = true;
-          send({type:'ruvuHammerHitMe', damage: applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage)});
-          receiveHit(applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage));
+          const _hammerDamage2=applyDmgAugs(duels2GetSkillBalance('ruvu','rmb').hammerDamage);
+          const _hammerEventId2=uid();
+          send({type:'ruvuHammerHitMe', eventId:_hammerEventId2, damage:_hammerDamage2});
+          receiveHit(_hammerDamage2,{fromNetwork:true,source:_remoteHammerOwner,skipSourceModifiers:true,feedbackEventId:_hammerEventId2,eventId:_hammerEventId2,projectileX:_rh.x,projectileY:_rh.y,centerX:_rh.x,centerY:_rh.y});
         }
       } else {
         for (const _t of getEnemyTargets(L, {aliveOnly:true, route:'attack.all-enemy-targets', reason:'canonical-attack-target-collection'})) {
@@ -66886,8 +66952,13 @@ function duels2BuildNetworkCombatSnapshotDirect(entity = L, opt = {}) {
       : !!entity._pelunaEmpowered,
     statusSnapshot: getNetStatusSnapshot?.(entity),
     botSnapshot: duels2BuildNetworkDebugBotSnapshotList({reason:'state-packet', route:'network.state.debug-bot-list'}),
+    ruvuHammerRevision: Number(entity._ruvuHammerRevision)||0,
+    ruvuHammerActive: !!(hasEntityFunctionalRuntime(entity, 'hammerAnchor') && entity._ruvuHammer),
+    ruvuHammerId: entity._ruvuHammer?.id||null,
     ruvuHammer: (hasEntityFunctionalRuntime(entity, 'hammerAnchor') && entity._ruvuHammer)
       ? {
+          id:entity._ruvuHammer.id||null,
+          revision:Number(entity._ruvuHammerRevision)||Number(entity._ruvuHammer.revision)||0,
           x:entity._ruvuHammer.x,
           y:entity._ruvuHammer.y,
           dx:entity._ruvuHammer.dx,
