@@ -38667,7 +38667,9 @@ const SKILLS = {
         const x=L.x+Math.cos(a)*B.orbitRange,y=L.y+Math.sin(a)*B.orbitRange;
         const targets=duels2QueryHitboxTargets({shape:'circle',radius:B.shieldRadius,relation:'enemy'},{source:L,x,y,targets:duels2CollectFormerRsTargets('target.shello.lmb')});
         for(const target of targets){const key=getHitTargetKey(target);if(hit.has(key))continue;hit.add(key);duels2ApplyCombatObjectDirectDamage(target,B.damage,{source:L,route:'skill.shello.lmb.shield-edge',moduleId:'effect.damage.shello-lmb',delivery:'melee',timing:'continuous'});}
-        if(t<1)requestAnimationFrame(tick);else if(hit.size)playHitSfx();
+        // 실제 적중음은 공통 피해 확정 경로가 대상별 최초 적중 순간에 한 번만 처리한다.
+        // 스윙 종료 시 다시 재생하면 같은 평타에서 지연된 두 번째 적중음이 생기므로 별도 재생하지 않는다.
+        if(t<1)requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
       L.lmbCooldown=B.cd;L.lastAttackTime=performance.now();
