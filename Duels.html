@@ -3944,31 +3944,31 @@ const BALANCE = {
     hp:       100,
     speed:    4.25,
     radius:   20,
-    gaugeMax: 100,
+    gaugeMax: 300,
     lmb: {
       cost:       2,
       damage:     4,
-      speed:      22,
+      speed:      26.4,
       slowStages: [
-        { start:0.82, speed:9 },
-        { start:0.90, speed:3.5 },
-        { start:0.96, speed:0.8 },
+        { start:0.82, speed:10.8 },
+        { start:0.90, speed:4.2 },
+        { start:0.96, speed:0.96 },
       ],
       radius:     11,
       range:      520,
       cd:         50,
-      staminaOnHit: 4,
+      staminaOnHit: 6,
+      gaugeOnHit: 6,
     },
     rmb: {
       cost:            35,
       duration:        5000,
       gaugePerShot:    4,
-      shadowGaugeGain: 2,
       cd:              300,
     },
     counter: {
       damage:     20,
-      gaugeGain:  40,
+      gaugeGainRatio: 0.4,
       dashDist:   300,
       dashDur:    220,
       width:      38,
@@ -5051,9 +5051,9 @@ const CHARACTERS = {
       { key:'LMB', name:'달 수리검', cost:duels2GetSkillBalance('clea','lmb').cost,
         desc:`달 수리검을 던져 적중 시 달 그림자와 스테미나가 충전되며 날아갈수록 느려짐. 마우스 홀드 이용 불가 (${duels2GetSkillBalance('clea','lmb').damage})` },
       { key:'RMB', name:'달 그림자', cost:duels2GetSkillBalance('clea','rmb').cost,
-        desc:`${duels2GetSkillBalance('clea','rmb').duration/1000}초 동안 평타마다 달 그림자를 소모해 추가 수리검을 발사. 추가 수리검은 달 그림자 충전량이 ${Math.round((1-(duels2GetSkillBalance('clea','rmb').shadowGaugeGain/Math.max(1,duels2GetSkillBalance('clea','lmb').damage)))*100)}% 낮음.` },
+        desc:`${duels2GetSkillBalance('clea','rmb').duration/1000}초 동안 평타마다 달 그림자를 소모해 추가 수리검을 발사.` },
       { key:'L-Shift', name:'슬라이딩', cost:0,
-        desc:`빠르게 슬라이딩하며 경로상의 적에게 피해. 적중 시 게이지 ${Math.round((duels2GetSkillBalance('clea','counter').gaugeGain/Math.max(1,duels2GetSkillBalance('clea','gaugeMax')))*100)}% 충전 (${duels2GetSkillBalance('clea','counter').damage})` },
+        desc:`빠르게 슬라이딩하며 경로상의 적에게 피해. 달 그림자 ${Math.round(duels2GetSkillBalance('clea','counter').gaugeGainRatio*100)}% 충전 (${duels2GetSkillBalance('clea','counter').damage})` },
     ],
   },
 
@@ -38836,8 +38836,9 @@ const SKILLS = {
           _lmbAttack:true, actionCtx:createActionContext?.({sourceEntity:L,charId:'clea',slot:'lmb',delivery:'projectile',timing:'instant',tags:['lmb','projectile','shuriken',shadowShot?'shadow-followup':'primary']})||null
         };
       };
-      const primaryShuriken=createShuriken(1,B.damage,false);
-      const shadowShuriken=doubleShot?createShuriken(-1,Math.max(0,Number(shadow.shadowGaugeGain)||0),true):null;
+      const unifiedGaugeGain=Math.max(0,Number(B.gaugeOnHit)||0);
+      const primaryShuriken=createShuriken(1,unifiedGaugeGain,false);
+      const shadowShuriken=doubleShot?createShuriken(-1,unifiedGaugeGain,true):null;
       duels2RouteProjectileDelivery(primaryShuriken,{applyPierce:true,sync:true,playSfx:true,moduleId:'delivery.projectile.clea-shuriken',reason:'clea.lmb.moon-shuriken.primary',angle});
       if(shadowShuriken){
         duels2RouteProjectileDelivery(shadowShuriken,{applyPierce:true,sync:true,playSfx:false,moduleId:'delivery.projectile.clea-shuriken',reason:'clea.lmb.moon-shuriken.shadow-followup',angle});
@@ -38875,6 +38876,8 @@ const SKILLS = {
         const hitSet=new Set();
         let prevX=L.x, prevY=L.y;
         const actionCtx=createActionContext?.({sourceEntity:L,charId:'clea',slot:'counter',delivery:'dash',timing:'instant',tags:['counter','dash','slide']})||null;
+        // 반격 슬라이딩이 실제로 시작되면 적중 여부와 무관하게 달 그림자를 한 번 충전한다.
+        SKILLS.clea._addGauge(duels2GetSkillBalance('clea','gaugeMax')*B.gaugeGainRatio);
         // 슬라이딩의 직전 위치와 현재 위치 사이 선분을 검사하여 빠른 이동 중에도 적을 건너뛰지 않는다.
         const applySlideHits=(fromX,fromY,toX,toY)=>{
           const targets=getEnemyTargets(L,{aliveOnly:true,route:'attack.all-enemy-targets',reason:'clea-counter-slide-hit-scan'});
@@ -38891,7 +38894,6 @@ const SKILLS = {
               const knockbackAngle=Math.atan2((target.y||toY)-fromY,(target.x||toX)-fromX);
               applyCC(target,{knockbackPower,knockbackAngle},L,{slot:'counter',reason:'clea-counter-slide-knockback',preserveActionState:true});
             }
-            SKILLS.clea._addGauge(B.gaugeGain);
           }
         };
         duels2MovementStartCancelableDashTo?.(L,'_cleaSlideInterval',tx,ty,B.dashDur,{
