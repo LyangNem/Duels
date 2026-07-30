@@ -3947,7 +3947,7 @@ const BALANCE = {
     gaugeMax: 100,
     lmb: {
       cost:       2,
-      damage:     2,
+      damage:     4,
       speed:      22,
       slowStages: [
         { start:0.82, speed:9 },
@@ -3957,13 +3957,13 @@ const BALANCE = {
       radius:     11,
       range:      520,
       cd:         50,
-      staminaOnHit: 1,
+      staminaOnHit: 4,
     },
     rmb: {
-      cost:            50,
+      cost:            35,
       duration:        5000,
-      gaugePerShot:    2,
-      shadowGaugeGain: 1,
+      gaugePerShot:    4,
+      shadowGaugeGain: 2,
       cd:              300,
     },
     counter: {
@@ -3972,6 +3972,7 @@ const BALANCE = {
       dashDist:   300,
       dashDur:    220,
       width:      38,
+      knockbackPower: 420,
       cd:         500,
     },
   },
@@ -4043,6 +4044,7 @@ const BALANCE = {
       cd:            500,
     },
     counter: {
+      knockbackPower: 420,
       cd:        550,
       revealMs:  300,
     },
@@ -5051,7 +5053,7 @@ const CHARACTERS = {
       { key:'RMB', name:'달 그림자', cost:duels2GetSkillBalance('clea','rmb').cost,
         desc:`${duels2GetSkillBalance('clea','rmb').duration/1000}초 동안 평타마다 달 그림자를 소모해 추가 수리검을 발사. 추가 수리검은 달 그림자 충전량이 ${Math.round((1-(duels2GetSkillBalance('clea','rmb').shadowGaugeGain/Math.max(1,duels2GetSkillBalance('clea','lmb').damage)))*100)}% 낮음.` },
       { key:'L-Shift', name:'슬라이딩', cost:0,
-        desc:`빠르게 슬라이딩하며 경로상의 적에게 피해. 적중 시 게이지 ${duels2GetSkillBalance('clea','counter').gaugeGain} 충전 (${duels2GetSkillBalance('clea','counter').damage})` },
+        desc:`빠르게 슬라이딩하며 경로상의 적에게 피해. 적중 시 게이지 ${Math.round((duels2GetSkillBalance('clea','counter').gaugeGain/Math.max(1,duels2GetSkillBalance('clea','gaugeMax')))*100)}% 충전 (${duels2GetSkillBalance('clea','counter').damage})` },
     ],
   },
 
@@ -38753,7 +38755,7 @@ const SKILLS = {
               applyCC(target,{knockbackPower:parryPower,knockbackAngle:liveAngle},L,{slot:'counter',reason:'shello-parry-counter-knockback',preserveActionState:true});
               break;
             }
-            if(firstImpact){playHitSfx();beginFollow(firstImpact.x,firstImpact.y);return;}
+            if(firstImpact){beginFollow(firstImpact.x,firstImpact.y);return;}
             if(t<1){requestAnimationFrame(throwTick);return;}
             beginFollow(ex,ey);
           };
@@ -38772,7 +38774,7 @@ const SKILLS = {
           const x=L.x+Math.cos(a)*B.orbitRange,y=L.y+Math.sin(a)*B.orbitRange;
           const targets=duels2QueryHitboxTargets({shape:'circle',radius:B.shieldRadius,relation:'enemy'},{source:L,x,y,targets:duels2CollectFormerRsTargets('target.shello.counter')});
           for(const target of targets){const key=getHitTargetKey(target);if(hit.has(key))continue;hit.add(key);totalHits.add(key);duels2ApplyCombatObjectDirectDamage(target,B.damage,{source:L,route:'skill.shello.counter.spinning',moduleId:'effect.damage.shello-counter',delivery:'area',timing:'continuous'});const kb=Number(B.knockbackPower)||420,ka=Math.atan2(target.y-L.y,target.x-L.x);applyCC(target,{knockbackPower:kb,knockbackAngle:ka},L,{slot:'counter',reason:'shello-spinning-knockback',preserveActionState:true});}
-          if(t<1)requestAnimationFrame(spin);else if(totalHits.size)playHitSfx();
+          if(t<1)requestAnimationFrame(spin);
         };
         requestAnimationFrame(spin);L.lastAttackTime=performance.now();
       },{cancelOnRoundChange:true,cancelIfCharChanged:true});
@@ -38884,6 +38886,11 @@ const SKILLS = {
             if(distance>(B.width/2)+targetRadius) continue;
             hitSet.add(key);
             damageSkillProfileTargets([target],B.damage,{slot:'counter',source:L,route:'skill.clea.counter.slide',actionCtx});
+            const knockbackPower=Math.max(0,Number(B.knockbackPower)||0);
+            if(knockbackPower>0){
+              const knockbackAngle=Math.atan2((target.y||toY)-fromY,(target.x||toX)-fromX);
+              applyCC(target,{knockbackPower,knockbackAngle},L,{slot:'counter',reason:'clea-counter-slide-knockback',preserveActionState:true});
+            }
             SKILLS.clea._addGauge(B.gaugeGain);
           }
         };
@@ -51793,6 +51800,13 @@ function duels2ExecuteTinyaManifestDamageV4(circles,opt={}){
     if(highestStage===1)applyCC(target,{slowDur:duels2GetSkillBalance('tinya','lmb').amplifierEffectMs,slowFactor:0.55},source,{slot,reason:'tinya-amplifier-slow-v4'});
     else if(highestStage===2)applyCC(target,{bindDur:duels2GetSkillBalance('tinya','lmb').amplifierEffectMs},source,{slot,reason:'tinya-amplifier-bind-v4'});
     else if(highestStage>=3)applyCC(target,{freezeDur:duels2GetSkillBalance('tinya','lmb').amplifierEffectMs},source,{slot,reason:'tinya-amplifier-freeze-v4'});
+    if(applied&&slot==='counter'){
+      const knockbackPower=Math.max(0,Number(duels2GetSkillBalance('tinya','counter').knockbackPower)||0);
+      if(knockbackPower>0){
+        const knockbackAngle=Math.atan2(ty-(Number(source.y)||0),tx-(Number(source.x)||0));
+        applyCC(target,{knockbackPower,knockbackAngle},source,{slot:'counter',reason:'tinya-counter-manifest-knockback',preserveActionState:true});
+      }
+    }
   }
   emitFx({type:'tinyaManifestFlash',circles:list.map(c=>({x:c.x,y:c.y,r:c.r})),dur:18,maxDur:18,col:DUELS2_TINYA_COLOR});
   if(hitCount)playHitSfx();
@@ -51984,6 +51998,8 @@ duels2RegisterInputStateProfile('tinya-circle-lmb',{
   slot:'lmb',priority:700,mode:'drag-vector',blocksAutoPrimary:true,
   match({actor,slot}){return slot==='lmb'&&actor?.charDef?.id==='tinya';},
   press(){
+    // 스턴 중에는 새 티냐 LMB 호출만 차단한다. 이미 진행 중인 드래그·홀드 입력의 종료 처리는 release 경로에 맡긴다.
+    if(isTargetStatusActive(L,'stun',performance.now()))return;
     const p=duels2GetTinyaPointerWorld(),cast=L._tinyaRmbCast;
     if(L._tinyaRmbInput?.mode==='move'||cast?.phase==='move')return;
     if(cast?.phase==='input'){
@@ -52099,6 +52115,8 @@ duels2RegisterInputStateProfile('tinya-circle-rmb',{
   slot:'rmb',priority:700,mode:'hold-release',
   match({actor,slot}){return slot==='rmb'&&actor?.charDef?.id==='tinya';},
   press(){
+    // 스턴 중에는 새 티냐 RMB 호출과 RMB/RMB 재입력을 차단한다. 스턴 전에 시작된 홀드·선딜레이는 강제로 취소하지 않는다.
+    if(isTargetStatusActive(L,'stun',performance.now()))return;
     const p=duels2GetTinyaPointerWorld(),existing=L._tinyaRmbCast;
     if(L._tinyaInput?.mode==='move')return;
     if(L._tinyaInput&&L._tinyaInput.mode!=='consumed'){L._tinyaRmbInput={mode:'consumed'};return;}
@@ -66119,6 +66137,11 @@ function resetL() {
   L._reikaRBurning=null; L._reikaFireTrails=duels2ClearFieldCollection('localReikaFireTrails', L._reikaFireTrails, {reason:'resetL'}); R._reikaFireTrails=duels2ClearFieldCollection('peerReikaFireTrails', R._reikaFireTrails, {reason:'resetL'}); L._reikaTrailLast=null; // _burnEnd is cleared by duels2RouteResetStatusRuntime above.
   L._kanGauge=0;
   L._cleaGauge=0; L._cleaShadowEnd=0; L._cleaThrowSide=1; clearInterval(L._cleaSlideInterval); L._cleaSlideInterval=null;
+  // 티냐의 최근 발동 배치는 라운드 전용 상태다. 새 라운드에서는 주문서로 이전 라운드 배치를 불러올 수 없도록 폐기한다.
+  if(L._tinyaRmbCast?.timerId)clearTimeout(L._tinyaRmbCast.timerId);
+  if(L._tinyaSmoothMoveRaf)cancelAnimationFrame(L._tinyaSmoothMoveRaf);
+  L._tinyaCircles=[]; L._tinyaLastFormation=[]; L._tinyaInput=null; L._tinyaRmbInput=null; L._tinyaRmbCast=null; L._tinyaManifestPending=null; L._tinyaCounterPreview=null; L._tinyaRevealEnd=0; L._tinyaRmbRecastUntil=0; L._tinyaSmoothMoveRaf=0;
+  window.DUELS2_REMOTE_TINYA_BURSTS=[];
   L._attackPreview=null;
   L._cherityCharging=false; L._cherityChargeStart=0; L._cherityDrained=0; L._cherityFrozenT=null; L._smokeRevealSent=0;
   L._herCarrying=false; L._herCannon=null; L._herPickupCooldown=0; // 헤르쟝 대포 상태
