@@ -5106,7 +5106,7 @@ const CHARACTERS = {
       { key:'RMB/LMB', name:'마법진 제거', cost:0,
         desc:'선택한 마법진 중 가장 최근 마법진 제거' },
       { key:'RMB/RMB', name:'마법 주문서', cost:duels2GetSkillBalance('tinya','rmb').spellbookCost,
-        desc:'현재 마법진의 중앙 위치에 가장 최근에 발동한 마법진 배치를 불러옴' },
+        desc:'가장 최근에 발동한 마법진을 불러옴' },
       { key:'RMB HOLD', name:'마법진 위치 조정', cost:0,
         desc:'선택한 마법진과 연결된 모든 마법진의 위치 조정' },
       { key:'L-Shift', name:'무영창 주문서', cost:0,
@@ -51858,14 +51858,15 @@ function duels2ClampTinyaFormationInsideWorld(circles){
   for(const c of list){c.x+=dx;c.y+=dy;}
   return list;
 }
-// duels2UseTinyaSpellbookAtPointer: 현재 배치 중심에 최근 발현 배치를 복원하고 맵 밖으로 빠진 부분을 보정한다. (pointer: 호환용 미사용 좌표, cast: 취소된 선딜레이 정보)
+// duels2UseTinyaSpellbookAtPointer: RMB/RMB 두 번째 클릭 월드 좌표를 중심으로 최근 발동 배치를 복원하고 맵 밖으로 빠진 부분을 보정한다. (pointer: 두 번째 우클릭 월드 좌표, cast: 취소된 선딜레이 정보)
 function duels2UseTinyaSpellbookAtPointer(pointer,cast=null){
   const B=duels2GetSkillBalance('tinya','rmb');
   const saved=Array.isArray(L._tinyaLastFormation)&&L._tinyaLastFormation.length?L._tinyaLastFormation:(cast?.previousFormation||[]);
   if(!saved.length||!useStam(B.spellbookCost))return false;
-  const current=duels2GetTinyaCircles();
-  const center=duels2GetTinyaFormationCenter(current.length?current:(cast?.activationCircles||[]));
-  const restored=duels2CloneTinyaFormation(saved,center.x,center.y).slice(0,duels2GetTinyaMaxCircles());
+  const target=pointer&&Number.isFinite(Number(pointer.x))&&Number.isFinite(Number(pointer.y))
+    ?{x:Number(pointer.x),y:Number(pointer.y)}
+    :duels2GetTinyaPointerWorld();
+  const restored=duels2CloneTinyaFormation(saved,target.x,target.y).slice(0,duels2GetTinyaMaxCircles());
   L._tinyaCircles=duels2ClampTinyaFormationInsideWorld(restored);
   L.rmbCooldown=B.cd;
   L.lastAttackTime=performance.now();
@@ -51944,12 +51945,19 @@ function duels2FinishTinyaRmbInputWindow(expectedCast=null){
     duels2SyncTinyaCircles();
     return true;
   }
+  // 필드가 빈 상태에서 첫 RMB만 입력한 경우에는 공격 비용이나 공개 효과 없이 입력 창만 종료한다.
+  if(!Array.isArray(cast.activationCircles)||!cast.activationCircles.length){
+    duels2CancelTinyaRmbCast('empty-field-single-rmb');
+    return false;
+  }
   return duels2BeginTinyaRevealPhase(cast);
 }
 // duels2StartTinyaRmbWindup: RMB에 0.2초 차징·재입력 창을 생성한다. (pointer/inputState)
 function duels2StartTinyaRmbWindup(pointer,inputState){
   const now=performance.now(),B=duels2GetSkillBalance('tinya','rmb'),circles=duels2GetTinyaCircles();
-  if(!circles.length||L.rmbCooldown>0||L._tinyaRmbCast)return null;
+  const hasSavedFormation=Array.isArray(L._tinyaLastFormation)&&L._tinyaLastFormation.length>0;
+  // 현재 필드가 비어 있어도 최근 발동 배치가 있으면 RMB/RMB 입력 창을 열 수 있다.
+  if((!circles.length&&!hasSavedFormation)||L.rmbCooldown>0||L._tinyaRmbCast)return null;
   const inputWindow=Math.max(1,Number(B.inputWindowMs)||200);
   const cast={
     phase:'input',startAt:now,endAt:now+inputWindow,held:true,pointer:{...pointer},
