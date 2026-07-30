@@ -4025,8 +4025,8 @@ const BALANCE = {
     speed:  3.75,
     radius: 20,
     lmb: {
-      costMin:    20,
-      costMax:    40,
+      costMin:    25,
+      costMax:    25,
       damage:     5,
       minRadius:  68,
       maxRadius:  240,
@@ -4041,9 +4041,9 @@ const BALANCE = {
       inputWindowMs: 200,
       revealMs:      350,
       recastWindow:  1200,
-      spellbookCost: 120,
+      spellbookCost: 80,
       moveHoldMs:    300,
-      cd:            500,
+      postEffectCooldownMs: 300,
     },
     counter: {
       knockbackPower: 420,
@@ -5093,7 +5093,7 @@ const CHARACTERS = {
     statsText: [['체력', String(duels2GetSkillBalance('tinya','hp'))],['이동속도','느림'],['스타일','영역장악형 초장거리 컨트롤러']],
     desc:      '얼음 속성 마법진을 그려 공격하는 캐릭터',
     skills: [
-      { key:'LMB DRAG', name:'마법진', cost:`${duels2GetSkillBalance('tinya','lmb').costMin}~${duels2GetSkillBalance('tinya','lmb').costMax}`,
+      { key:'LMB DRAG', name:'마법진', cost:duels2GetSkillBalance('tinya','lmb').costMin,
         desc:`드래그로 마법진을 생성. 마법진의 생성 형태에 따라 추가 효과 적용 (${duels2GetSkillBalance('tinya','lmb').damage})` },
       { key:'LMB INCLUDE', name:'', cost:0,
         desc:'큰 마법진이 작은 마법진을 완전히 포함하면 작은 마법진의 효과가 2배로 증폭. 일정 크기 이상은 포함 불가' },
@@ -29522,8 +29522,8 @@ function duels2BroadcastCurrentRecord(charId) {
 function duels2GetRoundRecordChange(points,won) {
   const tier=duels2GetCharacterMasteryTier(points);
   // 다이아 이상은 단순 참가 점수는 없지만, 승리 보너스 50점은 계속 획득한다.
-  if (tier.id==='master') return won?{amount:50,floor:12000,reason:'master-win'}:{amount:-60,floor:12000,reason:'master-loss'};
-  if (tier.id==='platinum') return won?{amount:50,floor:8000,reason:'platinum-win'}:{amount:-40,floor:8000,reason:'platinum-loss'};
+  if (tier.id==='master') return won?{amount:50,floor:12000,reason:'master-win'}:{amount:-40,floor:12000,reason:'master-loss'};
+  if (tier.id==='platinum') return won?{amount:50,floor:8000,reason:'platinum-win'}:{amount:-25,floor:8000,reason:'platinum-loss'};
   if (tier.id==='diamond') return won?{amount:50,reason:'diamond-win'}:{amount:0,reason:'diamond-loss-no-change'};
   return {amount:won?100:50,ceiling:5000,reason:won?'round-win':'round-play'};
 }
@@ -38656,7 +38656,7 @@ const SKILLS = {
       const saved=Array.isArray(L._tinyaLastFormation)&&L._tinyaLastFormation.length
         ? L._tinyaLastFormation.map(c=>({...c}))
         : [{dx:0,dy:0,r:duels2GetSkillBalance('tinya','lmb').minRadius,order:1}];
-      const clone=duels2ClampTinyaFormationInsideWorld(duels2CloneTinyaFormation(saved,pointer.x,pointer.y,true));
+      const clone=duels2CloneTinyaFormation(saved,pointer.x,pointer.y,true);
       const token=(L._tinyaCounterToken||0)+1;L._tinyaCounterToken=token;
       // 선딜레이 동안 현재 마우스 위치를 따라가는 로컬 전용 공격 범위를 표시한다.
       L._tinyaCounterPreview={token,formation:saved.map(c=>({...c})),circles:clone.map(c=>({...c})),endAt:performance.now()+Math.max(0,Number(B.revealMs)||0)};
@@ -45344,7 +45344,7 @@ function draw() {
     if(counterPreview?.endAt>_drawNow){
       if(Array.isArray(counterPreview.formation)){
         const pointer=duels2GetTinyaPointerWorld();
-        counterPreview.circles=duels2ClampTinyaFormationInsideWorld(duels2CloneTinyaFormation(counterPreview.formation,pointer.x,pointer.y,true));
+        counterPreview.circles=duels2CloneTinyaFormation(counterPreview.formation,pointer.x,pointer.y,true);
       }
       if(Array.isArray(counterPreview.circles))drawTinyaSet(counterPreview.circles,0.72);
     }
@@ -51428,7 +51428,7 @@ function duels2GetTinyaCircles(){if(!Array.isArray(L._tinyaCircles))L._tinyaCirc
 function duels2GetTinyaMaxCircles(){return Math.max(1,Math.floor(Number(duels2GetSkillBalance('tinya','lmb').maxCircles)||6));}
 // duels2GetTinyaPlacedCircleCount: 현재 일반 배치 마법진 개수를 최대치 범위로 정규화해 반환한다. ()
 function duels2GetTinyaPlacedCircleCount(){return Math.max(0,Math.min(duels2GetTinyaMaxCircles(),duels2GetTinyaCircles().length));}
-function duels2GetTinyaPointerWorld(){return{x:Math.max(0,Math.min(WORLD_W,mouseX)),y:Math.max(0,Math.min(WORLD_H,mouseY))};}
+function duels2GetTinyaPointerWorld(){return{x:mouseX,y:mouseY};}
 function duels2SnapshotTinyaFormation(circles){
   if(!Array.isArray(circles)||!circles.length)return[];
   const cx=circles.reduce((a,c)=>a+c.x,0)/circles.length,cy=circles.reduce((a,c)=>a+c.y,0)/circles.length;
@@ -51878,6 +51878,15 @@ function duels2ApplyRemoteTinyaBurst(msg){
 }
 
 // duels2CancelTinyaRmbCast: 티냐 RMB 선딜레이 또는 이동 상태를 명시적으로 종료한다. (reason: 종료 사유)
+// duels2ApplyTinyaRmbPostEffectCooldown: 티냐 RMB 계열 효과 종료 뒤 RMB 슬롯에만 재사용 대기시간을 적용한다. LMB 쿨다운에는 영향을 주지 않는다. (durationMs: 적용할 밀리초)
+function duels2ApplyTinyaRmbPostEffectCooldown(durationMs=null){
+  if(!L||L?.charDef?.id!=='tinya')return 0;
+  const B=duels2GetSkillBalance('tinya','rmb');
+  const value=Math.max(0,Number(durationMs ?? B.postEffectCooldownMs)||0);
+  L.rmbCooldown=Math.max(Number(L.rmbCooldown)||0,value);
+  return value;
+}
+
 function duels2CancelTinyaRmbCast(reason='cancel'){
   const cast=L?._tinyaRmbCast;
   if(!cast)return null;
@@ -51924,7 +51933,7 @@ function duels2ClampTinyaFormationInsideWorld(circles){
   for(const c of list){c.x+=dx;c.y+=dy;}
   return list;
 }
-// duels2UseTinyaSpellbookAtPointer: RMB/RMB 두 번째 클릭 월드 좌표를 중심으로 최근 발동 배치를 복원하고 맵 밖으로 빠진 부분을 보정한다. (pointer: 두 번째 우클릭 월드 좌표, cast: 취소된 선딜레이 정보)
+// duels2UseTinyaSpellbookAtPointer: RMB/RMB 두 번째 클릭 월드 좌표를 중심으로 최근 발동 배치를 보정 없이 그대로 복원한다. (pointer: 두 번째 우클릭 월드 좌표, cast: 취소된 선딜레이 정보)
 function duels2UseTinyaSpellbookAtPointer(pointer,cast=null){
   const B=duels2GetSkillBalance('tinya','rmb');
   const saved=Array.isArray(L._tinyaLastFormation)&&L._tinyaLastFormation.length?L._tinyaLastFormation:(cast?.previousFormation||[]);
@@ -51933,8 +51942,9 @@ function duels2UseTinyaSpellbookAtPointer(pointer,cast=null){
     ?{x:Number(pointer.x),y:Number(pointer.y)}
     :duels2GetTinyaPointerWorld();
   const restored=duels2CloneTinyaFormation(saved,target.x,target.y).slice(0,duels2GetTinyaMaxCircles());
-  L._tinyaCircles=duels2ClampTinyaFormationInsideWorld(restored);
-  L.rmbCooldown=B.cd;
+  L._tinyaCircles=restored;
+  // 주문서 복원 효과가 완료된 시점부터 RMB만 0.3초 잠근다.
+  duels2ApplyTinyaRmbPostEffectCooldown(B.postEffectCooldownMs);
   L.lastAttackTime=performance.now();
   duels2SyncTinyaCircles();
   return true;
@@ -51960,7 +51970,8 @@ function duels2ResolveTinyaManifestCast(cast){
   L._tinyaCircles=[];
   duels2SyncTinyaCircles();
   duels2ExecuteFreshTinyaManifestDamage(circles,{source:L,route:'skill.tinya.rmb.fresh-manifest'});
-  L.rmbCooldown=B.cd;
+  // 공격 효과와 잔상 생성이 끝난 시점부터 RMB만 0.3초 잠근다.
+  duels2ApplyTinyaRmbPostEffectCooldown(B.postEffectCooldownMs);
   L.lastAttackTime=performance.now();
   return true;
 }
@@ -52055,7 +52066,9 @@ duels2RegisterInputStateProfile('tinya-circle-lmb',{
     if(cast?.phase==='input'){
       if(L._tinyaRmbInput)L._tinyaRmbInput.mode='consumed';
       duels2CancelTinyaRmbCast('lmb-reinput');
-      duels2RemoveTinyaCirclesAtPointer(p);
+      const removed=duels2RemoveTinyaCirclesAtPointer(p);
+      // RMB 후 LMB 제거 효과가 실제로 끝난 경우 RMB 슬롯에만 후딜레이를 적용한다.
+      if(removed)duels2ApplyTinyaRmbPostEffectCooldown();
       L._tinyaInput={mode:'consumed'};
       return;
     }
@@ -52067,13 +52080,10 @@ duels2RegisterInputStateProfile('tinya-circle-lmb',{
   documentRelease(){duels2FinishTinyaLmbInput();},
   leave(){}
 });
-// duels2GetTinyaCircleStaminaCost: 마법진 반지름을 최소·최대 반지름 구간에 맞춰 20~60 스태미나로 선형 환산한다. (radius: 생성할 마법진 반지름)
+// duels2GetTinyaCircleStaminaCost: 마법진 크기와 무관한 고정 LMB 스태미나 비용을 반환한다. (radius: 호환성을 위해 받지만 비용 계산에는 사용하지 않음)
 function duels2GetTinyaCircleStaminaCost(radius){
   const B=duels2GetSkillBalance('tinya','lmb');
-  const minR=Math.max(0,Number(B.minRadius)||0),maxR=Math.max(minR+1,Number(B.maxRadius)||minR+1);
-  const minCost=Math.max(0,Number(B.costMin)||20),maxCost=Math.max(minCost,Number(B.costMax)||40);
-  const t=Math.max(0,Math.min(1,((Number(radius)||minR)-minR)/(maxR-minR)));
-  return Math.round(minCost+(maxCost-minCost)*t);
+  return Math.max(0,Number(B.costMin)||25);
 }
 // duels2GetTinyaAdjustedCircleCost: LMB 스태미나 보정을 포함한 실제 예약 비용을 반환한다. (radius: 미리보기 반지름)
 function duels2GetTinyaAdjustedCircleCost(radius){
@@ -52198,6 +52208,8 @@ function duels2ReleaseTinyaRmbInput(){
     L._tinyaRmbInput=null;
     duels2CancelTinyaRmbCast('move-finished');
     duels2SyncTinyaCircles();
+    // 홀드 이동 효과가 끝난 시점부터 RMB 슬롯에만 0.3초 후딜레이를 적용한다.
+    duels2ApplyTinyaRmbPostEffectCooldown();
     return;
   }
   if(cast?.phase==='input')cast.held=false;
