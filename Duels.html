@@ -4032,18 +4032,22 @@ const BALANCE = {
       maxRadius:  240,
       maxCircles: 6,
       cd:         180,
-      moveHoldMs: 300,
+      moveHoldMs: 150,
+      dragIntentDistance: 5,
+      dragStartDistance: 12,
+      holdMoveDeadzone: 10,
       amplifierRadiusTolerance: 1.5,
       amplifierEffectMs: 1000,
     },
     rmb: {
-      cost:          35,
+      cost:          0,
       inputWindowMs: 200,
       revealMs:      350,
       recastWindow:  1200,
       spellbookCost: 80,
       moveHoldMs:    300,
-      postEffectCooldownMs: 300,
+      holdMoveDeadzone: 10,
+      postEffectCooldownMs: 100,
     },
     counter: {
       knockbackPower: 420,
@@ -39637,31 +39641,58 @@ CANVAS.addEventListener('mousemove', e => {
   }
 });
 
-// 티냐 드래그 갱신: 생성 미리보기 기준에 못 미친 미세 이동은 생성으로 전환하지 않고 홀드 대기 상태로 유지한다.
+// duels2TryResolveTinyaLmbDrag: 최초 유효 드래그가 0.15초 이전이면 생성, 이후이면 기존 마법진 이동으로 입력을 확정한다. (input: 확인할 LMB 입력 상태, pointer: 현재 마우스 월드 좌표, now: 현재 시각)
+function duels2TryResolveTinyaLmbDrag(input,pointer=duels2GetTinyaPointerWorld(),now=performance.now()){
+  if(!input||L?._tinyaInput!==input||input.mode!=='pending')return false;
+  const B=duels2GetSkillBalance('tinya','lmb');
+  const dragIntentDistance=Math.max(0,Number(B.dragIntentDistance)||5);
+  const dragStartDistance=Math.max(dragIntentDistance,Number(B.dragStartDistance)||12);
+  const pressDist=Math.hypot(pointer.x-input.start.x,pointer.y-input.start.y);
+  if(pressDist>=dragIntentDistance)input.dragIntent=true;
+  if(pressDist<dragStartDistance)return false;
+  const holdMs=Math.max(1,Number(B.moveHoldMs)||150);
+  if(now-input.startAt<holdMs){
+    input.mode='create';
+    input.createStart={...input.start};
+    return true;
+  }
+  if(input.circle){
+    duels2EnterTinyaHoldMove('lmb',input,null,pointer);
+    input.targetPointer={...pointer};
+    input.dragStarted=true;
+    input.moved=true;
+    duels2EnsureTinyaSmoothMoveLoop();
+    return true;
+  }
+  return false;
+}
+
+// duels2UpdateTinyaCircleDragPreview: 최초 클릭점을 기준으로 현재 드래그 크기와 위치 미리보기를 갱신한다. (input: 티냐 LMB 입력 상태, pointer: 현재 마우스 월드 좌표, now: 현재 시각)
+function duels2UpdateTinyaCircleDragPreview(input,pointer,now=performance.now()){
+  if(!input||input.mode!=='create')return;
+  const B=duels2GetSkillBalance('tinya','lmb');
+  input.last=pointer;
+  const origin=input.createStart||input.start;
+  const dragDist=Math.hypot(pointer.x-origin.x,pointer.y-origin.y);
+  const desiredRadius=Math.max(B.minRadius,Math.min(B.maxRadius,dragDist/2));
+  if(input.limitBlocked){
+    input.preview={x:(origin.x+pointer.x)/2,y:(origin.y+pointer.y)/2,r:desiredRadius};
+    L.staminaUseTime=now;
+  }else{
+    const reservation=duels2UpdateTinyaCircleReservation(input,desiredRadius);
+    if(reservation)input.preview={x:(origin.x+pointer.x)/2,y:(origin.y+pointer.y)/2,r:reservation.radius};
+    else input.preview=null;
+  }
+}
+
+// 티냐 드래그 갱신: 최초 유효 드래그 시각을 기준으로 생성과 이동 입력을 한 번만 분리한다.
 CANVAS.addEventListener('mousemove',()=>{
   if(!gameOn||L?.charDef?.id!=='tinya')return;
   const p=duels2GetTinyaPointerWorld(),now=performance.now();
   const l=L._tinyaInput;
   if(l){
-    const elapsed=now-l.startAt,dist=Math.hypot(p.x-l.start.x,p.y-l.start.y);
-    // 클릭 오차보다 큰 이동이 한 번이라도 있었지만 생성 미리보기 기준(6)에 도달하지 못한 경우,
-    // pending 홀드 상태는 유지하되 버튼 해제 시 단순 클릭 생성으로 오인하지 않도록 기록한다.
-    if(l.mode==='pending'&&dist>=1.5)l.dragIntent=true;
-    if(l.mode==='pending'&&elapsed<duels2GetSkillBalance('tinya','lmb').moveHoldMs&&dist>=6)l.mode='create';
-    if(l.mode==='pending'&&elapsed>=duels2GetSkillBalance('tinya','lmb').moveHoldMs&&l.circle)duels2EnterTinyaHoldMove('lmb',l,null,p);
-    if(l.mode==='create'){
-      l.last=p;
-      const B=duels2GetSkillBalance('tinya','lmb');
-      const desiredRadius=Math.max(B.minRadius,Math.min(B.maxRadius,dist/2));
-      if(l.limitBlocked){
-        l.preview={x:(l.start.x+p.x)/2,y:(l.start.y+p.y)/2,r:desiredRadius};
-        L.staminaUseTime=now;
-      }else{
-        const reservation=duels2UpdateTinyaCircleReservation(l,desiredRadius);
-        if(reservation)l.preview={x:(l.start.x+p.x)/2,y:(l.start.y+p.y)/2,r:reservation.radius};
-        else l.preview=null;
-      }
-    }
+    duels2TryResolveTinyaLmbDrag(l,p,now);
+    duels2UpdateTinyaCircleDragPreview(l,p,now);
     if(l.mode==='move'&&l.circle){l.targetPointer={...p};l.moved=true;duels2EnsureTinyaSmoothMoveLoop();}
   }
   const r=L._tinyaRmbInput;
@@ -45353,7 +45384,7 @@ function draw() {
   if(L?.charDef?.id==='tinya'){
     const localTinyaCast=L._tinyaRmbCast;
     // 배치 중인 마법진은 항상 반투명하고, 실제 공개/발동 단계에서만 원래 색으로 표시한다.
-    const localTinyaAlpha=localTinyaCast?.phase==='reveal'?1:0.72;
+    const localTinyaAlpha=localTinyaCast?.phase==='reveal'?1:0.48;
     drawTinyaSet(duels2GetTinyaCircles(),localTinyaAlpha);
     const counterPreview=L._tinyaCounterPreview;
     if(counterPreview?.endAt>_drawNow){
@@ -45361,7 +45392,7 @@ function draw() {
         const pointer=duels2GetTinyaPointerWorld();
         counterPreview.circles=duels2CloneTinyaFormation(counterPreview.formation,pointer.x,pointer.y,true);
       }
-      if(Array.isArray(counterPreview.circles))drawTinyaSet(counterPreview.circles,0.72);
+      if(Array.isArray(counterPreview.circles))drawTinyaSet(counterPreview.circles,0.48);
     }
     const input=L._tinyaInput,now=performance.now(),hold=duels2GetSkillBalance('tinya','lmb').moveHoldMs;
     // 최대 개수에서의 생성 시도는 실제 생성 없이 빨간색 제한 미리보기만 표시한다.
@@ -45380,9 +45411,7 @@ function draw() {
     }else if(limitPreview){
       L._tinyaLimitPreview=null;
     }
-    if(input?.limitBlocked&&input.mode==='pending'&&!input.circle){
-      drawTinyaLimitPreview({x:input.start.x,y:input.start.y,r:duels2GetSkillBalance('tinya','lmb').minRadius},0.9);
-    }
+    // 최대 개수 상태에서도 누르는 즉시 최소 원을 띄우지 않고, 홀드 후 실제 드래그가 시작된 경우에만 제한 미리보기를 표시한다.
     if(input?.mode==='create'&&input.preview){
       const preview={id:'tinya-preview',x:input.preview.x,y:input.preview.y,r:input.preview.r,order:Number.MAX_SAFE_INTEGER};
       if(input.limitBlocked){
@@ -45404,8 +45433,8 @@ function draw() {
         ctx.restore();
       }
       ctx.save();ctx.beginPath();ctx.arc(preview.x,preview.y,preview.r,0,Math.PI*2);
-      ctx.fillStyle=invalidContainPreview?'rgba(230,55,65,0.22)':'rgba(150,156,164,0.16)';ctx.fill();
-      ctx.strokeStyle=invalidContainPreview?'rgba(255,72,82,0.96)':'rgba(210,214,220,0.66)';ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.stroke();ctx.restore();
+      ctx.fillStyle=invalidContainPreview?'rgba(230,55,65,0.13)':'rgba(150,156,164,0.09)';ctx.fill();
+      ctx.strokeStyle=invalidContainPreview?'rgba(255,72,82,0.52)':'rgba(210,214,220,0.38)';ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.stroke();ctx.restore();
       const previewRole=duels2BuildTinyaRoleMeta(previewSet).meta.get(preview.id)||{};
       const previewIcons=[];
       if(previewRole.containInner||previewRole.containOuter)previewIcons.push({type:'contain',innerFilled:!!previewRole.containInner,outerFilled:!!previewRole.containOuter});
@@ -45420,7 +45449,7 @@ function draw() {
       const previewTotal=previewGaps.reduce((sum,gap)=>sum+gap,0),previewY=preview.y-preview.r-18;
       let previewIconX=preview.x-previewTotal/2;
       for(let i=0;i<previewIcons.length;i++){
-        duels2DrawTinyaRoleIcon(previewIcons[i],previewIconX,previewY,0.78);
+        duels2DrawTinyaRoleIcon(previewIcons[i],previewIconX,previewY,0.44);
         if(i<previewGaps.length)previewIconX+=previewGaps[i];
       }
       }
@@ -51463,7 +51492,7 @@ function duels2GetTinyaRelation(a,b){
   // 최소 크기 마법진끼리도 일반 관계 규칙을 그대로 사용한다. 단, 증폭을 제공하는 원과 그 직접 수신 원 사이의 교차 효과는 피해 모델에서만 제외한다.
   if(d+small<=large+0.5){
     const inner=a.r<=b.r?a:b,outer=a.r>b.r?a:b,areaRatio=duels2GetTinyaContainAreaRatio(inner,outer);
-    const containLimit=0.40;
+    const containLimit=0.55;
     return areaRatio<=containLimit
       ?{type:'contain',inner,outer,areaRatio,containLimit}
       :{type:'invalidContain',inner,outer,areaRatio,containLimit};
@@ -51736,21 +51765,31 @@ function duels2EnsureTinyaSmoothMoveLoop(){
       active=true;
       // 카메라가 플레이어를 따라 움직여도 고정된 화면 마우스 위치의 월드 좌표를 매 프레임 다시 계산한다.
       l.targetPointer=duels2GetTinyaPointerWorld();
-      const dx=l.targetPointer.x-l.last.x,dy=l.targetPointer.y-l.last.y;
-      const dist=Math.hypot(dx,dy);
-      const factor=dist<0.35?1:Math.min(0.58,0.22+dist/180);
-      const mx=dx*factor,my=dy*factor;
-      if(Math.abs(mx)+Math.abs(my)>0.001){l.circle.x+=mx;l.circle.y+=my;l.last={x:l.last.x+mx,y:l.last.y+my};moved=true;}
+      const deadzone=Math.max(0,Number(duels2GetSkillBalance('tinya','lmb').holdMoveDeadzone)||10);
+      const origin=l.holdOrigin||l.start||l.last;
+      if(!l.dragStarted&&Math.hypot(l.targetPointer.x-origin.x,l.targetPointer.y-origin.y)>=deadzone)l.dragStarted=true;
+      if(l.dragStarted){
+        const dx=l.targetPointer.x-l.last.x,dy=l.targetPointer.y-l.last.y;
+        const dist=Math.hypot(dx,dy);
+        const factor=dist<0.35?1:Math.min(0.58,0.22+dist/180);
+        const mx=dx*factor,my=dy*factor;
+        if(Math.abs(mx)+Math.abs(my)>0.001){l.circle.x+=mx;l.circle.y+=my;l.last={x:l.last.x+mx,y:l.last.y+my};l.moved=true;moved=true;}
+      }
     }
     const r=L._tinyaRmbInput;
     if(r?.mode==='move'&&r.ids?.size&&r.targetPointer){
       active=true;
       r.targetPointer=duels2GetTinyaPointerWorld();
-      const dx=r.targetPointer.x-r.last.x,dy=r.targetPointer.y-r.last.y;
-      const dist=Math.hypot(dx,dy);
-      const factor=dist<0.35?1:Math.min(0.58,0.22+dist/180);
-      const mx=dx*factor,my=dy*factor;
-      if(Math.abs(mx)+Math.abs(my)>0.001){for(const c of duels2GetTinyaCircles())if(r.ids.has(c.id)){c.x+=mx;c.y+=my;}r.last={x:r.last.x+mx,y:r.last.y+my};moved=true;}
+      const deadzone=Math.max(0,Number(duels2GetSkillBalance('tinya','rmb').holdMoveDeadzone)||10);
+      const origin=r.holdOrigin||r.start||r.last;
+      if(!r.dragStarted&&Math.hypot(r.targetPointer.x-origin.x,r.targetPointer.y-origin.y)>=deadzone)r.dragStarted=true;
+      if(r.dragStarted){
+        const dx=r.targetPointer.x-r.last.x,dy=r.targetPointer.y-r.last.y;
+        const dist=Math.hypot(dx,dy);
+        const factor=dist<0.35?1:Math.min(0.58,0.22+dist/180);
+        const mx=dx*factor,my=dy*factor;
+        if(Math.abs(mx)+Math.abs(my)>0.001){for(const c of duels2GetTinyaCircles())if(r.ids.has(c.id)){c.x+=mx;c.y+=my;}r.last={x:r.last.x+mx,y:r.last.y+my};r.moved=true;moved=true;}
+      }
     }
     if(moved){
       const now=performance.now();
@@ -51994,8 +52033,12 @@ function duels2ResolveTinyaManifestCast(cast){
 function duels2EnterTinyaHoldMove(slot,input,ids,pointer){
   if(!input)return false;
   input.mode='move';
+  // 홀드 완료 시 현재 마우스 월드 좌표를 목표로 사용하되, 이동 기준은 누르기 시작한 월드 좌표를 유지한다.
+  // 따라서 홀드 중 마우스가 이동했거나 카메라 이동으로 포인터 월드 좌표가 달라졌다면 완료 직후 마법진이 현재 포인터 쪽으로 자연스럽게 끌려온다.
   input.last=input.last||pointer||duels2GetTinyaPointerWorld();
   input.targetPointer={...(pointer||input.last)};
+  input.holdOrigin={...(input.start||pointer||input.last)};
+  input.dragStarted=false;
   if(slot==='rmb')input.ids=new Set(ids||[]);
   duels2EnsureTinyaSmoothMoveLoop();
   return true;
@@ -52069,7 +52112,7 @@ function duels2StartTinyaRmbWindup(pointer,inputState){
 duels2RegisterSimpleGameplayEventHandler('tinyaCircleState',duels2ApplyRemoteTinyaCircleState,520);
 duels2RegisterSimpleGameplayEventHandler('tinyaCircleBurst',duels2ApplyRemoteTinyaBurst,520);
 
-// 티냐 LMB: RMB 선딜레이 중에는 재입력 능력만 실행하며, 그 외에는 생성 또는 0.3초 홀드 수정을 처리한다.
+// 티냐 LMB: 최초 0.15초 안의 드래그는 생성, 이후 드래그는 기존 마법진 이동, 드래그 없이 놓으면 클릭으로 처리한다.
 duels2RegisterInputStateProfile('tinya-circle-lmb',{
   slot:'lmb',priority:700,mode:'drag-vector',blocksAutoPrimary:true,
   match({actor,slot}){return slot==='lmb'&&actor?.charDef?.id==='tinya';},
@@ -52089,7 +52132,8 @@ duels2RegisterInputStateProfile('tinya-circle-lmb',{
     }
     if(cast||L._tinyaRmbInput){L._tinyaInput={mode:'consumed'};return;}
     const now=performance.now(),arr=duels2GetTinyaCircles(),picked=[...arr].reverse().find(c=>Math.hypot(p.x-c.x,p.y-c.y)<=c.r);
-    L._tinyaInput={mode:'pending',startAt:now,start:p,last:p,circle:picked||null,moved:false,dragIntent:false,preview:null,reservedStamina:0,limitBlocked:arr.length>=duels2GetTinyaMaxCircles()};
+    const input={mode:'pending',startAt:now,start:p,last:p,createStart:null,circle:picked||null,moved:false,dragIntent:false,preview:null,reservedStamina:0,limitBlocked:arr.length>=duels2GetTinyaMaxCircles()};
+    L._tinyaInput=input;
   },
   release(){duels2FinishTinyaLmbInput();},
   documentRelease(){duels2FinishTinyaLmbInput();},
@@ -52150,13 +52194,9 @@ function duels2FinishTinyaLmbInput(){
   const B=duels2GetSkillBalance('tinya','lmb');
   let creation=null;
   if(st.mode==='create'&&st.preview) creation={...st.preview,prepaid:true};
-  // 짧은 LMB 클릭은 기존 마법진 내부인지와 관계없이 클릭 지점에 최소 마법진을 생성한다.
-  // 기존 마법진 이동은 홀드 시간이 완료되어 mode가 'move'로 전환된 경우에만 처리한다.
+  // 누른 시간과 관계없이 유효 드래그 입력이 확정되지 않은 채 놓으면 클릭으로 처리한다.
   else if(st.mode==='pending'){
-    const heldMs=performance.now()-(Number(st.startAt)||performance.now());
-    // 생성 미리보기 기준에 못 미친 미세 드래그는 홀드 시도로 취급하고 새 마법진을 만들지 않는다.
-    // 완전히 정지한 짧은 클릭만 최소 마법진 생성으로 처리한다.
-    if(!st.dragIntent&&!(st.circle&&heldMs>=Math.max(1,Number(B.moveHoldMs)||300)))creation={x:st.start.x,y:st.start.y,r:B.minRadius};
+    creation={x:st.start.x,y:st.start.y,r:B.minRadius};
   }
   if(creation){
     const arr=duels2GetTinyaCircles();
