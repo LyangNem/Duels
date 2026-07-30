@@ -3947,28 +3947,30 @@ const BALANCE = {
     gaugeMax: 300,
     lmb: {
       cost:       2,
-      damage:     4,
-      speed:      26.4,
+      damage:     6,
+      speed:      31.68,
       slowStages: [
-        { start:0.82, speed:10.8 },
-        { start:0.90, speed:4.2 },
-        { start:0.96, speed:0.96 },
+        { start:0.82, speed:12.96 },
+        { start:0.90, speed:5.04 },
+        { start:0.96, speed:1.152 },
       ],
-      radius:     11,
-      range:      520,
+      radius:       18,
+      shadowRadius: 14.08,
+      range:        676,
       cd:         50,
       staminaOnHit: 6,
       gaugeOnHit: 6,
     },
     rmb: {
-      cost:            35,
-      duration:        5000,
-      gaugePerShot:    4,
-      cd:              300,
+      cost:               35,
+      duration:           5000,
+      gaugePerShot:       4,
+      hitDurationRestore: 200,
+      cd:                 300,
     },
     counter: {
       damage:     20,
-      gaugeGainRatio: 0.4,
+      gaugeGainRatio: 0.5,
       dashDist:   300,
       dashDur:    220,
       width:      38,
@@ -5051,7 +5053,7 @@ const CHARACTERS = {
       { key:'LMB', name:'달 수리검', cost:duels2GetSkillBalance('clea','lmb').cost,
         desc:`달 수리검을 던져 적중 시 달 그림자와 스테미나가 충전되며 날아갈수록 느려짐. 마우스 홀드 이용 불가 (${duels2GetSkillBalance('clea','lmb').damage})` },
       { key:'RMB', name:'달 그림자', cost:duels2GetSkillBalance('clea','rmb').cost,
-        desc:`${duels2GetSkillBalance('clea','rmb').duration/1000}초 동안 평타마다 달 그림자를 소모해 추가 수리검을 발사.` },
+        desc:`${duels2GetSkillBalance('clea','rmb').duration/1000}초 동안 평타마다 달 그림자를 소모해 추가 수리검을 발사. 지속 중 적 타격마다 사용 시간을 ${duels2GetSkillBalance('clea','rmb').hitDurationRestore/1000}초 회복` },
       { key:'L-Shift', name:'슬라이딩', cost:0,
         desc:`빠르게 슬라이딩하며 경로상의 적에게 피해. 달 그림자 ${Math.round(duels2GetSkillBalance('clea','counter').gaugeGainRatio*100)}% 충전 (${duels2GetSkillBalance('clea','counter').damage})` },
     ],
@@ -38789,6 +38791,19 @@ const SKILLS = {
       L._cleaGauge=Math.max(0,Math.min(max,(Number(L._cleaGauge)||0)+(Number(amount)||0)));
       return L._cleaGauge;
     },
+    // _restoreShadowDuration: 달 그림자 활성 중 적중 수만큼 지속시간을 회복하되 남은 시간이 최초 지속시간을 넘지 않게 제한한다. (hitCount: 실제 적중 수)
+    _restoreShadowDuration(hitCount=1) {
+      const B=duels2GetSkillBalance('clea','rmb');
+      const now=performance.now();
+      const currentEnd=Number(L._cleaShadowEnd)||0;
+      if(currentEnd<=now) return currentEnd;
+      const restorePerHit=Math.max(0,Number(B.hitDurationRestore)||0);
+      const count=Math.max(0,Math.floor(Number(hitCount)||0));
+      if(restorePerHit<=0 || count<=0) return currentEnd;
+      const maxEnd=now+Math.max(0,Number(B.duration)||0);
+      L._cleaShadowEnd=Math.min(maxEnd,currentEnd+restorePerHit*count);
+      return L._cleaShadowEnd;
+    },
     // lmb: 기본 수리검과 달 그림자 추가 수리검을 같은 프레임에 좌우 평행 레인으로 발사한다. (angle: 조준 방향)
     lmb(angle) {
       const B=duels2GetSkillBalance('clea','lmb');
@@ -38798,11 +38813,9 @@ const SKILLS = {
       const gaugeCost=Math.max(0,Number(shadow.gaugePerShot)||1);
       const doubleShot=active && (Number(L._cleaGauge)||0)>=gaugeCost;
       if(doubleShot) L._cleaGauge=Math.max(0,(Number(L._cleaGauge)||0)-gaugeCost);
-      // 기본탄과 추가탄은 같은 조준 방향으로 평행하게 이동한다. 추가탄은 작은 반지름만큼 안쪽으로 보정해 시각적 좌우 간격을 맞춘다.
-      // 클레아의 기본탄·추가탄은 소르 평타 탄환과 동일한 충돌 반지름을 사용한다.
-      const sorProjectileRadius=augBulletRadius(duels2GetSkillBalance('sor','lmb').radius);
-      const primaryRadius=sorProjectileRadius;
-      const shadowRadius=Math.max(3,sorProjectileRadius*0.72);
+      // 기본탄과 추가탄은 같은 조준 방향으로 평행하게 이동하며, 각 탄환 크기는 클레아 밸런스 값을 사용한다.
+      const primaryRadius=augBulletRadius(B.radius);
+      const shadowRadius=augBulletRadius(B.shadowRadius);
       const primaryOffset=Math.max(10,B.radius*1.18);
       const shadowOffset=primaryOffset;
       const perpX=-Math.sin(angle), perpY=Math.cos(angle);
@@ -43180,7 +43193,10 @@ function moveBullets(dt=1) {
             L.stamina=Math.min(staminaMax,(Number(L.stamina)||0)+staminaOnHit*damageTargets.length);
           }
         }
-        duels2RouteProjectileImpactDamageTargets(b, damageTargets, {lmbAttack:!!b._lmbAttack});
+        const didProjectileDamage=duels2RouteProjectileImpactDamageTargets(b, damageTargets, {lmbAttack:!!b._lmbAttack});
+        if(b.isCleaShuriken && didProjectileDamage && damageTargets.length>0){
+          SKILLS.clea._restoreShadowDuration(damageTargets.length);
+        }
 
         if (b.isNanPillow && damageTargets.length > 0) {
           const _nl = L.maxHealth - L.health;
