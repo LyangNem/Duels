@@ -65484,9 +65484,13 @@ function showRoundResult(won, callback) {
   tx.style.textShadow = won ? '0 0 30px #4f8' : '0 0 30px #f44';
   sub.textContent = `${matchState.localWins} — ${matchState.peerWins}`;
   ov.style.display = 'flex';
-  setTimeout(() => {
+  clearTimeout(matchState._roundResultOverlayTimer);
+  matchState._roundResultVisibleUntil = performance.now() + 1800;
+  matchState._roundResultOverlayTimer = setTimeout(() => {
+    matchState._roundResultOverlayTimer = null;
+    matchState._roundResultVisibleUntil = 0;
     ov.style.display = 'none';
-    callback();
+    if (typeof callback === 'function') callback();
   }, 1800);
 }
 
@@ -65686,23 +65690,42 @@ function _doEndGame(won, roundToken = Math.max(1, Number(matchState.round) || 1)
   }
 }
 
-// duels2FinalizeMatchRuntime: 최종 결과 시 양쪽의 전투·라운드 전환을 원자적으로 종료한다. (won: 로컬 승리 여부, meta: winnerPid/roundToken)
+// duels2FinalizeMatchRuntime: 최종 라운드 결과 표시를 끝까지 유지한 뒤 리매치·처음으로 버튼이 있는 매치 결과 화면을 연다. (won: 로컬 승리 여부, meta: winnerPid/roundToken)
 function duels2FinalizeMatchRuntime(won,meta={}) {
+  const finalToken=meta.roundToken??matchState.round??1;
+  if(matchState._finalMatchRevealScheduledToken===finalToken) return true;
+  matchState._finalMatchRevealScheduledToken=finalToken;
   matchState._matchOver=true;
   matchState._pendingAuthorityRoundOutcome=null;
   matchState._betweenStarted=true;
-  matchState._finalMatchToken=meta.roundToken??matchState.round??1;
+  matchState._finalMatchToken=finalToken;
   gameOn=false;
   L._dying=false;
   clearTimeout(window._dyingTimer);
   clearTimeout(window._gameTimer);
   if(_stateInterval){clearInterval(_stateInterval);_stateInterval=null;}
   if(_dodgeInterval){clearInterval(_dodgeInterval);_dodgeInterval=null;}
-  const roundOverlay=document.getElementById('round-result-overlay');
-  if(roundOverlay) roundOverlay.style.display='none';
   const between=document.getElementById('scr-between');
   if(between) between.classList.add('hidden');
-  showMatchOver(!!won);
+
+  const revealMatchResult=()=>{
+    clearTimeout(matchState._finalMatchRevealTimer);
+    matchState._finalMatchRevealTimer=null;
+    matchState._roundResultVisibleUntil=0;
+    const roundOverlay=document.getElementById('round-result-overlay');
+    if(roundOverlay) roundOverlay.style.display='none';
+    showMatchOver(!!won);
+  };
+
+  const roundOverlay=document.getElementById('round-result-overlay');
+  const roundResultAlreadyVisible=roundOverlay&&roundOverlay.style.display!=='none';
+  if(roundResultAlreadyVisible){
+    const remaining=Math.max(0,(Number(matchState._roundResultVisibleUntil)||performance.now())-performance.now());
+    clearTimeout(matchState._finalMatchRevealTimer);
+    matchState._finalMatchRevealTimer=setTimeout(revealMatchResult,remaining+16);
+  }else{
+    showRoundResult(!!won,revealMatchResult);
+  }
   return true;
 }
 window.duels2FinalizeMatchRuntime=duels2FinalizeMatchRuntime;
