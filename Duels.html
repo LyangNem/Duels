@@ -4026,7 +4026,7 @@ const BALANCE = {
     radius: 20,
     lmb: {
       costMin:    20,
-      costMax:    60,
+      costMax:    40,
       damage:     5,
       minRadius:  68,
       maxRadius:  240,
@@ -4039,7 +4039,7 @@ const BALANCE = {
     rmb: {
       cost:          35,
       inputWindowMs: 200,
-      revealMs:      400,
+      revealMs:      350,
       recastWindow:  1200,
       spellbookCost: 120,
       moveHoldMs:    300,
@@ -52071,7 +52071,7 @@ duels2RegisterInputStateProfile('tinya-circle-lmb',{
 function duels2GetTinyaCircleStaminaCost(radius){
   const B=duels2GetSkillBalance('tinya','lmb');
   const minR=Math.max(0,Number(B.minRadius)||0),maxR=Math.max(minR+1,Number(B.maxRadius)||minR+1);
-  const minCost=Math.max(0,Number(B.costMin)||20),maxCost=Math.max(minCost,Number(B.costMax)||60);
+  const minCost=Math.max(0,Number(B.costMin)||20),maxCost=Math.max(minCost,Number(B.costMax)||40);
   const t=Math.max(0,Math.min(1,((Number(radius)||minR)-minR)/(maxR-minR)));
   return Math.round(minCost+(maxCost-minCost)*t);
 }
