@@ -29488,8 +29488,21 @@ function duels2AwardCharacterMastery(charId,amount,reason='round',opt={}) {
   if (Number.isFinite(Number(opt.ceiling))) after=Math.min(Number(opt.ceiling),after);
   after=Math.max(0,Math.floor(after));
   DUELS2_CHARACTER_MASTERY_STATE.local[charId]=after;
+
+  // 라운드 정산 결과를 로그인 계정의 메모리 사본에도 즉시 반영한다.
+  // 이 경로가 빠지면 화면상 점수는 바뀌어도 다음 계정 저장 때 이전 값으로 덮어써질 수 있다.
+  const accountState=globalThis.DUELS2_GITHUB_ACCOUNT_STATE;
+  if(accountState?.current){
+    const records=(accountState.current.characterRecords&&typeof accountState.current.characterRecords==='object')
+      ? {...accountState.current.characterRecords}
+      : {};
+    records[charId]=after;
+    accountState.current={...accountState.current,characterRecords:records,updatedAt:new Date().toISOString()};
+  }
+
   duels2SaveCharacterMastery();
   duels2RefreshCharacterRecordUi();
+  if(typeof duels2AccountScheduleSave==='function') duels2AccountScheduleSave(120);
   const result={charId,before,after,delta:after-before,reason,beforeTier:duels2GetCharacterMasteryTier(before),afterTier:duels2GetCharacterMasteryTier(after)};
   duels2ShowRecordDelta(result);
   duels2BroadcastCurrentRecord(charId);
@@ -29521,9 +29534,11 @@ function duels2BroadcastCurrentRecord(charId) {
 // duels2GetRoundRecordChange: 현재 등급과 승패에 따른 한 라운드 레코드 증감 규칙을 계산한다. (points: 현재 점수, won: 라운드 승리 여부)
 function duels2GetRoundRecordChange(points,won) {
   const tier=duels2GetCharacterMasteryTier(points);
+  const platinumLoss=25;
+  const masterLoss=40;
   // 다이아 이상은 단순 참가 점수는 없지만, 승리 보너스 50점은 계속 획득한다.
-  if (tier.id==='master') return won?{amount:50,floor:12000,reason:'master-win'}:{amount:-40,floor:12000,reason:'master-loss'};
-  if (tier.id==='platinum') return won?{amount:50,floor:8000,reason:'platinum-win'}:{amount:-25,floor:8000,reason:'platinum-loss'};
+  if (tier.id==='master') return won?{amount:50,floor:12000,reason:'master-win'}:{amount:-masterLoss,floor:12000,reason:'master-loss'};
+  if (tier.id==='platinum') return won?{amount:50,floor:8000,reason:'platinum-win'}:{amount:-platinumLoss,floor:8000,reason:'platinum-loss'};
   if (tier.id==='diamond') return won?{amount:50,reason:'diamond-win'}:{amount:0,reason:'diamond-loss-no-change'};
   return {amount:won?100:50,ceiling:5000,reason:won?'round-win':'round-play'};
 }
