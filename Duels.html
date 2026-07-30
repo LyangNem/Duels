@@ -3962,11 +3962,10 @@ const BALANCE = {
       gaugeOnHit: 6,
     },
     rmb: {
-      cost:               35,
-      duration:           5000,
-      gaugePerShot:       4,
-      hitDurationRestore: 200,
-      cd:                 300,
+      cost:         35,
+      duration:     5000,
+      gaugePerShot: 4,
+      cd:           300,
     },
     counter: {
       damage:     20,
@@ -4005,13 +4004,14 @@ const BALANCE = {
     },
     counter: {
       damage:          25,
-      orbitRange:      112,
+      orbitRange:      157.5,
+      parryRange:      552.75,
       shieldRadius:    48,
       rotations:       2,
       spinDur:         620,
-      parryThrowDist:  825,
-      parryThrowDur:   700,
-      parryFollowDur:  460,
+      // 825→552.75로 사거리만 33% 줄이고 기존 탄속은 유지한다.
+      parryThrowDur:   469,
+      parryFollowDur:  308.2,
       parryShieldRadius:48,
       knockbackPower:  420,
       cd:              550,
@@ -5053,7 +5053,7 @@ const CHARACTERS = {
       { key:'LMB', name:'달 수리검', cost:duels2GetSkillBalance('clea','lmb').cost,
         desc:`달 수리검을 던져 적중 시 달 그림자와 스테미나가 충전되며 날아갈수록 느려짐. 마우스 홀드 이용 불가 (${duels2GetSkillBalance('clea','lmb').damage})` },
       { key:'RMB', name:'달 그림자', cost:duels2GetSkillBalance('clea','rmb').cost,
-        desc:`${duels2GetSkillBalance('clea','rmb').duration/1000}초 동안 평타마다 달 그림자를 소모해 추가 수리검을 발사. 지속 중 적 타격마다 사용 시간을 ${duels2GetSkillBalance('clea','rmb').hitDurationRestore/1000}초 회복` },
+        desc:`${duels2GetSkillBalance('clea','rmb').duration/1000}초 동안 평타마다 달 그림자를 소모해 추가 수리검을 발사` },
       { key:'L-Shift', name:'슬라이딩', cost:0,
         desc:`빠르게 슬라이딩하며 경로상의 적에게 피해. 달 그림자 ${Math.round(duels2GetSkillBalance('clea','counter').gaugeGainRatio*100)}% 충전 (${duels2GetSkillBalance('clea','counter').damage})` },
     ],
@@ -13323,6 +13323,22 @@ function duels2RecolorBlockedAttackFx(x,y){
   }
 }
 
+// duels2PlayShelloProjectileBlockSfx: 셸로가 실제 탄환을 막았을 때 같은 탄환의 중복 판정을 제거하고 타격음을 한 번 재생한다. (entity: 방어자, eventKey: 탄환 식별자)
+function duels2PlayShelloProjectileBlockSfx(entity,eventKey){
+  const P=entity;
+  if(P!==L||P?.charDef?.id!=='shello')return false;
+  const now=performance.now(),key=String(eventKey||`frame:${Math.floor(now/16)}`);
+  if(!P._shelloProjectileBlockSfxRecent)P._shelloProjectileBlockSfxRecent=new Map();
+  const prev=Number(P._shelloProjectileBlockSfxRecent.get(key))||0;
+  if(now-prev<=500)return false;
+  P._shelloProjectileBlockSfxRecent.set(key,now);
+  for(const [storedKey,storedAt] of P._shelloProjectileBlockSfxRecent){
+    if(now-storedAt>1200)P._shelloProjectileBlockSfxRecent.delete(storedKey);
+  }
+  playHitSfx();
+  return true;
+}
+
 // duels2ActivateShelloParryFromGuard: 실제 방어 성공 시 패리 반격을 활성화하고 방어 지속시간을 초기화한다. (entity: 방어자, impact: 충돌점)
 function duels2ActivateShelloParryFromGuard(entity,impact={}){
   const P=entity;
@@ -13377,6 +13393,7 @@ function duels2TickShelloShieldProjectileCollider(){
     if(Math.hypot(c.x-g.x,c.y-g.y)>g.radius+r){b._prevX=bx;b._prevY=by;continue;}
     cancelled.push(b.id);
     duels2RouteProjectileLifecycleRemoval(peerBullets,i,b,{collection:'peerBullets',route:'projectile.lifecycle.shello-shield'});
+    duels2PlayShelloProjectileBlockSfx(L,b.id||b._id);
     duels2ActivateShelloParryFromGuard(L,{x:c.x,y:c.y});
   }
   if(cancelled.length&&typeof send==='function')send({type:'cancelBullets',ids:cancelled});
@@ -13527,6 +13544,7 @@ function duels2TryShelloGuardBlock(entity, ctx = {}) {
 
   // 실제 소유 클라이언트만 패리 반격 상태와 연출을 확정한다.
   if(firstBlock && P===L){
+    if(isProjectile)duels2PlayShelloProjectileBlockSfx(P,projectile?.id||projectile?._id||key);
     duels2ActivateShelloParryFromGuard(P,{x:impactX,y:impactY});
     if(typeof send==='function'){
       const eventId=ctx.feedbackEventId||ctx.eventId||projectile?.id||null;
@@ -31611,7 +31629,8 @@ function applyStunShot(targets = null, actionCtx = null, opt = {}) {
     });
 
   const provenance=duels2ResolveBasicAttackProvenance({actionCtx:resolvedCtx,slot:opt.slot,hitTags:opt.hitTags},L);
-  const eligible=provenance.isBasicAttack && (canUseAugmentHookForContext(resolvedCtx,'stun_shot') || opt.lmbAttack===true);
+  const explicitSkillEligible=opt.allowSkillSlot===true && String(opt.slot||resolvedCtx?.slot||'').toLowerCase()==='rmb' && resolvedCtx?.charId==='tinya';
+  const eligible=(provenance.isBasicAttack && (canUseAugmentHookForContext(resolvedCtx,'stun_shot') || opt.lmbAttack===true)) || explicitSkillEligible;
   if(!eligible) return false;
 
   L._stunShotReady=false;
@@ -38698,6 +38717,9 @@ const SKILLS = {
     // counter: 단일 반격 슬롯의 최신 mode가 parry면 투척 추격, 아니면 두 바퀴 스피닝을 사용한다. (angle: 시작 방향)
     counter(angle) {
       const B=duels2GetSkillBalance('shello','counter');
+      const lmbBalance=duels2GetSkillBalance('shello','lmb');
+      const normalRange=Math.max(0,Number(lmbBalance.orbitRange)||0);
+      const parryRange=Math.max(0,Number(B.parryRange)||normalRange);
       if(!duels2CheckCounterReadyGuard(L,{route:'skill.counter.ready-check',source:'character-counter'}))return;
       const mode=L._shelloCounterMode==='parry'?'parry':'normal';
       duels2ConsumeCounterReadyGuard(L,{route:'skill.counter.ready-consume',source:'character-counter'});
@@ -38706,13 +38728,13 @@ const SKILLS = {
       const tok=++L._counterToken;
       if(mode==='parry'){
         // 패리 투척의 실제 판정은 이동 선분을 방패 반지름만큼 확장한 범위다. 미리보기도 같은 길이와 폭을 사용한다.
-        L._attackPreview={shapes:[{type:'rect',len:B.parryThrowDist,width:B.parryShieldRadius,noAug:true,col:SHELLO_GUARD_FX_COLOR}]};
+        L._attackPreview={shapes:[{type:'rect',len:parryRange,width:B.parryShieldRadius,noAug:true,col:SHELLO_GUARD_FX_COLOR}]};
         scheduleAction(BALANCE.counter.delay,()=>{
           L._attackPreview=null;if(!gameOn||L._counterToken!==tok||L?.charDef?.id!=='shello')return;
           const liveAngle=getAngle();
           const started=performance.now(),hit=new Set(),token=(L._shelloParryThrowToken||0)+1;L._shelloParryThrowToken=token;
           const sx=L.x+Math.cos(liveAngle)*(L.radius+B.parryShieldRadius*.42),sy=L.y+Math.sin(liveAngle)*(L.radius+B.parryShieldRadius*.42);
-          const ex=sx+Math.cos(liveAngle)*B.parryThrowDist,ey=sy+Math.sin(liveAngle)*B.parryThrowDist;
+          const ex=sx+Math.cos(liveAngle)*parryRange,ey=sy+Math.sin(liveAngle)*parryRange;
           const shieldId=`shello-parry-${getPlayerPid(L)||localPid||'local'}-${token}-${Math.floor(performance.now())}`;
           const shieldMap=window.DUELS2_SHELLO_PARRY_SHIELDS||(window.DUELS2_SHELLO_PARRY_SHIELDS=new Map());
           const shieldObject={id:shieldId,ownerPid:getPlayerPid(L)||localPid||'',x:sx,y:sy,prevX:sx,prevY:sy,radius:B.parryShieldRadius,local:true,updatedAt:performance.now()};
@@ -38731,14 +38753,28 @@ const SKILLS = {
             L._shelloParryThrowToken++;
             syncShield(false,impactX,impactY,true);
             const frontOffset=Math.max(0,B.parryShieldRadius+L.radius*0.8);
-            const tx=Math.max(L.radius,Math.min(WORLD_W-L.radius,impactX+Math.cos(liveAngle)*frontOffset));
-            const ty=Math.max(L.radius,Math.min(WORLD_H-L.radius,impactY+Math.sin(liveAngle)*frontOffset));
+            const rawTx=impactX+Math.cos(liveAngle)*frontOffset;
+            const rawTy=impactY+Math.sin(liveAngle)*frontOffset;
+            // 패리 반격기의 이동 목표는 방패가 실제로 도달한 지점을 그대로 따른다.
+            // 기준 사거리 825에서 33% 감소한 parryRange(552.75)를 투척과 추격이 함께 사용한다.
+            const tx=Math.max(L.radius,Math.min(WORLD_W-L.radius,rawTx));
+            const ty=Math.max(L.radius,Math.min(WORLD_H-L.radius,rawTy));
             const followFrames=Math.max(8,B.parryFollowDur/FRAME_MS);
             emitFx({type:'dash',x:L.x,y:L.y,tx,ty,dur:followFrames,maxDur:followFrames,col:'82,42,80'});
             emitFx({type:'shieldDash',x:L.x,y:L.y,angle:Math.atan2(ty-L.y,tx-L.x),range:Math.hypot(tx-L.x,ty-L.y),dur:followFrames,maxDur:followFrames,col:'82,42,80'});
-            duels2MovementStartCancelableDashTo?.(L,'_shelloParryFollowInterval',tx,ty,B.parryFollowDur,{reason:'shello.parry-counter.follow',route:'movement.skill-dash.executor.shello-parry-follow',source:L,payload:{easing:'easeOutQuad',executor:true,shieldWallPierce:true},finishReason:'shello.parry-counter.follow:complete',finishRoute:'movement.skill-dash.finish.shello-parry-follow',stopReason:'shello.parry-counter.follow:game-stopped',stopRoute:'movement.skill-dash.cancel.shello-parry-follow'});
+            // 패리 추격은 일반 이동 충돌 보정과 분리해 벽 배치와 프레임 순서에 관계없이 목표 지점까지 관통 이동한다.
             const followToken=(L._shelloParryFollowToken||0)+1;L._shelloParryFollowToken=followToken;
-            scheduleAction(B.parryFollowDur+12,()=>{if(gameOn&&L?.charDef?.id==='shello'&&L._shelloParryFollowToken===followToken){L.x=tx;L.y=ty;}},{cancelOnRoundChange:true,cancelIfCharChanged:true});
+            const followStartX=L.x,followStartY=L.y,followStartedAt=performance.now(),followDuration=Math.max(1,Number(B.parryFollowDur)||1);
+            const followTick=()=>{
+              if(!gameOn||L?.charDef?.id!=='shello'||L._shelloParryFollowToken!==followToken)return;
+              const t=Math.min(1,(performance.now()-followStartedAt)/followDuration);
+              const eased=1-Math.pow(1-t,2);
+              L.x=followStartX+(tx-followStartX)*eased;
+              L.y=followStartY+(ty-followStartY)*eased;
+              if(t<1){requestAnimationFrame(followTick);return;}
+              L.x=tx;L.y=ty;
+            };
+            requestAnimationFrame(followTick);
           };
           const throwTick=()=>{
             if(!gameOn||L?.charDef?.id!=='shello'||L._shelloParryThrowToken!==token||followStarted)return;
@@ -38765,11 +38801,11 @@ const SKILLS = {
         },{cancelOnRoundChange:true,cancelIfCharChanged:true});
         return;
       }
-      L._attackPreview={shapes:[{type:'annulus',inner:Math.max(0,B.orbitRange-B.shieldRadius),outer:B.orbitRange+B.shieldRadius,noAug:true}]};
+      L._attackPreview={shapes:[{type:'annulus',inner:Math.max(0,normalRange-B.shieldRadius),outer:normalRange+B.shieldRadius,noAug:true}]};
       scheduleAction(BALANCE.counter.delay,()=>{
         L._attackPreview=null;if(!gameOn||L._counterToken!==tok)return;
         const startAngle=getAngle(),started=performance.now(),rotations=Math.max(1,Number(B.rotations)||2),hitByRotation=Array.from({length:rotations},()=>new Set()),totalHits=new Set();
-        emitFx({type:'shelloOrbitShield',cx:L.x,cy:L.y,startAngle,totalAngle:Math.PI*2*rotations,orbitRange:B.orbitRange,shieldRadius:B.shieldRadius,col:'82,42,80',dur:Math.max(1,B.spinDur/FRAME_MS),maxDur:Math.max(1,B.spinDur/FRAME_MS)});
+        emitFx({type:'shelloOrbitShield',cx:L.x,cy:L.y,followPid:getPlayerPid(L),startAngle,totalAngle:Math.PI*2*rotations,orbitRange:normalRange,shieldRadius:B.shieldRadius,col:'82,42,80',dur:Math.max(1,B.spinDur/FRAME_MS),maxDur:Math.max(1,B.spinDur/FRAME_MS)});
         const spin=()=>{
           if(!gameOn||L._counterToken!==tok)return;
           const t=Math.min(1,(performance.now()-started)/Math.max(1,B.spinDur)),a=startAngle+t*Math.PI*2*rotations,rotationIndex=Math.min(rotations-1,Math.floor(Math.min(0.999999,t)*rotations)),hit=hitByRotation[rotationIndex];
@@ -38790,19 +38826,6 @@ const SKILLS = {
       const max=Math.max(1,Number(duels2GetSkillBalance('clea','gaugeMax'))||100);
       L._cleaGauge=Math.max(0,Math.min(max,(Number(L._cleaGauge)||0)+(Number(amount)||0)));
       return L._cleaGauge;
-    },
-    // _restoreShadowDuration: 달 그림자 활성 중 적중 수만큼 지속시간을 회복하되 남은 시간이 최초 지속시간을 넘지 않게 제한한다. (hitCount: 실제 적중 수)
-    _restoreShadowDuration(hitCount=1) {
-      const B=duels2GetSkillBalance('clea','rmb');
-      const now=performance.now();
-      const currentEnd=Number(L._cleaShadowEnd)||0;
-      if(currentEnd<=now) return currentEnd;
-      const restorePerHit=Math.max(0,Number(B.hitDurationRestore)||0);
-      const count=Math.max(0,Math.floor(Number(hitCount)||0));
-      if(restorePerHit<=0 || count<=0) return currentEnd;
-      const maxEnd=now+Math.max(0,Number(B.duration)||0);
-      L._cleaShadowEnd=Math.min(maxEnd,currentEnd+restorePerHit*count);
-      return L._cleaShadowEnd;
     },
     // lmb: 기본 수리검과 달 그림자 추가 수리검을 같은 프레임에 좌우 평행 레인으로 발사한다. (angle: 조준 방향)
     lmb(angle) {
@@ -43194,9 +43217,6 @@ function moveBullets(dt=1) {
           }
         }
         const didProjectileDamage=duels2RouteProjectileImpactDamageTargets(b, damageTargets, {lmbAttack:!!b._lmbAttack});
-        if(b.isCleaShuriken && didProjectileDamage && damageTargets.length>0){
-          SKILLS.clea._restoreShadowDuration(damageTargets.length);
-        }
 
         if (b.isNanPillow && damageTargets.length > 0) {
           const _nl = L.maxHealth - L.health;
@@ -45847,8 +45867,11 @@ function draw() {
       const progress=Math.max(0,Math.min(1,1-f.dur/Math.max(1,f.maxDur)));
       const a0=Number(f.startAngle)||0;
       const ang=a0+(Number(f.totalAngle)||0)*progress;
-      const x=(Number(f.cx)||0)+Math.cos(ang)*(Number(f.orbitRange)||0);
-      const y=(Number(f.cy)||0)+Math.sin(ang)*(Number(f.orbitRange)||0);
+      const followActor=f.followPid&&typeof getPlayerByPid==='function'?getPlayerByPid(f.followPid):null;
+      const centerX=followActor&&Number.isFinite(Number(followActor.x))?Number(followActor.x):(Number(f.cx)||0);
+      const centerY=followActor&&Number.isFinite(Number(followActor.y))?Number(followActor.y):(Number(f.cy)||0);
+      const x=centerX+Math.cos(ang)*(Number(f.orbitRange)||0);
+      const y=centerY+Math.sin(ang)*(Number(f.orbitRange)||0);
       const rr=Math.max(1,Number(f.shieldRadius)||48),col=f.col||'82,42,80';
       ctx.beginPath();ctx.arc(x,y,rr,0,Math.PI*2);
       ctx.fillStyle=`rgba(${col},${0.34*a})`;ctx.fill();
@@ -51793,6 +51816,7 @@ function duels2ExecuteTinyaManifestDamageV4(circles,opt={}){
   for(const name of extraArrays){const arr=window[name];if(Array.isArray(arr))for(const target of arr)add(target);}
 
   let hitCount=0;
+  const appliedTargets=[];
   const slot=opt.slot||'rmb';
   const route=opt.route||'skill.tinya.manifest-v4';
   for(const target of candidates){
@@ -51809,7 +51833,10 @@ function duels2ExecuteTinyaManifestDamageV4(circles,opt={}){
       source,slot,route,moduleId:'effect.damage.tinya-manifest-v4',policyFamily:'manifest',delivery:'area',timing:'instant',damageType:'magic',actionCtx,
       tags:actionCtx.tags,allowFriendlyFire:false
     }));
-    if(applied)hitCount++;
+    if(applied){
+      hitCount++;
+      appliedTargets.push(target);
+    }
 
     let highestStage=0;
     for(const circle of list){
@@ -51825,6 +51852,11 @@ function duels2ExecuteTinyaManifestDamageV4(circles,opt={}){
         applyCC(target,{knockbackPower,knockbackAngle},source,{slot:'counter',reason:'tinya-counter-manifest-knockback',preserveActionState:true});
       }
     }
+  }
+  // 티냐의 일반 RMB 발동은 예외적으로 스턴샷을 소비할 수 있다. 실제 피해가 적용된 대상이 있을 때만 한 번 소비한다.
+  if(slot==='rmb'&&source===L&&appliedTargets.length){
+    const stunActionCtx=createActionContext?.({sourceEntity:L,charId:'tinya',slot:'rmb',delivery:'area',timing:'instant',tags:['tinya','rmb','manifest','stun_shot']})||{sourceEntity:L,charId:'tinya',slot:'rmb',tags:['tinya','rmb','manifest','stun_shot']};
+    applyStunShot(appliedTargets,stunActionCtx,{slot:'rmb',allowSkillSlot:true,hitTags:['tinya','rmb','manifest','stun_shot']});
   }
   emitFx({type:'tinyaManifestFlash',circles:list.map(c=>({x:c.x,y:c.y,r:c.r})),dur:18,maxDur:18,col:DUELS2_TINYA_COLOR});
   if(hitCount)playHitSfx();
