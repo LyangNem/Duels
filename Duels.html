@@ -4016,6 +4016,39 @@ const BALANCE = {
   },
 
 
+  // ── 티냐 ────────────────────────────────────────────────────
+  tinya: {
+    hp:     120,
+    speed:  3.75,
+    radius: 20,
+    lmb: {
+      costMin:    20,
+      costMax:    60,
+      damage:     5,
+      minRadius:  68,
+      maxRadius:  240,
+      maxCircles: 6,
+      cd:         180,
+      moveHoldMs: 300,
+      amplifierRadiusTolerance: 1.5,
+      amplifierEffectMs: 1000,
+    },
+    rmb: {
+      cost:          35,
+      inputWindowMs: 200,
+      revealMs:      300,
+      recastWindow:  1200,
+      spellbookCost: 120,
+      moveHoldMs:    300,
+      cd:            500,
+    },
+    counter: {
+      cd:        550,
+      revealMs:  300,
+    },
+  },
+
+
   // ── 레테 ────────────────────────────────────────────────────
   lete: {
     hp:     110,
@@ -5022,6 +5055,8 @@ const CHARACTERS = {
     ],
   },
 
+
+
   shello: {
     id:        'shello',
     name:      '셸로',
@@ -5040,6 +5075,42 @@ const CHARACTERS = {
         desc:`방패를 먼저 날린 뒤 빠르게 따라감 (${duels2GetSkillBalance('shello','counter').damage})` },
       { key:'L-Shift', name:'스피닝', cost:0,
         desc:`방패를 던져 주변을 두 바퀴 회전시키며 피해 (${duels2GetSkillBalance('shello','counter').damage})` },
+    ],
+  },
+
+
+  tinya: {
+    id:        'tinya',
+    name:      '티냐',
+    color:     '#92cbd6',
+    maxHealth: duels2GetSkillBalance('tinya','hp'),
+    speed:     duels2GetSkillBalance('tinya','speed'),
+    radius:    duels2GetSkillBalance('tinya','radius'),
+    statsText: [['체력', String(duels2GetSkillBalance('tinya','hp'))],['이동속도','느림'],['스타일','영역장악형 초장거리 컨트롤러']],
+    desc:      '얼음 속성 마법진을 그려 공격하는 캐릭터',
+    skills: [
+      { key:'LMB DRAG', name:'마법진', cost:`${duels2GetSkillBalance('tinya','lmb').costMin}~${duels2GetSkillBalance('tinya','lmb').costMax}`,
+        desc:`드래그로 마법진을 생성. 마법진의 생성 형태에 따라 추가 효과 적용 (${duels2GetSkillBalance('tinya','lmb').damage})` },
+      { key:'LMB INCLUDE', name:'포함', cost:0,
+        desc:'큰 마법진이 작은 마법진을 완전히 포함하면 작은 마법진의 효과가 2배로 증폭. 일정 크기 이상은 포함 불가' },
+      { key:'LMB LINK', name:'연결', cost:0,
+        desc:'겹치지 않고 서로 이어진 마법진이 효과를 공유' },
+      { key:'LMB CROSS', name:'교차', cost:0,
+        desc:'마법진이 교차될 시 마법진의 피해가 2배 증가하며 교차지점은 추가로 2배 증가' },
+      { key:'LMB AMP', name:'증폭', cost:0,
+        desc:`최소 크기의 마법진으로만 소환 가능. 직ㆍ간접적으로 연결된 모든 마법진에 연결된 증폭 마법진의 수에 따라 ${duels2GetSkillBalance('tinya','lmb').amplifierEffectMs/1000}초 슬로우ㆍ속박ㆍ빙결` },
+      { key:'LMB HOLD', name:'마법진 수정', cost:0,
+        desc:'선택한 마법진의 위치 조정' },
+      { key:'RMB', name:'발동', cost:duels2GetSkillBalance('tinya','rmb').cost,
+        desc:'현재 구현된 마법진 전체 발동' },
+      { key:'RMB/LMB', name:'마법진 제거', cost:0,
+        desc:'선택한 마법진 중 가장 최근 마법진 제거' },
+      { key:'RMB/RMB', name:'마법 주문서', cost:duels2GetSkillBalance('tinya','rmb').spellbookCost,
+        desc:'현재 마법진의 중앙 위치에 가장 최근에 발동한 마법진 배치를 불러옴' },
+      { key:'RMB HOLD', name:'마법진 위치 조정', cost:0,
+        desc:'선택한 마법진과 연결된 모든 마법진의 위치 조정' },
+      { key:'L-Shift', name:'무영창 주문서', cost:0,
+        desc:'가장 최근에 발동한 마법진을 발동' },
     ],
   },
 };
@@ -29615,9 +29686,16 @@ async function duels2RenderCharacterRankingDetail(container,ch){
 window.duels2RenderCharacterRankingDetail=duels2RenderCharacterRankingDetail;
 
 // duels2GetCharacterSelectionOrder: 캐릭터 선택 UI에서 지정 캐릭터를 마지막에 배치한다. (lastIds: 마지막에 둘 캐릭터 id 배열)
-function duels2GetCharacterSelectionOrder(lastIds=['ruli','clea','shello']) {
-  const tail=new Set(lastIds);
-  return Object.values(CHARACTERS).sort((a,b)=>(tail.has(a.id)?1:0)-(tail.has(b.id)?1:0));
+function duels2GetCharacterSelectionOrder(lastIds=['ruli','clea','shello','tinya']) {
+  const rank=new Map(lastIds.map((id,index)=>[id,index]));
+  return Object.values(CHARACTERS).sort((a,b)=>{
+    const ar=rank.has(a.id)?rank.get(a.id): -1;
+    const br=rank.has(b.id)?rank.get(b.id): -1;
+    if(ar<0&&br<0)return 0;
+    if(ar<0)return -1;
+    if(br<0)return 1;
+    return ar-br;
+  });
 }
 
 // duels2GetCharacterMoveSpeedLabel: 캐릭터 카드의 이동속도 표시 문구를 반환한다. (ch: 캐릭터 정의)
@@ -29769,6 +29847,11 @@ function useStam(amt, isDodge=false, opt = {}) {
 }
 function tickStamina(now, physDt) {
   if (L._devFlags?.freezeST || L._devBlockNaturalStRegen) return;
+  // 티냐가 마법진 크기를 조정하는 동안에는 예약 스태미나와 자연 회복이 서로 경쟁하지 않게 회복을 잠근다.
+  if (L?.charDef?.id === 'tinya' && L._tinyaInput?.mode === 'create') {
+    L.staminaUseTime = now;
+    return;
+  }
   // 이름이 달라도 같은 기능인 채널/집중형 스테미나 회복 차단은 기능 모듈로 처리한다.
   if (isEntityFunctionalModuleActive(L, 'module.stamina.regen-lock', {now, reason:'tickStamina'})) {
     L.staminaUseTime = now;
@@ -33922,7 +34005,7 @@ function duels2TickLeteGroundLetters() {
       if(L.stamina>=max-0.001) continue;
       L.stamina=Math.min(max,L.stamina+max*g.staminaRatio);
       emitFx({type:'staminaNum',x:L.x,y:L.y-30,amount:Math.round(max*g.staminaRatio),dur:35,maxDur:35});
-      emitFx({type:'aoe',x:g.x,y:g.y,r:30,col:'167,176,164',dur:18,maxDur:18});
+      emitFx({type:'aoe',x:g.x,y:g.y,r:30,col:'167,176,164',dur:30,maxDur:30});
       arr.splice(i,1);
     }
   }
@@ -36873,16 +36956,22 @@ const SKILLS = {
       if (!gameOn || L.lmbCooldown > 0) return;
 
       const B = duels2GetSkillBalance('hatsuhats','lmb');
-      // 드래그 길이 = 누적 경로 길이 (시작~끝 직선 거리 아님)
-      const dragLen = Math.min(L._hatsDragTotalLen || 0, B.maxDragDist);
-
-      // 드래그 거리가 너무 짧으면 취소
-      if (dragLen < B.dragThreshold) {
-        L._hatsDragPath = null; L._hatsDragFarthest = null; L._hatsFrozen = false;
-        return;
+      // 클릭만 하거나 최소 거리보다 짧게 드래그해도 최소 차징 공격을 발사한다.
+      const rawDragLen = Math.min(L._hatsDragTotalLen || 0, B.maxDragDist);
+      const dragLen = Math.max(B.dragThreshold, rawDragLen);
+      if (rawDragLen < B.dragThreshold) {
+        const missingCost = Math.max(0, Number(B.minCost)||0) - Math.max(0, Number(L._hatsLmbDrained)||0);
+        if (missingCost > 0) {
+          const paid = duels2RouteDrainSharedContinuousStamina(missingCost, 'lmb', {moduleId:'hatsuhatsLmbDrag', route:'skill.hatsuhats.lmb.minimum-release', reason:'minimum-charge-release'});
+          if ((Number(paid?.actual)||0) + 0.001 < missingCost) {
+            L._hatsDragPath = null; L._hatsDragFarthest = null; L._hatsFrozen = false;
+            return;
+          }
+          L._hatsLmbDrained = (L._hatsLmbDrained || 0) + (Number(paid?.actual)||0);
+        }
       }
 
-      // t: 0=짧게(멀리/약하게), 1=길게(가까이/강하게)
+      // t: 0=최소 차징(멀리/약하게), 1=최대 차징(가까이/강하게)
       const t = (dragLen - B.dragThreshold) / (B.maxDragDist - B.dragThreshold);
       const clampT = Math.max(0, Math.min(1, t));
 
@@ -38526,6 +38615,41 @@ const SKILLS = {
   },
 
 
+  tinya: {
+    // lmb: 통합 입력 프로필이 드래그 생성과 기존 마법진 이동을 처리하므로 직접 클릭 실행은 사용하지 않는다. ()
+    lmb() {},
+    // rmb: 티냐 전용 입력 상태기가 선딜레이·홀드·재입력을 처리한다. 직접 호출 시에도 같은 선딜레이 흐름을 시작한다. (angle: 조준 방향)
+    rmb(angle) {
+      duels2StartTinyaRmbWindup?.(duels2GetTinyaPointerWorld(),{ids:new Set()});
+    },
+
+    // counter: 마우스 위치에 최근 배치를 준비하되 선딜레이 중에는 숨기고, 종료 즉시 공개 효과와 피해를 함께 발동한다. 저장 배치가 없으면 최소 기본 마법진을 사용한다. (angle: 호환용 조준 방향)
+    counter(angle) {
+      const B=duels2GetSkillBalance('tinya','counter');
+      if(!duels2CheckCounterReadyGuard(L,{route:'skill.counter.ready-check',source:'character-counter'}))return;
+      duels2ConsumeCounterReadyGuard(L,{route:'skill.counter.ready-consume',source:'character-counter'});
+      duels2ApplyCounterCooldownToLocal(B.cd,{route:'skill.counter.cooldown',source:'character-counter'});
+      const pointer=duels2GetTinyaPointerWorld();
+      const saved=Array.isArray(L._tinyaLastFormation)&&L._tinyaLastFormation.length
+        ? L._tinyaLastFormation.map(c=>({...c}))
+        : [{dx:0,dy:0,r:duels2GetSkillBalance('tinya','lmb').minRadius,order:1}];
+      const clone=duels2ClampTinyaFormationInsideWorld(duels2CloneTinyaFormation(saved,pointer.x,pointer.y,true));
+      const token=(L._tinyaCounterToken||0)+1;L._tinyaCounterToken=token;
+      // 선딜레이 동안 현재 마우스 위치를 따라가는 로컬 전용 공격 범위를 표시한다.
+      L._tinyaCounterPreview={token,formation:saved.map(c=>({...c})),circles:clone.map(c=>({...c})),endAt:performance.now()+Math.max(0,Number(B.revealMs)||0)};
+      scheduleAction(B.revealMs,()=>{
+        const preview=L._tinyaCounterPreview?.token===token?L._tinyaCounterPreview:null;
+        const finalCircles=(preview?.circles||clone).map(c=>({...c}));
+        if(preview)L._tinyaCounterPreview=null;
+        if(!gameOn||L.charDef?.id!=='tinya'||L._tinyaCounterToken!==token)return;
+        duels2BroadcastTinyaBurst(finalCircles,0);
+        duels2ExecuteTinyaManifestDamageV4(finalCircles,{source:L,slot:'counter',route:'skill.tinya.counter.instant-manifest'});
+      },{cancelOnRoundChange:true,cancelIfCharChanged:true});
+      L.lastAttackTime=performance.now();
+    },
+  },
+
+
   shello: {
     // lmb: 단일 방패 효과가 캐릭터 전방의 짧은 호를 따라 움직이며 접촉 대상을 한 번 타격한다. (angle: 조준 방향)
     lmb(angle) {
@@ -39350,14 +39474,42 @@ function tauChainDash(tx, ty, dur, opt = {}) {
   return dashToken;
 }
 
+// duels2IsGamePointerUiTarget: 게임 외부 UI 조작은 전투 클릭으로 가로채지 않는다. (target: DOM 이벤트 대상)
+function duels2IsGamePointerUiTarget(target){
+  if(!(target instanceof Element))return false;
+  return !!target.closest('button,input,textarea,select,a,[contenteditable="true"],#dev-panel,#chat-wrap,#chat-input,#duels-help-modal,.duels2-account-panel,.modal,.overlay');
+}
+// duels2ProjectClientPointToCanvas: 웹사이트 안의 포인터를 플레이어 기준 각도로 캔버스 경계 안에 투영한다. (clientX/clientY: 브라우저 좌표)
+function duels2ProjectClientPointToCanvas(clientX,clientY){
+  const rect=CANVAS.getBoundingClientRect();
+  const width=Math.max(1,rect.width),height=Math.max(1,rect.height);
+  let px=Number(clientX)-rect.left,py=Number(clientY)-rect.top;
+  if(px>=0&&px<=width&&py>=0&&py<=height){
+    return{x:px*CANVAS.width/width,y:py*CANVAS.height/height,outside:false};
+  }
+  const playerX=((Number(L?.x)||0)-(Number(cam?.x)||0))*width/CANVAS.width;
+  const playerY=((Number(L?.y)||0)-(Number(cam?.y)||0))*height/CANVAS.height;
+  let dx=px-playerX,dy=py-playerY;
+  if(Math.abs(dx)<1e-6&&Math.abs(dy)<1e-6){dx=1;dy=0;}
+  const hits=[];
+  if(dx>0)hits.push((width-playerX)/dx);else if(dx<0)hits.push((0-playerX)/dx);
+  if(dy>0)hits.push((height-playerY)/dy);else if(dy<0)hits.push((0-playerY)/dy);
+  const t=Math.min(...hits.filter(v=>Number.isFinite(v)&&v>=0));
+  const projectedX=Math.max(0,Math.min(width,playerX+dx*(Number.isFinite(t)?t:0)));
+  const projectedY=Math.max(0,Math.min(height,playerY+dy*(Number.isFinite(t)?t:0)));
+  return{x:projectedX*CANVAS.width/width,y:projectedY*CANVAS.height/height,outside:true};
+}
+// duels2UpdatePointerFromClient: 투영된 화면 좌표를 공통 조준 좌표에 반영한다. (clientX/clientY: 브라우저 좌표)
+function duels2UpdatePointerFromClient(clientX,clientY){
+  const p=duels2ProjectClientPointToCanvas(clientX,clientY);
+  mouseScreenX=p.x;mouseScreenY=p.y;
+  return p;
+}
+
 // Input handling
 
 CANVAS.addEventListener('mousemove', e => {
-  const r = CANVAS.getBoundingClientRect();
-  const scaleX = CANVAS.width  / r.width;
-  const scaleY = CANVAS.height / r.height;
-  mouseScreenX = (e.clientX - r.left) * scaleX;
-  mouseScreenY = (e.clientY - r.top)  * scaleY;
+  duels2UpdatePointerFromClient(e.clientX,e.clientY);
   // 하츠하츠: 드래그 거리 / 경로 추적
   if (gameOn && hasEntityFunctionalRuntime(L, 'dragDash')) {
     // 마우스 화면 이동 거리 (플레이어 이동 제외)
@@ -39422,6 +39574,38 @@ CANVAS.addEventListener('mousemove', e => {
     }
   }
 });
+
+// 티냐 드래그 갱신: 생성 미리보기 기준에 못 미친 미세 이동은 생성으로 전환하지 않고 홀드 대기 상태로 유지한다.
+CANVAS.addEventListener('mousemove',()=>{
+  if(!gameOn||L?.charDef?.id!=='tinya')return;
+  const p=duels2GetTinyaPointerWorld(),now=performance.now();
+  const l=L._tinyaInput;
+  if(l){
+    const elapsed=now-l.startAt,dist=Math.hypot(p.x-l.start.x,p.y-l.start.y);
+    // 클릭 오차보다 큰 이동이 한 번이라도 있었지만 생성 미리보기 기준(6)에 도달하지 못한 경우,
+    // pending 홀드 상태는 유지하되 버튼 해제 시 단순 클릭 생성으로 오인하지 않도록 기록한다.
+    if(l.mode==='pending'&&dist>=1.5)l.dragIntent=true;
+    if(l.mode==='pending'&&elapsed<duels2GetSkillBalance('tinya','lmb').moveHoldMs&&dist>=6)l.mode='create';
+    if(l.mode==='pending'&&elapsed>=duels2GetSkillBalance('tinya','lmb').moveHoldMs&&l.circle)duels2EnterTinyaHoldMove('lmb',l,null,p);
+    if(l.mode==='create'){
+      l.last=p;
+      const B=duels2GetSkillBalance('tinya','lmb');
+      const desiredRadius=Math.max(B.minRadius,Math.min(B.maxRadius,dist/2));
+      if(l.limitBlocked){
+        l.preview={x:(l.start.x+p.x)/2,y:(l.start.y+p.y)/2,r:desiredRadius};
+        L.staminaUseTime=now;
+      }else{
+        const reservation=duels2UpdateTinyaCircleReservation(l,desiredRadius);
+        if(reservation)l.preview={x:(l.start.x+p.x)/2,y:(l.start.y+p.y)/2,r:reservation.radius};
+        else l.preview=null;
+      }
+    }
+    if(l.mode==='move'&&l.circle){l.targetPointer={...p};l.moved=true;duels2EnsureTinyaSmoothMoveLoop();}
+  }
+  const r=L._tinyaRmbInput;
+  if(r?.mode==='move'&&r.ids?.size){r.targetPointer={...p};r.moved=true;duels2EnsureTinyaSmoothMoveLoop();}
+});
+
 // duels2BeginLevinaSpearRecall: 레비나 창의 모든 경로를 폐기하고 새 경로 입력을 잠근 채 회수를 시작한다. (spear: 회수할 창, opt: 좌표·전송 여부)
 function duels2BeginLevinaSpearRecall(spear, opt={}) {
   if (!spear) return false;
@@ -39474,6 +39658,7 @@ function duels2FinishLevinaRecallHold() {
 
 CANVAS.addEventListener('mousedown', e => {
   if (!gameOn) return;
+  duels2UpdatePointerFromClient(e.clientX,e.clientY);
   e.preventDefault();
   const slot = e.button === 0 ? 'lmb' : (e.button === 2 ? 'rmb' : null);
   if (!slot) return;
@@ -39497,17 +39682,53 @@ CANVAS.addEventListener('mouseup', e => {
   });
 });
 CANVAS.addEventListener('contextmenu', e => e.preventDefault());
-CANVAS.addEventListener('mouseleave', () => {
+// 캔버스 밖으로 나가는 것 자체는 입력 종료가 아니다. 웹사이트 전체에서 좌표와 실제 mouseup을 추적한다.
+window.addEventListener('mousemove', e => {
   if (!gameOn) return;
-  duels2HandlePointerInputPhase('leave', 'all', {
-    route:'input.pointer.leave',
-    reason:'canvas-mouseleave'
-  });
+  duels2UpdatePointerFromClient(e.clientX,e.clientY);
+});
+// 게임 중 캔버스 밖을 클릭하면 플레이어→클릭 방향의 캔버스 경계 지점을 클릭한 것으로 처리한다.
+document.addEventListener('mousedown',e=>{
+  if(!gameOn||CANVAS.contains(e.target)||duels2IsGamePointerUiTarget(e.target))return;
+  const slot=e.button===0?'lmb':(e.button===2?'rmb':null);
+  if(!slot)return;
+  const projected=duels2UpdatePointerFromClient(e.clientX,e.clientY);
+  if(!projected.outside)return;
+  e.preventDefault();
+  if((L._counterPredelayEnd||0)>performance.now())return;
+  duels2HandlePointerInputPhase('press',slot,{event:e,angle:getAngle(),route:`input.pointer.${slot}.press`,reason:'document-outside-canvas-mousedown'});
+},true);
+// duels2HandleGlobalPointerRelease: 웹사이트 어디에서 버튼을 놓아도 활성 입력을 종료한다. (e: mouseup/pointerup 이벤트, reason: 호출 경로)
+function duels2ReleasePointerSlot(slot,e,reason){
+  if(slot==='lmb')mouseDown=false;
+  if(slot==='rmb')_rmbHeld=false;
+  duels2HandlePointerInputPhase('document-release',slot,{event:e,angle:getAngle(),route:`input.pointer.${slot}.document-release`,reason});
+}
+function duels2HandleGlobalPointerRelease(e,reason='global-release'){
+  if(gameOn&&Number.isFinite(e?.clientX)&&Number.isFinite(e?.clientY))duels2UpdatePointerFromClient(e.clientX,e.clientY);
+  const slot=e?.button===0?'lmb':(e?.button===2?'rmb':null);
+  if(slot){duels2ReleasePointerSlot(slot,e,reason);return;}
+  duels2ReleasePointerSlot('lmb',e,`${reason}-fallback-all`);
+  duels2ReleasePointerSlot('rmb',e,`${reason}-fallback-all`);
+}
+document.addEventListener('mouseup',e=>duels2HandleGlobalPointerRelease(e,'document-capture-mouseup'),true);
+window.addEventListener('mouseup',e=>duels2HandleGlobalPointerRelease(e,'window-mouseup'));
+document.addEventListener('pointerup',e=>duels2HandleGlobalPointerRelease(e,'document-capture-pointerup'),true);
+window.addEventListener('pointerup',e=>duels2HandleGlobalPointerRelease(e,'window-pointerup'));
+document.addEventListener('pointercancel',e=>duels2HandleGlobalPointerRelease(e,'document-pointercancel'),true);
+window.addEventListener('pointercancel',e=>duels2HandleGlobalPointerRelease(e,'window-pointercancel'));
+CANVAS.addEventListener('lostpointercapture',e=>duels2HandleGlobalPointerRelease(e,'canvas-lostpointercapture'));
+window.addEventListener('blur',()=>{
+  if(!gameOn)return;
+  duels2ReleasePointerSlot('lmb',null,'window-blur');
+  duels2ReleasePointerSlot('rmb',null,'window-blur');
+});
+document.addEventListener('visibilitychange',()=>{
+  if(!gameOn||!document.hidden)return;
+  duels2ReleasePointerSlot('lmb',null,'document-hidden');
+  duels2ReleasePointerSlot('rmb',null,'document-hidden');
 });
 document.addEventListener('contextmenu', e => e.preventDefault());
-
-// 마우스 해제는 CANVAS mouseup과 CANVAS mouseleave 경로에서만 처리한다.
-// document mouseup을 별도로 등록하면 동일 물리 입력이 release와 document-release로 중복 처리된다.
 
 // ── 채팅 시스템 ────────────────────────────────────────────
 let _chatOpen = false;
@@ -44830,10 +45051,370 @@ function draw() {
 
   duels2UpdateMasteryDodgeTrails?.();
 
+  // 티냐 마법진은 판정 객체 자체를 렌더해 생성·이동·발현 상태와 화면 표시가 어긋나지 않게 한다.
+  const duels2DrawTinyaRoleIcon=(icon,x,y,alpha=1)=>{
+    const gray=!!icon.gray;
+    const stroke=gray?`rgba(165,171,178,${0.96*alpha})`:`rgba(255,255,255,${0.96*alpha})`;
+    const fill=gray?`rgba(128,136,145,${0.9*alpha})`:`rgba(${DUELS2_TINYA_COLOR},${0.92*alpha})`;
+    const textFill=gray?`rgba(184,190,197,${0.98*alpha})`:`rgba(255,255,255,${0.98*alpha})`;
+    const numeral=String(icon.label||'');
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.lineWidth=2.4;
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.strokeStyle=stroke;
+    ctx.fillStyle=fill;
+    if(icon.type==='contain'){
+      if(icon.outerFilled){
+        ctx.beginPath();
+        ctx.arc(0,0,10.5,0,Math.PI*2);
+        ctx.arc(0,0,5.2,0,Math.PI*2,true);
+        ctx.fill('evenodd');
+      }
+      ctx.beginPath();
+      ctx.arc(0,0,10.5,0,Math.PI*2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0,0,5.2,0,Math.PI*2);
+      if(icon.innerFilled) ctx.fill();
+      ctx.stroke();
+    }else if(icon.type==='connect'){
+      ctx.beginPath();
+      ctx.moveTo(-10,0); ctx.lineTo(10,0);
+      ctx.moveTo(0,-10); ctx.lineTo(0,10);
+      ctx.stroke();
+    }else if(icon.type==='cross'){
+      if(icon.sharedFilled){
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(-4.6,0,10.5,0,Math.PI*2);
+        ctx.clip();
+        ctx.beginPath();
+        ctx.arc(4.6,0,10.5,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.beginPath();
+      ctx.arc(-4.6,0,10.5,0,Math.PI*2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(4.6,0,10.5,0,Math.PI*2);
+      ctx.stroke();
+    }else{
+      ctx.beginPath();
+      ctx.arc(0,0,10.5,0,Math.PI*2);
+      ctx.stroke();
+      if(numeral){
+        ctx.fillStyle=textFill;
+        ctx.font='bold 12px Pretendard';
+        ctx.textAlign='left';
+        ctx.textBaseline='middle';
+        ctx.fillText(numeral,12,0.5);
+      }
+    }
+    ctx.restore();
+  };
+  const duels2BuildTinyaRoleMeta=(list)=>{
+    const damageModel=duels2BuildTinyaDamageModel(list),graph=damageModel.graph,amplifier=damageModel.amplifier;
+    const meta=new Map((list||[]).map(c=>[c.id,{containInner:false,containOuter:false,inheritedContainInner:false,inheritedContainOuter:false,connect:false,cross:false,inheritedCross:false,amplifierSource:false,amplifyLevel:0,amplifyInherited:false}]));
+    for(const rel of graph.rels){
+      if(rel.type==='contain'){
+        meta.get(rel.inner.id)&&(meta.get(rel.inner.id).containInner=true);
+        meta.get(rel.outer.id)&&(meta.get(rel.outer.id).containOuter=true);
+      }else if(rel.type==='connect'){
+        meta.get(rel.a.id)&&(meta.get(rel.a.id).connect=true);
+        meta.get(rel.b.id)&&(meta.get(rel.b.id).connect=true);
+      }
+    }
+    for(const rel of damageModel.crossRels){
+      meta.get(rel.a.id)&&(meta.get(rel.a.id).cross=true);
+      meta.get(rel.b.id)&&(meta.get(rel.b.id).cross=true);
+    }
+    for(const id of damageModel.inheritedCrossIds){if(meta.has(id))meta.get(id).inheritedCross=true;}
+    for(const id of damageModel.inheritedContainInnerIds){if(meta.has(id))meta.get(id).inheritedContainInner=true;}
+    for(const id of damageModel.inheritedContainOuterIds){if(meta.has(id))meta.get(id).inheritedContainOuter=true;}
+    for(const id of amplifier.sourceIds){
+      if(!meta.has(id))continue;
+      const sourceMeta=meta.get(id);
+      sourceMeta.amplifierSource=true;
+      // 활성 증폭 마법진은 교차 아이콘뿐 아니라 연결 역할도 겸하지 않는다.
+      sourceMeta.connect=false;
+      sourceMeta.cross=false;
+      sourceMeta.inheritedCross=false;
+      sourceMeta.inheritedContainInner=false;
+      sourceMeta.inheritedContainOuter=false;
+      sourceMeta.amplifyLevel=0;
+    }
+    for(const [id,stage] of amplifier.stageByCircle){
+      if(!meta.has(id)||amplifier.sourceIds.has(id))continue;
+      const item=meta.get(id),circle=list.find(c=>c.id===id);
+      const syncedLevel=Math.max(0,Math.min(3,Number(circle?.amplifyLevel)||0));
+      item.amplifyLevel=Math.max(Math.min(3,stage),syncedLevel);
+      item.amplifyInherited=item.amplifyLevel>0&&((amplifier.inheritedStageIds.has(id)&&!amplifier.directReceiverIds.has(id))||!!circle?.amplifyInherited);
+    }
+    return {graph,amplifier,damageModel,meta};
+  };
+  const drawTinyaSet=(circles,alpha=1,options={})=>{
+    const list=circles||[];
+    const {amplifier,damageModel,meta}=duels2BuildTinyaRoleMeta(list);
+    const sourceGroups=new Map();
+    for(const link of amplifier.links){
+      if(!sourceGroups.has(link.receiver.id))sourceGroups.set(link.receiver.id,[]);
+      const group=sourceGroups.get(link.receiver.id);
+      if(!group.some(c=>c.id===link.source.id))group.push(link.source);
+    }
+    for(const sources of sourceGroups.values()){
+      if(sources.length<2)continue;
+      for(let i=0;i<sources.length;i++)for(let j=i+1;j<sources.length;j++){
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(sources[i].x,sources[i].y);
+        ctx.lineTo(sources[j].x,sources[j].y);
+        if(options.manifest){ctx.restore();continue;}
+        ctx.strokeStyle=`rgba(${DUELS2_TINYA_COLOR},${0.58*alpha})`;
+        ctx.lineWidth=2;
+        ctx.setLineDash([6,7]);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+    for(const rel of damageModel.crossRels){
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(rel.a.x,rel.a.y,rel.a.r,0,Math.PI*2);
+      ctx.clip();
+      ctx.beginPath();
+      ctx.arc(rel.b.x,rel.b.y,rel.b.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${DUELS2_TINYA_COLOR},${0.24*alpha})`;
+      ctx.fill();
+      ctx.restore();
+    }
+    for(const c of list){
+      const invalidContainInner=!options.manifest&&damageModel.invalidContainInnerIds?.has(c.id);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
+      ctx.fillStyle=invalidContainInner
+        ?`rgba(230,55,65,${0.22*alpha})`
+        :`rgba(${DUELS2_TINYA_COLOR},${0.12*alpha})`;
+      ctx.fill();
+      ctx.strokeStyle=invalidContainInner
+        ?`rgba(255,72,82,${0.98*alpha})`
+        :`rgba(${DUELS2_TINYA_COLOR},${0.92*alpha})`;
+      ctx.lineWidth=invalidContainInner?4:3;
+      ctx.setLineDash(invalidContainInner?[8,5]:[10,6]);
+      ctx.stroke();
+      ctx.restore();
+      const m=meta.get(c.id)||{};
+      if(m.amplifierSource){
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(c.x,c.y,Math.max(2,c.r-7),0,Math.PI*2);
+        ctx.strokeStyle=`rgba(255,255,255,${0.78*alpha})`;
+        ctx.lineWidth=2;
+        ctx.setLineDash([3,7]);
+        ctx.lineDashOffset=-(_drawNow/55)%10;
+        ctx.stroke();
+        ctx.restore();
+      }
+      // 마법진 종류 아이콘은 로컬 배치/편집 중에만 표시하고, 상대 공개 선딜레이와 공격 잔상에는 노출하지 않는다.
+      if(!options.manifest&&!options.hideRoleIcons){
+        const icons=[];
+        if(m.containInner||m.containOuter) icons.push({type:'contain',innerFilled:!!m.containInner,outerFilled:!!m.containOuter});
+        if(m.inheritedContainInner||m.inheritedContainOuter) icons.push({type:'contain',innerFilled:!!m.inheritedContainInner,outerFilled:!!m.inheritedContainOuter,gray:true});
+        if(m.connect) icons.push({type:'connect'});
+        if(m.cross||m.inheritedCross) icons.push({type:'cross',sharedFilled:!!m.inheritedCross});
+        if(m.amplifierSource) icons.push({type:'solo',label:''});
+        if((m.amplifyLevel||0)>0) icons.push({type:'solo',label:['','I','II','III'][Math.min(3,m.amplifyLevel||0)]||'III',gray:!!m.amplifyInherited});
+        if(!icons.length) icons.push({type:'solo',label:''});
+        const iconWidth=icon=>icon?.type==='cross'?31:23;
+        const gaps=icons.slice(0,-1).map((icon,i)=>(iconWidth(icon)+iconWidth(icons[i+1]))/2+7);
+        const total=gaps.reduce((sum,gap)=>sum+gap,0);
+        const baseY=c.y-c.r-18;
+        let iconX=c.x-total/2;
+        for(let i=0;i<icons.length;i++){
+          duels2DrawTinyaRoleIcon(icons[i],iconX,baseY,alpha);
+          if(i<gaps.length)iconX+=gaps[i];
+        }
+      }
+      const centerMultiplier=damageModel.circleMultiplierById.get(c.id)||1;
+      // 공격 잔상에서는 배율 텍스트를 전부 숨기고, 평상시 배치에서만 표시한다.
+      if(centerMultiplier>0&&!options.manifest){
+        ctx.save();
+        ctx.font='bold 18px Pretendard';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.lineWidth=4;
+        ctx.strokeStyle=`rgba(10,14,18,${0.86*alpha})`;
+        ctx.fillStyle=`rgba(255,255,255,${0.96*alpha})`;
+        ctx.strokeText(`×${centerMultiplier}`,c.x,c.y);
+        ctx.fillText(`×${centerMultiplier}`,c.x,c.y);
+        ctx.restore();
+      }
+    }
+    for(const rel of damageModel.crossRels){
+      const point=duels2GetTinyaCrossLensCenter(rel.a,rel.b);
+      // 다른 원의 중심/상속 영역이 이 좌표에 겹쳐도 섞지 않고, 이 교차 렌즈 자체의 실제 배율만 표시한다.
+      const pairKey=[String(rel.a.id),String(rel.b.id)].sort().join('|');
+      const multiplier=damageModel.crossMultiplierByPair.get(pairKey)||4;
+      if(multiplier<=0||options.manifest)continue;
+      ctx.save();
+      ctx.font='bold 15px Pretendard';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.lineWidth=4;
+      ctx.strokeStyle=`rgba(10,14,18,${0.90*alpha})`;
+      ctx.fillStyle=`rgba(255,255,255,${0.98*alpha})`;
+      ctx.strokeText(`×${multiplier}`,point.x,point.y);
+      ctx.fillText(`×${multiplier}`,point.x,point.y);
+      ctx.restore();
+    }
+    // 공격 잔상 전용 증폭 연결선 V3: 발동 순간에 고정 저장된 선분만 사용한다.
+    // 발동 후 역할/ID가 사라져도 선분 데이터는 유지되므로 증폭 개념 소실의 영향을 받지 않는다.
+    if(options.manifest&&Array.isArray(options.amplifierSegments)&&options.amplifierSegments.length){
+      ctx.save();
+      ctx.globalCompositeOperation='source-over';
+      ctx.setLineDash([]);
+      ctx.lineCap='round';
+      for(const segment of options.amplifierSegments){
+        const x1=Number(segment.x1)||0,y1=Number(segment.y1)||0,x2=Number(segment.x2)||0,y2=Number(segment.y2)||0;
+        // 발동 잔상의 원래 질감을 해치지 않도록 얇은 외곽과 부드러운 흰색 실선만 남긴다.
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+        ctx.strokeStyle=`rgba(8,14,18,${0.42*alpha})`;ctx.lineWidth=4;ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+        ctx.strokeStyle=`rgba(255,255,255,${0.82*alpha})`;ctx.lineWidth=2;ctx.stroke();
+      }
+      ctx.restore();
+    }
+  };
+  if(L?.charDef?.id==='tinya'){
+    const localTinyaCast=L._tinyaRmbCast;
+    // 배치 중인 마법진은 항상 반투명하고, 실제 공개/발동 단계에서만 원래 색으로 표시한다.
+    const localTinyaAlpha=localTinyaCast?.phase==='reveal'?1:0.72;
+    drawTinyaSet(duels2GetTinyaCircles(),localTinyaAlpha);
+    const counterPreview=L._tinyaCounterPreview;
+    if(counterPreview?.endAt>_drawNow){
+      if(Array.isArray(counterPreview.formation)){
+        const pointer=duels2GetTinyaPointerWorld();
+        counterPreview.circles=duels2ClampTinyaFormationInsideWorld(duels2CloneTinyaFormation(counterPreview.formation,pointer.x,pointer.y,true));
+      }
+      if(Array.isArray(counterPreview.circles))drawTinyaSet(counterPreview.circles,0.72);
+    }
+    const input=L._tinyaInput,now=performance.now(),hold=duels2GetSkillBalance('tinya','lmb').moveHoldMs;
+    // 최대 개수에서의 생성 시도는 실제 생성 없이 빨간색 제한 미리보기만 표시한다.
+    const drawTinyaLimitPreview=(preview,alpha=1)=>{
+      if(!preview)return;
+      ctx.save();
+      ctx.beginPath();ctx.arc(preview.x,preview.y,preview.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(230,55,65,${0.22*alpha})`;ctx.fill();
+      ctx.strokeStyle=`rgba(255,72,82,${0.98*alpha})`;ctx.lineWidth=4;ctx.setLineDash([8,5]);ctx.stroke();
+      ctx.restore();
+    };
+    const limitPreview=L._tinyaLimitPreview;
+    if(limitPreview?.endAt>now){
+      const remain=Math.max(0,Math.min(1,(limitPreview.endAt-now)/280));
+      drawTinyaLimitPreview(limitPreview,Math.max(0.25,remain));
+    }else if(limitPreview){
+      L._tinyaLimitPreview=null;
+    }
+    if(input?.limitBlocked&&input.mode==='pending'&&!input.circle){
+      drawTinyaLimitPreview({x:input.start.x,y:input.start.y,r:duels2GetSkillBalance('tinya','lmb').minRadius},0.9);
+    }
+    if(input?.mode==='create'&&input.preview){
+      const preview={id:'tinya-preview',x:input.preview.x,y:input.preview.y,r:input.preview.r,order:Number.MAX_SAFE_INTEGER};
+      if(input.limitBlocked){
+        drawTinyaLimitPreview(preview,1);
+      }else{
+      // 현재 배치에 미리보기 원을 임시로 합쳐, 생성 완료 시 갖게 될 관계를 실시간 계산한다.
+      const previewSet=[...duels2GetTinyaCircles().map(c=>({...c})),preview];
+      const previewGraph=duels2BuildTinyaGraph(previewSet);
+      const invalidContainRels=previewGraph.rels.filter(rel=>rel.type==='invalidContain'&&(rel.a.id===preview.id||rel.b.id===preview.id));
+      const invalidContainPreview=invalidContainRels.length>0;
+      // 기존 내부 원을 먼저 만든 뒤 큰 미리보기 원으로 감싸는 경우에도, 무효 포함 대상인 기존 내부 원을 빨간색으로 덮어 표시한다.
+      for(const rel of invalidContainRels){
+        const invalidInner=rel.inner;
+        if(!invalidInner||invalidInner.id===preview.id)continue;
+        ctx.save();
+        ctx.beginPath();ctx.arc(invalidInner.x,invalidInner.y,invalidInner.r,0,Math.PI*2);
+        ctx.fillStyle='rgba(230,55,65,0.28)';ctx.fill();
+        ctx.strokeStyle='rgba(255,72,82,0.98)';ctx.lineWidth=4;ctx.setLineDash([8,5]);ctx.stroke();
+        ctx.restore();
+      }
+      ctx.save();ctx.beginPath();ctx.arc(preview.x,preview.y,preview.r,0,Math.PI*2);
+      ctx.fillStyle=invalidContainPreview?'rgba(230,55,65,0.22)':'rgba(150,156,164,0.16)';ctx.fill();
+      ctx.strokeStyle=invalidContainPreview?'rgba(255,72,82,0.96)':'rgba(210,214,220,0.66)';ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.stroke();ctx.restore();
+      const previewRole=duels2BuildTinyaRoleMeta(previewSet).meta.get(preview.id)||{};
+      const previewIcons=[];
+      if(previewRole.containInner||previewRole.containOuter)previewIcons.push({type:'contain',innerFilled:!!previewRole.containInner,outerFilled:!!previewRole.containOuter});
+      if(previewRole.inheritedContainInner||previewRole.inheritedContainOuter)previewIcons.push({type:'contain',innerFilled:!!previewRole.inheritedContainInner,outerFilled:!!previewRole.inheritedContainOuter,gray:true});
+      if(previewRole.connect)previewIcons.push({type:'connect'});
+      if(previewRole.cross||previewRole.inheritedCross)previewIcons.push({type:'cross',sharedFilled:!!previewRole.inheritedCross});
+      if(previewRole.amplifierSource)previewIcons.push({type:'solo',label:''});
+      if((previewRole.amplifyLevel||0)>0)previewIcons.push({type:'solo',label:['','I','II','III'][Math.min(3,previewRole.amplifyLevel||0)]||'III',gray:!!previewRole.amplifyInherited});
+      if(!previewIcons.length&&!invalidContainPreview)previewIcons.push({type:'solo',label:''});
+      const previewIconWidth=icon=>icon?.type==='cross'?31:23;
+      const previewGaps=previewIcons.slice(0,-1).map((icon,i)=>(previewIconWidth(icon)+previewIconWidth(previewIcons[i+1]))/2+7);
+      const previewTotal=previewGaps.reduce((sum,gap)=>sum+gap,0),previewY=preview.y-preview.r-18;
+      let previewIconX=preview.x-previewTotal/2;
+      for(let i=0;i<previewIcons.length;i++){
+        duels2DrawTinyaRoleIcon(previewIcons[i],previewIconX,previewY,0.78);
+        if(i<previewGaps.length)previewIconX+=previewGaps[i];
+      }
+      }
+    }
+    const holdGaugeStyle={styleId:'standardHold',style:{color:`rgba(${DUELS2_TINYA_COLOR},0.90)`,completeColor:`rgba(${DUELS2_TINYA_COLOR},0.90)`,completePulseColor:DUELS2_TINYA_COLOR}};
+    // duels2RenderTinyaHoldGauge: 다른 차징 캐릭터와 동일한 공통 ArcGauge 완료 점멸을 그대로 사용한다. (target: x/y와 r 또는 radius, progress: 0~1)
+    const duels2RenderTinyaHoldGauge=(target,progress)=>{
+      if(!target)return;
+      const targetRadius=Math.max(1,Number(target.r??target.radius??20));
+      duels2RenderArcGauge({x:Number(target.x)||0,y:Number(target.y)||0,radius:targetRadius},progress,holdGaugeStyle);
+    };
+    const duels2RenderTinyaCharacterGauge=(progress)=>duels2RenderTinyaHoldGauge(L,progress);
+    if(input?.mode==='pending'&&input.circle){
+      const progress=Math.max(0,Math.min(1,(now-input.startAt)/hold));
+      duels2RenderTinyaCharacterGauge(progress);
+      duels2RenderTinyaHoldGauge(input.circle,progress);
+    }else if(input?.mode==='move'&&input.circle){
+      duels2RenderTinyaCharacterGauge(1);
+      duels2RenderTinyaHoldGauge(input.circle,1);
+    }
+    const rmbCast=L._tinyaRmbCast;
+    const rmbInput=L._tinyaRmbInput;
+    if(rmbCast?.phase==='input'&&rmbCast.endAt>now&&rmbCast.selectedIds?.size){
+      const progress=Math.max(0,Math.min(1,(now-rmbCast.startAt)/Math.max(1,rmbCast.endAt-rmbCast.startAt)));
+      duels2RenderTinyaCharacterGauge(progress);
+      for(const circle of duels2GetTinyaCircles())if(rmbCast.selectedIds.has(circle.id))duels2RenderTinyaHoldGauge(circle,progress);
+    }
+    if((rmbInput?.mode==='move'||rmbCast?.phase==='move')&&rmbInput?.ids?.size){
+      duels2RenderTinyaCharacterGauge(1);
+      for(const circle of duels2GetTinyaCircles())if(rmbInput.ids.has(circle.id))duels2RenderTinyaHoldGauge(circle,1);
+    }
+  }
+  const remoteTinya=window.DUELS2_REMOTE_TINYA_CIRCLES;if(remoteTinya)for(const [pid,state] of remoteTinya){if(_drawNow-(state.updatedAt||0)>2000){remoteTinya.delete(pid);continue;}drawTinyaSet(state.circles,1,{hideRoleIcons:true});}
+  if(L?._tinyaBurst?.expire>_drawNow)drawTinyaSet(L._tinyaBurst.circles,Math.max(0,(L._tinyaBurst.expire-_drawNow)/Math.max(1,L._tinyaBurst.duration||660)),{manifest:true,amplifierSegments:L._tinyaBurst.amplifierSegments});
+  const remoteBursts=window.DUELS2_REMOTE_TINYA_BURSTS;if(Array.isArray(remoteBursts)){for(let i=remoteBursts.length-1;i>=0;i--){const b=remoteBursts[i];if(b.expire<=_drawNow){remoteBursts.splice(i,1);continue;}drawTinyaSet(b.circles,Math.max(0,(b.expire-_drawNow)/Math.max(1,b.duration||660)),{manifest:true,amplifierSegments:b.amplifierSegments});}}
+
+
   fxList.forEach(f => {
     const a=f.dur/f.maxDur;
     // 등록된 Visual Effect Spec이 있으면 공통 렌더러가 처리하고, 미등록 FX만 레거시 분기로 넘긴다.
     if (duels2RenderVisualEffectSpec(f, {ctx, alpha:a, now:_drawNow})) return;
+    if (f.type==='tinyaHoldActivate') {
+      const alpha=Math.max(0,Math.min(1,a));
+      const progress=1-alpha;
+      ctx.save();
+      ctx.beginPath();ctx.arc(f.x,f.y,(f.r||36)+progress*16,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(${f.col||DUELS2_TINYA_COLOR},${0.8*alpha})`;
+      ctx.lineWidth=4*(1-progress)+1.5;
+      ctx.setLineDash([6,4]);ctx.stroke();ctx.restore();
+      return;
+    }
+    if (f.type==='tinyaManifestFlash') {
+      const alpha=Math.max(0,Math.min(1,a));
+      for(const c of f.circles||[]){ctx.beginPath();ctx.arc(c.x,c.y,c.r*(1+(1-alpha)*.12),0,Math.PI*2);ctx.fillStyle=`rgba(${DUELS2_TINYA_COLOR},${.28*alpha})`;ctx.fill();ctx.strokeStyle=`rgba(255,255,255,${.9*alpha})`;ctx.lineWidth=4;ctx.stroke();}
+      return;
+    }
     if (f.type==='hitImpactRing') {
       const progress = 1-Math.max(0,Math.min(1,f.dur/Math.max(1,f.maxDur)));
       const rr = (f.r||12) + ((f.maxR||48)-(f.r||12)) * (1-Math.pow(1-progress,3));
@@ -48311,6 +48892,21 @@ function drawPlayer(p, label) {
   ctx.fillStyle='#111'; ctx.fillRect(sbx,sby,sbw,sbh);
   ctx.fillStyle=stPct>0.4?'#fa0':'#f64'; ctx.fillRect(sbx,sby,sbw*stPct,sbh);
 
+  // 티냐 일반 마법진 개수 게이지 — 반격기 임시 마법진은 제외하고 스테미나 바 아래 6칸으로 표시한다.
+  if(p===L&&p?.charDef?.id==='tinya') {
+    const maxCircles=duels2GetTinyaMaxCircles();
+    const placed=duels2GetTinyaPlacedCircleCount();
+    const gap=2,cellW=(sbw-gap*(maxCircles-1))/maxCircles,cellH=4,gy=sby+sbh+4;
+    ctx.save();
+    for(let i=0;i<maxCircles;i++) {
+      const gx=sbx+i*(cellW+gap);
+      ctx.fillStyle='rgba(10,18,22,0.92)';ctx.fillRect(gx,gy,cellW,cellH);
+      if(i<placed){ctx.fillStyle='rgba(146,203,214,0.95)';ctx.fillRect(gx,gy,cellW,cellH);}
+      ctx.strokeStyle='rgba(205,238,244,0.34)';ctx.lineWidth=0.75;ctx.strokeRect(gx+0.375,gy+0.375,Math.max(0,cellW-0.75),Math.max(0,cellH-0.75));
+    }
+    ctx.restore();
+  }
+
   // 인투 무기명 + 탄창 — 스테미나 바 아래
   const _intuP = (p===L&&hasEntityFunctionalRuntime(L, 'reloadGauge'))?L:((p===R&&(hasEntityFunctionalRuntime(R, 'reloadGauge')||peerCharId==='intu'))?R:null);
   if (_intuP) {
@@ -50479,7 +51075,6 @@ function duels2RouteSharedChargeInputCanvasLeave(opt = {}) {
 function duels2RouteSharedChargeInputDocumentRelease(slot = 'rmb', opt = {}) {
   let handled = false;
   for (const module of duels2ListSharedChargeInputModules(slot)) {
-    if (!module.documentRelease) continue;
     if (!hasEntityCharacterRuntime(L, module.runtime, {...opt, route:opt.route || 'shared-charge.document-release.runtime'})) continue;
     if (!duels2IsSharedChargeInputModuleActive(module, L)) continue;
     duels2RecordSharedChargeInputModule({type:'shared-charge.document-release', route:opt.route || 'shared-charge.document-release', moduleId:module.id, runtime:module.runtime, slot:module.slot, allowed:true, activeBefore:true, reason:opt.reason || 'document-release'});
@@ -50630,8 +51225,9 @@ const DUELS2_INPUT_STATE_RUNTIME = (() => {
       // 즉발 공격은 press에서 끝나며 세션을 만들지 않는다. release마다 전체 입력 프로필을 다시 검사하면
       // 빠른 연타에서 shared-charge/character runtime match가 불필요하게 반복된다.
       if (!session) {
-        record({phase,slot,profileId:null,handled:false,elapsedMs:0,fastPath:'instant-release-no-session'});
-        return false;
+        const sharedReleased=duels2RouteSharedChargeInputDocumentRelease(slot,{...payload,route:payload.route||`input-state.shared.${slot}.orphan-release`,reason:payload.reason||'orphan-release'});
+        record({phase,slot,profileId:null,handled:sharedReleased,elapsedMs:0,fastPath:'instant-release-no-session'});
+        return sharedReleased;
       }
       const profile = session.profile;
       const elapsedMs = Math.max(0, performance.now() - session.startedAt);
@@ -50773,6 +51369,762 @@ duels2RegisterInputStateProfile('ruvu-hammer-dash-followup', {
   documentRelease() { L._ruvuSuppressLmbUntilRelease=false; },
   leave() { L._ruvuSuppressLmbUntilRelease=false; }
 });
+
+
+// ── 티냐 마법진 Runtime ──────────────────────────────────────
+const DUELS2_TINYA_COLOR='146,203,214';
+function duels2GetTinyaCircles(){if(!Array.isArray(L._tinyaCircles))L._tinyaCircles=[];return L._tinyaCircles;}
+// duels2GetTinyaMaxCircles: 반격기 임시 마법진을 제외한 일반 배치 마법진의 최대 개수를 반환한다. ()
+function duels2GetTinyaMaxCircles(){return Math.max(1,Math.floor(Number(duels2GetSkillBalance('tinya','lmb').maxCircles)||6));}
+// duels2GetTinyaPlacedCircleCount: 현재 일반 배치 마법진 개수를 최대치 범위로 정규화해 반환한다. ()
+function duels2GetTinyaPlacedCircleCount(){return Math.max(0,Math.min(duels2GetTinyaMaxCircles(),duels2GetTinyaCircles().length));}
+function duels2GetTinyaPointerWorld(){return{x:Math.max(0,Math.min(WORLD_W,mouseX)),y:Math.max(0,Math.min(WORLD_H,mouseY))};}
+function duels2SnapshotTinyaFormation(circles){
+  if(!Array.isArray(circles)||!circles.length)return[];
+  const cx=circles.reduce((a,c)=>a+c.x,0)/circles.length,cy=circles.reduce((a,c)=>a+c.y,0)/circles.length;
+  return circles.map(c=>({dx:c.x-cx,dy:c.y-cy,r:c.r,order:c.order}));
+}
+function duels2CloneTinyaFormation(snapshot,cx,cy,ephemeral=false){return(snapshot||[]).map((c,i)=>({id:`tinya-${ephemeral?'burst':'circle'}-${Date.now()}-${i}`,x:cx+c.dx,y:cy+c.dy,r:c.r,order:i+1,ephemeral}));}
+// duels2GetTinyaContainAreaRatio: 포함 후보에서 작은 원의 면적이 큰 원 면적에서 차지하는 비율을 반환한다. (inner/outer: 반지름 r을 가진 원)
+function duels2GetTinyaContainAreaRatio(inner,outer){
+  const innerRadius=Math.max(0,Number(inner?.r)||0),outerRadius=Math.max(0,Number(outer?.r)||0);
+  if(outerRadius<=0)return Infinity;
+  return(innerRadius*innerRadius)/(outerRadius*outerRadius);
+}
+// duels2GetTinyaRelation: 두 마법진의 관계를 계산한다. 완전 포함은 내부 원 면적이 외부 원 면적의 40% 이하일 때만 인정한다. (a/b: 중심과 반지름을 가진 원)
+function duels2GetTinyaRelation(a,b){
+  const d=Math.hypot(a.x-b.x,a.y-b.y),small=Math.min(a.r,b.r),large=Math.max(a.r,b.r);
+  const minRadius=Math.max(0,Number(duels2GetSkillBalance('tinya','lmb').minRadius)||0),epsilon=1.5;
+  // 최소 크기 마법진끼리도 일반 관계 규칙을 그대로 사용한다. 단, 증폭을 제공하는 원과 그 직접 수신 원 사이의 교차 효과는 피해 모델에서만 제외한다.
+  if(d+small<=large+0.5){
+    const inner=a.r<=b.r?a:b,outer=a.r>b.r?a:b,areaRatio=duels2GetTinyaContainAreaRatio(inner,outer);
+    const containLimit=0.40;
+    return areaRatio<=containLimit
+      ?{type:'contain',inner,outer,areaRatio,containLimit}
+      :{type:'invalidContain',inner,outer,areaRatio,containLimit};
+  }
+  if(d>=a.r+b.r)return{type:'none',gap:d-a.r-b.r};
+  const depth=a.r+b.r-d;
+  return{type:depth/Math.max(1,small)<0.35?'connect':'cross',depth};
+}
+function duels2BuildTinyaGraph(circles){
+  const edges=new Map(circles.map(c=>[c.id,new Set()])),rels=[];
+  for(let i=0;i<circles.length;i++)for(let j=i+1;j<circles.length;j++){
+    const rel=duels2GetTinyaRelation(circles[i],circles[j]);rels.push({a:circles[i],b:circles[j],...rel});
+    if(rel.type==='contain'||rel.type==='connect'||rel.type==='cross'){edges.get(circles[i].id).add(circles[j].id);edges.get(circles[j].id).add(circles[i].id);}
+  }
+  return{edges,rels};
+}
+// duels2GetCircleIntersectionPoints: 두 원의 경계 교점을 반환한다. (a/b: 중심 x,y와 반지름 r을 가진 원)
+function duels2GetCircleIntersectionPoints(a,b){
+  const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+  if(d<=0.0001||d>a.r+b.r||d<Math.abs(a.r-b.r))return[];
+  const along=(a.r*a.r-b.r*b.r+d*d)/(2*d);
+  const heightSq=Math.max(0,a.r*a.r-along*along),height=Math.sqrt(heightSq);
+  const ux=dx/d,uy=dy/d,px=a.x+along*ux,py=a.y+along*uy;
+  return[
+    {x:px-height*uy,y:py+height*ux},
+    {x:px+height*uy,y:py-height*ux}
+  ];
+}
+// duels2CircleTouchesCrossLens: candidate 원이 a/b의 실제 렌즈형 교차 영역과 닿는지 판정한다. (candidate/a/b: 원 객체)
+function duels2CircleTouchesCrossLens(candidate,a,b){
+  const inside=(point,circle)=>Math.hypot(point.x-circle.x,point.y-circle.y)<=circle.r+0.75;
+  if(inside(candidate,a)&&inside(candidate,b))return true;
+  for(const point of duels2GetCircleIntersectionPoints(a,b))if(inside(point,candidate))return true;
+  for(const point of duels2GetCircleIntersectionPoints(candidate,a))if(inside(point,b))return true;
+  for(const point of duels2GetCircleIntersectionPoints(candidate,b))if(inside(point,a))return true;
+  if(inside(a,candidate)&&inside(a,b))return true;
+  if(inside(b,candidate)&&inside(b,a))return true;
+  return false;
+}
+// duels2BuildTinyaSharedCrossEffects: 교차 렌즈에 연결된 마법진이 교차지점 효과를 상속하도록 가상 효과 노드를 계산한다. (circles: 전체 마법진, graph: 관계 그래프)
+function duels2BuildTinyaSharedCrossEffects(circles,graph=duels2BuildTinyaGraph(circles)){
+  const list=Array.isArray(circles)?circles:[];
+  const inheritedIds=new Set(),sourcePairs=[];
+  const crossRels=graph.rels.filter(rel=>rel.type==='cross');
+  for(const cross of crossRels){
+    const inherited=[];
+    for(const candidate of list){
+      if(candidate.id===cross.a.id||candidate.id===cross.b.id)continue;
+      const relationA=duels2GetTinyaRelation(candidate,cross.a).type;
+      const relationB=duels2GetTinyaRelation(candidate,cross.b).type;
+      const hasConnection=relationA==='connect'||relationB==='connect';
+      if(!hasConnection||!duels2CircleTouchesCrossLens(candidate,cross.a,cross.b))continue;
+      inheritedIds.add(candidate.id);
+      inherited.push(candidate.id);
+    }
+    if(inherited.length)sourcePairs.push({a:cross.a,b:cross.b,inheritedIds:inherited});
+  }
+  return{inheritedIds,sourcePairs};
+}
+function duels2GetTinyaConnectedIds(circleId,circles){
+  const {edges}=duels2BuildTinyaGraph(circles),seen=new Set([circleId]),queue=[circleId];
+  while(queue.length){const id=queue.shift();for(const next of edges.get(id)||[])if(!seen.has(next)){seen.add(next);queue.push(next);}}
+  return seen;
+}
+// duels2BuildTinyaAmplifierEffects: 최소 마법진이 일반 마법진과 실제 교차할 때만 직접 증폭을 만들고, 일반 마법진 사이의 연결 경로로만 단계를 전파한다. (circles: 전체 마법진, graph: 관계 그래프)
+function duels2BuildTinyaAmplifierEffects(circles,graph=duels2BuildTinyaGraph(circles)){
+  const list=Array.isArray(circles)?circles:[],B=duels2GetSkillBalance('tinya','lmb');
+  const minRadius=Math.max(0,Number(B.minRadius)||0),epsilon=1.5;
+  const minimumIds=new Set(list.filter(c=>Math.abs((Number(c.r)||0)-minRadius)<=epsilon).map(c=>c.id));
+  const byId=new Map(list.map(c=>[c.id,c]));
+  const sourceIds=new Set(),containedSources=new Set(),sourceDirectRelations=new Map();
+
+  // 유효 포함 내부의 최소 마법진은 증폭량이 2단계다.
+  for(const rel of graph.rels){
+    if(rel.type!=='contain')continue;
+    if(minimumIds.has(rel.inner?.id))containedSources.add(rel.inner.id);
+  }
+
+  const addDirect=(source,receiver)=>{
+    if(!source||!receiver||minimumIds.has(receiver.id))return;
+    sourceIds.add(source.id);
+    if(!sourceDirectRelations.has(source.id))sourceDirectRelations.set(source.id,new Map());
+    sourceDirectRelations.get(source.id).set(receiver.id,{source,receiver,relType:'cross'});
+  };
+  for(const rel of graph.rels){
+    if(rel.type!=='cross')continue;
+    if(minimumIds.has(rel.a.id))addDirect(rel.a,rel.b);
+    if(minimumIds.has(rel.b.id))addDirect(rel.b,rel.a);
+  }
+
+  // 증폭 단계 전파망은 일반 마법진끼리의 유효 관계만 사용한다.
+  const connectEdges=new Map(list.map(c=>[c.id,new Set()]));
+  for(const rel of graph.rels){
+    if(rel.type==='none'||rel.type==='invalidContain')continue;
+    if(minimumIds.has(rel.a.id)||minimumIds.has(rel.b.id))continue;
+    connectEdges.get(rel.a.id)?.add(rel.b.id);
+    connectEdges.get(rel.b.id)?.add(rel.a.id);
+  }
+
+  const stageByCircle=new Map(list.map(c=>[c.id,0]));
+  const directStageByCircle=new Map(list.map(c=>[c.id,0]));
+  const directReceiverIds=new Set(),inheritedStageIds=new Set(),links=[];
+
+  // 증폭 마법진 하나당 같은 연결망에는 정확히 한 번만 기여한다.
+  for(const [sourceId,relationMap] of sourceDirectRelations){
+    const source=byId.get(sourceId);
+    if(!source)continue;
+    const amount=containedSources.has(sourceId)?2:1;
+    const relations=[...relationMap.values()];
+    const affectedIds=new Set();
+
+    for(const relation of relations){
+      const directId=relation.receiver.id;
+      if(minimumIds.has(directId))continue;
+      directReceiverIds.add(directId);
+      directStageByCircle.set(directId,Math.min(3,(directStageByCircle.get(directId)||0)+amount));
+      links.push({source,receiver:relation.receiver,amount,relType:'cross'});
+
+      const seen=new Set([directId]),queue=[directId];
+      while(queue.length){
+        const id=queue.shift();
+        for(const next of connectEdges.get(id)||[]){
+          if(seen.has(next)||minimumIds.has(next))continue;
+          seen.add(next);queue.push(next);
+        }
+      }
+      for(const id of seen)affectedIds.add(id);
+    }
+
+    for(const id of affectedIds){
+      if(!byId.has(id)||minimumIds.has(id))continue;
+      stageByCircle.set(id,Math.min(3,(stageByCircle.get(id)||0)+amount));
+      if(!directReceiverIds.has(id))inheritedStageIds.add(id);
+    }
+  }
+
+  // 증폭 마법진에는 표시·판정용 단계 데이터 자체를 절대 남기지 않는다.
+  for(const id of minimumIds){
+    stageByCircle.set(id,0);
+    directStageByCircle.set(id,0);
+    inheritedStageIds.delete(id);
+    directReceiverIds.delete(id);
+  }
+  return{sourceIds,minimumIds,containedSources,stageByCircle,directStageByCircle,directReceiverIds,inheritedStageIds,links,components:[],componentById:new Map()};
+}
+// duels2BuildTinyaDamageModel: 각 마법진의 고유 역할 배율과 실제 교차 렌즈 배율을 분리하고, 연결 상속은 가져올 수 있는 최고 배율만 전달한다. (circles: 전체 마법진)
+function duels2BuildTinyaDamageModel(circles){
+  const list=Array.isArray(circles)?circles:[],rawGraph=duels2BuildTinyaGraph(list);
+  // 증폭 판정은 원래의 실제 교차 관계로 먼저 확정한다. 그 뒤 증폭 제공 원과 직접 수신 원 사이의 관계만 표시·피해용 그래프에서 연결로 낮춘다.
+  const amplifier=duels2BuildTinyaAmplifierEffects(list,rawGraph),amplifierIds=amplifier.sourceIds;
+  const pairKey=(a,b)=>[String(a?.id),String(b?.id)].sort().join('|');
+  const amplificationPairKeys=new Set((amplifier.links||[]).map(link=>pairKey(link.source,link.receiver)));
+  // 활성 증폭 마법진과 겹친 다른 최소 마법진 사이도 증폭 관계로 취급하되, 단계는 주지 않고 교차 효과만 제거한다.
+  // 증폭은 연결과 별개의 관계다. 표시·피해용 그래프에서는 전용 amplifier 관계로 바꿔 교차 효과만 제거하고 연결 아이콘·연결 효과는 만들지 않는다.
+  for(const rel of rawGraph.rels){
+    if(rel.type!=='cross')continue;
+    const aIsMinimum=amplifier.minimumIds.has(rel.a.id),bIsMinimum=amplifier.minimumIds.has(rel.b.id);
+    if(!aIsMinimum||!bIsMinimum)continue;
+    if(amplifierIds.has(rel.a.id)||amplifierIds.has(rel.b.id))amplificationPairKeys.add(pairKey(rel.a,rel.b));
+  }
+  const graph={
+    edges:rawGraph.edges,
+    rels:rawGraph.rels.map(rel=>{
+      const key=[String(rel.a.id),String(rel.b.id)].sort().join('|');
+      if(rel.type==='cross'&&amplificationPairKeys.has(key))return{...rel,type:'amplifier',amplifierLink:true};
+      // 이미 증폭을 제공 중인 최소 마법진은 연결 역할을 겸하지 않는다.
+      // 얕은 겹침이더라도 연결 아이콘·연결 상속·연결 효과 계산에서 완전히 제외한다.
+      if(rel.type==='connect'&&(amplifierIds.has(rel.a.id)||amplifierIds.has(rel.b.id)))return{...rel,type:'none',suppressedAmplifierConnect:true};
+      return rel;
+    })
+  };
+  const containRels=graph.rels.filter(rel=>rel.type==='contain');
+  const invalidContainRels=graph.rels.filter(rel=>rel.type==='invalidContain');
+  const contained=new Set(containRels.map(rel=>rel.inner.id));
+  const invalidContainInnerIds=new Set(invalidContainRels.map(rel=>rel.inner.id));
+  const containingOutersByInner=new Map(list.map(c=>[c.id,[]]));
+  const invalidContainingOutersByInner=new Map(list.map(c=>[c.id,[]]));
+  for(const rel of containRels)containingOutersByInner.get(rel.inner.id)?.push(rel.outer);
+  for(const rel of invalidContainRels)invalidContainingOutersByInner.get(rel.inner.id)?.push(rel.outer);
+
+  const inheritedContainInnerIds=new Set(),inheritedContainOuterIds=new Set();
+  for(const contain of containRels){
+    for(const candidate of list){
+      if(candidate.id===contain.inner.id||candidate.id===contain.outer.id||amplifierIds.has(candidate.id))continue;
+      if(duels2GetTinyaRelation(candidate,contain.inner).type==='connect')inheritedContainInnerIds.add(candidate.id);
+      if(duels2GetTinyaRelation(candidate,contain.outer).type==='connect')inheritedContainOuterIds.add(candidate.id);
+    }
+  }
+
+  // 증폭 제공 원과 직접 수신 원의 관계는 위에서 전용 amplifier 관계로 분리했으므로 연결·교차 아이콘과 교차 렌즈·피해 계산에 들어오지 않는다.
+  const crossRels=graph.rels.filter(rel=>rel.type==='cross');
+  const crossIds=new Set();
+  for(const rel of crossRels){crossIds.add(rel.a.id);crossIds.add(rel.b.id);}
+  const sharedCross=duels2BuildTinyaSharedCrossEffects(list.filter(c=>!amplifierIds.has(c.id)),{edges:graph.edges,rels:crossRels});
+  const inheritedCrossIds=new Set([...sharedCross.inheritedIds].filter(id=>!amplifierIds.has(id)));
+  const inheritedCrossMultiplierById=new Map();
+  const crossMultiplierByPair=new Map();
+  const pointInside=(x,y,circle)=>Math.hypot(x-circle.x,y-circle.y)<=Math.max(0,Number(circle.r)||0)+0.001;
+
+  for(const rel of crossRels){
+    // 기본 교차 4배에 실제 유효 포함된 교차 원 하나당 2배를 더한다.
+    const validContainedCount=Number(contained.has(rel.a.id))+Number(contained.has(rel.b.id));
+    crossMultiplierByPair.set(pairKey(rel.a,rel.b),4+validContainedCount*2);
+  }
+  for(const shared of sharedCross.sourcePairs){
+    const value=crossMultiplierByPair.get(pairKey(shared.a,shared.b))||4;
+    for(const id of shared.inheritedIds)inheritedCrossMultiplierById.set(id,Math.max(value,inheritedCrossMultiplierById.get(id)||0));
+  }
+
+  const circleMultiplierById=new Map();
+  for(const circle of list){
+    const hasContainInner=contained.has(circle.id)||inheritedContainInnerIds.has(circle.id);
+    const hasCrossRole=crossIds.has(circle.id);
+    // 원 자체의 기본 역할은 포함 2배와 교차 2배를 곱한다. 따라서 유효 포함 내부의 교차 마법진은 렌즈 밖에서도 4배다.
+    let value=(hasContainInner?2:1)*(hasCrossRole?2:1);
+    if(inheritedCrossMultiplierById.has(circle.id))value=Math.max(value,inheritedCrossMultiplierById.get(circle.id));
+    circleMultiplierById.set(circle.id,value);
+  }
+
+  const multiplierAtPoint=(x,y)=>{
+    let best=0;
+    for(const circle of list){
+      if(pointInside(x,y,circle))best=Math.max(best,circleMultiplierById.get(circle.id)||1);
+    }
+    for(const rel of crossRels){
+      if(pointInside(x,y,rel.a)&&pointInside(x,y,rel.b))best=Math.max(best,crossMultiplierByPair.get(pairKey(rel.a,rel.b))||4);
+    }
+    return best;
+  };
+  const multiplierForTarget=(x,y,radius=0)=>{
+    const targetCircle={x:Number(x)||0,y:Number(y)||0,r:Math.max(0,Number(radius)||0)};
+    let best=0;
+    for(const circle of list){
+      if(Math.hypot(targetCircle.x-circle.x,targetCircle.y-circle.y)<=targetCircle.r+circle.r)best=Math.max(best,circleMultiplierById.get(circle.id)||1);
+    }
+    for(const rel of crossRels){
+      if(duels2CircleTouchesCrossLens(targetCircle,rel.a,rel.b))best=Math.max(best,crossMultiplierByPair.get(pairKey(rel.a,rel.b))||4);
+    }
+    return best;
+  };
+  return{list,graph,amplifier,amplifierIds,contained,containRels,invalidContainRels,invalidContainInnerIds,containingOutersByInner,invalidContainingOutersByInner,inheritedContainInnerIds,inheritedContainOuterIds,crossIds,sharedCross,inheritedCrossIds,inheritedCrossMultiplierById,crossMultiplierByPair,circleMultiplierById,inheritedCrossBoostedIds:new Set(),crossRels,multiplierAtPoint,multiplierForTarget};
+}
+
+// duels2GetTinyaCrossLensCenter: 두 교차 원의 실제 공통 영역 안쪽 중앙점을 반환한다. (a/b: 교차 관계의 두 원)
+function duels2GetTinyaCrossLensCenter(a,b){
+  const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+  if(d<=0.0001)return{x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+  const ux=dx/d,uy=dy/d;
+  const lo=Math.max(-a.r,d-b.r),hi=Math.min(a.r,d+b.r);
+  const t=(lo+hi)/2;
+  return{x:a.x+ux*t,y:a.y+uy*t};
+}
+// duels2GetTinyaMoveGroupIds: 실제로 겹친 관계 그래프를 따라 함께 이동할 마법진 묶음을 반환한다. (seedIds: 선택된 마법진 ID 집합, circles: 전체 마법진)
+function duels2GetTinyaMoveGroupIds(seedIds,circles){
+  const list=Array.isArray(circles)?circles:[],graph=duels2BuildTinyaGraph(list);
+  const seen=new Set(seedIds||[]),queue=[...seen];
+  while(queue.length){const id=queue.shift();for(const next of graph.edges.get(id)||[])if(!seen.has(next)){seen.add(next);queue.push(next);}}
+  return seen;
+}
+
+// duels2EnsureTinyaSmoothMoveLoop: 홀드 이동 중 포인터 목표 좌표를 매 프레임 보간해 마법진이 이벤트 간격만큼 뚝뚝 끊기지 않도록 한다. ()
+function duels2EnsureTinyaSmoothMoveLoop(){
+  if(L?._tinyaSmoothMoveRaf)return;
+  const tick=()=>{
+    L._tinyaSmoothMoveRaf=0;
+    if(!gameOn||L?.charDef?.id!=='tinya')return;
+    let active=false,moved=false;
+    const l=L._tinyaInput;
+    if(l?.mode==='move'&&l.circle&&l.targetPointer){
+      active=true;
+      // 카메라가 플레이어를 따라 움직여도 고정된 화면 마우스 위치의 월드 좌표를 매 프레임 다시 계산한다.
+      l.targetPointer=duels2GetTinyaPointerWorld();
+      const dx=l.targetPointer.x-l.last.x,dy=l.targetPointer.y-l.last.y;
+      const dist=Math.hypot(dx,dy);
+      const factor=dist<0.35?1:Math.min(0.58,0.22+dist/180);
+      const mx=dx*factor,my=dy*factor;
+      if(Math.abs(mx)+Math.abs(my)>0.001){l.circle.x+=mx;l.circle.y+=my;l.last={x:l.last.x+mx,y:l.last.y+my};moved=true;}
+    }
+    const r=L._tinyaRmbInput;
+    if(r?.mode==='move'&&r.ids?.size&&r.targetPointer){
+      active=true;
+      r.targetPointer=duels2GetTinyaPointerWorld();
+      const dx=r.targetPointer.x-r.last.x,dy=r.targetPointer.y-r.last.y;
+      const dist=Math.hypot(dx,dy);
+      const factor=dist<0.35?1:Math.min(0.58,0.22+dist/180);
+      const mx=dx*factor,my=dy*factor;
+      if(Math.abs(mx)+Math.abs(my)>0.001){for(const c of duels2GetTinyaCircles())if(r.ids.has(c.id)){c.x+=mx;c.y+=my;}r.last={x:r.last.x+mx,y:r.last.y+my};moved=true;}
+    }
+    if(moved){
+      const now=performance.now();
+      if(now-(L._tinyaLastMoveSyncAt||0)>=45){L._tinyaLastMoveSyncAt=now;duels2SyncTinyaCircles();}
+    }
+    if(active)L._tinyaSmoothMoveRaf=requestAnimationFrame(tick);
+  };
+  L._tinyaSmoothMoveRaf=requestAnimationFrame(tick);
+}
+function duels2SyncTinyaCircles(){
+  const revealEnd=Number(L._tinyaRevealEnd)||0;
+  const visible=revealEnd>performance.now();
+  send({type:'tinyaCircleState',circles:visible?duels2GetTinyaCircles().map(c=>({id:c.id,x:c.x,y:c.y,r:c.r,order:c.order})):[],revealEnd});
+}
+function duels2SetTinyaReveal(end){L._tinyaRevealEnd=end;duels2SyncTinyaCircles();}
+// duels2BuildTinyaBurstAmplifierSegments: 공격 직전 스냅샷에서 실제 활성 증폭 마법진만 독립적으로 찾고, 활성 증폭 마법진끼리의 선분을 고정 저장한다. (circles: 발동 배치)
+function duels2BuildTinyaBurstAmplifierSegments(circles){
+  const list=Array.isArray(circles)?circles.filter(Boolean):[];
+  const minRadius=Math.max(0,Number(duels2GetSkillBalance('tinya','lmb').minRadius)||0),epsilon=1.5;
+  const minimum=list.filter(c=>Math.abs((Number(c.r)||0)-minRadius)<=epsilon);
+  const active=[];
+  for(const source of minimum){
+    let isActive=false;
+    for(const receiver of list){
+      if(receiver===source||minimum.includes(receiver))continue;
+      if(duels2GetTinyaRelation(source,receiver).type==='cross'){isActive=true;break;}
+    }
+    if(isActive)active.push(source);
+  }
+  const segments=[];
+  for(let i=0;i<active.length;i++)for(let j=i+1;j<active.length;j++){
+    segments.push({x1:Number(active[i].x)||0,y1:Number(active[i].y)||0,x2:Number(active[j].x)||0,y2:Number(active[j].y)||0});
+  }
+  return segments;
+}
+function duels2BroadcastTinyaBurst(circles,revealMs){
+  const snapshot=(Array.isArray(circles)?circles:[]).map((c,index)=>({id:c.id??`tinya-burst-${index}`,x:c.x,y:c.y,r:c.r,order:c.order??index}));
+  const amplifier=duels2BuildTinyaAmplifierEffects(snapshot,duels2BuildTinyaGraph(snapshot));
+  for(const circle of snapshot){
+    circle.amplifyLevel=amplifier.stageByCircle.get(circle.id)||0;
+    circle.amplifyInherited=amplifier.inheritedStageIds.has(circle.id)&&!amplifier.directReceiverIds.has(circle.id);
+  }
+  const amplifierSegments=duels2BuildTinyaBurstAmplifierSegments(snapshot);
+  // 발동 잔상은 공격 판독이 가능한 범위에서 기존보다 조금 더 빠르게 사라진다.
+  const duration=Math.max(220,(Number(revealMs)||0)+140);
+  send({type:'tinyaCircleBurst',circles:snapshot,amplifierSegments,duration});
+  L._tinyaBurst={circles:snapshot,amplifierSegments,duration,expire:performance.now()+duration};
+}
+function duels2ClearTinyaRuntime(entity=L,opt={}){
+  if(!entity)return;
+  if(entity._tinyaRmbCast?.timerId)clearTimeout(entity._tinyaRmbCast.timerId);
+  if(entity===L&&entity._tinyaInput)duels2RefundTinyaCircleReservation(entity._tinyaInput);
+  if(entity._tinyaSmoothMoveRaf)cancelAnimationFrame(entity._tinyaSmoothMoveRaf);
+  entity._tinyaSmoothMoveRaf=0;
+  entity._tinyaCircles=[];entity._tinyaInput=null;entity._tinyaRmbInput=null;entity._tinyaRevealEnd=0;entity._tinyaBurst=null;entity._tinyaCounterPreview=null;entity._tinyaRmbRecastUntil=0;entity._tinyaManifestPending=null;entity._tinyaRmbCast=null;entity._tinyaManifestToken=(entity._tinyaManifestToken||0)+1;
+  if(entity===L&&opt.broadcast!==false)duels2SyncTinyaCircles();
+  if(entity===L){window.DUELS2_REMOTE_TINYA_BURSTS=[];}
+}
+// duels2ExecuteTinyaManifestDamageV4: 티냐 발현 전용 피해 실행기다. 기존 티냐 피해 함수와 후보 배열을 참조하지 않고 공통 전투 후보 레지스트리에서 대상을 새로 수집해 최고 피해/CC를 한 번 적용한다. (circles: 발현 배치, opt: source/slot/route)
+function duels2ExecuteTinyaManifestDamageV4(circles,opt={}){
+  const list=Array.isArray(circles)?circles.filter(Boolean).map(c=>({...c})):[];
+  if(!list.length)return 0;
+  const source=opt.source||L;
+  const baseDamage=Math.max(0,Number(duels2GetSkillBalance('tinya','lmb').damage)||0);
+  const model=duels2BuildTinyaDamageModel(list);
+  const amplifier=model.amplifier;
+  const candidates=[];
+  const seen=new Set();
+  const add=target=>{
+    if(!target||target===source)return;
+    const key=String(getHitTargetKey?.(target)??target.id??target.pid??`obj-${candidates.length}`);
+    if(seen.has(key))return;
+    seen.add(key);candidates.push(target);
+  };
+  for(const target of duels2BuildDirectTargetCandidateList('allCombat')||[])add(target);
+  for(const target of getCombatPlayerEntities({aliveOnly:false,includeLocal:true,includeRemote:true,includeDebug:true})||[])add(target);
+  const extraArrays=['trainingBots','_trainingBots','debugPlayers','_debugPlayers','localMinions','peerMinions','bots','_bots','dummies','trainingDummies'];
+  for(const name of extraArrays){const arr=window[name];if(Array.isArray(arr))for(const target of arr)add(target);}
+
+  let hitCount=0;
+  const slot=opt.slot||'rmb';
+  const route=opt.route||'skill.tinya.manifest-v4';
+  for(const target of candidates){
+    const tx=Number(target.x),ty=Number(target.y);
+    if(!Number.isFinite(tx)||!Number.isFinite(ty))continue;
+    const hp=getEntityHealth(target);
+    if(Number.isFinite(hp)&&hp<=0)continue;
+    const radius=Math.max(0,Number(getEntityRadius?.(target))||Number(getTargetRadius?.(target))||Number(target.radius)||20);
+    const multiplier=Math.max(0,Number(model.multiplierForTarget(tx,ty,radius))||0);
+    if(multiplier<=0)continue;
+    const damage=Math.max(1,Math.round(baseDamage*multiplier));
+    const actionCtx={slot,tags:['tinya','manifest',slot,'area','magic'],delivery:'area',timing:'instant',source};
+    const applied=withCombatSource(source,()=>duels2ApplyCombatObjectDirectDamage(target,damage,{
+      source,slot,route,moduleId:'effect.damage.tinya-manifest-v4',policyFamily:'manifest',delivery:'area',timing:'instant',damageType:'magic',actionCtx,
+      tags:actionCtx.tags,allowFriendlyFire:false
+    }));
+    if(applied)hitCount++;
+
+    let highestStage=0;
+    for(const circle of list){
+      if(Math.hypot(tx-circle.x,ty-circle.y)<=radius+circle.r)highestStage=Math.max(highestStage,Number(amplifier.stageByCircle.get(circle.id))||0);
+    }
+    if(highestStage===1)applyCC(target,{slowDur:duels2GetSkillBalance('tinya','lmb').amplifierEffectMs,slowFactor:0.55},source,{slot,reason:'tinya-amplifier-slow-v4'});
+    else if(highestStage===2)applyCC(target,{bindDur:duels2GetSkillBalance('tinya','lmb').amplifierEffectMs},source,{slot,reason:'tinya-amplifier-bind-v4'});
+    else if(highestStage>=3)applyCC(target,{freezeDur:duels2GetSkillBalance('tinya','lmb').amplifierEffectMs},source,{slot,reason:'tinya-amplifier-freeze-v4'});
+  }
+  emitFx({type:'tinyaManifestFlash',circles:list.map(c=>({x:c.x,y:c.y,r:c.r})),dur:18,maxDur:18,col:DUELS2_TINYA_COLOR});
+  if(hitCount)playHitSfx();
+  return hitCount;
+}
+// 현재 티냐 발현의 단일 공식 입구. 이전 V3 구현은 더 이상 실행되지 않는다.
+function duels2ExecuteFreshTinyaManifestDamage(circles,opt={}){return duels2ExecuteTinyaManifestDamageV4(circles,opt);}
+function duels2ActivateTinyaFormation(circles,opt={}){return duels2ExecuteTinyaManifestDamageV4(circles,opt);}
+
+function duels2ApplyRemoteTinyaCircleState(msg){
+  const pid=String(msg.sourcePid||msg.pid||'');if(!pid)return;
+  window.DUELS2_REMOTE_TINYA_CIRCLES||(window.DUELS2_REMOTE_TINYA_CIRCLES=new Map());
+  window.DUELS2_REMOTE_TINYA_CIRCLES.set(pid,{circles:Array.isArray(msg.circles)?msg.circles:[],updatedAt:performance.now(),revealEnd:Number(msg.revealEnd)||0});
+}
+function duels2ApplyRemoteTinyaBurst(msg){
+  const pid=String(msg.sourcePid||msg.pid||'');if(!pid)return;
+  window.DUELS2_REMOTE_TINYA_BURSTS||(window.DUELS2_REMOTE_TINYA_BURSTS=[]);
+  {const duration=Math.max(100,Number(msg.duration)||660);window.DUELS2_REMOTE_TINYA_BURSTS.push({pid,circles:Array.isArray(msg.circles)?msg.circles:[],amplifierSegments:Array.isArray(msg.amplifierSegments)?msg.amplifierSegments:[],duration,expire:performance.now()+duration});}
+}
+
+// duels2CancelTinyaRmbCast: 티냐 RMB 선딜레이 또는 이동 상태를 명시적으로 종료한다. (reason: 종료 사유)
+function duels2CancelTinyaRmbCast(reason='cancel'){
+  const cast=L?._tinyaRmbCast;
+  if(!cast)return null;
+  if(cast.timerId)clearTimeout(cast.timerId);
+  L._tinyaRmbCast=null;
+  L._tinyaManifestPending=null;
+  L._tinyaRmbRecastUntil=0;
+  L._tinyaRevealEnd=0;
+  duels2SyncTinyaCircles();
+  return {...cast,reason};
+}
+// duels2RemoveTinyaCirclesAtPointer: 포인터를 포함하는 마법진 중 가장 최근에 생성한 하나만 제거한다. (pointer: 월드 좌표)
+function duels2RemoveTinyaCirclesAtPointer(pointer){
+  const p=pointer||duels2GetTinyaPointerWorld(),arr=duels2GetTinyaCircles();
+  let selected=null,selectedIndex=-1;
+  for(let i=0;i<arr.length;i++){
+    const c=arr[i];
+    if(Math.hypot(p.x-c.x,p.y-c.y)>c.r)continue;
+    const order=Number(c.order)||0,selectedOrder=Number(selected?.order)||0;
+    if(!selected||order>selectedOrder||(order===selectedOrder&&i>selectedIndex)){selected=c;selectedIndex=i;}
+  }
+  if(!selected)return 0;
+  L._tinyaCircles=arr.filter((c,i)=>i!==selectedIndex);
+  duels2SyncTinyaCircles();
+  return 1;
+}
+// duels2GetTinyaFormationCenter: 현재 마법진 배치의 평균 중심을 반환한다. (circles: 중심을 계산할 마법진 배열)
+function duels2GetTinyaFormationCenter(circles){
+  const list=Array.isArray(circles)?circles:[];
+  if(!list.length)return{x:L.x,y:L.y};
+  return{x:list.reduce((sum,c)=>sum+(Number(c.x)||0),0)/list.length,y:list.reduce((sum,c)=>sum+(Number(c.y)||0),0)/list.length};
+}
+// duels2ClampTinyaFormationInsideWorld: 배치 형태를 유지한 채 모든 마법진이 맵 경계 안에 들어오도록 공통 이동량을 적용한다. (circles: 복원할 마법진 배열)
+function duels2ClampTinyaFormationInsideWorld(circles){
+  const list=Array.isArray(circles)?circles:[];
+  if(!list.length)return list;
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(const c of list){const r=Math.max(0,Number(c.r)||0);minX=Math.min(minX,c.x-r);maxX=Math.max(maxX,c.x+r);minY=Math.min(minY,c.y-r);maxY=Math.max(maxY,c.y+r);}
+  let dx=0,dy=0;
+  if(minX<0)dx=-minX;
+  if(maxX+dx>WORLD_W)dx+=WORLD_W-(maxX+dx);
+  if(minY<0)dy=-minY;
+  if(maxY+dy>WORLD_H)dy+=WORLD_H-(maxY+dy);
+  for(const c of list){c.x+=dx;c.y+=dy;}
+  return list;
+}
+// duels2UseTinyaSpellbookAtPointer: 현재 배치 중심에 최근 발현 배치를 복원하고 맵 밖으로 빠진 부분을 보정한다. (pointer: 호환용 미사용 좌표, cast: 취소된 선딜레이 정보)
+function duels2UseTinyaSpellbookAtPointer(pointer,cast=null){
+  const B=duels2GetSkillBalance('tinya','rmb');
+  const saved=Array.isArray(L._tinyaLastFormation)&&L._tinyaLastFormation.length?L._tinyaLastFormation:(cast?.previousFormation||[]);
+  if(!saved.length||!useStam(B.spellbookCost))return false;
+  const current=duels2GetTinyaCircles();
+  const center=duels2GetTinyaFormationCenter(current.length?current:(cast?.activationCircles||[]));
+  const restored=duels2CloneTinyaFormation(saved,center.x,center.y).slice(0,duels2GetTinyaMaxCircles());
+  L._tinyaCircles=duels2ClampTinyaFormationInsideWorld(restored);
+  L.rmbCooldown=B.cd;
+  L.lastAttackTime=performance.now();
+  duels2SyncTinyaCircles();
+  return true;
+}
+// duels2ResolveTinyaManifestCast: 0.2초 입력 창과 0.3초 공개 시간이 끝난 뒤 저장된 배치를 소모하고 신규 피해 판정을 실행한다. (cast: RMB 상태)
+function duels2ResolveTinyaManifestCast(cast){
+  if(!cast||L?._tinyaRmbCast!==cast||L?.charDef?.id!=='tinya'||!gameOn)return false;
+  const B=duels2GetSkillBalance('tinya','rmb');
+  if(cast.timerId)clearTimeout(cast.timerId);
+  L._tinyaRmbCast=null;
+  L._tinyaManifestPending=null;
+  L._tinyaRmbRecastUntil=0;
+  L._tinyaRevealEnd=0;
+  if(!cast.staminaPaid){duels2SyncTinyaCircles();return false;}
+  const circles=(cast.activationCircles||[]).map(c=>({...c}));
+  if(!circles.length){duels2SyncTinyaCircles();return false;}
+  const largest=circles.reduce((best,c)=>!best||(Number(c.r)||0)>(Number(best.r)||0)?c:best,null);
+  const attackAngle=largest?Math.atan2(largest.y-L.y,largest.x-L.x):getAngle();
+  duels2TriggerActualAttackEmissionFeedback?.(L,attackAngle,{sync:true,route:'skill.tinya.rmb.manifest'});
+  L._tinyaLastFormation=duels2SnapshotTinyaFormation(circles);
+  // 공격 스냅샷과 증폭 연결선 데이터를 원 삭제 전에 고정 저장한다.
+  duels2BroadcastTinyaBurst(circles,360);
+  L._tinyaCircles=[];
+  duels2SyncTinyaCircles();
+  duels2ExecuteFreshTinyaManifestDamage(circles,{source:L,route:'skill.tinya.rmb.fresh-manifest'});
+  L.rmbCooldown=B.cd;
+  L.lastAttackTime=performance.now();
+  return true;
+}
+// duels2EnterTinyaHoldMove: LMB/RMB 홀드 완료를 같은 상태 전환으로 처리한다. 완료 점선 점멸은 공통 호 게이지의 완료 상태를 그대로 사용한다. (slot/input/ids/pointer)
+function duels2EnterTinyaHoldMove(slot,input,ids,pointer){
+  if(!input)return false;
+  input.mode='move';
+  input.last=input.last||pointer||duels2GetTinyaPointerWorld();
+  input.targetPointer={...(pointer||input.last)};
+  if(slot==='rmb')input.ids=new Set(ids||[]);
+  duels2EnsureTinyaSmoothMoveLoop();
+  return true;
+}
+// duels2BeginTinyaRevealPhase: 단순 RMB 클릭의 0.2초 입력 창이 끝난 뒤 0.3초 동안 상대에게 배치를 공개한다. (cast: RMB 상태)
+function duels2BeginTinyaRevealPhase(cast){
+  if(!cast||L?._tinyaRmbCast!==cast||cast.phase!=='input')return false;
+  const B=duels2GetSkillBalance('tinya','rmb');
+  // 비용 결제가 실패하면 공개 상태와 네트워크 동기화를 시작하지 않는다.
+  if(L.rmbCooldown>0||!useStam(B.cost)){
+    duels2CancelTinyaRmbCast('insufficient-stamina');
+    return false;
+  }
+  cast.staminaPaid=true;
+  cast.phase='reveal';
+  cast.startAt=performance.now();
+  cast.endAt=cast.startAt+B.revealMs;
+  L._tinyaManifestPending=null;
+  L._tinyaRmbRecastUntil=0;
+  duels2SetTinyaReveal(cast.endAt);
+  cast.timerId=setTimeout(()=>duels2ResolveTinyaManifestCast(cast),Math.max(0,B.revealMs));
+  return true;
+}
+// duels2FinishTinyaRmbInputWindow: 0.2초 입력 창 종료 시 계속 누른 경우 홀드 이동, 놓은 경우 공개 단계로 전환한다. ()
+function duels2FinishTinyaRmbInputWindow(expectedCast=null){
+  const cast=L?._tinyaRmbCast;
+  if(!cast||cast.phase!=='input'||(expectedCast&&cast!==expectedCast))return false;
+  cast.timerId=0;
+  if(cast.held){
+    if(!cast.selectedIds.size){duels2CancelTinyaRmbCast('hold-outside-circle');L._tinyaRmbInput=null;return false;}
+    cast.phase='move';
+    const moveInput=L._tinyaRmbInput&&L._tinyaRmbInput.mode!=='consumed'?L._tinyaRmbInput:{mode:'move',start:cast.pointer,last:cast.pointer,picked:[],ids:new Set(cast.selectedIds),moved:false};
+    duels2EnterTinyaHoldMove('rmb',moveInput,cast.selectedIds,cast.pointer);
+    L._tinyaRmbInput=moveInput;
+    cast.inputState=moveInput;
+    L._tinyaManifestPending=null;
+    L._tinyaRmbRecastUntil=0;
+    L._tinyaRevealEnd=0;
+    duels2SyncTinyaCircles();
+    return true;
+  }
+  return duels2BeginTinyaRevealPhase(cast);
+}
+// duels2StartTinyaRmbWindup: RMB에 0.2초 차징·재입력 창을 생성한다. (pointer/inputState)
+function duels2StartTinyaRmbWindup(pointer,inputState){
+  const now=performance.now(),B=duels2GetSkillBalance('tinya','rmb'),circles=duels2GetTinyaCircles();
+  if(!circles.length||L.rmbCooldown>0||L._tinyaRmbCast)return null;
+  const inputWindow=Math.max(1,Number(B.inputWindowMs)||200);
+  const cast={
+    phase:'input',startAt:now,endAt:now+inputWindow,held:true,pointer:{...pointer},
+    selectedIds:new Set(inputState?.ids||[]),inputState:inputState||null,
+    activationCircles:circles.map(c=>({...c})),
+    previousFormation:Array.isArray(L._tinyaLastFormation)?L._tinyaLastFormation.map(c=>({...c})):[],timerId:0
+  };
+  L._tinyaRmbCast=cast;
+  L._tinyaManifestPending=cast;
+  L._tinyaRmbRecastUntil=cast.endAt;
+  L._tinyaRevealEnd=0;
+  duels2SyncTinyaCircles();
+  cast.timerId=setTimeout(()=>duels2FinishTinyaRmbInputWindow(cast),inputWindow);
+  return cast;
+}
+
+duels2RegisterSimpleGameplayEventHandler('tinyaCircleState',duels2ApplyRemoteTinyaCircleState,520);
+duels2RegisterSimpleGameplayEventHandler('tinyaCircleBurst',duels2ApplyRemoteTinyaBurst,520);
+
+// 티냐 LMB: RMB 선딜레이 중에는 재입력 능력만 실행하며, 그 외에는 생성 또는 0.3초 홀드 수정을 처리한다.
+duels2RegisterInputStateProfile('tinya-circle-lmb',{
+  slot:'lmb',priority:700,mode:'drag-vector',blocksAutoPrimary:true,
+  match({actor,slot}){return slot==='lmb'&&actor?.charDef?.id==='tinya';},
+  press(){
+    const p=duels2GetTinyaPointerWorld(),cast=L._tinyaRmbCast;
+    if(L._tinyaRmbInput?.mode==='move'||cast?.phase==='move')return;
+    if(cast?.phase==='input'){
+      if(L._tinyaRmbInput)L._tinyaRmbInput.mode='consumed';
+      duels2CancelTinyaRmbCast('lmb-reinput');
+      duels2RemoveTinyaCirclesAtPointer(p);
+      L._tinyaInput={mode:'consumed'};
+      return;
+    }
+    if(cast||L._tinyaRmbInput){L._tinyaInput={mode:'consumed'};return;}
+    const now=performance.now(),arr=duels2GetTinyaCircles(),picked=[...arr].reverse().find(c=>Math.hypot(p.x-c.x,p.y-c.y)<=c.r);
+    L._tinyaInput={mode:'pending',startAt:now,start:p,last:p,circle:picked||null,moved:false,dragIntent:false,preview:null,reservedStamina:0,limitBlocked:arr.length>=duels2GetTinyaMaxCircles()};
+  },
+  release(){duels2FinishTinyaLmbInput();},
+  documentRelease(){duels2FinishTinyaLmbInput();},
+  leave(){}
+});
+// duels2GetTinyaCircleStaminaCost: 마법진 반지름을 최소·최대 반지름 구간에 맞춰 20~60 스태미나로 선형 환산한다. (radius: 생성할 마법진 반지름)
+function duels2GetTinyaCircleStaminaCost(radius){
+  const B=duels2GetSkillBalance('tinya','lmb');
+  const minR=Math.max(0,Number(B.minRadius)||0),maxR=Math.max(minR+1,Number(B.maxRadius)||minR+1);
+  const minCost=Math.max(0,Number(B.costMin)||20),maxCost=Math.max(minCost,Number(B.costMax)||60);
+  const t=Math.max(0,Math.min(1,((Number(radius)||minR)-minR)/(maxR-minR)));
+  return Math.round(minCost+(maxCost-minCost)*t);
+}
+// duels2GetTinyaAdjustedCircleCost: LMB 스태미나 보정을 포함한 실제 예약 비용을 반환한다. (radius: 미리보기 반지름)
+function duels2GetTinyaAdjustedCircleCost(radius){
+  return Math.max(0,Number(getStamCost(duels2GetTinyaCircleStaminaCost(radius),'lmb'))||0);
+}
+// duels2RefundTinyaCircleReservation: 드래그 취소·축소 시 예약해 둔 스태미나를 즉시 돌려준다. (input: 티냐 LMB 입력 상태, amount: 환급량)
+function duels2RefundTinyaCircleReservation(input,amount=null){
+  if(!input)return 0;
+  const reserved=Math.max(0,Number(input.reservedStamina)||0);
+  const refund=Math.max(0,Math.min(reserved,amount==null?reserved:Number(amount)||0));
+  if(refund<=0)return 0;
+  const stamMax=L._augStamMax??STAM_MAX;
+  L.stamina=Math.min(stamMax,Math.max(0,Number(L.stamina)||0)+refund);
+  input.reservedStamina=reserved-refund;
+  return refund;
+}
+// duels2UpdateTinyaCircleReservation: 현재 미리보기 크기의 실제 비용까지 스태미나를 예약하고 축소분은 즉시 환급한다. (input: 티냐 LMB 입력 상태, radius: 희망 반지름)
+function duels2UpdateTinyaCircleReservation(input,radius){
+  if(!input)return null;
+  const B=duels2GetSkillBalance('tinya','lmb');
+  const minR=Math.max(0,Number(B.minRadius)||0),maxR=Math.max(minR,Number(B.maxRadius)||minR);
+  const desiredRadius=Math.max(minR,Math.min(maxR,Number(radius)||minR));
+  const currentReserved=Math.max(0,Number(input.reservedStamina)||0);
+  const available=currentReserved+Math.max(0,Number(L.stamina)||0);
+  let affordableRadius=desiredRadius;
+  if(duels2GetTinyaAdjustedCircleCost(desiredRadius)>available){
+    let lo=minR,hi=desiredRadius;
+    if(duels2GetTinyaAdjustedCircleCost(minR)>available)return null;
+    for(let i=0;i<18;i++){
+      const mid=(lo+hi)/2;
+      if(duels2GetTinyaAdjustedCircleCost(mid)<=available)lo=mid;else hi=mid;
+    }
+    affordableRadius=lo;
+  }
+  const targetCost=duels2GetTinyaAdjustedCircleCost(affordableRadius);
+  if(targetCost>currentReserved){
+    const drain=Math.min(targetCost-currentReserved,Math.max(0,Number(L.stamina)||0));
+    L.stamina=Math.max(0,(Number(L.stamina)||0)-drain);
+    input.reservedStamina=currentReserved+drain;
+  }else if(targetCost<currentReserved){
+    duels2RefundTinyaCircleReservation(input,currentReserved-targetCost);
+  }
+  L.staminaUseTime=performance.now();
+  return{radius:affordableRadius,cost:targetCost,reserved:Math.max(0,Number(input.reservedStamina)||0)};
+}
+// duels2FinishTinyaLmbInput: 캔버스 안팎과 관계없이 LMB 입력을 한 번만 종료한다. ()
+function duels2FinishTinyaLmbInput(){
+  const st=L._tinyaInput;L._tinyaInput=null;if(!st||st.mode==='consumed')return;
+  const B=duels2GetSkillBalance('tinya','lmb');
+  let creation=null;
+  if(st.mode==='create'&&st.preview) creation={...st.preview,prepaid:true};
+  // 짧은 LMB 클릭은 기존 마법진 내부인지와 관계없이 클릭 지점에 최소 마법진을 생성한다.
+  // 기존 마법진 이동은 홀드 시간이 완료되어 mode가 'move'로 전환된 경우에만 처리한다.
+  else if(st.mode==='pending'){
+    const heldMs=performance.now()-(Number(st.startAt)||performance.now());
+    // 생성 미리보기 기준에 못 미친 미세 드래그는 홀드 시도로 취급하고 새 마법진을 만들지 않는다.
+    // 완전히 정지한 짧은 클릭만 최소 마법진 생성으로 처리한다.
+    if(!st.dragIntent&&!(st.circle&&heldMs>=Math.max(1,Number(B.moveHoldMs)||300)))creation={x:st.start.x,y:st.start.y,r:B.minRadius};
+  }
+  if(creation){
+    const arr=duels2GetTinyaCircles();
+    // 반격기 미리보기/발동 원은 _tinyaCircles에 들어오지 않으므로 일반 배치 6개 제한에 포함되지 않는다.
+    if(arr.length>=duels2GetTinyaMaxCircles()){
+      // 최대 개수에서 생성 입력을 놓으면 실패한 위치·크기를 잠시 빨간 미리보기로 남긴다.
+      L._tinyaLimitPreview={x:creation.x,y:creation.y,r:Math.max(B.minRadius,Number(creation.r)||0),endAt:performance.now()+280};
+      duels2RefundTinyaCircleReservation(st);
+      duels2SyncTinyaCircles();
+      return;
+    }
+    const radius=Math.max(B.minRadius,Math.min(B.maxRadius,Number(creation.r)||0));
+    if(L.lmbCooldown>0){duels2RefundTinyaCircleReservation(st);return;}
+    if(creation.prepaid){
+      const required=duels2GetTinyaAdjustedCircleCost(radius);
+      const reserved=Math.max(0,Number(st.reservedStamina)||0);
+      if(reserved+0.001<required){duels2RefundTinyaCircleReservation(st);return;}
+      if(reserved>required)duels2RefundTinyaCircleReservation(st,reserved-required);
+      st.reservedStamina=0;
+    }else if(!useStam(duels2GetTinyaCircleStaminaCost(radius)))return;
+    arr.push({id:`tinya-circle-${Date.now()}-${arr.length}`,x:creation.x,y:creation.y,r:radius,order:(L._tinyaCircleOrder=(L._tinyaCircleOrder||0)+1)});
+    L.lmbCooldown=B.cd;L.lastAttackTime=performance.now();
+  }else{
+    duels2RefundTinyaCircleReservation(st);
+  }
+  duels2SyncTinyaCircles();
+}
+
+// 티냐 RMB: 버튼 해제와 무관하게 선딜레이는 끝까지 유지되며, 종료 순간 계속 누른 경우에만 홀드 이동으로 전환한다.
+duels2RegisterInputStateProfile('tinya-circle-rmb',{
+  slot:'rmb',priority:700,mode:'hold-release',
+  match({actor,slot}){return slot==='rmb'&&actor?.charDef?.id==='tinya';},
+  press(){
+    const p=duels2GetTinyaPointerWorld(),existing=L._tinyaRmbCast;
+    if(L._tinyaInput?.mode==='move')return;
+    if(L._tinyaInput&&L._tinyaInput.mode!=='consumed'){L._tinyaRmbInput={mode:'consumed'};return;}
+    if(existing?.phase==='input'){
+      // 첫 RMB가 아직 눌린 상태에서 중복 press 이벤트가 들어온 경우에는 재입력으로 보지 않는다.
+      // 실제 RMB/RMB는 첫 입력을 놓아 existing.held가 false가 된 뒤 다시 누른 경우에만 성립한다.
+      if(existing.held)return;
+      if(L._tinyaRmbInput)L._tinyaRmbInput.mode='consumed';
+      const old=duels2CancelTinyaRmbCast('rmb-reinput');
+      duels2UseTinyaSpellbookAtPointer(p,old);
+      L._tinyaRmbInput={mode:'consumed'};
+      return;
+    }
+    if(existing){L._tinyaRmbInput={mode:'consumed'};return;}
+    const arr=duels2GetTinyaCircles(),picked=arr.filter(c=>Math.hypot(p.x-c.x,p.y-c.y)<=c.r),seedIds=new Set(picked.map(c=>c.id));
+    const input={mode:'windup',startAt:performance.now(),start:p,last:p,picked,ids:duels2GetTinyaMoveGroupIds(seedIds,arr),moved:false};
+    L._tinyaRmbInput=input;
+    duels2StartTinyaRmbWindup(p,input);
+  },
+  release(){duels2ReleaseTinyaRmbInput();},
+  documentRelease(){duels2ReleaseTinyaRmbInput();},
+  leave(){}
+});
+// duels2ReleaseTinyaRmbInput: 버튼 해제는 held만 내리고 선딜레이 타이머를 절대 취소하지 않는다. ()
+function duels2ReleaseTinyaRmbInput(){
+  const input=L._tinyaRmbInput,cast=L._tinyaRmbCast;
+  if(input?.mode==='move'){
+    if(cast)cast.held=false;
+    L._tinyaRmbInput=null;
+    duels2CancelTinyaRmbCast('move-finished');
+    duels2SyncTinyaCircles();
+    return;
+  }
+  if(cast?.phase==='input')cast.held=false;
+  L._tinyaRmbInput=null;
+}
 
 // 일반 클릭 프로필: 상태 입력이 아닌 입력을 기존 Skill Executor Adapter로 전달한다.
 duels2RegisterInputStateProfile('direct-slot-adapter', {
@@ -63195,6 +64547,7 @@ function _trainingReset() {
   duels2RouteEntityHealthFull(L, {reason:'training.reset.local'}); L.stamina = L._augStamMax ?? STAM_MAX;
   L.alive=true; L.isAlive=true; L.hidden=false; L._dying=false;
   L.lmbCooldown=0; L.rmbCooldown=0; duels2ConsumeCounterReadyGuard(L, {route:'skill.counter.ready-consume', source:'character-counter'}); L.counterExpiry=0; L.dodging=false; L.invincible=0; L._counterPending=false; L._counterPredelayEnd=0;
+  duels2ClearTinyaRuntime?.(L,{broadcast:true});
   _clearRuntimeStatus(L);
   duels2RoutePositionReset(R, WORLD_W * 0.5, WORLD_H / 2, {reason:'training.reset:dummy', route:'position.spawn-reset'});
   duels2RouteEntityHealthFull(R, {reason:'training.reset.remote'}); R._deadAt=0; R.radius=20; R.hidden=false; R.alive=true; R.isAlive=true; R._dying=false;
@@ -63289,6 +64642,8 @@ function openTrainingAugPanel() {
 }
 
 function exitTraining() {
+  duels2ClearTinyaRuntime?.(L,{broadcast:true});
+
   gameOn = false;
   duels2RouteSetTrainingMode(false, {reason:'exitTraining', route:'training.ui'});
   duels2RouteClearTrainingCollections({reason:'training.exit:collections', route:'training.exit'});
@@ -64676,6 +66031,8 @@ function duels2GetRematchRandomSelectionFixSummary() {
 // 이 섹션은 게임 리셋, 게임 시작, 메인 루프만 담당한다.
 
 function resetL() {
+  duels2ClearTinyaRuntime?.(L,{broadcast:true});
+
   L._sorFields = duels2ClearFieldCollection('localSorFields', L._sorFields, {reason:'resetL'});
   const lc=CHARACTERS[selCharId] || L.charDef || CHARACTERS[Object.keys(CHARACTERS)[0]];
   if (!lc) throw new Error('[Duels] 선택된 캐릭터 정의를 찾을 수 없습니다.');
