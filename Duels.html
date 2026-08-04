@@ -3478,6 +3478,7 @@ const BALANCE = {
       damage:         30,         // 모루 직격 피해
       range:          500,
       anvilRadius:    240,        // 강화지대 반경
+      anvilBodyRadius: 20,         // 모루 실제 피격 반경
       anvilHealth:    80,          // 모루 체력
       cd:             500,
     },
@@ -12466,7 +12467,8 @@ function getEntityMaxHealth(e) {
   if (adapter?.readMaxHealth) return adapter.readMaxHealth(e, {reason:'getEntityMaxHealth'});
   return e ? (e.maxHealth ?? e.maxHp ?? e.health ?? e.hp ?? 100) : 100;
 }
-function getEntityRadius(e) { return e?.radius ?? 20; }
+// getEntityRadius: 전투 피격/충돌 반경이 별도로 정의된 객체는 시각·효과 범위(radius)와 분리해 실제 몸체 반경을 사용한다. (e: 대상 엔티티)
+function getEntityRadius(e) { return e?.bodyRadius ?? e?.radius ?? 20; }
 function isEntityInfiniteHP(e) {
   if (!e) return false;
   try {
@@ -42200,7 +42202,7 @@ function duels2RegisterCoreProjectileImpactSpecs() {
       duels2ClearDeployableKind('empower-zone', 'local', L, {reason:'peluna-anvil-replace'});
       const actionCtx = projectile.actionCtx || makeActionContext({charId:'peluna', slot:'rmb', source:'anvil', domain:'support', delivery:'field', timing:'persistent', target:'area', tags:['rmb','field','persistent','empower']});
       const anvil = duels2CreateDeployableObject({
-        x:projectile.x, y:projectile.y, radius:projectile.anvilRadius, expiry:null,
+        x:projectile.x, y:projectile.y, radius:projectile.anvilRadius, bodyRadius:duels2GetSkillBalance('peluna','rmb').anvilBodyRadius, expiry:null,
         health:Number(projectile.anvilHealth)||80, maxHealth:Number(projectile.anvilHealth)||80, alive:true,
         ownerColor:L.defaultColor || L.color || '#d8b4fe', color:L.defaultColor || L.color || '#d8b4fe',
         kind:'summon', attackable:true, isPelunaAnvil:true,
@@ -42952,7 +42954,7 @@ function moveBullets(dt=1) {
         duels2ClearDeployableKind('empower-zone', 'local', L, {reason:'peluna-anvil-replace'});
         const anvilActionCtx = b.actionCtx || makeActionContext({charId:'peluna', slot:'rmb', source:'anvil', domain:'support', delivery:'field', timing:'persistent', target:'area', tags:['rmb','field','persistent','empower']});
         const anvilZone = duels2CreateDeployableObject({
-          x:b.x, y:b.y, radius:b.anvilRadius, expiry:null,
+          x:b.x, y:b.y, radius:b.anvilRadius, bodyRadius:duels2GetSkillBalance('peluna','rmb').anvilBodyRadius, expiry:null,
           health:Number(b.anvilHealth)||80, maxHealth:Number(b.anvilHealth)||80, alive:true,
           ownerColor:L.defaultColor || L.color || '#d8b4fe', color:L.defaultColor || L.color || '#d8b4fe',
           kind:'summon', attackable:true, isPelunaAnvil:true,
@@ -51437,6 +51439,10 @@ duels2RegisterInputStateProfile('levina-recall-hold', {
   match({actor}) { return hasEntityFunctionalRuntime(actor, 'spearAnchor') && !!actor._levinaSpear && actor._levinaSpear.state !== 'returning'; },
   press() { duels2StartLevinaRecallHold(); },
   release({elapsedMs}) {
+    _levinaRecallHoldTriggered = elapsedMs >= 300;
+    duels2FinishLevinaRecallHold();
+  },
+  documentRelease({elapsedMs}) {
     _levinaRecallHoldTriggered = elapsedMs >= 300;
     duels2FinishLevinaRecallHold();
   },
@@ -61235,6 +61241,7 @@ const DUELS2_DEPLOYABLE_KIND_REGISTRY = Object.freeze({
     }),
     networkFields:Object.freeze([
       ...DUELS2_DEPLOYABLE_NETWORK_BASE_FIELDS,
+      Object.freeze({objectKey:'bodyRadius', packetKey:'bodyRadius', codec:'number', fallback:20}),
       Object.freeze({objectKey:'createdAt', packetKey:'createdAgo', codec:'elapsed-ms'}),
       Object.freeze({objectKey:'health', packetKey:'health', codec:'number', fallback:80}),
       Object.freeze({objectKey:'maxHealth', packetKey:'maxHealth', codec:'number', fallback:80}),
