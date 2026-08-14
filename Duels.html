@@ -1,3 +1,10 @@
+<!-- 3.948: 레테 RMB HOLD 자리잡기 미실행 수정. holdTrigger의 summon.spawn이 AttackModuleService에는 존재하지만 AbilityModuleService에는 핸들러가 없어 홀드 릴리스 시 모듈이 건너뛰어지던 원인을 수정했다. 기존 SummonDeployService.spawnFromAttack을 AbilityModuleService의 범용 summon.spawn 핸들러에서도 재사용해 입력/홀드 Trigger에서 활성 소환수 재배치와 체력 보존을 실행한다. 캐릭터 ID 예외 없음. -->
+<!-- 3.947: 스야 서리안개 은신의 근접 발각 판정 지연 추가. StealthModeService가 범용 detectDelay를 지원하고, 스야는 detectDelay:400을 사용해 은신 시작 후 0.4초 동안 근접 적 감지로 인한 은신 해제/빙결/후속 평타 가속이 발생하지 않는다. 0.4초 이후부터 기존 detectRange 80 판정이 활성화된다. -->
+<!-- 3.946: 라임 어린 슬라임 설명의 MOVE SPEED 표기를 '빠름'→'매우 빠름'으로 변경. 실제 이동속도 5.5는 유지한다. -->
+<!-- 3.945: 레테 평타 묶음 공격 딜레이 500ms→200ms, 라임 분열 스테미나 소모량 2000→1000. -->
+<!-- 3.944: 다수 밸런스/기능/버그 수정. 라임 어린 슬라임 ownerReturn.distance 150→250. 큐리 LMB 성장 범위를 단계당 기본범위의 +50%가 되도록 150→450(4단계)로 변경. 스야 은신 maxDuration 5000→4000ms. 레비나 모든 창 이동 탄속 +15%(LMB 11.52→13.248, RMB 16.8→19.32, 귀환 20→23) 및 평타/스킬 입력·경로 명령 딜레이를 300ms로 통일. 헤르쟝 대포 명령 탄당 피해 100→200(damageRatio .5→1), 명령 스테미나 300→400. 하츠하츠 LMB cd는 이미 400ms라 유지. 루뷰 LMB 비용 200→150, 탄속 28→32.2(+15%), RMB/귀환 탄속도 32.2로 평타와 통일. 프릴 RMB 청소 완료 구역/반격 피해 증가 35%→50%. 레테 RMB에 기존 tapHoldSplit/holdTrigger를 재사용해 500ms 홀드 시 이미 설치된 우편함을 현재 위치로 체력 보존 재배치하는 '자리잡기' 추가. 나남낭 maxHealth 1300→1500, 잘 자요 회복 missingResourceRatio .4→.6. 배치형 소환수는 저장 체력을 증강 적용 전 base max 기준으로 복원해 유리대포 -50%가 재소환마다 다시 현재체력에 곱해지던 문제를 수정: 공통 SummonDeployService.spawn에서 constant buffs/syncVitals로 최종 maxHealth를 먼저 확정한 뒤 stored health를 복원한다. -->
+<!-- 3.943: 라임 슬라임 체력 정책 변경. ClusterSummonService 합체는 summon spec의 mergeHealthPolicy를 범용으로 읽으며 'full'이면 다음 단계 최대 체력으로 완전 회복한다. deathReplacement는 healthPolicy를 범용으로 읽으며 'full'이면 선택된 슬라임 단계의 최대 체력으로 부활한다. 라임 slime에 mergeHealthPolicy:'full', deathReplacement에 healthPolicy:'full'을 지정했다. 캐릭터 ID 예외는 추가하지 않았다. -->
+<!-- 3.942: 라임 밸런스 조정. 어린 슬라임 기본 speed 4.25→5.5, meleeInterval 800→600ms, ownerReturn.distance 420→150, 기본 maxHealth 600→900. 라임 maxHealth 1500→1800, 뛰어오르기 cost 500→300, 평타 cost 250→150. 라임 평타 cd 500ms(0.5초)는 요청값과 기존값이 동일해 유지한다. -->
 <!-- 3.941: 어린 슬라임이 라임 주변에서 유휴 배회할 때의 이동속도를 1→2.5로 변경했다. idleWander의 near-anchor 전용 moveSpeed만 2.5로 조정하며, 적 추적/targetWander/라임 복귀는 기존 기본 speed 4.25를 유지한다. -->
 <!-- 3.940: 어린 슬라임 유휴 배회 속도 규칙 교정. 3.939에서 idleWander.moveSpeed:1 자체를 제거했던 변경을 되돌리고, 실제 원인이던 SummonAIService.wanderAround의 speedOverride 적용 범위를 수정했다. wander.moveSpeed는 이제 기본적으로 anchor 근처(설정된 배회 반경 안)에 있을 때만 적용되며, anchor에서 멀어 배회 위치로 복귀하는 동안에는 entity 기본 speed와 현재 이동속도 배율을 사용한다. 어린 슬라임은 라임 주변에서 실제로 맴돌 때만 속도 1, 멀리 떨어져 복귀할 때는 speed 4.25를 사용한다. targetWander는 moveSpeed를 지정하지 않으므로 기존 4.25 유지. -->
 <!-- 3.939: 어린 슬라임이 적을 인식하지 못한 모든 상황에서 idleWander.moveSpeed:1 강제값 때문에 이동속도가 1로 고정되던 문제를 수정했다. 라임 idleWander의 moveSpeed:1을 제거해 적이 없을 때도 본체 speed 4.25와 현재 이동속도 배율을 그대로 사용한다. targetWander/ownerReturn도 3.938에서 맞춘 동일 공통 속도 계산을 유지한다. -->
@@ -7715,14 +7722,14 @@ const GAME_DATA=Object.freeze({
         lmb:Object.freeze({
           id:'attack.ruvu.lmb',
           damageRatio:2,
-          cost:200,
+          cost:150,
           cd:220,
           range:1200,
           modules:Object.freeze([
             Object.freeze({type:'pattern.scatter',count:1,spread:0}),
             Object.freeze({
               type:'delivery.projectile',
-              speed:28,
+              speed:32.2,
               radius:15
             })
           ]),
@@ -7737,7 +7744,7 @@ const GAME_DATA=Object.freeze({
           modules:Object.freeze([
             Object.freeze({
               type:'delivery.projectile',
-              speed:16,
+              speed:32.2,
               radius:26,
               hitRadius:16
             }),
@@ -7747,7 +7754,7 @@ const GAME_DATA=Object.freeze({
               returnAttackId:'attack.ruvu.rmb-return',
               stopAtRange:true,
               autoAfterMs:1500,
-              speed:30,
+              speed:32.2,
               autoArrivalMovement:Object.freeze({
                 type:'movement.move',
                 direction:'away-from-return-origin',
@@ -7803,7 +7810,7 @@ const GAME_DATA=Object.freeze({
           cd:0,
           range:630,
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',phase:'returning',speed:30,radius:26,hitRadius:16}),
+            Object.freeze({type:'delivery.projectile',phase:'returning',speed:32.2,radius:26,hitRadius:16}),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
             Object.freeze({
               type:'projectile.presentation',
@@ -13894,7 +13901,7 @@ const GAME_DATA=Object.freeze({
           tags:Object.freeze(['소환수 공격'])
         }),
         cannonBurst:Object.freeze({
-          id:'attack.herjang.cannon-burst',damageRatio:.5,cost:0,cd:0,range:1100,
+          id:'attack.herjang.cannon-burst',damageRatio:1,cost:0,cd:0,range:1100,
           modules:Object.freeze([
             Object.freeze({type:'delivery.projectile',speed:18,radius:11}),
             Object.freeze({type:'delivery.delayed-projectile-volley',count:3,interval:138.4615384615,aimMode:'locked'}),
@@ -13943,7 +13950,7 @@ const GAME_DATA=Object.freeze({
           ]),modules:Object.freeze([
             Object.freeze({
               type:'summon.toggle',stateKey:'cannon',placeDistance:0,dropWhileCarrying:true,dropCooldown:500,tags:Object.freeze(['스킬','소환']),
-              activeCommand:Object.freeze({target:'aim',attackId:'attack.herjang.cannon-burst',cost:300,cooldown:800,maxDistance:1100,fixedDistance:false,blockWhileMoving:false,aimFrom:'target-point'})
+              activeCommand:Object.freeze({target:'aim',attackId:'attack.herjang.cannon-burst',cost:400,cooldown:800,maxDistance:1100,fixedDistance:false,blockWhileMoving:false,aimFrom:'target-point'})
             })
           ])})
         }),
@@ -14627,7 +14634,7 @@ const GAME_DATA=Object.freeze({
               type:'modifier.set',
               when:'on-hit',
               stat:'damage',
-              value:.35,
+              value:.50,
               duration:5000,
               sourceId:'attack.prill.counter:damage-boost',
               recipient:'source',
@@ -14638,7 +14645,7 @@ const GAME_DATA=Object.freeze({
               type:'modifier.set',
               when:'on-hit',
               stat:'damage',
-              value:.35,
+              value:.50,
               duration:5000,
               sourceId:'attack.prill.counter:ally-damage-boost',
               recipient:'target',
@@ -14796,7 +14803,7 @@ const GAME_DATA=Object.freeze({
                     Object.freeze({
                       type:'modifier.set',
                       stat:'damage',
-                      value:.35,
+                      value:.50,
                       duration:220,
                       stackGroup:'prill-cleaned-zone-damage',
                       removeOnExit:true
@@ -15894,7 +15901,7 @@ const GAME_DATA=Object.freeze({
           ]),modules:Object.freeze([
             Object.freeze({
               type:'stealth.toggle',stateKey:'stealth:sya',
-              maxDuration:5000,drainPerSecond:150,speedModifier:.30,detectRange:80,
+              maxDuration:4000,drainPerSecond:150,speedModifier:.30,detectRange:80,detectDelay:400,
               detectStatus:'freeze',detectStatusDuration:500,
               attackBoost:Object.freeze({uses:2,attackTag:'평타',stat:'attackRate',value:.65}),
               cooldownOnStop:300,
@@ -16619,7 +16626,7 @@ const GAME_DATA=Object.freeze({
       name:'나남낭',
       englishName:'Nanamnang',
       color:'#fbc7ff',
-      maxHealth:1300,
+      maxHealth:1500,
       speed:3.75,
       radius:20,
       baseDamage:200,
@@ -16775,7 +16782,7 @@ const GAME_DATA=Object.freeze({
               type:'resource.restore',
               resource:'health',
               recipient:'source',
-              missingResourceRatio:.4,
+              missingResourceRatio:.6,
               presentation:'none'
             }),
             Object.freeze({
@@ -16982,19 +16989,19 @@ const GAME_DATA=Object.freeze({
           id:'attack.levina.lmb',
           damageRatio:1,
           cost:100,
-          cd:400,
+          cd:300,
           range:700,
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',speed:11.52,radius:12,hitRadius:12,targetPoint:true,targetPointClampToAttackRange:false,stateKey:'levina-spear'}),
+            Object.freeze({type:'delivery.projectile',speed:13.248,radius:12,hitRadius:12,targetPoint:true,targetPointClampToAttackRange:false,stateKey:'levina-spear'}),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
-            Object.freeze({type:'projectile.return',stateKey:'levina-spear',returnAttackId:'attack.levina.return-lmb',speed:20,damageOnReturn:true}),
+            Object.freeze({type:'projectile.return',stateKey:'levina-spear',returnAttackId:'attack.levina.return-lmb',speed:23,damageOnReturn:true}),
             Object.freeze({
               type:'projectile.waypoint-path',
               stateKey:'levina-spear',
               segmentKind:'lmb',
               holdStateKey:'levina-spear-recall-hold',
               returnLockAttackId:'attack.levina.lmb',
-              returnLockDuration:400,
+              returnLockDuration:300,
               presentation:Object.freeze({
                 lmbColor:'166,59,70',
                 rmbColor:'230,190,50',
@@ -17015,19 +17022,19 @@ const GAME_DATA=Object.freeze({
           id:'attack.levina.rmb',
           damageRatio:2.5,
           cost:200,
-          cd:200,
+          cd:300,
           range:700,
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',speed:16.8,radius:12,hitRadius:18,targetPoint:true,targetPointClampToAttackRange:false,stateKey:'levina-spear'}),
+            Object.freeze({type:'delivery.projectile',speed:19.32,radius:12,hitRadius:18,targetPoint:true,targetPointClampToAttackRange:false,stateKey:'levina-spear'}),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
-            Object.freeze({type:'projectile.return',stateKey:'levina-spear',returnAttackId:'attack.levina.return-rmb',speed:20,damageOnReturn:true}),
+            Object.freeze({type:'projectile.return',stateKey:'levina-spear',returnAttackId:'attack.levina.return-rmb',speed:23,damageOnReturn:true}),
             Object.freeze({
               type:'projectile.waypoint-path',
               stateKey:'levina-spear',
               segmentKind:'rmb',
               holdStateKey:'levina-spear-recall-hold',
               returnLockAttackId:'attack.levina.lmb',
-              returnLockDuration:400,
+              returnLockDuration:300,
               presentation:Object.freeze({
                 lmbColor:'166,59,70',
                 rmbColor:'230,190,50',
@@ -17048,7 +17055,7 @@ const GAME_DATA=Object.freeze({
         lmbPath:Object.freeze({
           id:'attack.levina.lmb-path',damageRatio:1,cost:0,cd:0,range:700,
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',speed:11.52,radius:12,hitRadius:12}),
+            Object.freeze({type:'delivery.projectile',speed:13.248,radius:12,hitRadius:12}),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
             Object.freeze({type:'projectile.presentation',kind:'weapon-projectile',style:Object.freeze({
               type:'anchor-cross',radius:16,fillAlpha:.30,pulseMin:.7,pulseMax:1,pulseSpeed:.014,
@@ -17059,7 +17066,7 @@ const GAME_DATA=Object.freeze({
         rmbPath:Object.freeze({
           id:'attack.levina.rmb-path',damageRatio:2.5,cost:0,cd:0,range:700,
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',speed:16.8,radius:12,hitRadius:18}),
+            Object.freeze({type:'delivery.projectile',speed:19.32,radius:12,hitRadius:18}),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
             Object.freeze({type:'movement.knockback',target:'hit-target',direction:'away-from-impact',distance:26,speed:10,oncePerExecution:true}),
             Object.freeze({type:'projectile.presentation',kind:'weapon-projectile',style:Object.freeze({
@@ -17071,7 +17078,7 @@ const GAME_DATA=Object.freeze({
         returnLmb:Object.freeze({
           id:'attack.levina.return-lmb',damageRatio:1,cost:0,cd:0,range:700,
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',phase:'returning',speed:20,radius:12,hitRadius:12}),
+            Object.freeze({type:'delivery.projectile',phase:'returning',speed:23,radius:12,hitRadius:12}),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
             Object.freeze({type:'projectile.presentation',kind:'weapon-projectile',style:Object.freeze({
               type:'anchor-cross',radius:16,fillAlpha:.30,pulseMin:.7,pulseMax:1,pulseSpeed:.014,
@@ -17082,7 +17089,7 @@ const GAME_DATA=Object.freeze({
         returnRmb:Object.freeze({
           id:'attack.levina.return-rmb',damageRatio:1,cost:0,cd:0,range:700,
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',phase:'returning',speed:20,radius:12,hitRadius:18}),
+            Object.freeze({type:'delivery.projectile',phase:'returning',speed:23,radius:12,hitRadius:18}),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
             Object.freeze({type:'movement.knockback',target:'hit-target',direction:'away-from-impact',distance:26,speed:10,oncePerExecution:true}),
             Object.freeze({type:'projectile.presentation',kind:'weapon-projectile',style:Object.freeze({
@@ -17129,7 +17136,7 @@ const GAME_DATA=Object.freeze({
               Object.freeze({type:'combat.can-act'})
             ]),
             modules:Object.freeze([
-              Object.freeze({type:'projectile.waypoint-path',action:'hold-start',stateKey:'levina-spear',holdStateKey:'levina-spear-recall-hold',threshold:300,blockFallbackWhenExists:true,automaticCommandAttackId:'attack.levina.lmb-path',automaticCommandKind:'lmb',automaticCommandCost:0,automaticCommandDelay:400,automaticCommandKey:'lmb'}),
+              Object.freeze({type:'projectile.waypoint-path',action:'hold-start',stateKey:'levina-spear',holdStateKey:'levina-spear-recall-hold',threshold:300,blockFallbackWhenExists:true,automaticCommandAttackId:'attack.levina.lmb-path',automaticCommandKind:'lmb',automaticCommandCost:0,automaticCommandDelay:300,automaticCommandKey:'lmb'}),
               Object.freeze({type:'action.attack'})
             ])
           }),
@@ -17142,7 +17149,7 @@ const GAME_DATA=Object.freeze({
             modules:Object.freeze([
               Object.freeze({
                 type:'projectile.waypoint-path',action:'hold-release',stateKey:'levina-spear',holdStateKey:'levina-spear-recall-hold',
-                threshold:300,commandAttackId:'attack.levina.lmb-path',commandKind:'lmb',commandCost:100,commandDelay:400
+                threshold:300,commandAttackId:'attack.levina.lmb-path',commandKind:'lmb',commandCost:100,commandDelay:300
               })
             ])
           })
@@ -17160,7 +17167,7 @@ const GAME_DATA=Object.freeze({
             modules:Object.freeze([
               Object.freeze({
                 type:'projectile.waypoint-path',action:'append-or-fallback',stateKey:'levina-spear',
-                commandAttackId:'attack.levina.rmb-path',commandKind:'rmb',commandCost:200,commandDelay:400,commandKey:'rmb'
+                commandAttackId:'attack.levina.rmb-path',commandKind:'rmb',commandCost:200,commandDelay:300,commandKey:'rmb'
               }),
               Object.freeze({type:'action.attack'})
             ])
@@ -17781,6 +17788,13 @@ const GAME_DATA=Object.freeze({
           text:'조준 위치에 가장 가까운 대상을 수취인으로 확정하며 우편함 설치. 설치 후 재사용 시 수취인 변경'
         }),
         Object.freeze({
+          key:'RMB HOLD',
+          name:'자리잡기',
+          attack:'rmb',
+          costText:'스테미나 0',
+          text:'0.5초 홀드해 설치된 우편함을 현재 위치로 이동'
+        }),
+        Object.freeze({
           key:'L-Shift',
           name:'우편함도 무기!',
           attack:'counter',
@@ -17854,7 +17868,7 @@ const GAME_DATA=Object.freeze({
           cost:250,
           cd:250,
           attackDelayGroup:'lete-primary',
-          attackDelay:500,
+          attackDelay:200,
           range:560,
           modules:Object.freeze([
             Object.freeze({
@@ -17907,6 +17921,14 @@ const GAME_DATA=Object.freeze({
           attackDelay:500,
           range:0,
           effectsOnly:true,
+          charge:Object.freeze({
+            duration:500,
+            costMin:0,
+            costMax:0,
+            costTiming:'release',
+            gauge:true,
+            staminaRegenDuringCharge:true
+          }),
           modules:Object.freeze([]),
           tags:Object.freeze(['스킬','소환'])
         }),
@@ -18035,6 +18057,13 @@ const GAME_DATA=Object.freeze({
           id:'ability.lete.rmb',
           input:'rmb',
           attackId:'attack.lete.rmb',
+          inputPolicy:Object.freeze({
+            repeatWhileHeld:false,
+            tapHoldSplit:true,
+            holdThresholdMs:500,
+            holdGauge:true,
+            holdGaugeStateKey:'charge:lete-rmb-position'
+          }),
           trigger:Object.freeze({
             type:'trigger',
             event:'input.press',
@@ -18070,6 +18099,28 @@ const GAME_DATA=Object.freeze({
                     duration:450
                   })
                 }),
+                tags:Object.freeze(['스킬','소환'])
+              })
+            ])
+          }),
+          holdTrigger:Object.freeze({
+            type:'trigger',
+            event:'input.hold',
+            conditions:Object.freeze([
+              Object.freeze({type:'input.slot',slot:'rmb'}),
+              Object.freeze({type:'entity.alive'}),
+              Object.freeze({type:'ability.pending-ready'}),
+              Object.freeze({type:'combat.can-act'}),
+              Object.freeze({type:'summon.active',stateKey:'mailbox'})
+            ]),
+            modules:Object.freeze([
+              Object.freeze({
+                type:'summon.spawn',
+                stateKey:'mailbox',
+                requireActive:true,
+                replaceActive:true,
+                preserveHealthOnReplace:true,
+                placeDistance:0,
                 tags:Object.freeze(['스킬','소환'])
               })
             ])
@@ -19413,7 +19464,7 @@ const GAME_DATA=Object.freeze({
       name:'라임',
       englishName:'Lime',
       color:'#c1fab1',
-      maxHealth:1500,
+      maxHealth:1800,
       speed:4,
       radius:20,
       baseDamage:100,
@@ -19443,6 +19494,7 @@ const GAME_DATA=Object.freeze({
       deathReplacement:Object.freeze({
         type:'summon.cluster-strongest',
         summonKey:'slime',
+        healthPolicy:'full',
         setStateOnReplace:'lime-slime-revived',
         absorbRemainingAfterMs:500
       }),
@@ -19489,7 +19541,7 @@ const GAME_DATA=Object.freeze({
           stateKey:'slime',
           stats:Object.freeze([
             Object.freeze({key:'HEALTH',text:'{maxHealth}'}),
-            Object.freeze({key:'MOVE SPEED',text:'빠름'}),
+            Object.freeze({key:'MOVE SPEED',text:'매우 빠름'}),
             Object.freeze({
               key:'ABILITY',
               attack:'slimeAuto',
@@ -19502,13 +19554,14 @@ const GAME_DATA=Object.freeze({
         slime:Object.freeze({
           id:'summon.lime.slime',
           name:'어린 슬라임',
-          maxHealth:600,
+          maxHealth:900,
           radius:20,
-          speed:4.25,
+          speed:5.5,
           baseDamage:100,
           maxStage:4,
           stageHealthMultiplier:2,
           stageDamageMultiplier:2,
+          mergeHealthPolicy:'full',
           stageAttackScaling:Object.freeze({
             rangePerStage:.25,
             movementDistancePerStage:.25
@@ -19529,7 +19582,7 @@ const GAME_DATA=Object.freeze({
               ignoreSpeedModifiersNearAnchor:false
             }),
             ownerReturn:Object.freeze({
-              distance:420,
+              distance:250,
               attackId:'attack.lime.slime-auto',
               pathCellSize:48,
               recalcMs:260,
@@ -19548,7 +19601,7 @@ const GAME_DATA=Object.freeze({
             stopRangeRef:'melee-range',
             stopRangeRatio:70/95,
             meleeWindup:250,
-            meleeInterval:800,
+            meleeInterval:600,
             meleeAttackId:'attack.lime.slime-auto',
             pathCellSize:48,
             pathRecalcMs:500,
@@ -19600,7 +19653,7 @@ const GAME_DATA=Object.freeze({
         lmb:Object.freeze({
           id:'attack.lime.lmb',
           damageRatio:1,
-          cost:250,
+          cost:150,
           cd:500,
           range:180,
           modules:Object.freeze([
@@ -19629,7 +19682,7 @@ const GAME_DATA=Object.freeze({
         split:Object.freeze({
           id:'attack.lime.split',
           damageRatio:0,
-          cost:2000,
+          cost:1000,
           cd:700,
           range:0,
           effectsOnly:true,
@@ -19647,7 +19700,7 @@ const GAME_DATA=Object.freeze({
         jump:Object.freeze({
           id:'attack.lime.jump',
           damageRatio:0,
-          cost:500,
+          cost:300,
           cd:900,
           range:170,
           effectsOnly:true,
@@ -20086,14 +20139,14 @@ const GAME_DATA=Object.freeze({
           progressScale:Object.freeze({
             stateKey:'quri-cube-stage',
             valueRange:Object.freeze({from:0,to:4}),
-            range:Object.freeze({from:150,to:300}),
+            range:Object.freeze({from:150,to:450}),
             damageRatio:Object.freeze({from:1,to:3}),
             moduleValues:Object.freeze([
               Object.freeze({
                 type:'delivery.area',
                 property:'range',
                 from:150,
-                to:300
+                to:450
               }),
               Object.freeze({
                 type:'movement.knockback',
@@ -65690,8 +65743,22 @@ const ClusterSummonService=Object.freeze({
 
     const character=owner.character;
     const inheritedStage=Math.max(1,Math.floor(Number(summon.clusterStage)||1));
-    const inheritedHealth=Math.max(1,Number(summon.health)||1);
-    const inheritedMax=Math.max(inheritedHealth,Number(summon.maxHealth)||inheritedHealth);
+    const inheritedMax=Math.max(
+      1,
+      Number(summon.maxHealth)||
+      Number(summon.health)||
+      1
+    );
+    const inheritedHealth=
+      String(policy.healthPolicy||'inherit')==='full'
+        ?inheritedMax
+        :Math.max(
+          1,
+          Math.min(
+            inheritedMax,
+            Number(summon.health)||1
+          )
+        );
     const revivePoint={x:Number(summon.x)||owner.x,y:Number(summon.y)||owner.y};
     const defeatedPoint={x:Number(owner.x)||0,y:Number(owner.y)||0};
 
@@ -65795,9 +65862,15 @@ const ClusterSummonService=Object.freeze({
     const healthA=Math.max(0,Number(a.health)||0);
     const healthB=Math.max(0,Number(b.health)||0);
     const combinedHealth=Math.max(1,healthA+healthB);
+    const nextStage=stageA+1;
+    const nextStats=this.stageStats(spec,nextStage);
+    const mergedHealth=
+      String(spec.mergeHealthPolicy||'combine')==='full'
+        ?nextStats.maxHealth
+        :combinedHealth;
     a.x=((Number(a.x)||0)+(Number(b.x)||0))/2;
     a.y=((Number(a.y)||0)+(Number(b.y)||0))/2;
-    this.applyStage(a,spec,stageA+1,combinedHealth);
+    this.applyStage(a,spec,nextStage,mergedHealth);
     EntityService.items.delete(b.id);
     SummonDeployService.spawnSpecEffect(owner,a,spec.spawnEffect,performance.now(),{sync:true});
     return true;
@@ -67732,6 +67805,25 @@ const SummonDeployService=Object.freeze({
           )
     });
 
+    entity.summonStateKey=stateKey;
+    entity.summonSpec=spec;
+    entity.character=owner.character;
+    entity.displayName=spec.name||'소환수';
+
+    // 모든 소환수는 생성 좌표가 벽/경계와 겹치면 공통 Entity 충돌 보정으로
+    // 가장 가까운 유효 위치에 배치한다.
+    MovementService.ensureValidPosition(entity);
+
+    AugmentCooldownService.initializeEntity(
+      entity,
+      now
+    );
+
+    AugmentService.syncConstantBuffs(owner);
+    AugmentService.syncVitals(owner);
+
+    // 저장 체력은 증강까지 반영된 최종 maxHealth에 대해 복원한다.
+    // maxHealth 감소 증강이 있을 때 base max 기준 비율로 다시 축소되는 누적 손실을 방지한다.
     entity.health=Math.max(
       1,
       Math.min(
@@ -67750,22 +67842,6 @@ const SummonDeployService=Object.freeze({
         Math.max(0,Number(policy.idle)||0)*
           Math.max(0,stats.regenDelayMult);
     }
-    entity.summonStateKey=stateKey;
-    entity.summonSpec=spec;
-    entity.character=owner.character;
-    entity.displayName=spec.name||'소환수';
-
-    // 모든 소환수는 생성 좌표가 벽/경계와 겹치면 공통 Entity 충돌 보정으로
-    // 가장 가까운 유효 위치에 배치한다.
-    MovementService.ensureValidPosition(entity);
-
-    AugmentCooldownService.initializeEntity(
-      entity,
-      now
-    );
-
-    AugmentService.syncConstantBuffs(owner);
-    AugmentService.syncVitals(owner);
 
     state.active=true;
     if(spec.modeState?.stateKey){
@@ -71473,6 +71549,36 @@ const AbilityModuleService=Object.freeze({
           context,
           module
         );
+        context.executed=true;
+      }
+      next();
+    },
+    'summon.spawn'(context,next,module){
+      if(context.network===true){
+        context.handled=true;
+        context.executed=true;
+        AbilityModuleService.addUsageTags(
+          context,
+          module
+        );
+        next();
+        return;
+      }
+
+      const spawned=
+        SummonDeployService.spawnFromAttack(
+          context.source,
+          module,
+          Number(context.angle)||0,
+          context.execution||null
+        );
+
+      if(spawned){
+        AbilityModuleService.addUsageTags(
+          context,
+          module
+        );
+        context.handled=true;
         context.executed=true;
       }
       next();
@@ -86905,6 +87011,7 @@ const StealthModeService=Object.freeze({
       expiresAt:now+Math.max(0,Number(module.maxDuration)||0),
       drainPerSecond:Math.max(0,Number(module.drainPerSecond)||0),
       detectRange:Math.max(0,Number(module.detectRange)||0),
+      detectDelay:Math.max(0,Number(module.detectDelay)||0),
       detectStatus:String(module.detectStatus||''),
       detectStatusDuration:Math.max(0,Number(module.detectStatusDuration)||0),
       cooldownOnStop:Math.max(0,Number(module.cooldownOnStop)||0),
@@ -86963,6 +87070,19 @@ const StealthModeService=Object.freeze({
         if(spend+1e-6<request||entity.stamina<=1e-6){this.stop(entity,state.stateKey,now);changed=true;continue;}
       }
       if(now>=state.expiresAt){this.stop(entity,state.stateKey,now);changed=true;continue;}
+      if(
+        now<
+        Math.max(
+          0,
+          Number(state.startedAt)||0
+        )+
+        Math.max(
+          0,
+          Number(state.detectDelay)||0
+        )
+      ){
+        continue;
+      }
       const targets=this.detectedTargets(entity,state);
       if(targets.length){
         this.stop(entity,state.stateKey,now,{detected:true});
