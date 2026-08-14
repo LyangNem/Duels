@@ -1,3 +1,4 @@
+<!-- 3.949: 레테 우편함 지원 적중 사운드 조정. delivery.projectile에 범용 supportHitSound:false 옵션을 추가해 ally/self 지원 적중 경로의 hit 사운드만 억제할 수 있게 했다. attack.lete.mailbox-mail에 해당 옵션을 지정해 아군/자기 적중은 무음, 적 적중의 일반 피해 사운드는 기존 유지. 캐릭터 ID 예외 없음. -->
 <!-- 3.948: 레테 RMB HOLD 자리잡기 미실행 수정. holdTrigger의 summon.spawn이 AttackModuleService에는 존재하지만 AbilityModuleService에는 핸들러가 없어 홀드 릴리스 시 모듈이 건너뛰어지던 원인을 수정했다. 기존 SummonDeployService.spawnFromAttack을 AbilityModuleService의 범용 summon.spawn 핸들러에서도 재사용해 입력/홀드 Trigger에서 활성 소환수 재배치와 체력 보존을 실행한다. 캐릭터 ID 예외 없음. -->
 <!-- 3.947: 스야 서리안개 은신의 근접 발각 판정 지연 추가. StealthModeService가 범용 detectDelay를 지원하고, 스야는 detectDelay:400을 사용해 은신 시작 후 0.4초 동안 근접 적 감지로 인한 은신 해제/빙결/후속 평타 가속이 발생하지 않는다. 0.4초 이후부터 기존 detectRange 80 판정이 활성화된다. -->
 <!-- 3.946: 라임 어린 슬라임 설명의 MOVE SPEED 표기를 '빠름'→'매우 빠름'으로 변경. 실제 이동속도 5.5는 유지한다. -->
@@ -17947,6 +17948,7 @@ const GAME_DATA=Object.freeze({
               targetEntityOnly:true,
               applyHitEffects:true,
               friendlyRequiresResource:'stamina',
+              supportHitSound:false,
               supportHitEffect:Object.freeze({
                 type:'effect.spawn',
                 renderType:'areaCircle',
@@ -56950,6 +56952,8 @@ const AttackModuleService=Object.freeze({
             module.supportHitEffect
           )
           :null,
+      supportHitSound:
+        module.supportHitSound!==false,
       pathfindingTarget:
         module.pathfindingTarget&&
         typeof module.pathfindingTarget==='object'
@@ -77175,6 +77179,8 @@ const ProjectileService={
         null,
       supportHitEffect:
         data.projectile?.supportHitEffect||null,
+      supportHitSound:
+        data.projectile?.supportHitSound!==false,
       pathfindingTarget:
         data.projectile?.pathfindingTarget||null,
       targetEntityId:
@@ -78425,7 +78431,9 @@ const ProjectileService={
               projectile
             }
           );
-          SoundService.play('hit');
+          if(projectile.supportHitSound!==false){
+            SoundService.play('hit');
+          }
 
           if(
             projectile.supportHitEffect
