@@ -1,3 +1,4 @@
+<!-- 3.1025: 스야 은신 해제 범위와 은신 기습 빙결 범위를 동일 판정값으로 통일했다. StealthModeService의 detectAttackId 실행 시 AugmentService.prepareAttack 이후 delivery.area와 AttackSpec range를 현재 stealth state.detectRange로 다시 정규화한다. 따라서 기본 80뿐 아니라 향후 detectRange가 변경되어도 은신 해제 판정과 빙결 공격 판정이 항상 같은 반경을 사용하며, 범위 증폭 등 공격 범위 보정으로 둘이 어긋나지 않는다. 기존 TriggeredAttackService/저스트 회피 경로는 유지한다. -->
 <!-- 3.1024: 디버그 맵 탭의 맵 선택 버튼이 로컬 DebugMapService.set()만 호출해 상대에게 동기화되지 않던 버그 수정. 기존 OnlineDebugMapSyncService.apply()를 재사용해 로컬 적용과 duel-debug-map-change 송신을 같은 경로로 통일했다. 수신 측은 기존 OnlineDebugMapSyncService.receive() 및 DebugMapService.set() 경로를 그대로 사용한다. 새 네트워크 시스템 없음. -->
 <!-- 3.1023: 스야 은신 기습 0피해 빙결 공격을 기존 칸 RMB의 effects-only CC 공격 구조에 맞췄다. attack.sya.stealth-freeze에 effectsOnly:true를 추가하고, 직접 on-hit status.apply 대신 delivery.area 적중 후 hit.sequence에서 hit-target에게 freeze 500ms를 적용한다. TriggeredAttackService 기반 일반 공격/회피/저스트 회피 경로는 그대로 유지한다. 따라서 정상 적중 시 빙결이 적용되고, 회피 중이면 기존 공격 적중 판정에서 저스트 회피와 반격 획득을 처리한다. -->
 <!-- 3.1022: 스야 서리안개 은신 기습 빙결을 직접 CombatStatusApplicationService.apply() 하던 별도 경로에서 제거하고 기존 AttackSpec 적중 경로로 통합했다. 신규 attack.sya.stealth-freeze는 피해 0, 반경 80 원형 delivery.area + freeze 500ms로 구성되며 StealthModeService의 근접 감지 시 은신 해제/공속 버프 이후 TriggeredAttackService.execute()로 실행된다. 따라서 일반 공격과 동일한 회피 비대상/저스트 회피/적중 판정/온라인 공격 재생 경로를 사용하고, 회피 성공 시 빙결 미적용과 기존 JustDodgeService 반격 획득이 함께 처리된다. 3.1021에서 추가했던 requireTargetable 직접 상태 우회 코드는 제거했다. -->
@@ -89344,15 +89345,35 @@ const StealthModeService=Object.freeze({
               state.detectAttackId
             );
           if(baseAttack){
-            const attack=
+            const prepared=
               AugmentService.prepareAttack(
                 entity,
                 baseAttack,
                 now
               );
+            const detectRange=
+              Math.max(
+                0,
+                Number(state.detectRange)||0
+              );
+            const attack={
+              ...prepared,
+              range:detectRange,
+              modules:Object.freeze(
+                (prepared.modules||[]).map(
+                  module=>
+                    AttackModuleService.type(module)==='delivery.area'
+                      ?Object.freeze({
+                        ...module,
+                        range:detectRange
+                      })
+                      :module
+                )
+              )
+            };
             TriggeredAttackService.execute(
               entity,
-              attack,
+              Object.freeze(attack),
               0
             );
           }
