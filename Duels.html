@@ -1,3 +1,32 @@
+<!-- 3.1014: 사용자가 전달한 팀전 공식 맵 35개(오픈10/반오픈15/비오픈10)를 누적 적용했다. 모든 맵은 mode:'team', 35×50, tileWorldSize 50이며 표시 이름은 '팀전 ' 접두사를 사용한다. 기존 기본 공식 맵35, FFA 공식 맵35, 훈련장은 그대로 유지했다. 각 팀전 맵의 원본 tiles를 연속 벽 사각형으로 압축 저장하고 전체 35개 복원 결과를 원본과 전수 비교해 불일치 0 확인. -->
+<!-- 3.1013: 사용자가 전달한 FFA 비오픈맵7~10을 기존 공식 FFA 맵 데이터에 누적 적용했다. 기존 FFA 오픈10/반오픈15/비오픈1~6은 유지하며 최종 FFA 비오픈맵은 1~10이 되었다. 표시 이름은 'FFA 비오픈맵N' 규칙을 적용하고, 각 54×54 타일 원본은 연속 벽 사각형으로 압축 저장했다. 4개 모두 원본 tiles와 압축 복원 결과 전수 비교 불일치 0. -->
+<!-- 3.1012: 3.991 맵 초기화 이후 누락돼 있던 3.960 기준 기존 FFA 오픈맵10/반오픈맵15를 복구했다. 3.960의 duels2BuildOpenTileLayout/duels2BuildSemiOpenTileLayout → duels2BuildFfaSquareTiles 변환을 그대로 재현해 54×54 타일 결과를 생성했고, 각 결과를 현재 공식 맵 압축 형식 wallRects로 저장했다. 예전 FFA 비오픈맵15는 사용자 지시에 따라 복구하지 않았고 현재 사용자 제작 FFA 비오픈맵1~6을 유지한다. 표시 이름은 FFA 오픈맵 01~10 / FFA 반오픈맵 01~15로 기존 형식을 유지한다. -->
+<!-- 3.1011: 공식 맵 표시 이름 규칙 정리. mode:'ffa'인 맵 이름 앞에 'FFA ', mode:'team'인 맵 이름 앞에 '팀전 '을 자동 접두 표기로 적용했다. 맵 ID/모드/타일 데이터/선택 로직은 변경하지 않았고 basic/훈련장 이름은 그대로 유지한다. -->
+<!-- 3.1010: 3.1009에서 함께 들어온 빈 FFA '새 맵' 항목만 제거했다. FFA 비오픈맵1~6, 기존 기본 공식 맵 35개, 훈련장 맵 및 맵 에디터 기능은 변경하지 않았다. -->
+<!-- 3.1009: 사용자가 전달한 Duels3_Maps (3).json의 FFA 비오픈맵 묶음을 기존 공식 맵 데이터에 누적 적용했다. 업로드된 모든 맵은 ffa / 54×54 / tileWorldSize 50임을 확인했고, 기존 기본 오픈10+반오픈15+비오픈10 및 훈련장/맵 에디터 기능은 유지했다. 업로드 내부 ID는 재사용될 수 있으므로 official-ffa-closed-XX 형식의 충돌 없는 공식 ID를 부여했으며, 타일 배치는 변경하지 않고 연속 벽 타일을 사각형 목록으로 압축 저장했다. 각 맵의 원본 tiles와 압축 복원 결과 전수 비교 불일치 0. -->
+<!-- 3.1008: FFA 맵 에디터 시작 위치 미리보기를 4인 전용에서 3인/4인 동시 표시로 확장했다. 새 스폰 좌표를 하드코딩하지 않고 기존 MatchSpawnService.pointMap을 참가자 3명과 4명 각각에 재사용해 실제 정다각형 스폰 계산을 그대로 표시한다. 3인 마커는 청록색 '3인 P1~P3', 4인 마커는 기존 노란색 '4인 P1~P4'로 구분하며 실제 매치 스폰 로직은 변경하지 않았다. -->
+<!-- 3.1007: 3.1006의 훈련장 교체 과정에서 canonical duels2TileWalls/duels2CreateTilemap 정의가 함께 제거되어 발생한 ReferenceError를 수정했다. 정상 구조의 3.1005를 기준으로 맵 시스템을 복원하고, 사용자가 전달한 새 훈련장 맵은 오직 duels2BuildTrainingTileLayout 내부 데이터만 교체했다. TRAINING_TILEMAP 생성 경로와 기존 공식 기본 맵 35개는 그대로 유지했다. -->
+<!-- 3.1005: 사용자가 전달한 Duels3_Maps (2).json의 비오픈맵1~10을 기존 오픈맵1~10 및 반오픈맵1~15에 누적해 공식 기본 맵으로 추가했다. 업로드 전체를 검사해 10개 모두 basic / 28×40 / tileWorldSize 50이며 이름이 비오픈맵1~10 순서임을 확인했다. 기존 ID와 충돌하지 않도록 비오픈맵은 official-basic-closed-01~10으로 지정했다. 전체 tiles는 기존과 동일하게 연속 벽 타일 사각형으로 압축 저장하며 10개 모든 타일과 복원 결과를 전수 비교해 불일치 0 확인. -->
+<!-- 3.1004: 사용자가 전달한 Duels3_Maps (1).json의 반오픈맵1~15를 기존 오픈맵1~10에 누적해 공식 기본 맵으로 추가했다. 업로드 파일 전체를 검사해 15개 모두 basic / 28×40 / tileWorldSize 50이며 이름이 반오픈맵1~15 순서임을 확인했다. 기존 official-basic-01~10과 ID가 충돌하지 않도록 반오픈맵은 official-basic-semiopen-01~15로 지정했다. 각 맵의 전체 tiles는 연속 벽 타일을 [rowStart,rowEnd,colStart,colEnd] 사각형으로 압축 저장하고 런타임에서 기존 tiles로 정확히 복원한다. 15개 모든 타일과 압축 복원 결과 전수 비교 불일치 0. -->
+<!-- 3.1003: 사용자가 전달한 Duels3_Maps(1).json의 기본 오픈맵1~10을 공식 맵으로 이식했다. 전체 28×40 0/1 배열을 소스에 직접 중복 저장하지 않고 연속 벽 타일을 [rowStart,rowEnd,colStart,colEnd] 사각형 목록으로 압축한 OFFICIAL_DUELS_MAP_SOURCE를 사용한다. 시작 시 duels2DecodeOfficialMapTiles가 기존 tiles 형식으로 정확히 복원하므로 DebugMapService/맵 에디터/전투 맵 선택 인터페이스는 변경하지 않는다. 원본 10개 모든 타일과 압축 후 복원 결과를 전수 비교해 불일치 0 확인. -->
+<!-- 3.1002: 맵 에디터 대칭 UI 정리. 3.1000~3.1001에서 이미 하나의 180도 반대편 복제 기능으로 합쳐진 동작에 맞춰 symmetry 상태를 diagonal 단일 토글로 단순화하고, 맵 탭의 대칭 버튼도 '대각선 대칭' 하나만 남겼다. 설치/제거/드래그의 실제 반대편 복제 로직은 변경하지 않았다. -->
+<!-- 3.1001: 맵 에디터 대칭 기능의 동작은 3.1000 그대로 유지하고 UI 명칭만 '대각선 대칭'으로 정리했다. 대칭 계산/설치/제거/드래그 로직 변경 없음. -->
+<!-- 4.000: 맵 에디터 대칭을 단일 180도 반대편 복제로 단순화했다. 대칭 토글 중 하나라도 켜져 있으면 모든 편집 타일은 정확히 `(rows-1-row, cols-1-col)` 위치에도 같은 값으로 적용된다. 좌표 정규화, 대각선 반사, 행/열 교환, 코너 분류 로직을 모두 제거했다. 설치/제거/좌우 드래그 범위 편집이 전부 같은 symmetricCells 경로를 사용하며 기본 40×28, FFA 54×54, 팀전 50×35의 모든 타일을 전수 검사해 반대편 매핑 누락 0을 확인했다. -->
+<!-- 3.999: 맵 에디터 대칭 처리에서 정규화 좌표/비율 좌표 반사식을 제거했다. 더 이상 `(u,v)` 좌표나 대각선 좌표식을 사용하지 않고, 실제 타일 배열의 row/col 인덱스 순번을 서로 대응시켜 대칭 타일을 찾는다. 좌하↔우상 축은 행/열 순번을 반대 방향으로 뒤집은 인덱스 대응, 좌상↔우하 축은 행/열 순번을 그대로 교환한 인덱스 대응을 사용한다. 설치/제거/드래그 모두 같은 배열 인덱스 대칭 경로를 사용한다. -->
+<!-- 3.998: 맵 에디터 대칭 토글의 의미를 코너쌍 복제에서 '대각선 축 대칭'으로 수정했다. 좌하단↔우상단 토글은 두 꼭짓점을 잇는 / 축을 기준으로 맵 전체를 반사하므로 좌상단↔우하단 영역도 자동으로 대응된다. 좌상단↔우하단 토글은 \ 축을 기준으로 맵 전체를 반사하므로 좌하단↔우상단 영역도 자동으로 대응된다. 직사각형 맵도 타일 배열의 행/열 순번 대응만 사용하며 설치/제거/드래그 모두 동일한 symmetricCells 경로를 사용한다. 두 축 동시 활성화 시 반복 closure로 두 반사와 합성 위치까지 함께 반영한다. 기본 40×28, FFA 54×54, 팀전 50×35 전체 좌표 범위 및 각 사분면 반사 방향 정적 실행 검증 완료. -->
+<!-- 3.997: 맵 에디터 대칭 누락 수정. 3.996에서는 타일을 좌하/우상 또는 좌상/우하 코너 구역으로 분류할 때 중앙 행/열을 center로 반환해 일부 위치가 어느 대칭 쌍에도 속하지 않아 대칭이 빠질 수 있었다. 이제 모든 타일을 중심 기준 두 코너쌍 중 하나에 반드시 배정하며 정확한 중앙선 타일도 tie-break 규칙으로 처리한다. 활성 대칭 쌍의 모든 타일은 정확한 반대 좌표 `(rows-1-row, cols-1-col)`에 동일 변경을 적용한다. 기본 40×28, FFA 54×54, 팀전 50×35의 모든 타일을 전수 검사해 미배정 0, 활성 쌍 대칭 누락 0을 확인했다. -->
+<!-- 3.996: 맵 에디터 대칭 의미 수정. 3.995의 정규화 좌표 대각선 반사 `(u,v)->(v,u)/(1-v,1-u)`를 제거했다. 이제 대칭은 타일의 정확한 반대편 대응 위치 `(rows-1-row, cols-1-col)`를 사용한다. '좌하단↔우상단'은 좌하/우상 구역에서 편집할 때만 해당 반대 코너에 복제하고, '좌상단↔우하단'은 좌상/우하 구역에서 편집할 때만 해당 반대 코너에 복제한다. 두 토글은 독립적이며 설치/제거/드래그 범위 모두 같은 규칙을 사용한다. 기본 40×28, FFA 54×54, 팀전 50×35 크기에 대해 반대 위치 매핑 정적 실행 검증 완료. -->
+<!-- 3.995: 맵 에디터 이동/대각선 대칭 편집 수정. 기존 에디터 카메라 이동이 Training.update 루프에 의존해 게임 시뮬레이션을 돌리지 않으면 WASD/Space 입력이 실제 프레임 이동으로 반영되지 않던 문제를 수정했다. DebugMapEditorService가 독립 requestAnimationFrame 루프를 소유하며 WASD 이동/Space spectatorDash/렌더를 직접 갱신하고, Training.update의 중복 에디터 이동 경로는 제거했다. 디버그 맵 탭에 '좌하단↔우상단', '좌상단↔우하단' 대칭 토글을 추가했다. 편집 적용은 대각선 좌표 반사가 아니라 각 타일의 정확한 반대편 대응 좌표 `(rows-1-row, cols-1-col)`를 사용한다. 좌하↔우상 토글은 좌하/우상 구역에서만, 좌상↔우하 토글은 좌상/우하 구역에서만 적용되며 좌클릭 설치/우클릭 제거/사각 드래그 모두 같은 규칙을 사용한다. -->
+<!-- 3.994: 맵 에디터 화면/스폰 표시 수정. 에디터가 관전자 카메라를 재사용하면서 일반 관전 화면의 붉은 전체 화면 오버레이와 기존 CombatScreenFeedback까지 함께 그려지던 문제를 수정해 에디터 활성 중에는 두 화면 tint를 모두 제외한다. DebugMapEditorService에 spawnPreview/drawSpawnPreview를 추가해 별도 하드코딩 좌표가 아니라 기존 MatchSpawnService.pointMap을 그대로 재사용하며 기본은 2명, FFA는 4명, 팀전은 2+2 팀 구성의 실제 시작 위치를 P1~P4 원형/십자 마커로 월드에 표시한다. -->
+<!-- 3.993: 맵 에디터 파일 전달 워크플로우 추가. 편집한 맵을 브라우저 개인 저장소에 보관하는 대신 선택 맵을 `Duels3_Map_맵이름.json`으로, 현재 설계 맵 전체를 `Duels3_Maps.json`으로 직접 다운로드할 수 있다. 단일 파일은 `{format:'duels3-map',version:1,map}`, 묶음 파일은 `{format:'duels3-map-bundle',version:1,maps}` 고정 포맷이며 이름/기본·FFA·팀전 모드/크기/tileWorldSize/전체 tiles를 그대로 보존한다. 사용자가 해당 파일을 다시 전달하면 공식 맵 데이터에 좌표 변경 없이 이식할 수 있다. 훈련장은 파일 저장 대상에서 제외. -->
+<!-- 3.992: 맵 에디터를 개인 localStorage 맵 제작기가 아니라 Duels 3 공식 맵 제작기로 변경했다. DebugMapStorageService/localStorage 영속화를 제거하고 OFFICIAL_DUELS_MAP_DATA.entries를 현재 파일의 실제 공식 맵 원본 데이터로 사용한다. DebugMapService의 생성/편집/삭제/이름 변경은 이 공식 데이터 배열을 직접 수정하며 기본/FFA/팀전 모드를 유지한다. 맵 탭에 현재 공식 맵 데이터를 코드 반영용 JSON으로 확인하는 영역을 추가했다. 훈련장은 계속 고정 내장 맵이며 편집/삭제 불가. -->
+<!-- 3.991: 디버그 맵 제작 툴 추가 및 기존 전투 맵 전면 제거. 내장 맵은 타일 훈련장 하나만 유지하고 기존 기본/FFA/팀전 맵 생성/목록을 삭제했다. DebugMapService를 사용자 커스텀 맵 CRUD + localStorage 영속화 구조로 확장하고, 새 DebugMapEditorService는 편집 카메라/입력/드래그 범위/타일 수정만 담당한다. 디버그 패널에 별도 '맵' 탭을 추가해 캐릭터 선택처럼 맵을 선택하고 기본/FFA/팀전 중 모드를 선택해 빈 맵을 생성, 이름 변경, 삭제, 편집 시작할 수 있다. 기존 조작 탭의 맵 변경 UI는 제거했다. 편집 중 WASD 이동/Space 대시/휠 줌, 좌클릭 벽 설치, 우클릭 벽 제거, 좌·우 드래그 사각 범위 채우기/지우기, ESC 종료를 지원하며 선택 범위를 월드에 표시한다. -->
+<!-- 3.990: 2대2 맵 전면 재제작. 랜덤 배치형 seed를 제거하고 직선/대각선/타원 링/사각 프레임/다각선처럼 명확한 기하 구조만 사용한다. 양 대각선 대칭은 생성 아이디어가 아니라 최종 공정성 검증/보정으로만 사용한다. 모든 맵은 연결요소 검사 후 필요 시 대칭 L자 통로를 결정론적으로 파서 FLOOR 연결요소가 정확히 1개가 되게 하며 AI가 갇히는 구조를 금지한다. 오픈 10/반오픈 15/비오픈 15는 서로 다른 도형 조합으로 구성하고 비오픈도 다중 외곽벽 대신 1~2겹 선형 차단, 관문, 격자, 링, 프레임을 사용한다. 정적 생성 검증: 40개 모두 고유, 양 대각선 대칭 오류 0, 모든 맵 FLOOR 연결요소 1, 평균 벽 밀도 오픈<반오픈<비오픈, 비오픈 최대 벽 수 제한 통과. -->
+<!-- 3.989: 2대2 맵 전면 재설계. 오픈/반오픈/비오픈을 서로 다른 finalizer와 10/15/15개의 별도 레이아웃으로 분리했다. 오픈은 넓은 3축 진입과 드문 엄폐, 반오픈은 방/관문/긴 벽/부분 회랑과 좁은 중앙 통로, 비오픈은 외곽 프레임을 공통 규칙으로 사용하지 않고 내부 방/격자/미로/성채/부분 외곽/뱀형 회랑 등 서로 다른 폐쇄 구조를 사용한다. 비오픈에는 외곽 사용 0인 내부형과 일부 외곽만 사용하는 형태를 여러 단계로 섞었다. 모든 후처리는 정규화 양 대각선 symmetry component 단위로 적용하며 정적 생성 검증에서 40개 모두 고유, 대각선 대칭 오류 0, 평균 벽 밀도 오픈<반오픈<비오픈, 비오픈 외곽 사용량이 여러 단계로 분산됨. -->
+<!-- 3.988: 2대2 맵 대칭/비오픈 재설계. 팀전 50×35의 정규화 양 대각선 partner mapping을 union-find equivalence component로 고정하고, 모든 팀전 맵의 최종 생성 단계에서 component 단위 대칭을 강제한다. 스폰/진입로/중앙 통로를 비울 때도 같은 component 전체를 비워 후처리로 대칭이 깨지지 않는다. 비오픈 15개는 별도 nonOpen 마감과 외곽 프레임/관문/방/회랑 구조를 사용하도록 전면 재구성했으며 큰 좌우 스폰 사각형과 3축 개방을 제거했다. 정적 생성 검증에서 팀전 40개(10/15/15), 양 대각선 대칭 오류 0, 전체 40개 레이아웃 고유, 비오픈 15개 전부 고유 및 외곽 3칸 띠/벽 밀도 기준 통과. -->
+<!-- 3.985: 큐리 설명 문구 수정. 공식 입력 설명의 '/ 자연회복을 끊지 않음' 표기를 ', 자연회복을 끊지 않음'으로 변경하고 LMB NEAR/RMB NEAR 양쪽 공식 입력 설명에 동일하게 표기한다. 기능/수치/로직 변경 없음. -->
+<!-- 3.984: 큐리 설명 보강. 공식 입력이 자연회복을 끊지 않는다는 안내 문구를 tooltipSkills에 추가한다. 기능/수치/로직 변경 없음. -->
+<!-- 3.983: 큐리 공식 입력 자연회복 보존 수정. 기존 formula.sequence-input preserveNaturalRegenActivity가 lastNaturalRegenBlockTime/nextHealthRegenAt만 복원해 스테미나 자연회복 기준 lastStaminaUse는 공식 입력 때 갱신된 채 남던 문제를 수정했다. 이제 옵션이 활성화된 공식 입력은 입력 전 lastStaminaUse까지 함께 보존/복원해 체력·스테미나 자연회복을 모두 중단시키지 않는다. 큐리 LMB/RMB의 기존 preserveNaturalRegenActivity:true 데이터를 그대로 재사용하며 캐릭터 ID 예외 없음. -->
 <!-- 3.982: 캐릭터 역할/거리 표기 정리. 큐리를 '성장형 근거리 컨트롤러' / ['성장형','컨트롤러']로 변경하고, 메라모나는 기존 역할군을 유지한 채 거리 표기를 중거리로 변경한다. 전투 수치/기능 변경 없음. -->
 <!-- 3.981: 제리 역할군 표기 정리. 3.0 제리 styleLabel을 '파워형 중거리 암살자'에서 '파워형 중거리 딜러'로 변경해 기존 tags ['파워형','딜러']와 일치시킨다. 전투 수치/기능 변경 없음. -->
 <!-- 3.980: 디버그 계정 탭에 계정+랭킹 동시 삭제 UI 추가. 3.979의 고아 랭킹 필터링은 채택하지 않고 3.978 기준으로 진행한다. AccountService.debugDeleteAccountAndRankings()는 디버그 권한 계정의 requesterAccountId와 삭제 대상 accountId를 새 관리자 API /admin/account/delete에 전달한다. 서버는 이 요청에서 대상 계정 파일과 rankings/characters.json의 동일 accountId 항목을 원자적으로 함께 제거해야 한다. 삭제 성공 시 CharacterRecordService 랭킹 캐시를 비우고, 현재 로그인 계정 자신을 삭제한 경우 로그아웃한다. -->
@@ -6602,6 +6631,39 @@ input[type="checkbox"][aria-hidden="true"]{display:none!important}
 
 
 
+
+<style id="debug-map-editor-style">
+.debug-map-card-grid{
+  grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+}
+.debug-map-editor-hud{
+  position:fixed;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:99999;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:420px;
+  padding:10px 14px;
+  border:1px solid rgba(110,205,255,.45);
+  border-radius:10px;
+  background:rgba(8,12,18,.88);
+  box-shadow:0 8px 30px rgba(0,0,0,.35);
+  color:#eef7ff;
+  font:12px/1.35 system-ui,sans-serif;
+  pointer-events:none;
+  backdrop-filter:blur(8px);
+}
+.debug-map-editor-hud strong{
+  font-size:13px;
+  letter-spacing:.08em;
+}
+.debug-map-editor-hud span{
+  opacity:.82;
+}
+</style>
 </head>
 <body>
 
@@ -20199,13 +20261,13 @@ const GAME_DATA=Object.freeze({
           key:'LMB NEAR',
           name:'큐브',
           costText:'스테미나 0',
-          text:'캐릭터 주변에서 클릭으로 공식 입력. 오입력 시 현재 단계 진행도 초기화'
+          text:'캐릭터 주변에서 클릭으로 공식 입력. 오입력 시 현재 단계 진행도 초기화, 자연회복을 끊지 않음'
         }),
         Object.freeze({
           key:'RMB NEAR',
           name:'큐브',
           costText:'스테미나 0',
-          text:'캐릭터 주변에서 클릭으로 공식 입력. 오입력 시 현재 단계 진행도 초기화'
+          text:'캐릭터 주변에서 클릭으로 공식 입력. 오입력 시 현재 단계 진행도 초기화, 자연회복을 끊지 않음'
         }),
         Object.freeze({
           key:'L-Shift',
@@ -71893,6 +71955,13 @@ const AbilityModuleService=Object.freeze({
               ?.nextHealthRegenAt
           )||0
           :0;
+      const previousLastStaminaUse=
+        preserveNaturalRegen
+          ?Number(
+            context.source
+              ?.lastStaminaUse
+          )||0
+          :0;
 
       const result=FormulaSequenceService.input(
         context.source,
@@ -71910,6 +71979,8 @@ const AbilityModuleService=Object.freeze({
           previousNaturalRegenBlockTime;
         context.source.nextHealthRegenAt=
           previousNextHealthRegenAt;
+        context.source.lastStaminaUse=
+          previousLastStaminaUse;
       }
 
       if(result.handled===true){
@@ -91589,6 +91660,13 @@ const Training={
     StaticWorldRenderer.draw(ctx);
 
     if(
+      typeof DebugMapEditorService!=='undefined'&&
+      DebugMapEditorService.active
+    ){
+      DebugMapEditorService.draw(ctx);
+    }
+
+    if(
       this.sessionMode==='online'&&
       this.player?.alive&&
       !this.player.hidden
@@ -95543,6 +95621,10 @@ const Training={
 
     if(
       !(
+        typeof DebugMapEditorService!=='undefined'&&
+        DebugMapEditorService.active
+      )&&
+      !(
         this.sessionMode==='online'&&
         OnlineDuelService.mode===
           MatchModeService.FFA&&
@@ -95566,7 +95648,13 @@ const Training={
       ctx.restore();
     }
 
-    if(this.spectating){
+    if(
+      this.spectating&&
+      !(
+        typeof DebugMapEditorService!=='undefined'&&
+        DebugMapEditorService.active
+      )
+    ){
       ctx.save();
 
       const ffaOnline=
@@ -98124,69 +98212,46 @@ function duels2FinalizePlayableDesign(tiles){
   return duels2MergeFourDesignTiles(tiles);
 }
 function duels2R(t,r,c,h,w){duels2PaintDesignRect(t,r,c,h,w,1);}
-// duels2BuildOpenTileLayout: 광장·대각선·섬·링·기둥 등 서로 다른 개방형 공간을 만든다. (index)
-function duels2BuildOpenTileLayout(index){
-  const t=duels2CreateDesignTileGrid(),v=index%10;
-  switch(v){
-    case 0:[[8,9,3,3],[15,43,3,3],[27,18,2,5]].forEach(x=>duels2R(t,...x));break;
-    case 1:for(let i=0;i<7;i++)duels2R(t,7+i*4,8+i*6,2,2);break;
-    case 2:duels2R(t,9,8,2,18);duels2R(t,23,35,2,14);duels2R(t,31,12,2,8);break;
-    case 3:duels2R(t,12,15,8,2);duels2R(t,12,17,2,10);duels2R(t,25,38,8,2);break;
-    case 4:duels2PaintDesignFramePair(t,9,9,11,11,2);duels2R(t,28,27,3,3);break;
-    case 5:[[6,27,4,2],[15,11,2,5],[22,42,2,5],[31,25,4,2]].forEach(x=>duels2R(t,...x));break;
-    case 6:duels2R(t,7,7,3,9);duels2R(t,19,24,3,9);duels2R(t,30,41,3,8);break;
-    case 7:for(let i=0;i<5;i++){duels2R(t,8+i*6,10+(i%2)*28,2,5);}break;
-    case 8:duels2R(t,13,23,2,12);duels2R(t,20,8,8,2);duels2R(t,29,35,2,13);break;
-    default:[[8,12,2,2],[11,31,2,2],[20,19,2,2],[25,44,2,2],[31,27,2,2]].forEach(x=>duels2R(t,...x));
+// 훈련장 외의 내장 전투 맵은 제거한다.
+function duels2BuildTrainingTileLayout(){
+  const tiles=Array.from(
+    {length:28},
+    ()=>Array(40).fill(
+      DUELS2_TILE.FLOOR
+    )
+  );
+  const wallRects=[
+    [3,12,25,25],[3,12,34,34],[24,24,3,7],[23,24,10,14],[22,24,17,21],[21,24,24,28],[20,24,31,36]
+  ];
+
+  for(const [
+    rowStart,
+    rowEnd,
+    colStart,
+    colEnd
+  ] of wallRects){
+    for(
+      let row=rowStart;
+      row<=rowEnd;
+      row++
+    ){
+      for(
+        let col=colStart;
+        col<=colEnd;
+        col++
+      ){
+        tiles[row][col]=
+          DUELS2_TILE.WALL;
+      }
+    }
   }
-  return duels2FinalizePlayableDesign(t);
+
+  return tiles;
 }
-// duels2BuildSemiOpenTileLayout: 관문·ㄹ자·중앙섬·분할광장·우회축을 맵마다 다르게 만든다. (index)
-function duels2BuildSemiOpenTileLayout(index){
-  const t=duels2CreateDesignTileGrid(),v=index%15;
-  switch(v){
-    case 0:duels2R(t,7,15,18,3);duels2R(t,7,38,10,3);duels2R(t,27,38,7,3);break;
-    case 1:duels2R(t,9,9,3,18);duels2R(t,19,27,14,3);duels2R(t,29,8,3,13);break;
-    case 2:duels2PaintDesignFramePair(t,8,8,16,13,2);duels2R(t,25,28,3,8);break;
-    case 3:duels2R(t,6,26,12,3);duels2R(t,24,26,11,3);duels2R(t,17,10,3,10);break;
-    case 4:duels2R(t,8,8,3,15);duels2R(t,20,20,3,17);duels2R(t,30,39,3,10);break;
-    case 5:duels2R(t,7,17,8,3);duels2R(t,14,17,3,14);duels2R(t,25,35,8,3);break;
-    case 6:duels2R(t,9,7,2,22);duels2R(t,18,30,2,18);duels2R(t,28,13,2,15);break;
-    case 7:[[7,12,8,2],[15,27,2,10],[24,39,8,2]].forEach(x=>duels2R(t,...x));break;
-    case 8:duels2R(t,6,22,10,3);duels2R(t,19,9,3,14);duels2R(t,28,34,7,3);break;
-    case 9:duels2PaintDesignFramePair(t,10,18,12,20,2);duels2R(t,5,8,6,2);break;
-    case 10:duels2R(t,8,12,3,8);duels2R(t,15,20,12,3);duels2R(t,28,38,3,9);break;
-    case 11:for(let i=0;i<4;i++)duels2R(t,7+i*8,8+i*9,3,7);break;
-    case 12:duels2R(t,7,30,14,3);duels2R(t,20,12,3,13);duels2R(t,29,41,5,3);break;
-    case 13:[[8,9,3,12],[18,24,3,12],[29,39,3,9]].forEach(x=>duels2R(t,...x));break;
-    default:duels2R(t,6,16,9,3);duels2R(t,16,33,3,12);duels2R(t,27,11,8,3);
-  }
-  return duels2FinalizePlayableDesign(t);
-}
-// duels2BuildNonOpenTileLayout: 미로·방·협곡·나선·교차 회랑 등 구조 자체가 다른 폐쇄형 맵을 만든다. (index)
-function duels2BuildNonOpenTileLayout(index){
-  const t=duels2CreateDesignTileGrid(),v=index%15;
-  switch(v){
-    case 0:for(let i=0;i<5;i++)duels2R(t,6+i*6,8+(i%2)*26,3,20);break;
-    case 1:duels2PaintDesignFramePair(t,6,7,23,19,3);duels2R(t,17,27,3,13);break;
-    case 2:duels2R(t,5,15,26,3);duels2R(t,10,30,3,18);duels2R(t,25,8,3,18);break;
-    case 3:duels2R(t,7,8,3,35);duels2R(t,16,15,3,36);duels2R(t,26,6,3,34);break;
-    case 4:duels2R(t,5,25,12,3);duels2R(t,15,10,3,18);duels2R(t,24,28,11,3);break;
-    case 5:duels2R(t,6,8,24,3);duels2R(t,6,8,3,25);duels2R(t,18,20,3,22);break;
-    case 6:[[6,12,10,3],[14,24,3,16],[24,38,10,3]].forEach(x=>duels2R(t,...x));break;
-    case 7:duels2PaintDesignFramePair(t,7,10,11,14,2);duels2PaintDesignFramePair(t,22,33,11,14,2);duels2R(t,17,25,3,7);break;
-    case 8:for(let i=0;i<4;i++){duels2R(t,6+i*8,9,3,15+i*4);duels2R(t,12+i*6,38-i*5,7,3);}break;
-    case 9:duels2R(t,5,18,30,3);duels2R(t,11,33,3,15);duels2R(t,25,7,3,12);break;
-    case 10:duels2R(t,7,7,3,27);duels2R(t,17,24,3,27);duels2R(t,28,7,3,27);break;
-    case 11:duels2R(t,6,10,12,3);duels2R(t,15,10,3,30);duels2R(t,25,37,9,3);break;
-    case 12:[[5,9,3,17],[12,28,15,3],[28,11,3,18]].forEach(x=>duels2R(t,...x));break;
-    case 13:duels2PaintDesignFramePair(t,5,6,28,22,3);duels2R(t,15,28,3,13);duels2R(t,24,15,3,13);break;
-    default:for(let i=0;i<6;i++)duels2R(t,5+i*5,8+(i%3)*13,3,11);
-  }
-  return duels2FinalizePlayableDesign(t);
-}
-function duels2BuildTrainingTileLayout(){const t=duels2CreateDesignTileGrid();duels2PaintDesignRect(t,16,14,2,28,1);duels2PaintDesignRect(t,62,14,2,28,1);duels2PaintDesignRect(t,32,8,2,12,1);duels2PaintDesignRect(t,46,36,2,12,1);return duels2MergeFourDesignTiles(t);}
-function duels2TileWalls(tiles,tileWorldSize=DUELS2_TILE_WORLD_SIZE){
+function duels2TileWalls(
+  tiles,
+  tileWorldSize=DUELS2_TILE_WORLD_SIZE
+){
   const walls=[];
   for(let r=0;r<tiles.length;r++){
     for(let c=0;c<(tiles[r]?.length||0);c++){
@@ -98201,21 +98266,37 @@ function duels2TileWalls(tiles,tileWorldSize=DUELS2_TILE_WORLD_SIZE){
   }
   return walls;
 }
-function duels2CreateTilemap(name,mapClass,tiles,opt={}){
+function duels2CreateTilemap(
+  name,
+  mapClass,
+  tiles,
+  opt={}
+){
   const tileWorldSize=Math.max(
     1,
-    Number(opt.tileWorldSize)||DUELS2_TILE_WORLD_SIZE
+    Number(opt.tileWorldSize)||
+      DUELS2_TILE_WORLD_SIZE
   );
   const rows=tiles.length;
   const cols=Math.max(
     0,
     ...tiles.map(row=>row.length)
   );
+
   return Object.freeze({
-    id:opt.id||`${mapClass}-${String(opt.index??0).padStart(2,'0')}`,
-    name,
-    type:DUELS2_MAP_CLASS_LABEL[mapClass],
+    id:String(
+      opt.id||
+      `${mapClass}-${Date.now()}`
+    ),
+    name:String(name||'새 맵'),
+    type:String(
+      opt.type||
+      DUELS2_MAP_CLASS_LABEL[mapClass]||
+      '커스텀'
+    ),
     mapClass,
+    mapMode:
+      String(opt.mapMode||'basic'),
     isTraining:!!opt.isTraining,
     isFfa:!!opt.isFfa,
     isTeam:!!opt.isTeam,
@@ -98223,10 +98304,16 @@ function duels2CreateTilemap(name,mapClass,tiles,opt={}){
     tileWorldSize,
     cols,
     rows,
-    worldWidth:Number(opt.worldWidth)||cols*tileWorldSize,
-    worldHeight:Number(opt.worldHeight)||rows*tileWorldSize,
+    worldWidth:
+      Number(opt.worldWidth)||
+      cols*tileWorldSize,
+    worldHeight:
+      Number(opt.worldHeight)||
+      rows*tileWorldSize,
     tiles:Object.freeze(
-      tiles.map(row=>Object.freeze([...row]))
+      tiles.map(
+        row=>Object.freeze([...row])
+      )
     ),
     walls:Object.freeze(
       duels2TileWalls(
@@ -98236,452 +98323,496 @@ function duels2CreateTilemap(name,mapClass,tiles,opt={}){
     )
   });
 }
-function duels2BuildTilemapClass(cls,count){const b=cls==='open'?duels2BuildOpenTileLayout:cls==='semi-open'?duels2BuildSemiOpenTileLayout:duels2BuildNonOpenTileLayout;return Array.from({length:count},(_,i)=>duels2CreateTilemap(`${DUELS2_MAP_CLASS_LABEL[cls]} ${String(i+1).padStart(2,'0')}`,cls,b(i),{index:i+1}));}
-const DUELS_MAPS=Object.freeze([...duels2BuildTilemapClass('open',10),...duels2BuildTilemapClass('semi-open',15),...duels2BuildTilemapClass('non-open',15),duels2CreateTilemap('타일 훈련장','training',duels2BuildTrainingTileLayout(),{id:'training-tilemap',isTraining:true})]);
 
-const FFA_TILE_COLS=54;
-const FFA_TILE_ROWS=FFA_TILE_COLS;
-const FFA_TILE_WORLD_SIZE=DUELS2_TILE_WORLD_SIZE;
-const FFA_WORLD_SIZE=
-  FFA_TILE_COLS*FFA_TILE_WORLD_SIZE;
-
-// duels2CreateFfaSquareGrid: FFA 전용 정사각형 빈 격자를 만든다.
-function duels2CreateFfaSquareGrid(){
-  return Array.from(
-    {length:FFA_TILE_ROWS},
-    ()=>Array(FFA_TILE_COLS).fill(DUELS2_TILE.FLOOR)
-  );
-}
-
-// duels2SetFfaDiagonalSymmetricTile: 한 블록을 두 대각선에 모두 대칭인 네 위치에 동일하게 배치한다.
-function duels2SetFfaDiagonalSymmetricTile(
-  tiles,
-  c,
-  r,
-  value=DUELS2_TILE.WALL
-){
-  const n=FFA_TILE_COLS-1;
-  const points=[
-    [c,r],
-    [r,c],
-    [n-c,n-r],
-    [n-r,n-c]
-  ];
-
-  for(const [x,y] of points){
-    if(
-      x>=0&&x<FFA_TILE_COLS&&
-      y>=0&&y<FFA_TILE_ROWS
-    ){
-      tiles[y][x]=value;
+const TRAINING_TILEMAP=
+  duels2CreateTilemap(
+    '타일 훈련장',
+    'training',
+    duels2BuildTrainingTileLayout(),
+    {
+      id:'training-tilemap',
+      isTraining:true,
+      mapMode:'training'
     }
-  }
-}
-
-// duels2ClearFfaRoutes: 중앙 십자/두 대각선과 중앙부를 대칭적으로 비워 기본 이동축을 보장한다.
-function duels2ClearFfaRoutes(tiles){
-  const n=FFA_TILE_COLS;
-  const mid=(n-1)/2;
-
-  for(let r=0;r<n;r++){
-    for(let c=0;c<n;c++){
-      const centerCross=
-        Math.abs(c-mid)<=2||
-        Math.abs(r-mid)<=2;
-      const diagonalRoutes=
-        Math.abs(c-r)<=2||
-        Math.abs(c+r-(n-1))<=2;
-      const centerOpen=
-        Math.hypot(c-mid,r-mid)<=10;
-
-      if(
-        centerCross||
-        diagonalRoutes||
-        centerOpen
-      ){
-        tiles[r][c]=DUELS2_TILE.FLOOR;
-      }
-    }
-  }
-  return tiles;
-}
-
-// duels2BuildFfaSquareTiles: 기존 맵의 1블록 구조를 정사각형 중앙에 옮긴 뒤 두 대각선 대칭으로 확장한다.
-function duels2BuildFfaSquareTiles(baseMap){
-  const tiles=duels2CreateFfaSquareGrid();
-  const source=baseMap.tiles||[];
-  const sourceRows=source.length;
-  const sourceCols=Math.max(
-    0,
-    ...source.map(row=>row.length)
   );
-  const offsetC=Math.floor(
-    (FFA_TILE_COLS-sourceCols)/2
-  );
-  const offsetR=Math.floor(
-    (FFA_TILE_ROWS-sourceRows)/2
-  );
-
-  for(let r=0;r<sourceRows;r++){
-    for(let c=0;c<(source[r]?.length||0);c++){
-      if(source[r][c]!==DUELS2_TILE.WALL)continue;
-
-      duels2SetFfaDiagonalSymmetricTile(
-        tiles,
-        c+offsetC,
-        r+offsetR
-      );
-    }
-  }
-
-  duels2ClearFfaRoutes(tiles);
-  return tiles;
-}
-
-const FFA_DUELS_MAPS=Object.freeze(
-  DUELS_MAPS
-    .filter(map=>!map.isTraining)
-    .map(map=>
-      duels2CreateTilemap(
-        `FFA ${map.name}`,
-        map.mapClass,
-        duels2BuildFfaSquareTiles(map),
-        {
-          id:`ffa-${map.id}`,
-          isFfa:true,
-          tileWorldSize:FFA_TILE_WORLD_SIZE,
-          worldWidth:FFA_WORLD_SIZE,
-          worldHeight:FFA_WORLD_SIZE
-        }
-      )
-    )
-);
-const TEAM_TILE_COLS=50;
-const TEAM_TILE_ROWS=35;
-const TEAM_TILE_WORLD_SIZE=DUELS2_TILE_WORLD_SIZE;
-const TEAM_WORLD_WIDTH=
-  TEAM_TILE_COLS*TEAM_TILE_WORLD_SIZE;
-const TEAM_WORLD_HEIGHT=
-  TEAM_TILE_ROWS*TEAM_TILE_WORLD_SIZE;
-
-// 기존 40×28 타일맵을 같은 10:7 비율의 50×35로 확대한다.
-function duels2TeamDiagonalPartnerMain(row,col){
-  const mappedRow=Math.max(
-    0,
-    Math.min(
-      TEAM_TILE_ROWS-1,
-      Math.round(
-        col/
-        Math.max(1,TEAM_TILE_COLS-1)*
-        (TEAM_TILE_ROWS-1)
-      )
-    )
-  );
-  const mappedCol=Math.max(
-    0,
-    Math.min(
-      TEAM_TILE_COLS-1,
-      Math.round(
-        row/
-        Math.max(1,TEAM_TILE_ROWS-1)*
-        (TEAM_TILE_COLS-1)
-      )
-    )
-  );
-
-  return {
-    row:mappedRow,
-    col:mappedCol
-  };
-}
-
-function duels2TeamDiagonalPartnerAnti(row,col){
-  const normalizedCol=
-    col/
-    Math.max(1,TEAM_TILE_COLS-1);
-  const normalizedRow=
-    row/
-    Math.max(1,TEAM_TILE_ROWS-1);
-
-  const mappedRow=Math.max(
-    0,
-    Math.min(
-      TEAM_TILE_ROWS-1,
-      Math.round(
-        (1-normalizedCol)*
-        (TEAM_TILE_ROWS-1)
-      )
-    )
-  );
-  const mappedCol=Math.max(
-    0,
-    Math.min(
-      TEAM_TILE_COLS-1,
-      Math.round(
-        (1-normalizedRow)*
-        (TEAM_TILE_COLS-1)
-      )
-    )
-  );
-
-  return {
-    row:mappedRow,
-    col:mappedCol
-  };
-}
 
 /*
-  팀전 맵은 10:7 직사각형이므로 정규화 좌표를 사용한다.
-
-  주대각선:
-    (u,v) -> (v,u)
-
-  반대 대각선:
-    (u,v) -> (1-v,1-u)
-
-  두 변환을 모두 equivalence component로 묶기 때문에,
-  결과 맵은 양쪽 대각선에 대해 동시에 대칭이다.
-  두 대각선 대칭의 합성 결과인 180도 회전 대칭도 자동으로 성립한다.
+  공식 맵 원본은 전체 0/1 타일 배열을 그대로 보관하지 않는다.
+  연속된 벽 타일을 [rowStart,rowEnd,colStart,colEnd] 사각형으로 압축해 저장하고,
+  런타임에서 기존 tiles 형식으로 한 번 복원한다.
+  맵 에디터/전투 시스템은 복원된 동일 tiles 인터페이스만 사용한다.
 */
-function duels2BuildTeamTiles(baseMap){
-  const source=baseMap.tiles||[];
-  const sourceRows=source.length;
-  const sourceCols=Math.max(
+const OFFICIAL_DUELS_MAP_SOURCE=Object.freeze([
+    Object.freeze({id:"official-basic-01",name:"오픈맵1",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[3,7,10,10],[3,7,29,29],[11,16,10,10],[11,16,29,29],[20,24,10,10],[20,24,29,29]])}),
+    Object.freeze({id:"official-basic-02",name:"오픈맵2",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,6,6,6],[0,6,33,33],[10,10,16,18],[10,10,21,23],[11,12,16,16],[11,12,23,23],[12,15,4,4],[12,15,35,35],[15,16,16,16],[15,16,23,23],[17,17,16,18],[17,17,21,23],[21,27,6,6],[21,27,33,33]])}),
+    Object.freeze({id:"official-basic-03",name:"오픈맵3",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[5,5,7,11],[5,5,28,32],[6,10,7,7],[6,10,32,32],[17,21,7,7],[17,21,32,32],[22,22,7,11],[22,22,28,32]])}),
+    Object.freeze({id:"official-basic-04",name:"오픈맵4",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[3,3,4,14],[3,3,25,35],[4,23,4,4],[4,23,35,35],[24,24,4,14],[24,24,25,35]])}),
+    Object.freeze({id:"official-basic-05",name:"오픈맵5",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[4,6,9,11],[4,6,28,30],[21,23,9,11],[21,23,28,30]])}),
+    Object.freeze({id:"official-basic-06",name:"오픈맵6",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[6,7,0,9],[6,7,30,39],[11,16,9,9],[11,16,30,30],[20,21,0,9],[20,21,30,39]])}),
+    Object.freeze({id:"official-basic-07",name:"오픈맵7",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,11],[0,0,28,39],[1,1,0,6],[1,1,33,39],[2,2,0,4],[2,2,35,39],[3,4,0,2],[3,4,37,39],[5,6,0,1],[5,6,38,39],[7,11,0,0],[7,11,39,39],[16,20,0,0],[16,20,39,39],[21,22,0,1],[21,22,38,39],[23,24,0,2],[23,24,37,39],[25,25,0,4],[25,25,35,39],[26,26,0,6],[26,26,33,39],[27,27,0,11],[27,27,28,39]])}),
+    Object.freeze({id:"official-basic-08",name:"오픈맵8",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,5,2,7],[0,5,23,28],[22,27,11,16],[22,27,32,37]])}),
+    Object.freeze({id:"official-basic-09",name:"오픈맵9",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[5,6,13,14],[5,6,25,26],[11,12,13,14],[11,12,25,26],[15,16,13,14],[15,16,25,26],[21,22,13,14],[21,22,25,26]])}),
+    Object.freeze({id:"official-basic-10",name:"오픈맵10",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[7,7,6,10],[7,7,29,33],[8,11,10,10],[8,11,29,29],[16,19,10,10],[16,19,29,29],[20,20,6,10],[20,20,29,33]])})
+,
+    Object.freeze({id:"official-basic-semiopen-01",name:"반오픈맵1",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[9,9,15,18],[9,9,21,24],[10,12,15,15],[10,12,24,24],[15,17,15,15],[15,17,24,24],[18,18,15,18],[18,18,21,24]])}),
+    Object.freeze({id:"official-basic-semiopen-02",name:"반오픈맵2",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[9,9,17,28],[9,17,11,11],[18,18,11,22],[10,18,28,28]])}),
+    Object.freeze({id:"official-basic-semiopen-03",name:"반오픈맵3",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[10,10,0,4],[0,10,17,17],[0,10,22,22],[10,10,35,39],[11,16,0,0],[11,16,39,39],[17,17,0,4],[17,17,35,39],[17,27,17,17],[17,27,22,22]])}),
+    Object.freeze({id:"official-basic-semiopen-04",name:"반오픈맵4",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[11,11,12,16],[11,11,23,27],[12,15,12,12],[12,15,27,27],[16,16,12,16],[16,16,23,27]])}),
+    Object.freeze({id:"official-basic-semiopen-05",name:"반오픈맵5",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,1],[0,0,38,39],[1,1,0,0],[1,1,39,39],[9,9,5,15],[9,9,24,34],[10,17,14,15],[10,17,24,25],[18,18,5,15],[18,18,24,34],[26,26,0,0],[26,26,39,39],[27,27,0,1],[27,27,38,39]])}),
+    Object.freeze({id:"official-basic-semiopen-06",name:"반오픈맵6",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[3,4,4,5],[3,4,34,35],[6,8,20,20],[9,12,19,20],[13,13,12,24],[14,14,15,27],[15,18,19,20],[19,21,19,19],[23,24,4,5],[23,24,34,35]])}),
+    Object.freeze({id:"official-basic-semiopen-07",name:"반오픈맵7",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[5,5,11,12],[6,6,12,13],[7,7,13,14],[8,8,14,15],[9,9,15,16],[10,10,16,17],[11,11,17,18],[16,16,21,22],[17,17,22,23],[18,18,23,24],[19,19,24,25],[20,20,25,26],[21,21,26,27],[22,22,27,28]])}),
+    Object.freeze({id:"official-basic-semiopen-08",name:"반오픈맵8",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,0,10,29],[1,1,10,13],[1,1,26,29],[8,8,10,13],[8,8,26,29],[9,9,10,29],[10,10,10,13],[10,10,26,29],[17,17,10,13],[17,17,26,29],[18,18,10,29],[19,19,10,13],[19,19,26,29],[26,26,10,13],[26,26,26,29],[27,27,10,29]])}),
+    Object.freeze({id:"official-basic-semiopen-09",name:"반오픈맵9",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,5,27,27],[0,14,12,12],[22,27,12,12],[13,27,27,27]])}),
+    Object.freeze({id:"official-basic-semiopen-10",name:"반오픈맵10",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,2,0,8],[0,2,31,39],[3,8,0,2],[3,8,37,39],[7,10,19,19],[11,11,12,19],[16,16,20,27],[17,20,20,20],[19,24,0,2],[19,24,37,39],[25,27,0,8],[25,27,31,39]])}),
+    Object.freeze({id:"official-basic-semiopen-11",name:"반오픈맵11",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[9,9,18,24],[10,12,18,18],[10,15,24,24],[12,17,15,15],[15,17,21,21],[18,18,15,21]])}),
+    Object.freeze({id:"official-basic-semiopen-12",name:"반오픈맵12",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,39],[4,5,6,7],[4,5,32,33],[7,7,13,18],[7,7,21,26],[7,8,0,0],[7,8,39,39],[11,11,17,22],[12,12,17,17],[12,12,22,22],[15,15,17,17],[15,15,22,22],[16,16,17,22],[9,18,0,1],[9,18,38,39],[8,19,13,13],[8,19,26,26],[19,20,0,0],[20,20,13,18],[20,20,21,26],[19,20,39,39],[22,23,6,7],[22,23,32,33],[27,27,0,39]])}),
+    Object.freeze({id:"official-basic-semiopen-13",name:"반오픈맵13",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[4,7,25,25],[6,9,22,22],[8,11,19,19],[10,13,16,16],[12,15,13,13],[12,15,26,26],[14,17,23,23],[16,19,20,20],[18,21,17,17],[20,23,14,14]])}),
+    Object.freeze({id:"official-basic-semiopen-14",name:"반오픈맵14",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,6,14,14],[7,8,13,14],[9,9,13,35],[10,10,13,16],[17,17,23,26],[18,18,4,26],[19,20,25,26],[21,27,25,25]])}),
+    Object.freeze({id:"official-basic-semiopen-15",name:"반오픈맵15",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[12,15,18,18],[12,15,21,21],[10,17,9,9],[10,17,30,30],[7,20,14,14],[7,20,25,25]])})
+,
+    Object.freeze({id:"official-basic-closed-01",name:"비오픈맵1",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,1,13,39],[5,5,5,13],[5,5,26,34],[6,18,13,13],[6,21,5,5],[9,21,26,26],[6,21,34,34],[22,22,5,13],[22,22,26,34],[0,25,0,1],[26,27,0,26],[2,27,38,39]])}),
+    Object.freeze({id:"official-basic-closed-02",name:"비오픈맵2",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,0,35,39],[2,2,4,8],[2,2,18,21],[1,4,39,39],[6,6,5,14],[6,6,25,34],[10,10,18,21],[17,17,18,21],[7,20,14,14],[7,20,25,25],[21,21,5,14],[21,21,25,34],[25,25,18,21],[25,25,31,35],[23,26,0,0],[27,27,0,4]])}),
+    Object.freeze({id:"official-basic-closed-03",name:"비오픈맵3",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,3,0,39],[4,23,0,4],[4,23,35,39],[24,27,0,39]])}),
+    Object.freeze({id:"official-basic-closed-04",name:"비오픈맵4",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,4,25,39],[5,22,10,14],[5,22,25,29],[23,27,0,14]])}),
+    Object.freeze({id:"official-basic-closed-05",name:"비오픈맵5",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,18,29,29],[0,19,4,4],[0,19,16,16],[9,27,10,10],[8,27,23,23],[8,27,35,35]])}),
+    Object.freeze({id:"official-basic-closed-06",name:"비오픈맵6",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,0,29,39],[1,1,33,39],[2,2,35,39],[3,4,37,39],[5,6,38,39],[8,8,10,18],[8,8,21,29],[7,10,39,39],[9,18,10,10],[9,18,29,29],[19,19,10,18],[19,19,21,29],[17,20,0,0],[21,22,0,1],[23,24,0,2],[25,25,0,4],[26,26,0,6],[27,27,0,10]])}),
+    Object.freeze({id:"official-basic-closed-07",name:"비오픈맵7",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,6],[0,0,33,39],[5,5,10,29],[1,6,0,0],[1,6,39,39],[8,9,24,25],[6,10,10,10],[6,10,29,29],[8,14,14,15],[18,19,14,15],[13,19,24,25],[17,21,10,10],[17,21,29,29],[22,22,10,29],[21,26,0,0],[21,26,39,39],[27,27,0,6],[27,27,33,39]])}),
+    Object.freeze({id:"official-basic-closed-08",name:"비오픈맵8",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[4,4,6,6],[4,4,33,33],[5,5,1,17],[5,5,22,38],[6,9,6,6],[6,9,33,33],[10,10,1,17],[10,10,22,38],[11,16,6,6],[11,16,33,33],[17,17,1,17],[17,17,22,38],[18,21,6,6],[18,21,33,33],[22,22,1,17],[22,22,22,38],[23,23,6,6],[23,23,33,33]])}),
+    Object.freeze({id:"official-basic-closed-09",name:"비오픈맵9",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,1,0,6],[0,1,32,39],[3,4,9,9],[3,4,30,30],[5,5,7,11],[5,5,28,32],[2,6,0,1],[6,7,9,9],[6,7,30,30],[2,7,38,39],[5,10,19,20],[13,14,11,16],[13,14,19,20],[13,14,23,28],[20,21,9,9],[20,21,30,30],[22,22,7,11],[17,22,19,20],[22,22,28,32],[23,24,9,9],[23,24,30,30],[20,25,0,1],[21,25,38,39],[26,27,0,7],[26,27,33,39]])}),
+    Object.freeze({id:"official-basic-closed-10",name:"비오픈맵10",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[5,8,8,11],[2,10,26,34],[12,15,18,21],[19,22,28,31],[17,25,5,13]])})
+,
+    Object.freeze({id:"official-ffa-closed-01",name:"FFA 비오픈맵1",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[0,2,0,14],[0,2,39,53],[5,6,22,31],[7,11,22,22],[7,11,31,31],[3,14,0,2],[14,14,14,17],[14,14,36,39],[3,14,51,53],[15,15,14,24],[15,15,29,39],[16,17,14,15],[16,17,38,39],[22,22,5,11],[20,22,20,22],[20,22,31,33],[22,22,42,48],[18,24,15,15],[18,24,38,38],[22,25,26,27],[26,27,22,31],[23,30,5,6],[23,30,47,48],[31,31,5,11],[28,31,26,27],[31,31,42,48],[31,33,20,22],[31,33,31,33],[29,35,15,15],[29,35,38,38],[36,37,14,15],[36,37,38,39],[38,38,14,24],[38,38,29,39],[39,39,14,17],[39,39,36,39],[42,46,22,22],[42,46,31,31],[47,48,22,31],[39,50,0,2],[39,50,51,53],[51,53,0,14],[51,53,39,53]])}),
+    Object.freeze({id:"official-ffa-closed-02",name:"FFA 비오픈맵2",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[6,8,42,42],[9,9,39,45],[10,12,42,42],[12,13,13,13],[15,15,10,11],[15,15,15,16],[11,15,27,27],[17,18,13,13],[18,19,33,33],[20,20,31,35],[21,22,33,33],[16,23,26,27],[24,25,24,29],[26,26,11,37],[27,27,16,42],[28,29,24,29],[31,32,20,20],[33,33,18,22],[34,35,20,20],[35,36,40,40],[30,37,26,27],[38,38,37,38],[38,38,42,43],[40,41,40,40],[38,42,26,26],[41,43,11,11],[44,44,8,14],[45,47,11,11]])}),
+    Object.freeze({id:"official-ffa-closed-03",name:"FFA 비오픈맵3",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[6,6,24,29],[6,6,43,48],[8,8,8,13],[7,8,43,43],[7,9,24,24],[9,10,13,13],[7,10,29,29],[10,10,41,42],[7,10,48,48],[11,11,27,29],[11,11,46,48],[9,12,8,8],[12,12,14,15],[11,12,41,41],[12,12,44,44],[13,13,8,10],[13,13,41,44],[14,14,12,12],[13,14,15,15],[15,15,12,15],[18,18,29,36],[20,20,20,27],[19,21,29,29],[24,24,6,11],[21,24,27,27],[19,24,36,36],[24,24,44,47],[21,25,20,20],[25,25,32,36],[25,26,11,11],[26,26,20,24],[27,27,29,33],[25,28,6,6],[28,28,17,21],[27,28,42,42],[25,28,47,47],[29,29,6,9],[29,29,42,47],[29,32,26,26],[28,32,33,33],[33,33,26,33],[29,34,17,17],[32,34,24,24],[35,35,17,24],[38,38,38,41],[39,39,41,41],[40,40,9,12],[39,40,38,38],[40,40,43,45],[41,41,9,9],[41,41,38,39],[42,42,5,7],[41,42,12,12],[42,42,24,26],[43,43,11,12],[43,44,40,40],[41,44,45,45],[45,45,40,45],[43,46,5,5],[45,46,10,10],[43,46,24,24],[44,46,29,29],[47,47,5,10],[47,47,24,29]])}),
+    Object.freeze({id:"official-ffa-closed-04",name:"FFA 비오픈맵4",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,53],[1,4,0,21],[1,4,32,53],[5,6,0,20],[5,6,33,53],[7,7,17,20],[7,7,33,36],[10,10,10,20],[10,10,33,43],[11,11,20,21],[11,11,32,33],[7,16,0,6],[16,16,23,30],[7,16,47,53],[11,19,10,10],[12,19,21,21],[12,19,32,32],[11,19,43,43],[17,20,0,7],[20,20,10,11],[20,20,42,43],[17,20,46,53],[21,21,0,4],[21,21,11,19],[21,21,34,42],[21,21,49,53],[23,30,16,16],[23,30,37,37],[22,31,0,0],[22,31,53,53],[32,32,0,4],[32,32,11,19],[32,32,34,42],[32,32,49,53],[33,33,10,11],[33,33,42,43],[33,36,0,7],[33,36,46,53],[37,37,23,30],[34,41,21,21],[34,41,32,32],[34,42,10,10],[42,42,20,21],[42,42,32,33],[34,42,43,43],[43,43,10,20],[43,43,33,43],[37,46,0,6],[46,46,17,20],[46,46,33,36],[37,46,47,53],[47,48,0,20],[47,48,33,53],[49,52,0,21],[49,52,32,53],[53,53,0,53]])}),
+    Object.freeze({id:"official-ffa-closed-05",name:"FFA 비오픈맵5",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[4,4,16,37],[0,8,0,8],[0,8,45,53],[5,10,16,16],[5,10,37,37],[16,16,4,10],[16,16,16,17],[16,16,36,37],[16,16,43,49],[17,17,16,18],[17,17,35,37],[18,18,17,19],[18,18,34,36],[19,19,18,20],[19,19,33,35],[20,20,19,21],[20,20,32,34],[21,21,20,22],[21,21,31,33],[22,22,21,23],[22,22,30,32],[23,23,22,24],[23,23,29,31],[24,24,23,25],[24,24,28,30],[25,25,24,25],[25,25,28,29],[28,28,24,25],[28,28,28,29],[29,29,23,25],[29,29,28,30],[30,30,22,24],[30,30,29,31],[31,31,21,23],[31,31,30,32],[32,32,20,22],[32,32,31,33],[33,33,19,21],[33,33,32,34],[34,34,18,20],[34,34,33,35],[35,35,17,19],[35,35,34,36],[17,36,4,4],[36,36,16,18],[36,36,35,37],[17,36,49,49],[37,37,4,10],[37,37,16,17],[37,37,36,37],[37,37,43,49],[43,48,16,16],[43,48,37,37],[49,49,16,37],[45,53,0,8],[45,53,45,53]])}),
+    Object.freeze({id:"official-ffa-closed-06",name:"FFA 비오픈맵6",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[4,5,49,49],[4,7,44,44],[4,9,39,39],[4,11,34,34],[4,13,29,29],[4,15,24,24],[4,17,19,19],[4,19,14,14],[4,21,9,9],[4,23,4,4],[48,49,4,4],[46,49,9,9],[44,49,14,14],[42,49,19,19],[40,49,24,24],[38,49,29,29],[36,49,34,34],[34,49,39,39],[32,49,44,44],[30,49,49,49]])})
+,
+    Object.freeze({id:"ffa-open-01",name:"FFA 오픈맵 01",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,12,17,18],[14,15,34,35],[17,18,11,12],[18,19,38,39],[34,35,14,15],[35,36,41,42],[38,39,18,19],[41,42,35,36]])}),
+    Object.freeze({id:"ffa-open-02",name:"FFA 오픈맵 02",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[10,11,17,17],[12,13,20,20],[17,17,10,11],[20,20,12,13],[33,33,40,41],[36,36,42,43],[40,41,33,33],[42,43,36,36]])}),
+    Object.freeze({id:"ffa-open-03",name:"FFA 오픈맵 03",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,12,17,22],[16,16,34,34],[18,18,32,32],[19,19,37,37],[21,21,35,35],[17,22,11,12],[32,32,18,18],[34,34,16,16],[35,35,21,21],[31,36,41,42],[37,37,19,19],[41,42,31,36]])}),
+    Object.freeze({id:"ffa-open-04",name:"FFA 오픈맵 04",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[13,13,20,22],[14,16,20,21],[20,21,13,16],[22,22,13,13],[31,31,40,40],[32,33,37,40],[37,39,32,33],[40,40,31,33]])}),
+    Object.freeze({id:"ffa-open-05",name:"FFA 오픈맵 05",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,12,17,22],[11,12,31,36],[13,14,17,18],[13,14,35,36],[15,15,18,18],[13,15,22,22],[13,15,31,31],[15,15,35,35],[16,16,19,22],[16,16,31,34],[17,17,11,14],[17,17,39,42],[18,18,11,15],[18,18,38,42],[19,21,11,12],[19,21,16,16],[19,21,37,37],[19,21,41,42],[22,22,11,16],[22,22,37,42],[31,31,11,16],[31,31,37,42],[32,34,11,12],[32,34,16,16],[32,34,37,37],[32,34,41,42],[35,35,11,15],[35,35,38,42],[36,36,11,14],[36,36,39,42],[37,37,19,22],[37,37,31,34],[38,38,18,18],[38,38,35,35],[39,40,17,18],[38,40,22,22],[38,40,31,31],[39,40,35,36],[41,42,17,22],[41,42,31,36]])}),
+    Object.freeze({id:"ffa-open-06",name:"FFA 오픈맵 06",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[14,15,18,20],[18,20,14,15],[33,35,38,39],[38,39,33,35]])}),
+    Object.freeze({id:"ffa-open-07",name:"FFA 오픈맵 07",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[10,11,16,20],[16,16,29,31],[17,17,30,31],[16,20,10,11],[22,23,36,37],[24,24,37,37],[29,29,16,16],[30,31,16,17],[36,36,22,23],[37,37,22,24],[33,37,42,43],[42,43,33,37]])}),
+    Object.freeze({id:"ffa-open-08",name:"FFA 오픈맵 08",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,11,18,20],[14,14,32,34],[17,17,20,20],[18,20,11,11],[20,20,17,17],[19,21,39,39],[33,33,36,36],[32,34,14,14],[33,35,42,42],[36,36,33,33],[39,39,19,21],[42,42,33,35]])}),
+    Object.freeze({id:"ffa-open-09",name:"FFA 오픈맵 09",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[17,17,20,20],[17,17,31,32],[18,18,32,32],[20,20,17,17],[21,21,35,36],[22,22,36,36],[31,31,17,17],[32,32,17,18],[33,33,36,36],[35,35,21,21],[36,36,21,22],[36,36,33,33]])}),
+    Object.freeze({id:"ffa-open-10",name:"FFA 오픈맵 10",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,11,19,19],[17,17,22,23],[19,19,11,11],[22,23,17,17],[30,31,36,36],[34,34,42,42],[36,36,30,31],[42,42,34,34]])}),
+    Object.freeze({id:"ffa-semi-open-01",name:"FFA 반오픈맵 01",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[10,15,32,33],[10,17,20,21],[18,18,21,21],[20,20,10,17],[21,21,10,18],[20,21,38,43],[32,32,35,43],[32,33,10,15],[33,33,36,43],[35,35,32,32],[38,43,20,21],[36,43,32,33]])}),
+    Object.freeze({id:"ffa-semi-open-02",name:"FFA 반오픈맵 02",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,12,17,22],[17,17,21,22],[18,18,21,21],[21,21,17,18],[17,22,11,12],[22,22,17,17],[31,31,36,36],[32,32,35,36],[35,35,32,32],[36,36,31,32],[31,36,41,42],[41,42,31,36]])}),
+    Object.freeze({id:"ffa-semi-open-03",name:"FFA 반오픈맵 03",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,11,17,22],[11,11,31,36],[12,14,17,17],[12,14,36,36],[12,15,22,22],[12,15,31,31],[17,17,11,14],[16,17,22,23],[16,17,30,31],[17,17,39,42],[18,18,21,21],[18,18,32,32],[18,21,11,11],[21,21,18,18],[21,21,35,35],[18,21,42,42],[22,22,11,17],[22,22,36,42],[23,23,16,17],[23,23,36,37],[30,30,16,17],[30,30,36,37],[31,31,11,17],[31,31,36,42],[32,32,18,18],[32,32,35,35],[32,35,11,11],[35,35,21,21],[35,35,32,32],[32,35,42,42],[36,36,11,14],[36,36,39,42],[36,37,22,23],[36,37,30,31],[39,41,17,17],[38,41,22,22],[38,41,31,31],[39,41,36,36],[42,42,17,22],[42,42,31,36]])}),
+    Object.freeze({id:"ffa-semi-open-04",name:"FFA 반오픈맵 04",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[15,15,18,22],[16,16,19,22],[18,18,15,15],[19,22,15,16],[31,34,37,38],[35,35,38,38],[37,37,31,34],[38,38,31,35]])}),
+    Object.freeze({id:"ffa-semi-open-05",name:"FFA 반오픈맵 05",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,12,17,22],[17,17,23,23],[16,17,30,31],[17,22,11,12],[23,23,17,17],[22,23,36,37],[30,30,36,36],[30,31,16,17],[36,36,30,30],[31,36,41,42],[36,37,22,23],[41,42,31,36]])}),
+    Object.freeze({id:"ffa-semi-open-06",name:"FFA 반오픈맵 06",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[10,15,21,22],[21,22,10,15],[31,32,38,43],[38,43,31,32]])}),
+    Object.freeze({id:"ffa-semi-open-07",name:"FFA 반오픈맵 07",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,12,16,22],[16,16,29,34],[16,22,11,12],[19,24,37,37],[29,34,16,16],[37,37,19,24],[31,37,41,42],[41,42,31,37]])}),
+    Object.freeze({id:"ffa-semi-open-08",name:"FFA 반오픈맵 08",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[10,14,19,19],[14,15,31,31],[19,19,10,14],[22,22,38,39],[31,31,14,15],[34,34,39,43],[38,39,22,22],[39,43,34,34]])}),
+    Object.freeze({id:"ffa-semi-open-09",name:"FFA 반오픈맵 09",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[16,16,19,24],[17,17,20,23],[19,19,16,16],[20,23,16,17],[24,24,16,16],[29,29,37,37],[30,33,36,37],[34,34,37,37],[36,36,30,33],[37,37,29,34]])}),
+    Object.freeze({id:"ffa-semi-open-10",name:"FFA 반오픈맵 10",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[9,12,17,17],[12,16,22,22],[12,16,31,31],[17,17,9,12],[17,17,22,23],[17,17,30,31],[22,22,12,17],[22,22,36,41],[23,23,17,17],[23,23,36,36],[30,30,17,17],[30,30,36,36],[31,31,12,17],[31,31,36,41],[36,36,22,23],[36,36,30,31],[36,36,41,44],[37,41,22,22],[37,41,31,31],[41,44,36,36]])}),
+    Object.freeze({id:"ffa-semi-open-11",name:"FFA 반오픈맵 11",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,12,19,22],[16,16,23,24],[17,17,23,23],[17,17,31,32],[18,18,32,32],[21,21,35,36],[19,22,11,12],[22,22,36,36],[23,23,16,17],[24,24,16,16],[29,29,37,37],[30,30,36,37],[31,31,17,17],[32,32,17,18],[31,34,41,42],[35,35,21,21],[36,36,21,22],[36,36,30,30],[37,37,29,30],[41,42,31,34]])}),
+    Object.freeze({id:"ffa-semi-open-12",name:"FFA 반오픈맵 12",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[10,11,17,20],[14,15,21,22],[17,20,10,11],[21,22,14,15],[31,32,38,39],[33,36,42,43],[38,39,31,32],[42,43,33,36]])}),
+    Object.freeze({id:"ffa-semi-open-13",name:"FFA 반오픈맵 13",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[16,16,29,29],[17,17,20,23],[18,18,21,21],[20,20,17,17],[21,21,17,18],[22,23,17,17],[24,24,37,37],[29,29,16,16],[30,31,36,36],[32,32,35,36],[33,33,36,36],[35,35,32,32],[36,36,30,33],[37,37,24,24]])}),
+    Object.freeze({id:"ffa-semi-open-14",name:"FFA 반오픈맵 14",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[11,12,17,22],[16,16,29,30],[17,17,30,32],[18,18,32,32],[21,21,35,36],[17,22,11,12],[22,22,36,36],[23,23,36,37],[24,24,37,37],[29,29,16,16],[30,30,16,17],[31,31,17,17],[32,32,17,18],[35,35,21,21],[36,36,21,23],[31,36,41,42],[37,37,23,24],[41,42,31,36]])}),
+    Object.freeze({id:"ffa-semi-open-15",name:"FFA 반오픈맵 15",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[10,14,21,22],[15,15,31,35],[16,16,29,34],[18,18,21,21],[18,18,38,38],[21,21,18,18],[21,22,10,14],[19,22,37,38],[23,24,37,37],[29,30,16,16],[32,32,35,35],[31,32,39,43],[31,34,15,16],[35,35,15,15],[35,35,32,32],[37,37,19,24],[38,38,18,22],[39,43,31,32]])})
+,
+    Object.freeze({id:"official-ffa-closed-07",name:"FFA 비오픈맵7",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[3,3,3,13],[3,3,40,50],[0,6,19,19],[0,6,34,34],[4,13,3,3],[4,13,50,50],[10,18,19,19],[10,18,34,34],[19,19,0,6],[19,19,10,22],[19,19,31,43],[19,19,47,53],[20,22,19,19],[20,22,34,34],[26,27,26,27],[31,33,19,19],[31,33,34,34],[34,34,0,6],[34,34,10,22],[34,34,31,43],[34,34,47,53],[35,43,19,19],[35,43,34,34],[40,49,3,3],[40,49,50,50],[50,50,3,13],[50,50,40,50],[47,53,19,19],[47,53,34,34]])}),
+    Object.freeze({id:"official-ffa-closed-08",name:"FFA 비오픈맵8",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[16,16,16,25],[16,16,28,37],[17,25,16,16],[17,25,37,37],[28,36,16,16],[28,36,37,37],[37,37,16,25],[37,37,28,37]])}),
+    Object.freeze({id:"official-ffa-closed-09",name:"FFA 비오픈맵9",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[0,7,0,53],[8,45,0,7],[8,45,46,53],[46,53,0,53]])}),
+    Object.freeze({id:"official-ffa-closed-10",name:"FFA 비오픈맵10",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[0,3,0,26],[4,7,26,26],[13,13,29,40],[14,14,28,40],[24,24,24,29],[15,24,39,40],[4,25,0,3],[25,25,24,24],[25,25,29,29],[25,25,39,39],[26,26,0,7],[27,27,46,53],[28,28,14,14],[28,28,24,24],[28,28,29,29],[29,29,24,29],[29,38,13,14],[39,39,13,25],[40,40,13,24],[46,49,27,27],[28,49,50,53],[50,53,27,53]])})
+,
+    Object.freeze({id:"official-team-open-01",name:"팀전 오픈맵1",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[8,8,14,14],[7,9,11,12],[7,9,16,17],[10,10,43,43],[9,11,40,41],[9,11,45,46],[24,24,6,6],[23,25,3,4],[23,25,8,9],[26,26,35,35],[25,27,32,33],[25,27,37,38]])}),
+    Object.freeze({id:"official-team-open-02",name:"팀전 오픈맵2",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[2,2,18,31],[7,8,14,17],[7,8,32,35],[13,21,5,5],[13,21,44,44],[26,27,14,17],[26,27,32,35],[32,32,18,31]])}),
+    Object.freeze({id:"official-team-open-03",name:"팀전 오픈맵3",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[5,5,8,13],[5,5,39,45],[6,10,8,8],[10,10,24,27],[6,11,45,45],[24,24,22,25],[23,28,4,4],[24,28,41,41],[29,29,4,10],[29,29,36,41]])}),
+    Object.freeze({id:"official-team-open-04",name:"팀전 오픈맵4",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[5,5,15,23],[5,5,37,44],[10,10,8,17],[10,12,32,32],[11,18,5,5],[16,23,44,44],[22,24,17,17],[24,24,32,41],[29,29,5,12],[29,29,26,34]])}),
+    Object.freeze({id:"official-team-open-05",name:"팀전 오픈맵5",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[4,4,14,14],[5,5,15,15],[6,6,27,38],[6,6,41,41],[7,7,11,11],[6,7,16,16],[7,7,42,42],[8,8,12,12],[8,8,15,15],[8,8,43,43],[9,9,13,14],[9,9,44,44],[10,10,45,45],[24,24,4,4],[25,25,5,5],[25,25,35,36],[26,26,6,6],[26,26,34,34],[26,26,37,37],[27,27,7,7],[27,27,38,38],[28,28,8,8],[28,28,11,22],[27,28,33,33],[29,29,34,34],[30,30,35,35]])}),
+    Object.freeze({id:"official-team-open-06",name:"팀전 오픈맵6",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[5,5,19,37],[2,7,42,42],[6,10,37,37],[11,14,14,14],[20,23,35,35],[24,28,12,12],[29,29,12,30],[27,32,7,7]])}),
+    Object.freeze({id:"official-team-open-07",name:"팀전 오픈맵7",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[6,6,7,15],[7,7,38,44],[6,8,3,4],[10,11,40,41],[10,12,11,11],[14,16,44,44],[18,20,5,5],[23,24,8,9],[22,24,38,38],[27,27,5,11],[28,28,34,42],[26,28,45,46]])}),
+    Object.freeze({id:"official-team-open-08",name:"팀전 오픈맵8",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,3],[0,0,46,49],[1,3,0,0],[1,3,49,49],[3,4,34,34],[5,7,7,7],[7,7,30,31],[7,7,37,38],[8,8,4,10],[9,11,7,7],[10,11,34,34],[23,24,15,15],[23,25,42,42],[26,26,39,45],[27,27,11,12],[27,27,18,19],[27,29,42,42],[30,31,15,15],[31,33,0,0],[31,33,49,49],[34,34,0,3],[34,34,46,49]])}),
+    Object.freeze({id:"official-team-open-09",name:"팀전 오픈맵9",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[2,2,33,37],[5,5,3,6],[7,7,8,11],[5,8,39,39],[9,9,13,16],[11,11,41,45],[23,23,4,8],[25,25,33,36],[27,27,38,41],[26,29,10,10],[29,29,43,46],[32,32,12,16]])}),
+    Object.freeze({id:"official-team-open-10",name:"팀전 오픈맵10",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,2],[0,0,47,49],[1,2,0,0],[1,2,49,49],[4,4,21,28],[4,8,13,13],[4,8,35,35],[10,10,7,11],[10,10,37,42],[24,24,7,12],[24,24,38,42],[26,30,14,14],[30,30,21,28],[26,30,36,36],[32,33,0,0],[32,33,49,49],[34,34,0,2],[34,34,47,49]])}),
+    Object.freeze({id:"official-team-semi-open-01",name:"팀전 반오픈맵1",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[5,5,23,26],[10,10,18,22],[10,10,27,31],[11,14,18,18],[11,14,31,31],[15,19,12,12],[15,19,37,37],[20,23,18,18],[20,23,31,31],[24,24,18,22],[24,24,27,31],[29,29,23,26]])}),
+    Object.freeze({id:"official-team-semi-open-02",name:"팀전 반오픈맵2",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[10,10,23,30],[8,10,36,38],[10,13,20,20],[13,21,15,16],[13,21,33,34],[24,24,19,26],[21,24,29,29],[24,26,11,13]])}),
+    Object.freeze({id:"official-team-semi-open-03",name:"팀전 반오픈맵3",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[6,6,12,19],[6,6,30,37],[10,11,15,34],[15,19,12,12],[15,19,37,37],[23,24,15,34],[28,28,12,19],[28,28,30,37]])}),
+    Object.freeze({id:"official-team-semi-open-04",name:"팀전 반오픈맵4",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[6,6,29,36],[7,7,19,22],[9,9,33,34],[10,10,17,18],[11,11,24,27],[10,11,30,30],[10,13,14,14],[13,13,20,21],[12,14,35,35],[16,17,16,16],[14,18,30,30],[17,18,33,33],[16,20,19,19],[21,21,28,29],[20,22,14,14],[23,23,22,25],[23,24,19,19],[24,24,31,32],[21,24,35,35],[25,25,15,16],[27,27,27,30],[28,28,13,20]])}),
+    Object.freeze({id:"official-team-semi-open-05",name:"팀전 반오픈맵5",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[9,9,13,18],[12,12,27,29],[8,12,37,37],[8,14,24,24],[12,15,18,18],[17,17,15,21],[17,17,24,25],[17,17,28,34],[22,22,20,22],[19,22,31,31],[25,25,31,36],[22,26,12,12],[20,26,25,25]])}),
+    Object.freeze({id:"official-team-semi-open-06",name:"팀전 반오픈맵6",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[9,9,11,12],[9,9,37,38],[11,12,21,28],[10,13,17,17],[10,13,32,32],[15,19,16,16],[15,19,33,33],[22,23,21,28],[21,24,17,17],[21,24,32,32],[25,25,11,12],[25,25,37,38]])}),
+    Object.freeze({id:"official-team-semi-open-07",name:"팀전 반오픈맵7",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[8,10,18,18],[9,10,29,29],[10,19,34,35],[3,20,20,20],[15,24,14,15],[24,25,20,20],[24,26,31,31],[14,31,29,29]])}),
+    Object.freeze({id:"official-team-semi-open-08",name:"팀전 반오픈맵8",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[7,8,20,25],[10,10,34,37],[11,11,10,23],[13,13,28,34],[16,16,15,16],[18,18,33,34],[21,21,15,21],[23,23,26,39],[24,24,12,15],[26,27,24,29]])}),
+    Object.freeze({id:"official-team-semi-open-09",name:"팀전 반오픈맵9",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[8,8,17,26],[10,13,20,21],[7,13,30,30],[16,18,14,35],[21,24,28,29],[26,26,23,32],[21,27,19,19]])}),
+    Object.freeze({id:"official-team-semi-open-10",name:"팀전 반오픈맵10",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[7,7,18,32],[11,11,23,27],[10,12,13,13],[9,14,35,35],[17,17,17,20],[17,17,29,32],[16,18,24,25],[23,23,22,26],[22,24,36,36],[20,25,14,14],[27,27,17,31]])}),
+    Object.freeze({id:"official-team-semi-open-11",name:"팀전 반오픈맵11",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[8,12,14,15],[12,12,18,31],[15,15,11,21],[15,15,28,38],[19,19,11,21],[19,19,28,38],[22,22,18,31],[22,26,34,35]])}),
+    Object.freeze({id:"official-team-semi-open-12",name:"팀전 반오픈맵12",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[5,13,21,21],[11,14,15,17],[15,15,33,37],[11,16,27,29],[19,19,12,16],[18,23,20,22],[20,23,32,34],[21,29,28,28]])}),
+    Object.freeze({id:"official-team-semi-open-13",name:"팀전 반오픈맵13",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[10,10,20,23],[10,10,26,29],[13,13,24,25],[11,14,14,14],[12,15,35,35],[17,17,22,27],[14,20,16,16],[14,20,33,33],[21,21,24,25],[19,22,14,14],[20,23,35,35],[24,24,20,23],[24,24,26,29]])}),
+    Object.freeze({id:"official-team-semi-open-14",name:"팀전 반오픈맵14",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[5,9,26,26],[10,10,21,31],[12,13,19,19],[14,14,17,21],[14,14,34,34],[11,15,26,26],[15,16,19,19],[18,19,30,30],[20,20,15,15],[20,20,28,32],[21,22,30,30],[19,23,23,23],[24,24,18,28],[25,29,23,23]])}),
+    Object.freeze({id:"official-team-semi-open-15",name:"팀전 반오픈맵15",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[8,8,21,28],[8,9,31,36],[9,12,21,21],[9,12,28,28],[13,13,13,21],[13,13,28,33],[14,15,21,21],[14,15,28,28],[14,17,15,15],[19,20,21,21],[19,20,28,28],[17,20,34,34],[21,21,16,21],[21,21,28,36],[22,25,21,21],[22,25,28,28],[25,26,13,18],[26,26,21,28]])}),
+    Object.freeze({id:"official-team-closed-01",name:"팀전 비오픈맵1",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,1,42,49],[6,7,38,43],[9,9,13,29],[2,9,48,49],[4,10,10,10],[11,11,4,10],[12,12,21,26],[12,13,10,10],[14,14,24,24],[5,14,33,34],[15,16,19,19],[15,16,30,30],[17,17,15,20],[17,17,29,34],[18,19,19,19],[15,19,24,25],[18,19,30,30],[20,20,25,25],[22,22,23,28],[21,22,39,39],[23,23,39,45],[25,25,20,36],[27,28,6,11],[20,29,15,16],[24,30,39,39],[25,32,0,1],[33,34,0,7]])}),
+    Object.freeze({id:"official-team-closed-02",name:"팀전 비오픈맵2",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,0,46,49],[0,1,0,13],[1,3,49,49],[3,5,17,17],[2,5,39,39],[2,7,0,1],[5,7,7,7],[7,7,34,37],[7,7,39,39],[7,7,41,44],[9,9,4,5],[9,9,9,10],[10,10,27,29],[9,12,39,39],[11,13,7,7],[7,13,20,20],[14,14,16,24],[14,19,29,29],[15,20,20,20],[20,20,25,33],[21,23,42,42],[24,24,20,22],[22,25,10,10],[25,25,39,40],[25,25,44,45],[27,27,5,8],[27,27,10,10],[27,27,12,15],[21,27,29,29],[27,29,42,42],[29,31,32,32],[29,32,10,10],[27,32,48,49],[31,33,0,0],[34,34,0,3],[33,34,36,49]])}),
+    Object.freeze({id:"official-team-closed-03",name:"팀전 비오픈맵3",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[3,3,5,11],[6,7,20,21],[5,10,2,2],[5,10,41,45],[9,11,33,35],[10,12,11,15],[16,18,16,33],[14,20,4,4],[14,20,45,45],[22,24,34,38],[23,25,14,16],[27,28,28,29],[24,29,4,8],[24,29,47,47],[31,31,38,44]])}),
+    Object.freeze({id:"official-team-closed-04",name:"팀전 비오픈맵4",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[2,3,27,29],[2,4,10,10],[6,6,18,22],[9,9,26,31],[4,11,42,42],[4,13,4,6],[11,13,37,37],[13,14,18,31],[10,18,47,47],[20,21,18,31],[21,23,12,12],[16,24,2,2],[25,25,18,23],[28,28,27,31],[23,30,7,7],[21,30,43,45],[31,32,20,22],[30,32,39,39]])}),
+    Object.freeze({id:"official-team-closed-05",name:"팀전 비오픈맵5",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,2,15,15],[0,2,32,32],[2,8,9,10],[1,8,39,39],[1,10,47,48],[4,13,27,27],[7,13,36,36],[0,14,0,0],[11,15,43,43],[11,16,20,21],[11,17,14,14],[19,23,6,6],[18,23,28,29],[17,23,35,35],[21,27,13,13],[21,30,22,22],[26,32,39,40],[24,33,1,2],[26,33,10,10],[32,34,17,17],[32,34,34,34],[20,34,49,49]])}),
+    Object.freeze({id:"official-team-closed-06",name:"팀전 비오픈맵6",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,1,0,11],[1,1,42,46],[2,2,29,31],[5,5,12,22],[5,6,36,41],[8,8,3,9],[9,10,19,23],[11,11,31,44],[14,14,11,12],[16,16,1,4],[16,16,28,32],[18,18,17,21],[18,18,45,48],[20,20,37,38],[23,23,5,18],[24,25,26,30],[26,26,40,46],[28,29,8,13],[29,29,27,37],[32,32,18,20],[33,33,3,7],[33,34,38,49]])}),
+    Object.freeze({id:"official-team-closed-07",name:"팀전 비오픈맵7",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[3,3,2,47],[10,10,5,8],[11,11,41,44],[5,13,24,24],[4,14,2,2],[4,15,47,47],[15,19,21,21],[15,19,28,28],[12,21,10,10],[13,22,39,39],[23,23,5,8],[24,24,41,44],[21,29,25,25],[19,30,2,2],[20,30,47,47],[31,31,2,47]])}),
+    Object.freeze({id:"official-team-closed-08",name:"팀전 비오픈맵8",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,49],[6,10,18,19],[6,10,30,31],[11,11,14,15],[11,11,34,35],[12,12,21,28],[1,16,0,3],[1,16,46,49],[17,17,0,49],[22,22,21,28],[23,23,14,15],[23,23,34,35],[24,28,18,19],[24,28,30,31],[18,33,0,3],[18,33,46,49],[34,34,0,49]])}),
+    Object.freeze({id:"official-team-closed-09",name:"팀전 비오픈맵9",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,2,15,15],[4,5,29,30],[5,5,39,45],[3,6,20,20],[6,9,15,15],[10,11,15,34],[10,12,42,42],[12,15,15,17],[12,16,32,34],[16,18,23,26],[18,22,15,17],[19,22,32,34],[22,24,7,7],[23,24,15,34],[25,28,34,34],[29,29,4,10],[29,30,19,20],[28,31,29,29],[32,34,34,34]])}),
+    Object.freeze({id:"official-team-closed-10",name:"팀전 비오픈맵10",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,49],[1,3,0,32],[4,8,26,32],[9,9,13,39],[14,14,19,19],[1,14,49,49],[13,15,16,17],[13,15,21,22],[15,15,44,49],[4,18,0,3],[19,19,0,5],[20,20,30,30],[19,21,27,28],[19,21,32,33],[10,22,39,39],[12,24,10,10],[25,25,10,36],[26,30,17,23],[16,30,46,49],[20,33,0,0],[31,33,17,49],[34,34,0,49]])})
+]);
+
+function duels2DecodeOfficialMapTiles(source){
+  const rows=Math.max(
     1,
-    ...source.map(row=>row.length)
+    Math.floor(Number(source?.rows)||1)
   );
-  const total=
-    TEAM_TILE_ROWS*TEAM_TILE_COLS;
-  const parent=
-    new Int32Array(total);
+  const cols=Math.max(
+    1,
+    Math.floor(Number(source?.cols)||1)
+  );
+  const tiles=Array.from(
+    {length:rows},
+    ()=>Array(cols).fill(
+      DUELS2_TILE.FLOOR
+    )
+  );
 
-  for(let index=0;index<total;index++){
-    parent[index]=index;
-  }
-
-  const indexOf=(row,col)=>
-    row*TEAM_TILE_COLS+col;
-
-  const find=index=>{
-    let root=index;
-
-    while(parent[root]!==root){
-      root=parent[root];
-    }
-
-    while(parent[index]!==index){
-      const next=parent[index];
-      parent[index]=root;
-      index=next;
-    }
-
-    return root;
-  };
-
-  const unite=(a,b)=>{
-    const rootA=find(a);
-    const rootB=find(b);
-
-    if(rootA===rootB)return;
-
-    if(rootA<rootB){
-      parent[rootB]=rootA;
-    }else{
-      parent[rootA]=rootB;
-    }
-  };
-
-  for(let row=0;row<TEAM_TILE_ROWS;row++){
-    for(let col=0;col<TEAM_TILE_COLS;col++){
-      const index=indexOf(row,col);
-
-      const main=
-        duels2TeamDiagonalPartnerMain(
-          row,
-          col
-        );
-      const anti=
-        duels2TeamDiagonalPartnerAnti(
-          row,
-          col
-        );
-
-      unite(
-        index,
-        indexOf(
-          main.row,
-          main.col
-        )
-      );
-      unite(
-        index,
-        indexOf(
-          anti.row,
-          anti.col
-        )
-      );
-    }
-  }
-
-  const sampled=new Array(total);
-
-  for(let row=0;row<TEAM_TILE_ROWS;row++){
-    for(let col=0;col<TEAM_TILE_COLS;col++){
-      const sourceRow=Math.min(
-        sourceRows-1,
-        Math.floor(
-          row*sourceRows/
-          TEAM_TILE_ROWS
-        )
-      );
-      const sourceCol=Math.min(
-        sourceCols-1,
-        Math.floor(
-          col*sourceCols/
-          TEAM_TILE_COLS
-        )
-      );
-
-      sampled[indexOf(row,col)]=
-        source[sourceRow]?.[sourceCol]||
-        DUELS2_TILE.FLOOR;
-    }
-  }
-
-  const componentValue=new Map();
-
-  for(let index=0;index<total;index++){
-    const root=find(index);
-
-    if(!componentValue.has(root)){
-      componentValue.set(
-        root,
-        sampled[root]||
-        DUELS2_TILE.FLOOR
-      );
-    }
-  }
-
-  /*
-    스폰 안전구역도 같은 component 전체를 FLOOR로 만들어
-    양방향 대각선 대칭이 절대 깨지지 않게 한다.
-  */
-  const clearRoots=new Set();
-
-  const collectSpawnCluster=centerCol=>{
-    const centerRow=
-      Math.floor(
-        TEAM_TILE_ROWS/2
-      );
+  for(
+    const rect of
+    source?.wallRects||[]
+  ){
+    const [
+      rowStart,
+      rowEnd,
+      colStart,
+      colEnd
+    ]=rect;
 
     for(
-      let row=centerRow-5;
-      row<=centerRow+5;
+      let row=rowStart;
+      row<=rowEnd;
       row++
     ){
       for(
-        let col=centerCol-5;
-        col<=centerCol+5;
+        let col=colStart;
+        col<=colEnd;
         col++
       ){
         if(
-          row<0||
-          row>=TEAM_TILE_ROWS||
-          col<0||
-          col>=TEAM_TILE_COLS
-        )continue;
-
-        clearRoots.add(
-          find(
-            indexOf(row,col)
-          )
-        );
+          row>=0&&row<rows&&
+          col>=0&&col<cols
+        ){
+          tiles[row][col]=
+            DUELS2_TILE.WALL;
+        }
       }
     }
-  };
-
-  collectSpawnCluster(
-    Math.floor(
-      TEAM_TILE_COLS*.16
-    )
-  );
-  collectSpawnCluster(
-    Math.floor(
-      TEAM_TILE_COLS*.84
-    )
-  );
-
-  for(const root of clearRoots){
-    componentValue.set(
-      root,
-      DUELS2_TILE.FLOOR
-    );
   }
 
-  return Array.from(
-    {length:TEAM_TILE_ROWS},
-    (_,row)=>Array.from(
-      {length:TEAM_TILE_COLS},
-      (_,col)=>
-        componentValue.get(
-          find(
-            indexOf(row,col)
-          )
-        )||
-        DUELS2_TILE.FLOOR
-    )
-  );
+  return tiles;
 }
 
-const TEAM_DUELS_MAPS=Object.freeze(
-  DUELS_MAPS
-    .filter(map=>!map.isTraining)
-    .map(map=>
-      duels2CreateTilemap(
-        `팀전 ${map.name}`,
-        map.mapClass,
-        duels2BuildTeamTiles(map),
-        {
-          id:`team-${map.id}`,
-          isTeam:true,
-          tileWorldSize:
-            TEAM_TILE_WORLD_SIZE,
-          worldWidth:
-            TEAM_WORLD_WIDTH,
-          worldHeight:
-            TEAM_WORLD_HEIGHT
-        }
-      )
+const OFFICIAL_DUELS_MAP_DATA={
+  entries:
+    OFFICIAL_DUELS_MAP_SOURCE.map(
+      source=>({
+        id:source.id,
+        name:source.name,
+        mode:source.mode,
+        rows:source.rows,
+        cols:source.cols,
+        tileWorldSize:
+          source.tileWorldSize,
+        tiles:
+          duels2DecodeOfficialMapTiles(
+            source
+          )
+      })
     )
-);
+};
 
-const ALL_DUELS_MAPS=Object.freeze([
-  ...DUELS_MAPS,
-  ...FFA_DUELS_MAPS,
-  ...TEAM_DUELS_MAPS
-]);
+const OfficialMapDataService=Object.freeze({
+  modeSpecs:Object.freeze({
+    basic:Object.freeze({
+      label:'기본',
+      cols:40,
+      rows:28,
+      tileWorldSize:
+        DUELS2_TILE_WORLD_SIZE
+    }),
+    ffa:Object.freeze({
+      label:'FFA',
+      cols:54,
+      rows:54,
+      tileWorldSize:
+        DUELS2_TILE_WORLD_SIZE
+    }),
+    team:Object.freeze({
+      label:'팀전',
+      cols:50,
+      rows:35,
+      tileWorldSize:
+        DUELS2_TILE_WORLD_SIZE
+    })
+  }),
+  normalize(raw){
+    const mode=
+      this.modeSpecs[raw?.mode]
+        ?String(raw.mode)
+        :'basic';
+    const spec=this.modeSpecs[mode];
+    const rows=Math.max(
+      1,
+      Math.floor(
+        Number(raw?.rows)||spec.rows
+      )
+    );
+    const cols=Math.max(
+      1,
+      Math.floor(
+        Number(raw?.cols)||spec.cols
+      )
+    );
 
-/* 기존 Duels 타일맵과 FFA 확장 맵을 전투/디버그 공통 맵 경계에서 사용한다. */
+    return {
+      id:String(raw?.id||''),
+      name:String(raw?.name||'새 맵'),
+      mode,
+      rows,
+      cols,
+      tileWorldSize:
+        Math.max(
+          1,
+          Number(raw?.tileWorldSize)||
+          spec.tileWorldSize
+        ),
+      tiles:Array.from(
+        {length:rows},
+        (_,row)=>Array.from(
+          {length:cols},
+          (_,col)=>
+            Number(
+              raw?.tiles?.[row]?.[col]
+            )===DUELS2_TILE.WALL
+              ?DUELS2_TILE.WALL
+              :DUELS2_TILE.FLOOR
+        )
+      )
+    };
+  },
+  createRecord(
+    {
+      name='새 맵',
+      mode='basic'
+    }={}
+  ){
+    const actualMode=
+      this.modeSpecs[mode]
+        ?mode
+        :'basic';
+    const spec=
+      this.modeSpecs[actualMode];
+    const existing=
+      OFFICIAL_DUELS_MAP_DATA.entries;
+    let sequence=existing.length+1;
+    let id='';
+
+    do{
+      id=
+        `official-${actualMode}-${String(sequence).padStart(2,'0')}`;
+      sequence++;
+    }while(
+      existing.some(
+        entry=>entry.id===id
+      )
+    );
+
+    return {
+      id,
+      name:String(name||'새 맵'),
+      mode:actualMode,
+      rows:spec.rows,
+      cols:spec.cols,
+      tileWorldSize:
+        spec.tileWorldSize,
+      tiles:Array.from(
+        {length:spec.rows},
+        ()=>Array(spec.cols).fill(
+          DUELS2_TILE.FLOOR
+        )
+      )
+    };
+  },
+  toMap(raw){
+    const record=this.normalize(raw);
+    const modeSpec=
+      this.modeSpecs[record.mode];
+
+    return duels2CreateTilemap(
+      record.name,
+      'official',
+      record.tiles,
+      {
+        id:record.id,
+        type:
+          `공식 · ${modeSpec.label}`,
+        mapMode:record.mode,
+        isFfa:
+          record.mode==='ffa',
+        isTeam:
+          record.mode==='team',
+        tileWorldSize:
+          record.tileWorldSize,
+        worldWidth:
+          record.cols*
+          record.tileWorldSize,
+        worldHeight:
+          record.rows*
+          record.tileWorldSize
+      }
+    );
+  },
+  fileSafeName(value){
+    const name=String(value||'map')
+      .trim()
+      .replace(/[\\/:*?"<>|]+/g,'_')
+      .replace(/\s+/g,'_')
+      .replace(/^_+|_+$/g,'');
+    return name||'map';
+  },
+  mapFilePayload(raw){
+    const map=this.normalize(raw);
+    return {
+      format:'duels3-map',
+      version:1,
+      map
+    };
+  },
+  bundleFilePayload(){
+    return {
+      format:'duels3-map-bundle',
+      version:1,
+      maps:
+        OFFICIAL_DUELS_MAP_DATA.entries
+          .map(entry=>this.normalize(entry))
+    };
+  },
+  serialize(){
+    return JSON.stringify(
+      this.bundleFilePayload(),
+      null,
+      2
+    );
+  },
+  downloadJson(filename,payload){
+    const blob=new Blob(
+      [
+        JSON.stringify(
+          payload,
+          null,
+          2
+        )
+      ],
+      {
+        type:'application/json;charset=utf-8'
+      }
+    );
+    const url=URL.createObjectURL(blob);
+    const anchor=document.createElement('a');
+    anchor.href=url;
+    anchor.download=String(filename||'Duels3_Map.json');
+    anchor.style.display='none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(
+      ()=>URL.revokeObjectURL(url),
+      0
+    );
+    return true;
+  },
+  downloadMap(raw){
+    const map=this.normalize(raw);
+    return this.downloadJson(
+      `Duels3_Map_${this.fileSafeName(map.name)}.json`,
+      this.mapFilePayload(map)
+    );
+  },
+  downloadBundle(){
+    return this.downloadJson(
+      'Duels3_Maps.json',
+      this.bundleFilePayload()
+    );
+  }
+});
+
+/* 훈련장 + 현재 파일의 공식 맵 데이터만 관리한다. */
 const DebugMapService={
   currentId:'training-tilemap',
   currentMap:null,
-  maps:ALL_DUELS_MAPS,
-  current(){
+  maps:[],
+  rebuild(){
+    const normalized=
+      OFFICIAL_DUELS_MAP_DATA.entries.map(
+        entry=>
+          OfficialMapDataService
+            .normalize(entry)
+      );
+
+    OFFICIAL_DUELS_MAP_DATA.entries
+      .splice(
+        0,
+        OFFICIAL_DUELS_MAP_DATA.entries.length,
+        ...normalized
+      );
+
+    this.maps=[
+      TRAINING_TILEMAP,
+      ...normalized.map(
+        record=>
+          OfficialMapDataService
+            .toMap(record)
+      )
+    ];
+
     if(
-      this.currentMap&&
-      this.currentMap.id===this.currentId
-    )return this.currentMap;
+      !this.maps.some(
+        map=>map.id===this.currentId
+      )
+    ){
+      this.currentId=
+        'training-tilemap';
+    }
 
     this.currentMap=
-      this.maps.find(map=>map.id===this.currentId)||
-      this.maps.find(map=>map.isTraining)||
-      this.maps[0]||null;
-    return this.currentMap;
+      this.maps.find(
+        map=>map.id===this.currentId
+      )||TRAINING_TILEMAP;
+
+    return this.maps;
+  },
+  current(){
+    if(!this.maps.length){
+      this.rebuild();
+    }
+    return (
+      this.maps.find(
+        map=>map.id===this.currentId
+      )||
+      TRAINING_TILEMAP
+    );
   },
   walls(){
     return this.current()?.walls||[];
   },
+  record(mapId=this.currentId){
+    return (
+      OFFICIAL_DUELS_MAP_DATA.entries.find(
+        entry=>
+          entry.id===String(mapId||'')
+      )||null
+    );
+  },
   set(mapId){
+    if(!this.maps.length){
+      this.rebuild();
+    }
+
     const map=this.maps.find(
       item=>item.id===String(mapId||'')
     );
@@ -98692,6 +98823,734 @@ const DebugMapService={
     StaticWorldRenderer.invalidate();
     ProjectileService.clear();
     SimulationScheduleService.clear();
+    return true;
+  },
+  create({name,mode}={}){
+    const record=
+      OfficialMapDataService
+        .createRecord({name,mode});
+
+    OFFICIAL_DUELS_MAP_DATA.entries
+      .push(record);
+
+    this.rebuild();
+    this.set(record.id);
+    return record;
+  },
+  updateRecord(record){
+    if(!record?.id)return false;
+
+    const index=
+      OFFICIAL_DUELS_MAP_DATA.entries
+        .findIndex(
+          entry=>entry.id===record.id
+        );
+    if(index<0)return false;
+
+    OFFICIAL_DUELS_MAP_DATA.entries[index]=
+      OfficialMapDataService
+        .normalize(record);
+
+    this.rebuild();
+    this.set(record.id);
+    return true;
+  },
+  rename(mapId,name){
+    const record=this.record(mapId);
+    if(!record)return false;
+
+    record.name=
+      String(name||record.name);
+
+    return this.updateRecord(record);
+  },
+  remove(mapId){
+    const id=String(mapId||'');
+    if(
+      !id||
+      id==='training-tilemap'
+    )return false;
+
+    const index=
+      OFFICIAL_DUELS_MAP_DATA.entries
+        .findIndex(
+          entry=>entry.id===id
+        );
+    if(index<0)return false;
+
+    OFFICIAL_DUELS_MAP_DATA.entries
+      .splice(index,1);
+
+    if(this.currentId===id){
+      this.currentId=
+        'training-tilemap';
+    }
+
+    this.rebuild();
+    return true;
+  },
+  exportOfficialData(){
+    return OfficialMapDataService
+      .serialize();
+  },
+  downloadMap(mapId=this.currentId){
+    const record=this.record(mapId);
+    if(!record)return false;
+    return OfficialMapDataService
+      .downloadMap(record);
+  },
+  downloadAllMaps(){
+    return OfficialMapDataService
+      .downloadBundle();
+  }
+};
+DebugMapService.rebuild();
+
+const DebugMapEditorService={
+  active:false,
+  mapId:null,
+  drag:null,
+  hover:null,
+  previousSpectating:false,
+  previousSpectator:null,
+  overlay:null,
+  frame:0,
+  lastFrameAt:0,
+  symmetry:{
+    diagonal:false
+  },
+  canEdit(mapId=DebugMapService.currentId){
+    return (
+      !!DebugMapService.record(mapId)&&
+      String(mapId)!=='training-tilemap'
+    );
+  },
+  record(){
+    return DebugMapService.record(
+      this.mapId
+    );
+  },
+  modeLabel(mode){
+    return (
+      OfficialMapDataService
+        .modeSpecs[mode]?.label||
+      mode
+    );
+  },
+  start(mapId){
+    const id=String(mapId||'');
+    if(!this.canEdit(id))return false;
+    DebugMapService.set(id);
+
+    this.active=true;
+    this.mapId=id;
+    this.drag=null;
+    this.hover=null;
+
+    this.previousSpectating=
+      !!Training.spectating;
+    this.previousSpectator={
+      ...Training.spectator
+    };
+
+    Training.spectating=true;
+    Training.spectator.followPid=null;
+    Training.spectator.zoom=1;
+    Training.spectator.dashRemaining=0;
+    Training.clampSpectatorPoint(
+      WorldBoundsService.width()/2,
+      WorldBoundsService.height()/2
+    );
+    Training.keys.clear();
+
+    this.mountOverlay();
+    DebugPanel.close();
+    this.startLoop();
+    return true;
+  },
+  stop({reopen=true}={}){
+    if(!this.active)return false;
+
+    this.active=false;
+    cancelAnimationFrame(this.frame);
+    this.frame=0;
+    this.lastFrameAt=0;
+    this.drag=null;
+    this.hover=null;
+    this.overlay?.remove();
+    this.overlay=null;
+
+    Training.keys.clear();
+    Training.spectating=
+      this.previousSpectating;
+
+    if(this.previousSpectator){
+      Object.assign(
+        Training.spectator,
+        this.previousSpectator
+      );
+    }
+
+    if(reopen&&DebugAccessService.canUse()){
+      DebugPanel.open=true;
+      DebugPanel.tab='map';
+      DebugPanel.render();
+    }
+    return true;
+  },
+  startLoop(){
+    cancelAnimationFrame(this.frame);
+    this.frame=0;
+    this.lastFrameAt=performance.now();
+
+    const tick=now=>{
+      if(!this.active){
+        this.frame=0;
+        return;
+      }
+
+      const dt=Math.max(
+        0,
+        Math.min(
+          50,
+          now-this.lastFrameAt
+        )
+      );
+      this.lastFrameAt=now;
+
+      const frameScale=
+        dt/Math.max(
+          1,
+          GAME_DATA.frameMs
+        );
+
+      this.update(
+        dt,
+        frameScale
+      );
+
+      if(
+        Training.canvas||
+        document.getElementById(
+          'gameCanvas'
+        )
+      ){
+        Training.draw();
+      }
+
+      this.frame=requestAnimationFrame(tick);
+    };
+
+    this.frame=requestAnimationFrame(tick);
+  },
+  oppositeCell(
+    record,
+    row,
+    col
+  ){
+    return {
+      row:
+        record.rows-1-row,
+      col:
+        record.cols-1-col
+    };
+  },
+  symmetryEnabled(){
+    return (
+      this.symmetry
+        .diagonal===true
+    );
+  },
+  symmetricCells(
+    record,
+    row,
+    col
+  ){
+    const result=[
+      {row,col}
+    ];
+
+    if(
+      !this.symmetryEnabled()
+    ){
+      return result;
+    }
+
+    const opposite=
+      this.oppositeCell(
+        record,
+        row,
+        col
+      );
+
+    if(
+      opposite.row!==row||
+      opposite.col!==col
+    ){
+      result.push(opposite);
+    }
+
+    return result;
+  },
+  symmetryLabel(){
+    return (
+      this.symmetry.diagonal
+        ?'대각선 대칭'
+        :'없음'
+    );
+  },
+  toggleSymmetry(){
+    this.symmetry.diagonal=
+      !this.symmetry.diagonal;
+
+    this.refreshOverlay();
+    return true;
+  },
+  mountOverlay(){
+    this.overlay?.remove();
+
+    const overlay=document.createElement('div');
+    overlay.className='debug-map-editor-hud';
+    overlay.innerHTML=
+      '<strong>MAP EDITOR</strong>'+
+      '<span>WASD 이동 · Space 대시 · 휠 확대/축소</span>'+
+      '<span>좌클릭 벽 설치 · 우클릭 벽 제거 · 드래그 범위 편집</span>'+
+      '<span>FFA는 3인/4인 실제 시작 위치를 함께 표시</span>'+
+      '<span>ESC 편집 종료</span>';
+
+    document.body.appendChild(overlay);
+    this.overlay=overlay;
+    this.refreshOverlay();
+  },
+  refreshOverlay(){
+    if(!this.overlay)return;
+
+    const map=DebugMapService.current();
+    const status=document.createElement('span');
+    const record=this.record();
+    const drag=this.drag;
+
+    status.textContent=
+      `${record?.name||map.name} · ${this.modeLabel(record?.mode)} · `+
+      `${map.cols}×${map.rows} · 대칭 ${this.symmetryLabel()}`+
+      (
+        drag
+          ?` · ${drag.value===DUELS2_TILE.WALL?'채우기':'지우기'} 드래그 중`
+          :''
+      );
+
+    const old=
+      this.overlay.querySelector(
+        '[data-map-editor-status]'
+      );
+    if(old){
+      old.textContent=status.textContent;
+    }else{
+      status.dataset.mapEditorStatus='true';
+      this.overlay.appendChild(status);
+    }
+  },
+  worldTileFromEvent(event){
+    const map=DebugMapService.current();
+    if(!map)return null;
+
+    Training.mouse.x=event.clientX;
+    Training.mouse.y=event.clientY;
+
+    const point=Training.mouseWorld();
+    const col=Math.floor(
+      point.x/map.tileWorldSize
+    );
+    const row=Math.floor(
+      point.y/map.tileWorldSize
+    );
+
+    if(
+      row<0||col<0||
+      row>=map.rows||
+      col>=map.cols
+    )return null;
+
+    return {row,col};
+  },
+  applyRect(from,to,value){
+    const record=this.record();
+    if(!record||!from||!to)return false;
+
+    const rowMin=Math.min(
+      from.row,to.row
+    );
+    const rowMax=Math.max(
+      from.row,to.row
+    );
+    const colMin=Math.min(
+      from.col,to.col
+    );
+    const colMax=Math.max(
+      from.col,to.col
+    );
+
+    for(
+      let row=rowMin;
+      row<=rowMax;
+      row++
+    ){
+      for(
+        let col=colMin;
+        col<=colMax;
+        col++
+      ){
+        for(
+          const point of
+            this.symmetricCells(
+              record,
+              row,
+              col
+            )
+        ){
+          record.tiles[
+            point.row
+          ][
+            point.col
+          ]=value;
+        }
+      }
+    }
+
+    DebugMapService.updateRecord(record);
+    this.mapId=record.id;
+    StaticWorldRenderer.invalidate();
+    return true;
+  },
+  beginPointer(event){
+    if(!this.active)return false;
+    if(event.button!==0&&event.button!==2){
+      return false;
+    }
+
+    const tile=
+      this.worldTileFromEvent(event);
+    if(!tile)return false;
+
+    this.drag={
+      start:tile,
+      current:tile,
+      value:
+        event.button===0
+          ?DUELS2_TILE.WALL
+          :DUELS2_TILE.FLOOR
+    };
+    this.hover=tile;
+    this.refreshOverlay();
+    return true;
+  },
+  movePointer(event){
+    if(!this.active)return false;
+    const tile=
+      this.worldTileFromEvent(event);
+    if(!tile)return false;
+
+    this.hover=tile;
+    if(this.drag){
+      this.drag.current=tile;
+      this.refreshOverlay();
+    }
+    return true;
+  },
+  endPointer(event){
+    if(!this.active||!this.drag){
+      return false;
+    }
+
+    const tile=
+      this.worldTileFromEvent(event)||
+      this.drag.current||
+      this.drag.start;
+
+    const drag=this.drag;
+    this.drag=null;
+
+    this.applyRect(
+      drag.start,
+      tile,
+      drag.value
+    );
+    this.refreshOverlay();
+    return true;
+  },
+  adjustZoom(deltaY){
+    if(!this.active)return false;
+    return Training.spectatorAdjustZoom(
+      deltaY
+    );
+  },
+  dash(){
+    if(!this.active)return false;
+    return Training.spectatorDash();
+  },
+  update(dt,frameScale){
+    if(!this.active)return false;
+
+    Training.spectating=true;
+    Training.spectator.followPid=null;
+    Training.updateSpectatorDash(dt);
+
+    const movement=
+      TrainingInputVectorService
+        .movement(Training.keys);
+    if(
+      Math.hypot(
+        movement.x,
+        movement.y
+      )>0
+    ){
+      Training.moveSpectator(
+        movement.x,
+        movement.y,
+        frameScale
+      );
+    }
+    return true;
+  },
+  spawnPreview(){
+    const record=this.record();
+    if(!record)return [];
+
+    if(record.mode==='team'){
+      const ids=[
+        'editor-p1',
+        'editor-p2',
+        'editor-p3',
+        'editor-p4'
+      ];
+      const teamByPid={
+        'editor-p1':'editor-red',
+        'editor-p2':'editor-red',
+        'editor-p3':'editor-blue',
+        'editor-p4':'editor-blue'
+      };
+      const points=
+        MatchSpawnService.pointMap(
+          ids,
+          MatchModeService.TEAM,
+          teamByPid
+        );
+
+      return ids.map(
+        (id,index)=>({
+          id,
+          label:`P${index+1}`,
+          team:
+            index<2
+              ?'red'
+              :'blue',
+          ...(points[id]||{})
+        })
+      );
+    }
+
+    if(record.mode==='ffa'){
+      const previewGroups=[
+        {
+          playerCount:3,
+          ids:[
+            'editor-ffa3-p1',
+            'editor-ffa3-p2',
+            'editor-ffa3-p3'
+          ]
+        },
+        {
+          playerCount:4,
+          ids:[
+            'editor-ffa4-p1',
+            'editor-ffa4-p2',
+            'editor-ffa4-p3',
+            'editor-ffa4-p4'
+          ]
+        }
+      ];
+
+      return previewGroups.flatMap(
+        group=>{
+          const points=
+            MatchSpawnService.pointMap(
+              group.ids,
+              MatchModeService.FFA,
+              {}
+            );
+
+          return group.ids.map(
+            (id,index)=>({
+              id,
+              label:`${group.playerCount}인 P${index+1}`,
+              team:'ffa',
+              playerCount:
+                group.playerCount,
+              ...(points[id]||{})
+            })
+          );
+        }
+      );
+    }
+
+    const ids=[
+      'editor-p1',
+      'editor-p2'
+    ];
+    const points=
+      MatchSpawnService.pointMap(
+        ids,
+        MatchModeService.DUEL,
+        {}
+      );
+
+    return ids.map(
+      (id,index)=>({
+        id,
+        label:`P${index+1}`,
+        team:
+          index===0
+            ?'red'
+            :'blue',
+        ...(points[id]||{})
+      })
+    );
+  },
+  drawSpawnPreview(ctx){
+    if(!this.active)return false;
+
+    const points=this.spawnPreview();
+    if(!points.length)return false;
+
+    const zoom=Math.max(
+      .1,
+      Training.spectatorZoom()
+    );
+
+    for(const point of points){
+      if(
+        !Number.isFinite(point.x)||
+        !Number.isFinite(point.y)
+      )continue;
+
+      const color=
+        point.team==='red'
+          ?'255,105,105'
+          :point.team==='blue'
+            ?'105,175,255'
+            :point.playerCount===3
+              ?'110,225,210'
+              :'240,220,110';
+
+      ctx.save();
+      ctx.translate(
+        point.x,
+        point.y
+      );
+
+      ctx.fillStyle=
+        `rgba(${color},.16)`;
+      ctx.strokeStyle=
+        `rgba(${color},.95)`;
+      ctx.lineWidth=2/zoom;
+
+      ctx.beginPath();
+      ctx.arc(
+        0,
+        0,
+        24,
+        0,
+        Math.PI*2
+      );
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(-9,0);
+      ctx.lineTo(9,0);
+      ctx.moveTo(0,-9);
+      ctx.lineTo(0,9);
+      ctx.stroke();
+
+      ctx.font=
+        `${Math.max(10,12/zoom)}px Pretendard`;
+      ctx.textAlign='center';
+      ctx.textBaseline='bottom';
+      ctx.fillStyle=
+        `rgba(${color},.98)`;
+      ctx.fillText(
+        point.label,
+        0,
+        -30
+      );
+
+      ctx.restore();
+    }
+
+    return true;
+  },
+  draw(ctx){
+    if(!this.active)return false;
+    const map=DebugMapService.current();
+    if(!map)return false;
+
+    this.drawSpawnPreview(ctx);
+
+    const tile=this.hover;
+    if(!tile)return true;
+
+    const size=map.tileWorldSize;
+    let rowMin=tile.row;
+    let rowMax=tile.row;
+    let colMin=tile.col;
+    let colMax=tile.col;
+
+    if(this.drag){
+      rowMin=Math.min(
+        this.drag.start.row,
+        this.drag.current.row
+      );
+      rowMax=Math.max(
+        this.drag.start.row,
+        this.drag.current.row
+      );
+      colMin=Math.min(
+        this.drag.start.col,
+        this.drag.current.col
+      );
+      colMax=Math.max(
+        this.drag.start.col,
+        this.drag.current.col
+      );
+    }
+
+    ctx.save();
+    ctx.fillStyle=
+      this.drag?.value===DUELS2_TILE.FLOOR
+        ?'rgba(255,90,90,.18)'
+        :'rgba(100,190,255,.18)';
+    ctx.strokeStyle=
+      this.drag?.value===DUELS2_TILE.FLOOR
+        ?'rgba(255,100,100,.95)'
+        :'rgba(110,205,255,.95)';
+    ctx.lineWidth=2/Math.max(
+      .1,
+      Training.spectatorZoom()
+    );
+
+    ctx.fillRect(
+      colMin*size,
+      rowMin*size,
+      (colMax-colMin+1)*size,
+      (rowMax-rowMin+1)*size
+    );
+    ctx.strokeRect(
+      colMin*size,
+      rowMin*size,
+      (colMax-colMin+1)*size,
+      (rowMax-rowMin+1)*size
+    );
+    ctx.restore();
     return true;
   }
 };
@@ -99654,7 +100513,15 @@ const DebugPanel={
       target instanceof HTMLTextAreaElement||
       target instanceof HTMLSelectElement;
   },
-  capturesGameInput(){return this.open},
+  capturesGameInput(){
+    return (
+      this.open&&
+      !(
+        typeof DebugMapEditorService!=='undefined'&&
+        DebugMapEditorService.active
+      )
+    );
+  },
   toggle(){
     if(!this.canOpen())return false;
     this.open=!this.open;
@@ -100562,38 +101429,298 @@ const DebugPanel={
 
     body.appendChild(augmentSection);
 
-    const mapSection=this.section(
-      '맵 변경',
-      '기존 맵 탭처럼 선택 즉시 현재 전투 맵 변경'
+  },
+  renderMap(body){
+    const map=DebugMapService.current();
+
+    const current=this.section(
+      '맵 선택',
+      '훈련장과 현재 파일에 이식된 공식 맵 표시'
     );
 
-    const mapRow=this.row('맵');
-    mapRow.controls.appendChild(
-      this.select(
-        DebugMapService.maps.map(map=>[
-          map.id,
-          `${map.name} · ${map.type}`
-        ]),
-        DebugMapService.currentId,
-        value=>{
-          OnlineDebugMapSyncService.apply(value);
+    const grid=this.el(
+      'div',
+      'debug-manip-grid debug-map-card-grid'
+    );
+
+    for(const candidate of DebugMapService.maps){
+      const active=
+        candidate.id===
+        DebugMapService.currentId;
+      const button=this.button(
+        candidate.name,
+        ()=>{
+          DebugMapService.set(
+            candidate.id
+          );
           this.render();
-        }
-      )
-    );
-    mapSection.appendChild(mapRow.row);
+        },
+        active?'active':''
+      );
+      button.title=
+        `${candidate.type} · ${candidate.cols}×${candidate.rows}`;
+      grid.appendChild(button);
+    }
 
-    const currentMap=DebugMapService.current();
-    mapSection.appendChild(
+    current.appendChild(grid);
+    current.appendChild(
       this.el(
         'div',
         'debug-map-info',
-        `현재: ${currentMap.name} · 벽 ${currentMap.walls.length}개`
+        `현재: ${map.name} · ${map.type} · ${map.cols}×${map.rows} · 벽 ${map.walls.length}개`
+      )
+    );
+    body.appendChild(current);
+
+    const create=this.section(
+      '새 맵 만들기',
+      '이식할 맵 모드를 선택하고 빈 맵에서 시작'
+    );
+
+    const nameRow=this.row('이름');
+    const nameInput=
+      this.input(
+        '',
+        '새 맵 이름'
+      );
+    nameRow.controls.appendChild(
+      nameInput
+    );
+    create.appendChild(
+      nameRow.row
+    );
+
+    const modeRow=this.row('모드');
+    let selectedMode='basic';
+    const modeGrid=this.el(
+      'div',
+      'debug-action-grid'
+    );
+    const modeButtons=new Map();
+
+    for(const [mode,spec] of Object.entries(
+      OfficialMapDataService.modeSpecs
+    )){
+      const button=this.button(
+        spec.label,
+        ()=>{
+          selectedMode=mode;
+          for(
+            const [id,node] of
+              modeButtons
+          ){
+            node.classList.toggle(
+              'active',
+              id===selectedMode
+            );
+          }
+        },
+        mode===selectedMode
+          ?'active'
+          :''
+      );
+      modeButtons.set(
+        mode,
+        button
+      );
+      modeGrid.appendChild(button);
+    }
+    modeRow.controls.appendChild(
+      modeGrid
+    );
+    create.appendChild(
+      modeRow.row
+    );
+
+    create.appendChild(
+      this.button(
+        '새 맵 생성',
+        ()=>{
+          const record=
+            DebugMapService.create({
+              name:
+                nameInput.value.trim()||
+                '새 맵',
+              mode:selectedMode
+            });
+          DebugMapService.set(
+            record.id
+          );
+          this.render();
+        },
+        'primary'
+      )
+    );
+    body.appendChild(create);
+
+    const symmetrySection=this.section(
+      '대각선 대칭',
+      '활성화 시 설치·제거·드래그를 반대편 같은 위치에 즉시 같이 반영'
+    );
+    const symmetryGrid=this.el(
+      'div',
+      'debug-action-grid'
+    );
+
+    symmetryGrid.appendChild(
+      this.button(
+        '대각선 대칭',
+        ()=>{
+          DebugMapEditorService
+            .toggleSymmetry();
+          this.render();
+        },
+        DebugMapEditorService
+          .symmetry
+          .diagonal
+            ?'active'
+            :''
       )
     );
 
-    body.appendChild(mapSection);
+    symmetrySection.appendChild(
+      symmetryGrid
+    );
+    body.appendChild(
+      symmetrySection
+    );
+
+    const edit=this.section(
+      '맵 관리',
+      '설계 맵 편집·이름 변경·삭제·파일 저장'
+    );
+
+    if(
+      map.id==='training-tilemap'
+    ){
+      edit.appendChild(
+        this.el(
+          'div',
+          'debug-empty-note',
+          '훈련장은 고정 맵이라 편집하거나 삭제할 수 없습니다.'
+        )
+      );
+    }else{
+      const record=
+        DebugMapService.record(map.id);
+      const renameRow=
+        this.row('이름 변경');
+      const renameInput=
+        this.input(
+          record?.name||map.name
+        );
+      renameRow.controls.append(
+        renameInput,
+        this.button(
+          '적용',
+          ()=>{
+            DebugMapService.rename(
+              map.id,
+              renameInput.value.trim()
+            );
+            this.render();
+          }
+        )
+      );
+      edit.appendChild(
+        renameRow.row
+      );
+
+      const actions=this.el(
+        'div',
+        'debug-action-grid'
+      );
+      actions.append(
+        this.button(
+          '맵 편집 시작',
+          ()=>{
+            DebugMapEditorService
+              .start(map.id);
+          },
+          'primary'
+        ),
+        this.button(
+          '맵 파일 저장',
+          ()=>{
+            DebugMapService
+              .downloadMap(map.id);
+          }
+        ),
+        this.button(
+          '맵 삭제',
+          ()=>{
+            DebugMapService.remove(
+              map.id
+            );
+            this.render();
+          },
+          'danger'
+        )
+      );
+      edit.appendChild(actions);
+    }
+
+    body.appendChild(edit);
+
+    const dataSection=this.section(
+      '맵 파일 저장',
+      '완성한 설계 파일을 저장한 뒤 ChatGPT에 전달하면 공식 맵으로 그대로 이식 가능'
+    );
+
+    const fileActions=this.el(
+      'div',
+      'debug-action-grid'
+    );
+
+    if(map.id!=='training-tilemap'){
+      fileActions.appendChild(
+        this.button(
+          '현재 맵 저장',
+          ()=>{
+            DebugMapService
+              .downloadMap(map.id);
+          },
+          'primary'
+        )
+      );
+    }
+
+    fileActions.appendChild(
+      this.button(
+        '전체 맵 묶음 저장',
+        ()=>{
+          DebugMapService
+            .downloadAllMaps();
+        }
+      )
+    );
+
+    dataSection.appendChild(
+      fileActions
+    );
+    dataSection.appendChild(
+      this.el(
+        'div',
+        'debug-empty-note',
+        '개별 파일: duels3-map / 묶음 파일: duels3-map-bundle · 이름/모드/크기/전체 타일 배치를 그대로 저장'
+      )
+    );
+    body.appendChild(dataSection);
+
+    const guide=this.section(
+      '편집 조작',
+      '편집 시작 후 월드에서 직접 사용'
+    );
+    guide.appendChild(
+      this.el(
+        'div',
+        'debug-empty-note',
+        'WASD 이동 · Space 대시 · 휠 확대/축소 · 좌클릭 설치 · 우클릭 제거 · 좌/우 드래그 범위 채우기/지우기 · 대칭 토글 자동 반영 · FFA 3인/4인 시작 위치 표시 · ESC 종료'
+      )
+    );
+    body.appendChild(guide);
   },
+
   renderAccount(body){
     const account=AccountState.current;
 
@@ -101001,7 +102128,7 @@ const DebugPanel={
     header.append(heading,this.button('×',()=>this.close(),'debug-close'));
 
     const tabs=this.el('div','debug-tabs');
-    for(const [id,label] of [['control','제어'],['manipulation','조작'],['account','계정']]){
+    for(const [id,label] of [['control','제어'],['manipulation','조작'],['map','맵'],['account','계정']]){
       tabs.appendChild(this.button(label,()=>{
         this.tab=id;
         this.scrollTop=0;
@@ -101012,6 +102139,7 @@ const DebugPanel={
     const body=this.el('div','debug-body');
     if(this.tab==='control')this.renderControl(body);
     else if(this.tab==='manipulation')this.renderManipulation(body);
+    else if(this.tab==='map')this.renderMap(body);
     else this.renderAccount(body);
 
     panel.append(header,tabs,body);
@@ -101081,6 +102209,31 @@ document.getElementById('mobile-debug-button')?.addEventListener('click',event=>
 
 window.addEventListener('keydown',event=>{
   SoundService.unlock();
+
+  if(DebugMapEditorService.active){
+    if(event.code==='Escape'){
+      event.preventDefault();
+      event.stopPropagation();
+      DebugMapEditorService.stop();
+      return;
+    }
+
+    if(
+      ['KeyW','KeyA','KeyS','KeyD'].includes(event.code)
+    ){
+      event.preventDefault();
+      Training.keys.add(event.code);
+      return;
+    }
+
+    if(event.code==='Space'){
+      event.preventDefault();
+      if(!event.repeat){
+        DebugMapEditorService.dash();
+      }
+      return;
+    }
+  }
 
   if(
     event.code==='Backquote'&&
@@ -101184,6 +102337,15 @@ window.addEventListener('contextmenu',()=>{
 
 window.addEventListener('keyup',event=>{
   Training.keys.delete(event.code);
+  if(DebugMapEditorService.active){
+    if(
+      ['KeyW','KeyA','KeyS','KeyD','Space']
+        .includes(event.code)
+    ){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
   if(event.code==='ShiftLeft'&&Training.active){
     Training.releaseInput('counter');
   }
@@ -101195,11 +102357,28 @@ window.addEventListener('keyup',event=>{
 window.addEventListener('mousemove',event=>{
   Training.mouse.x=event.clientX;
   Training.mouse.y=event.clientY;
+
+  if(DebugMapEditorService.active){
+    DebugMapEditorService.movePointer(event);
+    return;
+  }
+
   DragPathInputService.sample(performance.now());
 });
 
 const trainingCanvas=document.getElementById('gameCanvas');
 trainingCanvas?.addEventListener('mousedown',event=>{
+  if(DebugMapEditorService.active){
+    if(
+      DebugMapEditorService
+        .beginPointer(event)
+    ){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    return;
+  }
+
   if(!Training.active||DebugPanel.capturesGameInput())return;
 
   if(Training.spectating){
@@ -101242,6 +102421,16 @@ gameWrapper?.addEventListener('mousedown',event=>{
 trainingCanvas?.addEventListener(
   'wheel',
   event=>{
+    if(DebugMapEditorService.active){
+      if(
+        DebugMapEditorService
+          .adjustZoom(event.deltaY)
+      ){
+        event.preventDefault();
+      }
+      return;
+    }
+
     if(
       !Training.active||
       !Training.spectating||
@@ -101260,6 +102449,17 @@ trainingCanvas?.addEventListener(
 );
 
 window.addEventListener('mouseup',event=>{
+  if(DebugMapEditorService.active){
+    if(
+      DebugMapEditorService
+        .endPointer(event)
+    ){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    return;
+  }
+
   const slot=PointerHoldInputService.slot(event.button);
   if(slot)PointerHoldInputService.release(slot);
 });
@@ -101298,6 +102498,10 @@ document.addEventListener('pointerdown',event=>{
 },true);
 
 document.addEventListener('contextmenu',event=>{
+  if(DebugMapEditorService.active){
+    event.preventDefault();
+    return;
+  }
   if(CharacterCardInteractionService.handleContextMenu(event))return;
   event.preventDefault();
 });
