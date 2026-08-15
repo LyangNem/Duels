@@ -1,3 +1,6 @@
+<!-- 3.1041: 샤이라즈 덫 발동 공격 attack.shairaz.trap-trigger의 기절 시간을 1500ms에서 1250ms로 조정했다. 덫 설치 쿨다운 400ms, 설치 스테미나 800, 회수 전용 400ms 쿨다운, 발동/피해 반경 78은 유지한다. -->
+<!-- 3.1040: 샤이라즈 일반 RMB 덫 설치 쿨다운을 1700ms에서 400ms로 되돌리고, 설치 스테미나 소모를 600에서 800으로 증가시켰다. 회수는 기존처럼 별도 공용 attackDelayGroup 'shairaz-rmb-recall' 400ms를 유지해 설치 쿨다운과 독립적으로 동작한다. 덫 발동/피해 반경 78, 회수 반경 39, 최대 설치 수 3은 변경하지 않았다. -->
+<!-- 3.1039: 샤이라즈 덫 발동 후 설치 불가 지역과 해당 afterlife 이펙트를 제거했다. 일반/반격 덫의 triggerAfterlife 및 placementBlockRadius를 제거하고 RMB 입력의 afterlife field.at-target 설치 차단 조건도 삭제했다. 일반 RMB 덫 설치 쿨다운은 400ms에서 1700ms로 변경했다. 회수는 설치 쿨다운과 분리해 일반 덫/반격 덫 회수 모두 공용 attackDelayGroup 'shairaz-rmb-recall' 400ms를 사용하므로, 설치 쿨다운과 회수 쿨다운이 서로 간섭하지 않는다. 실제 덫 발동/피해 범위 78, 회수 반경 39, 최대 설치 수 3은 유지한다. -->
 <!-- 3.1038: 샤이라즈 지뢰 발동 후 재설치 금지 반경을 156에서 118로 조정했다. 기준은 트랩 자체 지름 78(range 39×2) + 플레이어 기본 지름 40(radius 20×2) = 118이다. 일반/반격 지뢰의 placementBlockRadius 및 RMB afterlife 설치 차단 조건을 모두 118로 통일했다. 기존 detonationPointPresentation은 placementBlockRadius를 시각 반경으로 사용하므로 afterlife 이펙트도 118로 함께 변경된다. 실제 triggerResolveRange/피해 반경 78과 회수 반경 39는 변경하지 않았다. -->
 <!-- 3.1037: 샤이라즈 지뢰 발동 후 시각 범위를 기존 afterlife/detonation 이펙트 하나로 통일했다. 3.1036에서 추가한 별도 placementBlockIndicator 이펙트는 제거하고, 기존 detonationPointPresentation의 원 반경이 placementBlockRadius가 있으면 이를 우선 사용하도록 범용화했다. 따라서 샤이라즈 일반/반격 지뢰는 발동 후 기존 원 이펙트가 156으로 표시되며, 실제 trap-trigger 발동/피해 범위 78과 설치 불가 판정 156은 그대로 유지된다. EffectSpawnService 및 기존 effect-spawn 동기화 경로를 그대로 사용하며 캐릭터 ID 분기는 없다. -->
 <!-- 3.1036: 샤이라즈 지뢰 발동 후 설치 불가 반경 156이 보이지 않던 시각 문제를 수정했다. 기존 폭발/피해 이펙트는 triggerResolveRange 78을 그대로 사용하고, field presentation의 placementBlockIndicator가 활성화된 경우 placementBlockRadius 크기의 별도 채움 없는 점선 원을 triggerAfterlife 동안 표시한다. 샤이라즈 일반/반격 지뢰에 indicator를 활성화해 폭발 78과 설치 금지 156을 시각적으로 분리했다. EffectSpawnService 및 기존 effect-spawn 네트워크 동기화 경로를 재사용하며 캐릭터 ID 분기는 없다. -->
@@ -12989,10 +12992,8 @@ const GAME_DATA=Object.freeze({
         rmb:Object.freeze({
           id:'attack.shairaz.rmb',
           damageRatio:0,
-          cost:600,
+          cost:800,
           cd:400,
-          attackDelayGroup:'shairaz-rmb',
-          attackDelay:400,
           range:450,
           presentation:Object.freeze({teamColor:true}),
           modules:Object.freeze([
@@ -13014,8 +13015,6 @@ const GAME_DATA=Object.freeze({
               interval:0,
               triggerOnEnter:true,
               removeOnTrigger:true,
-              triggerAfterlife:1500,
-              placementBlockRadius:118,
               wallPolicy:'ignore',
               presentation:Object.freeze({
                 type:'areaCircle',
@@ -13050,7 +13049,7 @@ const GAME_DATA=Object.freeze({
             Object.freeze({
               type:'status.apply',
               status:'stun',
-              duration:1500,
+              duration:1250,
               oncePerExecution:false
             })
           ]),
@@ -13061,7 +13060,7 @@ const GAME_DATA=Object.freeze({
           damageRatio:0,
           cost:0,
           cd:0,
-          attackDelayGroup:'shairaz-rmb',
+          attackDelayGroup:'shairaz-rmb-recall',
           attackDelay:400,
           range:450,
           modules:Object.freeze([
@@ -13091,7 +13090,7 @@ const GAME_DATA=Object.freeze({
           damageRatio:0,
           cost:0,
           cd:0,
-          attackDelayGroup:'shairaz-rmb',
+          attackDelayGroup:'shairaz-rmb-recall',
           attackDelay:400,
           range:450,
           modules:Object.freeze([
@@ -13164,8 +13163,6 @@ const GAME_DATA=Object.freeze({
                 interval:0,
                 triggerOnEnter:true,
                 removeOnTrigger:true,
-                triggerAfterlife:1500,
-                placementBlockRadius:118,
                 wallPolicy:'ignore',
                 presentation:Object.freeze({
                   type:'areaCircle',
@@ -13216,20 +13213,6 @@ const GAME_DATA=Object.freeze({
               Object.freeze({type:'entity.alive'}),
               Object.freeze({type:'ability.pending-ready'}),
               Object.freeze({type:'combat.can-act'}),
-              Object.freeze({
-                type:'field.at-target',
-                stateKey:'shairaz-trap',
-                radius:118,
-                phases:Object.freeze(['afterlife']),
-                negate:true
-              }),
-              Object.freeze({
-                type:'field.at-target',
-                stateKey:'shairaz-counter-trap',
-                radius:118,
-                phases:Object.freeze(['afterlife']),
-                negate:true
-              })
             ]),
             modules:Object.freeze([
               Object.freeze({
