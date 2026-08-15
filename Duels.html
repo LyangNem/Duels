@@ -1,3 +1,9 @@
+<!-- 3.1020: 밸런스/버그 수정. 라임 뛰어오르기 attack.lime.jump의 cooldown 900→1400ms, stamina cost 300→500. 루뷰 RMB 왕복 무기 스킬의 발사/귀환 탄속을 32.2→24.15(-25%)로 통일. FormulaSequenceService에 데이터 기반 mistakeProgress 규칙을 추가하고 큐리는 오입력 시 현재 단계는 유지한 채 현재 단계 입력 진행도를 floor(progress*0.5)로 감소시킨다(1→0,3→1). 헤르쟝 대포의 meleeAttackId가 데이터에는 존재하지만 SummonAIService에서 stationary 자동공격 실행 경로가 빠져 있던 문제를 수정했다. 기존 nearestEnemy/meleeRange/attack/attackInterval을 재사용하는 범용 stationaryAutoAttack을 추가하고 carry 중에는 공격하지 않도록 했다. -->
+<!-- 3.1019: 라임 어린 슬라임의 막다른 도주 폴백에 발악 모드를 추가했다. 막다른 길로 판정되어 적 방향 폴백 경로를 선택하면 enemyAvoidDesperate 상태와 해당 적 ID를 잠그고, 적과 330 이상 거리가 벌어질 때까지 일반 nearest-enemy 재판정 및 recalcMs 기반 경로 교체를 하지 않는다. 발악 중에는 현재 탈출 경로를 끝까지 소비한 뒤에만 다음 도주 경로를 계산하며, 잠긴 적이 사망/무효화되거나 exitDistance를 넘으면 정상 AI로 복귀한다. 기존 2칸 벽 slime-auto movement-attack traversal은 유지한다. -->
+<!-- 3.1018: 라임 어린 슬라임의 막다른 도주 판정을 found 여부만으로 판단하던 문제를 수정했다. 맵 가장자리/구석에서는 nearestOpenPoint가 현재 근처의 유효 좌표를 반환해 A*가 found:true가 될 수 있으므로, 이제 도주 경로의 최종 지점이 현재보다 적과의 거리를 최소 12px 또는 path cell의 35% 이상 실제로 늘리는지 확인한다. 거리 이득이 없는 경로는 found:true라도 막다른 길로 판정하여 적 위치를 최후 폴백 목표로 재탐색한다. 기존 2칸 벽 movement-attack traversal은 동일하게 유지한다. -->
+<!-- 3.1017: 라임 어린 슬라임 도주 경로 폴백 판정을 수정했다. GridPathfindingService는 목표 도달 실패 시에도 closest partial path를 반환하므로, 기존 '!found && path.length===0' 조건은 막힌 상황을 실패로 인식하지 못했다. 이제 도주 목표 탐색 결과가 found:false이면 부분 경로 존재 여부와 무관하게 도주 실패로 판정하고 적 위치를 최후 폴백 목표로 다시 길찾기한다. 적 방향 폴백 경로에서도 기존 2칸 벽 movement-attack traversal을 그대로 사용한다. -->
+<!-- 3.1016: 라임 어린 슬라임 경로 AI를 범용 GridPathfindingService 확장으로 개선했다. 선택적 traversal 설정이 있는 소환수는 최대 지정 blocked cell 수의 짧은 벽 구간을 movement-attack 링크로 경로 탐색할 수 있고, 해당 waypoint에 도달하면 일반 이동이 아니라 기존 공격 이동 AttackSpec을 실제 실행한다. 라임 slime은 attack.lime.slime-auto로 최대 2칸 벽을 150 이동거리의 traversal 평타로 건너도록 설정했다. enemyAvoidance는 적 반대 방향의 경로를 먼저 탐색하고, 도망 경로가 완전히 없을 때만 적 위치 자체를 최후 폴백 목표로 길찾기한다. ownerReturn도 같은 traversal 링크를 사용한다. 캐릭터 ID 예외 없음. -->
+<!-- 3.1015: CharacterTitleService의 기존 칭호 데이터에 라임 '슬라임 보호자', 큐리 '큐브 선수'를 추가했다. 마스터 V 칭호 표시 구조 및 다른 캐릭터/맵 데이터는 변경하지 않았다. -->
 <!-- 3.1014: 사용자가 전달한 팀전 공식 맵 35개(오픈10/반오픈15/비오픈10)를 누적 적용했다. 모든 맵은 mode:'team', 35×50, tileWorldSize 50이며 표시 이름은 '팀전 ' 접두사를 사용한다. 기존 기본 공식 맵35, FFA 공식 맵35, 훈련장은 그대로 유지했다. 각 팀전 맵의 원본 tiles를 연속 벽 사각형으로 압축 저장하고 전체 35개 복원 결과를 원본과 전수 비교해 불일치 0 확인. -->
 <!-- 3.1013: 사용자가 전달한 FFA 비오픈맵7~10을 기존 공식 FFA 맵 데이터에 누적 적용했다. 기존 FFA 오픈10/반오픈15/비오픈1~6은 유지하며 최종 FFA 비오픈맵은 1~10이 되었다. 표시 이름은 'FFA 비오픈맵N' 규칙을 적용하고, 각 54×54 타일 원본은 연속 벽 사각형으로 압축 저장했다. 4개 모두 원본 tiles와 압축 복원 결과 전수 비교 불일치 0. -->
 <!-- 3.1012: 3.991 맵 초기화 이후 누락돼 있던 3.960 기준 기존 FFA 오픈맵10/반오픈맵15를 복구했다. 3.960의 duels2BuildOpenTileLayout/duels2BuildSemiOpenTileLayout → duels2BuildFfaSquareTiles 변환을 그대로 재현해 54×54 타일 결과를 생성했고, 각 결과를 현재 공식 맵 압축 형식 wallRects로 저장했다. 예전 FFA 비오픈맵15는 사용자 지시에 따라 복구하지 않았고 현재 사용자 제작 FFA 비오픈맵1~6을 유지한다. 표시 이름은 FFA 오픈맵 01~10 / FFA 반오픈맵 01~15로 기존 형식을 유지한다. -->
@@ -7881,7 +7887,7 @@ const GAME_DATA=Object.freeze({
           modules:Object.freeze([
             Object.freeze({
               type:'delivery.projectile',
-              speed:32.2,
+              speed:24.15,
               radius:26,
               hitRadius:16
             }),
@@ -7891,7 +7897,7 @@ const GAME_DATA=Object.freeze({
               returnAttackId:'attack.ruvu.rmb-return',
               stopAtRange:true,
               autoAfterMs:1500,
-              speed:32.2,
+              speed:24.15,
               autoArrivalMovement:Object.freeze({
                 type:'movement.move',
                 direction:'away-from-return-origin',
@@ -7947,7 +7953,7 @@ const GAME_DATA=Object.freeze({
           cd:0,
           range:630,
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',phase:'returning',speed:32.2,radius:26,hitRadius:16}),
+            Object.freeze({type:'delivery.projectile',phase:'returning',speed:24.15,radius:26,hitRadius:16}),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
             Object.freeze({
               type:'projectile.presentation',
@@ -19716,7 +19722,14 @@ const GAME_DATA=Object.freeze({
               enabled:true,
               attackId:'attack.lime.slime-auto',
               attackInterval:600,
-              attackAimDistance:95
+              attackAimDistance:95,
+              pathDistance:260,
+              pathRecalcMs:180,
+              fallbackToEnemyWhenTrapped:true,
+              desperateMode:Object.freeze({
+                enabled:true,
+                exitDistance:330
+              })
             }),
             projectileAvoidance:Object.freeze({
               enabled:true,
@@ -19749,6 +19762,13 @@ const GAME_DATA=Object.freeze({
               enemyDangerRadius:250,
               enemyClearance:0,
               useBaseSpeed:false
+            }),
+            attackTraversal:Object.freeze({
+              enabled:true,
+              attackId:'attack.lime.slime-auto',
+              attackInterval:600,
+              maxBlockedCells:2,
+              movementDistance:150
             }),
             idleWander:Object.freeze({
               minRadius:60,
@@ -19849,8 +19869,8 @@ const GAME_DATA=Object.freeze({
         jump:Object.freeze({
           id:'attack.lime.jump',
           damageRatio:0,
-          cost:300,
-          cd:900,
+          cost:500,
+          cd:1400,
           range:170,
           effectsOnly:true,
           modules:Object.freeze([
@@ -20165,6 +20185,11 @@ const GAME_DATA=Object.freeze({
           debugLabel:'큐리 단계'
         }),
         completeFlashMode:'final-persistent',
+        mistakeProgress:Object.freeze({
+          operation:'retain-ratio',
+          ratio:.5,
+          round:'floor'
+        }),
         stageLabels:Object.freeze(['CROSS','F2L','OLL','PLL']),
         completeEffect:Object.freeze({
           type:'effect.spawn',
@@ -20261,13 +20286,13 @@ const GAME_DATA=Object.freeze({
           key:'LMB NEAR',
           name:'큐브',
           costText:'스테미나 0',
-          text:'캐릭터 주변에서 클릭으로 공식 입력. 오입력 시 현재 단계 진행도 초기화, 자연회복을 끊지 않음'
+          text:'캐릭터 주변에서 클릭으로 공식 입력. 오입력 시 현재 단계 입력 진행도 절반 감소, 단계 유지, 자연회복을 끊지 않음'
         }),
         Object.freeze({
           key:'RMB NEAR',
           name:'큐브',
           costText:'스테미나 0',
-          text:'캐릭터 주변에서 클릭으로 공식 입력. 오입력 시 현재 단계 진행도 초기화, 자연회복을 끊지 않음'
+          text:'캐릭터 주변에서 클릭으로 공식 입력. 오입력 시 현재 단계 입력 진행도 절반 감소, 단계 유지, 자연회복을 끊지 않음'
         }),
         Object.freeze({
           key:'L-Shift',
@@ -21697,7 +21722,9 @@ const CharacterTitleService=Object.freeze({
     ruli:'최고의 재단사',
     clea:'달의 아이',
     shello:'히어로 지망생',
-    tinya:'마법진 마법사'
+    tinya:'마법진 마법사',
+    lime:'슬라임 보호자',
+    quri:'큐브 선수'
   }),
 
   get(characterId){
@@ -63843,7 +63870,7 @@ const GridPathfindingService=Object.freeze({
     return false;
   },
 
-  walkable(grid,cx,cy,obstacles=[]){
+  staticWalkable(grid,cx,cy){
     if(
       cx<0||
       cy<0||
@@ -63852,18 +63879,22 @@ const GridPathfindingService=Object.freeze({
     )return false;
 
     const point=this.cellCenter(grid,cx,cy);
-    return (
-      !MovementService.collides(
-        point.x,
-        point.y,
-        grid.radius
-      )&&
-      !this.dynamicBlocked(
-        grid,
-        point.x,
-        point.y,
-        obstacles
-      )
+    return !MovementService.collides(
+      point.x,
+      point.y,
+      grid.radius
+    );
+  },
+
+  walkable(grid,cx,cy,obstacles=[]){
+    if(!this.staticWalkable(grid,cx,cy))return false;
+
+    const point=this.cellCenter(grid,cx,cy);
+    return !this.dynamicBlocked(
+      grid,
+      point.x,
+      point.y,
+      obstacles
     );
   },
 
@@ -63920,7 +63951,8 @@ const GridPathfindingService=Object.freeze({
     grid,
     cx,
     cy,
-    obstacles=[]
+    obstacles=[],
+    traversal=null
   ){
     const result=[];
     for(let oy=-1;oy<=1;oy++){
@@ -63951,6 +63983,103 @@ const GridPathfindingService=Object.freeze({
         });
       }
     }
+
+    if(
+      traversal?.enabled===true&&
+      Math.max(0,Number(traversal.maxBlockedCells)||0)>0
+    ){
+      const maxBlockedCells=Math.max(
+        1,
+        Math.floor(Number(traversal.maxBlockedCells)||1)
+      );
+      const maxDistance=Math.max(
+        grid.cell,
+        Number(traversal.movementDistance)||0
+      );
+      const from=this.cellCenter(grid,cx,cy);
+
+      for(let oy=-1;oy<=1;oy++){
+        for(let ox=-1;ox<=1;ox++){
+          if(ox===0&&oy===0)continue;
+
+          let blockedCount=0;
+          let crossedWall=false;
+
+          for(let step=1;step<=maxBlockedCells+1;step++){
+            const nx=cx+ox*step;
+            const ny=cy+oy*step;
+
+            if(
+              nx<0||
+              ny<0||
+              nx>=grid.cols||
+              ny>=grid.rows
+            )break;
+
+            const staticOpen=
+              this.staticWalkable(
+                grid,
+                nx,
+                ny
+              );
+
+            if(!staticOpen){
+              crossedWall=true;
+              blockedCount++;
+              if(blockedCount>maxBlockedCells)break;
+              continue;
+            }
+
+            if(!crossedWall)break;
+            if(
+              this.dynamicBlocked(
+                grid,
+                this.cellCenter(grid,nx,ny).x,
+                this.cellCenter(grid,nx,ny).y,
+                obstacles
+              )
+            )break;
+
+            const landing=
+              this.cellCenter(
+                grid,
+                nx,
+                ny
+              );
+            const distance=Math.hypot(
+              landing.x-from.x,
+              landing.y-from.y
+            );
+
+            if(distance>maxDistance+1e-6)break;
+
+            if(
+              this.segmentBlockedByDynamic(
+                from.x,
+                from.y,
+                landing.x,
+                landing.y,
+                grid.radius,
+                obstacles
+              )
+            )break;
+
+            result.push({
+              cx:nx,
+              cy:ny,
+              cost:
+                distance/grid.cell+
+                blockedCount*.25,
+              traversal:'movement-attack',
+              traversalDistance:distance,
+              blockedCells:blockedCount
+            });
+            break;
+          }
+        }
+      }
+    }
+
     return result;
   },
 
@@ -63968,11 +64097,30 @@ const GridPathfindingService=Object.freeze({
     // 첫 노드는 현재 위치 셀이므로 이동 waypoint에서는 제외한다.
     return keys.slice(1).map(itemKey=>{
       const node=nodeByKey.get(itemKey);
-      return this.cellCenter(
-        grid,
-        node.cx,
-        node.cy
-      );
+      return {
+        ...this.cellCenter(
+          grid,
+          node.cx,
+          node.cy
+        ),
+        ...(
+          node.traversal
+            ?{
+              traversal:node.traversal,
+              traversalDistance:
+                Math.max(
+                  0,
+                  Number(node.traversalDistance)||0
+                ),
+              blockedCells:
+                Math.max(
+                  0,
+                  Number(node.blockedCells)||0
+                )
+            }
+            :{}
+        )
+      };
     });
   },
 
@@ -64036,7 +64184,8 @@ const GridPathfindingService=Object.freeze({
     cellSize=this.DEFAULT_CELL,
     algorithm='astar',
     maxExpansions=this.MAX_EXPANSIONS,
-    dynamicObstacles=[]
+    dynamicObstacles=[],
+    traversal=null
   }={}){
     const grid=this.grid(radius,cellSize);
     const rawStart=this.pointCell(grid,startX,startY);
@@ -64165,7 +64314,8 @@ const GridPathfindingService=Object.freeze({
         grid,
         current.cx,
         current.cy,
-        dynamicObstacles
+        dynamicObstacles,
+        traversal
       )){
         const key=this.key(
           neighbor.cx,
@@ -64315,7 +64465,9 @@ const GridPathfindingService=Object.freeze({
         algorithm:'astar',
         maxExpansions:
           options.maxExpansions,
-        dynamicObstacles
+        dynamicObstacles,
+        traversal:
+          options.traversal||null
       }
     );
 
@@ -64337,7 +64489,9 @@ const GridPathfindingService=Object.freeze({
         algorithm:'dijkstra',
         maxExpansions:
           options.maxExpansions,
-        dynamicObstacles
+        dynamicObstacles,
+        traversal:
+          options.traversal||null
       }
     );
 
@@ -64663,6 +64817,12 @@ const SummonAIService=Object.freeze({
         enemyAvoidWanderPathIndex:0,
         nextEnemyAvoidWanderTargetAt:0,
         enemyAvoidWanderSeed:0,
+        enemyAvoidPath:[],
+        enemyAvoidPathIndex:0,
+        enemyAvoidPathAt:0,
+        enemyAvoidPathFallback:false,
+        enemyAvoidDesperate:false,
+        enemyAvoidDesperateTargetId:null,
         ownerThreatWanderTarget:null,
         ownerThreatWanderPath:[],
         ownerThreatWanderPathIndex:0,
@@ -64993,12 +65153,171 @@ const SummonAIService=Object.freeze({
     );
   },
 
+  attackTraversal(ai){
+    const config=ai?.attackTraversal;
+    if(
+      !config||
+      config.enabled!==true||
+      !config.attackId
+    )return null;
+
+    return {
+      enabled:true,
+      attackId:String(config.attackId),
+      attackInterval:
+        Math.max(
+          1,
+          Number(config.attackInterval)||600
+        ),
+      maxBlockedCells:
+        Math.max(
+          1,
+          Math.floor(Number(config.maxBlockedCells)||1)
+        ),
+      movementDistance:
+        Math.max(
+          1,
+          Number(config.movementDistance)||0
+        )
+    };
+  },
+
+  attackWithMovementDistance(
+    entity,
+    target,
+    attackId,
+    now,
+    movementDistance
+  ){
+    const base=
+      AbilityService.attackById(
+        EntityService.owner(entity)?.character,
+        attackId
+      )||
+      AbilityService.attackById(
+        entity.character,
+        attackId
+      );
+    if(!base)return false;
+
+    const stagedBase=
+      this.resolveStageAttack(
+        entity,
+        base
+      );
+    const desiredDistance=
+      Math.max(
+        0,
+        Number(movementDistance)||0
+      );
+    const modules=
+      stagedBase.modules.map(module=>{
+        if(
+          module?.type!=='movement.move'||
+          desiredDistance<=0
+        )return module;
+
+        return Object.freeze({
+          ...module,
+          distance:desiredDistance
+        });
+      });
+    const prepared=
+      AugmentService.prepareAttack(
+        entity,
+        Object.freeze({
+          ...stagedBase,
+          modules:Object.freeze(modules)
+        }),
+        now
+      );
+    const angle=Math.atan2(
+      Number(target.y)-Number(entity.y),
+      Number(target.x)-Number(entity.x)
+    );
+    const executed=
+      TriggeredAttackService.execute(
+        entity,
+        prepared,
+        angle
+      );
+
+    if(executed){
+      NaturalHealthRegenActivityService.mark(
+        entity,
+        now
+      );
+    }
+    return executed;
+  },
+
   movementAttack(entity,point,config,state,now){
     if(!entity?.alive||!point||!config?.attackId)return false;
     if(now<Math.max(0,Number(state.nextMovementAttackAt)||0))return false;
-    const executed=this.attack(entity,point,String(config.attackId),now,0);
+
+    const traversalDistance=
+      point.traversal==='movement-attack'
+        ?Math.max(
+          0,
+          Number(point.traversalDistance)||0,
+          Number(config.movementDistance)||0
+        )
+        :0;
+    const executed=
+      traversalDistance>0
+        ?this.attackWithMovementDistance(
+          entity,
+          point,
+          String(config.attackId),
+          now,
+          traversalDistance
+        )
+        :this.attack(
+          entity,
+          point,
+          String(config.attackId),
+          now,
+          0
+        );
+
     if(!executed)return false;
-    state.nextMovementAttackAt=now+Math.max(1,Number(config.attackInterval)||Number(config.interval)||600);
+    state.nextMovementAttackAt=
+      now+
+      Math.max(
+        1,
+        Number(config.attackInterval)||
+        Number(config.interval)||
+        600
+      );
+    return true;
+  },
+
+  enemyAvoidDesperateConfig(ai){
+    const config=
+      ai?.enemyAvoidance?.desperateMode;
+    if(
+      !config||
+      config.enabled!==true
+    )return null;
+
+    return {
+      enabled:true,
+      exitDistance:
+        Math.max(
+          0,
+          Number(config.exitDistance)||0
+        )
+    };
+  },
+
+  clearEnemyAvoidDesperate(state){
+    if(!state)return false;
+    state.enemyAvoidDesperate=false;
+    state.enemyAvoidDesperateTargetId=null;
+    state.enemyAvoidPathFallback=false;
+    state.enemyAvoidPath.length=0;
+    state.enemyAvoidPathIndex=0;
+    state.enemyAvoidPathAt=0;
     return true;
   },
 
@@ -65012,6 +65331,26 @@ const SummonAIService=Object.freeze({
     frameScale
   ){
     if(!entity?.alive||!target?.alive)return false;
+
+    const config=ai?.enemyAvoidance||{};
+    const desperateConfig=
+      this.enemyAvoidDesperateConfig(ai);
+    const currentEnemyDistance=
+      Math.hypot(
+        Number(entity.x)-Number(target.x),
+        Number(entity.y)-Number(target.y)
+      );
+
+    if(
+      state.enemyAvoidDesperate===true&&
+      desperateConfig&&
+      desperateConfig.exitDistance>0&&
+      currentEnemyDistance>=
+        desperateConfig.exitDistance
+    ){
+      this.clearEnemyAvoidDesperate(state);
+    }
+
     let dx=Number(entity.x)-Number(target.x);
     let dy=Number(entity.y)-Number(target.y);
     let length=Math.hypot(dx,dy);
@@ -65020,14 +65359,255 @@ const SummonAIService=Object.freeze({
       const angle=(seed*2.399963229728653+now*.001)%(Math.PI*2);
       dx=Math.cos(angle);dy=Math.sin(angle);length=1;
     }
-    dx/=length;dy/=length;
-    const config=ai?.enemyAvoidance||{};
-    const attackDistance=Math.max(40,Number(config.attackAimDistance)||Number(ai?.meleeRange)||95);
-    const fleePoint={x:Number(entity.x)+dx*attackDistance,y:Number(entity.y)+dy*attackDistance};
-    if(this.movementAttack(entity,fleePoint,config,state,now))return true;
-    return MovementService.move(entity,dx,dy,frameScale,{
-      speedOverride:Math.max(0,Number(config.speed)||Number(entity.speed)||0)
-    });
+    dx/=length;
+    dy/=length;
+
+    const traversal=this.attackTraversal(ai);
+    const cellSize=
+      Math.max(
+        16,
+        Number(ai?.pathCellSize)||
+        GridPathfindingService.DEFAULT_CELL
+      );
+    const recalcMs=
+      Math.max(
+        50,
+        Number(config.pathRecalcMs)||180
+      );
+    const pathDistance=
+      Math.max(
+        cellSize*2,
+        Number(config.pathDistance)||260
+      );
+    const pathConsumed=
+      !Array.isArray(state.enemyAvoidPath)||
+      !state.enemyAvoidPath.length||
+      state.enemyAvoidPathIndex>=
+        state.enemyAvoidPath.length;
+    const desperate=
+      state.enemyAvoidDesperate===true;
+
+    if(
+      pathConsumed||
+      (
+        !desperate&&
+        now-Math.max(
+          0,
+          Number(state.enemyAvoidPathAt)||0
+        )>=recalcMs
+      )
+    ){
+      const fleeTarget={
+        x:Number(entity.x)+dx*pathDistance,
+        y:Number(entity.y)+dy*pathDistance
+      };
+      const open=
+        WorldGeometryService.nearestOpenPoint(
+          fleeTarget.x,
+          fleeTarget.y,
+          Math.max(
+            2,
+            Number(entity.radius)||20
+          )
+        );
+      const resolvedTarget=
+        open||
+        fleeTarget;
+
+      let result=
+        GridPathfindingService.findPath(
+          entity,
+          resolvedTarget,
+          {
+            radius:entity.radius,
+            cellSize,
+            maxExpansions:ai.maxPathExpansions,
+            traversal
+          }
+        );
+      let fallback=false;
+
+      const fleeEnd=
+        (
+          Array.isArray(result.path)&&
+          result.path.length
+        )
+          ?result.path[result.path.length-1]
+          :entity;
+      const fleeEndEnemyDistance=
+        Math.hypot(
+          Number(fleeEnd.x)-Number(target.x),
+          Number(fleeEnd.y)-Number(target.y)
+        );
+      const minimumEscapeGain=
+        Math.max(
+          12,
+          cellSize*.35
+        );
+      const meaningfulEscape=
+        result.found===true&&
+        fleeEndEnemyDistance>=
+          currentEnemyDistance+
+          minimumEscapeGain;
+
+      if(
+        !meaningfulEscape&&
+        config.fallbackToEnemyWhenTrapped===true
+      ){
+        result=
+          GridPathfindingService.findPath(
+            entity,
+            target,
+            {
+              radius:entity.radius,
+              cellSize,
+              maxExpansions:ai.maxPathExpansions,
+              traversal
+            }
+          );
+        fallback=true;
+
+        if(
+          desperateConfig?.enabled===true
+        ){
+          state.enemyAvoidDesperate=true;
+          state.enemyAvoidDesperateTargetId=
+            String(target.id||'');
+        }
+      }
+
+      state.enemyAvoidPath=
+        Array.isArray(result.path)
+          ?result.path
+          :[];
+      state.enemyAvoidPathIndex=0;
+      state.enemyAvoidPathAt=now;
+      state.enemyAvoidPathFallback=fallback;
+    }
+
+    const threshold=Math.max(8,cellSize*.45);
+    let waypoint=null;
+    while(
+      state.enemyAvoidPathIndex<
+      state.enemyAvoidPath.length
+    ){
+      const candidate=
+        state.enemyAvoidPath[
+          state.enemyAvoidPathIndex
+        ];
+      if(
+        Math.hypot(
+          Number(candidate.x)-Number(entity.x),
+          Number(candidate.y)-Number(entity.y)
+        )>=threshold
+      ){
+        waypoint=candidate;
+        break;
+      }
+      state.enemyAvoidPathIndex++;
+    }
+
+    const movementConfig=
+      waypoint?.traversal==='movement-attack'&&
+      traversal
+        ?traversal
+        :config;
+
+    if(
+      waypoint?.traversal==='movement-attack'
+    ){
+      this.movementAttack(
+        entity,
+        waypoint,
+        movementConfig,
+        state,
+        now
+      );
+      return true;
+    }
+
+    if(waypoint){
+      if(
+        this.movementAttack(
+          entity,
+          waypoint,
+          config,
+          state,
+          now
+        )
+      )return true;
+
+      return MovementService.move(
+        entity,
+        Number(waypoint.x)-Number(entity.x),
+        Number(waypoint.y)-Number(entity.y),
+        frameScale,
+        {
+          speedOverride:
+            Math.max(
+              0,
+              Number(config.speed)||
+              Number(entity.speed)||
+              0
+            )
+        }
+      );
+    }
+
+    if(state.enemyAvoidDesperate===true){
+      return MovementService.move(
+        entity,
+        dx,
+        dy,
+        frameScale,
+        {
+          speedOverride:
+            Math.max(
+              0,
+              Number(config.speed)||
+              Number(entity.speed)||
+              0
+            )
+        }
+      );
+    }
+
+    const attackDistance=
+      Math.max(
+        40,
+        Number(config.attackAimDistance)||
+        Number(ai?.meleeRange)||
+        95
+      );
+    const fleePoint={
+      x:Number(entity.x)+dx*attackDistance,
+      y:Number(entity.y)+dy*attackDistance
+    };
+    if(
+      this.movementAttack(
+        entity,
+        fleePoint,
+        config,
+        state,
+        now
+      )
+    )return true;
+
+    return MovementService.move(
+      entity,
+      dx,
+      dy,
+      frameScale,
+      {
+        speedOverride:
+          Math.max(
+            0,
+            Number(config.speed)||
+            Number(entity.speed)||
+            0
+          )
+      }
+    );
   },
 
   projectileRemainingDistance(projectile){
@@ -66602,7 +67182,8 @@ const SummonAIService=Object.freeze({
                     )
                 }
               )
-              :[]
+              :[],
+          traversal:this.attackTraversal(ai)
         }
       );
       state.ownerReturnPath=
@@ -66632,6 +67213,25 @@ const SummonAIService=Object.freeze({
       state.ownerReturnPathIndex++;
     }
 
+    if(
+      waypoint?.traversal==='movement-attack'
+    ){
+      const traversal=
+        this.attackTraversal(ai);
+      if(traversal){
+        this.movementAttack(
+          entity,
+          waypoint,
+          traversal,
+          state,
+          now
+        );
+      }
+      state.lastMeleeTargetId=null;
+      state.enteredMeleeAt=0;
+      return true;
+    }
+
     if(waypoint&&this.movementAttack(entity,waypoint,config,state,now)){
       state.lastMeleeTargetId=null;
       state.enteredMeleeAt=0;
@@ -66656,6 +67256,114 @@ const SummonAIService=Object.freeze({
     return false;
   },
 
+  stationaryAutoAttack(
+    entity,
+    target,
+    spec,
+    ai,
+    state,
+    now
+  ){
+    if(
+      ai?.stationary!==true||
+      !ai?.meleeAttackId
+    )return false;
+
+    // Carryable stationary summons do not fire while being carried.
+    if(
+      SummonDeployService.isCarriedEntity(
+        entity
+      )
+    ){
+      state.lastMeleeTargetId=null;
+      state.enteredMeleeAt=0;
+      return true;
+    }
+
+    if(!target?.alive){
+      state.lastMeleeTargetId=null;
+      state.enteredMeleeAt=0;
+      return true;
+    }
+
+    const range=
+      this.meleeRange(
+        entity,
+        spec,
+        now
+      );
+    const distance=
+      Math.hypot(
+        Number(target.x)-Number(entity.x),
+        Number(target.y)-Number(entity.y)
+      );
+
+    if(
+      distance>
+      range+
+      Math.max(
+        0,
+        Number(target.radius)||0
+      )
+    ){
+      state.lastMeleeTargetId=null;
+      state.enteredMeleeAt=0;
+      return true;
+    }
+
+    const targetId=String(target.id||'');
+    if(state.lastMeleeTargetId!==targetId){
+      state.lastMeleeTargetId=targetId;
+      state.enteredMeleeAt=now;
+    }
+
+    const windup=
+      Math.max(
+        0,
+        Number(ai.meleeWindup)||0
+      );
+    if(
+      now<
+      Math.max(
+        0,
+        Number(state.enteredMeleeAt)||0
+      )+
+      windup
+    )return true;
+
+    if(
+      now<
+      Math.max(
+        0,
+        Number(state.nextMeleeAt)||0
+      )
+    )return true;
+
+    const executed=
+      this.attack(
+        entity,
+        target,
+        String(ai.meleeAttackId),
+        now,
+        Number(ai.aimJitter)||0
+      );
+
+    if(executed){
+      state.nextMeleeAt=
+        now+
+        this.attackInterval(
+          entity,
+          Math.max(
+            1,
+            Number(ai.meleeInterval)||800
+          ),
+          now
+        );
+    }
+
+    return true;
+  },
+
   priorityUpdate(entity,owner,spec,now,frameScale=1){
     const ai=spec?.ai;
     if(!entity?.alive||!ai||ai.enabled===false||!EntitySimulationAuthorityService.isLocal(entity))return false;
@@ -66676,7 +67384,60 @@ const SummonAIService=Object.freeze({
     );
     const nearest=this.nearestEnemy(entity,owner,ai,commandMode);
 
+    if(
+      this.stationaryAutoAttack(
+        entity,
+        nearest.target,
+        spec,
+        ai,
+        state,
+        now
+      )
+    )return true;
+
     // 1. 자기 주변 적 회피.
+    if(
+      ai.enemyAvoidance?.enabled===true&&
+      state.enemyAvoidDesperate===true
+    ){
+      const desperateTarget=
+        EntityService.items.get(
+          String(
+            state.enemyAvoidDesperateTargetId||
+            ''
+          )
+        )||null;
+
+      if(
+        desperateTarget?.alive&&
+        RelationService.relation(
+          entity,
+          desperateTarget
+        )==='enemy'
+      ){
+        state.targetId=
+          String(desperateTarget.id||'');
+        state.path.length=0;
+        state.pathIndex=0;
+        state.ownerThreatSafeAnchor=null;
+        state.ownerThreatWanderTarget=null;
+        state.ownerThreatWanderPath.length=0;
+        state.ownerThreatWanderPathIndex=0;
+        state.nextOwnerThreatWanderTargetAt=0;
+        return this.fleeEnemy(
+          entity,
+          owner,
+          desperateTarget,
+          ai,
+          state,
+          now,
+          frameScale
+        );
+      }
+
+      this.clearEnemyAvoidDesperate(state);
+    }
+
     if(ai.enemyAvoidance?.enabled===true&&nearest.target){
       state.targetId=String(nearest.target.id||'');
       state.path.length=0;state.pathIndex=0;
@@ -66688,6 +67449,7 @@ const SummonAIService=Object.freeze({
       return this.fleeEnemy(entity,owner,nearest.target,ai,state,now,frameScale);
     }
     state.targetId=null;
+    this.clearEnemyAvoidDesperate(state);
 
     if(this.damageEscape(entity,ai,state,now,frameScale))return true;
 
@@ -71783,6 +72545,39 @@ const FormulaSequenceService=Object.freeze({
     return state;
   },
 
+  mistakeProgress(progress,config={}){
+    const current=
+      Math.max(
+        0,
+        Math.floor(Number(progress)||0)
+      );
+    const rule=
+      config?.mistakeProgress&&
+      typeof config.mistakeProgress==='object'
+        ?config.mistakeProgress
+        :null;
+
+    if(
+      !rule||
+      String(rule.operation||'reset')!=='retain-ratio'
+    )return 0;
+
+    const ratio=
+      Math.max(
+        0,
+        Math.min(
+          1,
+          Number(rule.ratio)||0
+        )
+      );
+    const raw=current*ratio;
+    const round=String(rule.round||'floor');
+
+    if(round==='ceil')return Math.ceil(raw);
+    if(round==='round')return Math.round(raw);
+    return Math.floor(raw);
+  },
+
   input(source,module,button,targetPoint,now=performance.now()){
     if(!source?.alive)return {handled:false};
     const config=FormulaSequenceConfigService(source,module);
@@ -71818,7 +72613,11 @@ const FormulaSequenceService=Object.freeze({
 
     const expected=this.expanded(state.tokens);
     if(expected[state.progress]!==input){
-      state.progress=0;
+      state.progress=
+        this.mistakeProgress(
+          state.progress,
+          config
+        );
       state.mistakes=(Number(state.mistakes)||0)+1;
       state.lastInputAt=now;
       return {handled:true,wrong:true,state};
