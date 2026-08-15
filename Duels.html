@@ -1,3 +1,4 @@
+<!-- 3.1043: 샤이라즈 추가 덫(반격 투척)의 직접 피해를 일반 덫과 동일한 150으로 맞췄다. 샤이라즈 Base Damage 70 기준 attack.shairaz.counter의 damageRatio를 7에서 2.142857142857143(15/7)으로 변경했다. 착탄 후 생성되는 shairaz-counter-trap은 기존처럼 attack.shairaz.trap-trigger를 사용하므로 덫 발동 피해도 150, 기절 1250ms를 유지한다. -->
 <!-- 3.1042: 샤이라즈 기본 피해를 50에서 70으로 변경해 attack.shairaz.lmb의 damageRatio 1 기준 평타 7발이 탄환당 70 피해를 주도록 조정했다. 덫 발동 attack.shairaz.trap-trigger는 새 Base Damage 70 기준 정확히 150 피해가 되도록 damageRatio를 2.142857142857143(15/7)으로 변경했다. 덫 기절 1250ms, 설치 스테미나 800, 설치 쿨다운 400ms, 회수 전용 400ms는 유지한다. -->
 <!-- 3.1041: 샤이라즈 덫 발동 공격 attack.shairaz.trap-trigger의 기절 시간을 1500ms에서 1250ms로 조정했다. 덫 설치 쿨다운 400ms, 설치 스테미나 800, 회수 전용 400ms 쿨다운, 발동/피해 반경 78은 유지한다. -->
 <!-- 3.1040: 샤이라즈 일반 RMB 덫 설치 쿨다운을 1700ms에서 400ms로 되돌리고, 설치 스테미나 소모를 600에서 800으로 증가시켰다. 회수는 기존처럼 별도 공용 attackDelayGroup 'shairaz-rmb-recall' 400ms를 유지해 설치 쿨다운과 독립적으로 동작한다. 덫 발동/피해 반경 78, 회수 반경 39, 최대 설치 수 3은 변경하지 않았다. -->
@@ -13118,7 +13119,7 @@ const GAME_DATA=Object.freeze({
         }),
         counter:Object.freeze({
           id:'attack.shairaz.counter',
-          damageRatio:7,
+          damageRatio:2.142857142857143,
           cost:0,
           cd:300,
           range:450,
