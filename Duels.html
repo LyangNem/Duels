@@ -1,3 +1,6 @@
+<!-- 3.982: 캐릭터 역할/거리 표기 정리. 큐리를 '성장형 근거리 컨트롤러' / ['성장형','컨트롤러']로 변경하고, 메라모나는 기존 역할군을 유지한 채 거리 표기를 중거리로 변경한다. 전투 수치/기능 변경 없음. -->
+<!-- 3.981: 제리 역할군 표기 정리. 3.0 제리 styleLabel을 '파워형 중거리 암살자'에서 '파워형 중거리 딜러'로 변경해 기존 tags ['파워형','딜러']와 일치시킨다. 전투 수치/기능 변경 없음. -->
+<!-- 3.980: 디버그 계정 탭에 계정+랭킹 동시 삭제 UI 추가. 3.979의 고아 랭킹 필터링은 채택하지 않고 3.978 기준으로 진행한다. AccountService.debugDeleteAccountAndRankings()는 디버그 권한 계정의 requesterAccountId와 삭제 대상 accountId를 새 관리자 API /admin/account/delete에 전달한다. 서버는 이 요청에서 대상 계정 파일과 rankings/characters.json의 동일 accountId 항목을 원자적으로 함께 제거해야 한다. 삭제 성공 시 CharacterRecordService 랭킹 캐시를 비우고, 현재 로그인 계정 자신을 삭제한 경우 로그아웃한다. -->
 <!-- 3.978: 설명 문구 수정. 라임 어린 슬라임 설명을 '주변 적에게서 도망 / 같은 단계끼리 합쳐짐'으로, 스야 은신 설명을 '최대 {stealthDurationSeconds}초 은신 및 재사용으로 해제'로 변경. 기능/수치/로직 변경 없음. -->
 <!-- 3.977: 어린 슬라임 투사체 후속 공격 회피의 예상 착탄점 보정. 기존 최대 사거리/targetPoint 끝점만 보던 projectileImpactPoint를 실제 outbound 충돌 규칙에 맞춰 현재 위치부터 남은 비행 구간의 최초 벽/엔티티 충돌점을 예측하도록 확장했다. 벽은 WorldGeometryService.raycastDistance와 실제 projectile wall padding/collisionPolicy를 사용하고, 엔티티는 실제 target relation/targetKinds/targetEntityOnly 조건을 거친 뒤 projectile hit radius+target radius 원 충돌의 최초 진입거리를 비교한다. 비관통 투사체가 플레이어나 벽에 먼저 닿아 조기 폭발하면 그 예상 충돌점을 projectile.impact 후속 범위의 중심으로 사용한다. clamp/stop/return 벽 동작은 impact 폭발점으로 취급하지 않는다. 캐릭터 ID 예외 없음. -->
 <!-- 3.976: 라임 어린 슬라임 투사체 회피/단계 속도 확장. SummonAIService.projectileThreat가 현재 투사체 충돌 궤적뿐 아니라 projectile.impact.attackIds 및 impact.sourceRelocate.onEndAttackIds로 연결된 후속 공격의 실제 준비된 range/delivery.area 범위를 예상 착탄점 기준으로 검사한다. 후속 범위가 어린 슬라임에 닿을 예정이면 착탄점 반대 방향으로 회피한다. ClusterSummonService stageStats/applyStage에 범용 stageSpeedPerStage를 추가해 라임 slime은 1단계 4.5, 2단계 4.25, 3단계 4.0, 4단계 3.75가 실제 entity.speed로 적용된다. 도주/투사체 회피/damageEscape는 별도 5.5 override를 제거하고 entity.speed를 사용하며, 합체 추적도 entity.speed를 우선 사용한다. 평상시 배회 2.5는 유지. 캐릭터 ID 예외 없음. -->
@@ -7324,6 +7327,48 @@ const AccountService = Object.freeze({
       }
     };
     return await this.save(updated);
+  },
+  async debugDeleteAccountAndRankings(accountId){
+    const id=this.normalizeId(accountId);
+    if(!id)throw new Error('삭제할 계정 아이디를 입력하세요.');
+
+    const requester=AccountState.current;
+    if(
+      !requester||
+      requester.isGuest||
+      requester.permissions?.debugTools!==true
+    ){
+      throw new Error('디버깅 권한이 필요합니다.');
+    }
+
+    const requesterAccountId=
+      this.normalizeId(requester.accountId);
+    if(!requesterAccountId){
+      throw new Error('현재 디버그 계정을 확인할 수 없습니다.');
+    }
+
+    const body=await this.request(
+      '/admin/account/delete',
+      {
+        method:'POST',
+        body:JSON.stringify({
+          requesterAccountId,
+          accountId:id,
+          deleteRankings:true
+        })
+      }
+    );
+
+    return {
+      accountId:id,
+      removedRankings:
+        Math.max(
+          0,
+          Math.floor(
+            Number(body?.removedRankings)||0
+          )
+        )
+    };
   },
   async create({accountId, displayName, password, passwordConfirm}) {
     const id = this.normalizeId(accountId);
@@ -16420,7 +16465,7 @@ const GAME_DATA=Object.freeze({
       radius:20,
       baseDamage:200,
       moveLabel:'보통',
-      styleLabel:'성장형 원거리 딜러',
+      styleLabel:'성장형 중거리 딜러',
       tags:Object.freeze(['성장형','딜러']),
       desc:'정의를 수호하며 단계적으로 성장하는 마법소녀 캐릭터',
       worldGaugeModules:Object.freeze([
@@ -17485,7 +17530,7 @@ const GAME_DATA=Object.freeze({
       radius:20,
       baseDamage:200,
       moveLabel:'느림',
-      styleLabel:'파워형 중거리 암살자',
+      styleLabel:'파워형 중거리 딜러',
       tags:Object.freeze(['파워형','딜러']),
       desc:'폭발물로 단거리 곡사와 근거리를 견제하는 캐릭터',
       tooltipSkills:Object.freeze([
@@ -20042,8 +20087,8 @@ const GAME_DATA=Object.freeze({
       radius:20,
       baseDamage:200,
       moveLabel:'보통',
-      styleLabel:'성장형 근거리 딜러',
-      tags:Object.freeze(['성장형','딜러']),
+      styleLabel:'성장형 근거리 컨트롤러',
+      tags:Object.freeze(['성장형','컨트롤러']),
       desc:'빠르게 공식을 완성하여 전투하는 캐릭터',
 
       formulaSequence:Object.freeze({
@@ -21663,6 +21708,13 @@ const CharacterRecordService=Object.freeze({
   rankingCache:new Map(),
   rankingCacheMs:30000,
   allRankingState:{characters:{},loadedAt:0,promise:null},
+  clearRankingCache(){
+    this.rankingCache.clear();
+    this.allRankingState.characters={};
+    this.allRankingState.loadedAt=0;
+    this.allRankingState.promise=null;
+    return true;
+  },
   masteryTiers:Object.freeze([
     Object.freeze({id:'master',name:'마스터 I',min:12000,gradient:'linear-gradient(135deg,#ffe34f,#ff9d38,#a86cff,#6f3dd6)',glow:'rgba(205,120,255,.72)',text:'#f0c3ff'}),
     Object.freeze({id:'platinum',name:'플레티넘',min:8000,gradient:'linear-gradient(135deg,#76d8ff,#9eeeff,#aaf2c1,#66d991)',glow:'rgba(105,225,205,.72)',text:'#8fe8cf'}),
@@ -100578,6 +100630,72 @@ const DebugPanel={
     );
     permission.appendChild(permissionRow.row);
     body.appendChild(permission);
+
+    const deletion=this.section(
+      '계정 삭제',
+      '지정 계정과 해당 accountId의 모든 캐릭터 랭킹 기록을 함께 삭제'
+    );
+    const deletionRow=this.row('계정 아이디');
+    const deletionId=this.input('','account_id');
+    deletionId.inputMode='text';
+    deletionId.autocomplete='off';
+    const deletionMessage=this.el('span','debug-message','');
+
+    deletionRow.controls.append(
+      deletionId,
+      this.button('계정 + 랭킹 삭제',async()=>{
+        try{
+          const targetId=
+            AccountService.normalizeId(
+              deletionId.value
+            );
+
+          if(!targetId){
+            throw new Error(
+              '삭제할 계정 아이디를 입력하세요.'
+            );
+          }
+
+          deletionMessage.textContent='삭제 중…';
+          deletionMessage.dataset.state='';
+
+          const result=
+            await AccountService
+              .debugDeleteAccountAndRankings(
+                targetId
+              );
+
+          CharacterRecordService
+            .clearRankingCache();
+
+          deletionId.value='';
+          deletionMessage.textContent=
+            `${result.accountId} 삭제 완료 · 랭킹 ${result.removedRankings}개 제거`;
+          deletionMessage.dataset.state='ok';
+
+          if(
+            AccountService.normalizeId(
+              AccountState.current?.accountId
+            )===result.accountId
+          ){
+            AccountUI.logout();
+            return;
+          }
+
+          CharacterRecordService
+            .loadAllRankings(true)
+            .catch(()=>{});
+        }catch(error){
+          deletionMessage.textContent=
+            error?.message||
+            '계정 삭제에 실패했습니다.';
+          deletionMessage.dataset.state='error';
+        }
+      },'danger'),
+      deletionMessage
+    );
+    deletion.appendChild(deletionRow.row);
+    body.appendChild(deletion);
 
     if(!account||account.isGuest)return;
 
