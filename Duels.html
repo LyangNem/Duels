@@ -1,3 +1,5 @@
+<!-- 3.1024: 디버그 맵 탭의 맵 선택 버튼이 로컬 DebugMapService.set()만 호출해 상대에게 동기화되지 않던 버그 수정. 기존 OnlineDebugMapSyncService.apply()를 재사용해 로컬 적용과 duel-debug-map-change 송신을 같은 경로로 통일했다. 수신 측은 기존 OnlineDebugMapSyncService.receive() 및 DebugMapService.set() 경로를 그대로 사용한다. 새 네트워크 시스템 없음. -->
+<!-- 3.1023: 스야 은신 기습 0피해 빙결 공격을 기존 칸 RMB의 effects-only CC 공격 구조에 맞췄다. attack.sya.stealth-freeze에 effectsOnly:true를 추가하고, 직접 on-hit status.apply 대신 delivery.area 적중 후 hit.sequence에서 hit-target에게 freeze 500ms를 적용한다. TriggeredAttackService 기반 일반 공격/회피/저스트 회피 경로는 그대로 유지한다. 따라서 정상 적중 시 빙결이 적용되고, 회피 중이면 기존 공격 적중 판정에서 저스트 회피와 반격 획득을 처리한다. -->
 <!-- 3.1022: 스야 서리안개 은신 기습 빙결을 직접 CombatStatusApplicationService.apply() 하던 별도 경로에서 제거하고 기존 AttackSpec 적중 경로로 통합했다. 신규 attack.sya.stealth-freeze는 피해 0, 반경 80 원형 delivery.area + freeze 500ms로 구성되며 StealthModeService의 근접 감지 시 은신 해제/공속 버프 이후 TriggeredAttackService.execute()로 실행된다. 따라서 일반 공격과 동일한 회피 비대상/저스트 회피/적중 판정/온라인 공격 재생 경로를 사용하고, 회피 성공 시 빙결 미적용과 기존 JustDodgeService 반격 획득이 함께 처리된다. 3.1021에서 추가했던 requireTargetable 직접 상태 우회 코드는 제거했다. -->
 <!-- 3.1021: 스야 서리안개 은신 감지 빙결이 회피 비대상 판정을 건너뛰던 버그 수정. StealthModeService가 detectStatus를 CombatStatusApplicationService에 직접 적용하던 경로에 데이터 기반 detectStatusRequiresTargetable 옵션을 추가했다. CombatStatusApplicationService는 requireTargetable이 true인 직접 상태 부여에 대해 ActionStateCombatPolicyService.blocksAttackInteraction()을 검사하며, 온라인 status packet에도 동일 플래그를 전달해 대상 권위에서 재검사한다. 따라서 스야 은신은 근접 감지 시 기존대로 해제되지만 상대가 회피 판정 중이면 freeze는 적용되지 않는다. 일반 상태 부여는 기본 false로 기존 동작 유지. -->\n<!-- 3.1020: 밸런스/버그 수정. 라임 뛰어오르기 attack.lime.jump의 cooldown 900→1400ms, stamina cost 300→500. 루뷰 RMB 왕복 무기 스킬의 발사/귀환 탄속을 32.2→24.15(-25%)로 통일. FormulaSequenceService에 데이터 기반 mistakeProgress 규칙을 추가하고 큐리는 오입력 시 현재 단계는 유지한 채 현재 단계 입력 진행도를 floor(progress*0.5)로 감소시킨다(1→0,3→1). 헤르쟝 대포의 meleeAttackId가 데이터에는 존재하지만 SummonAIService에서 stationary 자동공격 실행 경로가 빠져 있던 문제를 수정했다. 기존 nearestEnemy/meleeRange/attack/attackInterval을 재사용하는 범용 stationaryAutoAttack을 추가하고 carry 중에는 공격하지 않도록 했다. -->
 <!-- 3.1019: 라임 어린 슬라임의 막다른 도주 폴백에 발악 모드를 추가했다. 막다른 길로 판정되어 적 방향 폴백 경로를 선택하면 enemyAvoidDesperate 상태와 해당 적 ID를 잠그고, 적과 330 이상 거리가 벌어질 때까지 일반 nearest-enemy 재판정 및 recalcMs 기반 경로 교체를 하지 않는다. 발악 중에는 현재 탈출 경로를 끝까지 소비한 뒤에만 다음 도주 경로를 계산하며, 잠긴 적이 사망/무효화되거나 exitDistance를 넘으면 정상 AI로 복귀한다. 기존 2칸 벽 slime-auto movement-attack traversal은 유지한다. -->
@@ -16016,6 +16018,7 @@ const GAME_DATA=Object.freeze({
           cost:0,
           cd:0,
           range:80,
+          effectsOnly:true,
           modules:Object.freeze([
             Object.freeze({
               type:'delivery.area',
@@ -16024,12 +16027,22 @@ const GAME_DATA=Object.freeze({
               wallPolicy:'ignore'
             }),
             Object.freeze({
-              type:'status.apply',
-              status:'freeze',
-              duration:500,
-              data:Object.freeze({
-                stackMode:'replace-source'
-              })
+              type:'hit.sequence',
+              oncePerExecution:false,
+              steps:Object.freeze([
+                Object.freeze({
+                  delay:0,
+                  modules:Object.freeze([
+                    Object.freeze({
+                      type:'status.apply',
+                      target:'hit-target',
+                      status:'freeze',
+                      duration:500,
+                      sourceId:'attack.sya.stealth-freeze:freeze'
+                    })
+                  ])
+                })
+              ])
             })
           ]),
           tags:Object.freeze(['스킬','빙결'])
@@ -102288,7 +102301,7 @@ const DebugPanel={
       const button=this.button(
         candidate.name,
         ()=>{
-          DebugMapService.set(
+          OnlineDebugMapSyncService.apply(
             candidate.id
           );
           this.render();
