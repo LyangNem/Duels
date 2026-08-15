@@ -1,3 +1,5 @@
+<!-- 3.1033: 3.1032에서 잘못 복구한 소르 정전기장 진입 즉시 tick 피해를 제거했다. 소르 RMB 투사체 탄착 시 별도 attack.sor.rmb-impact를 projectile.impact attackIds로 실행하도록 복구해, 탄착 순간 장판 반경 120 안의 적에게 0.5배 피해와 감전 2초를 1회 적용한다. 설치된 정전기장 자체는 triggerOnEnter:false를 유지하며 진입 즉시 피해는 없고, 기존 attack.sor.field-tick의 1초 주기 피해/감전만 유지한다. -->
+<!-- 3.1032: 소르 RMB 정전기장 착탄 즉시 피해 복구 및 어린 슬라임 장판 회피 개선. 소르 projectile.impact field에 기존 InstalledAreaFieldService의 triggerImmediately:true를 사용해 설치 순간 attack.sor.field-tick을 즉시 1회 처리하고 이후 1초 간격 장판 피해를 유지한다. SummonAIService에 기존 field.area collisionArea를 재사용하는 hostileFieldObstacles/segmentCrossesHostileField를 추가해 ownerReturn/배회/동단계 합체 추적 경로가 적 피해 장판을 장애물로 취급하므로 안전지대에서 장판 쪽으로 다시 접근하지 않는다. fieldAvoid의 유효 탈출 판정은 enemy fleeEnemy와 동일하게 found=true + 장판 밖 + 위협 중심으로부터 최소 max(12,cellSize*0.35) 거리 증가를 요구하며, 실패 시 기존처럼 위협 중심 fallback과 fieldAvoidDesperate 고정을 사용한다. 캐릭터 ID 분기 없이 데이터 기반 fieldAvoidance를 사용하는 소환수에 재사용된다. -->
 <!-- 3.1031: 플레이어 이탈 후 한 명만 남아도 매치 종료가 누락될 수 있는 호스트 권위/마이그레이션 경로를 수정. 기존 RoomMatchLifecycleService를 확장해 activeMatchPids 중 connected=true, departed=false, spectator/spectating=false이며 현재 라운드에서 살아 있는 참가자만 세는 activeSurvivorPids와 호스트 전용 reevaluateRemainingPlayers를 추가했다. 일반 참가자 이탈 시 기존 eliminateDepartedPlayer 뒤 즉시 재평가하며, 호스트 이탈 시 beginHostMigration에서 로컬 매치를 선종료하던 경로를 제거해 반드시 새 호스트 선출을 완료한다. 새 호스트 peer open 및 resumeDelegatedHostPhase 진입 시 같은 canonical 재평가를 실행해 생존 참가자가 정확히 1명이면 기존 abortMatchToRoom으로 매치를 종료한다. 생존자가 2명 이상이면 기존 evaluateRoundSurvivors를 호출하고, 0명은 기존 동시 사망 death resolution에 맡긴다. 새 네트워크 시스템/캐릭터 예외 없음. -->
 <!-- 3.1030: 어린 슬라임 AI가 적대적인 피해 field.area 장판도 회피하도록 SummonAIService의 기존 회피 계층을 범용 확장했다. 새 fieldAvoidance는 InstalledAreaFieldService의 실제 collisionArea/relationAllowed/overlapsAreaPoint를 재사용해 활성 적 장판만 판정하며, 라임 슬라임은 detectionPadding 48, pathDistance 260, recalc 180ms를 사용한다. 일반 도주 경로가 장판 밖으로 빠져나가지 못하면 기존 enemyAvoidance 발악 구조와 같은 방식으로 fieldAvoidDesperate 상태를 고정하고 attackTraversal을 포함한 fallback 경로를 사용하며, 장판 영역에서 exitPadding 72만큼 완전히 벗어날 때까지 발악 상태를 유지한다. 투사체 회피 우선순위는 기존대로 더 높고, 캐릭터 ID 하드코딩/새 장판 시스템은 없다. -->
 <!-- 3.1029: 3.1028의 어린 슬라임 mergeMinOverlap 4px 변경을 취소했다. 군집 합체 접촉 조건은 다시 중심거리 <= 두 Entity 반지름 합의 기존 기준으로 복원했다. 다른 합체 조건/AI 우선순위/체력 정책은 변경하지 않았다. -->
@@ -17592,12 +17594,26 @@ const GAME_DATA=Object.freeze({
               type:'delivery.projectile',speed:14,radius:10,damageOnTravel:false,collisionTargets:false,targetPoint:true
             }),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
-            Object.freeze({type:'projectile.impact',field:Object.freeze({
-              type:'field.area',stateKey:'sor-static-field',anchorMode:'point',shape:'circle',range:120,wallPolicy:'block',duration:4000,
-              targetRelations:Object.freeze(['enemy']),interval:1000,intervalMode:'per-target',triggerOnEnter:false,attackId:'attack.sor.field-tick',damageOnTrigger:true,
-              onTrigger:Object.freeze([Object.freeze({type:'status.apply',status:'zap',duration:2000,data:Object.freeze({stackMode:'refresh-type'})})]),
-              presentation:Object.freeze({type:'areaCircle',r:120,color:'255,225,40',fillAlpha:.10,strokeAlpha:.80,lineWidth:2.5,dash:Object.freeze([8,5]),pulse:true,pulseSpeed:.006,pulseStrokeMin:.60,pulseStrokeMax:.90,centerLabel:'ZAP',centerLabelColor:'255,225,40',centerLabelAlpha:.80,centerLabelFont:'bold 14px Pretendard',centerLabelOffsetY:5})
-            })})
+            Object.freeze({
+              type:'projectile.impact',
+              attackIds:Object.freeze([
+                'attack.sor.rmb-impact'
+              ]),
+              field:Object.freeze({
+                type:'field.area',stateKey:'sor-static-field',anchorMode:'point',shape:'circle',range:120,wallPolicy:'block',duration:4000,
+                targetRelations:Object.freeze(['enemy']),interval:1000,intervalMode:'per-target',triggerOnEnter:false,attackId:'attack.sor.field-tick',damageOnTrigger:true,
+                onTrigger:Object.freeze([Object.freeze({type:'status.apply',status:'zap',duration:2000,data:Object.freeze({stackMode:'refresh-type'})})]),
+                presentation:Object.freeze({type:'areaCircle',r:120,color:'255,225,40',fillAlpha:.10,strokeAlpha:.80,lineWidth:2.5,dash:Object.freeze([8,5]),pulse:true,pulseSpeed:.006,pulseStrokeMin:.60,pulseStrokeMax:.90,centerLabel:'ZAP',centerLabelColor:'255,225,40',centerLabelAlpha:.80,centerLabelFont:'bold 14px Pretendard',centerLabelOffsetY:5})
+              })
+            })
+          ]),
+          tags:Object.freeze(['스킬','감전'])
+        }),
+        rmbImpact:Object.freeze({
+          id:'attack.sor.rmb-impact',damageRatio:.5,cost:0,cd:0,range:120,
+          modules:Object.freeze([
+            Object.freeze({type:'delivery.area',shape:'circle',range:120,wallPolicy:'block'}),
+            Object.freeze({type:'status.apply',status:'zap',duration:2000,data:Object.freeze({stackMode:'refresh-type'})})
           ]),
           tags:Object.freeze(['스킬','감전'])
         }),
@@ -66819,6 +66835,25 @@ const SummonAIService=Object.freeze({
           ]
           :entity;
 
+      const currentThreatDistance=
+        Math.hypot(
+          Number(entity.x)-
+            Number(center.x),
+          Number(entity.y)-
+            Number(center.y)
+        );
+      const endThreatDistance=
+        Math.hypot(
+          Number(end.x)-
+            Number(center.x),
+          Number(end.y)-
+            Number(center.y)
+        );
+      const minimumEscapeGain=
+        Math.max(
+          12,
+          cellSize*.35
+        );
       const endInside=
         InstalledAreaFieldService
           .overlapsAreaPoint(
@@ -66834,7 +66869,10 @@ const SummonAIService=Object.freeze({
 
       const meaningfulEscape=
         result.found===true&&
-        endInside!==true;
+        endInside!==true&&
+        endThreatDistance>=
+          currentThreatDistance+
+          minimumEscapeGain;
 
       if(
         !meaningfulEscape&&
@@ -67204,7 +67242,23 @@ const SummonAIService=Object.freeze({
         {
           radius:entity.radius,
           cellSize,
-          maxExpansions:ai.maxPathExpansions
+          maxExpansions:ai.maxPathExpansions,
+          dynamicObstacles:
+            this.hostileFieldObstacles(
+              entity,
+              ai,
+              {
+                clearance:
+                  Math.max(
+                    0,
+                    Number(
+                      ai?.fieldAvoidance
+                        ?.detectionPadding
+                    )||0
+                  ),
+                now
+              }
+            )
         }
       );
       state[targetKey]=target;
@@ -67824,6 +67878,179 @@ const SummonAIService=Object.freeze({
     return result;
   },
 
+  hostileFieldObstacles(
+    entity,
+    ai,
+    {
+      clearance=0,
+      now=performance.now()
+    }={}
+  ){
+    const config=ai?.fieldAvoidance;
+    if(
+      !entity?.alive||
+      !config||
+      config.enabled!==true
+    )return [];
+
+    const result=[];
+
+    for(const source of EntityService.items.values()){
+      if(
+        !source?.alive||
+        !source.actionState||
+        RelationService.relation(
+          entity,
+          source
+        )!=='enemy'
+      )continue;
+
+      for(const state of source.actionState.values()){
+        if(
+          state?.kind!==
+            InstalledAreaFieldService.KIND||
+          state.phase==='afterlife'||
+          now>=Number(state.endsAt||Infinity)||
+          (
+            Number.isFinite(
+              Number(state.module?.activeDuration)
+            )&&
+            now>=
+              Number(state.startedAt||0)+
+              Math.max(
+                0,
+                Number(state.module.activeDuration)||0
+              )
+          )
+        )continue;
+
+        const damaging=
+          (
+            state.attack&&
+            Math.max(
+              0,
+              Number(state.attack.damageRatio)||0
+            )>0
+          )||
+          state.module?.damageOnTrigger===true;
+
+        if(!damaging)continue;
+
+        if(
+          !InstalledAreaFieldService.relationAllowed(
+            source,
+            entity,
+            state.module
+          )
+        )continue;
+
+        const area=
+          InstalledAreaFieldService.collisionArea(
+            state,
+            now
+          );
+        if(!area)continue;
+
+        const shape=String(
+          area.module?.shape||
+          'circle'
+        );
+        const range=
+          Math.max(
+            0,
+            Number(area.module?.range)||0
+          );
+        const halfWidth=
+          Math.max(
+            0,
+            Number(area.module?.halfWidth)||0
+          );
+
+        let x=Number(area.source?.x)||0;
+        let y=Number(area.source?.y)||0;
+        let radius=range;
+
+        if(
+          shape==='rect'||
+          shape==='tapered-rect'
+        ){
+          const angle=Number(area.angle)||0;
+          x+=Math.cos(angle)*range*.5;
+          y+=Math.sin(angle)*range*.5;
+          radius=Math.hypot(
+            range*.5,
+            halfWidth
+          );
+        }else if(shape==='sector'){
+          radius=range;
+        }
+
+        result.push({
+          x,
+          y,
+          radius,
+          clearance:
+            Math.max(
+              0,
+              Number(clearance)||0
+            ),
+          sourceId:String(source.id||''),
+          fieldKey:String(
+            state.instanceId||
+            state.storageKey||
+            ''
+          )
+        });
+      }
+    }
+
+    return result;
+  },
+
+  segmentCrossesHostileField(
+    entity,
+    target,
+    ai,
+    now=performance.now()
+  ){
+    if(
+      !entity?.alive||
+      !target
+    )return false;
+
+    const obstacles=
+      this.hostileFieldObstacles(
+        entity,
+        ai,
+        {
+          clearance:
+            Math.max(
+              0,
+              Number(
+                ai?.fieldAvoidance
+                  ?.detectionPadding
+              )||0
+            ),
+          now
+        }
+      );
+
+    if(!obstacles.length)return false;
+
+    return GridPathfindingService
+      .segmentBlockedByDynamic(
+        Number(entity.x)||0,
+        Number(entity.y)||0,
+        Number(target.x)||0,
+        Number(target.y)||0,
+        Math.max(
+          0,
+          Number(entity.radius)||0
+        ),
+        obstacles
+      );
+  },
+
   nearestEnemyAround(entity,origin,range){
     if(!entity||!origin)return {target:null,distance:Infinity};
     let nearest=null;
@@ -67906,24 +68133,42 @@ const SummonAIService=Object.freeze({
           radius:entity.radius,
           cellSize:Number(config.pathCellSize)||Number(ai.pathCellSize)||48,
           maxExpansions:Number(config.maxPathExpansions)||Number(ai.maxPathExpansions)||2600,
-          dynamicObstacles:
-            config.avoidEnemies===true
-              ?this.enemyObstacles(
-                entity,
-                {
-                  dangerRadius:
-                    Math.max(
-                      0,
-                      Number(config.enemyDangerRadius)||0
-                    ),
-                  clearance:
-                    Math.max(
-                      0,
-                      Number(config.enemyClearance)||0
-                    )
-                }
-              )
-              :[],
+          dynamicObstacles:[
+            ...(
+              config.avoidEnemies===true
+                ?this.enemyObstacles(
+                  entity,
+                  {
+                    dangerRadius:
+                      Math.max(
+                        0,
+                        Number(config.enemyDangerRadius)||0
+                      ),
+                    clearance:
+                      Math.max(
+                        0,
+                        Number(config.enemyClearance)||0
+                      )
+                  }
+                )
+                :[]
+            ),
+            ...this.hostileFieldObstacles(
+              entity,
+              ai,
+              {
+                clearance:
+                  Math.max(
+                    0,
+                    Number(
+                      ai?.fieldAvoidance
+                        ?.detectionPadding
+                    )||0
+                  ),
+                now
+              }
+            )
+          ],
           traversal:this.attackTraversal(ai)
         }
       );
@@ -68757,6 +69002,14 @@ const ClusterSummonService=Object.freeze({
         !candidate?.alive||
         Math.max(1,Math.floor(Number(candidate.clusterStage)||1))!==stage
       )continue;
+      if(
+        SummonAIService.segmentCrossesHostileField(
+          entity,
+          candidate,
+          entity.summonSpec?.ai
+        )
+      )continue;
+
       const distance=Math.hypot(
         Number(candidate.x)-Number(entity.x),
         Number(candidate.y)-Number(entity.y)
@@ -68770,6 +69023,13 @@ const ClusterSummonService=Object.freeze({
 
   pursueMergePartner(entity,partner,spec,frameScale){
     if(!entity?.alive||!partner?.alive)return false;
+    if(
+      SummonAIService.segmentCrossesHostileField(
+        entity,
+        partner,
+        spec?.ai
+      )
+    )return false;
     return MovementService.move(
       entity,
       Number(partner.x)-Number(entity.x),
