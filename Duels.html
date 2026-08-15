@@ -1,3 +1,4 @@
+<!-- 3.1042: 샤이라즈 기본 피해를 50에서 70으로 변경해 attack.shairaz.lmb의 damageRatio 1 기준 평타 7발이 탄환당 70 피해를 주도록 조정했다. 덫 발동 attack.shairaz.trap-trigger는 새 Base Damage 70 기준 정확히 150 피해가 되도록 damageRatio를 2.142857142857143(15/7)으로 변경했다. 덫 기절 1250ms, 설치 스테미나 800, 설치 쿨다운 400ms, 회수 전용 400ms는 유지한다. -->
 <!-- 3.1041: 샤이라즈 덫 발동 공격 attack.shairaz.trap-trigger의 기절 시간을 1500ms에서 1250ms로 조정했다. 덫 설치 쿨다운 400ms, 설치 스테미나 800, 회수 전용 400ms 쿨다운, 발동/피해 반경 78은 유지한다. -->
 <!-- 3.1040: 샤이라즈 일반 RMB 덫 설치 쿨다운을 1700ms에서 400ms로 되돌리고, 설치 스테미나 소모를 600에서 800으로 증가시켰다. 회수는 기존처럼 별도 공용 attackDelayGroup 'shairaz-rmb-recall' 400ms를 유지해 설치 쿨다운과 독립적으로 동작한다. 덫 발동/피해 반경 78, 회수 반경 39, 최대 설치 수 3은 변경하지 않았다. -->
 <!-- 3.1039: 샤이라즈 덫 발동 후 설치 불가 지역과 해당 afterlife 이펙트를 제거했다. 일반/반격 덫의 triggerAfterlife 및 placementBlockRadius를 제거하고 RMB 입력의 afterlife field.at-target 설치 차단 조건도 삭제했다. 일반 RMB 덫 설치 쿨다운은 400ms에서 1700ms로 변경했다. 회수는 설치 쿨다운과 분리해 일반 덫/반격 덫 회수 모두 공용 attackDelayGroup 'shairaz-rmb-recall' 400ms를 사용하므로, 설치 쿨다운과 회수 쿨다운이 서로 간섭하지 않는다. 실제 덫 발동/피해 범위 78, 회수 반경 39, 최대 설치 수 3은 유지한다. -->
@@ -12916,7 +12917,7 @@ const GAME_DATA=Object.freeze({
       maxHealth:1500,
       speed:3.75,
       radius:20,
-      baseDamage:50,
+      baseDamage:70,
       moveLabel:'느림',
       styleLabel:'범위장악형 근거리 컨트롤러',
       tags:Object.freeze([
@@ -13035,7 +13036,7 @@ const GAME_DATA=Object.freeze({
         }),
         trapTrigger:Object.freeze({
           id:'attack.shairaz.trap-trigger',
-          damageRatio:7,
+          damageRatio:2.142857142857143,
           cost:0,
           cd:0,
           range:78,
