@@ -1,3 +1,4 @@
+<!-- 3.1044: 샤이라즈 추가 덫/반격기 직접 적중의 피해와 기절을 일반 덫 스킬과 항상 동일하게 유지하도록 참조 구조로 통합했다. attack.shairaz.counter는 damageRatioRefAttackId:'attack.shairaz.trap-trigger'를 사용하고, counter.execute는 ccRefAttackId:'attack.shairaz.trap-trigger'를 사용한다. AbilityService에 범용 damageRatio 참조 해석을 추가해 런타임 AugmentService.prepareAttack과 CharacterDescriptionService가 같은 기준을 사용하며, CounterModuleService는 참조 AttackSpec의 CC 모듈을 재사용한다. 따라서 현재 일반 덫 150 피해/1.25초 기절이 반격기 직접 적중에도 동일하게 적용되고, 이후 일반 덫 수치를 바꾸면 자동으로 함께 변경된다. 캐릭터 ID 분기는 추가하지 않았다. -->
 <!-- 3.1043: 샤이라즈 추가 덫(반격 투척)의 직접 피해를 일반 덫과 동일한 150으로 맞췄다. 샤이라즈 Base Damage 70 기준 attack.shairaz.counter의 damageRatio를 7에서 2.142857142857143(15/7)으로 변경했다. 착탄 후 생성되는 shairaz-counter-trap은 기존처럼 attack.shairaz.trap-trigger를 사용하므로 덫 발동 피해도 150, 기절 1250ms를 유지한다. -->
 <!-- 3.1042: 샤이라즈 기본 피해를 50에서 70으로 변경해 attack.shairaz.lmb의 damageRatio 1 기준 평타 7발이 탄환당 70 피해를 주도록 조정했다. 덫 발동 attack.shairaz.trap-trigger는 새 Base Damage 70 기준 정확히 150 피해가 되도록 damageRatio를 2.142857142857143(15/7)으로 변경했다. 덫 기절 1250ms, 설치 스테미나 800, 설치 쿨다운 400ms, 회수 전용 400ms는 유지한다. -->
 <!-- 3.1041: 샤이라즈 덫 발동 공격 attack.shairaz.trap-trigger의 기절 시간을 1500ms에서 1250ms로 조정했다. 덫 설치 쿨다운 400ms, 설치 스테미나 800, 회수 전용 400ms 쿨다운, 발동/피해 반경 78은 유지한다. -->
@@ -13120,6 +13121,7 @@ const GAME_DATA=Object.freeze({
         counter:Object.freeze({
           id:'attack.shairaz.counter',
           damageRatio:2.142857142857143,
+          damageRatioRefAttackId:'attack.shairaz.trap-trigger',
           cost:0,
           cd:300,
           range:450,
@@ -13271,10 +13273,11 @@ const GAME_DATA=Object.freeze({
                   type:'preview.create',
                   shape:'attack-shape'
                 }),
+                ccRefAttackId:'attack.shairaz.trap-trigger',
                 cc:Object.freeze({
                   type:'status.apply',
                   status:'stun',
-                  duration:1500,
+                  duration:1250,
                   oncePerExecution:true
                 })
               })
@@ -31946,9 +31949,9 @@ const AugmentService=Object.freeze({
       modules,
       tags:[...(spec.tags||[])],
       damageRatio:
-        Math.max(
-          0,
-          Number(spec.damageRatio)||0
+        AbilityService.damageRatio(
+          entity.character,
+          spec
         )*
         damageMultiplier,
       cost:
@@ -61727,8 +61730,22 @@ const CounterModuleService=Object.freeze({
   },
   validate(module){
     return Number(module?.windup)===this.requiredWindup&&(
-      module?.allowNoCc===true||this.isCcModule(module?.cc)
+      module?.allowNoCc===true||
+      this.isCcModule(module?.cc)||
+      !!String(module?.ccRefAttackId||'')
     );
+  },
+  referencedCc(source,module){
+    const attackId=String(module?.ccRefAttackId||'');
+    if(!source||!attackId)return null;
+    const attack=AbilityService.attackById(
+      source.character,
+      attackId
+    );
+    if(!attack)return null;
+    return (attack.modules||[]).find(candidate=>
+      this.isCcModule(candidate)
+    )||null;
   },
   chargeDuration(windup){
     return Math.max(
@@ -61918,7 +61935,10 @@ const CounterModuleService=Object.freeze({
     if(!AttackService.canUse(source,context.attack))return false;
     const now=performance.now();
     const resolvedAttack=ProgressScaledAttackService.resolve(source,context.attack);
-    const resolvedCc=ProgressScaledAttackService.counterCc(resolvedAttack,module.cc);
+    const baseCc=
+      this.referencedCc(source,module)||
+      module.cc;
+    const resolvedCc=ProgressScaledAttackService.counterCc(resolvedAttack,baseCc);
     const counterKind=
       CounterStockService.peekKind(
         source,
@@ -75642,6 +75662,21 @@ const AbilityService=Object.freeze({
   attackById(character,attackId){
     return Object.values(character?.attacks||{}).find(attack=>attack.id===attackId)||null;
   },
+  damageRatio(character,attack,seen=new Set()){
+    if(!attack)return 0;
+    const id=String(attack.id||'');
+    if(id&&seen.has(id))return Math.max(0,Number(attack.damageRatio)||0);
+    if(id)seen.add(id);
+
+    const refId=String(attack.damageRatioRefAttackId||'');
+    if(refId){
+      const referenced=this.attackById(character,refId);
+      if(referenced){
+        return this.damageRatio(character,referenced,seen);
+      }
+    }
+    return Math.max(0,Number(attack.damageRatio)||0);
+  },
   resolvedInputAttack(source,ability,now=performance.now()){
     if(!source||!ability)return null;
     let attack=this.attackById(source.character,ability.attackId);
@@ -75832,7 +75867,7 @@ const CharacterDescriptionService=Object.freeze({
   attackDamage(character,attack){
     return Math.round(
       (Number(character?.baseDamage)||0)*
-      (Number(attack?.damageRatio)||0)
+      AbilityService.damageRatio(character,attack)
     );
   },
   restoreAmount(character,module){
