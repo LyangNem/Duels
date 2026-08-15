@@ -1,3 +1,4 @@
+<!-- 3.1046: 3.1045에서 잘못 적용한 직접 enemyAvoidance 도주 중 합체 방향 bias를 제거했다. 요청대로 라임 주변에 적이 있어 ownerThreatHold가 활성화되어 어린 슬라임이 안전 위치 주변을 배회하는 동안에만 같은 단계 mergePartner를 우선 추적하도록 수정했다. ClusterSummonService가 mergePartner를 먼저 계산해 ownerThreatMergeTarget으로 전달하고, ownerThreatHold는 해당 대상이 있으면 랜덤 배회 대신 그 슬라임 방향으로 이동한다. 슬라임 자신의 적 직접 회피/fleeEnemy, desperate fallback, hostile field 합체 경로 차단, 실제 접촉 합체 판정은 기존 동작을 유지한다. -->
 <!-- 3.1044: 샤이라즈 추가 덫/반격기 직접 적중의 피해와 기절을 일반 덫 스킬과 항상 동일하게 유지하도록 참조 구조로 통합했다. attack.shairaz.counter는 damageRatioRefAttackId:'attack.shairaz.trap-trigger'를 사용하고, counter.execute는 ccRefAttackId:'attack.shairaz.trap-trigger'를 사용한다. AbilityService에 범용 damageRatio 참조 해석을 추가해 런타임 AugmentService.prepareAttack과 CharacterDescriptionService가 같은 기준을 사용하며, CounterModuleService는 참조 AttackSpec의 CC 모듈을 재사용한다. 따라서 현재 일반 덫 150 피해/1.25초 기절이 반격기 직접 적중에도 동일하게 적용되고, 이후 일반 덫 수치를 바꾸면 자동으로 함께 변경된다. 캐릭터 ID 분기는 추가하지 않았다. -->
 <!-- 3.1043: 샤이라즈 추가 덫(반격 투척)의 직접 피해를 일반 덫과 동일한 150으로 맞췄다. 샤이라즈 Base Damage 70 기준 attack.shairaz.counter의 damageRatio를 7에서 2.142857142857143(15/7)으로 변경했다. 착탄 후 생성되는 shairaz-counter-trap은 기존처럼 attack.shairaz.trap-trigger를 사용하므로 덫 발동 피해도 150, 기절 1250ms를 유지한다. -->
 <!-- 3.1042: 샤이라즈 기본 피해를 50에서 70으로 변경해 attack.shairaz.lmb의 damageRatio 1 기준 평타 7발이 탄환당 70 피해를 주도록 조정했다. 덫 발동 attack.shairaz.trap-trigger는 새 Base Damage 70 기준 정확히 150 피해가 되도록 damageRatio를 2.142857142857143(15/7)으로 변경했다. 덫 기절 1250ms, 설치 스테미나 800, 설치 쿨다운 400ms, 회수 전용 400ms는 유지한다. -->
@@ -68077,7 +68078,7 @@ const SummonAIService=Object.freeze({
     return {target:nearest,distance};
   },
 
-  ownerThreatHold(entity,owner,ai,state,now,frameScale){
+  ownerThreatHold(entity,owner,ai,state,now,frameScale,options={}){
     const config=ai?.ownerThreatHold;
     if(!config||config.enabled===false||!owner?.alive){
       state.ownerThreatSafeAnchor=null;
@@ -68099,6 +68100,31 @@ const SummonAIService=Object.freeze({
       state.ownerThreatWanderPathIndex=0;
       state.nextOwnerThreatWanderTargetAt=0;
     }
+
+    const mergeTarget=options?.ownerThreatMergeTarget;
+    if(mergeTarget?.alive){
+      state.ownerThreatWanderTarget=null;
+      state.ownerThreatWanderPath.length=0;
+      state.ownerThreatWanderPathIndex=0;
+      state.nextOwnerThreatWanderTargetAt=0;
+
+      return MovementService.move(
+        entity,
+        Number(mergeTarget.x)-Number(entity.x),
+        Number(mergeTarget.y)-Number(entity.y),
+        frameScale,
+        {
+          speedOverride:
+            Math.max(
+              0,
+              Number(ai?.idleWander?.moveSpeed)||
+              Number(entity.speed)||
+              0
+            )
+        }
+      );
+    }
+
     return this.wanderAround(
       entity,state.ownerThreatSafeAnchor,ai,state,now,frameScale,
       {
@@ -68361,7 +68387,7 @@ const SummonAIService=Object.freeze({
     return true;
   },
 
-  priorityUpdate(entity,owner,spec,now,frameScale=1){
+  priorityUpdate(entity,owner,spec,now,frameScale=1,options={}){
     const ai=spec?.ai;
     if(!entity?.alive||!ai||ai.enabled===false||!EntitySimulationAuthorityService.isLocal(entity))return false;
     if(String(ai.type||'')==='stationary-support-projectile'){
@@ -68452,7 +68478,17 @@ const SummonAIService=Object.freeze({
     if(this.damageEscape(entity,ai,state,now,frameScale))return true;
 
     // 2A. 라임 주변 위협: 현재 안전 위치에서 배회.
-    if(this.ownerThreatHold(entity,owner,ai,state,now,frameScale))return true;
+    if(
+      this.ownerThreatHold(
+        entity,
+        owner,
+        ai,
+        state,
+        now,
+        frameScale,
+        options
+      )
+    )return true;
 
     // 2B. 라임 주변 안전: 멀어졌다면 라임 추종.
     if(this.ownerReturn(entity,owner,spec,ai,state,now,frameScale))return true;
@@ -69057,16 +69093,40 @@ const ClusterSummonService=Object.freeze({
       return true;
     }
 
+    const mergeTarget=
+      options.allowMerge!==false
+        ?this.mergePartner(
+          owner,
+          entity,
+          String(entity.clusterSummonKey||'')
+        )
+        :null;
+
     // 1~2. 회피 / 라임 추종·안전 배회.
-    if(SummonAIService.priorityUpdate(entity,owner,spec,now,frameScale))return true;
+    if(
+      SummonAIService.priorityUpdate(
+        entity,
+        owner,
+        spec,
+        now,
+        frameScale,
+        {
+          ownerThreatMergeTarget:
+            mergeTarget?.entity||
+            null
+        }
+      )
+    )return true;
 
     // 3. 같은 단계 슬라임 합체.
-    if(options.allowMerge!==false){
-      const mergeTarget=this.mergePartner(owner,entity,String(entity.clusterSummonKey||''));
-      if(mergeTarget){
-        this.pursueMergePartner(entity,mergeTarget.entity,spec,frameScale);
-        return true;
-      }
+    if(mergeTarget){
+      this.pursueMergePartner(
+        entity,
+        mergeTarget.entity,
+        spec,
+        frameScale
+      );
+      return true;
     }
 
     SummonAIService.idleUpdate(entity,owner,spec,now,frameScale);
