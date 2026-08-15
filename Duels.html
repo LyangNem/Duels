@@ -1,4 +1,5 @@
-<!-- 3.1020: 밸런스/버그 수정. 라임 뛰어오르기 attack.lime.jump의 cooldown 900→1400ms, stamina cost 300→500. 루뷰 RMB 왕복 무기 스킬의 발사/귀환 탄속을 32.2→24.15(-25%)로 통일. FormulaSequenceService에 데이터 기반 mistakeProgress 규칙을 추가하고 큐리는 오입력 시 현재 단계는 유지한 채 현재 단계 입력 진행도를 floor(progress*0.5)로 감소시킨다(1→0,3→1). 헤르쟝 대포의 meleeAttackId가 데이터에는 존재하지만 SummonAIService에서 stationary 자동공격 실행 경로가 빠져 있던 문제를 수정했다. 기존 nearestEnemy/meleeRange/attack/attackInterval을 재사용하는 범용 stationaryAutoAttack을 추가하고 carry 중에는 공격하지 않도록 했다. -->
+<!-- 3.1022: 스야 서리안개 은신 기습 빙결을 직접 CombatStatusApplicationService.apply() 하던 별도 경로에서 제거하고 기존 AttackSpec 적중 경로로 통합했다. 신규 attack.sya.stealth-freeze는 피해 0, 반경 80 원형 delivery.area + freeze 500ms로 구성되며 StealthModeService의 근접 감지 시 은신 해제/공속 버프 이후 TriggeredAttackService.execute()로 실행된다. 따라서 일반 공격과 동일한 회피 비대상/저스트 회피/적중 판정/온라인 공격 재생 경로를 사용하고, 회피 성공 시 빙결 미적용과 기존 JustDodgeService 반격 획득이 함께 처리된다. 3.1021에서 추가했던 requireTargetable 직접 상태 우회 코드는 제거했다. -->
+<!-- 3.1021: 스야 서리안개 은신 감지 빙결이 회피 비대상 판정을 건너뛰던 버그 수정. StealthModeService가 detectStatus를 CombatStatusApplicationService에 직접 적용하던 경로에 데이터 기반 detectStatusRequiresTargetable 옵션을 추가했다. CombatStatusApplicationService는 requireTargetable이 true인 직접 상태 부여에 대해 ActionStateCombatPolicyService.blocksAttackInteraction()을 검사하며, 온라인 status packet에도 동일 플래그를 전달해 대상 권위에서 재검사한다. 따라서 스야 은신은 근접 감지 시 기존대로 해제되지만 상대가 회피 판정 중이면 freeze는 적용되지 않는다. 일반 상태 부여는 기본 false로 기존 동작 유지. -->\n<!-- 3.1020: 밸런스/버그 수정. 라임 뛰어오르기 attack.lime.jump의 cooldown 900→1400ms, stamina cost 300→500. 루뷰 RMB 왕복 무기 스킬의 발사/귀환 탄속을 32.2→24.15(-25%)로 통일. FormulaSequenceService에 데이터 기반 mistakeProgress 규칙을 추가하고 큐리는 오입력 시 현재 단계는 유지한 채 현재 단계 입력 진행도를 floor(progress*0.5)로 감소시킨다(1→0,3→1). 헤르쟝 대포의 meleeAttackId가 데이터에는 존재하지만 SummonAIService에서 stationary 자동공격 실행 경로가 빠져 있던 문제를 수정했다. 기존 nearestEnemy/meleeRange/attack/attackInterval을 재사용하는 범용 stationaryAutoAttack을 추가하고 carry 중에는 공격하지 않도록 했다. -->
 <!-- 3.1019: 라임 어린 슬라임의 막다른 도주 폴백에 발악 모드를 추가했다. 막다른 길로 판정되어 적 방향 폴백 경로를 선택하면 enemyAvoidDesperate 상태와 해당 적 ID를 잠그고, 적과 330 이상 거리가 벌어질 때까지 일반 nearest-enemy 재판정 및 recalcMs 기반 경로 교체를 하지 않는다. 발악 중에는 현재 탈출 경로를 끝까지 소비한 뒤에만 다음 도주 경로를 계산하며, 잠긴 적이 사망/무효화되거나 exitDistance를 넘으면 정상 AI로 복귀한다. 기존 2칸 벽 slime-auto movement-attack traversal은 유지한다. -->
 <!-- 3.1018: 라임 어린 슬라임의 막다른 도주 판정을 found 여부만으로 판단하던 문제를 수정했다. 맵 가장자리/구석에서는 nearestOpenPoint가 현재 근처의 유효 좌표를 반환해 A*가 found:true가 될 수 있으므로, 이제 도주 경로의 최종 지점이 현재보다 적과의 거리를 최소 12px 또는 path cell의 35% 이상 실제로 늘리는지 확인한다. 거리 이득이 없는 경로는 found:true라도 막다른 길로 판정하여 적 위치를 최후 폴백 목표로 재탐색한다. 기존 2칸 벽 movement-attack traversal은 동일하게 유지한다. -->
 <!-- 3.1017: 라임 어린 슬라임 도주 경로 폴백 판정을 수정했다. GridPathfindingService는 목표 도달 실패 시에도 closest partial path를 반환하므로, 기존 '!found && path.length===0' 조건은 막힌 상황을 실패로 인식하지 못했다. 이제 도주 목표 탐색 결과가 found:false이면 부분 경로 존재 여부와 무관하게 도주 실패로 판정하고 적 위치를 최후 폴백 목표로 다시 길찾기한다. 적 방향 폴백 경로에서도 기존 2칸 벽 movement-attack traversal을 그대로 사용한다. -->
@@ -16009,6 +16010,30 @@ const GAME_DATA=Object.freeze({
           modules:Object.freeze([]),
           tags:Object.freeze(['스킬','은신'])
         }),
+        stealthFreeze:Object.freeze({
+          id:'attack.sya.stealth-freeze',
+          damageRatio:0,
+          cost:0,
+          cd:0,
+          range:80,
+          modules:Object.freeze([
+            Object.freeze({
+              type:'delivery.area',
+              shape:'circle',
+              range:80,
+              wallPolicy:'ignore'
+            }),
+            Object.freeze({
+              type:'status.apply',
+              status:'freeze',
+              duration:500,
+              data:Object.freeze({
+                stackMode:'replace-source'
+              })
+            })
+          ]),
+          tags:Object.freeze(['스킬','빙결'])
+        }),
         counter:Object.freeze({
           id:'attack.sya.counter',
           damageRatio:1.2,
@@ -16045,7 +16070,7 @@ const GAME_DATA=Object.freeze({
             Object.freeze({
               type:'stealth.toggle',stateKey:'stealth:sya',
               maxDuration:4000,drainPerSecond:150,speedModifier:.30,detectRange:80,detectDelay:400,
-              detectStatus:'freeze',detectStatusDuration:500,
+              detectAttackId:'attack.sya.stealth-freeze',
               attackBoost:Object.freeze({uses:2,attackTag:'평타',stat:'attackRate',value:.65}),
               cooldownOnStop:300,
               stealthData:Object.freeze({fadeDuration:400,revealRadius:80})
@@ -89226,8 +89251,7 @@ const StealthModeService=Object.freeze({
       drainPerSecond:Math.max(0,Number(module.drainPerSecond)||0),
       detectRange:Math.max(0,Number(module.detectRange)||0),
       detectDelay:Math.max(0,Number(module.detectDelay)||0),
-      detectStatus:String(module.detectStatus||''),
-      detectStatusDuration:Math.max(0,Number(module.detectStatusDuration)||0),
+      detectAttackId:String(module.detectAttackId||''),
       cooldownOnStop:Math.max(0,Number(module.cooldownOnStop)||0),
       attackId:String(module.attackId||''),
       attackBoost:module.attackBoost&&typeof module.attackBoost==='object'?{...module.attackBoost}:null,
@@ -89300,9 +89324,24 @@ const StealthModeService=Object.freeze({
       const targets=this.detectedTargets(entity,state);
       if(targets.length){
         this.stop(entity,state.stateKey,now,{detected:true});
-        if(state.detectStatus&&COMBAT_STATUS_DEFS[state.detectStatus]){
-          for(const target of targets){
-            CombatStatusApplicationService.apply({source:entity,target,type:state.detectStatus,duration:state.detectStatusDuration,sourceId:`stealth-detect:${entity.id}:${state.stateKey}`,data:{sourceEntityId:entity.id,stackMode:'replace-source'}});
+        if(state.detectAttackId){
+          const baseAttack=
+            AbilityService.attackById(
+              entity.character,
+              state.detectAttackId
+            );
+          if(baseAttack){
+            const attack=
+              AugmentService.prepareAttack(
+                entity,
+                baseAttack,
+                now
+              );
+            TriggeredAttackService.execute(
+              entity,
+              attack,
+              0
+            );
           }
         }
         EffectSpawnService.spawn({type:'justdodge',x:entity.x,y:entity.y,r:0,maxR:60,start:now,dur:18*GAME_DATA.frameMs},{source:entity});
