@@ -1,3 +1,6 @@
+<!-- 3.1125: 사용자 전달 팀전 비오픈맵10을 기존 official-team-closed-10 자리에 교체. JSON의 35×50 / tileWorldSize 50 타일을 공식 팀전 맵과 동일한 wallRects 압축 형식으로 변환했다. 원본 560개 벽 타일을 18개 사각형으로 압축했으며 복원 후 원본 JSON과 전수 비교해 타일 불일치 0 확인. 기존 맵 선택/온라인 동기화/충돌 판정 구조는 변경하지 않음. -->
+<!-- 3.1124: 사용자 전달 비오픈맵4/5/10을 각각 기존 기본 비오픈맵 4/5/10 자리에 교체. 세 JSON은 28×40 / tileWorldSize 50 규격이며, 비오픈맵5 파일의 잘못된 내부 id(official-basic-closed-04)는 이름/번호 기준으로 official-basic-closed-05에 정상 매핑했다. 전체 tiles를 공식 맵과 동일한 wallRects 압축 형식으로 변환하고 복원 결과를 원본 JSON과 전수 비교해 3개 맵 모두 타일 불일치 0 확인. -->
+<!-- 3.1123: 큐리 LMB `집중력` 공격 범위를 현재 값에서 1/3 감소. 기본/최대 범위를 225→150, 450→300으로 변경하고 progressScale의 range 및 delivery.area range도 동일하게 맞췄다. 피해, 넉백 거리, 공식 입력 범위, 반격 범위와 다른 수치는 변경하지 않음. -->
 <!-- 3.1122: just-dodge 이벤트 증강 트리거의 ReferenceError 수정. 3.1119 라디아&먀코 제거 과정에서 GameEvents 'just-dodge' 리스너의 const target=event?.target 선언이 함께 제거되어 저스트 회피 확정 시 미정의 target을 참조하던 문제를 복구했다. 기존 AugmentEffectModuleService just-dodge 트리거, CounterStockService, 회피 판정/부활/큐리 수치는 변경하지 않음. -->
 <!-- 3.1121: 큐리 공식 입력 오답 페널티를 현재 단계 입력 진행도 50% 감소에서 100% 감소로 변경. formulaSequence.mistakeProgress의 retain-ratio를 .5→0으로 조정해 오입력 시 현재 공식 단계는 유지하되 해당 단계에서 입력한 진행도는 0으로 초기화한다. LMB NEAR/RMB NEAR 툴팁도 `오입력 시 현재 단계 입력 진행도 초기화`로 실제 동작과 일치시켰다. 정답 입력/단계 완료/최종 완성 및 자연회복 보존 규칙은 변경하지 않음. -->
 <!-- 3.1120: 라임과 부활 증강의 사망 우선순위 수정. 부활 증강 trigger에 범용 defeat.replacement-available 조건의 negate를 추가해, 아직 deathReplacement 치환 전이고 실제 사용할 살아 있는 cluster summon이 있으면 부활을 소비하지 않고 기존 ClusterSummonService 치환이 먼저 진행된다. 살아 있는 슬라임이 없으면 일반 부활 증강이 정상 발동하며, 한 번 슬라임으로 치환되어 setStateOnReplace 상태가 활성화된 뒤의 사망에서는 남은 슬라임 존재와 무관하게 부활 증강이 정상 발동한다. 최후의 발악 등 다른 before-defeat 효과와 ClusterSummonService 치환 자체의 수치/동작은 변경하지 않음. -->
@@ -20443,18 +20446,18 @@ const GAME_DATA=Object.freeze({
           damageRatio:1,
           cost:150,
           cd:900,
-          range:225,
+          range:150,
           progressScale:Object.freeze({
             stateKey:'quri-cube-stage',
             valueRange:Object.freeze({from:0,to:4}),
-            range:Object.freeze({from:225,to:450}),
+            range:Object.freeze({from:150,to:300}),
             damageRatio:Object.freeze({from:1,to:3}),
             moduleValues:Object.freeze([
               Object.freeze({
                 type:'delivery.area',
                 property:'range',
-                from:225,
-                to:450
+                from:150,
+                to:300
               }),
               Object.freeze({
                 type:'movement.knockback',
@@ -20468,7 +20471,7 @@ const GAME_DATA=Object.freeze({
             Object.freeze({
               type:'delivery.area',
               shape:'circle',
-              range:225,
+              range:150,
               wallPolicy:'block'
             }),
             Object.freeze({
@@ -101818,13 +101821,13 @@ const OFFICIAL_DUELS_MAP_SOURCE=Object.freeze([
     Object.freeze({id:"official-basic-closed-01",name:"비오픈맵1",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,1,13,39],[5,5,5,13],[5,5,26,34],[6,18,13,13],[6,21,5,5],[9,21,26,26],[6,21,34,34],[22,22,5,13],[22,22,26,34],[0,25,0,1],[26,27,0,26],[2,27,38,39]])}),
     Object.freeze({id:"official-basic-closed-02",name:"비오픈맵2",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,0,35,39],[2,2,4,8],[2,2,18,21],[1,4,39,39],[6,6,5,14],[6,6,25,34],[10,10,18,21],[17,17,18,21],[7,20,14,14],[7,20,25,25],[21,21,5,14],[21,21,25,34],[25,25,18,21],[25,25,31,35],[23,26,0,0],[27,27,0,4]])}),
     Object.freeze({id:"official-basic-closed-03",name:"비오픈맵3",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,3,0,39],[4,23,0,4],[4,23,35,39],[24,27,0,39]])}),
-    Object.freeze({id:"official-basic-closed-04",name:"비오픈맵4",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,4,25,39],[5,22,10,14],[5,22,25,29],[23,27,0,14]])}),
-    Object.freeze({id:"official-basic-closed-05",name:"비오픈맵5",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,18,29,29],[0,19,4,4],[0,19,16,16],[9,27,10,10],[8,27,23,23],[8,27,35,35]])}),
+    Object.freeze({id:"official-basic-closed-04",name:"비오픈맵4",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,1,0,14],[0,1,25,39],[8,19,0,1],[8,19,13,14],[8,19,25,26],[8,19,38,39],[26,27,0,14],[26,27,25,39]])}),
+    Object.freeze({id:"official-basic-closed-05",name:"비오픈맵5",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[5,5,5,34],[6,7,4,35],[8,9,4,5],[8,9,34,35],[10,11,5,5],[10,11,34,34],[16,17,5,5],[16,17,34,34],[18,19,4,5],[18,19,34,35],[20,21,4,35],[22,22,5,34]])}),
     Object.freeze({id:"official-basic-closed-06",name:"비오픈맵6",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,0,29,39],[1,1,33,39],[2,2,35,39],[3,4,37,39],[5,6,38,39],[8,8,10,18],[8,8,21,29],[7,10,39,39],[9,18,10,10],[9,18,29,29],[19,19,10,18],[19,19,21,29],[17,20,0,0],[21,22,0,1],[23,24,0,2],[25,25,0,4],[26,26,0,6],[27,27,0,10]])}),
     Object.freeze({id:"official-basic-closed-07",name:"비오픈맵7",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,6],[0,0,33,39],[5,5,10,29],[1,6,0,0],[1,6,39,39],[8,9,24,25],[6,10,10,10],[6,10,29,29],[8,14,14,15],[18,19,14,15],[13,19,24,25],[17,21,10,10],[17,21,29,29],[22,22,10,29],[21,26,0,0],[21,26,39,39],[27,27,0,6],[27,27,33,39]])}),
     Object.freeze({id:"official-basic-closed-08",name:"비오픈맵8",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[4,4,6,6],[4,4,33,33],[5,5,1,17],[5,5,22,38],[6,9,6,6],[6,9,33,33],[10,10,1,17],[10,10,22,38],[11,16,6,6],[11,16,33,33],[17,17,1,17],[17,17,22,38],[18,21,6,6],[18,21,33,33],[22,22,1,17],[22,22,22,38],[23,23,6,6],[23,23,33,33]])}),
     Object.freeze({id:"official-basic-closed-09",name:"비오픈맵9",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[0,1,0,6],[0,1,32,39],[3,4,9,9],[3,4,30,30],[5,5,7,11],[5,5,28,32],[2,6,0,1],[6,7,9,9],[6,7,30,30],[2,7,38,39],[5,10,19,20],[13,14,11,16],[13,14,19,20],[13,14,23,28],[20,21,9,9],[20,21,30,30],[22,22,7,11],[17,22,19,20],[22,22,28,32],[23,24,9,9],[23,24,30,30],[20,25,0,1],[21,25,38,39],[26,27,0,7],[26,27,33,39]])}),
-    Object.freeze({id:"official-basic-closed-10",name:"비오픈맵10",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[5,8,8,11],[2,10,26,34],[12,15,18,21],[19,22,28,31],[17,25,5,13]])})
+    Object.freeze({id:"official-basic-closed-10",name:"비오픈맵10",mode:"basic",rows:28,cols:40,tileWorldSize:50,wallRects:Object.freeze([[2,3,26,34],[4,4,26,27],[4,4,33,34],[5,8,8,11],[8,8,26,27],[8,8,33,34],[9,10,26,34],[12,15,18,21],[17,18,5,13],[19,19,5,6],[19,19,12,13],[19,22,28,31],[23,23,5,6],[23,23,12,13],[24,25,5,13]])})
 ,
     Object.freeze({id:"official-ffa-closed-01",name:"FFA 비오픈맵1",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[0,2,0,14],[0,2,39,53],[5,6,22,31],[7,11,22,22],[7,11,31,31],[3,14,0,2],[14,14,14,17],[14,14,36,39],[3,14,51,53],[15,15,14,24],[15,15,29,39],[16,17,14,15],[16,17,38,39],[22,22,5,11],[20,22,20,22],[20,22,31,33],[22,22,42,48],[18,24,15,15],[18,24,38,38],[22,25,26,27],[26,27,22,31],[23,30,5,6],[23,30,47,48],[31,31,5,11],[28,31,26,27],[31,31,42,48],[31,33,20,22],[31,33,31,33],[29,35,15,15],[29,35,38,38],[36,37,14,15],[36,37,38,39],[38,38,14,24],[38,38,29,39],[39,39,14,17],[39,39,36,39],[42,46,22,22],[42,46,31,31],[47,48,22,31],[39,50,0,2],[39,50,51,53],[51,53,0,14],[51,53,39,53]])}),
     Object.freeze({id:"official-ffa-closed-02",name:"FFA 비오픈맵2",mode:"ffa",rows:54,cols:54,tileWorldSize:50,wallRects:Object.freeze([[6,8,42,42],[9,9,39,45],[10,12,42,42],[12,13,13,13],[15,15,10,11],[15,15,15,16],[11,15,27,27],[17,18,13,13],[18,19,33,33],[20,20,31,35],[21,22,33,33],[16,23,26,27],[24,25,24,29],[26,26,11,37],[27,27,16,42],[28,29,24,29],[31,32,20,20],[33,33,18,22],[34,35,20,20],[35,36,40,40],[30,37,26,27],[38,38,37,38],[38,38,42,43],[40,41,40,40],[38,42,26,26],[41,43,11,11],[44,44,8,14],[45,47,11,11]])}),
@@ -101898,7 +101901,7 @@ const OFFICIAL_DUELS_MAP_SOURCE=Object.freeze([
     Object.freeze({id:"official-team-closed-07",name:"팀전 비오픈맵7",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[3,3,2,47],[10,10,5,8],[11,11,41,44],[5,13,24,24],[4,14,2,2],[4,15,47,47],[15,19,21,21],[15,19,28,28],[12,21,10,10],[13,22,39,39],[23,23,5,8],[24,24,41,44],[21,29,25,25],[19,30,2,2],[20,30,47,47],[31,31,2,47]])}),
     Object.freeze({id:"official-team-closed-08",name:"팀전 비오픈맵8",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,49],[6,10,18,19],[6,10,30,31],[11,11,14,15],[11,11,34,35],[12,12,21,28],[1,16,0,3],[1,16,46,49],[17,17,0,49],[22,22,21,28],[23,23,14,15],[23,23,34,35],[24,28,18,19],[24,28,30,31],[18,33,0,3],[18,33,46,49],[34,34,0,49]])}),
     Object.freeze({id:"official-team-closed-09",name:"팀전 비오픈맵9",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,2,15,15],[4,5,29,30],[5,5,39,45],[3,6,20,20],[6,9,15,15],[10,11,15,34],[10,12,42,42],[12,15,15,17],[12,16,32,34],[16,18,23,26],[18,22,15,17],[19,22,32,34],[22,24,7,7],[23,24,15,34],[25,28,34,34],[29,29,4,10],[29,30,19,20],[28,31,29,29],[32,34,34,34]])}),
-    Object.freeze({id:"official-team-closed-10",name:"팀전 비오픈맵10",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,49],[1,3,0,32],[4,8,26,32],[9,9,13,39],[14,14,19,19],[1,14,49,49],[13,15,16,17],[13,15,21,22],[15,15,44,49],[4,18,0,3],[19,19,0,5],[20,20,30,30],[19,21,27,28],[19,21,32,33],[10,22,39,39],[12,24,10,10],[25,25,10,36],[26,30,17,23],[16,30,46,49],[20,33,0,0],[31,33,17,49],[34,34,0,49]])})
+    Object.freeze({id:"official-team-closed-10",name:"팀전 비오픈맵10",mode:"team",rows:35,cols:50,tileWorldSize:50,wallRects:Object.freeze([[0,0,0,49],[1,3,0,32],[9,9,13,39],[14,14,19,19],[1,14,49,49],[13,15,16,17],[13,15,21,22],[4,19,0,3],[20,20,30,30],[19,21,27,28],[19,21,32,33],[10,22,39,39],[12,24,10,10],[25,25,10,36],[15,30,46,49],[20,33,0,0],[31,33,17,49],[34,34,0,49]])})
 ]);
 
 function duels2DecodeOfficialMapTiles(source){
