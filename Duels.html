@@ -1,3 +1,4 @@
+<!-- 3.1122: just-dodge 이벤트 증강 트리거의 ReferenceError 수정. 3.1119 라디아&먀코 제거 과정에서 GameEvents 'just-dodge' 리스너의 const target=event?.target 선언이 함께 제거되어 저스트 회피 확정 시 미정의 target을 참조하던 문제를 복구했다. 기존 AugmentEffectModuleService just-dodge 트리거, CounterStockService, 회피 판정/부활/큐리 수치는 변경하지 않음. -->
 <!-- 3.1121: 큐리 공식 입력 오답 페널티를 현재 단계 입력 진행도 50% 감소에서 100% 감소로 변경. formulaSequence.mistakeProgress의 retain-ratio를 .5→0으로 조정해 오입력 시 현재 공식 단계는 유지하되 해당 단계에서 입력한 진행도는 0으로 초기화한다. LMB NEAR/RMB NEAR 툴팁도 `오입력 시 현재 단계 입력 진행도 초기화`로 실제 동작과 일치시켰다. 정답 입력/단계 완료/최종 완성 및 자연회복 보존 규칙은 변경하지 않음. -->
 <!-- 3.1120: 라임과 부활 증강의 사망 우선순위 수정. 부활 증강 trigger에 범용 defeat.replacement-available 조건의 negate를 추가해, 아직 deathReplacement 치환 전이고 실제 사용할 살아 있는 cluster summon이 있으면 부활을 소비하지 않고 기존 ClusterSummonService 치환이 먼저 진행된다. 살아 있는 슬라임이 없으면 일반 부활 증강이 정상 발동하며, 한 번 슬라임으로 치환되어 setStateOnReplace 상태가 활성화된 뒤의 사망에서는 남은 슬라임 존재와 무관하게 부활 증강이 정상 발동한다. 최후의 발악 등 다른 before-defeat 효과와 ClusterSummonService 치환 자체의 수치/동작은 변경하지 않음. -->
 <!-- 3.1117: SummonAIService의 chase-melee 복구가 라임 어린 슬라임의 기존 전용 우선행동을 건너뛰던 회귀 수정. projectileAvoidance/fieldAvoidance/enemyAvoidance/damageEscape/ownerThreatHold/ownerReturn/attackTraversal 중 하나라도 존재하는 chase-melee는 기존 priorityUpdate 흐름을 그대로 사용하고, 이러한 우선행동이 없는 순수 chase-melee(엘린 유령 등)만 chaseMeleeUpdate로 즉시 진입한다. 라임 AI 데이터와 수치는 변경하지 않았고 엘린 유령 추적/공격 복구는 유지한다. -->
@@ -32375,6 +32376,7 @@ const AugmentService=Object.freeze({
 GameEvents.on(
   'just-dodge',
   event=>{
+    const target=event?.target;
     if(
       !target||
       !EntitySimulationAuthorityService
