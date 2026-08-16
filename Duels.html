@@ -1,3 +1,7 @@
+<!-- 3.1129: 프릴 RMB `청소 구역` 사용 중 호 게이지/시간 호 게이지 표시 제거 및 행동 잠금 추가. 프릴 channel.attack의 gauge 설정을 제거해 충전/지속/완료 호와 완료 점멸링이 표시되지 않는다. 기존 ChannelAttackService를 확장한 범용 actionLocks와 channel.action-unlocked 조건을 사용해 프릴 RMB가 활성인 동안 LMB/반격/회피를 차단한다. RMB 재입력에 의한 청소 완료/채널 종료는 그대로 허용한다. 이동 제한(bind), 채널 틱 공격, 완료 버프 지대, 피해/범위/시간 수치는 변경하지 않음. -->
+<!-- 3.1128: 루네프 원소 선택 완료 시 실제 발사 조준이 선택창 렌더 프레임의 마지막 state.data.angle에 의존하던 경합 수정. state.window resolve에 범용 resolveAimMode:'live-source'를 추가하고 루네프 RMB 선택창에 적용해 0.4초 완료 순간의 실제 로컬/원격 조준각과 targetPoint를 직접 스냅샷한다. 따라서 실시간 미리보기와 실제 화염구 발사 방향이 일치하며, 화염구 자체는 기존 delivery.projectile의 고정 vx/vy 직선 이동을 그대로 사용한다. 화염구 속도 18/반경 14/사거리 700/폭발 및 다른 원소 수치는 변경하지 않음. -->
+<!-- 3.1127: 로온 RMB `빙수 지대`가 적 직접 적중 시에만 생성되던 버그 수정. projectile.impact의 field.area에 잘못 붙어 있던 reasons:['target'] 제한을 제거해 투사체가 적 적중/사거리 종료/경계 종료 등 정상 impact로 끝난 위치에 빙수 지대가 생성된다. sourceRelocate.reasons:['target']는 유지하므로 로온 본체의 지대 중앙 이동은 기존대로 적 직접 적중 때만 발생한다. 빙수 지대 범위 200, 지속 5초/활성 4초, containment, 빙수 게이지 및 다른 수치는 변경하지 않음. -->
+<!-- 3.1126: 라임이 어린 슬라임 치환 상태에서 부활 증강을 사용할 때 원래 라임 상태로 복귀하며 부활 수명주기가 꼬이던 문제 수정. survival.revive-delay가 EntityCharacterDeathResetService.reset을 호출할 때 replacement-state를 보존하는 범용 옵션 preserveReplacementState를 사용한다. 이에 따라 lime-slime-revived의 단계/치환 최대체력/공격 스케일링 상태가 1초 부활 대기와 부활 이후에도 유지되어, 슬라임 상태에서 죽으면 동일 단계 슬라임 상태 그대로 부활한다. 실제 최종 사망/정상 리스폰의 reset은 옵션을 사용하지 않아 기존처럼 replacement-state를 제거하고 원래 캐릭터 최대체력으로 복귀한다. 부활 usage.consume/lifeUses는 초기화하지 않아 같은 생명에서 부활 증강은 기존 제한대로 1회만 사용한다. -->
 <!-- 3.1125: 사용자 전달 팀전 비오픈맵10을 기존 official-team-closed-10 자리에 교체. JSON의 35×50 / tileWorldSize 50 타일을 공식 팀전 맵과 동일한 wallRects 압축 형식으로 변환했다. 원본 560개 벽 타일을 18개 사각형으로 압축했으며 복원 후 원본 JSON과 전수 비교해 타일 불일치 0 확인. 기존 맵 선택/온라인 동기화/충돌 판정 구조는 변경하지 않음. -->
 <!-- 3.1124: 사용자 전달 비오픈맵4/5/10을 각각 기존 기본 비오픈맵 4/5/10 자리에 교체. 세 JSON은 28×40 / tileWorldSize 50 규격이며, 비오픈맵5 파일의 잘못된 내부 id(official-basic-closed-04)는 이름/번호 기준으로 official-basic-closed-05에 정상 매핑했다. 전체 tiles를 공식 맵과 동일한 wallRects 압축 형식으로 변환하고 복원 결과를 원본 JSON과 전수 비교해 3개 맵 모두 타일 불일치 0 확인. -->
 <!-- 3.1123: 큐리 LMB `집중력` 공격 범위를 현재 값에서 1/3 감소. 기본/최대 범위를 225→150, 450→300으로 변경하고 progressScale의 range 및 delivery.area range도 동일하게 맞췄다. 피해, 넉백 거리, 공식 입력 범위, 반격 범위와 다른 수치는 변경하지 않음. -->
@@ -14871,7 +14875,7 @@ const GAME_DATA=Object.freeze({
               Object.freeze({type:'entity.alive'}),
               Object.freeze({type:'ability.pending-ready'}),
               Object.freeze({type:'combat.can-act'}),
-              Object.freeze({type:'state.absent',stateKey:'prill-cleaning-zone'})
+              Object.freeze({type:'channel.action-unlocked',action:'lmb'})
             ]),
             modules:Object.freeze([
               Object.freeze({
@@ -14969,12 +14973,7 @@ const GAME_DATA=Object.freeze({
                 aimMode:'live-source',
                 maxAngleDrift:Math.PI/12,
                 selfStatus:Object.freeze({status:'bind',applyDuringCharge:true}),
-                gauge:Object.freeze({
-                  color:'#ff69b4',
-                  lineWidth:3,
-                  lineCap:'butt',
-                  completionFlashDuration:500
-                }),
+                actionLocks:Object.freeze(['lmb','counter','dodge']),
                 presentation:Object.freeze({
                   renderType:'progressRect',
                   range:900,
@@ -15041,6 +15040,7 @@ const GAME_DATA=Object.freeze({
               Object.freeze({type:'entity.alive'}),
               Object.freeze({type:'ability.pending-ready'}),
               Object.freeze({type:'combat.can-act'}),
+              Object.freeze({type:'channel.action-unlocked',action:'counter'}),
               Object.freeze({type:'source.property.falsy',property:'counterWindup'}),
               Object.freeze({type:'counter.ready'})
             ]),
@@ -16209,7 +16209,7 @@ const GAME_DATA=Object.freeze({
         rmbSelect:Object.freeze({id:'attack.runef.rmb-select',damageRatio:0,cost:500,cd:0,range:0,effectsOnly:true,modules:Object.freeze([
           Object.freeze({
             type:'state.window',when:'after-attack',stateKey:'runef-element',duration:400,retainCompleteMs:500,
-            data:Object.freeze({choice:'fire'}),captureAngle:true,
+            data:Object.freeze({choice:'fire'}),captureAngle:true,resolveAimMode:'live-source',
             resolveAttackIds:Object.freeze({fire:'attack.runef.fire',ice:'attack.runef.ice',lightning:'attack.runef.lightning'}),
             previewAttackIds:Object.freeze({fire:'attack.runef.fire',ice:'attack.runef.ice',lightning:'attack.runef.lightning'}),
             resolveDataKey:'choice',cooldownAttackId:'attack.runef.rmb-select',cooldown:500
@@ -16344,7 +16344,7 @@ const GAME_DATA=Object.freeze({
               field:Object.freeze({
                 type:'field.area',stateKey:'roon-slush-zone',shape:'circle',range:200,
                 wallPolicy:'ignore',duration:5000,activeDuration:4000,damageOnTrigger:false,targetRelations:Object.freeze(['enemy']),
-                containEnteredTargets:true,containDodgeEscape:false,reasons:Object.freeze(['target']),
+                containEnteredTargets:true,containDodgeEscape:false,
                 presentation:Object.freeze({
                   type:'areaCircle',color:'122,238,255',strokeColor:'165,249,166',strokeColorMode:'explicit',fillAlpha:.22,strokeAlpha:.8,lineWidth:3,
                   fadeOut:false,initialVisibleDuration:4000,innerRingScale:.6,innerRingStrokeColor:'200,255,255',innerRingStrokeAlpha:.35,innerRingLineWidth:1.5,
@@ -25477,8 +25477,11 @@ const HealthService=Object.freeze({
   매치/라운드/다른 Entity/증강 인벤토리는 건드리지 않는다.
 */
 const EntityCharacterDeathResetService=Object.freeze({
-  reset(entity,now=performance.now()){
+  reset(entity,now=performance.now(),options={}){
     if(!entity)return false;
+
+    const preserveReplacementState=
+      options?.preserveReplacementState===true;
 
     SimulationScheduleService.clearSource(
       entity
@@ -25498,6 +25501,7 @@ const EntityCharacterDeathResetService=Object.freeze({
         entity.actionState.values()
       ){
         if(
+          !preserveReplacementState&&
           state?.kind==='replacement-state'&&
           Number.isFinite(
             Number(state.restoreBaseMaxHealth)
@@ -25535,7 +25539,11 @@ const EntityCharacterDeathResetService=Object.freeze({
           state?.kind===
             SummonDeployService.stateKind||
           state?.kind===
-            InstalledAreaFieldService.KIND
+            InstalledAreaFieldService.KIND||
+          (
+            preserveReplacementState&&
+            state?.kind==='replacement-state'
+          )
         )continue;
 
         entity.actionState.delete(key);
@@ -29635,6 +29643,12 @@ const TriggerConditionService=Object.freeze({
     if(condition.type==='combat.dodge-ready'){
       return AugmentDodgeSequenceService.ready(source,now);
     }
+    if(condition.type==='channel.action-unlocked'){
+      return !!source&&!ChannelAttackService.locksAction(
+        source,
+        String(condition.action||'')
+      );
+    }
     if(condition.type==='ability.pending-ready'){
       return !!source&&!!context.ability&&
         (source.abilityPending.get(context.ability.id)||0)<=now;
@@ -31009,7 +31023,8 @@ const AugmentEffectModuleService=Object.freeze({
         context.preventedHealth=1;
         EntityCharacterDeathResetService.reset(
           entity,
-          now
+          now,
+          {preserveReplacementState:true}
         );
         entity.statuses?.clear?.();
         entity.hidden=false;
@@ -33201,6 +33216,9 @@ const ChannelAttackService=Object.freeze({
       gauge:module.gauge&&typeof module.gauge==='object'
         ?module.gauge
         :null,
+      actionLocks:Array.isArray(module.actionLocks)
+        ?new Set(module.actionLocks.map(String))
+        :null,
       presentationKey:null,
       drainStateKey:String(module.drainStateKey||''),
       drainAmount:Math.max(0,Number(module.drainAmount)||0),
@@ -33285,6 +33303,19 @@ const ChannelAttackService=Object.freeze({
     }
 
     return true;
+  },
+  locksAction(entity,action){
+    if(!entity?.actionState)return false;
+    const key=String(action||'');
+    if(!key)return false;
+    for(const state of entity.actionState.values()){
+      if(
+        state?.kind===this.KIND&&
+        state.actionLocks instanceof Set&&
+        state.actionLocks.has(key)
+      )return true;
+    }
+    return false;
   },
   hasGauge(entity){
     if(!entity?.actionState)return false;
@@ -59305,10 +59336,36 @@ const AttackModuleService=Object.freeze({
                     ProgressScaledAttackService.resolve(source,base),
                     now
                   );
-                  const resolvedAngle=Number(state.data?.angle)||0;
-                  const targetPoint=(EntitySimulationAuthorityService.isLocal(source)&&source===Training.player)
+                  let resolvedAngle=Number(state.data?.angle)||0;
+                  let targetPoint=(EntitySimulationAuthorityService.isLocal(source)&&source===Training.player)
                     ?Training.mouseWorld()
                     :null;
+                  if(String(module.resolveAimMode||'locked')==='live-source'){
+                    if(EntitySimulationAuthorityService.isLocal(source)&&source===Training.player){
+                      const liveAngle=Training.aimAngle();
+                      const livePoint=Training.mouseWorld();
+                      if(Number.isFinite(liveAngle))resolvedAngle=liveAngle;
+                      if(
+                        livePoint&&
+                        Number.isFinite(Number(livePoint.x))&&
+                        Number.isFinite(Number(livePoint.y))
+                      ){
+                        targetPoint={x:Number(livePoint.x),y:Number(livePoint.y)};
+                      }
+                    }else{
+                      if(Number.isFinite(Number(source?._remoteAimAngle))){
+                        resolvedAngle=Number(source._remoteAimAngle);
+                      }
+                      const remotePoint=source?._remoteAimTargetPoint;
+                      if(
+                        remotePoint&&
+                        Number.isFinite(Number(remotePoint.x))&&
+                        Number.isFinite(Number(remotePoint.y))
+                      ){
+                        targetPoint={x:Number(remotePoint.x),y:Number(remotePoint.y)};
+                      }
+                    }
+                  }
                   const executed=AttackService.execute(
                     source,
                     prepared,
@@ -90416,6 +90473,7 @@ const EntityDodgeService=Object.freeze({
     distanceOverride=null
   }={}){
     if(!entity?.alive)return false;
+    if(ChannelAttackService.locksAction(entity,'dodge'))return false;
     const now=performance.now();
     const activeMovement=
       MovementAbilityService.active(entity);
