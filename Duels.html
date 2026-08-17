@@ -1,3 +1,6 @@
+<!-- 3.1211: 스야 RMB MELEE `안개 기습` 비용 표기 규칙 수정. 3.1210에서 비용을 숨기도록 `showCost:false` 처리한 것을 취소하고, 사용 스테미나가 없는 스킬은 명시적으로 `costText:'스테미나 0'`을 표시하도록 변경했다. 따라서 안개 기습 설명에는 `스테미나 0`이 표시된다. RMB RANGED `서리안개 은신`의 `스테미나 400~1000` 표기와 실제 전투 로직/비용은 변경하지 않음. -->
+<!-- 3.1210: 스야 RMB MELEE `안개 기습` 설명에 스테미나 400이 잘못 표시되던 문제 수정. RMB RANGED와 RMB MELEE가 동일한 attack.sya.rmb를 설명 참조용으로 공유하면서 CharacterDescriptionService가 기본 AttackSpec cost 400을 두 설명 모두에 자동 표시하고 있었다. 안개 기습은 독립 입력 비용을 소모하는 스킬이 아니라 은신 중 근접 감지로 전환되는 효과이므로 해당 tooltip entry에 기존 공통 showCost:false를 사용해 비용 표기만 숨겼다. 서리안개 은신의 `스테미나 400~1000` 표기와 실제 전투 비용/은신 로직은 변경하지 않음. 새 모듈/캐릭터 전용 런타임 분기 없음. -->
+<!-- 3.1209: 하푸푸/스야 지속 스킬 설명과 스테미나 비용 표기 정리. 하푸푸 RMB 설명을 `이동속도 {sustainSpeedPercent}% 증가 및 벽 통과. 사용 도중 스테미나를 소모하며 재사용 시 해제`로 변경하고, costText를 `초당 스테미나 {sustainDrainPerSecond}`로 지정해 sustain.toggle.drainPerSecond 실제 값을 표시한다(현재 400/초). 스야 RMB RANGED의 비용 표기는 `스테미나 {skillCost}~{stealthMaxStaminaCost}`로 변경했다. CharacterDescriptionService에 범용 skillCost와 stealthMaxStaminaCost 보간값을 추가했으며, stealthMaxStaminaCost는 AttackSpec 시작 비용 + stealth.toggle.drainPerSecond × maxDuration으로 계산한다. 현재 스야는 400 + 150×4 = 1000이므로 `스테미나 400~1000`으로 표시된다. 캐릭터 ID 하드코딩 없이 현재 스킬/모듈 데이터에서 계산하며 전투 로직과 수치는 변경하지 않음. -->
 <!-- 3.1208: 레이즈 캐릭터 설명 문구를 사용자 지정안으로 교체하고 설명 값 해석을 공통 데이터 기반으로 정리. LMB NEAR='수동 차징' / LMB FAR='파워 펀치' / RMB='점프' / L-Shift='카운터 펀치' 문구를 반영했다. LMB FAR은 costText:'스테미나 0'을 유지한다. {multiClickMax}는 캐릭터별 상수나 Raise ID 분기 없이 CharacterDescriptionService가 현재 attack.multiClick.maxClicks를 읽는 공통 보간값을 사용한다. {minDamage}/{maxDamage}/{damage} 역시 기존 공통 AttackSpec/ProgressScale 해석 경로를 그대로 사용하며 레이즈 전용 설명 분기는 추가하지 않았다. 전투 동작/수치에는 변경 없음. -->
 <!-- 3.1207: 레이즈 LMB FAR 스테미나 해석 및 설명 정정. 3.1206에서 잘못 추가한 범위 밖 즉시 발사의 clickCost 차감을 제거해 LMB FAR은 다시 스테미나 0으로 동작한다. 범위 안 LMB NEAR 연타만 기존 clickCost:30을 사용한다. LMB FAR 설명에 costText:'스테미나 0'을 명시하고, 현재 저장 차징량을 전부 소모해 즉시 공격하며 차징이 없을 때만 최소 차징 공격이 나간다는 문구로 정리했다. 범위 안 무제한 차징/연타 중단 자동발사 없음/최대 15회/RMB 고정거리 구조는 유지. -->
 <!-- 3.1206: 레이즈 LMB FAR 스테미나 비용 누락 수정. 3.1205의 범위 밖 즉시 발사 경로 `fireStoredOrMinimum()`이 기존 multi-click press의 clickCost 차감 경로를 우회해 스테미나를 소모하지 않던 문제를 수정했다. 이제 범위 밖 LMB도 발사 전에 config.clickCost를 동일하게 차감하며, 레이즈는 기존 설정 clickCost:30에 따라 스테미나 30을 소모한다. 스테미나가 부족하면 공격은 발동하지 않는다. 온라인 원격 재생은 기존 원칙대로 자원을 이중 차감하지 않도록 network 컨텍스트를 전달한다. 저장 차징 소모 발사/0차징 최소 1단계 발사/범위 안 무제한 차징/자동발사 없음/RMB 고정거리 동작은 유지. -->
@@ -16115,10 +16118,11 @@ const GAME_DATA=Object.freeze({
         Object.freeze({key:'LMB',name:'대낫베기',attack:'lmb',text:'대낫 횡베기 ({damage})'}),
         Object.freeze({
           key:'RMB RANGED',name:'서리안개 은신',attack:'rmb',
+          costText:'스테미나 {skillCost}~{stealthMaxStaminaCost}',
           text:'최대 {stealthDurationSeconds}초 동안 이동속도 {stealthSpeedPercent}% 증가 및 벽 통과. 지속시간동안 스테미나를 소모하며 재사용 시 해제'
         }),
         Object.freeze({
-          key:'RMB MELEE',name:'안개 기습',attack:'rmb',
+          key:'RMB MELEE',name:'안개 기습',attack:'rmb',costText:'스테미나 0',
           text:'은신 중 적이 근접하면 은신을 해제하고 주변 적 {stealthFreezeSeconds}초 빙결. 다음 평타 {stealthBoostCount}회 공격속도 증가'
         }),
         Object.freeze({
@@ -20885,7 +20889,8 @@ const GAME_DATA=Object.freeze({
           key:'RMB',
           name:'나 잡아봐라!',
           attack:'rmb',
-          text:'최대 {sustainMaxSeconds}초 동안 이동속도 {sustainSpeedPercent}% 증가 및 벽 통과. 지속시간동안 스테미나를 소모하며 재사용 시 해제'
+          costText:'초당 스테미나 {sustainDrainPerSecond}',
+          text:'이동속도 {sustainSpeedPercent}% 증가 및 벽 통과. 사용 도중 스테미나를 소모하며 재사용 시 해제'
         }),
         Object.freeze({
           key:'L-Shift',
@@ -79828,7 +79833,36 @@ const CharacterDescriptionService=Object.freeze({
       selfSpeedPercent:Math.round(
         Math.abs(Number(selfSpeedModifier?.value)||0)*100
       ),
+      skillCost:Math.max(
+        0,
+        Number(
+          (
+            skill?.costAttack
+              ?character?.attacks?.[String(skill.costAttack)]||attack
+              :attack
+          )?.cost
+        )||0
+      ),
       stealthDurationSeconds:this.seconds(stealthToggleModule?.maxDuration),
+      stealthMaxStaminaCost:
+        Math.max(
+          0,
+          Number(
+            (
+              skill?.costAttack
+                ?character?.attacks?.[String(skill.costAttack)]||attack
+                :attack
+            )?.cost
+          )||0
+        )+
+        Math.max(
+          0,
+          Number(stealthToggleModule?.drainPerSecond)||0
+        )*
+        Math.max(
+          0,
+          Number(stealthToggleModule?.maxDuration)||0
+        )/1000,
       stealthSpeedPercent:Math.round(
         Math.max(
           0,
@@ -80018,7 +80052,7 @@ const CharacterDescriptionService=Object.freeze({
           :0
     };
     return String(skill.text||'').replace(
-      /\{(pellets|damage|detailDamage|fullCost|healPercent|sleepSeconds|rewindSeconds|tipDamage|damageSequence|linkedDamage|secondaryDamage|combinedDamage|minDamage|maxDamage|throwDamage|chargeSeconds|autoReturnSeconds|healAmount|fullDamage|bindSeconds|fieldSeconds|piercePercent|selfStealthSeconds|selfSpeedPercent|memoryCount|memorySeconds|dashWindowSeconds|burstCount|explosionDamage|bombCount|repeatCount|progressAmount|targetMaxHealthPercent|summonRegenSeconds|summonRegenValue|summonCarrySpeedPenaltyPercent|damageIncreasePercent|stunSeconds|linkedStunSeconds|buffSeconds|dodgeDistancePercent|delaySeconds|modifierSeconds|modifierPercent|movementDefensePercent|channelChargeSeconds|comboSeconds|channelIntervalSeconds|channelMaxTicks|progressThresholdPercent|maxInstances|attackDelaySeconds|fieldIntervalSeconds|chargeRangeMinPercent|chargeRangeMaxPercent|recentPathLimit|staminaCostReductionPercent|comboMaxHits|progressStageAmount|maxProgressStages|multiClickMax|multiClickWindowSeconds|multiClickIdleSeconds|restoreCostPercent|stealthDurationSeconds|stealthSpeedPercent|stealthFreezeSeconds|stealthBoostCount|freezeSeconds|burnSeconds|zapSeconds|detailZapSeconds|attackSequenceCount|requiredProgress|fieldRewardPercent|restoreMaxResourcePercent|progressDecaySeconds|windowSeconds|progressPercent|statusSeconds|fieldStatusSeconds|requiredSummonStage|orbitMaxQuality|orbitMinDamage|orbitMaxDamage|recastWindowSeconds|recastMaxStage|recastRangeIncreasePercent|markMaxStacks|markMinBurstDamage|markMaxBurstDamage|sustainMaxSeconds|sustainSpeedPercent|sustainDrainPerSecond)\}/g,
+      /\{(pellets|damage|detailDamage|fullCost|healPercent|sleepSeconds|rewindSeconds|tipDamage|damageSequence|linkedDamage|secondaryDamage|combinedDamage|minDamage|maxDamage|throwDamage|chargeSeconds|autoReturnSeconds|healAmount|fullDamage|bindSeconds|fieldSeconds|piercePercent|selfStealthSeconds|selfSpeedPercent|memoryCount|memorySeconds|dashWindowSeconds|burstCount|explosionDamage|bombCount|repeatCount|progressAmount|targetMaxHealthPercent|summonRegenSeconds|summonRegenValue|summonCarrySpeedPenaltyPercent|damageIncreasePercent|stunSeconds|linkedStunSeconds|buffSeconds|dodgeDistancePercent|delaySeconds|modifierSeconds|modifierPercent|movementDefensePercent|channelChargeSeconds|comboSeconds|channelIntervalSeconds|channelMaxTicks|progressThresholdPercent|maxInstances|attackDelaySeconds|fieldIntervalSeconds|chargeRangeMinPercent|chargeRangeMaxPercent|recentPathLimit|staminaCostReductionPercent|comboMaxHits|progressStageAmount|maxProgressStages|multiClickMax|multiClickWindowSeconds|multiClickIdleSeconds|restoreCostPercent|skillCost|stealthDurationSeconds|stealthMaxStaminaCost|stealthSpeedPercent|stealthFreezeSeconds|stealthBoostCount|freezeSeconds|burnSeconds|zapSeconds|detailZapSeconds|attackSequenceCount|requiredProgress|fieldRewardPercent|restoreMaxResourcePercent|progressDecaySeconds|windowSeconds|progressPercent|statusSeconds|fieldStatusSeconds|requiredSummonStage|orbitMaxQuality|orbitMinDamage|orbitMaxDamage|recastWindowSeconds|recastMaxStage|recastRangeIncreasePercent|markMaxStacks|markMinBurstDamage|markMaxBurstDamage|sustainMaxSeconds|sustainSpeedPercent|sustainDrainPerSecond)\}/g,
       (_,key)=>String(values[key])
     );
   },
