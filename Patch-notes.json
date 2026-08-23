@@ -73,25 +73,25 @@
       ]
     },
     {
-      "augment": "스피드 샷",
+      "character": "스피드 샷 (증강)",
       "changes": [
         "탄속 증가량 30% → 20%"
       ]
     },
     {
-      "augment": "버서커",
+      "character": "버서커 (증강)",
       "changes": [
         "피해 1당 스테미나 회복량 3 → 2"
       ]
     },
     {
-      "augment": "부활",
+      "character": "부활 (증강)",
       "changes": [
         "체력 감소량 30% → 40%"
       ]
     },
     {
-      "augment": "절박한 마음",
+      "character": "절박한 마음 (증강)",
       "changes": [
         "회피 속도 최대 증가량 100% → 300%"
       ]
@@ -99,7 +99,7 @@
   ],
   "bugfixes": [
     {
-      "augment": "과충전 공격",
+      "character": "과충전 공격 (증강)",
       "changes": [
         "증강 효과가 적용되지 않던 버그 수정"
       ]
