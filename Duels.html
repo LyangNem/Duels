@@ -33,7 +33,7 @@
 </script>
 
 <meta name="duels-version" content="">
-  <title>Duels</title>
+<title>Duels</title>
 <!--
 
 DUELS 3.0 개발 절대 규칙
@@ -10919,7 +10919,7 @@ const GAME_DATA=Object.freeze({
         }),
         counter:Object.freeze({
           id:'attack.maisil.counter',
-          damageRatio:2,
+          damageRatio:4/3,
           cost:0,
           cd:500,
           range:525,
@@ -10977,7 +10977,7 @@ const GAME_DATA=Object.freeze({
         }),
         counterReturn:Object.freeze({
           id:'attack.maisil.counter-return',
-          damageRatio:2,
+          damageRatio:4/3,
           cost:0,
           cd:0,
           range:350,
@@ -12921,7 +12921,7 @@ const GAME_DATA=Object.freeze({
           sourceId:'character-passive:phase:attackRate',
           valueRef:Object.freeze({
             type:'health-ratio-cooldown-scale',
-            baseCooldown:350,
+            baseCooldown:280,
             minCooldown:70
           }),
           tags:Object.freeze(['버프','공격속도'])
@@ -12958,7 +12958,7 @@ const GAME_DATA=Object.freeze({
           id:'attack.phase.lmb',
           damageRatio:1,
           cost:150,
-          cd:350,
+          cd:280,
           range:156,
           modules:Object.freeze([
             Object.freeze({
@@ -15750,7 +15750,7 @@ const GAME_DATA=Object.freeze({
       ]),
       attacks:Object.freeze({
         lmb:Object.freeze({
-          id:'attack.runef.lmb',damageRatio:1,cost:200,cd:200,range:480,
+          id:'attack.runef.lmb',damageRatio:1,cost:100,cd:200,range:480,
           attackDelayGroup:'runef-lmb',attackDelay:200,
           presentation:Object.freeze({color:'#4c10c4'}),
           modules:Object.freeze([
@@ -15760,7 +15760,7 @@ const GAME_DATA=Object.freeze({
           tags:Object.freeze(['평타'])
         }),
         lmbChain:Object.freeze({
-          id:'attack.runef.lmb-chain',damageRatio:1.5,cost:200,cd:500,range:480,
+          id:'attack.runef.lmb-chain',damageRatio:1.5,cost:100,cd:500,range:480,
           attackDelayGroup:'runef-lmb',attackDelay:500,
           presentation:Object.freeze({color:'#4c10c4'}),
           modules:Object.freeze([
@@ -15854,7 +15854,7 @@ const GAME_DATA=Object.freeze({
       ]),
       attacks:Object.freeze({
         lmb:Object.freeze({
-          id:'attack.roon.lmb',damageRatio:1,cost:300,cd:500,range:400,
+          id:'attack.roon.lmb',damageRatio:4/3,cost:300,cd:500,range:400,
           presentation:Object.freeze({color:'#A5F9A6'}),
           modules:Object.freeze([
             Object.freeze({type:'delivery.projectile',speed:17,radius:14}),
@@ -15887,7 +15887,7 @@ const GAME_DATA=Object.freeze({
           tags:Object.freeze(['평타','빙결'])
         }),
         rmb:Object.freeze({
-          id:'attack.roon.rmb',damageRatio:1,cost:1000,cd:1000,range:550,
+          id:'attack.roon.rmb',damageRatio:1,cost:800,cd:1000,range:550,
           presentation:Object.freeze({color:'#7aeeff'}),
           modules:Object.freeze([
             Object.freeze({type:'delivery.projectile',speed:16.25,radius:30,stateKey:'roon-blizzard'}),
@@ -16055,10 +16055,10 @@ const GAME_DATA=Object.freeze({
           tags:Object.freeze(['평타'])
         }),
         shotgun:Object.freeze({
-          id:'attack.intu.shotgun',damageRatio:.5,cost:300,cd:350,attackDelayGroup:'intu-primary',attackDelay:350,range:300,
+          id:'attack.intu.shotgun',damageRatio:.5,cost:300,cd:350,attackDelayGroup:'intu-primary',attackDelay:350,range:600,
           presentation:Object.freeze({color:'#a18a8a'}),
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',speed:20,radius:8}),
+            Object.freeze({type:'delivery.projectile',speed:40,radius:8}),
             Object.freeze({type:'pattern.scatter',count:4,spread:.35}),
             Object.freeze({type:'state.progress',when:'after-attack',stateKey:'intu-ammo',operation:'subtract',amount:4,initial:12,max:12,blocksStaminaRegen:false}),
             Object.freeze({
@@ -16081,10 +16081,10 @@ const GAME_DATA=Object.freeze({
           tags:Object.freeze(['스킬','평타'])
         }),
         shotgunSwap:Object.freeze({
-          id:'attack.intu.shotgun-swap',damageRatio:.5,cost:300,cd:300,attackDelayGroup:'intu-primary',attackDelay:350,range:300,
+          id:'attack.intu.shotgun-swap',damageRatio:.5,cost:300,cd:300,attackDelayGroup:'intu-primary',attackDelay:350,range:600,
           presentation:Object.freeze({color:'#a18a8a'}),
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',speed:20,radius:8}),
+            Object.freeze({type:'delivery.projectile',speed:40,radius:8}),
             Object.freeze({type:'pattern.scatter',count:4,spread:.35}),
             Object.freeze({type:'state.progress',when:'after-attack',stateKey:'intu-ammo',operation:'subtract',amount:4,initial:12,max:12,blocksStaminaRegen:false}),
             Object.freeze({type:'state.window',when:'after-attack',stateKey:'intu-reload',duration:1500,retainCompleteMs:500,conditions:Object.freeze([Object.freeze({type:'state.progress-empty',stateKey:'intu-ammo',initial:12})]),data:Object.freeze({choice:'reload'}),resolveDataKey:'choice',resolveAttackIds:Object.freeze({reload:'attack.intu.reload-complete'})})
@@ -16102,10 +16102,10 @@ const GAME_DATA=Object.freeze({
           tags:Object.freeze(['스킬','평타'])
         }),
         shotgunReturn:Object.freeze({
-          id:'attack.intu.shotgun-return',damageRatio:.5,cost:300,cd:300,attackDelayGroup:'intu-primary',attackDelay:350,range:300,
+          id:'attack.intu.shotgun-return',damageRatio:.5,cost:300,cd:300,attackDelayGroup:'intu-primary',attackDelay:350,range:600,
           presentation:Object.freeze({color:'#a18a8a'}),
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',speed:20,radius:8}),
+            Object.freeze({type:'delivery.projectile',speed:40,radius:8}),
             Object.freeze({type:'pattern.scatter',count:4,spread:.35}),
             Object.freeze({type:'state.progress',when:'after-attack',stateKey:'intu-ammo',operation:'subtract',amount:4,initial:12,max:12,blocksStaminaRegen:false}),
             Object.freeze({type:'state.window',when:'after-attack',stateKey:'intu-reload',duration:1500,retainCompleteMs:500,conditions:Object.freeze([Object.freeze({type:'state.progress-empty',stateKey:'intu-ammo',initial:12})]),data:Object.freeze({choice:'reload'}),resolveDataKey:'choice',resolveAttackIds:Object.freeze({reload:'attack.intu.reload-complete'})})
@@ -16116,7 +16116,7 @@ const GAME_DATA=Object.freeze({
           id:'attack.intu.sniper',damageRatio:3.25,cost:0,cd:600,attackDelayGroup:'intu-primary',attackDelay:600,range:1200,
           presentation:Object.freeze({color:'#9bdcff'}),
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',speed:38,radius:10.5}),
+            Object.freeze({type:'delivery.projectile',speed:59.28,radius:10.5}),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
             Object.freeze({type:'movement.knockback',target:'hit-target',direction:'away-from-source',distance:42,speed:10,oncePerExecution:true}),
             Object.freeze({type:'state.progress',when:'after-attack',stateKey:'intu-ammo',operation:'subtract',amount:1,initial:12,max:12,blocksStaminaRegen:false}),
@@ -16128,7 +16128,7 @@ const GAME_DATA=Object.freeze({
           id:'attack.intu.sniper-counter',damageRatio:3.25,cost:0,cd:400,range:1200,
           presentation:Object.freeze({color:'#9bdcff'}),
           modules:Object.freeze([
-            Object.freeze({type:'delivery.projectile',speed:49.4,radius:10}),
+            Object.freeze({type:'delivery.projectile',speed:59.28,radius:10}),
             Object.freeze({type:'projectile.pierce',targets:true,walls:true}),
             Object.freeze({type:'state.progress',when:'after-attack',stateKey:'intu-ammo',operation:'subtract',amount:1,initial:12,max:12,blocksStaminaRegen:false}),
             Object.freeze({type:'state.window',when:'after-attack',stateKey:'intu-sniper',duration:4000}),
@@ -16715,7 +16715,7 @@ const GAME_DATA=Object.freeze({
     }),
 
     raise:Object.freeze({
-      id:'raise',name:'레이즈',englishName:'Raise',color:'#bfa136',maxHealth:1200,speed:4.25,radius:20,baseDamage:100,
+      id:'raise',name:'레이즈',englishName:'Raise',color:'#bfa136',maxHealth:1300,speed:4.25,radius:20,baseDamage:100,
       moveLabel:'빠름',styleLabel:'차징형 근거리 딜러',tags:Object.freeze(['차징형','딜러']),
       desc:'프로토타입 기계팔을 충전시켜 강력한 한방 공격을 구사하는 캐릭터',
       worldGaugeModules:Object.freeze([
@@ -17274,7 +17274,7 @@ const GAME_DATA=Object.freeze({
             Object.freeze({type:'delivery.delayed-projectile-volley',count:1,interval:0,aimMode:'locked',perVolleyPellets:true,perpendicularOffset:40}),
             Object.freeze({type:'hit.once-per-execution'}),
             Object.freeze({type:'status.apply',status:'zap',duration:2000}),
-            Object.freeze({type:'status.apply',status:'discharge',duration:500,conditions:Object.freeze([Object.freeze({type:'target.status-active-before-hit',status:'zap'})])})
+            Object.freeze({type:'status.apply',status:'discharge',duration:750,conditions:Object.freeze([Object.freeze({type:'target.status-active-before-hit',status:'zap'})])})
           ]),
           tags:Object.freeze(['평타','감전'])
         }),
@@ -17322,7 +17322,7 @@ const GAME_DATA=Object.freeze({
           modules:Object.freeze([
             Object.freeze({type:'delivery.area',shape:'rect',range:350,halfWidth:45,wallPolicy:'block'}),
             Object.freeze({type:'status.apply',status:'zap',duration:2000}),
-            Object.freeze({type:'status.apply',status:'discharge',duration:500,conditions:Object.freeze([Object.freeze({type:'target.status-active-before-hit',status:'zap'})])}),
+            Object.freeze({type:'status.apply',status:'discharge',duration:750,conditions:Object.freeze([Object.freeze({type:'target.status-active-before-hit',status:'zap'})])}),
             Object.freeze({type:'movement.neutralize-knockback',target:'hit-target',direction:'away-from-source',distance:84,speed:10,oncePerExecution:true})
           ]),
           tags:Object.freeze(['반격','넉백','감전'])
@@ -20121,7 +20121,7 @@ const GAME_DATA=Object.freeze({
         lmb:Object.freeze({
           id:'attack.quri.lmb',
           damageRatio:1,
-          cost:150,
+          cost:300,
           cd:900,
           range:150,
           progressScale:Object.freeze({
@@ -22777,9 +22777,9 @@ const CharacterRecordService=Object.freeze({
   },
   masterStage(points){
     const value=Math.max(0,Math.round(Number(points)||0));
-    if(value>=30000)return {level:5,roman:'V',min:30000};
-    if(value>=24000)return {level:4,roman:'IV',min:24000};
-    if(value>=18000)return {level:3,roman:'III',min:18000};
+    if(value>=20000)return {level:5,roman:'V',min:20000};
+    if(value>=18000)return {level:4,roman:'IV',min:18000};
+    if(value>=16000)return {level:3,roman:'III',min:16000};
     if(value>=14000)return {level:2,roman:'II',min:14000};
     if(value>=12000)return {level:1,roman:'I',min:12000};
     return null;
