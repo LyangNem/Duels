@@ -8008,7 +8008,7 @@ const AccountUI = Object.freeze({
 const MIARUKY_TOOLBOX_RANGE=220;
 
 const CHARACTER_DIFFICULTY_DATA=Object.freeze({
-  "kanon": 5,
+  "kanon": 3,
   "atsuteo": 3,
   "cherity": 5,
   "clea": 6,
@@ -16198,6 +16198,7 @@ const GAME_DATA=Object.freeze({
                 type:'field.area',
                 stateKey:'sherina-lmb-echo',
                 anchorMode:'projectile-path',
+                liveProjectilePath:true,
                 shape:'rect',
                 halfWidth:18,
                 wallPolicy:'ignore',
@@ -16288,6 +16289,7 @@ const GAME_DATA=Object.freeze({
                 type:'field.area',
                 stateKey:'sherina-counter-echo',
                 anchorMode:'projectile-path',
+                liveProjectilePath:true,
                 shape:'rect',
                 halfWidth:18,
                 wallPolicy:'ignore',
@@ -33324,6 +33326,7 @@ const TriggeredAttackService=Object.freeze({
         );
     }
 
+    execution.networkReplay=networkReplay===true;
     execution.abilityUseId=abilityUseId||null;
     execution.skipWindup=
       skipWindup===true;
@@ -40199,6 +40202,15 @@ const MovementService=Object.freeze({
 
 
 const EffectSpawnService=Object.freeze({
+  shouldPresentAttack(source,context={}){
+    // 공격의 시각 효과는 공격자 화면에서 만들고 effect-spawn으로만 복제한다.
+    // 지연/파생 실행이 replay 플래그를 잃어도 원격 소유자가 다시 만들지 않는다.
+    return context.networkReplay!==true&&!(
+      Training.sessionMode==='online'&&
+      OnlineDuelService.active&&
+      !EntitySimulationAuthorityService.isLocal(source)
+    );
+  },
   keyed:new Map(),
   presets:Object.freeze({
     'under-move':Object.freeze({
@@ -43017,7 +43029,8 @@ const InstalledAreaFieldService=Object.freeze({
       attack=null,
       execution=null,
       instanceId=null,
-      now=performance.now()
+      now=performance.now(),
+      broadcast=true
     }={}
   ){
     if(
@@ -43146,6 +43159,13 @@ const InstalledAreaFieldService=Object.freeze({
       wallEffectKeys:[]
     };
 
+    const previous=source.actionState.get(storageKey);
+    if(module.liveProjectilePath===true&&previous?.kind===this.KIND){
+      for(const key of ['startedAt','armedAt','nextGlobalTriggerAt','lastTriggerAt',
+        'firstSeenAt','insideTargets','enteredAt','containedTargetKeys']){
+        state[key]=previous[key];
+      }
+    }
     source.actionState.set(storageKey,state);
 
     const areaForGeometry=this.collisionArea(state);
@@ -43233,10 +43253,14 @@ const InstalledAreaFieldService=Object.freeze({
               })
             ),
           sourceEntityId:source.id,
-          start:now,
-          dur:Number.isFinite(Number(presentation.initialVisibleDuration))
-            ?Math.max(GAME_DATA.frameMs,Number(presentation.initialVisibleDuration)||0)
-            :duration
+          // 실시간 경로 장판의 표시와 피해는 같은 수명을 사용한다.
+          holdVisibleUntilEnd:module.liveProjectilePath===true,
+          start:module.liveProjectilePath===true?state.startedAt:now,
+          dur:module.liveProjectilePath===true
+            ?state.endsAt-state.startedAt
+            :Number.isFinite(Number(presentation.initialVisibleDuration))
+              ?Math.max(GAME_DATA.frameMs,Number(presentation.initialVisibleDuration)||0)
+              :duration
         },{source});
 
     }
@@ -43245,7 +43269,7 @@ const InstalledAreaFieldService=Object.freeze({
     // 시각 요소가 없는 피해/CC 전용 field도 상대의 로컬 대상 권위 클라이언트에
     // 동일 state를 만들어야 실제 onTrigger 판정이 실행된다.
     if(
-      OnlinePresentationSyncService?.shouldSend?.(source)
+      broadcast&&OnlinePresentationSyncService?.shouldSend?.(source)
     ){
       OnlinePresentationSyncService.send(
         'field-point-spawn',
@@ -57128,6 +57152,7 @@ charRow.appendChild(card);
         return true;
       }
 
+
       if(payload.outcome==='return'){
         if(!projectile.behavior?.returning)return false;
 
@@ -67165,7 +67190,7 @@ const AttackModuleService=Object.freeze({
     }
   },
   spawnAttackEffect(source,spec,angle,execution,module,hitTarget=null){
-    if(execution?.networkReplay===true)return null;
+    if(!EffectSpawnService.shouldPresentAttack(source,execution||{}))return null;
 
     const now=performance.now();
     const targetPoint=execution?.targetPoint||null;
@@ -68378,7 +68403,12 @@ const AttackModuleService=Object.freeze({
                     source,
                     prepared,
                     resolvedAngle,
-                    {freeAttack:true,preparedSpec:true,targetPoint}
+                    {
+                      freeAttack:true,
+                      preparedSpec:true,
+                      targetPoint,
+                      networkReplay:execution?.networkReplay===true
+                    }
                   );
                   const cooldownId=String(module.cooldownAttackId||'');
                   if(cooldownId&&executed){
@@ -87604,6 +87634,10 @@ const AbilityModuleService=Object.freeze({
       next();
     },
     'effect.spawn'(context,next,module){
+      if(!EffectSpawnService.shouldPresentAttack(context.source,context)){
+        next();
+        return;
+      }
       if(
         module.requireExecuted===true&&
         context.executed!==true
@@ -90892,16 +90926,18 @@ const ProjectileCollisionShapeService=Object.freeze({
         )
       );
 
-    let previousPoint={
-      x:
-        previousCenterX+
-        Math.cos(previousAngle)*
-        previousRadius,
-      y:
-        previousCenterY+
-        Math.sin(previousAngle)*
-        previousRadius
+    const passWalls=projectile.behavior?.collisionPolicy?.passWalls===true||projectile.behavior?.pierce?.walls===true;
+    const reachablePoint=(cx,cy,angle,radius)=>{
+      const reach=passWalls?radius:WorldGeometryService.raycastDistance(cx,cy,angle,radius,ProjectileService.wallCollisionPadding(projectile));
+      return {x:cx+Math.cos(angle)*reach,y:cy+Math.sin(angle)*reach};
     };
+    const visibleFrom=sample=>{
+      if(passWalls)return true;
+      const dx=point.x-sample.x,dy=point.y-sample.y,distance=Math.hypot(dx,dy);
+      const reach=WorldGeometryService.raycastDistance(sample.x,sample.y,Math.atan2(dy,dx),distance,0);
+      return reach>=distance-Math.max(0,Number(target.radius)||0)-1e-6;
+    };
+    let previousPoint=reachablePoint(previousCenterX,previousCenterY,previousAngle,previousRadius);
 
     for(let index=1;index<=steps;index++){
       const ratio=index/steps;
@@ -90920,10 +90956,7 @@ const ProjectileCollisionShapeService=Object.freeze({
         previousCenterY+
         (currentCenterY-previousCenterY)*
         ratio;
-      const nextPoint={
-        x:centerX+Math.cos(angle)*radius,
-        y:centerY+Math.sin(angle)*radius
-      };
+      const nextPoint=reachablePoint(centerX,centerY,angle,radius);
 
       if(
         JustDodgeService.pointSegmentDistance(
@@ -90933,7 +90966,7 @@ const ProjectileCollisionShapeService=Object.freeze({
           previousPoint.y,
           nextPoint.x,
           nextPoint.y
-        )<=hitRadius
+        )<=hitRadius&&visibleFrom(nextPoint)
       ){
         return true;
       }
@@ -90944,6 +90977,19 @@ const ProjectileCollisionShapeService=Object.freeze({
     return false;
   },
   hitsTarget(projectile,target){
+    if(projectile.wallReachableCollisionPoint&&projectile.orbitState&&
+      projectile.behavior?.collisionPolicy?.passWalls!==true&&projectile.behavior?.pierce?.walls!==true){
+      const point=NetworkCollisionPositionService.point(target);
+      const radius=Math.max(0,Number(projectile.hitRadius)||Number(projectile.radius)||0)+Math.max(0,Number(target.radius)||0);
+      const contact=JustDodgeService.pointSegmentDistance(point.x,point.y,projectile.prevX,projectile.prevY,projectile.x,projectile.y)<=radius;
+      if(!contact)return false;
+      // 벽면 위 방패 중심으로 raycast하면 0거리 차단될 수 있다.
+      // 궤도 중심에서 대상의 가까운 면까지 확인해 같은 쪽 접촉은 유지한다.
+      const cx=Number(projectile.orbitState.currentCenterX)||0;
+      const cy=Number(projectile.orbitState.currentCenterY)||0;
+      const dx=point.x-cx,dy=point.y-cy,distance=Math.hypot(dx,dy);
+      return WorldGeometryService.raycastDistance(cx,cy,Math.atan2(dy,dx),distance,0)>=distance-Math.max(0,Number(target.radius)||0)-1e-6;
+    }
     if(
       projectile?.orbitState&&
       ProjectileOrbitService.config(projectile)
@@ -92932,13 +92978,37 @@ const AttackGuardService=Object.freeze({
       guard.angle
     );
   },
+  contactPoint(guard,projectile){
+    const x=Number(projectile.x)||0,y=Number(projectile.y)||0;
+    const fromX=Number.isFinite(projectile.prevX)?projectile.prevX:x;
+    const fromY=Number.isFinite(projectile.prevY)?projectile.prevY:y;
+    const dx=x-fromX,dy=y-fromY,distance=Math.hypot(dx,dy);
+    const radius=Math.max(0,Number(projectile.radius)||0);
+    let reachable=distance;
+    if(projectile.behavior?.collisionPolicy?.passWalls!==true&&projectile.behavior?.pierce?.walls!==true&&distance>1e-6){
+      reachable=WorldGeometryService.raycastDistance(fromX,fromY,Math.atan2(dy,dx),distance,ProjectileService.wallCollisionPadding(projectile));
+    }
+    const count=Math.max(1,Math.ceil(reachable/Math.max(1,Math.min(4,radius||1))));
+    let previous=0;
+    for(let i=0;i<=count;i++){
+      const along=reachable*i/count;
+      const t=distance>1e-6?along/distance:0;
+      if(this.containsPoint(guard,fromX+dx*t,fromY+dy*t,radius)){
+        let low=previous,high=along;
+        for(let j=0;j<12;j++){
+          const middle=(low+high)/2,ratio=distance>1e-6?middle/distance:0;
+          if(this.containsPoint(guard,fromX+dx*ratio,fromY+dy*ratio,radius))high=middle;
+          else low=middle;
+        }
+        const ratio=distance>1e-6?high/distance:0;
+        return {x:fromX+dx*ratio,y:fromY+dy*ratio,distance:high};
+      }
+      previous=along;
+    }
+    return null;
+  },
   overlaps(guard,projectile){
-    return this.containsPoint(
-      guard,
-      projectile.x,
-      projectile.y,
-      Math.max(0,Number(projectile.radius)||0)
-    );
+    return !!this.contactPoint(guard,projectile);
   },
   normalizeAngle(angle){
     let value=Number(angle)||0;
@@ -93599,6 +93669,13 @@ const AttackGuardService=Object.freeze({
       return false;
     }
 
+    const contact=this.contactPoint(guard,projectile);
+    if(!contact)return false;
+    const overshoot=Math.hypot(projectile.x-contact.x,projectile.y-contact.y);
+    projectile.x=contact.x;
+    projectile.y=contact.y;
+    projectile.travel=Math.max(0,(Number(projectile.travel)||0)-overshoot);
+
     guard.handledProjectiles?.add(
       projectile
     );
@@ -93631,21 +93708,33 @@ const AttackGuardService=Object.freeze({
     }
   },
   intercept(projectile,index,now=performance.now()){
+    let nearest=null,nearestContact=null;
     for(const [key,guard] of this.active){
       if(!guard?.source?.alive||guard.expiresAt<=now){
         this.active.delete(key);
         continue;
       }
-      if(!this.hostile(guard,projectile.source)||!this.overlaps(guard,projectile))continue;
-
-      return this.resolveProjectile(
-        projectile,
-        index,
-        guard,
-        now
-      );
+      if(!this.hostile(guard,projectile.source)||guard.handledProjectiles?.has(projectile))continue;
+      const contact=this.contactPoint(guard,projectile);
+      if(contact&&(!nearestContact||contact.distance<nearestContact.distance)){
+        nearest=guard;nearestContact=contact;
+      }
     }
-    return false;
+    if(!nearest)return false;
+    if(Training.sessionMode==='online'&&!EntitySimulationAuthorityService.isLocal(nearest.source)){
+      // 원격 방패 접촉도 이 화면의 비행을 즉시 끝낸다.
+      // 방어 성공/자원 처리는 방패 소유자에게 맡기며 여기서는 재전송하지 않는다.
+      const overshoot=Math.hypot(projectile.x-nearestContact.x,projectile.y-nearestContact.y);
+      projectile.x=nearestContact.x;projectile.y=nearestContact.y;
+      projectile.travel=Math.max(0,(Number(projectile.travel)||0)-overshoot);
+      if(projectile.behavior?.impact?.resolveOnGuard===true){
+        ProjectileImpactService.resolve(projectile,'guard');
+      }
+      ProjectileService.finish(projectile,projectile.hadHit===true);
+      ProjectileService.items.splice(index,1);
+      return true;
+    }
+    return this.resolveProjectile(projectile,index,nearest,now);
   },
   clearSource(source){
     for(const [key,guard] of this.active){
@@ -93655,11 +93744,16 @@ const AttackGuardService=Object.freeze({
 });
 
 const ProjectileImpactService=Object.freeze({
+  updatePath(projectile){
+    if(projectile?.behavior?.impact?.field?.liveProjectilePath!==true)return;
+    this.resolve(projectile,'path-progress');
+  },
   resolve(projectile,reason='impact'){
     const impact=projectile?.behavior?.impact;
     if(!impact)return false;
 
     const source=projectile.source;
+    const pathProgress=reason==='path-progress'&&impact.field?.liveProjectilePath===true;
     const guardPathCorrection=
       projectile.impactResolved===true&&
       String(reason||'impact')==='guard'&&
@@ -93685,10 +93779,10 @@ const ProjectileImpactService=Object.freeze({
     }
 
     if(projectile.impactResolved===true)return false;
-    projectile.impactResolved=true;
+    if(!pathProgress)projectile.impactResolved=true;
 
     if(
-      source&&
+      !pathProgress&&source&&
       projectile.targetPreview&&
       source.attackPreview
     ){
@@ -93722,7 +93816,7 @@ const ProjectileImpactService=Object.freeze({
         (
           Array.isArray(impact.field.reasons)&&
           impact.field.reasons.length>0&&
-          !impact.field.reasons.includes(String(reason||'impact'))
+          !pathProgress&&!impact.field.reasons.includes(String(reason||'impact'))
         )
       )return false;
 
@@ -93806,7 +93900,8 @@ const ProjectileImpactService=Object.freeze({
         if(Number.isFinite(origin.x)&&Number.isFinite(origin.y)){
           const dx=point.x-origin.x;
           const dy=point.y-origin.y;
-          const pathRange=Math.max(1,Math.hypot(dx,dy));
+          const pathRange=Math.hypot(dx,dy);
+          if(pathRange<.001)return false;
           const pathAngle=Math.atan2(dy,dx);
           const fieldDuration=Math.max(
             GAME_DATA.frameMs,
@@ -93818,7 +93913,7 @@ const ProjectileImpactService=Object.freeze({
             Math.hypot(Number(projectile.vx)||0,Number(projectile.vy)||0)
           );
           const revealDuration=(pathRange/projectileSpeed)*GAME_DATA.frameMs;
-          const pathTimeline=
+          const pathTimeline=field.liveProjectilePath===true?null:
             field.pathTimeline&&typeof field.pathTimeline==='object'
               ?{
                 ...field.pathTimeline,
@@ -93842,13 +93937,20 @@ const ProjectileImpactService=Object.freeze({
               :field.presentation
           };
 
-          if(field.retainRecentPath===true){
+          if(field.retainRecentPath===true&&!pathProgress){
             if(!(source._recentProjectilePathFields instanceof Map)){
               source._recentProjectilePathFields=new Map();
             }
             const historyKey=String(field.stateKey||'projectile-path');
             const history=source._recentProjectilePathFields.get(historyKey)||[];
+            const projectileKey=String(projectile.networkKey||'');
+            if(projectileKey){
+              for(let index=history.length-1;index>=0;index--){
+                if(history[index].projectileKey===projectileKey)history.splice(index,1);
+              }
+            }
             history.unshift({
+              projectileKey,
               pointX:origin.x,
               pointY:origin.y,
               startedAt:performance.now(),
@@ -93886,9 +93988,13 @@ const ProjectileImpactService=Object.freeze({
           attack:fieldAttack,
           execution:projectile.volley?.execution||null,
           instanceId:impactFieldInstanceId,
-          now:fieldNow
+          now:fieldNow,
+          broadcast:!pathProgress||fieldNow-(projectile.pathFieldSentAt||-Infinity)>=50
         }
       );
+      if(!pathProgress||fieldNow-(projectile.pathFieldSentAt||-Infinity)>=50){
+        projectile.pathFieldSentAt=fieldNow;
+      }
 
       if(
         state&&
@@ -93912,6 +94018,8 @@ const ProjectileImpactService=Object.freeze({
 
       return !!state;
     };
+
+    if(pathProgress)return resolveImpactField();
 
     if(
       fieldBeforeAttacks&&
@@ -97807,6 +97915,8 @@ const ProjectileService={
       projectile.travel+=step;
     }
 
+    if(AttackGuardService.intercept(projectile,index,now))return true;
+
     const sourceRangeLimit=
       projectile.sourceRangeLimit;
     if(
@@ -98143,6 +98253,16 @@ const ProjectileService={
       ){
         return true;
       }
+    }
+
+    if(projectile.renderStyle?.renderReachability==='orbit-center-clamp'&&projectile.orbitState&&
+      projectile.behavior?.collisionPolicy?.passWalls!==true&&projectile.behavior?.pierce?.walls!==true){
+      const visual=ProjectileVisualPositionService.sample(projectile);
+      const previous=projectile.wallReachableCollisionPoint;
+      projectile.prevX=previous?previous.x:visual.x;
+      projectile.prevY=previous?previous.y:visual.y;
+      projectile.x=visual.x;projectile.y=visual.y;
+      projectile.wallReachableCollisionPoint={x:visual.x,y:visual.y};
     }
 
     if(
@@ -98622,6 +98742,8 @@ const ProjectileService={
       this.clampToBounds(projectile);
     }
 
+    if(AttackGuardService.intercept(projectile,index,performance.now()))return true;
+
     ProjectileTetherMovementService.updateProjectile(projectile);
 
     if(returning.damageOnReturn!==false)for(const target of EntityService.items.values()){
@@ -98672,16 +98794,15 @@ const ProjectileService={
     for(let index=this.items.length-1;index>=0;index--){
       const projectile=this.items[index];
 
-      if(AttackGuardService.intercept(projectile,index,now)){
-        continue;
-      }
-
       const returning=projectile.behavior?.returning;
 
       if(returning?.phase==='returning'){
         this.updateReturn(projectile,index,frameScale);
       }else{
         this.updateOutbound(projectile,index,frameScale,now);
+      }
+      if(this.items[index]===projectile){
+        ProjectileImpactService.updatePath(projectile);
       }
     }
   }
@@ -114554,7 +114675,9 @@ const Training={
           ?f.pathTimeline
           :null;
         let offset=0;
-        let a=Math.max(0,1-progress);
+        let a=f.holdVisibleUntilEnd===true
+          ?(now<f.start+f.dur?1:0)
+          :Math.max(0,1-progress);
         let length=f.fullLength===true
           ?range
           :range*Math.min(1,progress*growthSpeed);
@@ -119060,11 +119183,7 @@ GameEvents.on('entity-defeated',event=>{
     GameEvents.on('area-attack-fired',event=>{
       if(!Training.active)return;
       if(event?.module?.visual===false)return;
-      if(
-        Training.sessionMode==='online'&&
-        OnlineDuelService.active&&
-        !EntitySimulationAuthorityService.isLocal(event?.source)
-      ){
+      if(!EffectSpawnService.shouldPresentAttack(event?.source)){
         // 원격 공격의 범위 이펙트는 source 권위 화면에서 생성된
         // 동일 EffectSpec의 effect-spawn 네트워크 복제만 렌더한다.
         // 피격자 권위 재생에서 다시 자동 생성하면 상대 화면에 두 개가 겹친다.
