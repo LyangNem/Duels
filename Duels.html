@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -9112,7 +9111,7 @@ const GAME_DATA=Object.freeze({
       radius:20,
       baseDamage:100,
       moveLabel:'보통',
-      styleLabel:'행동제약형 근거리 컨트롤러',
+      styleLabel:'광차 운반원',
       tags:Object.freeze(['행동제약형','컨트롤러']),
       desc:'로프를 이용해 상대의 움직임을 제한하는 캐릭터',
       worldGaugeModules:Object.freeze([
@@ -24091,9 +24090,9 @@ const GAME_DATA=Object.freeze({
       radius:20,
       baseDamage:100,
       moveLabel:'빠름',
-      styleLabel:'기동형 중거리 암살자',
+      styleLabel:'암살자 견습생',
       tags:Object.freeze(['기동형','암살자']),
-      desc:'순보로 진입하고 빠른 타격을 전개하는 캐릭터',
+      desc:'순보를 이용해 위치를 교란하며 전투하는 캐릭터',
       tooltipSkills:Object.freeze([
         Object.freeze({
           key:'LMB',
@@ -26566,6 +26565,8 @@ const CharacterTitleService=Object.freeze({
     gae:'전투용 안드로이드',
     cyien:'격이 다른 실력자',
     nyu:'마검의 주인',
+    deltroove:'광차 운반원',
+    xianelli:'암살자 견습생',
   }),
 
   get(characterId){
