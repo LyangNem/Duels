@@ -1,27 +1,4 @@
 <!-- Firebase 전환 일괄 패치: 관리자 권한 3분리(debugTools/accountAdmin/rankingAdmin), 마이그레이션 바인딩 Firestore 이전, GitHub 계정 원본 읽기 전용화, legacy AccountService 정리. -->
-<!-- 3.1717 낙관적 레코드 실제 적용: 라운드 종료 즉시 예상 레코드 점수를 AccountState.current.characterRecords에 실제 반영해 프로필/카드/상대 공유 UI까지 바로 갱신한다. 이 값은 Firebase/Worker에는 저장하지 않으며 서버 확정 progress가 도착하면 권위값으로 덮어쓴 뒤 아직 미확정인 후속 라운드 예상치만 재적용한다. 서버 불일치/실패/정산 타임아웃 시 임시 점수를 자동 회수하고 정정 토스트를 표시한다. -->
-<!-- 3.1717 레코드 토스트 즉시 표시: Worker의 현재 라운드 정산 계산식을 클라이언트에 동일하게 미러링해 경기 종료 순간 예상 레코드 delta를 즉시 토스트로 표시. 서버 정산은 계속 권위값이며 결과가 동일하면 토스트를 재생하지 않고, 다를 때만 서버 값으로 정정 표시. -->
-<!-- 3.1717 마이그레이션 진행 경고 추가: 인증/이전 처리 중 별도 경고 박스를 표시해 새로고침/창 닫기 금지와 처리 시간 안내를 노출. 실제 이전 중에는 beforeunload 경고도 등록하고 완료/실패 시 해제. -->
-<!-- 3.1717 Firebase 빠른 로그인 복원: Firebase Auth가 UID를 확인하면 로컬 캐시 계정을 즉시 적용하고 메인 화면을 연 뒤 /firebase/account/load를 백그라운드 동기화. 캐시는 화면 복원용으로만 사용하며 관리자 권한은 캐시하지 않음. 서버 응답 도착 시 최신 프로필/전적/권한으로 교체. -->
-<!-- 3.1717 로그인 로딩 스택 오버플로 수정: resolveAuthState()가 자기 자신을 재호출하던 재귀 버그를 제거하고 AuthResolutionUI.resolve()를 호출하도록 수정. Maximum call stack size exceeded 해결. -->
-<!-- 3.1717 로그인 로딩 UI 듀얼즈 스타일 통일: 별도 패널/스피너 스타일을 제거하고 기존 메인 화면의 검정 배경, DUELS 타이틀, Made By Lyan___ 서브텍스트, status 타이포그래피를 그대로 따르는 로딩 화면으로 변경. -->
-<!-- 3.1717 로그인 로딩 무한 대기 수정: AuthResolutionUI를 Object.freeze로 만든 상태에서 pending 값을 변경하려 해 resolve()가 영원히 true로 남던 버그 수정. mutable 상태 객체로 변경하고 10초 안전 타임아웃 및 Firebase persistence 실패 fallback 추가. -->
-<!-- 3.1717 로그인 판정 로딩 잠금: Firebase Auth의 로그인 여부가 확정되기 전 모든 버튼을 disabled 처리하고 '로그인 상태 확인 중...' 로딩 화면을 표시. 판정 완료 후 기존 disabled 상태를 복원. -->
-<!-- 3.1717 마이그레이션 계정 전환 UI 추가: 계정 설정 창 상단에 작은 '다른 Google 계정으로 로그인' 버튼을 추가. 클릭 시 현재 Firebase 로그아웃 → 저장 세션 초기화 → Google 계정 선택 팝업 → 선택 계정으로 계정 설정 흐름 재진입. -->
-<!-- 3.1717 마이그레이션 취소 버튼 제거: 로그인 계정 칩에서 마이그레이션 취소 버튼을 더 이상 생성하지 않음. 기존 서버 cancel API와 내부 함수는 호환성을 위해 유지. -->
-<!-- 3.1717 Firebase 로그인 상태 복원 수정: 계정 게이트를 기본 숨김으로 변경하고 Auth 상태 복원 완료 전 로그인 화면이 먼저 보이지 않도록 처리. browserLocalPersistence를 명시해 새로고침 후 Google 로그인 상태를 유지. 실제 미로그인 상태가 확인된 경우에만 로그인 게이트 표시. -->
-<!-- 3.1717 새 Firebase 계정 닉네임 설정 추가: 새 계정으로 시작 선택 시 닉네임 입력 폼을 표시하고 생성 직전 재확인. 닉네임은 최초 1회만 설정 가능하다는 경고를 추가하고, Worker는 명시적으로 입력된 1~24자 닉네임만 새 계정 생성에 허용. -->
-<!-- 3.1717 Worker firebaseRankingAccount helper 복구: 마이그레이션 완료/랭킹 동기화에서 참조하던 firebaseRankingAccount 정의가 legacy 정리 과정에서 함께 제거되어 Google 계정 이전이 500으로 실패하던 문제 수정. -->
-<!-- 3.1717 Worker Firestore URL helper 복구: read/write/delete/ranking 코드가 참조하던 firestoreDocumentUrl 정의가 누락되어 /firebase/account/load가 500을 반환하던 문제 수정. -->
-<!-- 3.1717 Worker CORS 오류 진단 수정: fetch 라우트가 async handler Promise를 await하지 않아 내부 오류가 바깥 try/catch를 우회하고 Cloudflare 런타임 오류로 종료되던 문제를 수정. 모든 비동기 라우트를 await하여 오류 응답에도 CORS 헤더와 JSON error/message가 반환되도록 변경. -->
-<!-- 3.1717 마이그레이션 취소 Failed to fetch 수정: 취소 시 settlement 하위 컬렉션 전체 순회 삭제를 제거해 Worker subrequest 폭증을 방지. 핵심 계정 초기화만 수행하고 랭킹 삭제는 best-effort 처리하며, 전체 랭킹 재구축은 duelsAccountReady:true 계정만 포함하도록 수정. -->
-<!-- 3.1717 마이그레이션 취소 수정: 취소 시 binding만 해제하던 문제를 수정. Worker가 Firebase 랭킹/진행도/프로필을 제거하고 private/account를 duelsAccountReady:false로 초기화해 동일 Google 계정에서 다시 마이그레이션 또는 새 계정 시작이 가능하도록 변경. 서버 권한 permissions는 보존. -->
-<!-- 3.1717 마이그레이션 계정 설정 UI 정리: 패널/버튼/입력폼 간격과 가독성을 개선하고, 10월 31일 지원 종료 경고 아래에 미마이그레이션 계정 추후 삭제 및 최초 1회 제한 안내를 추가. -->
-<!-- 3.1717 Firebase legacy 정리: 랭킹 GitHub seed/fallback과 구형 /ranking/rebuild(X-Admin-Key), /firebase/permissions/debug-tools 호환 경로 제거. HTML AccountService.save 및 비-Firebase 저장 fallback 제거. GitHub 읽기는 2026-10-31까지 기존 계정 마이그레이션 원본/초기 binding seed에만 유지. -->
-<!-- 3.1717 충돌 전용 투사체 target impact 권위 수정: damageOnTravel:false projectile이 공격자 화면의 보간 원격 대상에 예측 접촉했을 때 projectile.impact를 선행 실행하던 공통 버그 제거. 비권위 화면은 투사체만 예측 소비하고, 대상 권위 화면이 실제 충돌점을 duel-projectile-impact-confirmed로 전파해 모든 화면이 그 좌표에서만 impact를 실행한다. 루네프 화염구의 방패/대상 도달 전 폭발 및 동일 구조 키네스 등 공통 적용. -->
-<!-- 3.1717 state.window continuation 수정: 제거된 태그전 분기 잔여 참조를 삭제하고 현재 캐릭터 기준으로 후속 공격을 해석. -->
-<!-- 3.1717 채팅 라운드 전환 수정: 라운드 종료로 between 화면에 들어갈 때 작성 중이던 미전송 draft를 폐기하고 채팅 입력/타이핑 상태를 닫아 다음 라운드에 이전 문장이 남지 않게 함. 채팅 history는 유지. -->
-<!-- 3.1717 카논 반동 펀치 FX 수정: recoil-hit의 별도 회색 effectShape를 제거하고 delivery.area 공통 자동 사각 FX 하나만 사용. suppressHitImpactRing은 유지. -->
 <!-- 3.1717: Firebase 계정 전환 일괄 패치. 랭킹 저장소를 Firestore 서버 전용 문서로 이전하고, 랭킹 재구축도 Firebase 사용자 progress 기준으로 변경. 디버그 레코드/전적 조작 및 계정 삭제는 Firebase ID Token + 서버 debugTools 권한을 검증하는 Worker 관리자 API로만 수행. GitHub 랭킹은 최초 seed 용도로만 사용. -->
 <!-- 3.1717 Firebase server-only debug permission migration -->
 <!-- 3.1717 전투 복구: 3.1687의 검증된 OnlineDuelService 전체 전투/라운드/선택/네트워크 흐름을 복원. 누락됐던 startRound/updateRoundScore 및 손상된 증강 카운트다운을 원본 구조로 되돌리고, Firebase/서버 정산 계층은 유지. -->
@@ -2201,154 +2178,22 @@ h1{
 #duels3-google-login-button{width:100%;margin-top:8px}
 #duels3-migration-gate{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;background:#02070dcc;padding:22px}
 #duels3-migration-gate.hidden{display:none}
-.duels3-migration-panel{
-  width:min(620px,calc(100vw - 34px));max-height:calc(100vh - 44px);overflow:auto;
-  box-sizing:border-box;border:1px solid #29475f;border-radius:2px;
-  background:linear-gradient(180deg,#081521f7,#06101af7);
-  box-shadow:0 18px 72px #000c,0 0 0 1px #0e2232 inset;
-  padding:28px 30px 26px;color:#b7ccdc
-}
-.duels3-migration-title{
-  color:#d8efff;font-size:21px;line-height:1.2;letter-spacing:2px;font-weight:700;margin-bottom:7px
-}
-.duels3-migration-account{
-  font-size:10px;line-height:1.5;color:#67869e;margin-bottom:17px;word-break:break-all
-}
-.duels3-migration-account-row{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px
-}
-.duels3-migration-account-row .duels3-migration-account{
-  flex:1;min-width:0;margin-bottom:0
-}
-.duels3-migration-switch-google{
-  flex:0 0 auto;appearance:none;border:0;background:none;padding:2px 0;
-  color:#6f91a8;font-size:9px;line-height:1.3;letter-spacing:.4px;
-  cursor:pointer;text-decoration:underline;text-underline-offset:2px
-}
-.duels3-migration-switch-google:hover{color:#b9dcf2}
-.duels3-migration-switch-google:disabled{opacity:.45;cursor:not-allowed}
-.duels3-migration-notice{
-  position:relative;border:1px solid #81551f;border-left:3px solid #d58a2d;
-  background:#24180bcc;color:#ffd3a1;padding:11px 13px 10px;margin:0;
-  font-size:12px;line-height:1.45;font-weight:700
-}
-.duels3-migration-warning{
-  margin:8px 0 18px;padding:0 2px;color:#b58f70;font-size:10px;line-height:1.65
-}
-.duels3-migration-progress-warning{
-  margin:10px 0 18px;padding:10px 12px;
-  border:1px solid #6b4f28;
-  background:#1b140c;
-  color:#e5c697;
-  font-size:10px;
-  line-height:1.7;
-}
-.duels3-migration-progress-warning.hidden{display:none}
-.duels3-migration-copy{
-  padding:0 1px;font-size:11px;line-height:1.8;color:#91aabd;margin-bottom:17px
-}
-.duels3-migration-choice{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px
-}
-.duels3-migration-choice .btn{
-  min-height:52px;padding:10px 14px;font-size:13px;line-height:1.35;
-  white-space:nowrap
-}
-.duels3-migration-form{
-  border-top:1px solid #1b3244;padding:20px 4px 2px
-}
+.duels3-migration-panel{width:min(560px,calc(100vw - 34px));max-height:calc(100vh - 44px);overflow:auto;border:1px solid #29475f;background:#07121df5;box-shadow:0 16px 70px #000b;padding:26px 28px 24px;color:#b7ccdc}
+.duels3-migration-title{color:#d8efff;font-size:20px;letter-spacing:2px;font-weight:700;margin-bottom:6px}
+.duels3-migration-account{font-size:10px;color:#6f8ca2;margin-bottom:18px;word-break:break-all}
+.duels3-migration-notice{border:1px solid #74512d;background:#24180b;color:#ffd3a1;padding:10px 12px;margin:0 0 18px;font-size:12px;font-weight:700}
+.duels3-migration-copy{font-size:11px;line-height:1.75;color:#91aabd;margin-bottom:16px}
+.duels3-migration-choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.duels3-migration-choice .btn{min-height:38px}
+.duels3-migration-form{border-top:1px solid #1b3244;padding-top:16px}
 .duels3-migration-form.hidden{display:none}
-.duels3-migration-form .duels3-account-field{
-  grid-template-columns:104px minmax(0,1fr);gap:14px;margin:10px 0
-}
-.duels3-migration-form .duels3-account-field label{
-  color:#718da3;font-size:10px;letter-spacing:1.2px
-}
-.duels3-migration-form .duels3-account-field input{
-  min-height:42px;box-sizing:border-box;background:#0b151f;border-color:#284860
-}
-.duels3-migration-form .duels3-account-field input:hover{border-color:#37617e}
-.duels3-migration-preview{
-  margin:14px 0 4px;padding:12px 14px;border:1px solid #1f3b50;
-  background:#06101a;color:#9eb8ca;font-size:11px;line-height:1.7
-}
+.duels3-migration-preview{margin:12px 0;padding:11px 12px;border:1px solid #1f3b50;background:#06101a;color:#9eb8ca;font-size:11px;line-height:1.7}
 .duels3-migration-preview.hidden{display:none}
 .duels3-migration-preview strong{color:#d4ecfb}
-.duels3-migration-actions{
-  display:flex;justify-content:flex-end;gap:8px;margin-top:13px
-}
-.duels3-migration-actions .btn{
-  min-width:158px;min-height:42px;padding:9px 18px
-}
-#duels3-migration-confirm{
-  min-width:296px
-}
-.duels3-migration-msg{
-  min-height:18px;margin-top:13px;padding-top:11px;border-top:1px solid #132838;
-  font-size:10px;line-height:1.5;color:#7fa0b8
-}
-.duels3-migration-msg:empty{border-top-color:transparent}
+.duels3-migration-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.duels3-migration-msg{min-height:18px;margin-top:10px;font-size:10px;color:#7fa0b8}
 .duels3-migration-msg.error{color:#ff9292}
 .duels3-migration-msg.success{color:#8fffb0}
-
-#duels3-auth-loading{
-  position:fixed;inset:0;z-index:10050;
-  display:flex;align-items:center;justify-content:center;
-  background:#0a0a0c;
-  opacity:1;visibility:visible;
-  transition:opacity .14s ease,visibility .14s ease;
-}
-#duels3-auth-loading.hidden{
-  opacity:0;visibility:hidden;pointer-events:none;
-}
-.duels3-auth-loading-content{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-width:280px;text-align:center
-}
-.duels3-auth-loading-title{
-  font-family:var(--font-display);
-  font-size:2.4em;font-weight:650;letter-spacing:.07em;line-height:1.08;
-  color:#4af;text-transform:uppercase;text-shadow:none;
-  margin-bottom:0
-}
-.duels3-auth-loading-sub{
-  font-size:.75em;color:#556;letter-spacing:2px;margin-bottom:32px
-}
-.duels3-auth-loading-status{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  color:#556;font-size:12px;letter-spacing:2px;
-  min-height:18px;margin:8px
-}
-.duels3-auth-loading-dot{
-  width:5px;height:5px;border-radius:50%;background:#4af;
-  box-shadow:0 0 8px #44aaff88;
-  animation:duels3-auth-loading-pulse 1s ease-in-out infinite
-}
-@keyframes duels3-auth-loading-pulse{
-  0%,100%{opacity:.28;transform:scale(.8)}
-  50%{opacity:1;transform:scale(1)}
-}
-html.duels3-auth-pending button,
-html.duels3-auth-pending input,
-html.duels3-auth-pending select,
-html.duels3-auth-pending textarea,
-html.duels3-auth-pending [role="button"]{
-  pointer-events:none!important;
-}
-html.duels3-auth-pending button{
-  cursor:wait!important;
-}
-@media(max-width:560px){
-  .duels3-migration-panel{padding:23px 18px 21px}
-  .duels3-migration-choice{grid-template-columns:1fr}
-  .duels3-migration-choice .btn{white-space:normal}
-  .duels3-migration-account-row{align-items:flex-start;flex-direction:column;gap:5px}
-  .duels3-migration-form .duels3-account-field{grid-template-columns:1fr;gap:6px}
-  .duels3-migration-form .duels3-account-field label{text-align:left}
-  .duels3-migration-actions{justify-content:stretch}
-  .duels3-migration-actions .btn,
-  #duels3-migration-confirm{width:100%;min-width:0}
-}
 #mobile-debug-button{display:none;position:fixed;top:10px;right:12px;z-index:1450;min-width:72px;height:32px;padding:0 12px;border:1px solid #3b789f;border-radius:2px;background:rgba(7,17,28,.94);color:#9edcff;font:700 10px var(--font-ui);letter-spacing:1.4px;box-shadow:0 0 14px rgba(68,170,255,.12);touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #mobile-debug-button:active{background:#102432;border-color:#66c8ff;color:#d8f3ff}
 @media(max-width:560px){
@@ -7894,24 +7739,11 @@ html[data-character-card-illustrations="false"] #scr-start-aug .start-aug-char-c
 }
 .char-card.character-banned{
   cursor:not-allowed!important;
-  filter:saturate(.25) brightness(.62);
+  filter:none!important;
 }
 .char-card.character-banned::after{
-  content:'금지';
-  position:absolute;
-  z-index:20;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%) rotate(-9deg);
-  padding:5px 10px;
-  border:2px solid rgba(255,83,83,.95);
-  color:#ff7373;
-  background:rgba(25,3,5,.86);
-  font-weight:900;
-  font-size:17px;
-  letter-spacing:2px;
-  text-shadow:0 1px 0 #000;
-  pointer-events:none;
+  content:''!important;
+  display:none!important;
 }
 .char-card.character-banned.sel{outline:none!important}
 
@@ -7931,7 +7763,7 @@ html[data-character-card-illustrations="false"] #scr-start-aug .start-aug-char-c
     0 0 24px rgba(255,65,78,.26),
     inset 0 0 18px rgba(255,55,70,.08)!important;
 }
-#scr-character-ban .character-ban-mark{
+:is(#scr-select,#scr-character-ban) .character-ban-mark{
   position:absolute;
   inset:0;
   z-index:40;
@@ -8002,7 +7834,7 @@ html[data-character-card-illustrations="false"] #scr-start-aug .start-aug-char-c
   max-width:1470px!important;
   margin:0 auto;
 }
-#scr-character-ban .character-ban-mark.proposal{
+:is(#scr-select,#scr-character-ban) .character-ban-mark.proposal{
   border-color:rgba(255,120,128,.98);
   background:
     repeating-linear-gradient(
@@ -8506,18 +8338,7 @@ html[data-character-card-illustrations="false"] #scr-start-aug .start-aug-char-c
 
 
 
-<div id="duels3-auth-loading" aria-live="polite">
-  <div class="duels3-auth-loading-content">
-    <div class="duels3-auth-loading-title">DUELS</div>
-    <div class="duels3-auth-loading-sub">Made By Lyan___</div>
-    <div class="duels3-auth-loading-status">
-      <span class="duels3-auth-loading-dot" aria-hidden="true"></span>
-      <span>로그인 상태 확인 중</span>
-    </div>
-  </div>
-</div>
-
-<div id="duels3-account-gate" class="hidden">
+<div id="duels3-account-gate">
   <div class="duels3-account-panel">
     <div class="duels3-account-title">DUELS</div>
     <div class="duels3-account-sub">Made By Lyan___</div>
@@ -8532,19 +8353,8 @@ html[data-character-card-illustrations="false"] #scr-start-aug .start-aug-char-c
 <div id="duels3-migration-gate" class="hidden" aria-modal="true" role="dialog">
   <div class="duels3-migration-panel">
     <div class="duels3-migration-title">계정 설정</div>
-    <div class="duels3-migration-account-row">
-      <div class="duels3-migration-account" id="duels3-migration-google-account"></div>
-      <button class="duels3-migration-switch-google" id="duels3-migration-switch-google" type="button">다른 Google 계정으로 로그인</button>
-    </div>
+    <div class="duels3-migration-account" id="duels3-migration-google-account"></div>
     <div class="duels3-migration-notice">마이그레이션은 10월 31일까지만 지원됩니다.</div>
-    <div class="duels3-migration-warning">
-      마이그레이션 되지 않은 계정은 추후 삭제될 예정이며, 마이그레이션은 최초 1회만 진행 가능하니 신중하게 진행하세요.<br>
-      새 계정의 닉네임은 최초 1회만 설정 가능합니다.
-    </div>
-    <div class="duels3-migration-progress-warning hidden" id="duels3-migration-progress-warning">
-      마이그레이션이 진행 중입니다. 완료될 때까지 새로고침하거나 창을 닫지 마세요.<br>
-      계정 데이터 이전에는 조금 시간이 걸릴 수 있습니다.
-    </div>
     <div class="duels3-migration-copy">
       기존 듀얼즈 계정이 있다면 기존 아이디와 비밀번호를 확인한 뒤 현재 Google 계정으로 데이터를 가져올 수 있습니다.<br>
       기존 계정이 없다면 새 계정으로 시작하세요.
@@ -8553,28 +8363,6 @@ html[data-character-card-illustrations="false"] #scr-start-aug .start-aug-char-c
       <button class="btn big" id="duels3-migration-existing" type="button">기존 계정 마이그레이션</button>
       <button class="btn big" id="duels3-migration-new" type="button">새 계정으로 시작</button>
     </div>
-
-    <div class="duels3-migration-form hidden" id="duels3-new-account-form">
-      <div class="duels3-account-field">
-        <label>닉네임</label>
-        <input
-          id="duels3-new-account-nickname"
-          type="text"
-          maxlength="24"
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-          placeholder="사용할 닉네임을 입력하세요"
-        >
-      </div>
-      <div class="duels3-migration-preview">
-        닉네임은 계정 생성 시 최초 1회만 설정할 수 있습니다.
-      </div>
-      <div class="duels3-migration-actions">
-        <button class="btn big" id="duels3-new-account-confirm" type="button">이 닉네임으로 새 계정 생성</button>
-      </div>
-    </div>
-
     <div class="duels3-migration-form hidden" id="duels3-migration-form">
       <div class="duels3-account-field"><label>기존 아이디</label><input id="duels3-migration-id" autocomplete="username" maxlength="32"></div>
       <div class="duels3-account-field"><label>기존 비밀번호</label><input id="duels3-migration-password" type="password" autocomplete="current-password" maxlength="128"></div>
@@ -8646,8 +8434,7 @@ const DUELS3_CONFIG = Object.freeze({
   storageKeys: Object.freeze({
     lastAccountId: 'duels3.account.lastId.v1',
     session: 'duels3.account.session.v1',
-    guestIdentity: 'duels3.guest.identity.v1',
-    firebaseAccountCachePrefix: 'duels3.firebase.accountCache.v1.'
+    guestIdentity: 'duels3.guest.identity.v1'
   })
 });
 
@@ -8994,13 +8781,25 @@ const AccountService = Object.freeze({
     }
 
     return body||{ok:true};
+  },
+  async save(account) {
+    if(!account||account.isGuest)return false;
+
+    if(account.firebaseAccount===true){
+      return FirebaseAccountPersistenceService.save(
+        account
+      );
+    }
+
+    throw new Error(
+      '기존 듀얼즈 계정의 직접 저장은 종료되었습니다. Google 계정으로 마이그레이션해주세요.'
+    );
   }
 });
 
 /*
  * 2026-10-31까지의 기존 계정 마이그레이션에만 사용한다.
- * 일반 로그인/회원가입/계정 load/save 기능은 제거했다.
- * AccountService는 공통 Worker 요청과 legacy ID 정규화에만 사용한다.
+ * 일반 로그인/회원가입/계정 load/save 기능은 AccountService에서 제거했다.
  */
 const LegacyMigrationService=Object.freeze({
   bytesToHex(bytes){
@@ -9353,26 +9152,7 @@ const AccountUI = Object.freeze({
     AccountState.current = account;
     if(globalThis.DebugPanel&&!DebugAccessService.canUse(account))DebugPanel.close();
     if(mode === 'firebase') {
-      localStorage.setItem(
-        DUELS3_CONFIG.storageKeys.session,
-        JSON.stringify({
-          mode:'firebase',
-          firebaseUid:
-            account.firebaseUid||
-            account.accountId,
-          updatedAt:Date.now()
-        })
-      );
-      if(account.firebaseSyncPending!==true){
-        FirebaseAccountCacheService.save(
-          account,
-          {
-            uid:
-              account.firebaseUid||
-              account.accountId
-          }
-        );
-      }
+      localStorage.setItem(DUELS3_CONFIG.storageKeys.session, JSON.stringify({mode:'firebase',firebaseUid:account.firebaseUid||account.accountId,updatedAt:Date.now()}));
     } else {
       localStorage.setItem(DUELS3_CONFIG.storageKeys.session, JSON.stringify({mode:'guest',updatedAt:Date.now()}));
     }
@@ -9453,56 +9233,22 @@ const AccountUI = Object.freeze({
 
     try{
       /* 서버의 1:1 바인딩을 먼저 해제한다. 서버 해제가 실패하면 Firebase 문서는 지우지 않는다. */
-      const cancelled=
-        await LegacyMigrationService.cancelBinding(
-          legacyAccountId
-        );
-
-      if(cancelled?.accountReset!==true){
-        throw new Error(
-          '서버에서 계정 초기화가 완료되지 않았습니다.'
-        );
-      }
-
-      localStorage.removeItem(
-        DUELS3_CONFIG.storageKeys.session
-      );
+      await LegacyMigrationService.cancelBinding(legacyAccountId);
+      localStorage.removeItem(DUELS3_CONFIG.storageKeys.session);
       DebugPanel?.close?.();
       AccountState.current=null;
       this.updateChip();
-
-      document
-        .getElementById(
-          'duels3-account-gate'
-        )
-        ?.classList.add('hidden');
-
-      FirebaseAccountMigrationUI.open(
-        user
-      );
-
+      document.getElementById('duels3-account-gate')?.classList.add('hidden');
+      FirebaseAccountMigrationUI.open(user);
       FirebaseAccountMigrationUI.message(
-        cancelled?.rankingCleanupPending
-          ?`마이그레이션을 취소했습니다. 계정 초기화는 완료됐고 랭킹 정리는 다음 전체 랭킹 재구축 때 반영됩니다. 기존 GitHub 계정 ${legacyAccountId} 데이터는 그대로 유지됩니다.`
-          :`마이그레이션을 취소했습니다. 기존 GitHub 계정 ${legacyAccountId} 데이터는 그대로 유지되며, 이 Google 계정은 다시 마이그레이션하거나 새 계정으로 시작할 수 있습니다.`,
+        `마이그레이션을 취소했습니다. 기존 GitHub 계정 ${legacyAccountId} 데이터는 그대로 유지됩니다.`,
         'success'
       );
-
       return true;
     }catch(error){
       alert(error?.message||'마이그레이션 취소에 실패했습니다.');
       return false;
     }
-  },
-  setSyncState(text='연결됨',state=''){
-    const el=
-      document.getElementById(
-        'duels3-account-sync-state'
-      );
-    if(!el)return;
-    el.textContent=String(text||'');
-    if(state)el.dataset.state=state;
-    else delete el.dataset.state;
   },
   updateChip() {
     const chip = document.getElementById('duels3-account-chip');
@@ -9521,15 +9267,20 @@ const AccountUI = Object.freeze({
       status.textContent = '레코드 저장 안 됨';
     } else {
       status.id = 'duels3-account-sync-state';
-      status.textContent =
-        user.firebaseSyncPending===true
-          ?'동기화 중'
-          :'연결됨';
-      if(user.firebaseSyncPending===true){
-        status.dataset.state='syncing';
-      }
+      status.textContent = '연결됨';
     }
     chip.appendChild(status);
+
+    if(
+      user.firebaseAccount===true &&
+      String(user.legacyAccountId||'').trim()
+    ){
+      const cancelMigration=document.createElement('button');
+      cancelMigration.type='button';
+      cancelMigration.textContent='마이그레이션 취소';
+      cancelMigration.addEventListener('click',()=>this.cancelFirebaseMigration());
+      chip.appendChild(cancelMigration);
+    }
 
     const logout = document.createElement('button');
     logout.type = 'button';
@@ -9593,11 +9344,6 @@ const FirebaseProfilePersistenceService=Object.freeze({
       accountId:user.uid,
       firebaseAccount:true
     };
-    FirebaseAccountCacheService.save(
-      next,
-      user
-    );
-
     if(AccountState.current===account||AccountState.current?.firebaseUid===user.uid){
       AccountState.current=next;
       AccountUI.updateChip();
@@ -9645,123 +9391,6 @@ const FirebaseAccountPersistenceService=Object.freeze({
 });
 
 /* Firebase Google 계정 온보딩 / 기존 계정 마이그레이션 */
-const FirebaseAccountCacheService=Object.freeze({
-  key(uid){
-    return (
-      DUELS3_CONFIG
-        .storageKeys
-        .firebaseAccountCachePrefix+
-      String(uid||'')
-    );
-  },
-  sanitize(profile,user){
-    if(
-      !profile ||
-      typeof profile!=='object' ||
-      profile.duelsAccountReady!==true
-    )return null;
-
-    const uid=
-      String(
-        user?.uid ||
-        profile.firebaseUid ||
-        profile.accountId ||
-        ''
-      );
-
-    if(!uid)return null;
-
-    return {
-      version:Number(profile.version)||2,
-      duelsAccountReady:true,
-      firebaseUid:uid,
-      accountId:uid,
-      legacyAccountId:
-        String(profile.legacyAccountId||''),
-      displayName:
-        String(profile.displayName||'플레이어')
-          .trim()
-          .slice(0,24)||
-        '플레이어',
-      mainCharacterId:
-        typeof profile.mainCharacterId==='string'
-          ?profile.mainCharacterId
-          :null,
-      mainCharacterExplicit:
-        profile.mainCharacterExplicit===true,
-      profile:{
-        ...(profile.profile||{})
-      },
-      characterRecords:{
-        ...(profile.characterRecords||{})
-      },
-      characterStats:{
-        ...(profile.characterStats||{})
-      },
-      cachedAt:Date.now()
-    };
-  },
-  save(profile,user){
-    const safe=
-      this.sanitize(profile,user);
-
-    if(!safe)return false;
-
-    try{
-      localStorage.setItem(
-        this.key(safe.firebaseUid),
-        JSON.stringify(safe)
-      );
-      return true;
-    }catch(_){
-      return false;
-    }
-  },
-  load(user){
-    const uid=String(user?.uid||'');
-    if(!uid)return null;
-
-    try{
-      const raw=
-        JSON.parse(
-          localStorage.getItem(
-            this.key(uid)
-          )||'null'
-        );
-
-      if(
-        !raw ||
-        raw.duelsAccountReady!==true ||
-        String(raw.firebaseUid||raw.accountId||'')!==uid
-      )return null;
-
-      /*
-       * 캐시는 빠른 화면 복원 전용이다.
-       * 관리자 권한은 캐시하지 않고 항상 서버 응답으로만 복구한다.
-       */
-      return {
-        ...raw,
-        firebaseUid:uid,
-        accountId:uid,
-        permissions:{
-          debugTools:false,
-          accountAdmin:false,
-          rankingAdmin:false
-        }
-      };
-    }catch(_){
-      return null;
-    }
-  },
-  remove(uid){
-    try{
-      localStorage.removeItem(
-        this.key(uid)
-      );
-    }catch(_){}
-  }
-});
-
 const FirebaseAccountMigrationUI={
   legacyAccount:null,
   migrationToken:'',
@@ -9773,33 +9402,9 @@ const FirebaseAccountMigrationUI={
     el.textContent=String(text||'');
     el.className=`duels3-migration-msg${kind?` ${kind}`:''}`;
   },
-  setProgressWarning(show=true){
-    document
-      .getElementById(
-        'duels3-migration-progress-warning'
-      )
-      ?.classList.toggle(
-        'hidden',
-        !show
-      );
-  },
   showForm(show=true){
     document.getElementById('duels3-migration-form')?.classList.toggle('hidden',!show);
-    if(show){
-      document.getElementById('duels3-new-account-form')?.classList.add('hidden');
-      document.getElementById('duels3-migration-id')?.focus();
-    }
-  },
-  showNewAccountForm(show=true){
-    document.getElementById('duels3-new-account-form')?.classList.toggle('hidden',!show);
-    if(show){
-      document.getElementById('duels3-migration-form')?.classList.add('hidden');
-      const input=document.getElementById('duels3-new-account-nickname');
-      if(input){
-        input.value='';
-        setTimeout(()=>input.focus(),0);
-      }
-    }
+    if(show)document.getElementById('duels3-migration-id')?.focus();
   },
   resetLegacy(){
     this.legacyAccount=null;
@@ -9814,8 +9419,6 @@ const FirebaseAccountMigrationUI={
     this.firebaseUser=user||globalThis.DuelsFirebase?.currentUser?.()||null;
     this.resetLegacy();
     this.showForm(false);
-    this.showNewAccountForm(false);
-    this.setProgressWarning(false);
     this.message('');
     const account=document.getElementById('duels3-migration-google-account');
     if(account){
@@ -9863,168 +9466,14 @@ const FirebaseAccountMigrationUI={
     return account;
   },
   async afterGoogleLogin(resultOrUser){
-    const user=
-      resultOrUser?.user||
-      resultOrUser||
-      globalThis.DuelsFirebase
-        ?.currentUser?.();
-
-    if(!user){
-      throw new Error(
-        'Google 로그인 정보를 확인할 수 없습니다.'
-      );
-    }
-
+    const user=resultOrUser?.user||resultOrUser||globalThis.DuelsFirebase?.currentUser?.();
+    if(!user)throw new Error('Google 로그인 정보를 확인할 수 없습니다.');
     this.firebaseUser=user;
-
-    const cached=
-      FirebaseAccountCacheService
-        .load(user);
-
-    if(cached){
-      /*
-       * Firebase Auth가 UID를 확인한 순간 캐시 프로필로 즉시 진입한다.
-       * 이 캐시는 화면 복원용일 뿐이며 관리자 권한은 항상 false다.
-       * 실제 서버 계정은 아래 백그라운드 요청으로 다시 확인한다.
-       */
-      const cachedAccount=
-        this.accountForGame(
-          cached,
-          user
-        );
-
-      cachedAccount.firebaseSyncPending=true;
-
-      this.close();
-      AccountUI.enter(
-        cachedAccount,
-        'firebase'
-      );
-
-      void globalThis.DuelsFirebase
-        .loadOwnAccount()
-        .then(profile=>{
-          if(
-            profile?.duelsAccountReady===true
-          ){
-            FirebaseAccountCacheService
-              .save(profile,user);
-
-            const authoritative=
-              this.accountForGame(
-                profile,
-                user
-              );
-
-            authoritative.firebaseSyncPending=false;
-
-            if(
-              globalThis.DuelsFirebase
-                ?.currentUser?.()?.uid===
-              user.uid
-            ){
-              AccountState.current=
-                authoritative;
-
-              AccountUI.updateChip();
-              ProfileSettingsUI.render();
-
-              const localMember=
-                typeof RoomService!=='undefined'
-                  ?RoomService.localMember?.()
-                  :null;
-
-              if(
-                localMember &&
-                typeof PlayerProfileService!=='undefined'
-              ){
-                localMember.profile=
-                  PlayerProfileService
-                    .snapshot(
-                      authoritative
-                    );
-              }
-            }
-
-            return;
-          }
-
-          /*
-           * 서버에서 계정 준비 상태가 사라졌다면 오래된 캐시를 폐기하고
-           * 계정 설정 화면으로 전환한다.
-           */
-          FirebaseAccountCacheService
-            .remove(user.uid);
-
-          if(
-            globalThis.DuelsFirebase
-              ?.currentUser?.()?.uid===
-            user.uid
-          ){
-            AccountState.current=null;
-            AccountUI.updateChip();
-            document
-              .getElementById(
-                'duels3-account-gate'
-              )
-              ?.classList.add(
-                'hidden'
-              );
-            this.open(user);
-          }
-        })
-        .catch(error=>{
-          console.error(
-            '[Duels] Firebase 계정 백그라운드 동기화 실패',
-            error
-          );
-
-          if(
-            globalThis.DuelsFirebase
-              ?.currentUser?.()?.uid===
-            user.uid &&
-            AccountState.current
-              ?.firebaseUid===
-            user.uid
-          ){
-            AccountState.current.firebaseSyncPending=false;
-            AccountUI.updateChip();
-            AccountUI.setSyncState(
-              '동기화 실패',
-              'error'
-            );
-          }
-        });
-
-      return cachedAccount;
+    const profile=await globalThis.DuelsFirebase.loadOwnAccount();
+    if(profile?.duelsAccountReady===true){
+      return this.enterFirebaseProfile(profile,user);
     }
-
-    /*
-     * 첫 로그인/캐시 없음은 서버에서 계정 존재 여부를 알아야 하므로
-     * 기존처럼 1회 기다린다. 성공 후부터는 캐시가 생겨 다음 새로고침이 빨라진다.
-     */
-    const profile=
-      await globalThis.DuelsFirebase
-        .loadOwnAccount();
-
-    if(
-      profile?.duelsAccountReady===true
-    ){
-      FirebaseAccountCacheService
-        .save(profile,user);
-
-      return this.enterFirebaseProfile(
-        profile,
-        user
-      );
-    }
-
-    document
-      .getElementById(
-        'duels3-account-gate'
-      )
-      ?.classList.add('hidden');
-
+    document.getElementById('duels3-account-gate')?.classList.add('hidden');
     this.open(user);
     return null;
   },
@@ -10033,7 +9482,6 @@ const FirebaseAccountMigrationUI={
     const id=document.getElementById('duels3-migration-id')?.value||'';
     const password=document.getElementById('duels3-migration-password')?.value||'';
     if(!id||!password){this.message('기존 아이디와 비밀번호를 입력하세요.','error');return false;}
-    this.setProgressWarning(true);
     this.message('기존 계정 인증 정보를 받는 중입니다.');
     try{
       /*
@@ -10086,7 +9534,6 @@ const FirebaseAccountMigrationUI={
       if(confirm)confirm.disabled=false;
       const passwordInput=document.getElementById('duels3-migration-password');
       if(passwordInput)passwordInput.value='';
-      this.setProgressWarning(false);
       this.message('기존 계정 인증에 성공했습니다. 이전할 Google 계정을 확인한 뒤 진행하세요.','success');
       return true;
     }catch(error){
@@ -10098,7 +9545,6 @@ const FirebaseAccountMigrationUI={
         code==='INVALID_OR_EXPIRED_CHALLENGE'?'인증 시간이 만료되었습니다. 다시 확인해주세요.':
         error?.message||'기존 계정을 확인하지 못했습니다.'
       );
-      this.setProgressWarning(false);
       this.message(friendly,'error');
       return false;
     }
@@ -10108,17 +9554,7 @@ const FirebaseAccountMigrationUI={
     const legacy=this.legacyAccount;
     const migrationToken=String(this.migrationToken||'');
     if(!user||!legacy||!migrationToken){this.message('먼저 기존 계정을 다시 인증하세요.','error');return false;}
-    this.setProgressWarning(true);
-    const beforeUnloadHandler=event=>{
-      event.preventDefault();
-      event.returnValue='';
-    };
-    window.addEventListener(
-      'beforeunload',
-      beforeUnloadHandler
-    );
-
-    this.message('기존 계정과 Google 계정을 1:1로 연결하는 중입니다. 잠시만 기다려주세요.');
+    this.message('기존 계정과 Google 계정을 1:1로 연결하는 중입니다.');
     try{
       /*
        * 서버가 migrationToken + Firebase ID Token을 검증한 뒤
@@ -10167,11 +9603,6 @@ const FirebaseAccountMigrationUI={
       if(!authoritativeFirebase?.duelsAccountReady){
         throw new Error('서버에 마이그레이션 계정이 생성되지 않았습니다.');
       }
-      this.setProgressWarning(false);
-      window.removeEventListener(
-        'beforeunload',
-        beforeUnloadHandler
-      );
       this.message('마이그레이션이 완료되었습니다.','success');
       await this.enterFirebaseProfile(authoritativeFirebase,user);
       return true;
@@ -10184,156 +9615,32 @@ const FirebaseAccountMigrationUI={
         code==='INVALID_FIREBASE_TOKEN'?'Google 로그인 인증이 만료되었습니다. 다시 로그인해주세요.':
         error?.message||'마이그레이션 저장에 실패했습니다.'
       );
-      this.setProgressWarning(false);
-      window.removeEventListener(
-        'beforeunload',
-        beforeUnloadHandler
-      );
       this.message(friendly,'error');
       return false;
     }
   },
   async createNew(){
     const user=this.firebaseUser||globalThis.DuelsFirebase?.currentUser?.();
-    if(!user){
-      this.message('Google 로그인이 필요합니다.','error');
-      return false;
-    }
-
-    const input=
-      document.getElementById(
-        'duels3-new-account-nickname'
-      );
-
-    const displayName=
-      String(input?.value||'')
-        .replace(/[\u0000-\u001f\u007f]/g,'')
-        .trim();
-
-    if(!displayName){
-      this.message('사용할 닉네임을 입력하세요.','error');
-      input?.focus();
-      return false;
-    }
-
-    if(displayName.length>24){
-      this.message('닉네임은 24자 이하로 입력하세요.','error');
-      input?.focus();
-      return false;
-    }
-
-    const confirmed=confirm(
-      `닉네임을 "${displayName}"(으)로 설정하고 새 계정을 생성할까요?\n\n`+
-      `닉네임은 최초 1회만 설정할 수 있습니다.`
-    );
-    if(!confirmed)return false;
-
-    const button=
-      document.getElementById(
-        'duels3-new-account-confirm'
-      );
-    if(button)button.disabled=true;
-
-    this.message('새 계정을 생성하는 중입니다.');
-
+    if(!user){this.message('Google 로그인이 필요합니다.','error');return false;}
     try{
-      const account=
-        await globalThis.DuelsFirebase
-          .createOwnAccount({
-            displayName
-          });
-
+      const account=await globalThis.DuelsFirebase.createOwnAccount({
+        displayName:String(user.displayName||'플레이어').trim().slice(0,24)||'플레이어'
+      });
       if(!account?.duelsAccountReady){
-        throw new Error(
-          '새 계정 생성 결과를 확인할 수 없습니다.'
-        );
+        throw new Error('새 계정 생성 결과를 확인할 수 없습니다.');
       }
-
-      return this.enterFirebaseProfile(
-        account,
-        user
-      );
+      return this.enterFirebaseProfile(account,user);
     }catch(error){
-      this.message(
-        error?.message||
-        '새 계정을 만들지 못했습니다.',
-        'error'
-      );
+      this.message(error?.message||'새 계정을 만들지 못했습니다.','error');
       return false;
-    }finally{
-      if(button)button.disabled=false;
-    }
-  },
-  async switchGoogleAccount(){
-    const fb=globalThis.DuelsFirebase;
-    const button=document.getElementById('duels3-migration-switch-google');
-
-    if(!fb){
-      this.message('Firebase 초기화를 기다리는 중입니다.','error');
-      return false;
-    }
-
-    AuthResolutionUI.setPending(true);
-    if(button)button.disabled=true;
-    this.message('다른 Google 계정을 선택하는 중입니다.');
-
-    try{
-      await fb.signOutCurrent();
-
-      AccountState.current=null;
-      localStorage.removeItem(DUELS3_CONFIG.storageKeys.session);
-      this.close();
-      AccountUI.updateChip();
-
-      const gate=document.getElementById('duels3-account-gate');
-      gate?.classList.remove('hidden');
-      AccountUI.setMessage('다른 Google 계정으로 로그인하세요.');
-
-      const result=await fb.signInGoogle();
-
-      gate?.classList.add('hidden');
-      AccountUI.setMessage('');
-      await this.afterGoogleLogin(result);
-      AuthResolutionUI.resolve();
-      return true;
-    }catch(error){
-      const code=String(error?.code||'');
-      if(
-        code==='auth/popup-closed-by-user'||
-        code==='auth/cancelled-popup-request'
-      ){
-        AccountUI.setMessage('Google 계정 선택이 취소되었습니다.');
-      }else{
-        AccountUI.setMessage(
-          error?.message||'Google 계정 변경에 실패했습니다.',
-          'error'
-        );
-      }
-
-      document.getElementById('duels3-account-gate')?.classList.remove('hidden');
-      AuthResolutionUI.resolve();
-      return false;
-    }finally{
-      if(button)button.disabled=false;
     }
   },
   bind(){
-    document.getElementById('duels3-migration-switch-google')?.addEventListener('click',()=>this.switchGoogleAccount());
     document.getElementById('duels3-migration-existing')?.addEventListener('click',()=>{
-      this.resetLegacy();
-      this.showNewAccountForm(false);
-      this.showForm(true);
-      this.message('기존 듀얼즈 계정 정보를 입력하세요.');
+      this.resetLegacy();this.showForm(true);this.message('기존 듀얼즈 계정 정보를 입력하세요.');
     });
     document.getElementById('duels3-migration-new')?.addEventListener('click',()=>{
-      this.resetLegacy();
-      this.showForm(false);
-      this.showNewAccountForm(true);
-      this.message('새 계정에서 사용할 닉네임을 입력하세요.');
-    });
-    document.getElementById('duels3-new-account-confirm')?.addEventListener('click',()=>this.createNew());
-    document.getElementById('duels3-new-account-nickname')?.addEventListener('keydown',event=>{
-      if(event.key==='Enter')this.createNew();
+      if(confirm('기존 듀얼즈 계정 데이터를 가져오지 않고 새 계정으로 시작할까요?'))this.createNew();
     });
     document.getElementById('duels3-migration-check')?.addEventListener('click',()=>this.verifyLegacy());
     document.getElementById('duels3-migration-confirm')?.addEventListener('click',()=>this.migrateLegacy());
@@ -25934,7 +25241,19 @@ const GAME_DATA=Object.freeze({
           cd:0,
           range:180,
           modules:Object.freeze([
-            Object.freeze({type:'delivery.area',shape:'rect',range:180,halfWidth:60,wallPolicy:'block',suppressHitImpactRing:true}),
+            Object.freeze({type:'delivery.area',shape:'rect',range:180,halfWidth:60,wallPolicy:'block',autoPresentation:false,suppressHitImpactRing:true}),
+            Object.freeze({
+              type:'effect.spawn',
+              when:'after-attack',
+              renderType:'effectShape',
+              shape:'rect',
+              range:180,
+              halfWidth:60,
+              duration:200,
+              clipToAttackArea:true,
+              replaceAutoAreaEffect:true,
+              drawsClippedOutline:true
+            }),
             Object.freeze({type:'movement.knockback',target:'hit-target',direction:'attack',distance:70,speed:11,oncePerExecution:true}),
             Object.freeze({type:'resource.restore',when:'on-hit',resource:'stamina',recipient:'source',amount:100,oncePerExecution:true})
           ]),
@@ -29628,40 +28947,16 @@ const MatchResultSubmissionService=Object.freeze({
   async submitRound(roundPayload){
     const submission=this.payload(roundPayload);
     if(!submission)throw new Error('경기 결과 제출 정보를 만들 수 없습니다.');
-
     let latest=null;
-
-    for(let attempt=0;attempt<16;attempt+=1){
-      latest=await this.request(
-        '/match/submit',
-        {submission}
-      );
-
-      if(latest?.finalized===true){
-        return latest;
-      }
-
+    for(let attempt=0;attempt<12;attempt+=1){
+      latest=await this.request('/match/submit',{submission});
+      if(latest?.finalized===true)return latest;
       if(latest?.conflict===true){
-        throw new Error(
-          '참가자들이 제출한 경기 결과가 서로 일치하지 않습니다.'
-        );
+        throw new Error('참가자들이 제출한 경기 결과가 서로 일치하지 않습니다.');
       }
-
-      await this.sleep(
-        attempt<8
-          ?250
-          :600
-      );
+      await this.sleep(850);
     }
-
-    return (
-      latest||
-      {
-        ok:true,
-        finalized:false,
-        pending:true
-      }
-    );
+    return latest||{ok:true,finalized:false,pending:true};
   },
   async submitDeparture({characterId,mode,eventId}={}){
     return this.request('/match/departure/self',{
@@ -29678,7 +28973,6 @@ const CharacterRecordProgressionService={
   resultByRound:new Map(),
   matchGeneration:0,
   departurePenaltyGeneration:-1,
-  authoritativeProgress:null,
 
   settlementEligibility(){
     const local=RoomService.localMember();
@@ -29879,489 +29173,6 @@ const CharacterRecordProgressionService={
     );
   },
 
-  captureAuthoritativeProgress(
-    account=AccountState.current
-  ){
-    if(
-      this.authoritativeProgress||
-      !account
-    ){
-      return this.authoritativeProgress;
-    }
-
-    this.authoritativeProgress={
-      characterRecords:{
-        ...(account.characterRecords||{})
-      },
-      characterStats:{
-        ...(account.characterStats||{})
-      }
-    };
-
-    return this.authoritativeProgress;
-  },
-
-  setAuthoritativeProgress(progress){
-    if(!progress)return null;
-
-    this.authoritativeProgress={
-      characterRecords:{
-        ...(progress.characterRecords||{})
-      },
-      characterStats:{
-        ...(progress.characterStats||{})
-      }
-    };
-
-    return this.authoritativeProgress;
-  },
-
-  syncLocalRecordPresentation(
-    characterIds=[],
-    reason='round-result-optimistic',
-    broadcast=true
-  ){
-    const account=
-      AccountState.current;
-
-    if(
-      !account||
-      account.isGuest
-    ){
-      return false;
-    }
-
-    const localMember=
-      RoomService.localMember();
-
-    const profileSnapshot=
-      PlayerProfileService.snapshot(
-        account
-      );
-
-    if(localMember){
-      localMember.profile=
-        profileSnapshot;
-    }
-
-    const uniqueIds=[
-      ...new Set(
-        (characterIds||[])
-          .map(id=>String(id||''))
-          .filter(Boolean)
-      )
-    ];
-
-    for(const characterId of uniqueIds){
-      GameEvents.emit(
-        'character-record-changed',
-        {
-          pid:
-            RoomService.localPid,
-          characterId,
-          points:
-            CharacterRecordService.points(
-              characterId,
-              account
-            ),
-          stats:
-            account
-              .characterStats
-              ?.[characterId]||
-            null,
-          profile:
-            profileSnapshot,
-          local:true,
-          reason
-        }
-      );
-    }
-
-    if(
-      broadcast&&
-      Training.sessionMode==='online'&&
-      OnlineDuelService.active&&
-      uniqueIds.length
-    ){
-      for(const characterId of uniqueIds){
-        RoomService.sendGameplay({
-          type:'duel-record-update',
-          roundToken:
-            OnlineDuelService.roundToken,
-          characterId,
-          points:
-            CharacterRecordService.points(
-              characterId,
-              account
-            ),
-          stats:
-            account
-              .characterStats
-              ?.[characterId]||
-            null,
-          profile:
-            profileSnapshot,
-          provisional:
-            reason.includes(
-              'optimistic'
-            )
-        });
-      }
-    }
-
-    return true;
-  },
-
-  applyOptimisticRecord(
-    result,
-    {
-      broadcast=true,
-      reason='round-result-optimistic'
-    }={}
-  ){
-    const account=
-      AccountState.current;
-
-    if(
-      !account||
-      !result?.characterId
-    ){
-      return false;
-    }
-
-    const characterId=
-      String(result.characterId);
-
-    account.characterRecords={
-      ...(account.characterRecords||{}),
-      [characterId]:
-        Math.max(
-          0,
-          Math.floor(
-            Number(result.after)||0
-          )
-        )
-    };
-
-    account.recordSettlementPending=true;
-
-    AccountState.current=
-      account;
-
-    this.syncLocalRecordPresentation(
-      [characterId],
-      reason,
-      broadcast
-    );
-
-    return true;
-  },
-
-  rebuildOptimisticProjection({
-    broadcast=true,
-    reason='round-result-optimistic-reconcile'
-  }={}){
-    const account=
-      AccountState.current;
-
-    const base=
-      this.authoritativeProgress;
-
-    if(
-      !account||
-      !base
-    ){
-      return false;
-    }
-
-    account.characterRecords={
-      ...(base.characterRecords||{})
-    };
-
-    account.characterStats={
-      ...(base.characterStats||{})
-    };
-
-    const touched=
-      new Set();
-
-    const pendingEntries=[
-      ...this.resultByRound.entries()
-    ]
-      .filter(([,entry])=>
-        entry?.pending===true&&
-        entry?.payload
-      )
-      .sort(([,a],[,b])=>
-        (
-          Number(a?.token)||0
-        )-
-        (
-          Number(b?.token)||0
-        )
-      );
-
-    for(const [key,entry] of pendingEntries){
-      const projected=
-        this.optimisticRoundResult(
-          entry.payload,
-          entry.pid||
-            RoomService.localPid,
-          account
-        );
-
-      if(!projected)continue;
-
-      account.characterRecords={
-        ...(account.characterRecords||{}),
-        [projected.characterId]:
-          projected.after
-      };
-
-      touched.add(
-        projected.characterId
-      );
-
-      this.resultByRound.set(
-        key,
-        {
-          ...entry,
-          delta:
-            projected.delta,
-          optimistic:
-            projected
-        }
-      );
-    }
-
-    account.recordSettlementPending=
-      pendingEntries.length>0;
-
-    AccountState.current=
-      account;
-
-    this.syncLocalRecordPresentation(
-      [...touched],
-      reason,
-      broadcast
-    );
-
-    return true;
-  },
-
-  showRecordCorrection(
-    fromScore,
-    toScore,
-    label='레코드 정정'
-  ){
-    let element=
-      document.getElementById(
-        'record-delta-toast'
-      );
-
-    if(!element){
-      element=
-        document.createElement(
-          'div'
-        );
-      element.id=
-        'record-delta-toast';
-      element.className=
-        'record-delta-toast';
-      document.body.appendChild(
-        element
-      );
-    }
-
-    const from=
-      Number(fromScore)||0;
-    const to=
-      Number(toScore)||0;
-
-    element.textContent=
-      `${label} · ${from} → ${to}`;
-
-    element.style.color=
-      to<from
-        ?'#ff8585'
-        :to>from
-          ?'#7fffa0'
-          :'#aab6c2';
-
-    element.classList.remove(
-      'show'
-    );
-
-    void element.offsetWidth;
-
-    element.classList.add(
-      'show'
-    );
-
-    clearTimeout(
-      this._recordDeltaToastTimer
-    );
-
-    this._recordDeltaToastTimer=
-      setTimeout(()=>{
-        element.classList.remove(
-          'show'
-        );
-      },4000);
-
-    return true;
-  },
-
-  optimisticRoundResult(payload,pid,account){
-    const characterId=
-      this.characterId(pid);
-
-    if(!characterId)return null;
-
-    const before=
-      Math.max(
-        0,
-        Math.floor(
-          Number(
-            account
-              ?.characterRecords
-              ?.[characterId]
-          )||0
-        )
-      );
-
-    const tier=
-      CharacterRecordService.tier(
-        before
-      );
-
-    const values=
-      this.modeValues(
-        payload?.mode,
-        tier.id
-      );
-
-    const mode=
-      String(
-        payload?.mode||
-        RoomService.matchMode||
-        MatchModeService.DUEL
-      );
-
-    const placement=
-      mode===MatchModeService.FFA
-        ?this.placement(
-            payload,
-            pid
-          )
-        :null;
-
-    const ffaOutcome=
-      mode===MatchModeService.FFA
-        ?this.ffaOutcome(
-            payload,
-            pid
-          )
-        :null;
-
-    const won=
-      mode===MatchModeService.FFA
-        ?(
-            ffaOutcome==='win'
-              ?true
-              :ffaOutcome==='loss'
-                ?false
-                :null
-          )
-        :this.won(
-            payload,
-            pid
-          );
-
-    const ffaScore=
-      mode===MatchModeService.FFA
-        ?this.ffaScoreMultiplier(
-            payload,
-            pid
-          )
-        :null;
-
-    const requestedDelta=
-      Math.round(
-        mode===MatchModeService.FFA
-          ?(
-              ffaScore?.kind==='loss'
-                ?values.loss*
-                  (
-                    ffaScore?.multiplier||
-                    1
-                  )
-                :values.win*
-                  (
-                    ffaScore?.multiplier||
-                    1
-                  )
-            )
-          :mode===MatchModeService.TEAM
-            ?(
-                won
-                  ?values.win*3
-                  :values.loss
-              )
-            :(
-                won
-                  ?values.win
-                  :values.loss
-              )
-      );
-
-    const floor=
-      Math.max(
-        0,
-        Number(tier.min)||0
-      );
-
-    const after=
-      Math.round(
-        requestedDelta<0
-          ?Math.max(
-              floor,
-              before+
-                requestedDelta
-            )
-          :before+
-            requestedDelta
-      );
-
-    return {
-      token:
-        Math.max(
-          1,
-          Number(
-            payload?.roundToken
-          )||1
-        ),
-      characterId,
-      before,
-      after,
-      delta:
-        after-before,
-      requestedDelta,
-      mode,
-      placement,
-      outcome:
-        mode===MatchModeService.FFA
-          ?(
-              ffaOutcome||
-              'neutral'
-            )
-          :won
-            ?'win'
-            :'loss',
-      optimistic:true
-    };
-  },
-
   showRecordDelta(result){
     if(
       !result||
@@ -30421,53 +29232,17 @@ const CharacterRecordProgressionService={
   },
 
   applyServerProgress(progress,result,payload,resultKey){
-    const account=
-      AccountState.current;
-
-    if(
-      !account||
-      account.isGuest||
-      !progress
-    ){
-      return null;
+    const account=AccountState.current;
+    if(!account||account.isGuest||!progress)return null;
+    account.characterRecords={...(progress.characterRecords||{})};
+    account.characterStats={...(progress.characterStats||{})};
+    AccountState.current=account;
+    const localMember=RoomService.localMember();
+    if(localMember){
+      localMember.profile=PlayerProfileService.snapshot(account);
     }
-
-    const previousResult=
-      this.resultByRound.get(
-        resultKey
-      );
-
-    const previousOptimistic=
-      previousResult?.optimistic||
-      null;
-
-    this.setAuthoritativeProgress(
-      progress
-    );
-
-    account.characterRecords={
-      ...(progress.characterRecords||{})
-    };
-
-    account.characterStats={
-      ...(progress.characterStats||{})
-    };
-
-    account.recordSettlementPending=false;
-
-    AccountState.current=
-      account;
-
-    const characterId=
-      String(
-        result?.characterId||''
-      );
-
-    const after=
-      CharacterRecordService.points(
-        characterId,
-        account
-      );
+    const characterId=String(result?.characterId||'');
+    const after=CharacterRecordService.points(characterId,account);
     const serverResult={
       token:Math.max(1,Number(payload?.roundToken)||1),
       characterId,
@@ -30486,41 +29261,13 @@ const CharacterRecordProgressionService={
       tierAfter:CharacterRecordService.tier(after),
       finalized:true
     };
-    this.resultByRound.set(
-      resultKey,
-      serverResult
-    );
-
-    /*
-     * 서버 확정값을 기준점으로 삼고, 혹시 뒤 라운드의
-     * 낙관적 정산이 아직 남아 있다면 그 값만 다시 얹는다.
-     */
-    this.rebuildOptimisticProjection({
-      broadcast:false,
-      reason:'round-result-server-reconcile'
-    });
-
-    const profileSnapshot=
-      PlayerProfileService.snapshot(
-        AccountState.current
-      );
-    const localMember=
-      RoomService.localMember();
-
-    if(localMember){
-      localMember.profile=
-        profileSnapshot;
-    }
-
+    this.resultByRound.set(resultKey,serverResult);
+    const profileSnapshot=PlayerProfileService.snapshot(account);
     GameEvents.emit('character-record-changed',{
       pid:RoomService.localPid,
       characterId,
-      points:
-        CharacterRecordService.points(
-          characterId,
-          AccountState.current
-        ),
-      stats:AccountState.current?.characterStats?.[characterId]||null,
+      points:after,
+      stats:account.characterStats?.[characterId]||null,
       profile:profileSnapshot,
       local:true,
       reason:'round-result'
@@ -30530,12 +29277,8 @@ const CharacterRecordProgressionService={
         type:'duel-record-update',
         roundToken:OnlineDuelService.roundToken,
         characterId,
-        points:
-          CharacterRecordService.points(
-            characterId,
-            AccountState.current
-          ),
-        stats:AccountState.current?.characterStats?.[characterId]||null,
+        points:after,
+        stats:account.characterStats?.[characterId]||null,
         profile:profileSnapshot
       });
     }
@@ -30543,44 +29286,7 @@ const CharacterRecordProgressionService={
     CharacterRecordService.loadAllRankings(true).catch(error=>{
       console.warn('[Duels] ranking refresh failed after settlement',error);
     });
-    const sameAsOptimistic=
-      previousOptimistic&&
-      Number(
-        previousOptimistic.before
-      )===
-        Number(
-          serverResult.before
-        )&&
-      Number(
-        previousOptimistic.after
-      )===
-        Number(
-          serverResult.after
-        )&&
-      Number(
-        previousOptimistic.delta
-      )===
-        Number(
-          serverResult.delta
-        );
-
-    if(
-      previousOptimistic&&
-      !sameAsOptimistic
-    ){
-      this.showRecordCorrection(
-        previousOptimistic.after,
-        serverResult.after,
-        '레코드 서버 정정'
-      );
-    }else if(
-      !previousOptimistic
-    ){
-      this.showRecordDelta(
-        serverResult
-      );
-    }
-
+    this.showRecordDelta(serverResult);
     return serverResult;
   },
 
@@ -30605,90 +29311,22 @@ const CharacterRecordProgressionService={
       this.resultByRound.set(resultKey,blocked);
       return blocked;
     }
-    const optimistic=
-      this.optimisticRoundResult(
-        payload,
-        pid,
-        account
-      );
-
-    this.captureAuthoritativeProgress(
-      account
-    );
-
     const pending={
       token,
       pending:true,
-      delta:
-        Number(
-          optimistic?.delta
-        )||0,
-      mode:
-        payload?.mode||
-        RoomService.matchMode||
-        MatchModeService.DUEL,
-      optimistic,
-      payload,
-      pid
+      delta:0,
+      mode:payload?.mode||RoomService.matchMode||MatchModeService.DUEL
     };
-
-    this.resultByRound.set(
-      resultKey,
-      pending
-    );
-
-    if(optimistic){
-      /*
-       * 여기서 토스트만 미리 띄우는 것이 아니라 실제 로컬
-       * characterRecords 값까지 즉시 바꾼다.
-       * Firebase/Worker 저장은 하지 않는다.
-       */
-      this.applyOptimisticRecord(
-        optimistic,
-        {
-          broadcast:true,
-          reason:'round-result-optimistic'
-        }
-      );
-
-      this.showRecordDelta(
-        optimistic
-      );
-    }
-
+    this.resultByRound.set(resultKey,pending);
     MatchResultSubmissionService
       .submitRound(payload)
       .then(response=>{
         if(response?.finalized!==true){
-          const provisional=
-            this.resultByRound.get(
-              resultKey
-            )?.optimistic||
-            optimistic;
-
-          this.resultByRound.delete(
-            resultKey
-          );
-
-          this.rebuildOptimisticProjection({
-            broadcast:true,
-            reason:'round-result-optimistic-rollback'
+          this.resultByRound.set(resultKey,{
+            ...pending,
+            pending:true,
+            reason:'waiting-for-participants'
           });
-
-          if(provisional){
-            const restored=
-              CharacterRecordService.points(
-                provisional.characterId,
-                AccountState.current
-              );
-
-            this.showRecordCorrection(
-              provisional.after,
-              restored,
-              '레코드 정산 지연 · 임시 점수 회수'
-            );
-          }
-
           return;
         }
         this.applyServerProgress(
@@ -30699,39 +29337,8 @@ const CharacterRecordProgressionService={
         );
       })
       .catch(error=>{
-        console.warn(
-          '[Duels] match settlement failed',
-          error
-        );
-
-        const provisional=
-          this.resultByRound.get(
-            resultKey
-          )?.optimistic||
-          optimistic;
-
-        this.resultByRound.delete(
-          resultKey
-        );
-
-        this.rebuildOptimisticProjection({
-          broadcast:true,
-          reason:'round-result-optimistic-rollback'
-        });
-
-        if(provisional){
-          const restored=
-            CharacterRecordService.points(
-              provisional.characterId,
-              AccountState.current
-            );
-
-          this.showRecordCorrection(
-            provisional.after,
-            restored,
-            '레코드 정산 실패 · 임시 점수 회수'
-          );
-        }
+        console.warn('[Duels] match settlement failed',error);
+        this.resultByRound.delete(resultKey);
       });
     return pending;
   },
@@ -30774,12 +29381,8 @@ const CharacterRecordProgressionService={
         const progress=response?.progress;
         const result=response?.result;
         if(!progress||!result)return;
-        this.setAuthoritativeProgress(
-          progress
-        );
         account.characterRecords={...(progress.characterRecords||{})};
         account.characterStats={...(progress.characterStats||{})};
-        account.recordSettlementPending=false;
         AccountState.current=account;
         const localMember=RoomService.localMember();
         if(localMember){
@@ -30823,11 +29426,6 @@ const CharacterRecordProgressionService={
     this.matchGeneration+=1;
     this.resultByRound.clear();
     this.departurePenaltyGeneration=-1;
-    this.authoritativeProgress=null;
-
-    if(AccountState.current){
-      AccountState.current.recordSettlementPending=false;
-    }
   }
 };
 
@@ -31297,9 +29895,9 @@ const PlayerProfileService=Object.freeze({
 
     if(!account.isGuest){
       AccountState.current=
-        await FirebaseProfilePersistenceService.save(
-          account
-        );
+        account.firebaseAccount===true
+          ?await FirebaseProfilePersistenceService.save(account)
+          :await AccountService.save(account);
     }
 
     return true;
@@ -52068,7 +50666,6 @@ const ROOM_GAMEPLAY_PACKET_TYPES=new Set([
   'duel-field-dodge-reward',
   'duel-field-clear',
   'duel-field-resolved',
-  'duel-projectile-impact-confirmed',
   'duel-projectile-guard-resolved',
   'duel-attack-guard-resolved',
   'duel-counter-resolve',
@@ -58151,30 +56748,6 @@ const OnlineChatService={
 
     return true;
   },
-  clearRoundDraft(){
-    const input=
-      document.getElementById(
-        'chat-input'
-      );
-
-    this.draftText='';
-    this.selectAllDraftOnOpen=false;
-    this.restoreLastSentOnOpen=false;
-
-    if(input){
-      input.value='';
-    }
-
-    if(this.openState){
-      this.close();
-    }else{
-      this.stopLocalTypingHeartbeat({
-        sendFalse:true
-      });
-    }
-
-    return true;
-  },
   open(){
     if(!this.available())return false;
 
@@ -61010,60 +59583,6 @@ charRow.appendChild(card);
     });
     return true;
   },
-  sendProjectileImpactConfirmed(
-    projectile,
-    reason='target'
-  ){
-    if(
-      !this.active||
-      this.roundResolving||
-      !projectile
-    )return false;
-
-    const ownerPid=
-      OnlineParticipantEntityService.pid(
-        projectile.source
-      );
-    if(!ownerPid)return false;
-
-    RoomService.sendGameplay({
-      type:'duel-projectile-impact-confirmed',
-      roundToken:this.roundToken,
-      sentAt:Date.now(),
-      projectileOwnerPid:String(ownerPid),
-      projectileKey:String(
-        projectile.networkKey||''
-      ),
-      attackId:String(
-        projectile.attack?.id||''
-      ),
-      executionSequence:
-        Math.max(
-          0,
-          Math.floor(
-            Number(
-              projectile.volley
-                ?.execution
-                ?.sequence
-            )||0
-          )
-        ),
-      reason:String(reason||'target'),
-      impactPoint:{
-        x:Number(projectile.x)||0,
-        y:Number(projectile.y)||0
-      },
-      angle:
-        Number.isFinite(Number(projectile.angle))
-          ?Number(projectile.angle)
-          :Math.atan2(
-            Number(projectile.vy)||0,
-            Number(projectile.vx)||0
-          )
-    });
-    return true;
-  },
-
   sendProjectileGuardResolved(
     projectileOwnerPid,
     projectileKey,
@@ -61490,180 +60009,6 @@ charRow.appendChild(card);
     }
 
     if(payload.type==='duel-attack-guard-resolved'){
-      return true;
-    }
-
-    if(payload.type==='duel-projectile-impact-confirmed'){
-      const ownerPid=String(
-        payload.projectileOwnerPid||''
-      );
-      const projectileKey=String(
-        payload.projectileKey||''
-      );
-      const reason=String(
-        payload.reason||'target'
-      );
-      const point=
-        payload.impactPoint&&
-        Number.isFinite(
-          Number(payload.impactPoint.x)
-        )&&
-        Number.isFinite(
-          Number(payload.impactPoint.y)
-        )
-          ?{
-            x:Number(payload.impactPoint.x),
-            y:Number(payload.impactPoint.y)
-          }
-          :null;
-
-      if(!ownerPid||!point)return false;
-
-      const dedupeKey=
-        `${ownerPid}:${projectileKey||String(payload.attackId||'')}:${Math.max(
-          0,
-          Math.floor(
-            Number(payload.executionSequence)||0
-          )
-        )}:${reason}`;
-
-      this._confirmedProjectileImpacts=
-        this._confirmedProjectileImpacts||
-        new Set();
-
-      if(
-        this._confirmedProjectileImpacts
-          .has(dedupeKey)
-      ){
-        return true;
-      }
-      this._confirmedProjectileImpacts
-        .add(dedupeKey);
-
-      if(
-        this._confirmedProjectileImpacts.size>
-        256
-      ){
-        this._confirmedProjectileImpacts
-          .delete(
-            this._confirmedProjectileImpacts
-              .values()
-              .next()
-              .value
-          );
-      }
-
-      const owner=
-        OnlineParticipantEntityService.entity(
-          ownerPid
-        );
-      if(!owner)return false;
-
-      let projectile=
-        projectileKey
-          ?ProjectileService.findByNetworkKey(
-            owner,
-            projectileKey
-          )
-          :null;
-
-      if(projectile){
-        const index=
-          ProjectileService.items.indexOf(
-            projectile
-          );
-
-        projectile.x=point.x;
-        projectile.y=point.y;
-        projectile.prevX=point.x;
-        projectile.prevY=point.y;
-
-        if(
-          Number.isFinite(Number(payload.angle))
-        ){
-          projectile.angle=
-            Number(payload.angle);
-        }
-
-        ProjectileImpactService.resolve(
-          projectile,
-          reason
-        );
-
-        if(index>=0){
-          ProjectileService.finish(
-            projectile,
-            projectile.hadHit===true
-          );
-          ProjectileService.items.splice(
-            index,
-            1
-          );
-        }
-        return true;
-      }
-
-      const attackId=
-        String(payload.attackId||'');
-      const baseAttack=
-        AbilityService.attackById(
-          owner.character,
-          attackId
-        );
-      if(!baseAttack)return false;
-
-      const attack=
-        AugmentService.prepareAttack(
-          owner,
-          baseAttack,
-          performance.now()
-        );
-      const impactConfig=
-        ProjectileModuleService.config(
-          attack
-        )?.impact||
-        null;
-      if(!impactConfig)return false;
-
-      const execution=
-        AttackExecutionService.replica(
-          owner,
-          attack,
-          Math.max(
-            0,
-            Math.floor(
-              Number(
-                payload.executionSequence
-              )||0
-            )
-          ),
-          Number(payload.angle)||0
-        );
-      execution.networkReplay=true;
-
-      const carrier={
-        source:owner,
-        attack,
-        x:point.x,
-        y:point.y,
-        prevX:point.x,
-        prevY:point.y,
-        angle:Number(payload.angle)||0,
-        behavior:{
-          impact:impactConfig
-        },
-        volley:{
-          execution
-        },
-        networkKey:
-          projectileKey||
-          `confirmed-impact:${attackId}:${execution.sequence}`
-      };
-
-      ProjectileImpactService.resolve(
-        carrier,
-        reason
-      );
       return true;
     }
 
@@ -63696,8 +62041,6 @@ charRow.appendChild(card);
     );
   },
   showBetween(payload){
-    OnlineChatService.clearRoundDraft();
-
     const overlay=document.getElementById('round-result-overlay');
     if(overlay)overlay.style.display='none';
 
@@ -64543,7 +62886,6 @@ this.betweenReadyPids=new Set();
     this.pendingDeathAt=0;
     this._deadPids.clear();
     this._deathOrder.length=0;
-    this._confirmedProjectileImpacts?.clear?.();
     clearTimeout(this._deathResolveTimer);
 
     if(Training.active&&Training.sessionMode==='online'){
@@ -64857,6 +63199,22 @@ const InviteLinkService=Object.freeze({
 });
 
 const CharacterBanPresentationService=Object.freeze({
+  syncMark(card,banned){
+    if(!card)return null;
+    let mark=card.querySelector(':scope > .character-ban-mark');
+    if(!banned){
+      mark?.remove();
+      return null;
+    }
+    if(!mark){
+      mark=document.createElement('div');
+      mark.className='character-ban-mark';
+      card.appendChild(mark);
+    }
+    mark.textContent='금지';
+    mark.classList.remove('proposal');
+    return mark;
+  },
   apply(card,characterId){
     if(!card)return false;
     const banned=
@@ -64872,8 +63230,10 @@ const CharacterBanPresentationService=Object.freeze({
       card.classList.remove('sel');
       card.setAttribute('aria-disabled','true');
     }else{
+      card.classList.remove('selection-locked');
       card.removeAttribute('aria-disabled');
     }
+    this.syncMark(card,banned);
     return banned;
   }
 });
@@ -73061,7 +71421,9 @@ const AttackModuleService=Object.freeze({
                   const dataKey=String(module.resolveDataKey||'choice');
                   const attackId=String(resolveAttackIds[state.data?.[dataKey]]||'');
                   const resolveCharacter=
-                    source.character;
+                    carriedAcrossTag
+                      ?(GAME_DATA.characters[state.characterId]||source.character)
+                      :source.character;
                   const base=AbilityService.attackById(resolveCharacter,attackId);
                   if(!base)return;
                   const now=performance.now();
@@ -104509,52 +102871,7 @@ const ProjectileService={
           // 일반 착탄으로 오인하지 않는다.
           if(!overlapsTarget)continue;
 
-          /*
-            충돌 전용 투사체의 target impact는 대상 권위 화면에서만 확정한다.
-            이전에는 공격자 화면의 보간된 원격 대상에 먼저 닿는 순간
-            projectile.impact를 즉시 실행해 루네프 화염구처럼 실제 방패/대상
-            도달 전에 폭발 FX가 생길 수 있었다.
-
-            비권위 화면에서는 투사체만 예측 소비하고 폭발은 만들지 않는다.
-            대상 권위 화면이 실제 충돌점을 확인한 뒤
-            duel-projectile-impact-confirmed로 동일 impact 좌표를 전파한다.
-          */
-          if(
-            Training.sessionMode==='online'&&
-            relation==='enemy'&&
-            !NetworkHitAuthorityService
-              .targetAuthoritative(target)
-          ){
-            projectile.hadHit=false;
-            this.finish(
-              projectile,
-              false
-            );
-            this.items.splice(
-              index,
-              1
-            );
-            return true;
-          }
-
-          ProjectileImpactService.resolve(
-            projectile,
-            'target'
-          );
-
-          if(
-            Training.sessionMode==='online'&&
-            relation==='enemy'&&
-            NetworkHitAuthorityService
-              .targetAuthoritative(target)
-          ){
-            OnlineDuelService
-              .sendProjectileImpactConfirmed(
-                projectile,
-                'target'
-              );
-          }
-
+          ProjectileImpactService.resolve(projectile,'target');
           projectile.hadHit=true;
           this.finish(projectile,true);
           this.items.splice(index,1);
@@ -118036,7 +116353,7 @@ const Training={
       CharacterRecordService.resetGridViews(
         grid
       );
-      for(const card of existing){ const character=CharacterCardDataService.get(card.dataset.id); const banned=this.sessionMode==='online'&&RoomService.isCharacterBanned(card.dataset.id); card.classList.toggle('sel',!banned&&card.dataset.id===this.selectedCharacterId); card.classList.remove('selection-locked','character-banned'); if(character)CharacterRecordService.applyCardStyle(card,character.id,AccountState.current); CharacterCardInteractionService.bind(card,{account:AccountState.current}); if(banned)CharacterBanPresentationService.apply(card,card.dataset.id); } CharacterRecordService.refreshTopPlayerBadges(grid); SelectionEntranceAnimationService.animate(grid,':scope > .char-card'); CharacterSelectionDeferredWorkService.schedulePortraits(grid);
+      for(const card of existing){ const character=CharacterCardDataService.get(card.dataset.id); const banned=this.sessionMode==='online'&&RoomService.isCharacterBanned(card.dataset.id); card.classList.toggle('sel',!banned&&card.dataset.id===this.selectedCharacterId); card.classList.remove('selection-locked','character-banned'); if(character)CharacterRecordService.applyCardStyle(card,character.id,AccountState.current); CharacterCardInteractionService.bind(card,{account:AccountState.current}); CharacterBanPresentationService.apply(card,card.dataset.id); } CharacterRecordService.refreshTopPlayerBadges(grid); SelectionEntranceAnimationService.animate(grid,':scope > .char-card'); CharacterSelectionDeferredWorkService.schedulePortraits(grid);
       if(this.sessionMode==='online'){
         requestAnimationFrame(()=>
           OnlineDuelService
@@ -118056,8 +116373,7 @@ const Training={
       );
       if(!card)continue;
       if(
-        this.sessionMode==='online'&&
-        RoomService.isCharacterBanned(char.id)
+        this.sessionMode==='online'
       ){
         CharacterBanPresentationService.apply(card,char.id);
       }
@@ -131961,9 +130277,9 @@ const DebugPanel={
       this.button('저장',async()=>{
         account.displayName=String(name.value||'').trim().slice(0,24);
         AccountState.current=
-          await FirebaseProfilePersistenceService.save(
-            account
-          );
+          account.firebaseAccount===true
+            ?await FirebaseProfilePersistenceService.save(account)
+            :await AccountService.save(account);
         AccountUI.updateChip();this.render();
       },'primary')
     );
@@ -132671,114 +130987,20 @@ document.getElementById('training-select-back')?.addEventListener('click',()=>{
 
 
 /* 시작 */
-const AuthResolutionUI={
-  pending:true,
-  setPending(pending=true){
-    const nextPending=
-      pending===true;
-
-    this.pending=
-      nextPending;
-
-    document.documentElement.classList.toggle(
-      'duels3-auth-pending',
-      nextPending
-    );
-
-    document.getElementById('duels3-auth-loading')
-      ?.classList.toggle(
-        'hidden',
-        !nextPending
-      );
-
-    document.querySelectorAll('button').forEach(button=>{
-      if(nextPending){
-        if(!button.hasAttribute('data-auth-lock-was-disabled')){
-          button.setAttribute(
-            'data-auth-lock-was-disabled',
-            button.disabled?'1':'0'
-          );
-        }
-        button.disabled=true;
-        button.setAttribute('aria-busy','true');
-      }else{
-        const previous=
-          button.getAttribute(
-            'data-auth-lock-was-disabled'
-          );
-
-        if(previous!==null){
-          button.disabled=
-            previous==='1';
-
-          button.removeAttribute(
-            'data-auth-lock-was-disabled'
-          );
-        }
-
-        button.removeAttribute(
-          'aria-busy'
-        );
-      }
-    });
-
-    return nextPending;
-  },
-  resolve(){
-    return this.setPending(false);
-  }
-};
-
 function bootstrap() {
-  AuthResolutionUI.setPending(true);
-
-  const authResolutionFailsafe=
-    setTimeout(()=>{
-      if(!AuthResolutionUI.pending)return;
-
-      console.error(
-        '[Duels] Firebase 로그인 상태 판정 시간 초과'
-      );
-
-      document
-        .getElementById(
-          'duels3-account-gate'
-        )
-        ?.classList.remove('hidden');
-
-      AccountUI.setMessage(
-        '로그인 상태를 확인하지 못했습니다. 다시 로그인해주세요.',
-        'error'
-      );
-
-      resolveAuthState();
-    },10000);
-
-  const resolveAuthState=()=>{
-    clearTimeout(
-      authResolutionFailsafe
-    );
-    AuthResolutionUI.resolve();
-  };
-
   FirebaseAccountMigrationUI.bind();
 
   document.getElementById('duels3-guest-button')?.addEventListener('click', () => AccountUI.enterGuest());
 
   document.getElementById('duels3-google-login-button')?.addEventListener('click', async()=>{
-    AuthResolutionUI.setPending(true);
     AccountUI.setMessage('Google 로그인 중입니다.');
     try{
       if(!globalThis.DuelsFirebase){throw new Error('Firebase 초기화를 기다리는 중입니다. 잠시 후 다시 시도하세요.');}
       const result=await globalThis.DuelsFirebase.signInGoogle();
       AccountUI.setMessage('');
-      document.getElementById('duels3-account-gate')?.classList.add('hidden');
       await FirebaseAccountMigrationUI.afterGoogleLogin(result);
-      resolveAuthState();
     }catch(error){
       AccountUI.setMessage(error?.message||'Google 로그인에 실패했습니다.','error');
-      document.getElementById('duels3-account-gate')?.classList.remove('hidden');
-      resolveAuthState();
     }
   });
 
@@ -132913,64 +131135,32 @@ function bootstrap() {
 
   if(inviteCode&&!savedSession){
     AccountUI.enterGuest();
-    resolveAuthState();
     return;
   }
 
   if(savedSession?.mode==='guest'){
     AccountUI.enterGuest();
-    resolveAuthState();
     return;
   }
 
   const restoreFirebase=()=>{
     const fb=globalThis.DuelsFirebase;
     if(!fb)return false;
-
-    const gate=
-      document.getElementById(
-        'duels3-account-gate'
-      );
-
-    // Firebase가 저장된 로그인 상태를 IndexedDB/localStorage에서
-    // 복원하는 동안 로그인 화면을 먼저 띄우지 않는다.
-    gate?.classList.add('hidden');
-
-    const unsubscribe=
-      fb.onAuthStateChanged(
-        fb.auth,
-        async user=>{
-          unsubscribe?.();
-
-          if(!user){
-            localStorage.removeItem(
-              DUELS3_CONFIG.storageKeys.session
-            );
-            gate?.classList.remove('hidden');
-            resolveAuthState();
-            return;
-          }
-
-          try{
-            gate?.classList.add('hidden');
-            await FirebaseAccountMigrationUI
-              .afterGoogleLogin(user);
-            resolveAuthState();
-          }catch(error){
-            localStorage.removeItem(
-              DUELS3_CONFIG.storageKeys.session
-            );
-            gate?.classList.remove('hidden');
-            AccountUI.setMessage(
-              error?.message||
-              'Firebase 계정 복원에 실패했습니다.',
-              'error'
-            );
-            resolveAuthState();
-          }
-        }
-      );
-
+    const unsubscribe=fb.onAuthStateChanged(fb.auth,async user=>{
+      unsubscribe?.();
+      if(!user){
+        localStorage.removeItem(DUELS3_CONFIG.storageKeys.session);
+        document.getElementById('duels3-account-gate')?.classList.remove('hidden');
+        return;
+      }
+      try{
+        await FirebaseAccountMigrationUI.afterGoogleLogin(user);
+      }catch(error){
+        localStorage.removeItem(DUELS3_CONFIG.storageKeys.session);
+        document.getElementById('duels3-account-gate')?.classList.remove('hidden');
+        AccountUI.setMessage(error?.message||'Firebase 계정 복원에 실패했습니다.','error');
+      }
+    });
     return true;
   };
 
@@ -132991,8 +131181,6 @@ document.addEventListener('DOMContentLoaded', bootstrap, {once:true});
     signInWithRedirect,
     getRedirectResult,
     onAuthStateChanged,
-    setPersistence,
-    browserLocalPersistence,
     signOut
   } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
   import {
@@ -133025,19 +131213,6 @@ document.addEventListener('DOMContentLoaded', bootstrap, {once:true});
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-
-  try{
-    await setPersistence(
-      auth,
-      browserLocalPersistence
-    );
-  }catch(error){
-    console.warn(
-      '[Duels] Firebase local persistence 설정 실패, 기본 persistence로 계속합니다.',
-      error
-    );
-  }
-
   const db = getFirestore(app);
   const googleProvider = new GoogleAuthProvider();
   googleProvider.setCustomParameters({prompt:'select_account'});
@@ -133053,8 +131228,6 @@ document.addEventListener('DOMContentLoaded', bootstrap, {once:true});
     signInWithRedirect,
     getRedirectResult,
     onAuthStateChanged,
-    setPersistence,
-    browserLocalPersistence,
     signOut,
     doc,
     getDoc,
@@ -133145,7 +131318,7 @@ document.addEventListener('DOMContentLoaded', bootstrap, {once:true});
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           firebaseIdToken,
-          displayName:String(data.displayName||'').trim().slice(0,24)
+          displayName:String(data.displayName||user.displayName||'플레이어').trim().slice(0,24)||'플레이어'
         })
       });
       let payload=null;
