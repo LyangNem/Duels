@@ -1,4 +1,5 @@
 <!-- Firebase 전환 일괄 패치: 관리자 권한 3분리(debugTools/accountAdmin/rankingAdmin), 마이그레이션 바인딩 Firestore 이전, GitHub 계정 원본 읽기 전용화, legacy AccountService 정리. -->
+<!-- 3.1717 로그인 판정 로딩 잠금: Firebase Auth의 로그인 여부가 확정되기 전 모든 버튼을 disabled 처리하고 '로그인 상태 확인 중...' 로딩 화면을 표시. 판정 완료 후 기존 disabled 상태를 복원. -->
 <!-- 3.1717 마이그레이션 계정 전환 UI 추가: 계정 설정 창 상단에 작은 '다른 Google 계정으로 로그인' 버튼을 추가. 클릭 시 현재 Firebase 로그아웃 → 저장 세션 초기화 → Google 계정 선택 팝업 → 선택 계정으로 계정 설정 흐름 재진입. -->
 <!-- 3.1717 마이그레이션 취소 버튼 제거: 로그인 계정 칩에서 마이그레이션 취소 버튼을 더 이상 생성하지 않음. 기존 서버 cancel API와 내부 함수는 호환성을 위해 유지. -->
 <!-- 3.1717 Firebase 로그인 상태 복원 수정: 계정 게이트를 기본 숨김으로 변경하고 Auth 상태 복원 완료 전 로그인 화면이 먼저 보이지 않도록 처리. browserLocalPersistence를 명시해 새로고침 후 Google 로그인 상태를 유지. 실제 미로그인 상태가 확인된 경우에만 로그인 게이트 표시. -->
@@ -2273,6 +2274,39 @@ h1{
 .duels3-migration-msg:empty{border-top-color:transparent}
 .duels3-migration-msg.error{color:#ff9292}
 .duels3-migration-msg.success{color:#8fffb0}
+
+#duels3-auth-loading{
+  position:fixed;inset:0;z-index:10050;
+  display:flex;align-items:center;justify-content:center;
+  background:#071019e8;
+  opacity:1;visibility:visible;
+  transition:opacity .14s ease,visibility .14s ease;
+}
+#duels3-auth-loading.hidden{
+  opacity:0;visibility:hidden;pointer-events:none;
+}
+.duels3-auth-loading-inner{
+  display:flex;align-items:center;gap:10px;
+  color:#9db8ca;font-size:11px;letter-spacing:1.2px;
+}
+.duels3-auth-loading-spinner{
+  width:14px;height:14px;border-radius:50%;
+  border:2px solid #26445a;border-top-color:#7fc9f8;
+  animation:duels3-auth-loading-spin .7s linear infinite;
+}
+@keyframes duels3-auth-loading-spin{
+  to{transform:rotate(360deg)}
+}
+html.duels3-auth-pending button,
+html.duels3-auth-pending input,
+html.duels3-auth-pending select,
+html.duels3-auth-pending textarea,
+html.duels3-auth-pending [role="button"]{
+  pointer-events:none!important;
+}
+html.duels3-auth-pending button{
+  cursor:wait!important;
+}
 @media(max-width:560px){
   .duels3-migration-panel{padding:23px 18px 21px}
   .duels3-migration-choice{grid-template-columns:1fr}
@@ -8441,6 +8475,13 @@ html[data-character-card-illustrations="false"] #scr-start-aug .start-aug-char-c
 
 
 
+<div id="duels3-auth-loading" aria-live="polite">
+  <div class="duels3-auth-loading-inner">
+    <span class="duels3-auth-loading-spinner" aria-hidden="true"></span>
+    <span>로그인 상태 확인 중...</span>
+  </div>
+</div>
+
 <div id="duels3-account-gate" class="hidden">
   <div class="duels3-account-panel">
     <div class="duels3-account-title">DUELS</div>
@@ -9847,6 +9888,7 @@ const FirebaseAccountMigrationUI={
       return false;
     }
 
+    AuthResolutionUI.setPending(true);
     if(button)button.disabled=true;
     this.message('다른 Google 계정을 선택하는 중입니다.');
 
@@ -9867,6 +9909,7 @@ const FirebaseAccountMigrationUI={
       gate?.classList.add('hidden');
       AccountUI.setMessage('');
       await this.afterGoogleLogin(result);
+      AuthResolutionUI.resolve();
       return true;
     }catch(error){
       const code=String(error?.code||'');
@@ -9883,6 +9926,7 @@ const FirebaseAccountMigrationUI={
       }
 
       document.getElementById('duels3-account-gate')?.classList.remove('hidden');
+      AuthResolutionUI.resolve();
       return false;
     }finally{
       if(button)button.disabled=false;
@@ -131521,12 +131565,54 @@ document.getElementById('training-select-back')?.addEventListener('click',()=>{
 
 
 /* 시작 */
+const AuthResolutionUI=Object.freeze({
+  pending:true,
+  setPending(pending=true){
+    this.pending=pending===true;
+
+    document.documentElement.classList.toggle(
+      'duels3-auth-pending',
+      this.pending
+    );
+
+    document.getElementById('duels3-auth-loading')
+      ?.classList.toggle('hidden',!this.pending);
+
+    document.querySelectorAll('button').forEach(button=>{
+      if(this.pending){
+        if(!button.hasAttribute('data-auth-lock-was-disabled')){
+          button.setAttribute(
+            'data-auth-lock-was-disabled',
+            button.disabled?'1':'0'
+          );
+        }
+        button.disabled=true;
+        button.setAttribute('aria-busy','true');
+      }else{
+        const previous=button.getAttribute('data-auth-lock-was-disabled');
+        if(previous!==null){
+          button.disabled=previous==='1';
+          button.removeAttribute('data-auth-lock-was-disabled');
+        }
+        button.removeAttribute('aria-busy');
+      }
+    });
+
+    return this.pending;
+  },
+  resolve(){
+    return this.setPending(false);
+  }
+});
+
 function bootstrap() {
+  AuthResolutionUI.setPending(true);
   FirebaseAccountMigrationUI.bind();
 
   document.getElementById('duels3-guest-button')?.addEventListener('click', () => AccountUI.enterGuest());
 
   document.getElementById('duels3-google-login-button')?.addEventListener('click', async()=>{
+    AuthResolutionUI.setPending(true);
     AccountUI.setMessage('Google 로그인 중입니다.');
     try{
       if(!globalThis.DuelsFirebase){throw new Error('Firebase 초기화를 기다리는 중입니다. 잠시 후 다시 시도하세요.');}
@@ -131534,8 +131620,11 @@ function bootstrap() {
       AccountUI.setMessage('');
       document.getElementById('duels3-account-gate')?.classList.add('hidden');
       await FirebaseAccountMigrationUI.afterGoogleLogin(result);
+      AuthResolutionUI.resolve();
     }catch(error){
       AccountUI.setMessage(error?.message||'Google 로그인에 실패했습니다.','error');
+      document.getElementById('duels3-account-gate')?.classList.remove('hidden');
+      AuthResolutionUI.resolve();
     }
   });
 
@@ -131670,11 +131759,13 @@ function bootstrap() {
 
   if(inviteCode&&!savedSession){
     AccountUI.enterGuest();
+    AuthResolutionUI.resolve();
     return;
   }
 
   if(savedSession?.mode==='guest'){
     AccountUI.enterGuest();
+    AuthResolutionUI.resolve();
     return;
   }
 
@@ -131702,6 +131793,7 @@ function bootstrap() {
               DUELS3_CONFIG.storageKeys.session
             );
             gate?.classList.remove('hidden');
+            AuthResolutionUI.resolve();
             return;
           }
 
@@ -131709,6 +131801,7 @@ function bootstrap() {
             gate?.classList.add('hidden');
             await FirebaseAccountMigrationUI
               .afterGoogleLogin(user);
+            AuthResolutionUI.resolve();
           }catch(error){
             localStorage.removeItem(
               DUELS3_CONFIG.storageKeys.session
@@ -131719,6 +131812,7 @@ function bootstrap() {
               'Firebase 계정 복원에 실패했습니다.',
               'error'
             );
+            AuthResolutionUI.resolve();
           }
         }
       );
