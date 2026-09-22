@@ -1,4 +1,6 @@
 <!-- Firebase 전환 일괄 패치: 관리자 권한 3분리(debugTools/accountAdmin/rankingAdmin), 마이그레이션 바인딩 Firestore 이전, GitHub 계정 원본 읽기 전용화, legacy AccountService 정리. -->
+<!-- 3.1717 마이그레이션 진행 경고 추가: 인증/이전 처리 중 별도 경고 박스를 표시해 새로고침/창 닫기 금지와 처리 시간 안내를 노출. 실제 이전 중에는 beforeunload 경고도 등록하고 완료/실패 시 해제. -->
+<!-- 3.1717 Firebase 빠른 로그인 복원: Firebase Auth가 UID를 확인하면 로컬 캐시 계정을 즉시 적용하고 메인 화면을 연 뒤 /firebase/account/load를 백그라운드 동기화. 캐시는 화면 복원용으로만 사용하며 관리자 권한은 캐시하지 않음. 서버 응답 도착 시 최신 프로필/전적/권한으로 교체. -->
 <!-- 3.1717 로그인 로딩 스택 오버플로 수정: resolveAuthState()가 자기 자신을 재호출하던 재귀 버그를 제거하고 AuthResolutionUI.resolve()를 호출하도록 수정. Maximum call stack size exceeded 해결. -->
 <!-- 3.1717 로그인 로딩 UI 듀얼즈 스타일 통일: 별도 패널/스피너 스타일을 제거하고 기존 메인 화면의 검정 배경, DUELS 타이틀, Made By Lyan___ 서브텍스트, status 타이포그래피를 그대로 따르는 로딩 화면으로 변경. -->
 <!-- 3.1717 로그인 로딩 무한 대기 수정: AuthResolutionUI를 Object.freeze로 만든 상태에서 pending 값을 변경하려 해 resolve()가 영원히 true로 남던 버그 수정. mutable 상태 객체로 변경하고 10초 안전 타임아웃 및 Firebase persistence 실패 fallback 추가. -->
@@ -2231,6 +2233,15 @@ h1{
 .duels3-migration-warning{
   margin:8px 0 18px;padding:0 2px;color:#b58f70;font-size:10px;line-height:1.65
 }
+.duels3-migration-progress-warning{
+  margin:10px 0 18px;padding:10px 12px;
+  border:1px solid #6b4f28;
+  background:#1b140c;
+  color:#e5c697;
+  font-size:10px;
+  line-height:1.7;
+}
+.duels3-migration-progress-warning.hidden{display:none}
 .duels3-migration-copy{
   padding:0 1px;font-size:11px;line-height:1.8;color:#91aabd;margin-bottom:17px
 }
@@ -8528,6 +8539,10 @@ html[data-character-card-illustrations="false"] #scr-start-aug .start-aug-char-c
       마이그레이션 되지 않은 계정은 추후 삭제될 예정이며, 마이그레이션은 최초 1회만 진행 가능하니 신중하게 진행하세요.<br>
       새 계정의 닉네임은 최초 1회만 설정 가능합니다.
     </div>
+    <div class="duels3-migration-progress-warning hidden" id="duels3-migration-progress-warning">
+      마이그레이션이 진행 중입니다. 완료될 때까지 새로고침하거나 창을 닫지 마세요.<br>
+      계정 데이터 이전에는 조금 시간이 걸릴 수 있습니다.
+    </div>
     <div class="duels3-migration-copy">
       기존 듀얼즈 계정이 있다면 기존 아이디와 비밀번호를 확인한 뒤 현재 Google 계정으로 데이터를 가져올 수 있습니다.<br>
       기존 계정이 없다면 새 계정으로 시작하세요.
@@ -8629,7 +8644,8 @@ const DUELS3_CONFIG = Object.freeze({
   storageKeys: Object.freeze({
     lastAccountId: 'duels3.account.lastId.v1',
     session: 'duels3.account.session.v1',
-    guestIdentity: 'duels3.guest.identity.v1'
+    guestIdentity: 'duels3.guest.identity.v1',
+    firebaseAccountCachePrefix: 'duels3.firebase.accountCache.v1.'
   })
 });
 
@@ -9335,7 +9351,26 @@ const AccountUI = Object.freeze({
     AccountState.current = account;
     if(globalThis.DebugPanel&&!DebugAccessService.canUse(account))DebugPanel.close();
     if(mode === 'firebase') {
-      localStorage.setItem(DUELS3_CONFIG.storageKeys.session, JSON.stringify({mode:'firebase',firebaseUid:account.firebaseUid||account.accountId,updatedAt:Date.now()}));
+      localStorage.setItem(
+        DUELS3_CONFIG.storageKeys.session,
+        JSON.stringify({
+          mode:'firebase',
+          firebaseUid:
+            account.firebaseUid||
+            account.accountId,
+          updatedAt:Date.now()
+        })
+      );
+      if(account.firebaseSyncPending!==true){
+        FirebaseAccountCacheService.save(
+          account,
+          {
+            uid:
+              account.firebaseUid||
+              account.accountId
+          }
+        );
+      }
     } else {
       localStorage.setItem(DUELS3_CONFIG.storageKeys.session, JSON.stringify({mode:'guest',updatedAt:Date.now()}));
     }
@@ -9457,6 +9492,16 @@ const AccountUI = Object.freeze({
       return false;
     }
   },
+  setSyncState(text='연결됨',state=''){
+    const el=
+      document.getElementById(
+        'duels3-account-sync-state'
+      );
+    if(!el)return;
+    el.textContent=String(text||'');
+    if(state)el.dataset.state=state;
+    else delete el.dataset.state;
+  },
   updateChip() {
     const chip = document.getElementById('duels3-account-chip');
     const user = AccountState.current;
@@ -9474,7 +9519,13 @@ const AccountUI = Object.freeze({
       status.textContent = '레코드 저장 안 됨';
     } else {
       status.id = 'duels3-account-sync-state';
-      status.textContent = '연결됨';
+      status.textContent =
+        user.firebaseSyncPending===true
+          ?'동기화 중'
+          :'연결됨';
+      if(user.firebaseSyncPending===true){
+        status.dataset.state='syncing';
+      }
     }
     chip.appendChild(status);
 
@@ -9540,6 +9591,11 @@ const FirebaseProfilePersistenceService=Object.freeze({
       accountId:user.uid,
       firebaseAccount:true
     };
+    FirebaseAccountCacheService.save(
+      next,
+      user
+    );
+
     if(AccountState.current===account||AccountState.current?.firebaseUid===user.uid){
       AccountState.current=next;
       AccountUI.updateChip();
@@ -9587,6 +9643,123 @@ const FirebaseAccountPersistenceService=Object.freeze({
 });
 
 /* Firebase Google 계정 온보딩 / 기존 계정 마이그레이션 */
+const FirebaseAccountCacheService=Object.freeze({
+  key(uid){
+    return (
+      DUELS3_CONFIG
+        .storageKeys
+        .firebaseAccountCachePrefix+
+      String(uid||'')
+    );
+  },
+  sanitize(profile,user){
+    if(
+      !profile ||
+      typeof profile!=='object' ||
+      profile.duelsAccountReady!==true
+    )return null;
+
+    const uid=
+      String(
+        user?.uid ||
+        profile.firebaseUid ||
+        profile.accountId ||
+        ''
+      );
+
+    if(!uid)return null;
+
+    return {
+      version:Number(profile.version)||2,
+      duelsAccountReady:true,
+      firebaseUid:uid,
+      accountId:uid,
+      legacyAccountId:
+        String(profile.legacyAccountId||''),
+      displayName:
+        String(profile.displayName||'플레이어')
+          .trim()
+          .slice(0,24)||
+        '플레이어',
+      mainCharacterId:
+        typeof profile.mainCharacterId==='string'
+          ?profile.mainCharacterId
+          :null,
+      mainCharacterExplicit:
+        profile.mainCharacterExplicit===true,
+      profile:{
+        ...(profile.profile||{})
+      },
+      characterRecords:{
+        ...(profile.characterRecords||{})
+      },
+      characterStats:{
+        ...(profile.characterStats||{})
+      },
+      cachedAt:Date.now()
+    };
+  },
+  save(profile,user){
+    const safe=
+      this.sanitize(profile,user);
+
+    if(!safe)return false;
+
+    try{
+      localStorage.setItem(
+        this.key(safe.firebaseUid),
+        JSON.stringify(safe)
+      );
+      return true;
+    }catch(_){
+      return false;
+    }
+  },
+  load(user){
+    const uid=String(user?.uid||'');
+    if(!uid)return null;
+
+    try{
+      const raw=
+        JSON.parse(
+          localStorage.getItem(
+            this.key(uid)
+          )||'null'
+        );
+
+      if(
+        !raw ||
+        raw.duelsAccountReady!==true ||
+        String(raw.firebaseUid||raw.accountId||'')!==uid
+      )return null;
+
+      /*
+       * 캐시는 빠른 화면 복원 전용이다.
+       * 관리자 권한은 캐시하지 않고 항상 서버 응답으로만 복구한다.
+       */
+      return {
+        ...raw,
+        firebaseUid:uid,
+        accountId:uid,
+        permissions:{
+          debugTools:false,
+          accountAdmin:false,
+          rankingAdmin:false
+        }
+      };
+    }catch(_){
+      return null;
+    }
+  },
+  remove(uid){
+    try{
+      localStorage.removeItem(
+        this.key(uid)
+      );
+    }catch(_){}
+  }
+});
+
 const FirebaseAccountMigrationUI={
   legacyAccount:null,
   migrationToken:'',
@@ -9597,6 +9770,16 @@ const FirebaseAccountMigrationUI={
     if(!el)return;
     el.textContent=String(text||'');
     el.className=`duels3-migration-msg${kind?` ${kind}`:''}`;
+  },
+  setProgressWarning(show=true){
+    document
+      .getElementById(
+        'duels3-migration-progress-warning'
+      )
+      ?.classList.toggle(
+        'hidden',
+        !show
+      );
   },
   showForm(show=true){
     document.getElementById('duels3-migration-form')?.classList.toggle('hidden',!show);
@@ -9630,6 +9813,7 @@ const FirebaseAccountMigrationUI={
     this.resetLegacy();
     this.showForm(false);
     this.showNewAccountForm(false);
+    this.setProgressWarning(false);
     this.message('');
     const account=document.getElementById('duels3-migration-google-account');
     if(account){
@@ -9677,14 +9861,168 @@ const FirebaseAccountMigrationUI={
     return account;
   },
   async afterGoogleLogin(resultOrUser){
-    const user=resultOrUser?.user||resultOrUser||globalThis.DuelsFirebase?.currentUser?.();
-    if(!user)throw new Error('Google 로그인 정보를 확인할 수 없습니다.');
-    this.firebaseUser=user;
-    const profile=await globalThis.DuelsFirebase.loadOwnAccount();
-    if(profile?.duelsAccountReady===true){
-      return this.enterFirebaseProfile(profile,user);
+    const user=
+      resultOrUser?.user||
+      resultOrUser||
+      globalThis.DuelsFirebase
+        ?.currentUser?.();
+
+    if(!user){
+      throw new Error(
+        'Google 로그인 정보를 확인할 수 없습니다.'
+      );
     }
-    document.getElementById('duels3-account-gate')?.classList.add('hidden');
+
+    this.firebaseUser=user;
+
+    const cached=
+      FirebaseAccountCacheService
+        .load(user);
+
+    if(cached){
+      /*
+       * Firebase Auth가 UID를 확인한 순간 캐시 프로필로 즉시 진입한다.
+       * 이 캐시는 화면 복원용일 뿐이며 관리자 권한은 항상 false다.
+       * 실제 서버 계정은 아래 백그라운드 요청으로 다시 확인한다.
+       */
+      const cachedAccount=
+        this.accountForGame(
+          cached,
+          user
+        );
+
+      cachedAccount.firebaseSyncPending=true;
+
+      this.close();
+      AccountUI.enter(
+        cachedAccount,
+        'firebase'
+      );
+
+      void globalThis.DuelsFirebase
+        .loadOwnAccount()
+        .then(profile=>{
+          if(
+            profile?.duelsAccountReady===true
+          ){
+            FirebaseAccountCacheService
+              .save(profile,user);
+
+            const authoritative=
+              this.accountForGame(
+                profile,
+                user
+              );
+
+            authoritative.firebaseSyncPending=false;
+
+            if(
+              globalThis.DuelsFirebase
+                ?.currentUser?.()?.uid===
+              user.uid
+            ){
+              AccountState.current=
+                authoritative;
+
+              AccountUI.updateChip();
+              ProfileSettingsUI.render();
+
+              const localMember=
+                typeof RoomService!=='undefined'
+                  ?RoomService.localMember?.()
+                  :null;
+
+              if(
+                localMember &&
+                typeof PlayerProfileService!=='undefined'
+              ){
+                localMember.profile=
+                  PlayerProfileService
+                    .snapshot(
+                      authoritative
+                    );
+              }
+            }
+
+            return;
+          }
+
+          /*
+           * 서버에서 계정 준비 상태가 사라졌다면 오래된 캐시를 폐기하고
+           * 계정 설정 화면으로 전환한다.
+           */
+          FirebaseAccountCacheService
+            .remove(user.uid);
+
+          if(
+            globalThis.DuelsFirebase
+              ?.currentUser?.()?.uid===
+            user.uid
+          ){
+            AccountState.current=null;
+            AccountUI.updateChip();
+            document
+              .getElementById(
+                'duels3-account-gate'
+              )
+              ?.classList.add(
+                'hidden'
+              );
+            this.open(user);
+          }
+        })
+        .catch(error=>{
+          console.error(
+            '[Duels] Firebase 계정 백그라운드 동기화 실패',
+            error
+          );
+
+          if(
+            globalThis.DuelsFirebase
+              ?.currentUser?.()?.uid===
+            user.uid &&
+            AccountState.current
+              ?.firebaseUid===
+            user.uid
+          ){
+            AccountState.current.firebaseSyncPending=false;
+            AccountUI.updateChip();
+            AccountUI.setSyncState(
+              '동기화 실패',
+              'error'
+            );
+          }
+        });
+
+      return cachedAccount;
+    }
+
+    /*
+     * 첫 로그인/캐시 없음은 서버에서 계정 존재 여부를 알아야 하므로
+     * 기존처럼 1회 기다린다. 성공 후부터는 캐시가 생겨 다음 새로고침이 빨라진다.
+     */
+    const profile=
+      await globalThis.DuelsFirebase
+        .loadOwnAccount();
+
+    if(
+      profile?.duelsAccountReady===true
+    ){
+      FirebaseAccountCacheService
+        .save(profile,user);
+
+      return this.enterFirebaseProfile(
+        profile,
+        user
+      );
+    }
+
+    document
+      .getElementById(
+        'duels3-account-gate'
+      )
+      ?.classList.add('hidden');
+
     this.open(user);
     return null;
   },
@@ -9693,6 +10031,7 @@ const FirebaseAccountMigrationUI={
     const id=document.getElementById('duels3-migration-id')?.value||'';
     const password=document.getElementById('duels3-migration-password')?.value||'';
     if(!id||!password){this.message('기존 아이디와 비밀번호를 입력하세요.','error');return false;}
+    this.setProgressWarning(true);
     this.message('기존 계정 인증 정보를 받는 중입니다.');
     try{
       /*
@@ -9745,6 +10084,7 @@ const FirebaseAccountMigrationUI={
       if(confirm)confirm.disabled=false;
       const passwordInput=document.getElementById('duels3-migration-password');
       if(passwordInput)passwordInput.value='';
+      this.setProgressWarning(false);
       this.message('기존 계정 인증에 성공했습니다. 이전할 Google 계정을 확인한 뒤 진행하세요.','success');
       return true;
     }catch(error){
@@ -9756,6 +10096,7 @@ const FirebaseAccountMigrationUI={
         code==='INVALID_OR_EXPIRED_CHALLENGE'?'인증 시간이 만료되었습니다. 다시 확인해주세요.':
         error?.message||'기존 계정을 확인하지 못했습니다.'
       );
+      this.setProgressWarning(false);
       this.message(friendly,'error');
       return false;
     }
@@ -9765,7 +10106,17 @@ const FirebaseAccountMigrationUI={
     const legacy=this.legacyAccount;
     const migrationToken=String(this.migrationToken||'');
     if(!user||!legacy||!migrationToken){this.message('먼저 기존 계정을 다시 인증하세요.','error');return false;}
-    this.message('기존 계정과 Google 계정을 1:1로 연결하는 중입니다.');
+    this.setProgressWarning(true);
+    const beforeUnloadHandler=event=>{
+      event.preventDefault();
+      event.returnValue='';
+    };
+    window.addEventListener(
+      'beforeunload',
+      beforeUnloadHandler
+    );
+
+    this.message('기존 계정과 Google 계정을 1:1로 연결하는 중입니다. 잠시만 기다려주세요.');
     try{
       /*
        * 서버가 migrationToken + Firebase ID Token을 검증한 뒤
@@ -9814,6 +10165,11 @@ const FirebaseAccountMigrationUI={
       if(!authoritativeFirebase?.duelsAccountReady){
         throw new Error('서버에 마이그레이션 계정이 생성되지 않았습니다.');
       }
+      this.setProgressWarning(false);
+      window.removeEventListener(
+        'beforeunload',
+        beforeUnloadHandler
+      );
       this.message('마이그레이션이 완료되었습니다.','success');
       await this.enterFirebaseProfile(authoritativeFirebase,user);
       return true;
@@ -9825,6 +10181,11 @@ const FirebaseAccountMigrationUI={
         code==='INVALID_MIGRATION_TOKEN'?'마이그레이션 인증 시간이 만료되었습니다. 기존 계정을 다시 확인해주세요.':
         code==='INVALID_FIREBASE_TOKEN'?'Google 로그인 인증이 만료되었습니다. 다시 로그인해주세요.':
         error?.message||'마이그레이션 저장에 실패했습니다.'
+      );
+      this.setProgressWarning(false);
+      window.removeEventListener(
+        'beforeunload',
+        beforeUnloadHandler
       );
       this.message(friendly,'error');
       return false;
