@@ -1,4 +1,5 @@
 <!-- Firebase 전환 일괄 패치: 관리자 권한 3분리(debugTools/accountAdmin/rankingAdmin), 마이그레이션 바인딩 Firestore 이전, GitHub 계정 원본 읽기 전용화, legacy AccountService 정리. -->
+<!-- 3.1717 로그인 로딩 스택 오버플로 수정: resolveAuthState()가 자기 자신을 재호출하던 재귀 버그를 제거하고 AuthResolutionUI.resolve()를 호출하도록 수정. Maximum call stack size exceeded 해결. -->
 <!-- 3.1717 로그인 로딩 UI 듀얼즈 스타일 통일: 별도 패널/스피너 스타일을 제거하고 기존 메인 화면의 검정 배경, DUELS 타이틀, Made By Lyan___ 서브텍스트, status 타이포그래피를 그대로 따르는 로딩 화면으로 변경. -->
 <!-- 3.1717 로그인 로딩 무한 대기 수정: AuthResolutionUI를 Object.freeze로 만든 상태에서 pending 값을 변경하려 해 resolve()가 영원히 true로 남던 버그 수정. mutable 상태 객체로 변경하고 10초 안전 타임아웃 및 Firebase persistence 실패 fallback 추가. -->
 <!-- 3.1717 로그인 판정 로딩 잠금: Firebase Auth의 로그인 여부가 확정되기 전 모든 버튼을 disabled 처리하고 '로그인 상태 확인 중...' 로딩 화면을 표시. 판정 완료 후 기존 disabled 상태를 복원. -->
@@ -131673,7 +131674,7 @@ function bootstrap() {
     clearTimeout(
       authResolutionFailsafe
     );
-    resolveAuthState();
+    AuthResolutionUI.resolve();
   };
 
   FirebaseAccountMigrationUI.bind();
