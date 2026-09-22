@@ -1,4 +1,5 @@
 <!-- Firebase 전환 일괄 패치: 관리자 권한 3분리(debugTools/accountAdmin/rankingAdmin), 마이그레이션 바인딩 Firestore 이전, GitHub 계정 원본 읽기 전용화, legacy AccountService 정리. -->
+<!-- 3.1717 레코드 토스트 즉시 표시: Worker의 현재 라운드 정산 계산식을 클라이언트에 동일하게 미러링해 경기 종료 순간 예상 레코드 delta를 즉시 토스트로 표시. 서버 정산은 계속 권위값이며 결과가 동일하면 토스트를 재생하지 않고, 다를 때만 서버 값으로 정정 표시. -->
 <!-- 3.1717 마이그레이션 진행 경고 추가: 인증/이전 처리 중 별도 경고 박스를 표시해 새로고침/창 닫기 금지와 처리 시간 안내를 노출. 실제 이전 중에는 beforeunload 경고도 등록하고 완료/실패 시 해제. -->
 <!-- 3.1717 Firebase 빠른 로그인 복원: Firebase Auth가 UID를 확인하면 로컬 캐시 계정을 즉시 적용하고 메인 화면을 연 뒤 /firebase/account/load를 백그라운드 동기화. 캐시는 화면 복원용으로만 사용하며 관리자 권한은 캐시하지 않음. 서버 응답 도착 시 최신 프로필/전적/권한으로 교체. -->
 <!-- 3.1717 로그인 로딩 스택 오버플로 수정: resolveAuthState()가 자기 자신을 재호출하던 재귀 버그를 제거하고 AuthResolutionUI.resolve()를 호출하도록 수정. Maximum call stack size exceeded 해결. -->
@@ -29852,6 +29853,156 @@ const CharacterRecordProgressionService={
     );
   },
 
+  optimisticRoundResult(payload,pid,account){
+    const characterId=
+      this.characterId(pid);
+
+    if(!characterId)return null;
+
+    const before=
+      Math.max(
+        0,
+        Math.floor(
+          Number(
+            account
+              ?.characterRecords
+              ?.[characterId]
+          )||0
+        )
+      );
+
+    const tier=
+      CharacterRecordService.tier(
+        before
+      );
+
+    const values=
+      this.modeValues(
+        payload?.mode,
+        tier.id
+      );
+
+    const mode=
+      String(
+        payload?.mode||
+        RoomService.matchMode||
+        MatchModeService.DUEL
+      );
+
+    const placement=
+      mode===MatchModeService.FFA
+        ?this.placement(
+            payload,
+            pid
+          )
+        :null;
+
+    const ffaOutcome=
+      mode===MatchModeService.FFA
+        ?this.ffaOutcome(
+            payload,
+            pid
+          )
+        :null;
+
+    const won=
+      mode===MatchModeService.FFA
+        ?(
+            ffaOutcome==='win'
+              ?true
+              :ffaOutcome==='loss'
+                ?false
+                :null
+          )
+        :this.won(
+            payload,
+            pid
+          );
+
+    const ffaScore=
+      mode===MatchModeService.FFA
+        ?this.ffaScoreMultiplier(
+            payload,
+            pid
+          )
+        :null;
+
+    const requestedDelta=
+      Math.round(
+        mode===MatchModeService.FFA
+          ?(
+              ffaScore?.kind==='loss'
+                ?values.loss*
+                  (
+                    ffaScore?.multiplier||
+                    1
+                  )
+                :values.win*
+                  (
+                    ffaScore?.multiplier||
+                    1
+                  )
+            )
+          :mode===MatchModeService.TEAM
+            ?(
+                won
+                  ?values.win*3
+                  :values.loss
+              )
+            :(
+                won
+                  ?values.win
+                  :values.loss
+              )
+      );
+
+    const floor=
+      Math.max(
+        0,
+        Number(tier.min)||0
+      );
+
+    const after=
+      Math.round(
+        requestedDelta<0
+          ?Math.max(
+              floor,
+              before+
+                requestedDelta
+            )
+          :before+
+            requestedDelta
+      );
+
+    return {
+      token:
+        Math.max(
+          1,
+          Number(
+            payload?.roundToken
+          )||1
+        ),
+      characterId,
+      before,
+      after,
+      delta:
+        after-before,
+      requestedDelta,
+      mode,
+      placement,
+      outcome:
+        mode===MatchModeService.FFA
+          ?(
+              ffaOutcome||
+              'neutral'
+            )
+          :won
+            ?'win'
+            :'loss',
+      optimistic:true
+    };
+  },
+
   showRecordDelta(result){
     if(
       !result||
@@ -29940,7 +30091,10 @@ const CharacterRecordProgressionService={
       tierAfter:CharacterRecordService.tier(after),
       finalized:true
     };
-    this.resultByRound.set(resultKey,serverResult);
+    const previousResult=
+      this.resultByRound.get(
+        resultKey
+      );
     const profileSnapshot=PlayerProfileService.snapshot(account);
     GameEvents.emit('character-record-changed',{
       pid:RoomService.localPid,
@@ -29965,7 +30119,33 @@ const CharacterRecordProgressionService={
     CharacterRecordService.loadAllRankings(true).catch(error=>{
       console.warn('[Duels] ranking refresh failed after settlement',error);
     });
-    this.showRecordDelta(serverResult);
+    const previous=
+      previousResult;
+
+    const optimistic=
+      previous?.optimistic||
+      null;
+
+    const sameAsOptimistic=
+      optimistic&&
+      Number(optimistic.before)===
+        Number(serverResult.before)&&
+      Number(optimistic.after)===
+        Number(serverResult.after)&&
+      Number(optimistic.delta)===
+        Number(serverResult.delta);
+
+    this.resultByRound.set(
+      resultKey,
+      serverResult
+    );
+
+    if(!sameAsOptimistic){
+      this.showRecordDelta(
+        serverResult
+      );
+    }
+
     return serverResult;
   },
 
@@ -29990,22 +30170,50 @@ const CharacterRecordProgressionService={
       this.resultByRound.set(resultKey,blocked);
       return blocked;
     }
+    const optimistic=
+      this.optimisticRoundResult(
+        payload,
+        pid,
+        account
+      );
+
     const pending={
       token,
       pending:true,
-      delta:0,
-      mode:payload?.mode||RoomService.matchMode||MatchModeService.DUEL
+      delta:
+        Number(
+          optimistic?.delta
+        )||0,
+      mode:
+        payload?.mode||
+        RoomService.matchMode||
+        MatchModeService.DUEL,
+      optimistic
     };
-    this.resultByRound.set(resultKey,pending);
+
+    this.resultByRound.set(
+      resultKey,
+      pending
+    );
+
+    if(optimistic){
+      this.showRecordDelta(
+        optimistic
+      );
+    }
+
     MatchResultSubmissionService
       .submitRound(payload)
       .then(response=>{
         if(response?.finalized!==true){
-          this.resultByRound.set(resultKey,{
-            ...pending,
-            pending:true,
-            reason:'waiting-for-participants'
-          });
+          this.resultByRound.set(
+            resultKey,
+            {
+              ...pending,
+              pending:true,
+              reason:'waiting-for-participants'
+            }
+          );
           return;
         }
         this.applyServerProgress(
