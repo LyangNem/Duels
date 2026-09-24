@@ -1,5 +1,12 @@
 <!-- Firebase 전환 일괄 패치: 관리자 권한 3분리(debugTools/accountAdmin/rankingAdmin), 마이그레이션 바인딩 Firestore 이전, GitHub 계정 원본 읽기 전용화, legacy AccountService 정리. -->
-<!-- 3.1717 금지 카드 표시 수정(최신 파일 기준): 일반 캐릭터 선택 화면의 금지 카드를 금지 설정 화면과 동일한 .character-ban-mark 전체 오버레이로 표시. 기존 어두운 필터/작은 회전 딱지를 제거하고 금지 해제 시 남은 오버레이도 즉시 제거. Firebase 빠른 복원/마이그레이션 경고/낙관적 레코드 실제 적용 등 최신 변경은 그대로 유지. -->
+<!-- 3.1717 티냐 선딜레이 판정 정정: 티냐 LMB의 `선딜레이`는 마법진이 맵에 그려지기 전 activation inputWindowMs 200ms만 의미한다. reveal 350ms는 이미 마법진이 맵에 그려진 뒤의 진행 상태이므로 강제이동 중단 대상이 아니다. CircleFormationService.cancelWindupOnForcedMovement는 phase==='input'일 때만 activation을 취소하며 reveal/move는 유지한다. -->
+<!-- 3.1717 선딜레이 통합 후속 수정: (1) 선딜 timing.delay와 delayed delivery.area는 이제 원격 복제본이 자체 타이머로 피해/버프를 확정하지 않고 소유자 `duel-windup-commit`을 기다린다. 강제이동 interrupt가 먼저 오면 원격 continuation 자체를 폐기해 레이카/펠루나의 '이펙트만 취소되고 피해는 들어옴'을 제거한다. (2) ability-level 선딜 effect.spawn을 abilityUseId별 key로 추적해 강제이동 시 즉시 제거, 레이카 태양의 가호 진행 이펙트 잔존을 수정. (3) 프릴 channel charging 강제중단은 stopField를 생성하지 않아 상대 화면에 청소구역만 남지 않는다. (4) 펠루나 실제 실행 stage1/2/3에 300ms delay+선딜레이 태그를 적용. (5) 키 예고 실행에서 선딜레이 태그 제거. (6) 파비 RMB는 data-driven windupCancelBuffs로 fortify DEF 잔여를 정리. -->
+<!-- 3.1717 선딜레이 시스템 통합: 비반격 공격의 강제이동 중단 여부를 AttackSpec tags의 `선딜레이` 하나로 통일했다. AttackWindupService가 timing.delay, delivery.area delay, target-point projectile launchDelay, 공격 resolve형 state.window, channel charging, 가에 cooling windup을 공통 중단하며 온라인 duel-windup-interrupt도 동일 서비스로 재생한다. 콤보 후속타 간격(Ki/Cyien/Kanon)과 ChargedAttackService/홀드 차징은 `선딜레이` 태그가 없어 강제이동으로 끊기지 않는다. 반격기는 기존 counterWindup 경로를 유지하고 데이터 태그 추가 대상에서는 제외한다. -->
+<!-- 3.1717 강제이동 선딜 중단 v3 네트워크 권위 수정: 선딜 취소가 소유자 로컬 scheduler에만 적용되어 레이카 가호 RMB처럼 action.attack이 먼저 원격에 복제된 뒤 delayed delivery.area 피해가 상대 권위 화면에서 계속 실행되던 문제를 수정했다. 소유자가 강제이동으로 선딜을 실제 취소하면 duel-windup-interrupt를 전송하고, 모든 원격 복제본이 동일 ForcedMovementWindupInterruptService를 networkReplay로 실행해 timing.delay/state.window/channel/counter/delivery.area 예약을 함께 제거한다. 따라서 이펙트만 사라지고 피해는 들어오는 분리를 제거한다. 홀드 차징 예외는 유지. -->
+<!-- 3.1717 강제이동 선딜 중단 v2: 기존 패치가 timing.delay를 context.executed=false일 때만 interruptible로 표식해 action.attack 이후 delay를 쓰는 파비 RMB 등을 놓치던 오류를 수정했다. timing.delay는 기본적으로 모두 강제이동 중단 대상이며, Runef 원소 선택처럼 previewAttackIds+resolveAttackIds를 가진 state.window 공격 선딜도 TimedActionStateService에서 취소한다. ChannelAttackService는 charging phase만 끊고 active phase는 유지한다. ChargedAttackService/홀드 차징은 이전 요청대로 예외 유지. -->
+<!-- 3.1717 강제이동 CC 차징 예외: 메인마드/메후구/나남낭/델트루브/체리티 및 레이즈/하츠하츠 등 홀드 차징은 끌어오기·밀어내기·넉백·tether로 취소하지 않는다. ForcedMovementWindupInterruptService는 일반 공격 선딜 continuation과 counter windup만 중단하며 ChargedAttackService/actionState 기반 홀드 차징은 보존한다. -->
+<!-- 3.1717 강제이동 CC 선딜 중단 공통화: 끌어오기/movement.pull, 일반·밀어내기·무력화 넉백, projectile tether가 실제 위치를 강제로 바꾸기 시작하면 대상의 공격 선딜을 공통으로 취소한다. Ability timing.delay와 최초 delivery.area.delay만 interruptible windup으로 표식해 취소하며 이미 발동한 공격의 후속 delayed hit/volley는 유지한다. counter.execute 선딜과 표준 ChargedAttackService 차징도 강제이동 시 취소하고 attackPreview를 정리한다. -->
+<!-- 3.1717 업로드 파일 기준 금지 카드 UI 수정: 일반 캐릭터 선택 화면에서도 금지 설정 화면과 동일한 전체 카드 오버레이를 사용하고, 기존 어두운 필터/비스듬한 금지 딱지를 제거했다. 금지 해제 시 오버레이도 즉시 제거한다. -->
 <!-- 3.1717 낙관적 레코드 실제 적용: 라운드 종료 즉시 예상 레코드 점수를 AccountState.current.characterRecords에 실제 반영해 프로필/카드/상대 공유 UI까지 바로 갱신한다. 이 값은 Firebase/Worker에는 저장하지 않으며 서버 확정 progress가 도착하면 권위값으로 덮어쓴 뒤 아직 미확정인 후속 라운드 예상치만 재적용한다. 서버 불일치/실패/정산 타임아웃 시 임시 점수를 자동 회수하고 정정 토스트를 표시한다. -->
 <!-- 3.1717 레코드 토스트 즉시 표시: Worker의 현재 라운드 정산 계산식을 클라이언트에 동일하게 미러링해 경기 종료 순간 예상 레코드 delta를 즉시 토스트로 표시. 서버 정산은 계속 권위값이며 결과가 동일하면 토스트를 재생하지 않고, 다를 때만 서버 값으로 정정 표시. -->
 <!-- 3.1717 마이그레이션 진행 경고 추가: 인증/이전 처리 중 별도 경고 박스를 표시해 새로고침/창 닫기 금지와 처리 시간 안내를 노출. 실제 이전 중에는 beforeunload 경고도 등록하고 완료/실패 시 해제. -->
@@ -13668,8 +13675,7 @@ const GAME_DATA=Object.freeze({
           range:0,
           modules:Object.freeze([]),
           tags:Object.freeze([
-            '스킬'
-          ])
+            '스킬','선딜레이'])
         }),
         rmbPulse:Object.freeze({
           id:'attack.nsonya.rmb-pulse',
@@ -14433,6 +14439,12 @@ const GAME_DATA=Object.freeze({
           cd:400,
           attackDelayGroup:'erapabi-rmb',
           attackDelay:400,
+          windupCancelBuffs:Object.freeze([
+            Object.freeze({
+              stat:'defense',
+              sourceId:'ability.erapabi.rmb:fortify'
+            })
+          ]),
           range:0,
           effectsOnly:true,
           modules:Object.freeze([
@@ -14451,8 +14463,7 @@ const GAME_DATA=Object.freeze({
           ]),
           tags:Object.freeze([
             '스킬',
-            '방어'
-          ])
+            '방어','선딜레이'])
         }),
         rmbBurst:Object.freeze({
           id:'attack.erapabi.rmb-burst',
@@ -14521,8 +14532,7 @@ const GAME_DATA=Object.freeze({
           ]),
           tags:Object.freeze([
             '스킬',
-            '채널링'
-          ])
+            '채널링','선딜레이'])
         }),
         megaLaserTick:Object.freeze({
           id:'attack.erapabi.mega-laser-tick',
@@ -15068,8 +15078,7 @@ const GAME_DATA=Object.freeze({
           ]),
           tags:Object.freeze([
             '스킬',
-            '넉백'
-          ])
+            '넉백','선딜레이'])
         }),
         gahoActivate:Object.freeze({
           id:'attack.reika.gaho-activate',
@@ -15106,8 +15115,7 @@ const GAME_DATA=Object.freeze({
           tags:Object.freeze([
             '스킬',
             '넉백',
-            '화염'
-          ])
+            '화염','선딜레이'])
         }),
         gahoWeapon:Object.freeze({
           id:'attack.reika.gaho-weapon',
@@ -15166,7 +15174,7 @@ const GAME_DATA=Object.freeze({
                 stateKey:'reika-gaho-impact-travel',
                 delay:50,
                 duration:140,
-                tags:Object.freeze(['이동기']),
+                tags:Object.freeze(['이동기','선딜레이']),
                 collision:Object.freeze({
                   passWalls:true,
                   passEnemies:true
@@ -16646,7 +16654,7 @@ const GAME_DATA=Object.freeze({
         }),
         rmb:Object.freeze({
           id:'attack.konyeong.rmb',damageRatio:1,cost:500,cd:900,range:275,effectsOnly:true,
-          modules:Object.freeze([]),tags:Object.freeze(['스킬'])
+          modules:Object.freeze([]),tags:Object.freeze(['스킬','선딜레이'])
         }),
         rmbImpact:Object.freeze({
           id:'attack.konyeong.rmb-impact',damageRatio:0,cost:0,cd:0,range:275,effectsOnly:true,
@@ -17484,7 +17492,7 @@ const GAME_DATA=Object.freeze({
           range:900,
           effectsOnly:true,
           modules:Object.freeze([]),
-          tags:Object.freeze(['스킬','채널링'])
+          tags:Object.freeze(['스킬','채널링','선딜레이'])
         }),
         rmbTick:Object.freeze({
           id:'attack.prill.rmb-tick',
@@ -18235,7 +18243,7 @@ const GAME_DATA=Object.freeze({
           modules:Object.freeze([
             Object.freeze({type:'delivery.area',shape:'circle',range:160,innerRange:100,delay:300,aimMode:'live-source',contactType:'melee',wallPolicy:'block',renderType:'annularDoubleSweep',span:Math.PI,sweepCount:2,sweepDirection:'clockwise',sweepFraction:.55,fadePower:1.5,lifetimeAlpha:true,hitColor:'85,85,85',safeColor:'55,55,60',fillAlpha:.28,strokeAlpha:.95,lineWidth:2.5,safeFillAlpha:.1,safeStrokeAlpha:.55,safeDash:Object.freeze([5,4]),edgeLine:true,edgeColor:'255,255,255',edgeAlpha:.75,edgeLineWidth:2.5,durationFrames:22})
           ]),
-          tags:Object.freeze(['평타'])
+          tags:Object.freeze(['평타','선딜레이'])
         }),
         lmbStage1:Object.freeze({
           id:'attack.peluna.lmb-stage1',
@@ -18245,9 +18253,9 @@ const GAME_DATA=Object.freeze({
           range:160,
           presentation:Object.freeze({duration:220}),
           modules:Object.freeze([
-            Object.freeze({type:'delivery.area',shape:'circle',range:160,innerRange:100,contactType:'melee',wallPolicy:'block',renderType:'annularDoubleSweep',span:Math.PI,sweepCount:2,sweepDirection:'clockwise',sweepFraction:.55,fadePower:1.5,lifetimeAlpha:true,hitColor:'85,85,85',safeColor:'55,55,60',fillAlpha:.28,strokeAlpha:.95,lineWidth:2.5,safeFillAlpha:.1,safeStrokeAlpha:.55,safeDash:Object.freeze([5,4]),edgeLine:true,edgeColor:'255,255,255',edgeAlpha:.75,edgeLineWidth:2.5,durationFrames:22})
+            Object.freeze({type:'delivery.area',shape:'circle',range:160,delay:300,aimMode:'live-source',innerRange:100,contactType:'melee',wallPolicy:'block',renderType:'annularDoubleSweep',span:Math.PI,sweepCount:2,sweepDirection:'clockwise',sweepFraction:.55,fadePower:1.5,lifetimeAlpha:true,hitColor:'85,85,85',safeColor:'55,55,60',fillAlpha:.28,strokeAlpha:.95,lineWidth:2.5,safeFillAlpha:.1,safeStrokeAlpha:.55,safeDash:Object.freeze([5,4]),edgeLine:true,edgeColor:'255,255,255',edgeAlpha:.75,edgeLineWidth:2.5,durationFrames:22})
           ]),
-          tags:Object.freeze(['평타'])
+          tags:Object.freeze(['평타','선딜레이'])
         }),
         lmbStage2:Object.freeze({
           id:'attack.peluna.lmb-stage2',
@@ -18257,9 +18265,9 @@ const GAME_DATA=Object.freeze({
           range:160,
           presentation:Object.freeze({duration:220}),
           modules:Object.freeze([
-            Object.freeze({type:'delivery.area',shape:'circle',range:160,contactType:'melee',wallPolicy:'block',renderType:'annularDoubleSweep',span:Math.PI,sweepCount:2,sweepDirection:'clockwise',sweepFraction:.55,fadePower:1.5,lifetimeAlpha:true,hitColor:'85,85,85',fillAlpha:.28,strokeAlpha:.95,lineWidth:2.5,edgeLine:true,edgeColor:'255,255,255',edgeAlpha:.75,edgeLineWidth:2.5,durationFrames:22})
+            Object.freeze({type:'delivery.area',shape:'circle',range:160,delay:300,aimMode:'live-source',contactType:'melee',wallPolicy:'block',renderType:'annularDoubleSweep',span:Math.PI,sweepCount:2,sweepDirection:'clockwise',sweepFraction:.55,fadePower:1.5,lifetimeAlpha:true,hitColor:'85,85,85',fillAlpha:.28,strokeAlpha:.95,lineWidth:2.5,edgeLine:true,edgeColor:'255,255,255',edgeAlpha:.75,edgeLineWidth:2.5,durationFrames:22})
           ]),
-          tags:Object.freeze(['평타'])
+          tags:Object.freeze(['평타','선딜레이'])
         }),
         lmbStage3:Object.freeze({
           id:'attack.peluna.lmb-stage3',
@@ -18269,9 +18277,9 @@ const GAME_DATA=Object.freeze({
           range:160,
           presentation:Object.freeze({duration:220}),
           modules:Object.freeze([
-            Object.freeze({type:'delivery.area',shape:'circle',range:160,contactType:'melee',wallPolicy:'block',renderType:'annularDoubleSweep',span:Math.PI,sweepCount:2,sweepDirection:'clockwise',sweepFraction:.55,fadePower:1.5,lifetimeAlpha:true,hitColor:'255,160,40',fillAlpha:.28,strokeAlpha:.95,lineWidth:2.5,edgeLine:true,edgeColor:'255,255,255',edgeAlpha:.75,edgeLineWidth:2.5,durationFrames:22})
+            Object.freeze({type:'delivery.area',shape:'circle',range:160,delay:300,aimMode:'live-source',contactType:'melee',wallPolicy:'block',renderType:'annularDoubleSweep',span:Math.PI,sweepCount:2,sweepDirection:'clockwise',sweepFraction:.55,fadePower:1.5,lifetimeAlpha:true,hitColor:'255,160,40',fillAlpha:.28,strokeAlpha:.95,lineWidth:2.5,edgeLine:true,edgeColor:'255,255,255',edgeAlpha:.75,edgeLineWidth:2.5,durationFrames:22})
           ]),
-          tags:Object.freeze(['평타'])
+          tags:Object.freeze(['평타','선딜레이'])
         }),
         rmb:Object.freeze({
           id:'attack.peluna.rmb',
@@ -18975,7 +18983,7 @@ const GAME_DATA=Object.freeze({
             previewAttackIds:Object.freeze({fire:'attack.runef.fire',ice:'attack.runef.ice',lightning:'attack.runef.lightning'}),
             resolveDataKey:'choice',cooldownAttackId:'attack.runef.rmb-select',cooldown:500
           })
-        ]),tags:Object.freeze(['스킬'])}),
+        ]),tags:Object.freeze(['스킬','선딜레이'])}),
         fire:Object.freeze({
           id:'attack.runef.fire',damageRatio:4,cost:0,cd:500,range:700,
           presentation:Object.freeze({color:'#ff2200'}),
@@ -19464,7 +19472,7 @@ const GAME_DATA=Object.freeze({
         }),
         rmb:Object.freeze({
           id:'attack.meramona.rmb',damageRatio:0,cost:0,cd:500,range:170,effectsOnly:true,
-          modules:Object.freeze([]),tags:Object.freeze(['스킬'])
+          modules:Object.freeze([]),tags:Object.freeze(['스킬','선딜레이'])
         }),
         emerge:Object.freeze({
           id:'attack.meramona.emerge',damageRatio:1,cost:0,cd:0,range:170,
@@ -22462,7 +22470,7 @@ const GAME_DATA=Object.freeze({
               consumePlaced:true
             })
           ]),
-          tags:Object.freeze(['평타'])
+          tags:Object.freeze(['평타','선딜레이'])
         }),
         rmb:Object.freeze({
           id:'attack.tinya.rmb',
@@ -25190,7 +25198,7 @@ const GAME_DATA=Object.freeze({
           ]),
           tags:Object.freeze(['평타','투사체'])
         }),
-        cooling:Object.freeze({id:'attack.gae.cooling',damageRatio:0,cost:0,cd:700,range:190,modules:Object.freeze([]),tags:Object.freeze(['스킬'])}),
+        cooling:Object.freeze({id:'attack.gae.cooling',damageRatio:0,cost:0,cd:700,range:190,modules:Object.freeze([]),tags:Object.freeze(['스킬','선딜레이'])}),
         counter:Object.freeze({
           id:'attack.gae.counter',damageRatio:1,cost:0,cd:520,range:180,presentation:Object.freeze({color:'#aeb8c0'}),
           modules:Object.freeze([
@@ -32685,6 +32693,8 @@ const TimedActionStateService=Object.freeze({
       data:config.data||null,
       presentation:config.presentation||null,
       cancelOnDamage:config.cancelOnDamage===true,
+      interruptOnForcedMovement:
+        config.interruptOnForcedMovement===true,
       retainCompleteMs:Math.max(0,Number(config.retainCompleteMs)||0),
       completedAt:0,
       // 완료 프레임에서 presentation/state 조회가 예약된 resolve continuation보다
@@ -32728,6 +32738,30 @@ const TimedActionStateService=Object.freeze({
     }
     return removed;
   },
+
+  cancelOnForcedMovement(entity){
+    if(!entity?.actionState)return false;
+
+    let removed=false;
+
+    for(const [key,state] of entity.actionState){
+      if(
+        state?.kind!=='timed-action-state'||
+        state.interruptOnForcedMovement!==true
+      ){
+        continue;
+      }
+
+      entity.actionState.delete(key);
+      removed=true;
+    }
+
+    if(removed){
+      entity.attackPreview=null;
+    }
+
+    return removed;
+  },
   serialize(entity,now=performance.now()){
     const result=[];
     for(const state of entity?.actionState?.values?.()||[]){
@@ -32742,6 +32776,8 @@ const TimedActionStateService=Object.freeze({
         retainRemaining:Math.max(0,Number(state.retainUntil||0)-now),
         completed:Math.max(0,Number(state.completedAt||0))>0,
         cancelOnDamage:state.cancelOnDamage===true,
+        interruptOnForcedMovement:
+          state.interruptOnForcedMovement===true,
         presentation:state.presentation&&typeof state.presentation==='object'?EffectSpawnService.definitionSnapshot(state.presentation):null
       });
     }
@@ -32765,6 +32801,8 @@ const TimedActionStateService=Object.freeze({
       state.retainUntil=retainRemaining>0?now+retainRemaining:0;
       state.completedAt=snap?.completed===true?Math.min(now,state.expiresAt):0;
       state.cancelOnDamage=snap?.cancelOnDamage===true;
+      state.interruptOnForcedMovement=
+        snap?.interruptOnForcedMovement===true;
       state.presentation=snap?.presentation&&typeof snap.presentation==='object'?EffectSpawnService.definitionSnapshot(snap.presentation):null;
       state.retainCompleteMs=Math.max(0,state.retainUntil-state.expiresAt);
       entity.actionState.set(key,state);
@@ -41533,6 +41571,45 @@ const SimulationScheduleService={
     this.items.length=write;
     return removed;
   },
+  interruptWindups(source){
+    if(!source)return false;
+
+    let write=0;
+    let removed=false;
+    const abilityIds=
+      new Set();
+
+    for(const item of this.items){
+      if(
+        item?.source===source&&
+        item?.type==='continuation'&&
+        item?.interruptibleWindup===true
+      ){
+        removed=true;
+
+        if(item.abilityId){
+          abilityIds.add(
+            String(item.abilityId)
+          );
+        }
+        continue;
+      }
+
+      this.items[write++]=item;
+    }
+
+    this.items.length=write;
+
+    if(source.abilityPending){
+      for(const abilityId of abilityIds){
+        source.abilityPending.delete(
+          abilityId
+        );
+      }
+    }
+
+    return removed;
+  },
   update(now=performance.now()){
     let write=0;
 
@@ -41903,7 +41980,21 @@ const ChannelAttackService=Object.freeze({
       cooldownAttackIds:
         Array.isArray(module.cooldownAttackIds)
           ?module.cooldownAttackIds.map(String)
-          :[]
+          :[],
+      windupAttackId:
+        String(
+          module.windupAttackId||
+          ''
+        ),
+      interruptOnForcedMovement:
+        module.interruptOnForcedMovement!==false&&
+        AttackWindupService.isTaggedAttackId(
+          entity,
+          String(
+            module.windupAttackId||
+            ''
+          )
+        )
     };
 
     if(state.maxTicks>0){
@@ -41966,6 +42057,60 @@ const ChannelAttackService=Object.freeze({
 
     return true;
   },
+  interruptCharging(
+    entity,
+    reason='forced-movement'
+  ){
+    if(!entity?.actionState)return false;
+
+    const keys=[];
+
+    for(const [key,state] of entity.actionState){
+      if(
+        state?.kind!==this.KIND||
+        state.phase!=='charging'||
+        state.interruptOnForcedMovement===false
+      ){
+        continue;
+      }
+
+      keys.push(
+        String(key)
+      );
+    }
+
+    let stopped=false;
+
+    for(const key of keys){
+      stopped=
+        this.stop(
+          entity,
+          key,
+          performance.now(),
+          {
+            applyCooldown:true,
+            createStopField:false,
+            completeGauge:false
+          }
+        )||
+        stopped;
+    }
+
+    if(stopped){
+      entity.attackPreview=null;
+
+      GameEvents.emit(
+        'attack-channel-charge-interrupted',
+        {
+          target:entity,
+          reason
+        }
+      );
+    }
+
+    return stopped;
+  },
+
   locksAction(entity,action){
     if(!entity?.actionState)return false;
     const key=String(action||'');
@@ -43361,6 +43506,485 @@ const NeutralizingKnockbackService=Object.freeze({
   }
 });
 
+const AttackWindupService=Object.freeze({
+  TAG:'선딜레이',
+  remoteContinuations:new WeakMap(),
+  windupEffects:new WeakMap(),
+
+  continuationMap(entity,create=false){
+    if(!entity)return null;
+    let map=this.remoteContinuations.get(entity)||null;
+    if(!map&&create){
+      map=new Map();
+      this.remoteContinuations.set(entity,map);
+    }
+    return map;
+  },
+
+  registerRemoteContinuation(entity,key,continuation){
+    const id=String(key||'');
+    if(!entity||!id||typeof continuation!=='function')return false;
+    this.continuationMap(entity,true).set(id,continuation);
+    return true;
+  },
+
+  commitRemoteContinuation(entity,key){
+    const id=String(key||'');
+    const map=this.continuationMap(entity,false);
+    const continuation=map?.get(id)||null;
+    if(!continuation)return false;
+    map.delete(id);
+    continuation();
+    return true;
+  },
+
+  cancelRemoteContinuations(entity){
+    const map=this.continuationMap(entity,false);
+    if(!map?.size)return false;
+    map.clear();
+    return true;
+  },
+
+  effectMap(entity,create=false){
+    if(!entity)return null;
+    let map=this.windupEffects.get(entity)||null;
+    if(!map&&create){
+      map=new Map();
+      this.windupEffects.set(entity,map);
+    }
+    return map;
+  },
+
+  registerEffect(entity,abilityUseId,key){
+    const useId=String(abilityUseId||'');
+    const effectKey=String(key||'');
+    if(!entity||!useId||!effectKey)return false;
+
+    const map=this.effectMap(entity,true);
+    let keys=map.get(useId);
+    if(!keys){
+      keys=new Set();
+      map.set(useId,keys);
+    }
+    keys.add(effectKey);
+    return true;
+  },
+
+  releaseEffects(entity,abilityUseId){
+    const map=this.effectMap(entity,false);
+    const useId=String(abilityUseId||'');
+    if(!map||!useId)return false;
+    const existed=map.delete(useId);
+    if(map.size===0)this.windupEffects.delete(entity);
+    return existed;
+  },
+
+  cancelEffects(entity){
+    const map=this.effectMap(entity,false);
+    if(!map?.size)return false;
+
+    let removed=false;
+    for(const keys of map.values()){
+      for(const key of keys){
+        removed=
+          EffectSpawnService.removeKey(key)||
+          removed;
+      }
+    }
+    map.clear();
+    this.windupEffects.delete(entity);
+    return removed;
+  },
+
+  nextAbilityStep(context){
+    context._windupStep=
+      Math.max(
+        0,
+        Math.floor(
+          Number(context._windupStep)||0
+        )
+      )+1;
+
+    return context._windupStep;
+  },
+
+  abilityContinuationKey(context,step){
+    return [
+      'ability',
+      String(context?.abilityUseId||''),
+      Math.max(1,Math.floor(Number(step)||1))
+    ].join(':');
+  },
+
+  nextDeliveryKey(execution,spec){
+    execution._windupDeliveryOrdinal=
+      Math.max(
+        0,
+        Math.floor(
+          Number(
+            execution._windupDeliveryOrdinal
+          )||0
+        )
+      )+1;
+
+    return [
+      'delivery',
+      Math.max(
+        0,
+        Math.floor(
+          Number(execution.sequence)||0
+        )
+      ),
+      execution._windupDeliveryOrdinal,
+      String(spec?.id||'')
+    ].join(':');
+  },
+
+  sendCommit(source,key){
+    if(
+      !source||
+      !key||
+      Training.sessionMode!=='online'||
+      !OnlineDuelService.active||
+      !EntitySimulationAuthorityService.isLocal(source)||
+      source!==Training.player
+    ){
+      return false;
+    }
+
+    RoomService.sendGameplay({
+      type:'duel-windup-commit',
+      roundToken:
+        OnlineDuelService.roundToken,
+      sourceEntityId:
+        String(source.id||''),
+      key:String(key)
+    });
+
+    return true;
+  },
+
+
+  isTaggedAttack(attack){
+    return !!(
+      attack&&
+      Array.isArray(attack.tags)&&
+      attack.tags.includes(
+        this.TAG
+      )
+    );
+  },
+
+  attack(
+    source,
+    attackId
+  ){
+    const id=
+      String(
+        attackId||
+        ''
+      );
+
+    if(
+      !source?.character||
+      !id.startsWith('attack.')
+    ){
+      return null;
+    }
+
+    return (
+      AbilityService.attackById(
+        source.character,
+        id
+      )||
+      null
+    );
+  },
+
+  isTaggedAttackId(
+    source,
+    attackId
+  ){
+    return this.isTaggedAttack(
+      this.attack(
+        source,
+        attackId
+      )
+    );
+  },
+
+  contextAttackId(
+    context,
+    module=null
+  ){
+    const required=
+      String(
+        module?.requireAttackId||
+        ''
+      );
+
+    if(
+      required.startsWith(
+        'attack.'
+      )
+    ){
+      return required;
+    }
+
+    const resolved=
+      String(
+        context?.resolvedAttackId||
+        ''
+      );
+
+    if(
+      resolved.startsWith(
+        'attack.'
+      )
+    ){
+      return resolved;
+    }
+
+    return String(
+      context?.ability?.attackId||
+      context?.attack?.id||
+      ''
+    );
+  },
+
+  isContextWindup(
+    context,
+    module=null
+  ){
+    if(
+      module?.interruptOnForcedMovement===
+        false
+    ){
+      return false;
+    }
+
+    return this.isTaggedAttackId(
+      context?.source,
+      this.contextAttackId(
+        context,
+        module
+      )
+    );
+  },
+
+  interrupt(
+    entity,
+    reason='forced-movement',
+    {
+      networkReplay=false
+    }={}
+  ){
+    if(!entity?.alive)return false;
+
+    let changed=false;
+
+    if(
+      this.cancelRemoteContinuations(
+        entity
+      )
+    ){
+      changed=true;
+    }
+
+    if(
+      this.cancelEffects(
+        entity
+      )
+    ){
+      changed=true;
+    }
+
+    for(
+      const attack of
+      Object.values(
+        entity.character?.attacks||
+        {}
+      )
+    ){
+      if(
+        !this.isTaggedAttack(
+          attack
+        )||
+        !Array.isArray(
+          attack.windupCancelBuffs
+        )
+      ){
+        continue;
+      }
+
+      for(
+        const cleanup of
+        attack.windupCancelBuffs
+      ){
+        const stat=
+          String(
+            cleanup?.stat||
+            ''
+          );
+        const sourceId=
+          String(
+            cleanup?.sourceId||
+            ''
+          );
+
+        if(
+          stat&&
+          sourceId&&
+          BuffService.remove(
+            entity,
+            stat,
+            sourceId
+          )
+        ){
+          changed=true;
+        }
+      }
+    }
+
+    if(
+      SimulationScheduleService
+        .interruptWindups(
+          entity
+        )
+    ){
+      changed=true;
+    }
+
+    if(
+      TimedActionStateService
+        .cancelOnForcedMovement(
+          entity
+        )
+    ){
+      changed=true;
+    }
+
+    if(
+      ChannelAttackService
+        .interruptCharging(
+          entity,
+          reason
+        )
+    ){
+      changed=true;
+    }
+
+
+    if(
+      typeof CircleFormationService!==
+        'undefined'&&
+      CircleFormationService
+        .cancelWindupOnForcedMovement?.(
+          entity,
+          reason
+        )
+    ){
+      changed=true;
+    }
+
+    if(
+      typeof CommandFeatureService!==
+        'undefined'&&
+      CommandFeatureService
+        .cancelCoolingWindup?.(
+          entity
+        )
+    ){
+      changed=true;
+    }
+
+    /*
+     * 반격기는 데이터 태그 통합 대상에서는 제외하지만,
+     * 기존 공통 counter windup 자체는 강제이동에 계속 취소된다.
+     */
+    if(entity.counterWindup){
+      const abilityId=
+        String(
+          entity.counterWindup
+            .abilityId||
+          ''
+        );
+
+      if(abilityId){
+        entity.abilityPending
+          ?.delete(
+            abilityId
+          );
+      }
+
+      entity.counterWindup=null;
+      changed=true;
+    }
+
+    /*
+     * ChargedAttackService 및 별도 홀드 차징 상태는 여기서
+     * 의도적으로 건드리지 않는다.
+     */
+    if(changed&&entity.attackPreview){
+      entity.attackPreview=null;
+    }
+
+    if(changed){
+      const now=
+        performance.now();
+
+      GameEvents.emit(
+        'attack-windup-interrupted',
+        {
+          target:entity,
+          reason,
+          now
+        }
+      );
+
+      if(
+        !networkReplay&&
+        Training.sessionMode==='online'&&
+        OnlineDuelService.active&&
+        EntitySimulationAuthorityService.isLocal(
+          entity
+        )&&
+        entity===Training.player
+      ){
+        RoomService.sendGameplay({
+          type:'duel-windup-interrupt',
+          roundToken:
+            OnlineDuelService.roundToken,
+          reason:String(
+            reason||
+            'forced-movement'
+          )
+        });
+      }
+    }
+
+    return changed;
+  }
+});
+
+/*
+ * 기존 호출부 호환용. 실제 선딜 중단의 단일 진실원천은
+ * AttackWindupService다.
+ */
+const ForcedMovementWindupInterruptService=Object.freeze({
+  interrupt(
+    entity,
+    reason='forced-movement',
+    options={}
+  ){
+    return AttackWindupService.interrupt(
+      entity,
+      reason,
+      options
+    );
+  }
+});
+
 const MovementService=Object.freeze({
   collides(x,y,radius){
     if(
@@ -43899,6 +44523,11 @@ const MovementService=Object.freeze({
       return false;
     }
 
+    ForcedMovementWindupInterruptService.interrupt(
+      entity,
+      'pull'
+    );
+
     const ux=dx/centerDistance;
     const uy=dy/centerDistance;
     const duration=Math.max(0,Number(options.duration)||0);
@@ -43920,6 +44549,19 @@ const MovementService=Object.freeze({
     );
   },
   knockback(entity,angle,distance,speed=10,options={}){
+    const forcedDistance=
+      Math.max(
+        0,
+        Number(distance)||0
+      );
+
+    if(forcedDistance>.001){
+      ForcedMovementWindupInterruptService.interrupt(
+        entity,
+        'knockback'
+      );
+    }
+
     if(
       typeof CommandFeatureService!=='undefined'
     ){
@@ -57084,10 +57726,20 @@ function(context,module){
 
   // 냉각은 공격/넉백/범위 FX 없이 선딜 뒤 과열만 감소시킨다.
 
+  const interruptibleWindup=
+    AttackWindupService.isTaggedAttack(
+      prepared
+    );
+
   SimulationScheduleService
     .scheduleContinuation({
       source,
       at:now+delay,
+      interruptibleWindup,
+      windupKind:
+        interruptibleWindup
+          ?'resource-cooling-delay'
+          :null,
       continue:()=>{
         if(!source?.alive)return;
 
@@ -61127,6 +61779,11 @@ charRow.appendChild(card);
       sourceY:Number(Training.player?.y),
       slot,
       angle:Number(angle)||0,
+      abilityUseId:
+        String(
+          result?.abilityUseId||
+          ''
+        ),
       handled:result?.handled===true,
       skipAttackWindup:
         result?.skipAttackWindup===true,
@@ -62455,6 +63112,95 @@ charRow.appendChild(card);
       );
     }
 
+    if(payload.type==='duel-windup-commit'){
+      const packetRoundToken=
+        Math.max(
+          0,
+          Math.floor(
+            Number(
+              payload.roundToken
+            )||0
+          )
+        );
+
+      if(
+        packetRoundToken>0&&
+        packetRoundToken!==
+          Math.max(
+            0,
+            Math.floor(
+              Number(
+                OnlineDuelService.roundToken
+              )||0
+            )
+          )
+      ){
+        return false;
+      }
+
+      const sourceEntityId=
+        String(
+          payload.sourceEntityId||
+          ''
+        );
+
+      const windupSource=
+        (
+          sourceEntityId
+            ?EntityService.items.get(
+              sourceEntityId
+            )
+            :null
+        )||
+        remote;
+
+      return AttackWindupService.commitRemoteContinuation(
+        windupSource,
+        String(
+          payload.key||
+          ''
+        )
+      );
+    }
+
+    if(payload.type==='duel-windup-interrupt'){
+      const packetRoundToken=
+        Math.max(
+          0,
+          Math.floor(
+            Number(
+              payload.roundToken
+            )||0
+          )
+        );
+
+      if(
+        packetRoundToken>0&&
+        packetRoundToken!==
+          Math.max(
+            0,
+            Math.floor(
+              Number(
+                OnlineDuelService.roundToken
+              )||0
+            )
+          )
+      ){
+        return false;
+      }
+
+      return ForcedMovementWindupInterruptService.interrupt(
+        remote,
+        String(
+          payload.reason||
+          'forced-movement'
+        ),
+        {
+          networkReplay:true
+        }
+      );
+    }
+
     if(payload.type==='duel-action'){
       const actionSequence=Math.max(
         0,
@@ -62512,6 +63258,12 @@ charRow.appendChild(card);
                 }
                 :null,
             network:true,
+            abilityUseId:
+              String(
+                payload.abilityUseId||
+                ''
+              )||
+              undefined,
             senderHandled:payload.handled===true,
             handled:false,
             skipAttackWindup:
@@ -64847,7 +65599,11 @@ const InviteLinkService=Object.freeze({
 const CharacterBanPresentationService=Object.freeze({
   syncMark(card,banned){
     if(!card)return null;
-    let mark=card.querySelector(':scope > .character-ban-mark');
+
+    let mark=
+      card.querySelector(
+        ':scope > .character-ban-mark'
+      );
 
     if(!banned){
       mark?.remove();
@@ -71437,9 +72193,29 @@ const AttackModuleService=Object.freeze({
           };
 
           if(projectile.launchDelay>0){
+            const interruptibleWindup=
+              module.interruptOnForcedMovement!==false&&
+              AttackWindupService.isTaggedAttack(
+                spec
+              );
+
+            if(
+              interruptibleWindup&&
+              volley?.execution
+            ){
+              volley.execution
+                .interruptibleWindupScheduled=
+                true;
+            }
+
             SimulationScheduleService.scheduleContinuation({
               at:performance.now()+projectile.launchDelay,
               source,
+              interruptibleWindup,
+              windupKind:
+                interruptibleWindup
+                  ?'delivery-projectile-delay'
+                  :null,
               continue:launch
             });
           }else{
@@ -71645,11 +72421,61 @@ const AttackModuleService=Object.freeze({
           if(areaDelay<=0){
             executeArea();
           }else{
-            SimulationScheduleService.scheduleContinuation({
-              at:performance.now()+areaDelay,
-              source,
-              continue:executeArea
-            });
+            const interruptibleWindup=
+              Math.max(
+                0,
+                Number(module.delay)||0
+              )>0&&
+              volley?.execution?.skipWindup!==true&&
+              module.interruptOnForcedMovement!==false&&
+              AttackWindupService.isTaggedAttack(
+                spec
+              );
+
+            if(
+              interruptibleWindup&&
+              volley?.execution
+            ){
+              volley.execution.interruptibleWindupScheduled=true;
+            }
+
+            const continuationKey=
+              interruptibleWindup
+                ?AttackWindupService.nextDeliveryKey(
+                  volley.execution,
+                  spec
+                )
+                :'';
+
+            if(
+              interruptibleWindup&&
+              volley?.execution?.networkReplay===true
+            ){
+              AttackWindupService.registerRemoteContinuation(
+                source,
+                continuationKey,
+                executeArea
+              );
+            }else{
+              SimulationScheduleService.scheduleContinuation({
+                at:performance.now()+areaDelay,
+                source,
+                interruptibleWindup,
+                windupKind:
+                  interruptibleWindup
+                    ?'delivery-area-delay'
+                    :null,
+                continue:()=>{
+                  if(interruptibleWindup){
+                    AttackWindupService.sendCommit(
+                      source,
+                      continuationKey
+                    );
+                  }
+                  executeArea();
+                }
+              });
+            }
           }
         }
       }
@@ -73008,6 +73834,12 @@ const AttackModuleService=Object.freeze({
           SimulationScheduleService.scheduleContinuation({
             at:performance.now()+delay,
             source,
+            interruptibleWindup:
+              execution?.interruptibleWindupScheduled===true,
+            windupKind:
+              execution?.interruptibleWindupScheduled===true
+                ?'attack-effect-delay'
+                :null,
             continue:spawn
           });
         }else{
@@ -73025,6 +73857,21 @@ const AttackModuleService=Object.freeze({
             const openedAt=performance.now();
             const data={...(module.data||{})};
             if(module.captureAngle===true)data.angle=Number(angle)||0;
+            const resolveAttackIds=
+              module.resolveAttackIds&&
+              typeof module.resolveAttackIds==='object'
+                ?module.resolveAttackIds
+                :null;
+
+            const forcedMovementInterruptible=
+              resolveAttackIds!==null&&
+              module.previewAttackIds&&
+              typeof module.previewAttackIds==='object'&&
+              module.interruptOnForcedMovement!==false&&
+              AttackWindupService.isTaggedAttack(
+                spec
+              );
+
             TimedActionStateService.open(
               source,
               {
@@ -73032,6 +73879,8 @@ const AttackModuleService=Object.freeze({
                 duration:Math.max(0,Number(module.duration)||0),
                 retainCompleteMs:Math.max(0,Number(module.retainCompleteMs)||0),
                 cancelOnDamage:module.cancelOnDamage===true,
+                interruptOnForcedMovement:
+                  forcedMovementInterruptible,
                 data,
                 presentation:
                   module.previewAttackIds
@@ -73044,15 +73893,21 @@ const AttackModuleService=Object.freeze({
               },
               openedAt
             );
-            const expected=source.actionState?.get(key)||null;
-            const resolveAttackIds=module.resolveAttackIds&&typeof module.resolveAttackIds==='object'
-              ?module.resolveAttackIds
-              :null;
+
+            const expected=
+              source.actionState?.get(key)||
+              null;
             if(expected&&resolveAttackIds){
               SimulationScheduleService.scheduleContinuation({
                 at:expected.expiresAt,
                 source,
                 abilityId:`state-window:${key}`,
+                interruptibleWindup:
+                  forcedMovementInterruptible,
+                windupKind:
+                  forcedMovementInterruptible
+                    ?'state-window-resolve'
+                    :null,
                 continue:()=>{
                   const state=source.actionState?.get(key)||null;
                   if(
@@ -93253,8 +94108,24 @@ const AbilityModuleService=Object.freeze({
         Number(preparedModule.perpendicularOffset)||0;
       const effectAngle=
         Number(context.angle)||0;
+      const windupEffect=
+        AttackWindupService.isContextWindup(
+          context,
+          preparedModule
+        );
+
+      const windupEffectKey=
+        windupEffect&&
+        context.abilityUseId
+          ?(
+            preparedModule.key||
+            `ability-windup:${String(context.source?.id||'entity')}:${String(context.abilityUseId)}:${Math.max(1,Number(context._windupEffectOrdinal=(Number(context._windupEffectOrdinal)||0)+1))}`
+          )
+          :preparedModule.key;
+
       const effect=EffectSpawnService.spawn({
         ...preparedModule,
+        key:windupEffectKey,
         x:
           baseEffectX-
           Math.sin(effectAngle)*
@@ -93270,6 +94141,19 @@ const AbilityModuleService=Object.freeze({
       },context);
       if(effect){
         context.executed=true;
+
+        if(
+          windupEffect&&
+          context.abilityUseId&&
+          effect.key
+        ){
+          AttackWindupService.registerEffect(
+            context.source,
+            context.abilityUseId,
+            effect.key
+          );
+        }
+
         if(
           context.network!==true&&
           OnlinePresentationSyncService?.shouldSend?.(context.source)
@@ -93496,10 +94380,19 @@ const AbilityModuleService=Object.freeze({
         return;
       }
 
+      const channelModule={
+        ...module,
+        windupAttackId:
+          AttackWindupService.contextAttackId(
+            context,
+            module
+          )
+      };
+
       if(
         ChannelAttackService.start(
           context.source,
-          module,
+          channelModule,
           context.angle,
           Number(context.now)||performance.now()
         )
@@ -93561,16 +94454,85 @@ const AbilityModuleService=Object.freeze({
         at
       );
 
+      const interruptibleWindup=
+        AttackWindupService.isContextWindup(
+          context,
+          module
+        );
+
+      const windupStep=
+        interruptibleWindup
+          ?AttackWindupService.nextAbilityStep(
+            context
+          )
+          :0;
+
+      const continuationKey=
+        interruptibleWindup
+          ?AttackWindupService.abilityContinuationKey(
+            context,
+            windupStep
+          )
+          :'';
+
+      const resume=()=>{
+        if(module.aimMode==='live-source'){
+          const liveAngle=Number(context.resolveAim?.());
+          if(Number.isFinite(liveAngle))context.angle=liveAngle;
+        }
+
+        next();
+
+        /*
+         * next()가 다른 선딜 delay를 추가하지 않았다면 이 Ability의
+         * 선딜용 이펙트 등록은 성공 완료 상태로 놓아준다.
+         */
+        if(
+          interruptibleWindup&&
+          Math.max(
+            0,
+            Math.floor(
+              Number(context._windupStep)||0
+            )
+          )===windupStep
+        ){
+          AttackWindupService.releaseEffects(
+            context.source,
+            context.abilityUseId
+          );
+        }
+      };
+
+      if(
+        interruptibleWindup&&
+        context.network===true&&
+        context.skipAttackWindup!==true
+      ){
+        AttackWindupService.registerRemoteContinuation(
+          context.source,
+          continuationKey,
+          resume
+        );
+        return;
+      }
+
       SimulationScheduleService.scheduleContinuation({
         at,
         source:context.source,
         abilityId:context.ability.id,
+        interruptibleWindup,
+        windupKind:
+          interruptibleWindup
+            ?'ability-delay'
+            :null,
         continue:()=>{
-          if(module.aimMode==='live-source'){
-            const liveAngle=Number(context.resolveAim?.());
-            if(Number.isFinite(liveAngle))context.angle=liveAngle;
+          if(interruptibleWindup){
+            AttackWindupService.sendCommit(
+              context.source,
+              continuationKey
+            );
           }
-          next();
+          resume();
         }
       });
     },
@@ -93865,6 +94827,11 @@ const AbilityService=Object.freeze({
         runtime.networkAttackAdjustments
           ?{...runtime.networkAttackAdjustments}
           :null;
+      context.result.abilityUseId=
+        String(
+          runtime.abilityUseId||
+          ''
+        );
       context.result.executionSequence=
         Number.isFinite(Number(runtime.executionSequence))
           ?Math.max(
@@ -95640,6 +96607,12 @@ const ProjectileTetherMovementService=Object.freeze({
     if(!EntitySimulationAuthorityService.isLocal(target))return false;
     const key=this.key(projectile,target);
     if(this.items.has(key))return true;
+
+    ForcedMovementWindupInterruptService.interrupt(
+      target,
+      'projectile-tether'
+    );
+
     const status=String(module.status||'bind');
     const statusSourceId=`projectile-tether:${key}`;
     if(status&&COMBAT_STATUS_DEFS[status]){
@@ -108008,6 +108981,56 @@ const CircleFormationService=Object.freeze({
     state.revealStartedAt=0;
     state.revealUntil=0;
     return previous;
+  },
+
+  cancelWindupOnForcedMovement(
+    entity,
+    reason='forced-movement'
+  ){
+    const state=this.state(
+      entity,
+      false
+    );
+
+    const cast=
+      state?.activation||
+      null;
+
+    if(!cast)return false;
+
+    /*
+     * 티냐의 선딜은 맵에 마법진이 그려지기 전 input 구간만이다.
+     * reveal(0.35초)은 이미 마법진이 맵에 그려진 뒤의 진행 상태이므로
+     * 선딜로 취급하지 않고 강제이동으로 취소하지 않는다.
+     * move 역시 LMB HOLD 위치 조정 상태이므로 제외한다.
+     */
+    if(
+      cast.phase!=='input'
+    ){
+      return false;
+    }
+
+    const attack=
+      this.utilityAttack(
+        entity,
+        'lmb'
+      );
+
+    if(
+      !AttackWindupService
+        .isTaggedAttack(
+          attack
+        )
+    ){
+      return false;
+    }
+
+    this.cancelActivation(
+      entity,
+      reason
+    );
+
+    return true;
   },
 
   beginReveal(entity,cast,now){
