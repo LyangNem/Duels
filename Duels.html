@@ -967,6 +967,7 @@ RMB `광석 발견`: 최대 180px 지정지점으로 180ms 이동 후 원형 200
 <!-- 3.1345: 뉴 6개 수정. LMB를 레이카 일반 평타와 동일한 sector/arcSweep 구조로 통일하되 사거리 210으로 조정하고 300ms preview는 레이카와 같은 duration+ability.lock 구조를 사용해 깜빡임을 제거했다. 마검 투척은 사거리 정지/초기 유도를 제거하고 startAfterHit + stopAfterAligned 범용 homing을 추가해 최초에는 직진, 적을 통과해 실제 적중한 뒤 짧은 통과 지연 후 가까운 적을 강하게 재조준하고 방향이 맞으면 다시 직진 돌진하는 사이클을 반복한다. projectile.return stopAtRange를 제거해 수동 회수 전까지 계속 비행하며 귀환 공격 damageOnReturn을 활성화하고 sword-return에 실제 피해+출혈을 부여했다. 반격의 본체/마검 위치 어둠 기운은 키네스 반격과 같은 hitImpactRing expanding-ring 피해 구조로 변경했다. -->
 <!-- 3.1344: 신규 캐릭터 뉴 추가. 체력 400/매우 빠른 이동/분홍 계열, 파워형 근거리 저격수. 일반 LMB는 300ms 선딜 후 마검을 휘둘러 피해+3초 BLEED, RMB는 벽/적 관통 지속 유도 마검을 투척하고 LMB/RMB 재입력으로 일반/고속 귀환한다. 마검이 본체에 있을 때 damage/defense +80%, speed -35%를 조건부 passiveBuffs로 적용하도록 CharacterPassiveBuffService의 범용 conditions를 추가했다. projectile.recall은 선택적 speed를 받아 귀환 속도를 데이터로 바꿀 수 있게 했다. counter는 본체와 현재 마검 위치에서 어둠 파동을 발생시키며 action.trigger-attack의 projectileStateKey를 범용 지원한다. -->
 
+<!-- 3.1719: 공격 태그를 실제 전달/판정 모듈에서 계산. 수동 사거리·전달형태·CC 태그 제거, 자기 반동/시각 이펙트 오분류 방지, 이동 접촉·중첩 적중 효과·장판 피해 프로필·조건부 반격/능력 효과 조회 통합. -->
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -2400,8 +2401,8 @@ html.duels3-auth-pending button{
   flex-direction:column!important;
   align-items:center!important;
   justify-content:flex-start!important;
-  min-height:252px!important;
-  height:auto!important;
+  min-height:222px!important;
+  height:222px!important;
   padding:12px 8px 10px!important;
 }
 :is(#scr-select,#scr-character-ban) .char-card .char-icon,
@@ -2727,8 +2728,8 @@ html.duels3-auth-pending button{
   width:138px!important;
   min-width:138px!important;
   max-width:138px!important;
-  min-height:252px!important;
-  height:auto!important;
+  min-height:222px!important;
+  height:222px!important;
   padding:12px 8px 10px!important;
   border:2px solid transparent;
   border-radius:4px;
@@ -5225,7 +5226,7 @@ input[type="checkbox"][aria-hidden="true"]{display:none!important}
   align-items:stretch;
 }
 :is(#scr-select,#scr-character-ban) .char-card{
-  min-height:252px!important;
+  min-height:222px!important;
   padding:10px 8px 9px!important;
   display:flex!important;
   flex-direction:column!important;
@@ -6041,8 +6042,8 @@ input[type="checkbox"][aria-hidden="true"]{display:none!important}
   width:138px!important;
   min-width:138px!important;
   max-width:138px!important;
-  min-height:252px!important;
-  height:auto!important;
+  min-height:222px!important;
+  height:222px!important;
   padding:12px 8px 10px!important;
   border-radius:4px!important;
   display:flex!important;
@@ -10372,6 +10373,7 @@ function freezeCharacterData(value){
 
 const CHARACTER_RULES=freezeCharacterData({
   styles: {"1": "파워형", "2": "기동형", "3": "지속전투형", "4": "차징형", "5": "조건형", "6": "반격형", "7": "성장형", "8": "범위장악형", "9": "행동제약형"},
+  moveLabels: {"shubi":"보통", "ruvu":"보통", "miaruky":"느림", "mainmad":"빠름", "mehugu":"보통", "lian":"빠름", "tau":"빠름", "veleu":"매우 빠름", "elin":"느림", "nsonya":"매우 빠름", "maisil":"빠름", "erapabi":"빠름", "reika":"느림", "shairaz":"느림", "phase":"보통", "kan":"매우 빠름", "cherity":"보통", "konyeong":"빠름", "herjang":"보통", "hatsuhats":"보통", "prill":"보통", "dazbin":"빠름", "yui":"빠름", "peluna":"빠름", "sherina":"느림", "sya":"매우 빠름", "runef":"보통", "roon":"빠름", "intu":"빠름", "meramona":"보통", "tadta":"매우 느림", "nanamnang":"느림", "raise":"빠름", "levina":"매우 빠름", "ki":"빠름", "sor":"보통", "jerry":"느림", "ruli":"보통", "lete":"빠름", "clea":"빠름", "shello":"빠름", "tinya":"느림", "lime":"보통", "quri":"보통", "hapupu":"매우 빠름", "atsuteo":"보통", "nare":"빠름", "kines":"보통", "ezrail":"보통", "nyu":"매우 빠름", "gae":"느림", "cyien":"빠름", "kanon":"빠름", "deltroove":"빠름", "xianelli":"빠름"},
   roles: {"1": "딜러", "2": "저격수", "3": "탱커", "4": "서포터", "5": "컨트롤러", "6": "암살자"},
   ranges: [
     {id: 1, maxInclusive: 150, tag: "초근거리"},
@@ -10427,7 +10429,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 400,
         range: 300,
         modules: [{type: "pattern.scatter", count: 4, spread: 0.28}, {type: "delivery.projectile", speed: 24, radius: 8}],
-        tags: ["평타", "히트스캔", "공격형태 사각"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.shubi.rmb",
@@ -10447,7 +10449,7 @@ const CHARACTER_DATA=freezeCharacterData({
             collision: {passWalls: false, passEnemies: true}
           }
         ],
-        tags: ["스킬", "히트스캔", "공격형태 사각", "넉백"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.shubi.counter",
@@ -10467,7 +10469,7 @@ const CHARACTER_DATA=freezeCharacterData({
             collision: {passWalls: false, passEnemies: true}
           }
         ],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 원", "넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -10653,7 +10655,8 @@ const CHARACTER_DATA=freezeCharacterData({
         cost: 0,
         cd: 300,
         range: 350,
-        modules: [{type: "delivery.area", shape: "rect", range: characterValue("attacks.counter.range"), halfWidth: 45}],
+        modules: [{type: "delivery.area",
+            contactType: "melee", shape: "rect", range: characterValue("attacks.counter.range"), halfWidth: 45}],
         tags: ["반격"]
       }
     },
@@ -10860,7 +10863,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [{type: "delivery.projectile", speed: 18, radius: 15}],
         tags: ["평타"]
       },
-      rmb: {id: "attack.miaruky.rmb", damageRatio: 0, cost: 250, cd: 300, range: 300, modules: [], tags: ["스킬", "소환"]},
+      rmb: {id: "attack.miaruky.rmb", damageRatio: 0, cost: 250, cd: 300, range: 300, modules: [], tags: ["스킬"]},
       toolboxDeployKnockback: {
         id: "attack.miaruky.toolbox-deploy-knockback",
         damageRatio: 0,
@@ -10884,7 +10887,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "넉백"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.miaruky.counter",
@@ -10916,7 +10919,7 @@ const CHARACTER_DATA=freezeCharacterData({
             amountRef: {type: "summon-field-modifier", stateKey: "toolbox", stat: "regeneration", multiplier: 10}
           }
         ],
-        tags: ["반격", "회복"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -11056,7 +11059,7 @@ const CHARACTER_DATA=freezeCharacterData({
             contactType: "melee"
           }
         ],
-        tags: ["평타", "차징"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.mainmad.rmb",
@@ -11285,7 +11288,7 @@ const CHARACTER_DATA=freezeCharacterData({
             contactType: "melee"
           }
         ],
-        tags: ["평타", "차징"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.mehugu.rmb",
@@ -11524,7 +11527,8 @@ const CHARACTER_DATA=freezeCharacterData({
         attackDelay: 320,
         range: 140,
         modules: [
-          {type: "delivery.area", shape: "sector", range: characterValue("attacks.lmb.range"), halfAngle: 1.3},
+          {type: "delivery.area",
+            contactType: "melee", shape: "sector", range: characterValue("attacks.lmb.range"), halfAngle: 1.3},
           {
             type: "effect.spawn",
             stateKey: "lian-lmb-shield",
@@ -11613,7 +11617,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "평타", "이동기", "넉백", "범위 공격", "히트스캔", "공격형태 사각"]
+        tags: ["스킬", "평타"]
       },
       rmb: {
         id: "attack.lian.rmb",
@@ -11644,6 +11648,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.counter.range"),
             halfWidth: 45,
@@ -11768,7 +11773,8 @@ const CHARACTER_DATA=freezeCharacterData({
         attackDelay: 350,
         range: 200,
         modules: [
-          {type: "delivery.area", shape: "sector", range: characterValue("attacks.lmb.range"), halfAngle: 1.2},
+          {type: "delivery.area",
+            contactType: "melee", shape: "sector", range: characterValue("attacks.lmb.range"), halfAngle: 1.2},
           {
             type: "state.progress",
             stateKey: "spark-scythe",
@@ -11790,7 +11796,8 @@ const CHARACTER_DATA=freezeCharacterData({
         attackDelay: 350,
         range: 200,
         modules: [
-          {type: "delivery.area", shape: "sector", range: characterValue("attacks.lmbCharged.range"), halfAngle: 1.2},
+          {type: "delivery.area",
+            contactType: "melee", shape: "sector", range: characterValue("attacks.lmbCharged.range"), halfAngle: 1.2},
           {
             type: "effect.spawn",
             renderType: "botSwing",
@@ -11941,7 +11948,8 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 300,
         range: 200,
         modules: [
-          {type: "delivery.area", shape: "circle", range: characterValue("attacks.counter.range")},
+          {type: "delivery.area",
+            contactType: "melee", shape: "circle", range: characterValue("attacks.counter.range")},
           {
             type: "effect.spawn",
             renderType: "annularDoubleSweep",
@@ -12668,7 +12676,7 @@ const CHARACTER_DATA=freezeCharacterData({
             amount: 200
           }
         ],
-        tags: ["평타", "회복"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.elin.rmb",
@@ -12678,7 +12686,7 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 0,
         charge: {duration: 200, costMin: 0, costMax: 0, costTiming: "release", gauge: true, staminaRegenDuringCharge: true},
         modules: [],
-        tags: ["스킬", "소환"]
+        tags: ["스킬"]
       },
       spiritMelee: {
         id: "attack.elin.spirit-melee",
@@ -12689,6 +12697,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.spiritMelee.range"),
             halfAngle: 1.5707963267948966,
@@ -12758,7 +12767,7 @@ const CHARACTER_DATA=freezeCharacterData({
             replaceAutoAreaEffect: true
           }
         ],
-        tags: ["스킬", "소환수", "범위"]
+        tags: ["스킬", "소환수"]
       },
       spiritReturn: {
         id: "attack.elin.spirit-return",
@@ -12808,7 +12817,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "소환수", "투사체"]
+        tags: ["스킬", "소환수"]
       },
       spiritReturnExplosion: {
         id: "attack.elin.spirit-return-explosion",
@@ -12833,7 +12842,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "소환수", "넉백"]
+        tags: ["스킬", "소환수"]
       },
       spiritDash: {
         id: "attack.elin.spirit-dash",
@@ -13183,7 +13192,7 @@ const CHARACTER_DATA=freezeCharacterData({
             ]
           }
         ],
-        tags: ["버프"]
+        tags: []
       },
       counter: {
         id: "attack.nsonya.counter",
@@ -13318,6 +13327,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmb.range"),
             halfAngle: 1.0471975511965976,
@@ -13350,6 +13360,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmbCritical.range"),
             halfAngle: 0.16755160819145565,
@@ -13390,6 +13401,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "tapered-rect",
             range: characterValue("attacks.rmb.range"),
             startHalfWidth: 50.4,
@@ -13414,7 +13426,7 @@ const CHARACTER_DATA=freezeCharacterData({
             replaceAutoAreaEffect: true
           }
         ],
-        tags: ["스킬", "끌어오기"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.maisil.counter",
@@ -13501,7 +13513,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: false
           }
         ],
-        tags: ["반격", "귀환"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -13695,7 +13707,7 @@ const CHARACTER_DATA=freezeCharacterData({
             followSource: true
           }
         ],
-        tags: ["스킬", "방어", "선딜레이"]
+        tags: ["스킬", "선딜레이"]
       },
       rmbBurst: {
         id: "attack.erapabi.rmb-burst",
@@ -13729,7 +13741,7 @@ const CHARACTER_DATA=freezeCharacterData({
             scaleWithAttackRange: true
           }
         ],
-        tags: ["스킬", "넉백"]
+        tags: ["스킬"]
       },
       megaLaserStart: {
         id: "attack.erapabi.mega-laser-start",
@@ -13754,7 +13766,7 @@ const CHARACTER_DATA=freezeCharacterData({
             followSource: true
           }
         ],
-        tags: ["스킬", "채널링", "선딜레이"]
+        tags: ["스킬", "선딜레이"]
       },
       megaLaserTick: {
         id: "attack.erapabi.mega-laser-tick",
@@ -13799,7 +13811,7 @@ const CHARACTER_DATA=freezeCharacterData({
             scaleWithAttackRange: true
           }
         ],
-        tags: ["스킬", "채널링"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.erapabi.counter",
@@ -14088,6 +14100,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmb.range"),
             halfAngle: 1.2,
@@ -14125,6 +14138,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmbBlessed.range"),
             halfAngle: 1.2,
@@ -14192,7 +14206,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["평타", "화염"]
+        tags: ["평타"]
       },
       rmbPush: {
         id: "attack.reika.rmb-push",
@@ -14203,6 +14217,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "circle",
             range: characterValue("attacks.rmbPush.range"),
             wallPolicy: "block",
@@ -14240,7 +14255,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "넉백", "선딜레이"]
+        tags: ["스킬", "선딜레이"]
       },
       gahoActivate: {
         id: "attack.reika.gaho-activate",
@@ -14279,7 +14294,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "넉백", "화염", "선딜레이"]
+        tags: ["스킬", "선딜레이"]
       },
       gahoWeapon: {
         id: "attack.reika.gaho-weapon",
@@ -14400,7 +14415,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "넉백"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.reika.counter",
@@ -14450,7 +14465,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["범위 공격", "히트스캔", "공격형태 사각", "반격"]
+        tags: ["반격"]
       },
       counterBlessed: {
         id: "attack.reika.counter-blessed",
@@ -14528,7 +14543,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["범위 공격", "히트스캔", "공격형태 사각", "반격", "화염"]
+        tags: ["반격"]
       },
       counterBlessedExplosion: {
         id: "attack.reika.counter-blessed-explosion",
@@ -14588,7 +14603,7 @@ const CHARACTER_DATA=freezeCharacterData({
             scaleWithAttackRange: true
           }
         ],
-        tags: ["반격", "화염"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -14878,7 +14893,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "설치형"]
+        tags: ["스킬"]
       },
       trapTrigger: {
         id: "attack.shairaz.trap-trigger",
@@ -14895,7 +14910,7 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {type: "status.apply", status: "stun", duration: 1250, oncePerExecution: false}
         ],
-        tags: ["스킬", "덫 발동", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["스킬", "덫 발동"]
       },
       rmbRecall: {
         id: "attack.shairaz.rmb-recall",
@@ -14920,7 +14935,7 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {type: "resource.restore", resource: "stamina", recipient: "source", amount: 300}
         ],
-        tags: ["스킬", "설치형"]
+        tags: ["스킬"]
       },
       rmbCounterRecall: {
         id: "attack.shairaz.rmb-counter-recall",
@@ -14945,7 +14960,7 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {type: "resource.restore", resource: "stamina", recipient: "source", amount: 300}
         ],
-        tags: ["스킬", "설치형"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.shairaz.counter",
@@ -15007,7 +15022,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["반격", "설치형"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -15174,7 +15189,7 @@ const CHARACTER_DATA=freezeCharacterData({
             ]
           }
         ],
-        tags: ["스킬", "이동기"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.phase.counter",
@@ -15191,7 +15206,7 @@ const CHARACTER_DATA=freezeCharacterData({
             contactType: "melee"
           }
         ],
-        tags: ["반격", "끌어오기"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -15295,6 +15310,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmb.range"),
             halfAngle: 0.75,
@@ -15311,7 +15327,7 @@ const CHARACTER_DATA=freezeCharacterData({
             presentation: {type: "arc-gauge", color: "#1a6b35", lineWidth: 3, maxChargeFlash: true}
           }
         ],
-        tags: ["평타", "근거리", "범위 공격", "히트스캔", "공격형태 부채꼴"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.kan.rmb",
@@ -15321,7 +15337,8 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 130,
         effectsOnly: true,
         modules: [
-          {type: "delivery.area", shape: "circle", range: characterValue("attacks.rmb.range"), wallPolicy: "block"},
+          {type: "delivery.area",
+            contactType: "melee", shape: "circle", range: characterValue("attacks.rmb.range"), wallPolicy: "block"},
           {
             type: "hit.sequence",
             targetMode: "nearest",
@@ -15351,7 +15368,7 @@ const CHARACTER_DATA=freezeCharacterData({
             ]
           }
         ],
-        tags: ["스킬", "범위 공격", "히트스캔", "공격형태 원", "끌어오기", "기절", "넉백"]
+        tags: ["스킬"]
       },
       rmbThrow: {
         id: "attack.kan.rmb-throw",
@@ -15369,7 +15386,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "넉백"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.kan.counter",
@@ -15391,7 +15408,7 @@ const CHARACTER_DATA=freezeCharacterData({
           ]
         },
         modules: [{type: "delivery.area", shape: "circle", range: characterValue("attacks.counter.range"), wallPolicy: "block"}],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 원", "넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -15530,7 +15547,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "delivery.projectile", speed: 18, radius: 10},
           {type: "projectile.pierce", targets: false, walls: false}
         ],
-        tags: ["평타", "차징"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.cherity.rmb",
@@ -15647,7 +15664,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 원", "넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -15927,7 +15944,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "범위 공격", "설치형", "공격형태 원"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.konyeong.counter",
@@ -16184,7 +16201,7 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 0,
         effectsOnly: true,
         modules: [],
-        tags: ["스킬", "소환"]
+        tags: ["스킬"]
       },
       cannonAuto: {
         id: "attack.herjang.cannon-auto",
@@ -16237,7 +16254,7 @@ const CHARACTER_DATA=freezeCharacterData({
             tags: []
           }
         ],
-        tags: ["반격", "투사체", "공격형태 투사체", "넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -16401,7 +16418,7 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 0,
         effectsOnly: true,
         modules: [],
-        tags: ["스킬", "이동기"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.hatsuhats.counter",
@@ -16411,7 +16428,8 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 798,
         previewProjectilePaths: true,
         modules: [
-          {type: "delivery.area", shape: "circle", range: 180, wallPolicy: "block", render: false},
+          {type: "delivery.area",
+            contactType: "melee", shape: "circle", range: 180, wallPolicy: "block", render: false},
           {
             type: "effect.spawn",
             renderType: "annularDoubleSweep",
@@ -16817,7 +16835,7 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 900,
         effectsOnly: true,
         modules: [],
-        tags: ["스킬", "채널링", "선딜레이"]
+        tags: ["스킬", "선딜레이"]
       },
       rmbTick: {
         id: "attack.prill.rmb-tick",
@@ -16859,7 +16877,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "채널링"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.prill.counter",
@@ -17233,7 +17251,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["반격", "방어"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -17341,6 +17359,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmb.range"),
             halfAngle: 1.0471975511965976,
@@ -17391,7 +17410,7 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 0,
         effectsOnly: true,
         modules: [],
-        tags: ["스킬", "이동기"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.yui.counter",
@@ -17437,7 +17456,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["범위 공격", "히트스캔", "공격형태 사각", "반격"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -17791,7 +17810,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "projectile.pierce", targets: false, walls: false},
           {type: "projectile.impact", attackIds: ["attack.peluna.anvil-impact", "attack.peluna.anvil-empower"]}
         ],
-        tags: ["스킬", "소환"]
+        tags: ["스킬"]
       },
       anvilImpact: {
         id: "attack.peluna.anvil-impact",
@@ -17814,7 +17833,7 @@ const CHARACTER_DATA=freezeCharacterData({
             spawnEffectSoundLocalOnly: true
           }
         ],
-        tags: ["스킬", "소환"]
+        tags: ["스킬"]
       },
       anvilEmpower: {
         id: "attack.peluna.anvil-empower",
@@ -17884,7 +17903,7 @@ const CHARACTER_DATA=freezeCharacterData({
             thresholdModifiers: [{stat: "damage", value: 0.5, threshold: 6000, strict: true}]
           }
         ],
-        tags: ["반격", "끌어오기"]
+        tags: ["반격"]
       },
       counterStage3: {
         id: "attack.peluna.counter-stage3",
@@ -17928,7 +17947,7 @@ const CHARACTER_DATA=freezeCharacterData({
             thresholdModifiers: [{stat: "damage", value: 0.5, threshold: 6000, strict: true}]
           }
         ],
-        tags: ["반격", "끌어오기"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -18118,9 +18137,9 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["평타", "차징"]
+        tags: ["평타"]
       },
-      echoTick: {id: "attack.sherina.echo-tick", damageRatio: 0.75, cost: 0, cd: 0, range: 0, modules: [], tags: ["평타", "설치형"]},
+      echoTick: {id: "attack.sherina.echo-tick", damageRatio: 0.75, cost: 0, cd: 0, range: 0, modules: [], tags: ["평타"]},
       rmb: {
         id: "attack.sherina.rmb",
         damageRatio: 0,
@@ -18145,7 +18164,7 @@ const CHARACTER_DATA=freezeCharacterData({
         ],
         tags: ["스킬"]
       },
-      rmbEchoTick: {id: "attack.sherina.rmb-echo-tick", damageRatio: 1, cost: 0, cd: 0, range: 0, modules: [], tags: ["스킬", "설치형"]},
+      rmbEchoTick: {id: "attack.sherina.rmb-echo-tick", damageRatio: 1, cost: 0, cd: 0, range: 0, modules: [], tags: ["스킬"]},
       counter: {
         id: "attack.sherina.counter",
         damageRatio: 1.5,
@@ -18200,7 +18219,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 0,
         range: 0,
         modules: [],
-        tags: ["반격", "설치형"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -18380,7 +18399,7 @@ const CHARACTER_DATA=freezeCharacterData({
             scaleWithAttackRange: true
           }
         ],
-        tags: ["평타", "근접 무기"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.sya.rmb",
@@ -18390,7 +18409,7 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 0,
         effectsOnly: true,
         modules: [],
-        tags: ["스킬", "은신"]
+        tags: ["스킬"]
       },
       stealthFreeze: {
         id: "attack.sya.stealth-freeze",
@@ -18429,7 +18448,7 @@ const CHARACTER_DATA=freezeCharacterData({
             ]
           }
         ],
-        tags: ["스킬", "빙결"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.sya.counter",
@@ -18474,7 +18493,7 @@ const CHARACTER_DATA=freezeCharacterData({
             scaleWithAttackRange: true
           }
         ],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 원", "빙결"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -18700,7 +18719,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "범위 공격", "히트스캔", "공격형태 원", "화염"]
+        tags: ["스킬"]
       },
       ice: {
         id: "attack.runef.ice",
@@ -18745,7 +18764,7 @@ const CHARACTER_DATA=freezeCharacterData({
             scaleWithAttackRange: true
           }
         ],
-        tags: ["스킬", "범위 공격", "히트스캔", "공격형태 부채꼴", "빙결"]
+        tags: ["스킬"]
       },
       lightning: {
         id: "attack.runef.lightning",
@@ -18777,7 +18796,7 @@ const CHARACTER_DATA=freezeCharacterData({
             data: {staminaRegenMultiplier: characterValue("statusDefaults.zap.staminaRegenMultiplier")}
           }
         ],
-        tags: ["스킬", "범위 공격", "히트스캔", "공격형태 원", "다중 공격", "감전"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.runef.counter",
@@ -18814,7 +18833,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["반격", "넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -18964,7 +18983,7 @@ const CHARACTER_DATA=freezeCharacterData({
             onFull: {status: "freeze", duration: 700, reset: true}
           }
         ],
-        tags: ["평타", "빙결"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.roon.rmb",
@@ -19016,7 +19035,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "설치형", "이동기"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.roon.counter",
@@ -19064,7 +19083,7 @@ const CHARACTER_DATA=freezeCharacterData({
             onFull: {status: "freeze", duration: 700, reset: true}
           }
         ],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 부채꼴", "빙결"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -19292,7 +19311,7 @@ const CHARACTER_DATA=freezeCharacterData({
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
           }
         ],
-        tags: ["평타", "다중 공격"]
+        tags: ["평타"]
       },
       pistolSwap: {
         id: "attack.intu.pistol-swap",
@@ -19363,7 +19382,7 @@ const CHARACTER_DATA=freezeCharacterData({
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
           }
         ],
-        tags: ["스킬", "평타", "다중 공격"]
+        tags: ["스킬", "평타"]
       },
       pistolReturn: {
         id: "attack.intu.pistol-return",
@@ -19434,7 +19453,7 @@ const CHARACTER_DATA=freezeCharacterData({
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
           }
         ],
-        tags: ["스킬", "평타", "다중 공격"]
+        tags: ["스킬", "평타"]
       },
       sniper: {
         id: "attack.intu.sniper",
@@ -19478,7 +19497,7 @@ const CHARACTER_DATA=freezeCharacterData({
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
           }
         ],
-        tags: ["평타", "관통", "벽 관통", "넉백"]
+        tags: ["평타"]
       },
       sniperCounter: {
         id: "attack.intu.sniper-counter",
@@ -19513,7 +19532,7 @@ const CHARACTER_DATA=freezeCharacterData({
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
           }
         ],
-        tags: ["반격", "관통", "벽 관통", "넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -19918,7 +19937,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "넉백"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.meramona.counter",
@@ -20482,7 +20501,7 @@ const CHARACTER_DATA=freezeCharacterData({
             presentation: "none"
           }
         ],
-        tags: ["평타", "차징"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.nanamnang.rmb",
@@ -20550,7 +20569,7 @@ const CHARACTER_DATA=freezeCharacterData({
             animation: true
           }
         ],
-        tags: ["스킬", "회복"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.nanamnang.counter",
@@ -20741,7 +20760,7 @@ const CHARACTER_DATA=freezeCharacterData({
             contactType: "melee"
           }
         ],
-        tags: ["평타", "차징"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.raise.rmb",
@@ -20770,7 +20789,7 @@ const CHARACTER_DATA=freezeCharacterData({
             buffs: [{type: "invulnerable", value: 1, duration: "movement"}]
           }
         ],
-        tags: ["스킬", "이동기"]
+        tags: ["스킬"]
       },
       rmbLand: {
         id: "attack.raise.rmb-land",
@@ -20805,7 +20824,7 @@ const CHARACTER_DATA=freezeCharacterData({
             animation: true
           }
         ],
-        tags: ["스킬", "기절"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.raise.counter",
@@ -21435,6 +21454,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmb.range"),
             halfAngle: 0.85,
@@ -21455,7 +21475,7 @@ const CHARACTER_DATA=freezeCharacterData({
             replaceAutoAreaEffect: true
           }
         ],
-        tags: ["평타", "다중 공격"]
+        tags: ["평타"]
       },
       lmbSecond: {
         id: "attack.ki.lmb-second",
@@ -21466,6 +21486,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmbSecond.range"),
             halfAngle: 0.85,
@@ -21486,7 +21507,7 @@ const CHARACTER_DATA=freezeCharacterData({
             replaceAutoAreaEffect: true
           }
         ],
-        tags: ["평타", "다중 공격"]
+        tags: ["평타"]
       },
       lmbFinal: {
         id: "attack.ki.lmb-final",
@@ -21497,6 +21518,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmbFinal.range"),
             halfAngle: 0.85,
@@ -21517,7 +21539,7 @@ const CHARACTER_DATA=freezeCharacterData({
             replaceAutoAreaEffect: true
           }
         ],
-        tags: ["평타", "다중 공격"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.ki.rmb",
@@ -21584,7 +21606,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "설치형"]
+        tags: ["스킬"]
       },
       forecastExecute: {
         id: "attack.ki.forecast-execute",
@@ -21637,7 +21659,7 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {type: "state.window", when: "after-attack", stateKey: "ki-rmb-followup-lock", duration: 1200}
         ],
-        tags: ["스킬", "범위 공격"]
+        tags: ["스킬"]
       },
       deceive: {
         id: "attack.ki.deceive",
@@ -21695,7 +21717,7 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {type: "state.window", when: "after-attack", stateKey: "ki-rmb-followup-lock", duration: 1200}
         ],
-        tags: ["스킬", "이동기", "범위 공격"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.ki.counter",
@@ -21706,6 +21728,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.counter.range"),
             halfWidth: 70,
@@ -21768,7 +21791,7 @@ const CHARACTER_DATA=freezeCharacterData({
             presentation: {type: "dash-line", color: "195,201,222", width: 6, alpha: 0.4, duration: 134}
           }
         ],
-        tags: ["반격", "이동기"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -21938,7 +21961,7 @@ const CHARACTER_DATA=freezeCharacterData({
             conditions: [{type: "target.status-active-before-hit", status: "zap"}]
           }
         ],
-        tags: ["평타", "감전"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.sor.rmb",
@@ -22006,7 +22029,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "감전"]
+        tags: ["스킬"]
       },
       rmbImpact: {
         id: "attack.sor.rmb-impact",
@@ -22031,7 +22054,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "감전"]
+        tags: ["스킬"]
       },
       fieldTick: {
         id: "attack.sor.field-tick",
@@ -22048,7 +22071,7 @@ const CHARACTER_DATA=freezeCharacterData({
             render: false
           }
         ],
-        tags: ["스킬", "감전"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.sor.counter",
@@ -22086,7 +22109,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["반격", "넉백", "감전"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -22310,7 +22333,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "넉백"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.jerry.counter",
@@ -22337,7 +22360,7 @@ const CHARACTER_DATA=freezeCharacterData({
             buffs: [{type: "evasionInvulnerable", value: 1, duration: "movement"}]
           }
         ],
-        tags: ["반격", "넉백", "이동기"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -22455,6 +22478,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("rulerPresentation.depth"),
             halfWidth: characterValue("rulerPresentation.halfWidth"),
@@ -22491,6 +22515,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("rulerPresentation.depth"),
             halfWidth: characterValue("rulerPresentation.halfWidth"),
@@ -22527,6 +22552,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("rulerPresentation.depth"),
             halfWidth: characterValue("rulerPresentation.halfWidth"),
@@ -22563,6 +22589,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("rulerPresentation.depth"),
             halfWidth: characterValue("rulerPresentation.halfWidth"),
@@ -22599,6 +22626,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("rulerPresentation.depth"),
             halfWidth: characterValue("rulerPresentation.halfWidth"),
@@ -22635,6 +22663,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("rulerPresentation.depth"),
             halfWidth: characterValue("rulerPresentation.halfWidth"),
@@ -22671,6 +22700,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("rulerPresentation.depth"),
             halfWidth: characterValue("rulerPresentation.halfWidth"),
@@ -22718,6 +22748,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("rulerPresentation.depth"),
             halfWidth: characterValue("rulerPresentation.halfWidth"),
@@ -22746,7 +22777,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["반격", "넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -23099,7 +23130,7 @@ const CHARACTER_DATA=freezeCharacterData({
         effectsOnly: true,
         charge: {duration: 500, costMin: 0, costMax: 0, costTiming: "release", gauge: true, staminaRegenDuringCharge: true},
         modules: [],
-        tags: ["스킬", "소환"]
+        tags: ["스킬"]
       },
       rmbRetarget: {
         id: "attack.lete.rmb-retarget",
@@ -23109,7 +23140,7 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 0,
         effectsOnly: true,
         modules: [],
-        tags: ["스킬", "소환"]
+        tags: ["스킬"]
       },
       rmbHold: {
         id: "attack.lete.rmb-hold",
@@ -23120,7 +23151,7 @@ const CHARACTER_DATA=freezeCharacterData({
         effectsOnly: true,
         charge: {duration: 500, costMin: 0, costMax: 0, costTiming: "release", gauge: true, staminaRegenDuringCharge: true},
         modules: [],
-        tags: ["스킬", "소환"]
+        tags: ["스킬"]
       },
       mailboxMail: {
         id: "attack.lete.mailbox-mail",
@@ -23175,7 +23206,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: false
           }
         ],
-        tags: ["스킬", "소환수", "지원", "회복"]
+        tags: ["스킬", "소환수", "지원"]
       },
       counter: {
         id: "attack.lete.counter",
@@ -23216,7 +23247,7 @@ const CHARACTER_DATA=freezeCharacterData({
             placeDistance: 0
           }
         ],
-        tags: ["반격", "소환"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -23656,7 +23687,7 @@ const CHARACTER_DATA=freezeCharacterData({
             blocksStaminaRegen: false
           }
         ],
-        tags: ["반격", "이동기", "넉백", "범위 공격", "히트스캔", "공격형태 사각"]
+        tags: ["반격"]
       },
       counterShadow: {
         id: "attack.clea.counter-shadow",
@@ -23735,7 +23766,7 @@ const CHARACTER_DATA=freezeCharacterData({
             blocksStaminaRegen: false
           }
         ],
-        tags: ["반격", "이동기", "넉백", "범위 공격", "히트스캔", "공격형태 사각"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -23936,7 +23967,7 @@ const CHARACTER_DATA=freezeCharacterData({
             visualState: {effectStateKey: "shello-guard", duration: 200, syncToGuardDuration: true, color: "255,118,32"}
           }
         ],
-        tags: ["스킬", "방어", "넉백"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.shello.counter",
@@ -24030,7 +24061,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["반격", "이동기"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -24213,7 +24244,7 @@ const CHARACTER_DATA=freezeCharacterData({
         effectsOnly: true,
         presentation: {suppressAttackFeedback: true},
         modules: [],
-        tags: ["스킬", "설치형"]
+        tags: ["스킬"]
       },
       remove: {
         id: "attack.tinya.remove",
@@ -24547,7 +24578,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["범위 공격", "히트스캔", "공격형태 사각", "평타"]
+        tags: ["평타"]
       },
       split: {
         id: "attack.lime.split",
@@ -24558,7 +24589,7 @@ const CHARACTER_DATA=freezeCharacterData({
         effectsOnly: true,
         presentation: {suppressAttackFeedback: true},
         modules: [{type: "summon.cluster-spawn", summonKey: "slime", maxHealthCost: "missing-health", spawnDistance: 46}],
-        tags: ["스킬", "소환"]
+        tags: ["스킬"]
       },
       jump: {
         id: "attack.lime.jump",
@@ -24622,7 +24653,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "projectile.pierce", targets: true, walls: true},
           {type: "projectile.impact", reasons: ["target-point"], attackIds: ["attack.lime.sticky-field"]}
         ],
-        tags: ["반격", "설치형"]
+        tags: ["반격"]
       },
       stickyField: {
         id: "attack.lime.sticky-field",
@@ -24675,7 +24706,7 @@ const CHARACTER_DATA=freezeCharacterData({
             presentation: {type: "slowZoneAppear", r: characterValue("attacks.stickyField.modules.2.range"), color: "193,250,177"}
           }
         ],
-        tags: ["반격", "설치형"]
+        tags: ["반격"]
       },
       stickyTick: {
         id: "attack.lime.sticky-tick",
@@ -24692,7 +24723,7 @@ const CHARACTER_DATA=freezeCharacterData({
             render: false
           }
         ],
-        tags: ["반격", "설치형"]
+        tags: ["반격"]
       },
       slimeAuto: {
         id: "attack.lime.slime-auto",
@@ -24743,7 +24774,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["범위 공격", "히트스캔", "공격형태 사각", "소환수 공격", "평타", "이동기"]
+        tags: ["소환수 공격", "평타"]
       }
     },
     abilities: {
@@ -24970,7 +25001,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["평타", "근거리", "범위 공격", "히트스캔", "공격형태 원", "넉백"]
+        tags: ["평타"]
       },
       counter: {
         id: "attack.quri.counter",
@@ -24999,7 +25030,7 @@ const CHARACTER_DATA=freezeCharacterData({
             attackIds: ["attack.quri.counter-explosion"]
           }
         ],
-        tags: ["반격", "공격형태 투사체", "일반"]
+        tags: ["반격"]
       },
       counterExplosion: {
         id: "attack.quri.counter-explosion",
@@ -25028,7 +25059,7 @@ const CHARACTER_DATA=freezeCharacterData({
             duration: 220
           }
         ],
-        tags: ["반격", "초근거리", "히트스캔", "공격형태 원"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -25189,7 +25220,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["평타", "범위 공격", "히트스캔", "공격형태 원", "초근거리", "넉백"]
+        tags: ["평타"]
       },
       tagBurst: {
         id: "attack.hapupu.tag-burst",
@@ -25212,7 +25243,7 @@ const CHARACTER_DATA=freezeCharacterData({
             renderType: "areaCircle"
           }
         ],
-        tags: ["평타", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.hapupu.rmb",
@@ -25223,7 +25254,7 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 0,
         presentation: {color: "#ffe6f7"},
         modules: [],
-        tags: ["스킬", "이동기"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.hapupu.counter",
@@ -25279,7 +25310,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 원", "넉백", "무력화 넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -25441,7 +25472,7 @@ const CHARACTER_DATA=freezeCharacterData({
             endChordWidth: 3.5
           }
         ],
-        tags: ["평타", "히트스캔", "공격형태 부채꼴", "초근거리"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.atsuteo.rmb",
@@ -25472,7 +25503,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "이동기"]
+        tags: ["스킬"]
       },
       rmbLand: {
         id: "attack.atsuteo.rmb-land",
@@ -25526,7 +25557,7 @@ const CHARACTER_DATA=freezeCharacterData({
             scaleWithAttackRange: true
           }
         ],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["반격"]
       },
       oreHit: {
         id: "attack.atsuteo.ore-hit",
@@ -25548,7 +25579,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "projectile.pierce", targets: false, walls: true},
           {type: "projectile.collision", wall: "clamp"}
         ],
-        tags: ["특수 공격", "근거리"]
+        tags: ["특수 공격"]
       }
     },
     abilities: {
@@ -25690,7 +25721,7 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {type: "projectile.pierce", targets: true, walls: true}
         ],
-        tags: ["평타", "관통", "유도"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.nare.rmb",
@@ -25733,7 +25764,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "범위 투사체", "관통", "넉백"]
+        tags: ["스킬"]
       },
       rmbExit: {
         id: "attack.nare.rmb-exit",
@@ -25804,7 +25835,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["반격", "다중 공격", "관통"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -25968,7 +25999,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "projectile.pierce", targets: false, walls: false},
           {type: "projectile.impact", attackIds: ["attack.kines.lmb-explosion"]}
         ],
-        tags: ["평타", "화염"]
+        tags: ["평타"]
       },
       lmbExplosion: {
         id: "attack.kines.lmb-explosion",
@@ -25999,7 +26030,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["평타", "화염", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["평타"]
       },
       rmb: {id: "attack.kines.rmb", damageRatio: 0, cost: 0, cd: 0, range: 0, effectsOnly: true, modules: [], tags: ["스킬"]},
       control: {
@@ -26041,7 +26072,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "화염", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["스킬"]
       },
       mobility: {
         id: "attack.kines.mobility",
@@ -26086,7 +26117,7 @@ const CHARACTER_DATA=freezeCharacterData({
             presentation: {type: "dash-line", color: "255,60,30", width: 7, alpha: 0.5, duration: 120}
           }
         ],
-        tags: ["스킬", "화염", "이동기", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["스킬"]
       },
       mobilityArrival: {
         id: "attack.kines.mobility-arrival",
@@ -26117,7 +26148,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "화염", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["스킬"]
       },
       release: {
         id: "attack.kines.release",
@@ -26148,7 +26179,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "화염", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["스킬"]
       },
       protection: {
         id: "attack.kines.protection",
@@ -26190,7 +26221,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["스킬", "화염", "보호막", "넉백", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.kines.counter",
@@ -26241,7 +26272,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["반격", "화염", "관통", "범위 공격", "히트스캔", "공격형태 원", "무력화", "넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -26384,7 +26415,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "projectile.pierce", targets: false, walls: false},
           {type: "projectile.impact", attackIds: ["attack.ezrail.lmb-explosion"]}
         ],
-        tags: ["평타", "범위 투사체"]
+        tags: ["평타"]
       },
       lmbExplosion: {
         id: "attack.ezrail.lmb-explosion",
@@ -26448,7 +26479,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["평타", "보호막", "설치형", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.ezrail.rmb",
@@ -26545,7 +26576,7 @@ const CHARACTER_DATA=freezeCharacterData({
             buffs: [{type: "evasionInvulnerable", value: 1, duration: "movement"}]
           }
         ],
-        tags: ["스킬", "이동기", "넉백", "보호막", "설치형", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.ezrail.counter",
@@ -26580,7 +26611,7 @@ const CHARACTER_DATA=freezeCharacterData({
             durationFrames: 30
           }
         ],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 원", "넉백", "무력화"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -26718,6 +26749,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmb.range"),
             halfAngle: 1.7453292519943295,
@@ -26742,7 +26774,7 @@ const CHARACTER_DATA=freezeCharacterData({
             scaleWithAttackRange: true
           }
         ],
-        tags: ["평타", "근접", "공격형태 부채꼴"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.nyu.rmb",
@@ -26832,7 +26864,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "투사체", "관통"]
+        tags: ["스킬"]
       },
       swordFieldTick: {
         id: "attack.nyu.sword-field-tick",
@@ -26851,7 +26883,7 @@ const CHARACTER_DATA=freezeCharacterData({
             render: false
           }
         ],
-        tags: ["스킬", "설치형", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["스킬"]
       },
       swordReturn: {
         id: "attack.nyu.sword-return",
@@ -26888,7 +26920,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "귀환"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.nyu.counter",
@@ -26926,7 +26958,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 원", "무력화"]
+        tags: ["반격"]
       },
       counterSword: {
         id: "attack.nyu.counter-sword",
@@ -26964,7 +26996,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 원", "무력화"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -27169,7 +27201,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["평타", "투사체"]
+        tags: ["평타"]
       },
       cooling: {id: "attack.gae.cooling", damageRatio: 0, cost: 0, cd: 700, range: 190, modules: [], tags: ["스킬", "선딜레이"]},
       counter: {
@@ -27195,7 +27227,7 @@ const CHARACTER_DATA=freezeCharacterData({
             durationFrames: 14
           }
         ],
-        tags: ["반격", "범위 공격", "넉백", "행동충전제외"]
+        tags: ["반격", "행동충전제외"]
       }
     },
     abilities: {
@@ -27385,6 +27417,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmb.range"),
             halfAngle: 1.05,
@@ -27414,7 +27447,7 @@ const CHARACTER_DATA=freezeCharacterData({
             replaceAutoAreaEffect: true
           }
         ],
-        tags: ["평타", "다중 공격"]
+        tags: ["평타"]
       },
       lmbSecond: {
         id: "attack.cyien.lmb-second",
@@ -27426,6 +27459,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmbSecond.range"),
             halfAngle: 1.05,
@@ -27455,7 +27489,7 @@ const CHARACTER_DATA=freezeCharacterData({
             replaceAutoAreaEffect: true
           }
         ],
-        tags: ["평타", "다중 공격"]
+        tags: ["평타"]
       },
       lmbBack: {
         id: "attack.cyien.lmb-back",
@@ -27467,6 +27501,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.lmbBack.range"),
             halfWidth: 54,
@@ -27497,7 +27532,7 @@ const CHARACTER_DATA=freezeCharacterData({
             scaleWithAttackRange: true
           }
         ],
-        tags: ["평타", "다중 공격"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.cyien.rmb",
@@ -27509,6 +27544,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.rmb.range"),
             halfAngle: 1.05,
@@ -27550,7 +27586,7 @@ const CHARACTER_DATA=freezeCharacterData({
             visualState: {effectStateKey: "cyien-parry", duration: 150, syncToGuardDuration: true, color: "168,213,255"}
           }
         ],
-        tags: ["스킬", "방어"]
+        tags: ["스킬"]
       },
       rmbCharged: {
         id: "attack.cyien.rmb-charged",
@@ -27609,7 +27645,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["범위 공격", "히트스캔", "공격형태 사각", "스킬", "이동기", "처형"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.cyien.counter",
@@ -27681,7 +27717,7 @@ const CHARACTER_DATA=freezeCharacterData({
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           }
         ],
-        tags: ["반격", "이동기", "넉백", "범위 공격", "히트스캔", "공격형태 사각"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -27858,6 +27894,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.lmb.range"),
             halfWidth: 60,
@@ -27890,7 +27927,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["평타", "근거리", "범위 공격", "히트스캔", "공격형태 사각", "넉백", "이동기"]
+        tags: ["평타"]
       },
       lmbMoving: {
         id: "attack.kanon.recoil",
@@ -27913,7 +27950,7 @@ const CHARACTER_DATA=freezeCharacterData({
             tags: ["이동기"]
           }
         ],
-        tags: ["평타", "근거리", "이동기"]
+        tags: ["평타"]
       },
       lmbMovingHit: {
         id: "attack.kanon.recoil-hit",
@@ -27924,6 +27961,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.lmbMovingHit.range"),
             halfWidth: 60,
@@ -27947,7 +27985,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["평타", "근거리", "범위 공격", "히트스캔", "공격형태 사각", "넉백"]
+        tags: ["평타"]
       },
       lmbStopped: {
         id: "attack.kanon.cut",
@@ -27959,6 +27997,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "movement.cancel-dodge", when: "after-attack"},
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.lmbStopped.range"),
             halfWidth: 60,
@@ -27992,7 +28031,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["평타", "근거리", "다중 공격", "범위 공격", "히트스캔", "공격형태 사각", "넉백", "이동기"]
+        tags: ["평타"]
       },
       lmbStoppedSecond: {
         id: "attack.kanon.cut-second",
@@ -28003,6 +28042,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.lmbStoppedSecond.range"),
             halfWidth: 60,
@@ -28035,7 +28075,7 @@ const CHARACTER_DATA=freezeCharacterData({
             oncePerExecution: true
           }
         ],
-        tags: ["평타", "근거리", "다중 공격", "범위 공격", "히트스캔", "공격형태 사각", "넉백", "이동기"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.kanon.kick",
@@ -28046,6 +28086,7 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.rmb.range"),
             halfWidth: 44,
@@ -28061,7 +28102,7 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {type: "status.apply", when: "on-hit", target: "hit-target", status: "stun", duration: 250}
         ],
-        tags: ["스킬", "근거리", "기절", "범위 공격", "히트스캔", "공격형태 사각", "넉백"]
+        tags: ["스킬"]
       },
       rmbMoving: {
         id: "attack.kanon.dive-kick",
@@ -28073,6 +28114,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "movement.cancel-dodge", when: "after-attack"},
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.rmbMoving.range"),
             halfWidth: 44,
@@ -28088,7 +28130,7 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {type: "status.apply", when: "on-hit", target: "hit-target", status: "stun", duration: 500}
         ],
-        tags: ["스킬", "근거리", "기절", "범위 공격", "히트스캔", "공격형태 사각", "넉백"]
+        tags: ["스킬"]
       },
       rmbStopped: {
         id: "attack.kanon.high-kick",
@@ -28100,6 +28142,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "movement.cancel-dodge", when: "after-attack"},
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.rmbStopped.range"),
             halfWidth: 44,
@@ -28115,7 +28158,7 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {type: "status.apply", when: "on-hit", target: "hit-target", status: "stun", duration: 750}
         ],
-        tags: ["스킬", "근거리", "기절", "범위 공격", "히트스캔", "공격형태 사각", "넉백"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.kanon.counter",
@@ -28126,13 +28169,14 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "rect",
             range: characterValue("attacks.counter.range"),
             halfWidth: 38,
             wallPolicy: "block"
           }
         ],
-        tags: ["반격", "근거리", "범위 공격", "히트스캔", "공격형태 사각", "넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -28303,13 +28347,14 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {
             type: "delivery.area",
+            contactType: "melee",
             shape: "sector",
             range: characterValue("attacks.lmb.range"),
             halfAngle: 1.15,
             wallPolicy: "block"
           }
         ],
-        tags: ["평타", "근거리", "범위 공격", "히트스캔", "공격형태 부채꼴"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.deltroove.rmb",
@@ -28345,7 +28390,7 @@ const CHARACTER_DATA=freezeCharacterData({
             wallImpactStatus: {status: "stun", duration: 800}
           }
         ],
-        tags: ["스킬", "원거리", "범위 투사체", "벽 관통", "적 관통", "넉백", "기절"]
+        tags: ["스킬"]
       },
       counter: {
         id: "attack.deltroove.counter",
@@ -28374,7 +28419,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "projectile.pierce", targets: false, walls: false},
           {type: "hit.once-per-execution"}
         ],
-        tags: ["반격", "원거리", "투사체", "무력화 넉백"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -28558,7 +28603,7 @@ const CHARACTER_DATA=freezeCharacterData({
             multiplier: 0.6666666666666666
           }
         ],
-        tags: ["평타", "원거리", "투사체", "무기 투사체"]
+        tags: ["평타"]
       },
       rmb: {
         id: "attack.xianelli.rmb",
@@ -28568,7 +28613,7 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 900,
         effectsOnly: true,
         modules: [],
-        tags: ["스킬", "이동기"]
+        tags: ["스킬"]
       },
       shunpoDagger: {
         id: "attack.xianelli.shunpo-dagger",
@@ -28632,7 +28677,7 @@ const CHARACTER_DATA=freezeCharacterData({
             }
           }
         ],
-        tags: ["스킬", "무기 투사체"]
+        tags: ["스킬"]
       },
       shunpoHit: {
         id: "attack.xianelli.shunpo-hit",
@@ -28663,7 +28708,7 @@ const CHARACTER_DATA=freezeCharacterData({
             animation: true
           }
         ],
-        tags: ["스킬", "범위 공격", "히트스캔"]
+        tags: ["스킬"]
       },
       counterDagger: {
         id: "attack.xianelli.counter-dagger",
@@ -28734,7 +28779,7 @@ const CHARACTER_DATA=freezeCharacterData({
             multiplier: 0.6666666666666666
           }
         ],
-        tags: ["반격", "투사체", "무기 투사체"]
+        tags: ["반격"]
       },
       counter: {
         id: "attack.xianelli.counter",
@@ -28776,7 +28821,7 @@ const CHARACTER_DATA=freezeCharacterData({
             angleOffsets: [0, 1.5707963267948966, 3.141592653589793, 4.71238898038469]
           }
         ],
-        tags: ["반격", "범위 공격", "히트스캔", "공격형태 원"]
+        tags: ["반격"]
       }
     },
     abilities: {
@@ -28939,7 +28984,7 @@ const CharacterDataService=Object.freeze({
     const character={
       ...definition,id,stats,classification,...stats,
       difficulty:stats.difficulty,
-      moveLabel:String(stats.speed),
+      moveLabel:CHARACTER_RULES.moveLabels[id]||'보통',
       // 구형 소비자를 위한 파생 문자열. 분류 원본은 classification에만 둔다.
       styleLabel:[style,role].join(' '),
       tags:Object.freeze([...new Set([style,...(extraTags||[]),role])])
@@ -29228,7 +29273,7 @@ const AUGMENTS=Object.freeze([
               Object.freeze({type:'delivery.area',shape:'circle',range:130,wallPolicy:'ignore'}),
               Object.freeze({type:'effect.spawn',when:'after-attack',renderType:'areaCircle',position:'source',range:130,r:130,durationFrames:10,color:'character',fillAlpha:.10,strokeAlpha:.85,lineWidth:2})
             ]),
-            tags:Object.freeze(['증강','반사 피해','범위 공격','히트스캔','공격형태 원'])
+            tags:Object.freeze(['증강','반사 피해'])
           })
         })
       ])
@@ -29279,7 +29324,7 @@ const AUGMENTS=Object.freeze([
             Object.freeze({type:'movement.pull',target:'hit-target',distance:110,duration:90,gap:14}),
             Object.freeze({type:'effect.spawn',when:'after-attack',renderType:'areaCircle',position:'source',range:220,r:220,durationFrames:18,color:'character',fillAlpha:.08,strokeAlpha:.85,lineWidth:2})
           ]),
-          tags:Object.freeze(['증강','끌어오기','범위 공격','히트스캔','공격형태 원'])
+          tags:Object.freeze(['증강'])
         })
       })])
     })])
@@ -29302,7 +29347,7 @@ const AUGMENTS=Object.freeze([
             Object.freeze({type:'movement.knockback',target:'hit-target',direction:'away-from-source',distance:42,speed:10,oncePerExecution:true}),
             Object.freeze({type:'effect.spawn',when:'after-attack',renderType:'areaCircle',position:'source',range:140,r:140,durationFrames:12,color:'character',fillAlpha:.10,strokeAlpha:.9,lineWidth:2})
           ]),
-          tags:Object.freeze(['증강','범위 공격','히트스캔','공격형태 원','넉백'])
+          tags:Object.freeze(['증강'])
         })
       })])
     })])
@@ -33607,592 +33652,368 @@ const MatchSpawnService=Object.freeze({
   }
 });
 
+// 공격 태그의 원본은 판정 모듈이다. 명시 태그에는 입력/연계의 의미만 남긴다.
+const attackTagMetadataCache=new WeakMap();
 const TagService=Object.freeze({
   rangeTag(range){
     const value=Math.max(0,Number(range)||0);
-    return GAME_DATA.ranges.find(
-      item=>value<=item.maxInclusive
-    )?.tag||'초장거리';
+    return GAME_DATA.ranges.find(item=>value<=item.maxInclusive)?.tag||'초장거리';
   },
-  attackRange(spec){
-    if(!spec)return 0;
-
-    let range=Math.max(0,Number(spec.range)||0);
-    const chargedRange=Number(spec.charge?.range?.to);
-    if(Number.isFinite(chargedRange)){
-      range=Math.max(range,chargedRange);
-    }
-
-    for(const module of spec.modules||[]){
-      const moduleRange=Number(module?.range);
-      if(Number.isFinite(moduleRange)){
-        range=Math.max(range,moduleRange);
+  isDerivedTag(tag){
+    return GAME_DATA.ranges.some(item=>item.tag===tag)||
+      Object.entries(COMBAT_STATUS_DEFS).some(([id,definition])=>tag===id||tag===definition.label)||
+      Object.entries(COMBAT_BUFF_DEFS).some(([id,definition])=>tag===id||tag===definition.label)||
+      [
+        '공격','히트스캔','범위 공격','공격형태 원','공격형태 사각','공격형태 부채꼴','공격형태 투사체',
+        '일반 투사체','무기 투사체','레이저 투사체','즉발 레이저 투사체','범위 투사체','특수 투사체',
+        '근접 무기','이동기','벽 관통','적 관통','유도','귀환','설치형','소환','차징','충전','채널링',
+        '다중 공격','대상당 1회','넉백','무력화 넉백','끌어오기','체력 회복','스테미나 회복','보호막',
+        '최대 체력 비례 피해','조건부 피해','방어','버프','은신',
+        // 예전 표기의 별칭도 보관된 태그에서 다시 유입시키지 않는다.
+        '범위','투사체','일반','관통','근접','회복'
+      ].includes(tag);
+  },
+  explicitAttackTags(spec){
+    return new Set((spec?.tags||[]).filter(tag=>!this.isDerivedTag(tag)));
+  },
+  characterFor(spec){
+    if(!spec?.id)return null;
+    return Object.values(GAME_DATA.characters||{}).find(character=>
+      Object.values(character.attacks||{}).some(attack=>attack.id===spec.id||attack.charge?.fullSpec?.id===spec.id)
+    )||null;
+  },
+  characterMetadata(character){
+    if(!character)return {fields:new Map(),channels:new Set(),combos:new Set()};
+    const cached=attackTagMetadataCache.get(character);
+    if(cached)return cached;
+    const fields=new Map(),byState=new Map(),expansions=[],channels=new Set(),combos=new Set();
+    const addField=field=>{
+      if(field.removeOnly===true)return;
+      if(field.stateKey&&!byState.has(field.stateKey))byState.set(field.stateKey,field);
+      if(field.attackId&&field.damageOnTrigger===true){
+        if(!fields.has(field.attackId))fields.set(field.attackId,[]);
+        fields.get(field.attackId).push(field);
       }
+    };
+    const visit=value=>{
+      if(!value||typeof value!=='object')return;
+      if(value.type==='field.area')addField(value);
+      if(value.type==='field.expand-recent')expansions.push(value);
+      if(value.type==='channel.attack'&&value.attackId)channels.add(value.attackId);
+      for(const child of Object.values(value))visit(child);
+    };
+    visit(character);
+    for(const expansion of expansions){
+      const original=byState.get(expansion.sourceStateKey);
+      if(!original||!expansion.attackId)continue;
+      addField({...original,...expansion,type:'field.area',stateKey:expansion.outputStateKey,
+        damageOnTrigger:true,halfWidth:(Number(original.halfWidth)||0)*(Number(expansion.halfWidthMultiplier)||1)});
     }
-
-    // 반격처럼 차징 데이터가 AttackSpec이 아니라 ability 모듈에 있는 경우도
-    // 실제 최대 공격 사거리를 태그 분류에 반영한다.
-    for(const character of Object.values(GAME_DATA.characters||{})){
-      for(const ability of Object.values(character?.abilities||{})){
-        if(ability?.attackId!==spec.id)continue;
-
-        for(const module of ability?.trigger?.modules||[]){
-          const abilityChargedRange=Number(module?.charge?.range?.to);
-          if(Number.isFinite(abilityChargedRange)){
-            range=Math.max(range,abilityChargedRange);
-          }
+    // 별도 AttackSpec으로 발사되는 콤보는 전달형태/CC를 서로 복사하지 않고 연타 의미만 공유한다.
+    for(const ability of Object.values(character.abilities||{})){
+      for(const trigger of Object.values(ability)){
+        if(!Array.isArray(trigger?.modules))continue;
+        const groups=new Map();
+        for(const module of trigger.modules){
+          if(module?.type!=='action.trigger-attack'||!module.attackId)continue;
+          const first=module.requireAttackId||ability.attackId;
+          if(!first)continue;
+          if(!groups.has(first))groups.set(first,new Set([first]));
+          groups.get(first).add(module.attackId);
+        }
+        for(const [first,ids] of groups){
+          const attack=Object.values(character.attacks||{}).find(item=>item.id===first);
+          const delivers=(attack?.modules||[]).some(module=>
+            /^delivery\./.test(module.type)||module.type==='effect.spawn'&&module.damage
+          );
+          if(!delivers)ids.delete(first);
+          if(ids.size>1)for(const id of ids)combos.add(id);
         }
       }
     }
-
+    const result={fields,channels,combos};
+    attackTagMetadataCache.set(character,result);
+    return result;
+  },
+  attackRange(spec){
+    if(!spec)return 0;
+    const value=number=>Math.max(0,Number(number)||0);
+    let range=value(spec.range);
+    const readModules=modules=>{
+      for(const module of modules||[]){
+        if(!module||typeof module!=='object')continue;
+        if(['delivery.projectile','delivery.range-projectile','delivery.area','delivery.hitscan'].includes(module.type)){
+          range=Math.max(range,value(module.range));
+          if(module.targetPoint===true&&module.targetPointClampToAttackRange===false)range=Infinity;
+        }
+        if(module.type==='effect.spawn'&&module.damage?.module)readModules([module.damage.module]);
+      }
+    };
+    const readScale=scale=>{
+      range=Math.max(range,value(scale?.range?.from),value(scale?.range?.to));
+      for(const item of scale?.moduleValues||[]){
+        if(item.property==='range')range=Math.max(range,value(item.from),value(item.to));
+      }
+    };
+    readModules(spec.modules);
+    readScale(spec.charge);
+    readScale(spec.progressScale);
+    if(spec.charge?.fullSpec)range=Math.max(range,this.attackRange(spec.charge.fullSpec));
+    const character=this.characterFor(spec);
+    for(const ability of Object.values(character?.abilities||{})){
+      for(const trigger of Object.values(ability)){
+        for(const module of trigger?.modules||[]){
+          if(module.type==='counter.execute'&&ability.attackId===spec.id)readScale(module.charge);
+        }
+      }
+    }
     return range;
   },
-  explicitAttackTags(spec){
-    return new Set(spec?.tags||[]);
+  addStatusTags(tags,status){
+    if(!status)return;
+    const id=typeof status==='string'?status:status.status;
+    if(!id||typeof status==='object'&&Number(status.duration)===0)return;
+    tags.add(id);
+    const definition=COMBAT_STATUS_DEFS[id]||COMBAT_BUFF_DEFS[id];
+    if(definition?.label)tags.add(definition.label);
+    if(id==='stealth')tags.add('은신');
+  },
+  addBuffTags(tags,stat,value){
+    if(!stat||Number(value)===0)return;
+    tags.add('버프');
+    tags.add(stat);
+    if(COMBAT_BUFF_DEFS[stat]?.label)tags.add(COMBAT_BUFF_DEFS[stat].label);
+    if(stat==='stealth')tags.add('은신');
+  },
+  addShapeTags(tags,shape){
+    if(shape==='rect'||shape==='rectangle')tags.add('공격형태 사각');
+    else if(['sector','cone','tapered-rect'].includes(shape))tags.add('공격형태 부채꼴');
+    else if(shape==='circle')tags.add('공격형태 원');
   },
   fieldGeometryTags(field){
     const tags=new Set();
     if(!field||typeof field!=='object')return tags;
-
-    const range=Math.max(0,Number(field.range)||0);
-    const halfWidth=Math.max(0,Number(field.halfWidth)||0);
-    const startHalfWidth=Math.max(0,Number(field.startHalfWidth)||0);
-    const endHalfWidth=Math.max(0,Number(field.endHalfWidth)||0);
-    const hasGeometry=
-      range>0||
-      halfWidth>0||
-      startHalfWidth>0||
-      endHalfWidth>0;
-    if(!hasGeometry)return tags;
-
     tags.add('설치형');
-
-    // 다른 AttackSpec을 단순 위임하는 감지 field는 자체 범위 증폭 대상으로 삼지 않는다.
-    // damageOnTrigger field는 attackId를 피해 프로필로 사용하더라도 field 자체가 실제 피해 범위다.
-    if(field.attackId&&field.damageOnTrigger!==true)return tags;
-
+    // 회수 명령과 다른 공격을 호출하는 감지 반경은 피해/지원 범위가 아니다.
+    if(field.removeOnly===true||field.attackId&&field.damageOnTrigger!==true)return tags;
+    const hasGeometry=['range','halfWidth','startHalfWidth','endHalfWidth'].some(key=>Number(field[key])>0)||field.pairWalls===true;
+    if(!hasGeometry)return tags;
     tags.add('범위 공격');
-    const shape=String(field.shape||'circle');
-    if(shape==='circle')tags.add('공격형태 원');
-    if(shape==='rect')tags.add('공격형태 사각');
-    if(shape==='sector'||shape==='tapered-rect'){
-      tags.add('공격형태 부채꼴');
-    }
+    this.addShapeTags(tags,field.pairWalls?'rect':String(field.shape||'circle'));
     return tags;
   },
-  derivedModuleTags(modules){
+  derivedModuleTags(modules,{character=null,visited=new Set()}={}){
     const tags=new Set();
+    const merge=items=>{
+      for(const tag of this.derivedModuleTags(items,{character,visited}))tags.add(tag);
+    };
+    const linkModules=id=>{
+      const linked=Object.values(character?.attacks||{}).find(attack=>attack.id===id);
+      if(linked)merge(linked.modules);
+    };
+    const list=Array.isArray(modules)?modules:[];
+    const projectile=list.find(module=>['delivery.projectile','delivery.range-projectile'].includes(module?.type||module));
     let scatterCount=1;
-    let hasProjectile=false;
-    let hasOncePerExecution=false;
-    let hasWeaponProjectilePresentation=false;
-    let hasLaserProjectilePresentation=false;
-    let hasSpecialProjectilePresentation=false;
-
-    for(const module of modules||[]){
-      const type=
-        typeof module==='string'
-          ?module
-          :module.type;
-
+    for(const module of list){
+      if(!module)continue;
+      const type=typeof module==='string'?module:module.type;
+      if(typeof module==='object'){
+        if(visited.has(module))continue;
+        visited.add(module);
+      }
       if(type==='delivery.projectile'||type==='delivery.range-projectile'){
         tags.add('공격형태 투사체');
-        hasProjectile=true;
         if(type==='delivery.range-projectile'){
-          tags.add('범위 투사체');
-          tags.add('히트스캔');
-          tags.add('범위 공격');
-          tags.add('공격형태 원');
+          // 기존 범위 투사체는 이동하는 원형 범위 판정이며 범위 증폭 대상이다.
+          tags.add('범위 투사체');tags.add('히트스캔');tags.add('범위 공격');tags.add('공격형태 원');
         }
-        if(
-          module?.homing&&
-          typeof module.homing==='object'
-        ){
-          tags.add('유도');
-        }
-        if(String(module?.phase||'')==='returning')tags.add('귀환');
+        if(module.homing)tags.add('유도');
+        if(module.phase==='returning')tags.add('귀환');
       }
-
-      if(
-        type==='delivery.hitscan'||
-        type==='delivery.area'
-      ){
-        tags.add('히트스캔');
-        tags.add('범위 공격');
-
-        if(String(module?.projectileClassification||'')==='instant-laser'){
-          tags.add('공격형태 투사체');
-          tags.add('레이저 투사체');
-          tags.add('즉발 레이저 투사체');
+      if(type==='delivery.hitscan'||type==='delivery.area'){
+        tags.add('히트스캔');tags.add('범위 공격');
+        this.addShapeTags(tags,String(module.shape||'rect'));
+        if(module.wallPolicy==='ignore')tags.add('벽 관통');
+        if(String(module.contactType||'').toLowerCase()==='melee')tags.add('근접 무기');
+        if(module.projectileClassification==='instant-laser'){
+          tags.add('공격형태 투사체');tags.add('레이저 투사체');tags.add('즉발 레이저 투사체');
         }
-
-        if(
-          String(module?.contactType||'')
-            .toLowerCase()==='melee'
-        ){
-          tags.add('근접 무기');
-        }
-
-        const shape=String(module?.shape||'').toLowerCase();
-        if(shape==='rect'||shape==='rectangle'){
-          tags.add('공격형태 사각');
-        }else if(shape==='tapered-rect'){
-          tags.add('공격형태 부채꼴');
-        }else if(shape==='circle'){
-          tags.add('공격형태 원');
-        }else if(shape==='sector'||shape==='cone'){
-          tags.add('공격형태 부채꼴');
-        }
+        if(Number(module.repeatCount??module.repeat?.count)>1)tags.add('다중 공격');
       }
-
       if(type==='field.area'){
-        for(const tag of this.fieldGeometryTags(module)){
-          tags.add(tag);
-        }
-        const delegatedTriggerAttack=Boolean(module?.attackId);
-
-        for(const trigger of delegatedTriggerAttack?[]:(module.onTrigger||[])){
-          if(trigger?.type==='status.apply'&&trigger.status){
-            tags.add(String(trigger.status));
-            const label=
-              COMBAT_STATUS_DEFS[trigger.status]?.label;
-            if(label)tags.add(label);
-          }
-
-          if(
-            trigger?.type==='resource.restore'&&
-            trigger.resource==='health'
-          ){
-            tags.add('체력 회복');
-          }
-
-          if(
-            trigger?.type==='resource.restore'&&
-            trigger.resource==='stamina'
-          ){
-            tags.add('스테미나 회복');
-          }
-
-          if(
-            trigger?.type==='modifier.set'&&
-            trigger.stat
-          ){
-            tags.add(String(trigger.stat));
-            const label=
-              COMBAT_BUFF_DEFS[trigger.stat]?.label;
-            if(label)tags.add(label);
-          }
+        for(const tag of this.fieldGeometryTags(module))tags.add(tag);
+        if(module.removeOnly!==true){
+          merge(module.onTrigger);
+          if(module.wallPolicy==='ignore'&&tags.has('범위 공격'))tags.add('벽 관통');
         }
       }
-
+      if(type==='effect.spawn'&&module.damage){
+        const damage=module.damage;
+        if(damage.module)merge([damage.module]);
+        if(damage.hitMode==='body-contact'){
+          // 현재 본체 원의 접촉/실제 이동 선분을 검사한다. 선행 사각 히트스캔이 아니다.
+          tags.add('범위 공격');tags.add('공격형태 원');
+        }
+        if(damage.oncePerExecution===true)tags.add('대상당 1회');
+        if(damage.projectileClear)tags.add('방어');
+      }
       if(type==='movement.move'){
-        tags.add('이동기');
-        const collision=
-          MovementAbilityService.normalizeCollision(module);
-        if(collision.passWalls)tags.add('벽 관통');
-        if(collision.passEnemies)tags.add('적 관통');
-      }
-
-      if(
-        type==='state.progress'||
-        type==='state.progress-rate'
-      ){
-        tags.add('충전');
-        const onFullStatus=module?.onFull?.status;
-        if(onFullStatus){
-          tags.add(String(onFullStatus));
-          const label=COMBAT_STATUS_DEFS[onFullStatus]?.label;
-          if(label)tags.add(label);
+        // 자가 반동은 이동기나 적에게 주는 넉백으로 분류하지 않는다.
+        if(module.motionMode!=='knockback'){
+          tags.add('이동기');
+          const collision=MovementAbilityService.normalizeCollision(module);
+          if(collision.passWalls)tags.add('벽 관통');
+          if(collision.passEnemies)tags.add('적 관통');
         }
       }
-
-      if(type==='resource.restore'){
-        if(module.resource==='health'){
-          tags.add('체력 회복');
-        }
-        if(module.resource==='stamina'){
-          tags.add('스테미나 회복');
-        }
-        if(module.resource==='shield'){
-          tags.add('보호막');
-        }
+      if(['action.temporal-rewind','action.stationary-projectile-swap-teleport','projectile.ride.start'].includes(type))tags.add('이동기');
+      if(type==='projectile.impact'){
+        if(module.field)merge([module.field]);
+        if(module.sourceRelocate)merge([{...module.sourceRelocate,type:'movement.move',tags:[]}]);
+        if(module.summon)tags.add('소환');
+        // 별도 impact AttackSpec의 전달형태/CC는 그 공격이 직접 조회될 때만 계산한다.
       }
-
-      if(type==='damage.target-max-health-ratio'){
-        tags.add('최대 체력 비례 피해');
-      }
-
-      if(
-        type==='damage.range-band-multiplier'||
-        type==='damage.target-health-ratio-multiplier'
-      ){
-        tags.add('조건부 피해');
-      }
-
-      if(type==='attack.guard'){
-        tags.add('방어');
-      }
-
-      if(type==='formation.manifest'){
-        tags.add('범위 공격');
-        tags.add('히트스캔');
-        tags.add('공격형태 원');
-        for(const status of ['slow','bind','freeze']){
-          tags.add(status);
-          const label=COMBAT_STATUS_DEFS[status]?.label;
-          if(label)tags.add(label);
-        }
-      }
-
       if(type==='projectile.pierce'){
         if(module.targets)tags.add('적 관통');
         if(module.walls)tags.add('벽 관통');
       }
-
-      if(type==='projectile.impact'){
-        if(
-          module.field&&
-          typeof module.field==='object'
-        ){
-          for(
-            const tag of
-            this.derivedModuleTags(
-              [module.field]
-            )
-          ){
-            tags.add(tag);
-          }
-        }
+      if(type==='hit.sequence'){
+        for(const step of module.steps||[])merge(step.modules);
       }
-
-      if(
-        type==='effect.spawn'&&
-        module.damage?.module&&
-        typeof module.damage.module==='object'
-      ){
-        for(
-          const tag of
-          this.derivedModuleTags(
-            [module.damage.module]
-          )
-        ){
-          tags.add(tag);
-        }
+      if(type==='action.target-attack')linkModules(module.attackId);
+      if(type==='delivery.delayed-projectile-volley'){
+        if(module.attackId)linkModules(module.attackId);
       }
-
-      if(
-        type==='projectile.presentation'&&
-        module?.kind==='weapon-projectile'
-      ){
-        hasWeaponProjectilePresentation=true;
+      if(type==='state.progress'||type==='state.progress-rate'){
+        if(!['subtract','reset'].includes(module.operation)&&Number(module.amount)!==0)tags.add('충전');
+        this.addStatusTags(tags,module.onFull);
       }
-
-      if(
-        type==='projectile.presentation'&&
-        module?.kind==='projectile-style'&&
-        String(module?.style?.type||'')===
-          'laser-bolt'
-      ){
-        hasLaserProjectilePresentation=true;
+      if(type==='resource.restore'){
+        if(module.resource==='health')tags.add('체력 회복');
+        if(module.resource==='stamina')tags.add('스테미나 회복');
+        if(module.resource==='shield')tags.add('보호막');
       }
-
-      if(
-        type==='projectile.presentation'&&
-        module?.kind==='projectile-style'&&
-        String(module?.style?.shape||'')===
-          'diamond'
-      ){
-        hasSpecialProjectilePresentation=true;
-      }
-
-      if(
-        type==='pattern.scatter'||
-        type==='delivery.delayed-projectile-volley'
-      ){
-        scatterCount=Math.max(
-          scatterCount,
-          Math.max(
-            1,
-            Number(module.count)||1
-          )
-        );
-      }
-
-      if(type==='hit.once-per-execution'){
-        tags.add('대상당 1회');
-        hasOncePerExecution=true;
-      }
-
-      if(
-        (
-          type==='movement.knockback'||
-          type==='movement.neutralize-knockback'
-        )&&
-        module.target==='hit-target'
-      ){
+      if(type==='modifier.set')this.addBuffTags(tags,module.stat,module.value);
+      if(type==='status.apply'&&module.target!=='self'&&module.target!=='source')this.addStatusTags(tags,module);
+      if(type==='damage.target-max-health-ratio')tags.add('최대 체력 비례 피해');
+      if(type==='damage.range-band-multiplier'||type==='damage.target-health-ratio-multiplier')tags.add('조건부 피해');
+      if(type==='attack.guard')tags.add('방어');
+      if(type==='hit.once-per-execution')tags.add('대상당 1회');
+      if(['movement.knockback','movement.neutralize-knockback'].includes(type)&&module.target==='hit-target'){
         tags.add('넉백');
         if(type==='movement.neutralize-knockback'){
-          tags.add('무력화 넉백');
+          tags.add('무력화 넉백');this.addStatusTags(tags,'neutralize');
         }
+        this.addStatusTags(tags,module.wallImpactStatus);
       }
-
-      if(type==='status.apply'&&module.status){
-        tags.add(module.status);
-        const label=COMBAT_STATUS_DEFS[module.status]?.label;
-        if(label)tags.add(label);
+      if(type==='movement.pull'||type==='movement.projectile-tether'){
+        tags.add('끌어오기');
+        this.addStatusTags(tags,module.status);
       }
-
-      // 모듈 자체에 선언한 태그는 모든 모듈 타입에서 동일하게 파생 태그로 취급한다.
-      if(Array.isArray(module?.tags)){
-        for(const explicitTag of module.tags){
-          const value=String(explicitTag||'').trim();
-          if(value)tags.add(value);
-        }
-      }
-
+      if(type==='pattern.scatter'||type==='delivery.delayed-projectile-volley')scatterCount=Math.max(scatterCount,Number(module.count)||1);
       if(type==='buff.time-add'){
         tags.add('버프');
-        if(
-          module.aura&&
-          Number(module.aura.range)>0
-        ){
-          tags.add('범위 공격');
-        }
-        for(const stage of module.stages||[]){
-          const label=
-            COMBAT_BUFF_DEFS[
-              String(stage?.stat||'')
-            ]?.label;
-          if(label)tags.add(label);
-        }
+        if(Number(module.aura?.range)>0){tags.add('범위 공격');tags.add('공격형태 원');}
+        for(const stage of module.stages||[])this.addBuffTags(tags,stage.stat,stage.value);
       }
-
-      if(type==='channel.attack'){
-        tags.add('채널링');
+      if(type==='sustain.toggle')for(const buff of module.buffs||[])this.addBuffTags(tags,buff.type,buff.value);
+      if(type==='stealth.toggle'){this.addBuffTags(tags,'stealth',1);}
+      if(type==='channel.attack')tags.add('채널링');
+      if(['summon.spawn','summon.cluster-spawn','summon.toggle','summon.recall','summon.return-owner','summon.retarget'].includes(type))tags.add('소환');
+      if(type==='field.expand-recent')tags.add('설치형');
+      if(type==='formation.place-minimum'||type==='obstacle.wall-deploy')tags.add('설치형');
+      if(type==='formation.manifest'){
+        tags.add('범위 공격');tags.add('히트스캔');tags.add('공격형태 원');
+        for(const status of ['slow','bind','freeze'])this.addStatusTags(tags,status);
       }
-
-      if(type==='movement.pull'){
-        tags.add('끌어오기');
-      }
-
-      if(type==='movement.projectile-tether'){
-        tags.add('끌어오기');
-        if(module.status){
-          tags.add(String(module.status));
-          const label=COMBAT_STATUS_DEFS[module.status]?.label;
-          if(label)tags.add(label);
-        }
-      }
+      // 모듈의 의미 태그만 병합한다. 계산 태그를 수동 값으로 덮어쓰지 않는다.
+      for(const tag of this.explicitAttackTags(module))tags.add(tag);
     }
-
-    if(scatterCount>1){
-      tags.add('다중 공격');
+    if(scatterCount>1)tags.add('다중 공격');
+    if(projectile&&(projectile.type||projectile)!=='delivery.range-projectile'){
+      const presentation=list.find(module=>module?.type==='projectile.presentation');
+      const collision=list.find(module=>module?.type==='projectile.collision');
+      if(presentation?.kind==='weapon-projectile')tags.add('무기 투사체');
+      else if(presentation?.style?.type==='laser-bolt')tags.add('레이저 투사체');
+      else if(presentation?.style?.shape==='diamond'||collision?.shape==='diamond'||scatterCount>1&&list.some(module=>module?.type==='hit.once-per-execution'))tags.add('특수 투사체');
+      else tags.add('일반 투사체');
     }
-
-    if(hasProjectile){
-      const hasRangeProjectile=(modules||[]).some(module=>AttackModuleService.type(module)==='delivery.range-projectile');
-      if(hasRangeProjectile){
-        tags.add('범위 투사체');
-      }else if(hasWeaponProjectilePresentation){
-        tags.add('무기 투사체');
-      }else if(hasLaserProjectilePresentation){
-        tags.add('레이저 투사체');
-      }else if(
-        hasSpecialProjectilePresentation||
-        (scatterCount>1&&hasOncePerExecution)
-      ){
-        tags.add('특수 투사체');
-      }else{
-        tags.add('일반 투사체');
-      }
-    }
-
     return tags;
   },
-  linkedAbilityModuleTags(spec){
+  linkedAbilityModuleTags(spec,character=this.characterFor(spec)){
     const tags=new Set();
-    if(!spec?.id)return tags;
-
-    for(
-      const character of
-      Object.values(
-        GAME_DATA.characters||{}
-      )
-    ){
-      for(
-        const ability of
-        Object.values(
-          character?.abilities||{}
-        )
-      ){
-        const abilityModules=
-          ability?.trigger?.modules||[];
-        const linkedDirect=
-          String(ability?.attackId||'')===
-          String(spec.id);
-        const linkedAlternate=
-          abilityModules.some(
-            module=>
-              module?.type==='counter.execute'&&
-              String(
-                module?.alternateWhen?.attackId||
-                ''
-              )===
-              String(spec.id)
-          );
-
-        if(!linkedDirect&&!linkedAlternate){
-          continue;
-        }
-
-        for(
-          const module of
-          abilityModules
-        ){
-          if(module?.type!=='counter.execute'){
+    const merge=modules=>{
+      for(const tag of this.derivedModuleTags(modules,{character}))tags.add(tag);
+    };
+    for(const ability of Object.values(character?.abilities||{})){
+      for(const trigger of Object.values(ability)){
+        const modules=trigger?.modules;
+        if(!Array.isArray(modules))continue;
+        const direct=ability.attackId===spec.id||ability.holdAttackId===spec.id||
+          (ability.inputAttackAlternates||[]).some(item=>item.attackId===spec.id);
+        const hasDelivery=(spec.modules||[]).some(module=>
+          /^delivery\./.test(module?.type)||module?.type==='effect.spawn'&&module.damage||module?.type==='formation.manifest'
+        );
+        const selected=direct||modules.some(module=>
+          module.requireAttackId===spec.id||module.alternateWhen?.attackId===spec.id||
+          (module.alternates||[]).some(item=>item.attackId===spec.id)||
+          module.type==='action.directional-trigger-attack'&&Object.values(module.attackIds||{}).includes(spec.id)
+        );
+        if(!selected)continue;
+        for(const module of modules){
+          if(module.requireAttackId&&module.requireAttackId!==spec.id)continue;
+          if(module.type==='counter.execute'){
+            const alternate=module.alternateWhen?.attackId===spec.id?module.alternateWhen:null;
+            if(!direct&&!alternate)continue;
+            const cc=alternate?.cc||module.cc;
+            if(cc)merge(Array.isArray(cc)?cc:[cc]);
+            if(module.charge)tags.add('차징');
+          }else if(module.type==='charge.attack.start'||module.type==='charge.attack.release'){
+            if(spec.charge||spec.multiClick)tags.add('차징');
+          }else{
+            // 입력 선딜·무적·버프·이동은 AttackSpec의 판정 태그가 아니다.
+            // 실제 피해/CC는 해당 AttackSpec의 modules 또는 counter.execute.cc에만 둔다.
             continue;
-          }
-
-          const linkedAlternateAttack=
-            String(
-              module?.alternateWhen?.attackId||
-              ''
-            )===
-            String(spec.id);
-          const resolvedCc=
-            linkedAlternateAttack&&
-            module?.alternateWhen?.cc
-              ?module.alternateWhen.cc
-              :module.cc;
-          if(!resolvedCc)continue;
-
-          const ccModules=
-            Array.isArray(resolvedCc)
-              ?resolvedCc
-              :[resolvedCc];
-
-          for(
-            const tag of
-            this.derivedModuleTags(
-              ccModules
-            )
-          ){
-            tags.add(tag);
           }
         }
       }
     }
-
+    const metadata=this.characterMetadata(character);
+    if(metadata.channels.has(spec.id))tags.add('채널링');
+    if(metadata.combos.has(spec.id))tags.add('다중 공격');
+    for(const field of metadata.fields.get(spec.id)||[])merge([field]);
     return tags;
   },
   derivedAttackTags(spec){
     const tags=new Set();
     if(!spec)return tags;
-
     tags.add('공격');
-    const resolvedAttackRange=this.attackRange(spec);
-    if(resolvedAttackRange>0){
-      tags.add(this.rangeTag(resolvedAttackRange));
-    }
-
-    for(const tag of this.derivedModuleTags(spec.modules)){
-      tags.add(tag);
-    }
-
-    /*
-      반격의 실제 CC는 AttackSpec이 아니라 counter.execute.cc에 위치한다.
-      실행 의미상 해당 AttackSpec의 효과이므로 같은 태그 집합에 병합한다.
-    */
-    for(
-      const tag of
-      this.linkedAbilityModuleTags(spec)
-    ){
-      tags.add(tag);
-    }
-
+    const range=this.attackRange(spec);
+    if(range>0)tags.add(this.rangeTag(range));
+    if(spec.charge||spec.multiClick)tags.add('차징');
+    const character=this.characterFor(spec);
+    for(const tag of this.derivedModuleTags(spec.modules,{character}))tags.add(tag);
+    for(const tag of this.linkedAbilityModuleTags(spec,character))tags.add(tag);
     return tags;
   },
   attackTags(spec){
+    if(!spec||typeof spec!=='object')return new Set();
     const cached=attackTagCache.get(spec);
     if(cached)return cached;
-
     const tags=this.explicitAttackTags(spec);
-
-    for(const tag of this.derivedAttackTags(spec)){
-      tags.add(tag);
-    }
-
+    for(const tag of this.derivedAttackTags(spec))tags.add(tag);
     attackTagCache.set(spec,tags);
     return tags;
   },
   isCrowdControlAttack(spec){
     if(!spec)return false;
     const tags=this.attackTags(spec);
-
-    for(const [statusType,definition] of Object.entries(COMBAT_STATUS_DEFS)){
-      if(
-        definition?.kind==='cc'&&
-        tags.has(statusType)
-      )return true;
-    }
-
-    return (
-      tags.has('넉백')||
-      tags.has('끌어오기')
-    );
+    return Object.entries(COMBAT_STATUS_DEFS).some(([status,definition])=>definition.kind==='cc'&&tags.has(status))||tags.has('넉백')||tags.has('끌어오기');
   },
   fieldTags(field){
-    const tags=this.fieldGeometryTags(field);
-    if(!field||typeof field!=='object')return tags;
-
-    const delegatedTriggerAttack=Boolean(field.attackId);
-    for(const trigger of delegatedTriggerAttack?[]:(field.onTrigger||[])){
-      if(
-        trigger?.type==='resource.restore'&&
-        trigger.resource==='health'
-      ){
-        tags.add('아군 대상');
-        tags.add('체력 회복');
-      }
-      if(
-        trigger?.type==='resource.restore'&&
-        trigger.resource==='stamina'
-      ){
-        tags.add('아군 대상');
-        tags.add('스테미나 회복');
-      }
-      if(
-        trigger?.type==='resource.restore'&&
-        trigger.resource==='shield'
-      ){
-        tags.add('아군 대상');
-        tags.add('보호막');
-      }
-      if(
-        trigger?.type==='status.apply'&&
-        trigger.status
-      ){
-        tags.add(String(trigger.status));
-        const label=
-          COMBAT_STATUS_DEFS[
-            trigger.status
-          ]?.label;
-        if(label)tags.add(label);
-      }
-      if(
-        trigger?.type==='modifier.set'&&
-        trigger.stat
-      ){
-        tags.add('아군 대상');
-        tags.add(String(trigger.stat));
-        const label=
-          COMBAT_BUFF_DEFS[
-            trigger.stat
-          ]?.label;
-        if(label)tags.add(label);
-      }
-    }
-
+    if(!field||typeof field!=='object')return new Set();
+    const tags=this.derivedModuleTags([{...field,type:'field.area'}]);
+    if((field.targetRelations||[]).some(relation=>relation==='ally'||relation==='self'))tags.add('아군 대상');
     return tags;
   },
   primaryAttackRange(character){
@@ -59646,16 +59467,7 @@ const CommandFeatureService={
         ...spec,
         range:resolvedRange,
         modules:Object.freeze(modules),
-        tags:Object.freeze([
-          ...(spec.tags||[]).filter(
-            tag=>
-              tag!=='투사체'&&
-              tag!=='히트스캔'
-          ),
-          instant
-            ?'히트스캔'
-            :'투사체'
-        ])
+        tags:spec.tags
       }
     );
   }
@@ -68826,15 +68638,13 @@ const CharacterDifficultyService=Object.freeze({
 
 const CharacterCardStatsService=Object.freeze({
   difficulty(character){
-    return `${CharacterDifficultyService.stars(character)} (${CharacterDifficultyService.level(character)})`;
+    return CharacterDifficultyService.stars(character);
   },
   rows(character){
     return [
       ['체력',character?.maxHealth],
-      ['이동속도',character?.speed],
-      ['스타일',CharacterSortService.combatStyle(character)||'-'],
-      ['사거리',`${CharacterSortService.distanceTag(character)} · ${CharacterDataService.format(CharacterSortService.basicRange(character))}`],
-      ['역할군',CharacterSortService.role(character)||'-'],
+      ['이동속도',character?.moveLabel||character?.speed],
+      ['스타일',CharacterSortService.styleLabel(character)||'-'],
       ['난이도',this.difficulty(character)]
     ];
   },
@@ -98537,10 +98347,7 @@ const CharacterDescriptionService=Object.freeze({
       `<div style="margin:3px 0 5px;white-space:nowrap;">`+
       `<strong>[HEALTH]</strong> ${character.maxHealth}`+
       `<span style="display:inline-block;width:18px;"></span>`+
-      `<strong>[MOVE SPEED]</strong> ${character.speed}</div>`+
-      `<div style="margin:3px 0 5px;"><strong>[스타일]</strong> ${CharacterSortService.combatStyle(character)} · `+
-      `<strong>[사거리]</strong> ${CharacterSortService.distanceTag(character)} (${CharacterDataService.format(CharacterSortService.basicRange(character))}) · `+
-      `<strong>[역할군]</strong> ${CharacterSortService.role(character)} · <strong>[난이도]</strong> ${CharacterDifficultyService.level(character)}</div>`;
+      `<strong>[MOVE SPEED]</strong> ${character.moveLabel||character.speed}</div>`;
 
     return titleHtml+`${CharacterDataService.interpolate(character,character.desc)}<br>`+
       baseStatsHtml+
