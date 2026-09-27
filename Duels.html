@@ -19224,6 +19224,7 @@ const CHARACTER_DATA=freezeCharacterData({
     attacks: {
       reloadComplete: {
         id: "attack.intu.reload-complete",
+        passiveCompletion: true,
         damageRatio: 0,
         cost: 0,
         cd: 0,
@@ -31650,6 +31651,7 @@ const CharacterRecordService=Object.freeze({
 
 
 const MatchResultSubmissionService=Object.freeze({
+  queues:new Map(),
   sleep(ms){
     return new Promise(resolve=>setTimeout(resolve,ms));
   },
@@ -31712,18 +31714,26 @@ const MatchResultSubmissionService=Object.freeze({
       }
     };
   },
-  async request(path,body){
+  async request(path,body,{forceRefresh=false}={}){
     const fb=globalThis.DuelsFirebase;
     const user=fb?.currentUser?.();
     if(!fb||!user)throw new Error('Firebase 로그인이 필요합니다.');
-    const firebaseIdToken=await user.getIdToken();
-    const response=await fetch(`${DUELS3_CONFIG.accountApiBase}${path}`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({...body,firebaseIdToken})
-    });
+    const firebaseIdToken=await user.getIdToken(forceRefresh);
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),25000);
+    let response;
     let data=null;
-    try{data=await response.json();}catch{}
+    try{
+      response=await fetch(`${DUELS3_CONFIG.accountApiBase}${path}`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({...body,firebaseIdToken}),
+        signal:controller.signal
+      });
+      try{data=await response.json();}catch{}
+    }finally{
+      clearTimeout(timeout);
+    }
     if(!response.ok||!data?.ok){
       const error=new Error(data?.message||data?.error||`경기 결과 서버 요청 실패 (${response.status})`);
       error.code=data?.error||'';
@@ -31732,43 +31742,48 @@ const MatchResultSubmissionService=Object.freeze({
     }
     return data;
   },
-  async submitRound(roundPayload){
-    const submission=this.payload(roundPayload);
+  async submitRound(roundPayload,submission=this.payload(roundPayload)){
     if(!submission)throw new Error('경기 결과 제출 정보를 만들 수 없습니다.');
-
-    let latest=null;
-
-    for(let attempt=0;attempt<16;attempt+=1){
-      latest=await this.request(
-        '/match/submit',
-        {submission}
-      );
-
-      if(latest?.finalized===true){
-        return latest;
+    const accountId=String(AccountState.current?.accountId||'');
+    const uid=String(globalThis.DuelsFirebase?.currentUser?.()?.uid||'');
+    // 방/캐릭터가 변경되어도 같은 경기 ID와 당시 참가자로 재제출한다.
+    const snapshot=JSON.parse(JSON.stringify(submission));
+    const previous=this.queues.get(accountId)||Promise.resolve();
+    const job=previous.catch(()=>{}).then(async()=>{
+      let refreshToken=false;
+      for(let attempt=0;;attempt+=1){
+        if(String(AccountState.current?.accountId||'')!==accountId||
+           String(globalThis.DuelsFirebase?.currentUser?.()?.uid||'')!==uid){
+          const error=new Error('정산 중 로그인 계정이 변경되었습니다.');
+          error.code='account-changed';
+          throw error;
+        }
+        try{
+          const latest=await this.request('/match/submit',{submission:snapshot},{forceRefresh:refreshToken});
+          refreshToken=false;
+          if(latest?.conflict===true){
+            const error=new Error('참가자들이 제출한 경기 결과가 서로 일치하지 않습니다.');
+            error.code='result-conflict';
+            throw error;
+          }
+          if(latest?.finalized===true&&latest.progress&&latest.result)return latest;
+        }catch(error){
+          const status=Number(error?.status)||0;
+          if(error?.code==='result-conflict')throw error;
+          if(status===401&&!refreshToken){
+            refreshToken=true;
+          }else if(status>=400&&status<500&&![408,425,429].includes(status)){
+            throw error;
+          }
+          // 통신 실패/서버 지연은 정산 거절이 아니다. 같은 ID로 계속 재시도한다.
+        }
+        await this.sleep(attempt<8?500:Math.min(30000,1000*Math.pow(2,Math.min(5,attempt-8))));
       }
-
-      if(latest?.conflict===true){
-        throw new Error(
-          '참가자들이 제출한 경기 결과가 서로 일치하지 않습니다.'
-        );
-      }
-
-      await this.sleep(
-        attempt<8
-          ?250
-          :600
-      );
+    });
+    this.queues.set(accountId,job);
+    try{return await job;}finally{
+      if(this.queues.get(accountId)===job)this.queues.delete(accountId);
     }
-
-    return (
-      latest||
-      {
-        ok:true,
-        finalized:false,
-        pending:true
-      }
-    );
   },
   async submitDeparture({characterId,mode,eventId}={}){
     return this.request('/match/departure/self',{
@@ -32197,15 +32212,15 @@ const CharacterRecordProgressionService={
     ]
       .filter(([,entry])=>
         entry?.pending===true&&
-        entry?.payload
+        entry?.payload&&entry.accountId===String(account.accountId||'')
       )
       .sort(([,a],[,b])=>
         (
-          Number(a?.token)||0
+          Number(a?.generation)||0
         )-
         (
-          Number(b?.token)||0
-        )
+          Number(b?.generation)||0
+        )||Number(a?.token)-Number(b?.token)
       );
 
     for(const [key,entry] of pendingEntries){
@@ -32214,7 +32229,8 @@ const CharacterRecordProgressionService={
           entry.payload,
           entry.pid||
             RoomService.localPid,
-          account
+          account,
+          entry.optimistic
         );
 
       if(!projected)continue;
@@ -32319,9 +32335,9 @@ const CharacterRecordProgressionService={
     return true;
   },
 
-  optimisticRoundResult(payload,pid,account){
+  optimisticRoundResult(payload,pid,account,snapshot=null){
     const characterId=
-      this.characterId(pid);
+      snapshot?.characterId||this.characterId(pid);
 
     if(!characterId)return null;
 
@@ -32350,13 +32366,13 @@ const CharacterRecordProgressionService={
 
     const mode=
       String(
-        payload?.mode||
+        snapshot?.mode||payload?.mode||
         RoomService.matchMode||
         MatchModeService.DUEL
       );
 
     const placement=
-      mode===MatchModeService.FFA
+      snapshot?snapshot.placement:mode===MatchModeService.FFA
         ?this.placement(
             payload,
             pid
@@ -32364,7 +32380,7 @@ const CharacterRecordProgressionService={
         :null;
 
     const ffaOutcome=
-      mode===MatchModeService.FFA
+      snapshot?snapshot.outcome:mode===MatchModeService.FFA
         ?this.ffaOutcome(
             payload,
             pid
@@ -32372,7 +32388,7 @@ const CharacterRecordProgressionService={
         :null;
 
     const won=
-      mode===MatchModeService.FFA
+      snapshot?snapshot.outcome==='win':mode===MatchModeService.FFA
         ?(
             ffaOutcome==='win'
               ?true
@@ -32386,12 +32402,12 @@ const CharacterRecordProgressionService={
           );
 
     const ffaScore=
-      mode===MatchModeService.FFA
+      snapshot?.ffaScore||(mode===MatchModeService.FFA
         ?this.ffaScoreMultiplier(
             payload,
             pid
           )
-        :null;
+        :null);
 
     const requestedDelta=
       Math.round(
@@ -32456,6 +32472,7 @@ const CharacterRecordProgressionService={
       requestedDelta,
       mode,
       placement,
+      ffaScore,
       outcome:
         mode===MatchModeService.FFA
           ?(
@@ -32496,7 +32513,7 @@ const CharacterRecordProgressionService={
         :'';
 
     element.textContent=
-      `레코드 ${sign}${delta} · ${result.before} → ${result.after}`;
+      `레코드${result.optimistic?' 정산 대기':''} ${sign}${delta} · ${result.before} → ${result.after}`;
 
     element.style.color=
       delta>0
@@ -32680,9 +32697,7 @@ const CharacterRecordProgressionService={
         serverResult.after,
         '레코드 서버 정정'
       );
-    }else if(
-      !previousOptimistic
-    ){
+    }else{
       this.showRecordDelta(
         serverResult
       );
@@ -32712,6 +32727,9 @@ const CharacterRecordProgressionService={
       this.resultByRound.set(resultKey,blocked);
       return blocked;
     }
+    const submission=MatchResultSubmissionService.payload(payload);
+    if(!submission)return null;
+    const accountId=String(account.accountId||'');
     const optimistic=
       this.optimisticRoundResult(
         payload,
@@ -32725,6 +32743,8 @@ const CharacterRecordProgressionService={
 
     const pending={
       token,
+      generation:this.matchGeneration,
+      accountId,
       pending:true,
       delta:
         Number(
@@ -32764,40 +32784,10 @@ const CharacterRecordProgressionService={
     }
 
     MatchResultSubmissionService
-      .submitRound(payload)
+      .submitRound(payload,submission)
       .then(response=>{
-        if(response?.finalized!==true){
-          const provisional=
-            this.resultByRound.get(
-              resultKey
-            )?.optimistic||
-            optimistic;
-
-          this.resultByRound.delete(
-            resultKey
-          );
-
-          this.rebuildOptimisticProjection({
-            broadcast:true,
-            reason:'round-result-optimistic-rollback'
-          });
-
-          if(provisional){
-            const restored=
-              CharacterRecordService.points(
-                provisional.characterId,
-                AccountState.current
-              );
-
-            this.showRecordCorrection(
-              provisional.after,
-              restored,
-              '레코드 정산 지연 · 임시 점수 회수'
-            );
-          }
-
-          return;
-        }
+        if(String(AccountState.current?.accountId||'')!==accountId)return;
+        if(response?.finalized!==true)return;
         this.applyServerProgress(
           response.progress,
           response.result,
@@ -32806,10 +32796,16 @@ const CharacterRecordProgressionService={
         );
       })
       .catch(error=>{
+        if(String(AccountState.current?.accountId||'')!==accountId){
+          this.resultByRound.delete(resultKey);
+          return;
+        }
         console.warn(
           '[Duels] match settlement failed',
           error
         );
+        // 확정 후 UI 갱신 오류가 나더라도 서버 정산을 취소한 것으로 처리하지 않는다.
+        if(this.resultByRound.get(resultKey)?.finalized===true)return;
 
         const provisional=
           this.resultByRound.get(
@@ -32928,12 +32924,15 @@ const CharacterRecordProgressionService={
 
   reset(){
     this.matchGeneration+=1;
-    this.resultByRound.clear();
+    const accountId=String(AccountState.current?.accountId||'');
+    for(const [key,entry] of this.resultByRound){
+      if(entry?.pending!==true||entry.accountId!==accountId)this.resultByRound.delete(key);
+    }
     this.departurePenaltyGeneration=-1;
-    this.authoritativeProgress=null;
+    if(!this.resultByRound.size)this.authoritativeProgress=null;
 
     if(AccountState.current){
-      AccountState.current.recordSettlementPending=false;
+      AccountState.current.recordSettlementPending=this.resultByRound.size>0;
     }
   }
 };
@@ -34584,7 +34583,7 @@ const TimedActionStateService=Object.freeze({
     const state=entity?.actionState?.get(key)||null;
     if(!state||state.kind!=='timed-action-state')return null;
     if(
-      (state.retainUntil>0?state.retainUntil:state.expiresAt)<=now||
+      (!state.completionPending&&(state.retainUntil>0?state.retainUntil:state.expiresAt)<=now)||
       state.characterId!==String(entity.character?.id||'')
     ){
       entity.actionState.delete(key);
@@ -75719,6 +75718,8 @@ const AttackModuleService=Object.freeze({
               source.actionState?.get(key)||
               null;
             if(expected&&resolveAttackIds){
+              // 완료 예약이 처리되기 전에는 프레임 지연이나 UI 조회로 상태를 만료시키지 않는다.
+              expected.completionPending=true;
               SimulationScheduleService.scheduleContinuation({
                 at:expected.expiresAt,
                 source,
@@ -75741,6 +75742,7 @@ const AttackModuleService=Object.freeze({
                     !source.alive
                   )return;
                   const completedAt=performance.now();
+                  state.completionPending=false;
                   const retainMs=Math.max(0,Number(state.retainCompleteMs)||0);
                   if(retainMs>0){
                     state.completedAt=completedAt;
@@ -77383,6 +77385,15 @@ const AttackService=Object.freeze({
   execute(source,baseSpec,angle,options={}){
     if(!baseSpec){
       return false;
+    }
+    // 재장전 같은 수동 입력 없는 상태 완료는 CC와 공격 이벤트의 영향을 받지 않는다.
+    // 상태 수치 변경만 허용하며, 일반 공격/피해 모듈은 이 경로로 실행할 수 없다.
+    if(options.freeAttack===true&&baseSpec.passiveCompletion===true&&baseSpec.effectsOnly===true){
+      if(!source?.alive)return false;
+      const modules=baseSpec.modules||[];
+      if(!modules.length||modules.some(module=>module.type!=='state.progress'))return false;
+      for(const module of modules)ProgressStateService.apply(source,module);
+      return true;
     }
     const now=performance.now();
     const committed=options.wallDeferredCommit===true;
