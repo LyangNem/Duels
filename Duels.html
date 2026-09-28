@@ -32513,7 +32513,7 @@ const CharacterRecordProgressionService={
         :'';
 
     element.textContent=
-      `레코드${result.optimistic?' 정산 대기':''} ${sign}${delta} · ${result.before} → ${result.after}`;
+      `레코드 ${sign}${delta} · ${result.before} → ${result.after}`;
 
     element.style.color=
       delta>0
@@ -32697,7 +32697,7 @@ const CharacterRecordProgressionService={
         serverResult.after,
         '레코드 서버 정정'
       );
-    }else{
+    }else if(!previousOptimistic){
       this.showRecordDelta(
         serverResult
       );
@@ -32832,7 +32832,7 @@ const CharacterRecordProgressionService={
           this.showRecordCorrection(
             provisional.after,
             restored,
-            '레코드 정산 실패 · 임시 점수 회수'
+            '레코드 정산 오류 · 점수 회수'
           );
         }
       });
