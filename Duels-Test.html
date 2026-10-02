@@ -1,3 +1,5 @@
+<!-- 3.1717 타우 크리티컬 복원: 이전 3스택 spark-scythe 구조와 LMB CRIT 분기를 복원. 일반 LMB는 baseDamage 200×0.75=150 피해, CRIT은 ×2.25=450 피해로 조정하고 기존 최대체력 비례 추가 피해는 복원하지 않았다. 일반 평타 적중마다 스파크 +1/최대3, 최대 시 LMB가 CRIT으로 전환되어 적중 시 스파크를 초기화하며 반격은 스파크를 최대 충전한다. -->
+<!-- 3.1717 티냐 반격 마법진 참조 변경: 반격 formation.manifest를 현재 배치(source:current)가 아니라 마지막 실제 발동 진형(source:last)으로 변경. CircleFormationService는 lastFormation 스냅샷을 반격 조준 위치에 복제하며, 기록이 아직 없을 때만 최소 마법진 1개로 fallback한다. 반격 자체는 storeLast:false라 마지막 일반 마법진 기록을 덮어쓰지 않는다. -->
 <!-- 3.1717 사이엔 홀드 기능 원복: 3.1717 (36).html의 홀드 도입 전 사이엔 블록을 그대로 복원. RMB는 즉시 패리, 격 최대 시 기존 alternate로 절격이 발동하며 0.3초 홀드/홀드 게이지/완료 미리보기는 사용하지 않는다. 이후 타 캐릭터 및 공통 수정은 유지. -->
 <!-- 3.1717 사이엔 절격 홀드 게이지 실제 렌더 색상 수정: PointerHoldInputService.drawHoldGauge의 흰색 하드코딩을 제거하고 진행 호/완충 호/완충 점멸링을 모두 사이엔 본색 #4f79aa로 통일. 기존 격 게이지와 동일 반경에서 후순위로 덮어쓰는 구조는 유지. -->
 <!-- 3.1717 사이엔 절격 홀드 게이지 색상 조정: 격 최대 상태에서 RMB 홀드 진행 호를 흰색이 아닌 사이엔 본색 #4f79aa로 변경. 기존 격 게이지와 동일 반경에서 그 위에 덮어쓰는 렌더 순서와 절격 가능 시에만 표시되는 조건은 유지. -->
@@ -875,6 +877,7 @@ RMB `광석 발견`: 최대 180px 지정지점으로 180ms 이동 후 원형 200
 <!-- 3.1717 엔소냐/프릴 버그 수정: 엔소냐 RMB 즉시 1단계 볼륨 버프의 rmbPulse 대상 관계를 self+ally로 확장해 주변 아군에게도 첫 5초 단계가 즉시 적용되도록 했다. 프릴 LMB 3타는 강제 네트워크 충돌 원점을 끄고 현재 캐릭터 위치 기준의 area 판정을 사용해 온라인/보간 상황에서 시각 위치와 피해 판정 원점이 어긋나 피해가 누락되던 문제를 수정했다. -->
 <!-- 3.1717 밸런스 일괄 조정: 에즈레일 바람지대 첫 진입 즉시 보호막 제거 및 0.5초마다 최대체력 5% 보호막, 티냐 마법진 발현 공개시간 0.375초 및 타격 시 티냐 반대방향 무력화 넉백(84/10), 사이엔 RMB 패리 제거 후 LMB 3타에 패리 이전, 디라 적중 식재료 획득 1개 및 식재료 실제 아군/스토브 적중 시에만 소모, 레이즈 체력 1100, 레테 RMB HOLD 0.3초·LMB 비용 300·벽 관통·약한 아군/적 유도, 카논 LMB 계열 넉백 제거, 시아넬리 순보 쿨다운 0.4초. -->
 <!-- 3.1717 타우 리워크: LMB CRIT/최대체력 비례 추가 피해와 스파크 충전 연동을 제거하고 일반 평타 피해를 250으로 상향. 역할군을 딜러로 변경하고 칭호를 사슬낫의 소년, LMB를 사슬낫 휘두르기, RMB를 쇠사슬 추격, 반격을 체인 웨이브로 변경. -->
+<!-- 3.1717 레테 호게이지 색상 복구: 사이엔 홀드 수정 과정에서 공통 PointerHold/characterHold 렌더러에 남은 #4f79aa 하드코딩을 제거하고 각 캐릭터의 entity.color/ringPresentation 색상을 다시 사용하도록 복원. 레테는 본색 #A7B0A4로 표시된다. -->
 <!DOCTYPE html>
 <!-- 3.1717 디버그 캐릭터 레코드 삭제: 계정 탭에 Firebase UID + 캐릭터 선택 기반의 개별 삭제 UI를 추가했다. DebugAccessService.deleteCharacterRecord()는 /firebase/admin/progress/character/delete 관리자 API를 호출해 해당 UID의 선택 캐릭터 characterRecords/characterStats와 랭킹 항목만 삭제하며 다른 캐릭터/계정 데이터는 유지한다. debugTools + rankingAdmin 권한을 요구하고 성공 후 랭킹 캐시를 즉시 갱신한다. -->
 <!-- 3.1717 뉴 마검 적중 정지 원인 고정 보강: 뉴 RMB는 targetPoint/targetDistance를 사용하지 않는 일반 직선 투사체라 travel<targetDistance 방식만으로는 적중 정지를 식별할 수 없었다. 적 충돌/권위 적중 확정에서 beginLinger에 stopReason=target을 직접 전달하고 projectile/stationaryArrival에 보존한다. target 정지 상태는 대상 사망·소멸 뒤에도 고정 좌표/이동거리를 유지하며 snapToRangeEnd 사거리 끝 보정을 차단한다. -->
@@ -11894,14 +11897,15 @@ const CHARACTER_DATA=freezeCharacterData({
     stats: {maxHealth: 1000, speed: 4.5, radius: 20, baseDamage: 200, difficulty: 2},
     desc: "스파크 낫을 이용한 변칙적인 움직임으로 전투하는 캐릭터",
     tooltipSkills: [
-      {key: "LMB", name: "사슬낫 휘두르기", attack: "lmb", text: "사슬낫을 휘둘러 피해 ({damage})"},
+      {key: "LMB", name: "사슬낫 휘두르기", attack: "lmb", text: "사슬낫을 휘둘러 피해. 적중한 적마다 스파크 {progressAmount} 충전 ({damage})"},
+      {key: "LMB CRIT", name: "", attack: "lmbCharged", showCost: false, text: "스파크 최대 충전 시 강화 피해 ({damage})"},
       {key: "RMB", name: "쇠사슬 추격", attack: "rmb", text: "낫을 던져 적중 시 해당 위치로 이동 후 피해. ({damage})"},
       {key: "L-Shift", name: "체인 웨이브", attack: "counter", text: "낫을 한 바퀴 돌려 주변 광역 피해 ({damage})"}
     ],
     attacks: {
       lmb: {
         id: "attack.tau.lmb",
-        damageRatio: 1.25,
+        damageRatio: 0.75,
         cost: 200,
         cd: 350,
         attackDelayGroup: "tau-primary",
@@ -11909,9 +11913,54 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 200,
         modules: [
           {type: "delivery.area",
-            contactType: "melee", shape: "sector", range: characterValue("attacks.lmb.range"), halfAngle: 1.2}
+            contactType: "melee", shape: "sector", range: characterValue("attacks.lmb.range"), halfAngle: 1.2},
+          {
+            type: "state.progress",
+            stateKey: "spark-scythe",
+            when: "on-hit",
+            operation: "add",
+            amount: 1,
+            max: 3,
+            presentation: {type: "arc-gauge", color: "#00ffff", lineWidth: 3, maxChargeFlash: true}
+          }
         ],
         tags: ["평타"]
+      },
+      lmbCharged: {
+        id: "attack.tau.lmb-charged",
+        damageRatio: 2.25,
+        cost: 200,
+        cd: 350,
+        attackDelayGroup: "tau-primary",
+        attackDelay: 350,
+        range: 200,
+        modules: [
+          {type: "delivery.area",
+            contactType: "melee", shape: "sector", range: characterValue("attacks.lmbCharged.range"), halfAngle: 1.2},
+          {
+            type: "effect.spawn",
+            renderType: "botSwing",
+            shape: "sector",
+            range: characterValue("attacks.lmbCharged.range"),
+            halfAngle: characterValue("attacks.lmbCharged.modules.0.halfAngle"),
+            durationFrames: 10,
+            color: "255,215,0",
+            fillColor: "255,215,0",
+            strokeColor: "255,215,0",
+            clipToAttackArea: true,
+            replaceAutoAreaEffect: true
+          },
+          {
+            type: "movement.knockback",
+            target: "hit-target",
+            direction: "away-from-source",
+            distance: 42,
+            speed: 10,
+            oncePerExecution: true
+          },
+          {type: "state.progress", stateKey: "spark-scythe", when: "on-hit", operation: "reset", oncePerExecution: true}
+        ],
+        tags: ["평타", "크리티컬"]
       },
       rmb: {
         id: "attack.tau.rmb",
@@ -12055,6 +12104,14 @@ const CHARACTER_DATA=freezeCharacterData({
             durationFrames: 22,
             clipToAttackArea: true,
             replaceAutoAreaEffect: true
+          },
+          {
+            type: "state.progress",
+            stateKey: "spark-scythe",
+            when: "after-attack",
+            operation: "set-max",
+            max: characterValue("attacks.lmb.modules.1.max"),
+            presentation: {type: "arc-gauge", color: "#00ffff", lineWidth: 3, maxChargeFlash: true}
           }
         ],
         tags: ["반격"]
@@ -12074,7 +12131,21 @@ const CHARACTER_DATA=freezeCharacterData({
             {type: "ability.pending-ready"},
             {type: "combat.can-act"}
           ],
-          modules: [{type: "action.attack"}]
+          modules: [
+            {
+              type: "action.attack",
+              alternateWhen: {
+                conditions: [
+                  {
+                    type: "state.progress-gte",
+                    stateKey: "spark-scythe",
+                    value: characterValue("attacks.lmb.modules.1.max")
+                  }
+                ],
+                attackId: "attack.tau.lmb-charged"
+              }
+            }
+          ]
         }
       },
       rmb: {
@@ -24385,7 +24456,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {
             type: "formation.manifest",
             formationKey: "circleFormation",
-            source: "current",
+            source: "last",
             defaultMinimumCircle: true,
             storeLast: false,
             consumePlaced: false
@@ -113824,10 +113895,32 @@ const CircleFormationService=Object.freeze({
 
     const sourceMode=String(module?.source||'placed');
 
-    if(
-      sourceMode==='last'||
-      sourceMode==='current'
-    ){
+    if(sourceMode==='last'){
+      const pointer=this.pointerFor(
+        entity,
+        execution?.targetPoint
+      );
+      const snapshot=
+        Array.isArray(state.lastFormation)&&
+        state.lastFormation.length
+          ?state.lastFormation
+          :[
+            {
+              dx:0,
+              dy:0,
+              r:this.minRadius(entity),
+              order:1
+            }
+          ];
+      return this.cloneRelative(
+        snapshot,
+        pointer.x,
+        pointer.y,
+        `${entity.id}:counter-last`
+      );
+    }
+
+    if(sourceMode==='current'){
       return this.defaultCounterFormation(
         entity,
         this.pointerFor(
@@ -116231,8 +116324,8 @@ const PointerHoldInputService=Object.freeze({
       source,
       progress,
       {
-        color:'#4f79aa',
-        completeColor:'#4f79aa',
+        color:source.color,
+        completeColor:source.color,
         lineWidth:
           EntityRingLayoutService.WIDTHS.gauge,
         lineCap:'butt',
@@ -116241,7 +116334,7 @@ const PointerHoldInputService=Object.freeze({
         showEmpty:false,
         completeAccent:false,
         maxChargeFlash:progress>=1,
-        completePulseColor:'#4f79aa',
+        completePulseColor:source.color,
         completePulseRadius:
           EntityRingLayoutService.maxChargeFlashRadius(
             source,
@@ -122414,9 +122507,9 @@ const TrainingWorldDrawService=Object.freeze({
             {
               radius:
                 EntityRingLayoutService.chargeRadius(e),
-              color:'#4f79aa',
-              completeColor:'#4f79aa',
-              completePulseColor:'79,121,170',
+              color:String(holdConfig.color||e.color||'#ffffff'),
+              completeColor:String(holdConfig.completeColor||holdConfig.color||e.color||'#ffffff'),
+              completePulseColor:String(holdConfig.completePulseColor||e.color||'#ffffff'),
               lineWidth:3.5,
               lineCap:'butt',
               showEmpty:false,
