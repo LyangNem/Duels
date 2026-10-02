@@ -1,3 +1,4 @@
+<!-- 3.1717 반 RMB 스테미나 조정: 거대한 스패너 투척 스테미나 소모량을 300에서 400으로 조정. -->
 <!-- 3.1717 사이엔 절격 적중 충전 조정: 절격 적중 시 격 충전량을 최대 10의 50%인 +5로 변경. 처치 시 최대 충전 규칙은 유지. -->
 <!-- 3.1717 사이엔 절격/패리 조정: 격 최대치를 8→10으로 상향하고 절격 RMB 발동 조건도 killRewardProgress.max를 직접 참조하도록 통일. 평타 1·2·3타의 attack.guard 패리 지속시간과 연동 visualState를 150ms→75ms로 단축. -->
 <!-- 3.1717 온라인 이동기 경로 FX/타격 복구: requireMovementExecution 이동 공격의 원격 처리가 소유자가 보낸 충돌 반영 완료 remotePathTimeline을 다시 원격 Entity 보간 이동거리로 축소해, 패킷 순서에 따라 distance가 0에 가까워지며 상대 화면 사각 경로 FX와 대상 권위 body-contact 피해가 함께 누락되던 문제를 수정. 원격은 effect-spawn에 포함된 start/angle/distance/duration/easing 타임라인을 그대로 진행해 시각과 타격을 동일 구간에서 처리하고, 로컬은 기존 실제 Entity 이동 선분 기반 판정을 유지한다. -->
@@ -29153,7 +29154,7 @@ const CHARACTER_DATA=freezeCharacterData({
       rmb: {
         id: "attack.van.rmb",
         damageRatio: 2,
-        cost: 300,
+        cost: 400,
         cd: 1100,
         range: 650,
         projectileRadius: 78,
