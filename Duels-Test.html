@@ -1,3 +1,7 @@
+<!-- 3.1717 사이엔 절격 적중 충전 조정: 절격 적중 시 격 충전량을 최대 10의 50%인 +5로 변경. 처치 시 최대 충전 규칙은 유지. -->
+<!-- 3.1717 사이엔 절격/패리 조정: 격 최대치를 8→10으로 상향하고 절격 RMB 발동 조건도 killRewardProgress.max를 직접 참조하도록 통일. 평타 1·2·3타의 attack.guard 패리 지속시간과 연동 visualState를 150ms→75ms로 단축. -->
+<!-- 3.1717 온라인 이동기 경로 FX/타격 복구: requireMovementExecution 이동 공격의 원격 처리가 소유자가 보낸 충돌 반영 완료 remotePathTimeline을 다시 원격 Entity 보간 이동거리로 축소해, 패킷 순서에 따라 distance가 0에 가까워지며 상대 화면 사각 경로 FX와 대상 권위 body-contact 피해가 함께 누락되던 문제를 수정. 원격은 effect-spawn에 포함된 start/angle/distance/duration/easing 타임라인을 그대로 진행해 시각과 타격을 동일 구간에서 처리하고, 로컬은 기존 실제 Entity 이동 선분 기반 판정을 유지한다. -->
+<!-- 3.1717 디라 식재료 획득 대상 제한: 프라이팬 적중 식재료 획득은 실제 player 대상에만 적용. summon/trainingBot/dummy 등 비플레이어 대상 적중은 로컬 및 온라인 확정 경로 모두 cooking.acquire에서 제외한다. -->
 <!-- 3.1717 티냐/디라 수정: 티냐 일반 마법진 LMB의 무력화 넉백을 일반 movement.knockback(84/10, 티냐에게서 멀어지는 방향)으로 변경하고 반격 무력화는 유지. 디라 식재료의 별도 range-projectile 프레젠테이션을 제거해 공통 일반 투사체 기본 렌더를 사용하도록 복구. -->
 <!-- 3.1717 레테 평타 유도 조정: LMB 유도 회전량을 0.025→0.04로 높이고 preserveTurnRadius를 제거해 탄속 변화와 무관하게 동일한 프레임당 유도 강도를 유지한다. -->
 <!-- 3.1717 사이엔 격 최대치 참조 안정화: 평타에 패리를 추가하면서 modules 배열 순서가 바뀌어 attacks.lmb.modules.1.max가 attack.guard를 가리키며 시작 시 참조 오류가 발생하던 문제를 수정. 모든 격 최대치 참조를 모듈 인덱스가 아닌 killRewardProgress.max로 통일해 이후 모듈 순서 변경에도 깨지지 않게 했다. -->
@@ -27456,7 +27460,7 @@ const CHARACTER_DATA=freezeCharacterData({
       excludeTargetKinds: ["summon"],
       stateKey: "cyien-gyeok",
       operation: "set-max",
-      max: 8,
+      max: 10,
       presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
     },
     conditionalTargetLinks: [
@@ -27521,17 +27525,17 @@ const CHARACTER_DATA=freezeCharacterData({
             range: characterValue("attacks.lmb.range"),
             halfAngle: 1.05,
             wallPolicy: "block",
-            duration: 150,
+            duration: 75,
             onBlock: {
               progress: {
                 stateKey: "cyien-gyeok",
                 operation: "add",
                 amount: 1,
-                max: 8,
+                max: characterValue("killRewardProgress.max"),
                 presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
               }
             },
-            visualState: {effectStateKey: "cyien-lmb-parry", duration: 150, syncToGuardDuration: true, color: "168,213,255"}
+            visualState: {effectStateKey: "cyien-lmb-parry", duration: 75, syncToGuardDuration: true, color: "168,213,255"}
           },
           {
             type: "state.progress",
@@ -27539,7 +27543,7 @@ const CHARACTER_DATA=freezeCharacterData({
             when: "on-hit",
             operation: "add",
             amount: 1,
-            max: 8,
+            max: characterValue("killRewardProgress.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
           {
@@ -27583,17 +27587,17 @@ const CHARACTER_DATA=freezeCharacterData({
             range: characterValue("attacks.lmbSecond.range"),
             halfAngle: 1.05,
             wallPolicy: "block",
-            duration: 150,
+            duration: 75,
             onBlock: {
               progress: {
                 stateKey: "cyien-gyeok",
                 operation: "add",
                 amount: 1,
-                max: 8,
+                max: characterValue("killRewardProgress.max"),
                 presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
               }
             },
-            visualState: {effectStateKey: "cyien-lmb-parry", duration: 150, syncToGuardDuration: true, color: "168,213,255"}
+            visualState: {effectStateKey: "cyien-lmb-parry", duration: 75, syncToGuardDuration: true, color: "168,213,255"}
           },
           {
             type: "state.progress",
@@ -27646,17 +27650,17 @@ const CHARACTER_DATA=freezeCharacterData({
             range: characterValue("attacks.lmbBack.range"),
             halfAngle: 1.05,
             wallPolicy: "block",
-            duration: 150,
+            duration: 75,
             onBlock: {
               progress: {
                 stateKey: "cyien-gyeok",
                 operation: "add",
                 amount: 1,
-                max: 8,
+                max: characterValue("killRewardProgress.max"),
                 presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
               }
             },
-            visualState: {effectStateKey: "cyien-lmb-parry", duration: 150, syncToGuardDuration: true, color: "168,213,255"}
+            visualState: {effectStateKey: "cyien-lmb-parry", duration: 75, syncToGuardDuration: true, color: "168,213,255"}
           },
           {
             type: "state.progress",
@@ -27753,7 +27757,7 @@ const CHARACTER_DATA=freezeCharacterData({
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
-            amount: 4,
+            amount: 5,
             max: characterValue("killRewardProgress.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
@@ -27916,7 +27920,7 @@ const CHARACTER_DATA=freezeCharacterData({
             {type: "entity.alive"},
             {type: "ability.pending-ready"},
             {type: "combat.can-act"},
-            {type: "state.progress-gte", stateKey: "cyien-gyeok", value: 8}
+            {type: "state.progress-gte", stateKey: "cyien-gyeok", value: characterValue("killRewardProgress.max")}
           ],
           modules: [{type: "action.attack", attackId: "attack.cyien.rmb-charged"}]
         }
@@ -29857,7 +29861,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "delivery.projectile", speed: 20, radius: 16, hitRadius: 16},
           {type: "projectile.pierce", targets: false, walls: false},
           {type: "projectile.presentation", kind: "range-projectile", style: {radius: 18, fillAlpha: 0.24, strokeColor: "#d57835", strokeAlpha: 0.95, strokeWidth: 3, innerColor: "#f3b36f", innerScale: 0.5, innerAlpha: 0.52}},
-          {type: "cooking.acquire", when: "on-hit", amount: 1, oncePerExecution: true},
+          {type: "cooking.acquire", when: "on-hit", amount: 1, oncePerExecution: true, targetKinds: ["player"]},
           {type: "cooking.launch-ingredient", when: "after-attack"}
         ],
         tags: ["평타", "투사체"]
@@ -48638,7 +48642,8 @@ const EffectSpawnService=Object.freeze({
           Number(remoteTimeline.duration)||GAME_DATA.frameMs
         ),
         easing:String(remoteTimeline.easing||'linear'),
-        visualDistance:0
+        visualDistance:0,
+        damageDistance:0
       };
       return true;
     }
@@ -48945,88 +48950,110 @@ const EffectSpawnService=Object.freeze({
 
     let applied=false;
 
-    if(
-      !EntitySimulationAuthorityService.isLocal(source)
-    ){
-      const timeline=
-        state.movementPathTimeline;
+    const localSource=
+      EntitySimulationAuthorityService.isLocal(source);
+
+    if(!localSource){
+      const timeline=state.movementPathTimeline;
+      const timelineNow=performance.now();
+
+      /*
+        원격 이동 공격은 소유자가 effect-spawn에 실어 보낸 충돌 반영 완료
+        movement timeline을 진실원천으로 사용한다. 원격 Entity 보간 좌표는
+        패킷 순서/보간 지연에 따라 늦게 움직일 수 있으므로 이를 다시 거리
+        기준으로 사용하면 경로 FX와 대상 권위 피해가 0거리로 축소된다.
+      */
+      if(
+        state.movementDamageExecutionValidated===true&&
+        timeline
+      ){
+        this.appendRemoteMovementTimelinePresentation(
+          effect,
+          timelineNow
+        );
+
+        const duration=Math.max(
+          GAME_DATA.frameMs,
+          Number(timeline.duration)||GAME_DATA.frameMs
+        );
+        const raw=Math.max(
+          0,
+          Math.min(
+            1,
+            (timelineNow-Number(timeline.startedAt||timelineNow))/duration
+          )
+        );
+        const progress=this.ease(
+          raw,
+          String(timeline.easing||'linear')
+        );
+        const targetDistance=
+          Math.max(0,Number(timeline.distance)||0)*progress;
+        const previousDistance=Math.max(
+          0,
+          Math.min(
+            targetDistance,
+            Number(timeline.damageDistance)||0
+          )
+        );
+
+        if(targetDistance>previousDistance+1e-6){
+          const timelineAngle=Number(timeline.angle)||0;
+          const timelineStartX=Number(timeline.startX)||0;
+          const timelineStartY=Number(timeline.startY)||0;
+          const damageFromX=
+            timelineStartX+Math.cos(timelineAngle)*previousDistance;
+          const damageFromY=
+            timelineStartY+Math.sin(timelineAngle)*previousDistance;
+          const damageToX=
+            timelineStartX+Math.cos(timelineAngle)*targetDistance;
+          const damageToY=
+            timelineStartY+Math.sin(timelineAngle)*targetDistance;
+
+          applied=this.applyAnimationDamage(
+            effect,
+            damageFromX,
+            damageFromY,
+            damageToX,
+            damageToY,
+            {skipMovementValidation:true}
+          )||applied;
+          timeline.damageDistance=targetDistance;
+        }
+      }
+    }else{
+      const zeroDistanceBodyContact=
+        damage.hitMode==='body-contact'&&
+        Math.max(
+          0,
+          Number(damage.contactRadius)||0
+        )>0;
 
       if(
         state.movementDamageExecutionValidated===true&&
-        !movementMatches&&
-        timeline
+        (
+          moved>1e-6||
+          zeroDistanceBodyContact
+        )
       ){
-        const startX=
-          Number.isFinite(
-            Number(timeline.startX)
-          )
-            ?Number(timeline.startX)
-            :Number(state.movementDamageStartX)||0;
-        const startY=
-          Number.isFinite(
-            Number(timeline.startY)
-          )
-            ?Number(timeline.startY)
-            :Number(state.movementDamageStartY)||0;
-        const actualDistance=
-          Math.hypot(
-            (Number(source.x)||0)-startX,
-            (Number(source.y)||0)-startY
+        if(moved>1e-6){
+          this.appendMovementPathPresentation(
+            effect,
+            fromX,
+            fromY,
+            toX,
+            toY
           );
-
-        timeline.distance=
-          Math.max(
-            0,
-            Math.min(
-              Math.max(
-                0,
-                Number(timeline.distance)||0
-              ),
-              actualDistance
-            )
-          );
-      }
-
-      this.appendRemoteMovementTimelinePresentation(
-        effect,
-        performance.now()
-      );
-    }
-
-    const zeroDistanceBodyContact=
-      damage.hitMode==='body-contact'&&
-      Math.max(
-        0,
-        Number(damage.contactRadius)||0
-      )>0;
-
-    if(
-      state.movementDamageExecutionValidated===true&&
-      (
-        moved>1e-6||
-        zeroDistanceBodyContact
-      )
-    ){
-      if(
-        moved>1e-6&&
-        EntitySimulationAuthorityService.isLocal(source)
-      ){
-        this.appendMovementPathPresentation(
+        }
+        applied=this.applyAnimationDamage(
           effect,
           fromX,
           fromY,
           toX,
-          toY
+          toY,
+          {skipMovementValidation:true}
         );
       }
-      applied=this.applyAnimationDamage(
-        effect,
-        fromX,
-        fromY,
-        toX,
-        toY,
-        {skipMovementValidation:true}
-      );
     }
 
     state.movementDamagePreviousX=toX;
@@ -49046,15 +49073,18 @@ const EffectSpawnService=Object.freeze({
         !timeline||
         Number(timeline.visualDistance)>=
           Math.max(0,Number(timeline.distance)||0)-1e-6;
+      const damageComplete=
+        !timeline||
+        localSource||
+        Number(timeline.damageDistance)>=
+          Math.max(0,Number(timeline.distance)||0)-1e-6;
 
       /*
-        로컬은 movement execution 종료와 함께 gameplay 추적을 끝낸다.
-        원격은 embedded timeline이 끝날 때까지만 프레젠테이션을 유지한다.
+        로컬은 실제 이동 세그먼트가 종료되면 끝내고, 원격은 embedded
+        timeline의 시각/대상 권위 피해가 모두 끝날 때까지 유지한다.
       */
       state.movementDamageFinished=
-        EntitySimulationAuthorityService.isLocal(source)
-          ?visualComplete
-          :visualComplete;
+        visualComplete&&damageComplete;
     }
 
     return applied;
@@ -71960,6 +71990,7 @@ const NetworkHitAuthorityService={
           if(module.oncePerExecution&&confirmed.has(effectKey))continue;
           if(sourceCookingAcquire){
             if(payload.prevented===true)continue;
+            if(Array.isArray(module.targetKinds)&&module.targetKinds.length&&!module.targetKinds.includes(String(target?.kind||'')))continue;
             const key=`cooking.acquire:${String(module.effectKey||module.stateKey||'default')}`;
             if(module.oncePerExecution&&AttackExecutionService.hasEffect(execution,key))continue;
             const gained=CookingService.acquire(sourceEntity,Math.max(0,Number(module.amount)||0));
@@ -78023,6 +78054,7 @@ const AttackModuleService=Object.freeze({
 
       if(type==='cooking.acquire'&&module.when==='on-hit'){
         if(Training.sessionMode==='online'&&!EntitySimulationAuthorityService.isLocal(source))return;
+        if(Array.isArray(module.targetKinds)&&module.targetKinds.length&&!module.targetKinds.includes(String(target?.kind||'')))return;
         const key=`cooking.acquire:${String(module.effectKey||module.stateKey||'default')}`;
         if(module.oncePerExecution&&AttackExecutionService.hasEffect(execution,key))return;
         const gained=CookingService.acquire(source,Math.max(0,Number(module.amount)||0));
