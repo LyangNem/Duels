@@ -1,3 +1,6 @@
+<!-- 3.1717 티냐/디라 수정: 티냐 일반 마법진 LMB의 무력화 넉백을 일반 movement.knockback(84/10, 티냐에게서 멀어지는 방향)으로 변경하고 반격 무력화는 유지. 디라 식재료의 별도 range-projectile 프레젠테이션을 제거해 공통 일반 투사체 기본 렌더를 사용하도록 복구. -->
+<!-- 3.1717 레테 평타 유도 조정: LMB 유도 회전량을 0.025→0.04로 높이고 preserveTurnRadius를 제거해 탄속 변화와 무관하게 동일한 프레임당 유도 강도를 유지한다. -->
+<!-- 3.1717 사이엔 격 최대치 참조 안정화: 평타에 패리를 추가하면서 modules 배열 순서가 바뀌어 attacks.lmb.modules.1.max가 attack.guard를 가리키며 시작 시 참조 오류가 발생하던 문제를 수정. 모든 격 최대치 참조를 모듈 인덱스가 아닌 killRewardProgress.max로 통일해 이후 모듈 순서 변경에도 깨지지 않게 했다. -->
 <!-- 3.1717 디라 자가 음식 투척 모션: 자기 자신을 음식 대상으로 지정하면 즉시 충돌하지 않고 음식 투사체를 약 0.52초 동안 머리 위로 포물선처럼 던졌다가 다시 받아먹는다. 내려오는 순간 기존 음식 회복/원형 수령 이펙트를 적용한다. 타 아군 대상 음식 유도 투척은 기존 동작 유지. -->
 <!-- 3.1717 디라 음식/스토브 후속 수정: 음식 적중 시 엔소냐/큐리 계열의 짧은 areaCircle 펄스를 대상 위치에 1회 생성한다. 음식 투사체 최소 반경을 프라이팬 시각 크기와 같은 18px로 상향한다. 식재료의 만석 스토브 관통이 예측 충돌에만 적용되고 실제 ProjectileService 프레임 충돌 루프에는 누락된 원인을 수정해, 자기 스토브가 최대치면 실제 접촉 검사에서도 완전히 건너뛰어 투사체가 소모되지 않고 그대로 통과한다. -->
 <!-- 3.1717 디라 음식 대상/식재료 판정 수정: 음식 보유 중 자기 자신을 포함한 모든 아군 플레이어 주변에 mealTargetSelectionRadius 기준 점선 원을 표시하고, 원 안 클릭 시에만 해당 대상에게 음식을 유도 투척한다. 자기 자신도 self 관계로 음식 대상/회복 대상에 포함. 식재료 투사체 표시는 weapon-projectile에서 일반 range-projectile로 변경. cooking.stove-input 투사체는 자기 스토브가 최대치일 때 타깃 충돌 판정 단계에서 스토브를 완전히 무시해 소모 없이 관통한다. -->
@@ -849,6 +852,10 @@ RMB `광석 발견`: 최대 180px 지정지점으로 180ms 이동 후 원형 200
 <!-- 3.1717 디라 스토브 회수 체력바/파괴 쿨타임: 회수형 소환수의 체력바 표시를 자연회복과 분리하는 storedHealthBar 옵션을 추가. 디라 휴대용 스토브는 회수 시 저장된 현재 체력을 스테미나 바 아래에 표시하고, 파괴 시 respawnDelay 7000ms 동안 재설치 불가. summonSpecs에 HEALTH/DEATH 설명을 추가해 다른 소환수와 동일한 형식으로 표시한다. -->
 <!-- 3.1717: 디라 반격기 주방 출입 금지에 공통 반격기 규칙과 동일한 movement.neutralize-knockback(distance 84, speed 10)을 추가. 기존 부채꼴 범위/피해/식재료 획득/300ms 선딜은 유지. -->
 <!-- 3.1717 에즈레일 바람지대 팀색/즉시 보호막: LMB/RMB 바람지대 외곽선을 source-team 색상으로 표시하고, triggerOnEnter:true로 변경해 생성 직후 범위 안의 자기 자신/아군에게 첫 보호막 틱을 즉시 부여한다. 내부 링과 남은 지속시간 호 게이지 색은 기존 바람색을 유지한다. -->
+<!-- 디라 음식 유도 보강: 지정 아군 음식은 expireAtRange:false로 사거리 소멸하지 않으며, self/ally 지정 유도 및 충돌은 hidden 표시 여부와 무관하게 지정 대상을 끝까지 추적/적중한다. -->
+<!-- 3.1717 엔소냐/프릴 버그 수정: 엔소냐 RMB 즉시 1단계 볼륨 버프의 rmbPulse 대상 관계를 self+ally로 확장해 주변 아군에게도 첫 5초 단계가 즉시 적용되도록 했다. 프릴 LMB 3타는 강제 네트워크 충돌 원점을 끄고 현재 캐릭터 위치 기준의 area 판정을 사용해 온라인/보간 상황에서 시각 위치와 피해 판정 원점이 어긋나 피해가 누락되던 문제를 수정했다. -->
+<!-- 3.1717 밸런스 일괄 조정: 에즈레일 바람지대 첫 진입 즉시 보호막 제거 및 0.5초마다 최대체력 5% 보호막, 티냐 마법진 발현 공개시간 0.375초 및 타격 시 티냐 반대방향 무력화 넉백(84/10), 사이엔 RMB 패리 제거 후 LMB 3타에 패리 이전, 디라 적중 식재료 획득 1개 및 식재료 실제 아군/스토브 적중 시에만 소모, 레이즈 체력 1100, 레테 RMB HOLD 0.3초·LMB 비용 300·벽 관통·약한 아군/적 유도, 카논 LMB 계열 넉백 제거, 시아넬리 순보 쿨다운 0.4초. -->
+<!-- 3.1717 타우 리워크: LMB CRIT/최대체력 비례 추가 피해와 스파크 충전 연동을 제거하고 일반 평타 피해를 250으로 상향. 역할군을 딜러로 변경하고 칭호를 사슬낫의 소년, LMB를 사슬낫 휘두르기, RMB를 쇠사슬 추격, 반격을 체인 웨이브로 변경. -->
 <!DOCTYPE html>
 <!-- 3.1717 디버그 캐릭터 레코드 삭제: 계정 탭에 Firebase UID + 캐릭터 선택 기반의 개별 삭제 UI를 추가했다. DebugAccessService.deleteCharacterRecord()는 /firebase/admin/progress/character/delete 관리자 API를 호출해 해당 UID의 선택 캐릭터 characterRecords/characterStats와 랭킹 항목만 삭제하며 다른 캐릭터/계정 데이터는 유지한다. debugTools + rankingAdmin 권한을 요구하고 성공 후 랭킹 캐시를 즉시 갱신한다. -->
 <!-- 3.1717 뉴 마검 적중 정지 원인 고정 보강: 뉴 RMB는 targetPoint/targetDistance를 사용하지 않는 일반 직선 투사체라 travel<targetDistance 방식만으로는 적중 정지를 식별할 수 없었다. 적 충돌/권위 적중 확정에서 beginLinger에 stopReason=target을 직접 전달하고 projectile/stationaryArrival에 보존한다. target 정지 상태는 대상 사망·소멸 뒤에도 고정 좌표/이동거리를 유지하며 snapToRangeEnd 사거리 끝 보정을 차단한다. -->
@@ -11862,27 +11869,20 @@ const CHARACTER_DATA=freezeCharacterData({
   tau: {
     id: "tau",
     name: "타우",
-    title: "스파크 차저",
+    title: "사슬낫의 소년",
     color: "#00ffff",
-    classification: {style: 1, range: 0, role: 6},
+    classification: {style: 1, range: 0, role: 1},
     stats: {maxHealth: 1000, speed: 4.5, radius: 20, baseDamage: 200, difficulty: 2},
     desc: "스파크 낫을 이용한 변칙적인 움직임으로 전투하는 캐릭터",
     tooltipSkills: [
-      {key: "LMB", name: "스파크 낫", attack: "lmb", text: "낫을 휘둘러 피해. 적중한 적마다 스파크 {progressAmount} 충전 ({damage})"},
-      {
-        key: "LMB CRIT",
-        name: "",
-        attack: "lmbCharged",
-        showCost: false,
-        text: "최대체력 비례 추가 피해 ({damage} + {targetMaxHealthPercent}%)"
-      },
-      {key: "RMB", name: "스파크 체인", attack: "rmb", text: "낫을 던져 적중 시 해당 위치로 이동 후 피해. ({damage})"},
-      {key: "L-Shift", name: "스파크 웨이브", attack: "counter", text: "낫을 한 바퀴 돌려 주변 광역 피해 및 스파크 최대 충전 ({damage})"}
+      {key: "LMB", name: "사슬낫 휘두르기", attack: "lmb", text: "사슬낫을 휘둘러 피해 ({damage})"},
+      {key: "RMB", name: "쇠사슬 추격", attack: "rmb", text: "낫을 던져 적중 시 해당 위치로 이동 후 피해. ({damage})"},
+      {key: "L-Shift", name: "체인 웨이브", attack: "counter", text: "낫을 한 바퀴 돌려 주변 광역 피해 ({damage})"}
     ],
     attacks: {
       lmb: {
         id: "attack.tau.lmb",
-        damageRatio: 1,
+        damageRatio: 1.25,
         cost: 200,
         cd: 350,
         attackDelayGroup: "tau-primary",
@@ -11890,55 +11890,9 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 200,
         modules: [
           {type: "delivery.area",
-            contactType: "melee", shape: "sector", range: characterValue("attacks.lmb.range"), halfAngle: 1.2},
-          {
-            type: "state.progress",
-            stateKey: "spark-scythe",
-            when: "on-hit",
-            operation: "add",
-            amount: 1,
-            max: 3,
-            presentation: {type: "arc-gauge", color: "#00ffff", lineWidth: 3, maxChargeFlash: true}
-          }
+            contactType: "melee", shape: "sector", range: characterValue("attacks.lmb.range"), halfAngle: 1.2}
         ],
         tags: ["평타"]
-      },
-      lmbCharged: {
-        id: "attack.tau.lmb-charged",
-        damageRatio: 1,
-        cost: 200,
-        cd: 350,
-        attackDelayGroup: "tau-primary",
-        attackDelay: 350,
-        range: 200,
-        modules: [
-          {type: "delivery.area",
-            contactType: "melee", shape: "sector", range: characterValue("attacks.lmbCharged.range"), halfAngle: 1.2},
-          {
-            type: "effect.spawn",
-            renderType: "botSwing",
-            shape: "sector",
-            range: characterValue("attacks.lmbCharged.range"),
-            halfAngle: characterValue("attacks.lmbCharged.modules.0.halfAngle"),
-            durationFrames: 10,
-            color: "255,215,0",
-            fillColor: "255,215,0",
-            strokeColor: "255,215,0",
-            clipToAttackArea: true,
-            replaceAutoAreaEffect: true
-          },
-          {type: "damage.target-max-health-ratio", ratio: 0.2},
-          {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 42,
-            speed: 10,
-            oncePerExecution: true
-          },
-          {type: "state.progress", stateKey: "spark-scythe", when: "on-hit", operation: "reset", oncePerExecution: true}
-        ],
-        tags: ["평타", "크리티컬"]
       },
       rmb: {
         id: "attack.tau.rmb",
@@ -12082,14 +12036,6 @@ const CHARACTER_DATA=freezeCharacterData({
             durationFrames: 22,
             clipToAttackArea: true,
             replaceAutoAreaEffect: true
-          },
-          {
-            type: "state.progress",
-            stateKey: "spark-scythe",
-            when: "after-attack",
-            operation: "set-max",
-            max: characterValue("attacks.lmb.modules.1.max"),
-            presentation: {type: "arc-gauge", color: "#00ffff", lineWidth: 3, maxChargeFlash: true}
           }
         ],
         tags: ["반격"]
@@ -12109,21 +12055,7 @@ const CHARACTER_DATA=freezeCharacterData({
             {type: "ability.pending-ready"},
             {type: "combat.can-act"}
           ],
-          modules: [
-            {
-              type: "action.attack",
-              alternateWhen: {
-                conditions: [
-                  {
-                    type: "state.progress-gte",
-                    stateKey: "spark-scythe",
-                    value: characterValue("attacks.lmb.modules.1.max")
-                  }
-                ],
-                attackId: "attack.tau.lmb-charged"
-              }
-            }
-          ]
+          modules: [{type: "action.attack"}]
         }
       },
       rmb: {
@@ -13256,7 +13188,7 @@ const CHARACTER_DATA=freezeCharacterData({
             shape: "circle",
             range: characterValue("attacks.rmbPulse.range"),
             wallPolicy: "ignore",
-            targetRelations: ["self"],
+            targetRelations: ["self", "ally"],
             applyHitEffects: true,
             visual: false
           },
@@ -16800,7 +16732,7 @@ const CHARACTER_DATA=freezeCharacterData({
             angleOffset: -0.28,
             wallPolicy: "block",
             contactType: "melee",
-            useNetworkCollisionOrigin: true,
+            useNetworkCollisionOrigin: false,
             contactPadding: 6
           },
           {
@@ -16849,7 +16781,7 @@ const CHARACTER_DATA=freezeCharacterData({
             angleOffset: 0.28,
             wallPolicy: "block",
             contactType: "melee",
-            useNetworkCollisionOrigin: true,
+            useNetworkCollisionOrigin: false,
             contactPadding: 6
           },
           {
@@ -16898,7 +16830,7 @@ const CHARACTER_DATA=freezeCharacterData({
             halfWidth: 26,
             wallPolicy: "block",
             contactType: "melee",
-            useNetworkCollisionOrigin: true,
+            useNetworkCollisionOrigin: false,
             contactPadding: 6
           },
           {
@@ -20807,7 +20739,7 @@ const CHARACTER_DATA=freezeCharacterData({
     title: "격투 클럽의 이단자",
     color: "#bfa136",
     classification: {style: 4, range: 0, role: 1},
-    stats: {maxHealth: 1300, speed: 4.25, radius: 20, baseDamage: 100, difficulty: 4},
+    stats: {maxHealth: 1100, speed: 4.25, radius: 20, baseDamage: 100, difficulty: 4},
     desc: "프로토타입 기계팔을 충전시켜 강력한 한방 공격을 구사하는 캐릭터",
     worldGaugeModules: [
       {
@@ -23208,7 +23140,7 @@ const CHARACTER_DATA=freezeCharacterData({
       lmb: {
         id: "attack.lete.lmb",
         damageRatio: 1,
-        cost: 250,
+        cost: 300,
         cd: 250,
         attackDelayGroup: "lete-primary",
         attackDelay: 200,
@@ -23220,8 +23152,15 @@ const CHARACTER_DATA=freezeCharacterData({
             radius: 12,
             targetRelations: ["enemy", "ally"],
             applyHitEffects: true,
-            friendlyRequiresResource: "stamina"
+            friendlyRequiresResource: "stamina",
+            homing: {
+              startTravelRatio: 0.08,
+              maxTurnPerFrame: 0.04,
+              searchRange: 300,
+              targetRelations: ["enemy", "ally"]
+            }
           },
+          {type: "projectile.pierce", targets: false, walls: true},
           {
             type: "delivery.delayed-projectile-volley",
             count: 3,
@@ -23285,7 +23224,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 0,
         range: 0,
         effectsOnly: true,
-        charge: {duration: 500, costMin: 0, costMax: 0, costTiming: "release", gauge: true, staminaRegenDuringCharge: true},
+        charge: {duration: 300, costMin: 0, costMax: 0, costTiming: "release", gauge: true, staminaRegenDuringCharge: true},
         modules: [],
         tags: ["스킬"]
       },
@@ -24304,7 +24243,7 @@ const CHARACTER_DATA=freezeCharacterData({
         holdMoveDeadzone: 10,
         amplifierRadiusTolerance: 1.5
       },
-      activation: {input: "lmb", inputWindowMs: 200, revealMs: 350, holdMoveDeadzone: 10, postEffectCooldownMs: 100},
+      activation: {input: "lmb", inputWindowMs: 200, revealMs: 375, holdMoveDeadzone: 10, postEffectCooldownMs: 100},
       relation: {containAreaRatioMax: 0.55, connectDepthRatioMax: 0.35},
       amplifier: {duration: 1000, slowFactor: 0.55, maxStage: 3, containedStageWeight: 2},
       burstDuration: 440,
@@ -24367,6 +24306,14 @@ const CHARACTER_DATA=freezeCharacterData({
             source: "pending",
             storeLast: true,
             consumePlaced: true
+          },
+          {
+            type: "movement.knockback",
+            target: "hit-target",
+            direction: "away-from-source",
+            distance: 84,
+            speed: 10,
+            oncePerExecution: true
           }
         ],
         tags: ["평타", "선딜레이"]
@@ -24423,6 +24370,14 @@ const CHARACTER_DATA=freezeCharacterData({
             defaultMinimumCircle: true,
             storeLast: false,
             consumePlaced: false
+          },
+          {
+            type: "movement.neutralize-knockback",
+            target: "hit-target",
+            direction: "away-from-source",
+            distance: 84,
+            speed: 10,
+            oncePerExecution: true
           }
         ],
         tags: ["반격"]
@@ -26579,16 +26534,16 @@ const CHARACTER_DATA=freezeCharacterData({
             wallPolicy: "ignore",
             duration: 4000,
             targetRelations: ["self", "ally"],
-            interval: 1000,
+            interval: 500,
             intervalMode: "per-target",
-            triggerOnEnter: true,
+            triggerOnEnter: false,
             damageOnTrigger: false,
             onTrigger: [
               {
                 type: "resource.restore",
                 resource: "shield",
                 recipient: "target",
-                maxResourceRatio: 0.08,
+                maxResourceRatio: 0.05,
                 decayStartDelay: 1000,
                 decayInterval: 1000,
                 decayMaxHealthRatio: 0.1,
@@ -26653,16 +26608,16 @@ const CHARACTER_DATA=freezeCharacterData({
             wallPolicy: "ignore",
             duration: 4000,
             targetRelations: ["self", "ally"],
-            interval: 1000,
+            interval: 500,
             intervalMode: "per-target",
-            triggerOnEnter: true,
+            triggerOnEnter: false,
             damageOnTrigger: false,
             onTrigger: [
               {
                 type: "resource.restore",
                 resource: "shield",
                 recipient: "target",
-                maxResourceRatio: 0.08,
+                maxResourceRatio: 0.05,
                 decayStartDelay: 1000,
                 decayInterval: 1000,
                 decayMaxHealthRatio: 0.1,
@@ -27524,11 +27479,10 @@ const CHARACTER_DATA=freezeCharacterData({
         attack: "lmb",
         linkedAttack: "lmbSecond",
         secondaryAttack: "lmbBack",
-        text: "전방을 크게 한 번, 작게 한 번 벤 뒤, 뒤로 칼을 집어넣으며 후방 타격. 각각 격 {progressAmount}/{linkedProgressAmount}/{secondaryProgressAmount} 충전. ({damage}/{linkedDamage}/{secondaryDamage})"
+        text: "전방을 크게 한 번, 작게 한 번 벤 뒤, 뒤로 칼을 집어넣으며 후방 타격. 각 공격 중 전방 공격을 패리해 격 1 충전. 각각 격 {progressAmount}/{linkedProgressAmount}/{secondaryProgressAmount} 충전. ({damage}/{linkedDamage}/{secondaryDamage})"
       },
-      {key: "RMB", name: "패리", attack: "rmb", text: "전방의 공격을 패리하여 격 {guardProgressAmount} 충전"},
       {
-        key: "RMB CHARGED",
+        key: "RMB",
         name: "절격",
         attack: "rmbCharged",
         text: "전방으로 이동하며 이동 경로의 적 공격. 적중 시 격 {progressAmount} 충전 및 처치 시 최대 충전. 체력 {targetHealthThresholdPercent}% 미만인 적에게 피해 +{targetHealthDamageIncreasePercent}% ({damage})"
@@ -27558,6 +27512,26 @@ const CHARACTER_DATA=freezeCharacterData({
             range: characterValue("attacks.lmb.range"),
             halfAngle: 1.05,
             wallPolicy: "block"
+          },
+          {
+            type: "attack.guard",
+            stateKey: "cyien-lmb-parry",
+            blockCountMode: "projectile",
+            shape: "sector",
+            range: characterValue("attacks.lmb.range"),
+            halfAngle: 1.05,
+            wallPolicy: "block",
+            duration: 150,
+            onBlock: {
+              progress: {
+                stateKey: "cyien-gyeok",
+                operation: "add",
+                amount: 1,
+                max: 8,
+                presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
+              }
+            },
+            visualState: {effectStateKey: "cyien-lmb-parry", duration: 150, syncToGuardDuration: true, color: "168,213,255"}
           },
           {
             type: "state.progress",
@@ -27602,12 +27576,32 @@ const CHARACTER_DATA=freezeCharacterData({
             wallPolicy: "block"
           },
           {
+            type: "attack.guard",
+            stateKey: "cyien-lmb-parry",
+            blockCountMode: "projectile",
+            shape: "sector",
+            range: characterValue("attacks.lmbSecond.range"),
+            halfAngle: 1.05,
+            wallPolicy: "block",
+            duration: 150,
+            onBlock: {
+              progress: {
+                stateKey: "cyien-gyeok",
+                operation: "add",
+                amount: 1,
+                max: 8,
+                presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
+              }
+            },
+            visualState: {effectStateKey: "cyien-lmb-parry", duration: 150, syncToGuardDuration: true, color: "168,213,255"}
+          },
+          {
             type: "state.progress",
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
             amount: 1,
-            max: characterValue("attacks.lmb.modules.1.max"),
+            max: characterValue("killRewardProgress.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
           {
@@ -27645,12 +27639,32 @@ const CHARACTER_DATA=freezeCharacterData({
             wallPolicy: "block"
           },
           {
+            type: "attack.guard",
+            stateKey: "cyien-lmb-parry",
+            blockCountMode: "projectile",
+            shape: "sector",
+            range: characterValue("attacks.lmbBack.range"),
+            halfAngle: 1.05,
+            wallPolicy: "block",
+            duration: 150,
+            onBlock: {
+              progress: {
+                stateKey: "cyien-gyeok",
+                operation: "add",
+                amount: 1,
+                max: 8,
+                presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
+              }
+            },
+            visualState: {effectStateKey: "cyien-lmb-parry", duration: 150, syncToGuardDuration: true, color: "168,213,255"}
+          },
+          {
             type: "state.progress",
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
             amount: 2,
-            max: characterValue("attacks.lmb.modules.1.max"),
+            max: characterValue("killRewardProgress.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
           {
@@ -27740,7 +27754,7 @@ const CHARACTER_DATA=freezeCharacterData({
             when: "on-hit",
             operation: "add",
             amount: 4,
-            max: characterValue("attacks.lmb.modules.1.max"),
+            max: characterValue("killRewardProgress.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
           {
@@ -27848,7 +27862,7 @@ const CHARACTER_DATA=freezeCharacterData({
             stateKey: "cyien-gyeok",
             operation: "add",
             amount: 2,
-            max: characterValue("attacks.lmb.modules.1.max"),
+            max: characterValue("killRewardProgress.max"),
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           }
@@ -27893,7 +27907,7 @@ const CHARACTER_DATA=freezeCharacterData({
       rmb: {
         id: "ability.cyien.rmb",
         input: "rmb",
-        attackId: "attack.cyien.rmb",
+        attackId: "attack.cyien.rmb-charged",
         trigger: {
           type: "trigger",
           event: "input.press",
@@ -27901,25 +27915,10 @@ const CHARACTER_DATA=freezeCharacterData({
             {type: "input.slot", slot: "rmb"},
             {type: "entity.alive"},
             {type: "ability.pending-ready"},
-            {type: "combat.can-act"}
+            {type: "combat.can-act"},
+            {type: "state.progress-gte", stateKey: "cyien-gyeok", value: 8}
           ],
-          modules: [
-            {
-              type: "action.attack",
-              alternates: [
-                {
-                  attackId: "attack.cyien.rmb-charged",
-                  conditions: [
-                    {
-                      type: "state.progress-gte",
-                      stateKey: "cyien-gyeok",
-                      value: characterValue("attacks.lmb.modules.1.max")
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          modules: [{type: "action.attack", attackId: "attack.cyien.rmb-charged"}]
         }
       },
       counter: {
@@ -28047,14 +28046,6 @@ const CHARACTER_DATA=freezeCharacterData({
             tags: ["이동기"]
           },
           {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "attack",
-            distance: 55,
-            speed: 10,
-            oncePerExecution: true
-          },
-          {
             type: "resource.restore",
             when: "on-hit",
             resource: "stamina",
@@ -28105,14 +28096,6 @@ const CHARACTER_DATA=freezeCharacterData({
             suppressHitImpactRing: true
           },
           {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "attack",
-            distance: 70,
-            speed: 11,
-            oncePerExecution: true
-          },
-          {
             type: "resource.restore",
             when: "on-hit",
             resource: "stamina",
@@ -28151,14 +28134,6 @@ const CHARACTER_DATA=freezeCharacterData({
             tags: ["이동기"]
           },
           {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "attack",
-            distance: 35,
-            speed: 9,
-            oncePerExecution: true
-          },
-          {
             type: "resource.restore",
             when: "on-hit",
             resource: "stamina",
@@ -28193,14 +28168,6 @@ const CHARACTER_DATA=freezeCharacterData({
             replaceActive: true,
             collision: {passWalls: false, passEnemies: true},
             tags: ["이동기"]
-          },
-          {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "attack",
-            distance: 35,
-            speed: 9,
-            oncePerExecution: true
           },
           {
             type: "resource.restore",
@@ -28745,7 +28712,7 @@ const CHARACTER_DATA=freezeCharacterData({
         id: "attack.xianelli.rmb",
         damageRatio: 0,
         cost: 200,
-        cd: 600,
+        cd: 400,
         range: 900,
         effectsOnly: true,
         modules: [],
@@ -29890,7 +29857,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {type: "delivery.projectile", speed: 20, radius: 16, hitRadius: 16},
           {type: "projectile.pierce", targets: false, walls: false},
           {type: "projectile.presentation", kind: "range-projectile", style: {radius: 18, fillAlpha: 0.24, strokeColor: "#d57835", strokeAlpha: 0.95, strokeWidth: 3, innerColor: "#f3b36f", innerScale: 0.5, innerAlpha: 0.52}},
-          {type: "cooking.acquire", when: "on-hit", amount: 2, oncePerExecution: true},
+          {type: "cooking.acquire", when: "on-hit", amount: 1, oncePerExecution: true},
           {type: "cooking.launch-ingredient", when: "after-attack"}
         ],
         tags: ["평타", "투사체"]
@@ -29905,9 +29872,9 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [
           {type: "delivery.projectile", speed: 20, radius: 12, hitRadius: 12, collisionTargets: true, targetRelations: ["ally"], targetKinds: ["player", "summon"], applyHitEffects: true},
           {type: "projectile.pierce", targets: false, walls: false},
-          {type: "projectile.presentation", kind: "range-projectile", style: {radius: 12, fillAlpha: 0.28, strokeColor: "#d58b4a", strokeAlpha: 0.95, strokeWidth: 2.5, innerColor: "#ffefcd", innerScale: 0.46, innerAlpha: 0.62}},
           {type: "resource.restore", when: "on-hit", resource: "health", recipient: "target", maxResourceRatio: 0.1, applyHealingModifier: false, targetRelations: ["ally"], excludeTargetKinds: ["summon"]},
-          {type: "cooking.stove-input", when: "on-hit", targetRelations: ["ally"]}
+          {type: "cooking.stove-input", when: "on-hit", targetRelations: ["ally"]},
+          {type: "cooking.consume-ingredient", when: "on-hit", targetRelations: ["ally"], oncePerExecution: true}
         ],
         tags: ["투사체", "지원"]
       },
@@ -29921,7 +29888,7 @@ const CHARACTER_DATA=freezeCharacterData({
         range: 800,
         effectsOnly: true,
         modules: [
-          {type: "delivery.projectile", speed: 20, radius: 15, hitRadius: 15, collisionTargets: true, targetRelations: ["self", "ally"], targetKinds: ["player"], targetEntityOnly: true, allowSourceTarget: true, applyHitEffects: true, supportHitEffect: {type: "effect.spawn", renderType: "areaCircle", r: 72, color: "character", fillAlpha: 0.02, strokeAlpha: 0.44, lineWidth: 1.5, duration: 220, renderLayer: "below-entities"}, homing: {startTravelRatio: 0, maxTurnPerFrame: 6.283185307179586, targetRelations: ["self", "ally"], targetEntityOnly: true}},
+          {type: "delivery.projectile", speed: 20, radius: 15, hitRadius: 15, collisionTargets: true, expireAtRange: false, targetRelations: ["self", "ally"], targetKinds: ["player"], targetEntityOnly: true, allowSourceTarget: true, applyHitEffects: true, supportHitEffect: {type: "effect.spawn", renderType: "areaCircle", r: 72, color: "character", fillAlpha: 0.02, strokeAlpha: 0.44, lineWidth: 1.5, duration: 220, renderLayer: "below-entities"}, homing: {startTravelRatio: 0, maxTurnPerFrame: 6.283185307179586, targetRelations: ["self", "ally"], targetEntityOnly: true}},
           {type: "projectile.pierce", targets: false, walls: true},
           {type: "projectile.presentation", kind: "weapon-projectile", style: {type: "anchor-cross", radius: 15, fillAlpha: 0.28, strokeColor: "#d58b4a", strokeAlpha: 0.95, strokeWidth: 3, innerColor: "#fff0cf", innerStrokeWidth: 2.5, crossHalfLength: 7.5}},
           {type: "trajectory.arc", height: 90, screenLiftRatio: 0.68, apexScale: 0.9, apexAlpha: 0.72, apexStrokeAlpha: 0.9},
@@ -64941,6 +64908,7 @@ charRow.appendChild(card);
         result?.skipAttackWindup===true,
       resolvedAttackId:String(result?.attackId||''),
       targetEntityId:String(result?.targetEntityId||''),
+      cookingMealCount:Math.max(0,Math.floor(Number(result?.cookingMealCount)||0)),
       executionSequence:
         Number.isFinite(Number(result?.executionSequence))
           ?Math.max(
@@ -66462,6 +66430,7 @@ charRow.appendChild(card);
               payload.skipAttackWindup===true,
             resolvedAttackId:String(payload.resolvedAttackId||''),
             targetEntityId:String(payload.targetEntityId||''),
+            cookingMealCount:Math.max(0,Math.floor(Number(payload.cookingMealCount)||0)),
             executionSequence:
               Number.isFinite(Number(payload.executionSequence))
                 ?Math.max(
@@ -78067,9 +78036,20 @@ const AttackModuleService=Object.freeze({
         return;
       }
 
+      if(type==='cooking.consume-ingredient'&&module.when==='on-hit'){
+        if(Training.sessionMode==='online'&&!EntitySimulationAuthorityService.isLocal(source))return;
+        const key=`cooking.consume-ingredient:${String(module.effectKey||module.stateKey||'default')}`;
+        if(module.oncePerExecution&&AttackExecutionService.hasEffect(execution,key))return;
+        const used=CookingService.consumeIngredient(source,Math.max(1,Number(module.amount)||1));
+        if(used>0&&module.oncePerExecution)AttackExecutionService.markEffect(execution,key);
+        return;
+      }
+
       if(type==='cooking.meal-heal'&&module.when==='on-hit'){
-        if(!EntitySimulationAuthorityService.isLocal(source)||(relation!=='self'&&relation!=='ally')||String(target?.kind||'')!=='player')return;
-        CookingService.applyThrownMeal(source,target);
+        if((relation!=='self'&&relation!=='ally')||String(target?.kind||'')!=='player')return;
+        if(Training.sessionMode==='online'&&!EntitySimulationAuthorityService.isLocal(target))return;
+        const mealCount=Math.max(0,Math.floor(Number(deliveryModule?.projectile?.cookingMealMeta?.count)||Number(execution?.cookingMealCount)||0));
+        CookingService.applyThrownMeal(source,target,mealCount);
         return;
       }
 
@@ -79517,6 +79497,7 @@ const AttackService=Object.freeze({
     execution.abilityUseId=
       options.abilityUseId||null;
     execution.targetEntityId=options.targetEntityId?String(options.targetEntityId):'';
+    execution.cookingMealCount=Math.max(0,Math.floor(Number(options.cookingMealCount)||0));
     const resolvedTargetPoint=
       this.resolveTargetPoint(
         spec,
@@ -96693,11 +96674,13 @@ const AbilityModuleService=Object.freeze({
       if(context.network===true){next();return;}
       const source=context.source;
       const state=CookingService.state(source,false);
-      if(!state||Math.max(0,Math.floor(Number(state.mealCount)||0))<=0){context.targetEntityId='';next();return;}
+      const mealCount=Math.max(0,Math.floor(Number(state?.mealCount)||0));
+      if(!state||mealCount<=0){context.targetEntityId='';context.cookingMealCount=0;next();return;}
       let point=context.targetPoint||null;
       if(EntitySimulationAuthorityService.isLocal(source)&&typeof Training!=='undefined'&&typeof Training.mouseWorld==='function')point=Training.mouseWorld()||point;
       const target=CookingService.allyAtPoint(source,point);
       context.targetEntityId=target?String(target.id||''):'';
+      context.cookingMealCount=target?mealCount:0;
       if(target)context.targetPoint={x:Number(target.x)||0,y:Number(target.y)||0};
       next();
     },
@@ -96971,6 +96954,7 @@ const AbilityModuleService=Object.freeze({
           freeAttack:context.freeAttack===true,
           targetPoint:context.targetPoint||null,
           targetEntityId:context.targetEntityId||null,
+          cookingMealCount:Math.max(0,Math.floor(Number(context.cookingMealCount)||0)),
           abilityUseId:context.abilityUseId||null,
           skipWindup:
             context.skipAttackWindup===true,
@@ -98994,6 +98978,7 @@ const AbilityService=Object.freeze({
           ''
         );
       context.result.targetEntityId=String(runtime.targetEntityId||'');
+      context.result.cookingMealCount=Math.max(0,Math.floor(Number(runtime.cookingMealCount)||0));
       context.result.executionSequence=
         Number.isFinite(Number(runtime.executionSequence))
           ?Math.max(
@@ -108303,12 +108288,15 @@ const ProjectileService={
           if(
             homing.targetRelations
               ?.includes(relation)&&
-            ProjectileHomingTargetVisibilityService
-              .valid(
-                projectile,
-                designated,
-                now
-              )
+            (
+              relation!=='enemy'||
+              ProjectileHomingTargetVisibilityService
+                .valid(
+                  projectile,
+                  designated,
+                  now
+                )
+            )
           ){
             nearest=designated;
             nearestDistance=Math.hypot(
@@ -109616,7 +109604,10 @@ const ProjectileService={
         if(configuredRelations){
           if(
             !target?.alive||
-            target.hidden||
+            (
+              target.hidden&&
+              relation==='enemy'
+            )||
             !configuredRelations.includes(
               relation
             )
@@ -121159,9 +121150,6 @@ const CookingService=Object.freeze({
       finished:false
     };
     AttackModuleService.deliver(entity,attack,angle,volley);
-    if(EntitySimulationAuthorityService.isLocal(entity)){
-      this.consumeIngredient(entity,1);
-    }
     return true;
   },
   finishStove(entity){
@@ -121174,10 +121162,12 @@ const CookingService=Object.freeze({
     this.spawnMealProjectile(entity,{x,y,count:cooked,mode:'incoming'});this.syncReady(entity);entity.combatSnapshotDirty=true;return cooked;
   },
   isOwnStove(source,target){const config=this.config(source);return !!(config&&target?.kind==='summon'&&String(target.ownerId||'')===String(source?.id||'')&&String(target.summonStateKey||'')===String(config.stoveStateKey||''));},
-  applyThrownMeal(entity,target){
-    if(!entity||!target||!EntitySimulationAuthorityService.isLocal(entity))return false;
+  applyThrownMeal(entity,target,countOverride=0){
+    if(!entity||!target)return false;
+    if(Training.sessionMode==='online'&&!EntitySimulationAuthorityService.isLocal(target))return false;
     const state=this.state(entity,true);
-    const count=Math.max(0,Math.floor(Number(state?.thrownMealCount)||0));
+    const explicitCount=Math.max(0,Math.floor(Number(countOverride)||0));
+    const count=explicitCount>0?explicitCount:Math.max(0,Math.floor(Number(state?.thrownMealCount)||0));
     if(count<=0)return false;
     const config=this.config(entity)||{};
     const healthRatio=Math.max(0,Number(config.mealHealthRatioPerIngredient)||0)*count;
@@ -121191,12 +121181,16 @@ const CookingService=Object.freeze({
     if(effect&&OnlinePresentationSyncService?.shouldSend?.(entity)){
       OnlinePresentationSyncService.send('effect-spawn',entity,{effect:EffectSpawnService.presentationSnapshot(effect,performance.now())});
     }
-    state.thrownMealCount=0;entity.combatSnapshotDirty=true;
+    if(state&&Math.max(0,Math.floor(Number(state.thrownMealCount)||0))===count)state.thrownMealCount=0;
+    entity.combatSnapshotDirty=true;
     return true;
   },
   commitMealThrow(entity,execution=null){
-    const state=this.state(entity,true);if(!state||state.mealCount<=0)return false;
-    const count=Math.max(1,Math.floor(Number(state.mealCount)||0));state.thrownMealCount=count;state.mealCount=0;
+    const state=this.state(entity,true);if(!state)return false;
+    const explicitCount=Math.max(0,Math.floor(Number(execution?.cookingMealCount)||0));
+    const count=explicitCount>0?explicitCount:Math.max(0,Math.floor(Number(state.mealCount)||0));
+    if(count<=0)return false;
+    state.thrownMealCount=count;state.mealCount=0;
     const projectile=ProjectileService.items.slice().reverse().find(p=>p?.source===entity&&p?.volley?.execution===execution&&String(p?.attack?.id||'')==='attack.dira.meal');
     if(projectile){
       const radius=this.mealProjectileRadius(entity,count);
@@ -121238,7 +121232,7 @@ const CookingService=Object.freeze({
       projectile.travel=0;
       changed=true;
       if(t>=1){
-        if(EntitySimulationAuthorityService.isLocal(entity))this.applyThrownMeal(entity,entity);
+        if(EntitySimulationAuthorityService.isLocal(entity))this.applyThrownMeal(entity,entity,projectile?.cookingMealMeta?.count);
         ProjectileStateService.remove(projectile);
       }
     }
