@@ -1,3 +1,5 @@
+<!-- 3.1717 사이엔 체력 조정: 최대 체력을 1300에서 1100으로 감소. 기타 전투 수치/스킬은 변경하지 않음. -->
+<!-- 3.1717 사이엔 격/패리 재조정: 평타 패리는 유지하되 attack.guard onBlock의 격 충전을 제거해 패리 성공으로는 격 게이지가 오르지 않도록 했다. 격 최대치를 10→6으로 낮추고 절격 발동 조건은 기존 killRewardProgress.max 참조를 유지한다. 절격 적중 50% 충전 규칙에 맞춰 적중 충전량을 +5→+3으로 조정했다. -->
 <!-- 3.1717 반 RMB 스테미나 조정: 거대한 스패너 투척 스테미나 소모량을 300에서 400으로 조정. -->
 <!-- 3.1717 사이엔 절격 적중 충전 조정: 절격 적중 시 격 충전량을 최대 10의 50%인 +5로 변경. 처치 시 최대 충전 규칙은 유지. -->
 <!-- 3.1717 사이엔 절격/패리 조정: 격 최대치를 8→10으로 상향하고 절격 RMB 발동 조건도 killRewardProgress.max를 직접 참조하도록 통일. 평타 1·2·3타의 attack.guard 패리 지속시간과 연동 visualState를 150ms→75ms로 단축. -->
@@ -27453,7 +27455,7 @@ const CHARACTER_DATA=freezeCharacterData({
     color: "#4f79aa",
     accentColor: "#a8d5ff",
     classification: {style: 5, range: 0, role: 6},
-    stats: {maxHealth: 1300, speed: 4.25, radius: 20, baseDamage: 100, difficulty: 6},
+    stats: {maxHealth: 1100, speed: 4.25, radius: 20, baseDamage: 100, difficulty: 6},
     desc: "{v:descriptionValues.comboHits}번의 평타를 모두 적중시키며 채운 스킬로 한방에 적을 처형하는 캐릭터",
     tagPersistentActionStateKeys: ["cyien-gyeok"],
     killRewardProgress: {
@@ -27461,7 +27463,7 @@ const CHARACTER_DATA=freezeCharacterData({
       excludeTargetKinds: ["summon"],
       stateKey: "cyien-gyeok",
       operation: "set-max",
-      max: 10,
+      max: 6,
       presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
     },
     conditionalTargetLinks: [
@@ -27527,15 +27529,6 @@ const CHARACTER_DATA=freezeCharacterData({
             halfAngle: 1.05,
             wallPolicy: "block",
             duration: 75,
-            onBlock: {
-              progress: {
-                stateKey: "cyien-gyeok",
-                operation: "add",
-                amount: 1,
-                max: characterValue("killRewardProgress.max"),
-                presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
-              }
-            },
             visualState: {effectStateKey: "cyien-lmb-parry", duration: 75, syncToGuardDuration: true, color: "168,213,255"}
           },
           {
@@ -27589,15 +27582,6 @@ const CHARACTER_DATA=freezeCharacterData({
             halfAngle: 1.05,
             wallPolicy: "block",
             duration: 75,
-            onBlock: {
-              progress: {
-                stateKey: "cyien-gyeok",
-                operation: "add",
-                amount: 1,
-                max: characterValue("killRewardProgress.max"),
-                presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
-              }
-            },
             visualState: {effectStateKey: "cyien-lmb-parry", duration: 75, syncToGuardDuration: true, color: "168,213,255"}
           },
           {
@@ -27652,15 +27636,6 @@ const CHARACTER_DATA=freezeCharacterData({
             halfAngle: 1.05,
             wallPolicy: "block",
             duration: 75,
-            onBlock: {
-              progress: {
-                stateKey: "cyien-gyeok",
-                operation: "add",
-                amount: 1,
-                max: characterValue("killRewardProgress.max"),
-                presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
-              }
-            },
             visualState: {effectStateKey: "cyien-lmb-parry", duration: 75, syncToGuardDuration: true, color: "168,213,255"}
           },
           {
@@ -27758,7 +27733,7 @@ const CHARACTER_DATA=freezeCharacterData({
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
-            amount: 5,
+            amount: 3,
             max: characterValue("killRewardProgress.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
