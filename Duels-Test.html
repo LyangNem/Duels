@@ -1,3 +1,4 @@
+<!-- 3.1717 사이엔 홀드 기능 원복: 3.1717 (36).html의 홀드 도입 전 사이엔 블록을 그대로 복원. RMB는 즉시 패리, 격 최대 시 기존 alternate로 절격이 발동하며 0.3초 홀드/홀드 게이지/완료 미리보기는 사용하지 않는다. 이후 타 캐릭터 및 공통 수정은 유지. -->
 <!-- 3.1717 사이엔 절격 홀드 게이지 실제 렌더 색상 수정: PointerHoldInputService.drawHoldGauge의 흰색 하드코딩을 제거하고 진행 호/완충 호/완충 점멸링을 모두 사이엔 본색 #4f79aa로 통일. 기존 격 게이지와 동일 반경에서 후순위로 덮어쓰는 구조는 유지. -->
 <!-- 3.1717 사이엔 절격 홀드 게이지 색상 조정: 격 최대 상태에서 RMB 홀드 진행 호를 흰색이 아닌 사이엔 본색 #4f79aa로 변경. 기존 격 게이지와 동일 반경에서 그 위에 덮어쓰는 렌더 순서와 절격 가능 시에만 표시되는 조건은 유지. -->
 <!-- 3.1717 사이엔 절격 홀드 게이지 표시 수정: 절격 비활성 상태에서도 나오던 별도 ringPresentation 홀드 링을 제거하고, 실제 PointerHoldInputService의 holdGaugeRequireAvailable 조건만 사용한다. 홀드 게이지는 ProgressState 격 호를 그린 뒤 같은 chargeRadius에 순백색으로 마지막 덮어쓰기하여 격 최대 상태에서만 0→100% 진행이 확실히 보이도록 수정. -->
@@ -27504,7 +27505,7 @@ const CHARACTER_DATA=freezeCharacterData({
         key: "RMB CHARGED",
         name: "절격",
         attack: "rmbCharged",
-        text: "격 최대치에서 RMB를 0.3초 홀드하면 전방으로 이동하며 이동 경로의 적 공격. 적중 시 격 {progressAmount} 충전 및 처치 시 최대 충전. 체력 {targetHealthThresholdPercent}% 미만인 적에게 피해 +{targetHealthDamageIncreasePercent}% ({damage})"
+        text: "전방으로 이동하며 이동 경로의 적 공격. 적중 시 격 {progressAmount} 충전 및 처치 시 최대 충전. 체력 {targetHealthThresholdPercent}% 미만인 적에게 피해 +{targetHealthDamageIncreasePercent}% ({damage})"
       },
       {
         key: "L-Shift",
@@ -27867,18 +27868,6 @@ const CHARACTER_DATA=freezeCharacterData({
         id: "ability.cyien.rmb",
         input: "rmb",
         attackId: "attack.cyien.rmb",
-        holdAttackId: "attack.cyien.rmb-charged",
-        inputPolicy: {
-          repeatWhileHeld: false,
-          deferTapUntilRelease: true,
-          tapHoldSplit: true,
-          holdThresholdMs: 300,
-          holdTriggerWhilePressed: false,
-          holdGauge: true,
-          holdGaugeTimerOnly: true,
-          holdGaugeRequireAvailable: true,
-          holdPreviewOnComplete: true
-        },
         trigger: {
           type: "trigger",
           event: "input.press",
@@ -27888,23 +27877,23 @@ const CHARACTER_DATA=freezeCharacterData({
             {type: "ability.pending-ready"},
             {type: "combat.can-act"}
           ],
-          modules: [{type: "action.attack", attackId: "attack.cyien.rmb"}]
-        },
-        holdTrigger: {
-          type: "trigger",
-          event: "input.hold",
-          conditions: [
-            {type: "input.slot", slot: "rmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
+          modules: [
             {
-              type: "state.progress-gte",
-              stateKey: "cyien-gyeok",
-              value: characterValue("attacks.lmb.modules.1.max")
+              type: "action.attack",
+              alternates: [
+                {
+                  attackId: "attack.cyien.rmb-charged",
+                  conditions: [
+                    {
+                      type: "state.progress-gte",
+                      stateKey: "cyien-gyeok",
+                      value: characterValue("attacks.lmb.modules.1.max")
+                    }
+                  ]
+                }
+              ]
             }
-          ],
-          modules: [{type: "action.attack", attackId: "attack.cyien.rmb-charged"}]
+          ]
         }
       },
       counter: {
