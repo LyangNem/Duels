@@ -846,6 +846,8 @@ RMB `광석 발견`: 최대 180px 지정지점으로 180ms 이동 후 원형 200
 <!-- 디라 음식 호게이지 색상 수정: 미완성은 어두운 기본색, 식재료 10개(100%)일 때만 밝은 완충색/점멸을 사용. -->
 <!-- 3.1717 디라 설명 최신화: percent 참조 뒤 % 기호 누락을 수정하고, 현재 음식 지정 투척/자가 투척/식재료 1개당 10% 회복/스토브 최대 10개·만석 관통/완성 음식 도착·교체 사양에 맞춰 디라 전체 툴팁을 갱신. -->
 <!-- 3.1717 디라 설명/반격 수정: 디라 desc와 기술 설명을 사용자 지정 문구로 갱신하고, 주방 출입 금지 반격의 실제 공격 범위를 원형에서 전방 120도 부채꼴(range 190, halfAngle 60도)로 변경했다. 피해/식재료 획득/선딜/벽 차단 규칙은 유지한다. -->
+<!-- 3.1717 디라 스토브 회수 체력바/파괴 쿨타임: 회수형 소환수의 체력바 표시를 자연회복과 분리하는 storedHealthBar 옵션을 추가. 디라 휴대용 스토브는 회수 시 저장된 현재 체력을 스테미나 바 아래에 표시하고, 파괴 시 respawnDelay 7000ms 동안 재설치 불가. summonSpecs에 HEALTH/DEATH 설명을 추가해 다른 소환수와 동일한 형식으로 표시한다. -->
+<!-- 3.1717: 디라 반격기 주방 출입 금지에 공통 반격기 규칙과 동일한 movement.neutralize-knockback(distance 84, speed 10)을 추가. 기존 부채꼴 범위/피해/식재료 획득/300ms 선딜은 유지. -->
 <!DOCTYPE html>
 <!-- 3.1717 디버그 캐릭터 레코드 삭제: 계정 탭에 Firebase UID + 캐릭터 선택 기반의 개별 삭제 UI를 추가했다. DebugAccessService.deleteCharacterRecord()는 /firebase/admin/progress/character/delete 관리자 API를 호출해 해당 UID의 선택 캐릭터 characterRecords/characterStats와 랭킹 항목만 삭제하며 다른 캐릭터/계정 데이터는 유지한다. debugTools + rankingAdmin 권한을 요구하고 성공 후 랭킹 캐시를 즉시 갱신한다. -->
 <!-- 3.1717 뉴 마검 적중 정지 원인 고정 보강: 뉴 RMB는 targetPoint/targetDistance를 사용하지 않는 일반 직선 투사체라 travel<targetDistance 방식만으로는 적중 정지를 식별할 수 없었다. 적 충돌/권위 적중 확정에서 beginLinger에 stopReason=target을 직접 전달하고 projectile/stationaryArrival에 보존한다. target 정지 상태는 대상 사망·소멸 뒤에도 고정 좌표/이동거리를 유지하며 snapToRangeEnd 사거리 끝 보정을 차단한다. -->
@@ -29825,6 +29827,15 @@ const CHARACTER_DATA=freezeCharacterData({
       {key: "RMB/RMB", name: "요리 완료", attack: "stove", showCost: false, text: "설치된 스토브를 회수해 투입된 식재료 수만큼의 음식을 조리해 획득"},
       {key: "L-Shift", name: "주방 출입 금지", attack: "counter", text: "프라이팬을 휘둘러 주변 적에게 피해를 주고 식재료 {v:cooking.ingredientGain}개 획득 ({damage})"}
     ],
+    summonSpecs: [
+      {
+        stateKey: "dira-stove",
+        stats: [
+          {key: "HEALTH", text: "{maxHealth}"},
+          {key: "DEATH", text: "사망 시 {respawnSeconds}초간 재사용 불가"}
+        ]
+      }
+    ],
     summons: {
       "dira-stove": {
         id: "summon.dira.stove",
@@ -29833,7 +29844,9 @@ const CHARACTER_DATA=freezeCharacterData({
         radius: 22,
         speed: 0,
         healthRegen: false,
-        respawnDelay: 0,
+        respawnDelay: 7000,
+        respawnHealth: 700,
+        storedHealthBar: true,
         tags: ["소환수", "고정형"],
         worldGaugeModules: [
           {
@@ -29959,7 +29972,7 @@ const CHARACTER_DATA=freezeCharacterData({
       },
       counter: {
         id: "ability.dira.counter", input: "counter", attackId: "attack.dira.counter",
-        trigger: {type: "trigger", event: "input.press", conditions: [{type: "input.slot", slot: "counter"}, {type: "entity.alive"}, {type: "ability.pending-ready"}, {type: "combat.can-act"}, {type: "source.property.falsy", property: "counterWindup"}, {type: "counter.ready"}], modules: [{type: "counter.execute", windup: 300, consumeState: "counter-ready", allowNoCc: true, preview: {type: "preview.create", shape: "attack-shape"}}]}
+        trigger: {type: "trigger", event: "input.press", conditions: [{type: "input.slot", slot: "counter"}, {type: "entity.alive"}, {type: "ability.pending-ready"}, {type: "combat.can-act"}, {type: "source.property.falsy", property: "counterWindup"}, {type: "counter.ready"}], modules: [{type: "counter.execute", windup: 300, consumeState: "counter-ready", preview: {type: "preview.create", shape: "attack-shape"}, cc: {type: "movement.neutralize-knockback", target: "hit-target", direction: "away-from-source", distance: 84, speed: 10, oncePerExecution: true}}]}
       }
     }
   },
@@ -93998,7 +94011,10 @@ const SummonDeployService=Object.freeze({
       const carried=state.active===true&&state.carrying===true;
       const stored=
         state.active!==true&&
-        spec.storedNaturalRegen===true;
+        (
+          spec.storedNaturalRegen===true||
+          spec.storedHealthBar===true
+        );
       if(!carried&&!stored)continue;
 
       const entity=carried
