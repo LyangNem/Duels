@@ -1,3 +1,14 @@
+<!-- 3.1717 사이엔 절격 홀드 게이지 실제 렌더 색상 수정: PointerHoldInputService.drawHoldGauge의 흰색 하드코딩을 제거하고 진행 호/완충 호/완충 점멸링을 모두 사이엔 본색 #4f79aa로 통일. 기존 격 게이지와 동일 반경에서 후순위로 덮어쓰는 구조는 유지. -->
+<!-- 3.1717 사이엔 절격 홀드 게이지 색상 조정: 격 최대 상태에서 RMB 홀드 진행 호를 흰색이 아닌 사이엔 본색 #4f79aa로 변경. 기존 격 게이지와 동일 반경에서 그 위에 덮어쓰는 렌더 순서와 절격 가능 시에만 표시되는 조건은 유지. -->
+<!-- 3.1717 사이엔 절격 홀드 게이지 표시 수정: 절격 비활성 상태에서도 나오던 별도 ringPresentation 홀드 링을 제거하고, 실제 PointerHoldInputService의 holdGaugeRequireAvailable 조건만 사용한다. 홀드 게이지는 ProgressState 격 호를 그린 뒤 같은 chargeRadius에 순백색으로 마지막 덮어쓰기하여 격 최대 상태에서만 0→100% 진행이 확실히 보이도록 수정. -->
+<!-- 3.1717 사이엔 절격 홀드 게이지 흰색 표시: 홀드 진행 호를 순백색으로 고정하고 기존 격 게이지와 정확히 같은 반경/위치에 덮어 그리며, 빈 트랙 없이 0→100% 진행 부분만 표시한다. -->
+<!-- 3.1717 사이엔 절격 홀드 게이지 겹침 수정: RMB 절격 홀드 호를 격 게이지 바깥 별도 링이 아니라 정확히 동일한 chargeRadius에 후순위 렌더하고, 빈 트랙/완충 외곽 플래시를 제거해 기존 격 호 위에 진행된 사이엔색 호만 직접 겹쳐 표시한다. -->
+<!-- 3.1717 사이엔 절격 홀드 UX 수정: 격 최대 상태에서 RMB 홀드 중 기존 격 호게이지 바깥에 사이엔 기본색 0.3초 홀드 호게이지를 표시한다. 0.3초 완료 시 절격 공격 미리보기를 실시간 조준 방향으로 유지하고, 절격은 완료 순간이 아니라 RMB release에서 발동한다. 최대 격이 아니면 홀드 게이지/미리보기를 표시하지 않고 release 시 기존 패리만 발동한다. -->
+<!-- 3.1717 사이엔 RMB 입력 분리: RMB press에서는 패리를 즉시 발동하지 않고 release까지 보류한다. 0.3초 홀드 중 절격 조건이 실제 충족되어 절격이 실행된 경우에만 holdConsumed 처리하며, 그렇지 않으면 버튼을 놓는 순간 기존 RMB 패리가 발동한다. -->
+<!-- 3.1717 사이엔 방패 버전 정확 복원: /mnt/data/3.1717 (36).html의 마지막 RMB 방패 사이엔 블록을 그대로 복원해 조건형/체력1300/격8/우클릭 150ms 패리 및 패리 성공 격+1 구조를 되돌렸다. 단, 절격은 즉시 대체 발동하지 않고 격 최대치에서 RMB를 0.3초 홀드했을 때만 발동하도록 입력만 변경했다. -->
+<!-- 3.1717 사이엔 RMB 패리 복원/절격 홀드 입력: 평타 3연격의 attack.guard를 제거하고 기존 우클릭 패리 attack.cyien.rmb(150ms)를 다시 탭 입력에 연결. 패리 성공 격 충전은 제거 상태를 유지한다. 격 최대치(6) 도달 시 RMB 0.3초 홀드에서만 절격이 발동하도록 tapHoldSplit/holdTrigger를 구성. 체력 1100/반격형/절격 적중 +3 등 최근 수치는 유지. -->
+<!-- 3.1717 귀환 투사체 방어 회귀 수정: 온라인 비권위 화면의 attack.guard 접촉 경로가 귀환형 투사체까지 무조건 finish/remove하여 권위측 return 확정 전에 사라지던 문제를 수정. 귀환형은 방패/패리 접촉 위치에서 beginReturn으로 전환하고, duel-projectile-guard-resolved의 return 수신 시 impactPoint를 적용한 뒤 귀환해 모든 화면의 시작점을 통일한다. 일반 투사체의 기존 제거 규칙은 유지. -->
+<!-- 3.1717 사이엔 분류 변경: 전투 스타일을 조건형(style 5)에서 반격형(style 6)으로 변경. 역할군/스킬/수치는 유지. -->
 <!-- 3.1717 사이엔 체력 조정: 최대 체력을 1300에서 1100으로 감소. 기타 전투 수치/스킬은 변경하지 않음. -->
 <!-- 3.1717 사이엔 격/패리 재조정: 평타 패리는 유지하되 attack.guard onBlock의 격 충전을 제거해 패리 성공으로는 격 게이지가 오르지 않도록 했다. 격 최대치를 10→6으로 낮추고 절격 발동 조건은 기존 killRewardProgress.max 참조를 유지한다. 절격 적중 50% 충전 규칙에 맞춰 적중 충전량을 +5→+3으로 조정했다. -->
 <!-- 3.1717 반 RMB 스테미나 조정: 거대한 스패너 투척 스테미나 소모량을 300에서 400으로 조정. -->
@@ -27455,7 +27466,7 @@ const CHARACTER_DATA=freezeCharacterData({
     color: "#4f79aa",
     accentColor: "#a8d5ff",
     classification: {style: 5, range: 0, role: 6},
-    stats: {maxHealth: 1100, speed: 4.25, radius: 20, baseDamage: 100, difficulty: 6},
+    stats: {maxHealth: 1300, speed: 4.25, radius: 20, baseDamage: 100, difficulty: 6},
     desc: "{v:descriptionValues.comboHits}번의 평타를 모두 적중시키며 채운 스킬로 한방에 적을 처형하는 캐릭터",
     tagPersistentActionStateKeys: ["cyien-gyeok"],
     killRewardProgress: {
@@ -27463,7 +27474,7 @@ const CHARACTER_DATA=freezeCharacterData({
       excludeTargetKinds: ["summon"],
       stateKey: "cyien-gyeok",
       operation: "set-max",
-      max: 6,
+      max: 8,
       presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
     },
     conditionalTargetLinks: [
@@ -27486,13 +27497,14 @@ const CHARACTER_DATA=freezeCharacterData({
         attack: "lmb",
         linkedAttack: "lmbSecond",
         secondaryAttack: "lmbBack",
-        text: "전방을 크게 한 번, 작게 한 번 벤 뒤, 뒤로 칼을 집어넣으며 후방 타격. 각 공격 중 전방 공격을 패리해 격 1 충전. 각각 격 {progressAmount}/{linkedProgressAmount}/{secondaryProgressAmount} 충전. ({damage}/{linkedDamage}/{secondaryDamage})"
+        text: "전방을 크게 한 번, 작게 한 번 벤 뒤, 뒤로 칼을 집어넣으며 후방 타격. 각각 격 {progressAmount}/{linkedProgressAmount}/{secondaryProgressAmount} 충전. ({damage}/{linkedDamage}/{secondaryDamage})"
       },
+      {key: "RMB", name: "패리", attack: "rmb", text: "전방의 공격을 패리하여 격 {guardProgressAmount} 충전"},
       {
-        key: "RMB",
+        key: "RMB CHARGED",
         name: "절격",
         attack: "rmbCharged",
-        text: "전방으로 이동하며 이동 경로의 적 공격. 적중 시 격 {progressAmount} 충전 및 처치 시 최대 충전. 체력 {targetHealthThresholdPercent}% 미만인 적에게 피해 +{targetHealthDamageIncreasePercent}% ({damage})"
+        text: "격 최대치에서 RMB를 0.3초 홀드하면 전방으로 이동하며 이동 경로의 적 공격. 적중 시 격 {progressAmount} 충전 및 처치 시 최대 충전. 체력 {targetHealthThresholdPercent}% 미만인 적에게 피해 +{targetHealthDamageIncreasePercent}% ({damage})"
       },
       {
         key: "L-Shift",
@@ -27521,23 +27533,12 @@ const CHARACTER_DATA=freezeCharacterData({
             wallPolicy: "block"
           },
           {
-            type: "attack.guard",
-            stateKey: "cyien-lmb-parry",
-            blockCountMode: "projectile",
-            shape: "sector",
-            range: characterValue("attacks.lmb.range"),
-            halfAngle: 1.05,
-            wallPolicy: "block",
-            duration: 75,
-            visualState: {effectStateKey: "cyien-lmb-parry", duration: 75, syncToGuardDuration: true, color: "168,213,255"}
-          },
-          {
             type: "state.progress",
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
             amount: 1,
-            max: characterValue("killRewardProgress.max"),
+            max: 8,
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
           {
@@ -27574,23 +27575,12 @@ const CHARACTER_DATA=freezeCharacterData({
             wallPolicy: "block"
           },
           {
-            type: "attack.guard",
-            stateKey: "cyien-lmb-parry",
-            blockCountMode: "projectile",
-            shape: "sector",
-            range: characterValue("attacks.lmbSecond.range"),
-            halfAngle: 1.05,
-            wallPolicy: "block",
-            duration: 75,
-            visualState: {effectStateKey: "cyien-lmb-parry", duration: 75, syncToGuardDuration: true, color: "168,213,255"}
-          },
-          {
             type: "state.progress",
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
             amount: 1,
-            max: characterValue("killRewardProgress.max"),
+            max: characterValue("attacks.lmb.modules.1.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
           {
@@ -27628,23 +27618,12 @@ const CHARACTER_DATA=freezeCharacterData({
             wallPolicy: "block"
           },
           {
-            type: "attack.guard",
-            stateKey: "cyien-lmb-parry",
-            blockCountMode: "projectile",
-            shape: "sector",
-            range: characterValue("attacks.lmbBack.range"),
-            halfAngle: 1.05,
-            wallPolicy: "block",
-            duration: 75,
-            visualState: {effectStateKey: "cyien-lmb-parry", duration: 75, syncToGuardDuration: true, color: "168,213,255"}
-          },
-          {
             type: "state.progress",
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
             amount: 2,
-            max: characterValue("killRewardProgress.max"),
+            max: characterValue("attacks.lmb.modules.1.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
           {
@@ -27733,8 +27712,8 @@ const CHARACTER_DATA=freezeCharacterData({
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
-            amount: 3,
-            max: characterValue("killRewardProgress.max"),
+            amount: 4,
+            max: characterValue("attacks.lmb.modules.1.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
           {
@@ -27842,7 +27821,7 @@ const CHARACTER_DATA=freezeCharacterData({
             stateKey: "cyien-gyeok",
             operation: "add",
             amount: 2,
-            max: characterValue("killRewardProgress.max"),
+            max: characterValue("attacks.lmb.modules.1.max"),
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           }
@@ -27887,7 +27866,19 @@ const CHARACTER_DATA=freezeCharacterData({
       rmb: {
         id: "ability.cyien.rmb",
         input: "rmb",
-        attackId: "attack.cyien.rmb-charged",
+        attackId: "attack.cyien.rmb",
+        holdAttackId: "attack.cyien.rmb-charged",
+        inputPolicy: {
+          repeatWhileHeld: false,
+          deferTapUntilRelease: true,
+          tapHoldSplit: true,
+          holdThresholdMs: 300,
+          holdTriggerWhilePressed: false,
+          holdGauge: true,
+          holdGaugeTimerOnly: true,
+          holdGaugeRequireAvailable: true,
+          holdPreviewOnComplete: true
+        },
         trigger: {
           type: "trigger",
           event: "input.press",
@@ -27895,8 +27886,23 @@ const CHARACTER_DATA=freezeCharacterData({
             {type: "input.slot", slot: "rmb"},
             {type: "entity.alive"},
             {type: "ability.pending-ready"},
+            {type: "combat.can-act"}
+          ],
+          modules: [{type: "action.attack", attackId: "attack.cyien.rmb"}]
+        },
+        holdTrigger: {
+          type: "trigger",
+          event: "input.hold",
+          conditions: [
+            {type: "input.slot", slot: "rmb"},
+            {type: "entity.alive"},
+            {type: "ability.pending-ready"},
             {type: "combat.can-act"},
-            {type: "state.progress-gte", stateKey: "cyien-gyeok", value: characterValue("killRewardProgress.max")}
+            {
+              type: "state.progress-gte",
+              stateKey: "cyien-gyeok",
+              value: characterValue("attacks.lmb.modules.1.max")
+            }
           ],
           modules: [{type: "action.attack", attackId: "attack.cyien.rmb-charged"}]
         }
@@ -65478,6 +65484,19 @@ charRow.appendChild(card);
 
       if(payload.outcome==='return'){
         if(!projectile.behavior?.returning)return false;
+
+        const guardPoint=
+          payload.impactPoint&&
+          Number.isFinite(Number(payload.impactPoint.x))&&
+          Number.isFinite(Number(payload.impactPoint.y))
+            ?payload.impactPoint
+            :null;
+        if(guardPoint){
+          projectile.x=Number(guardPoint.x);
+          projectile.y=Number(guardPoint.y);
+          projectile.prevX=projectile.x;
+          projectile.prevY=projectile.y;
+        }
 
         return (
           ProjectileStateService.beginReturn(
@@ -104866,11 +104885,23 @@ const AttackGuardService=Object.freeze({
     }
     if(!nearest)return false;
     if(Training.sessionMode==='online'&&!EntitySimulationAuthorityService.isLocal(nearest.source)){
-      // 원격 방패 접촉도 이 화면의 비행을 즉시 끝낸다.
-      // 방어 성공/자원 처리는 방패 소유자에게 맡기며 여기서는 재전송하지 않는다.
+      // 원격 방패 접촉은 이 화면에서도 접촉 위치까지만 먼저 보정한다.
+      // 실제 방어 성공/자원 처리는 방패 소유자 권위가 확정해 전송한다.
       const overshoot=Math.hypot(projectile.x-nearestContact.x,projectile.y-nearestContact.y);
       projectile.x=nearestContact.x;projectile.y=nearestContact.y;
       projectile.travel=Math.max(0,(Number(projectile.travel)||0)-overshoot);
+      nearest.handledProjectiles?.add(projectile);
+
+      // 귀환형 투사체는 방패/패리에 막혀도 제거하지 않는다.
+      // 접촉 위치에서 즉시 귀환으로 전환하고, 이후 권위측 return 확정 패킷으로 재동기화한다.
+      if(this.isReturnAttack(projectile)){
+        ProjectileStateService.beginReturn(
+          projectile,
+          {manual:false}
+        );
+        return true;
+      }
+
       if(projectile.behavior?.impact?.resolveOnGuard===true){
         ProjectileImpactService.resolve(projectile,'guard');
       }
@@ -115858,7 +115889,9 @@ const PointerHoldInputService=Object.freeze({
       'input.hold',
       performance.now()
     );
-    if(!attack?.charge)return false;
+    if(!attack?.charge){
+      return ability.inputPolicy?.holdGaugeTimerOnly===true;
+    }
 
     return ChargedAttackService.start(
       {
@@ -115996,6 +116029,15 @@ const PointerHoldInputService=Object.freeze({
 
     if(ability.inputPolicy?.deferTapUntilRelease===true){
       this.startHoldRepeatProgress(source,ability,current);
+      if(
+        ability.inputPolicy?.tapHoldSplit===true&&
+        ability.holdTrigger
+      ){
+        if(this.holdAvailable(source,ability)){
+          this.startHoldGauge(source,ability);
+        }
+        return true;
+      }
       return true;
     }
 
@@ -116084,8 +116126,12 @@ const PointerHoldInputService=Object.freeze({
     current.holdRepeatTicks=0;
     current.holdRepeatLastStepAt=0;
 
-    if(wasHeld&&deferredTap){
-      if(triggerRelease&&holdRepeatTicks===0){
+    if(wasHeld&&deferredTap&&!tapHoldSplit){
+      if(
+        triggerRelease&&
+        holdRepeatTicks===0&&
+        holdConsumed!==true
+      ){
         return Training.use(slot)===true;
       }
       return true;
@@ -116166,6 +116212,10 @@ const PointerHoldInputService=Object.freeze({
       ability?.inputPolicy?.tapHoldSplit!==true||
       ability.inputPolicy?.holdGauge!==true
     )return false;
+    if(
+      ability.inputPolicy?.holdGaugeRequireAvailable===true&&
+      !this.holdAvailable(source,ability)
+    )return false;
 
     const duration=Math.max(
       1,
@@ -116192,21 +116242,22 @@ const PointerHoldInputService=Object.freeze({
       source,
       progress,
       {
-        color:source.color,
+        color:'#4f79aa',
+        completeColor:'#4f79aa',
         lineWidth:
           EntityRingLayoutService.WIDTHS.gauge,
         lineCap:'butt',
         radius:
-          EntityRingLayoutService
-            .chargeRadius(source),
-        showEmpty:true,
+          EntityRingLayoutService.chargeRadius(source),
+        showEmpty:false,
+        completeAccent:false,
         maxChargeFlash:progress>=1,
+        completePulseColor:'#4f79aa',
         completePulseRadius:
-          EntityRingLayoutService
-            .maxChargeFlashRadius(
-              source,
-              now
-            )
+          EntityRingLayoutService.maxChargeFlashRadius(
+            source,
+            now
+          )
       }
     );
   },
@@ -116256,8 +116307,6 @@ const PointerHoldInputService=Object.freeze({
             Number(current.pressedAt)||now
           )>=holdMs
         ){
-          current.holdConsumed=true;
-
           const runtime={
             source,
             ability,
@@ -116289,6 +116338,9 @@ const PointerHoldInputService=Object.freeze({
               );
             if(runtime.attack){
               AbilityModuleService.run(runtime);
+              if(runtime.executed===true||runtime.handled===true){
+                current.holdConsumed=true;
+              }
             }
           }
           continue;
@@ -116309,8 +116361,6 @@ const PointerHoldInputService=Object.freeze({
           now-
           Math.max(0,Number(current.pressedAt)||now)>=holdMs
         ){
-          current.holdConsumed=true;
-
           const runtime={
             source,
             ability,
@@ -116342,6 +116392,9 @@ const PointerHoldInputService=Object.freeze({
               );
             if(runtime.attack){
               AbilityModuleService.run(runtime);
+              if(runtime.executed===true||runtime.handled===true){
+                current.holdConsumed=true;
+              }
             }
           }
           continue;
@@ -116365,12 +116418,36 @@ const PointerHoldInputService=Object.freeze({
           Math.max(
             0,
             Number(current.pressedAt)||now
-          )>=holdMs
+          )>=holdMs&&
+          this.holdAvailable(source,ability)
         ){
           // 홀드 판정만 확정한다. 실제 능력은 버튼을 놓는 순간 한 번 실행한다.
           current.holdConsumed=true;
-          continue;
         }
+      }
+
+      if(
+        ability?.inputPolicy?.tapHoldSplit===true&&
+        ability?.inputPolicy?.holdPreviewOnComplete===true&&
+        ability.holdTrigger&&
+        current.holdConsumed===true
+      ){
+        const previewAttack=AbilityService.eventAttack(
+          source,
+          ability,
+          'input.hold',
+          now
+        );
+        if(previewAttack){
+          source.attackPreview=AttackPreviewService.fromAttack(
+            source,
+            previewAttack,
+            Training.aimAngle(),
+            now+100,
+            source.attackPreview||null
+          );
+        }
+        continue;
       }
 
       if(
@@ -122348,27 +122425,13 @@ const TrainingWorldDrawService=Object.freeze({
             {
               radius:
                 EntityRingLayoutService.chargeRadius(e),
-              color:
-                String(
-                  holdConfig.color||
-                  'rgba(255,255,255,0.90)'
-                ),
-              completeColor:
-                String(
-                  holdConfig.completeColor||
-                  holdConfig.color||
-                  'rgba(255,255,255,0.90)'
-                ),
-              completePulseColor:
-                String(
-                  holdConfig.completePulseColor||
-                  '255,255,255'
-                ),
-              lineWidth:
-                EntityRingLayoutService.WIDTHS.gauge,
+              color:'#4f79aa',
+              completeColor:'#4f79aa',
+              completePulseColor:'79,121,170',
+              lineWidth:3.5,
               lineCap:'butt',
               showEmpty:false,
-              maxChargeFlash:true,
+              maxChargeFlash:false,
               completePulseRadius:
                 EntityRingLayoutService.maxChargeFlashRadius(
                   e,
@@ -122439,14 +122502,18 @@ const TrainingWorldDrawService=Object.freeze({
             ctx,
             e
           );
+        }
+        if(!ChannelAttackService.drawGauge(ctx,e,now)){
+          ProgressStateService.draw(ctx,e,now);
+        }
+        // 탭/홀드 입력 게이지는 기존 호 게이지가 모두 그려진 뒤 마지막에 덮어쓴다.
+        // 사이엔 절격 홀드는 holdGaugeRequireAvailable로 격 최대 상태에서만 여기까지 온다.
+        if(e===runtime.player){
           PointerHoldInputService.drawHoldGauge(
             ctx,
             e,
             now
           );
-        }
-        if(!ChannelAttackService.drawGauge(ctx,e,now)){
-          ProgressStateService.draw(ctx,e,now);
         }
         StatusPresentation.draw(ctx,e,now);
         BuffStatusPresentation.draw(
