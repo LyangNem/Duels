@@ -1,3 +1,4 @@
+<!-- 3.1717 타우 CRIT 피해 조정: LMB CRIT 피해를 450에서 550으로 상향. 일반 LMB 150 및 스파크 충전/소모/반격 연동은 유지. -->
 <!-- 3.1717 타우 크리티컬 복원: 이전 3스택 spark-scythe 구조와 LMB CRIT 분기를 복원. 일반 LMB는 baseDamage 200×0.75=150 피해, CRIT은 ×2.25=450 피해로 조정하고 기존 최대체력 비례 추가 피해는 복원하지 않았다. 일반 평타 적중마다 스파크 +1/최대3, 최대 시 LMB가 CRIT으로 전환되어 적중 시 스파크를 초기화하며 반격은 스파크를 최대 충전한다. -->
 <!-- 3.1717 티냐 반격 마법진 참조 변경: 반격 formation.manifest를 현재 배치(source:current)가 아니라 마지막 실제 발동 진형(source:last)으로 변경. CircleFormationService는 lastFormation 스냅샷을 반격 조준 위치에 복제하며, 기록이 아직 없을 때만 최소 마법진 1개로 fallback한다. 반격 자체는 storeLast:false라 마지막 일반 마법진 기록을 덮어쓰지 않는다. -->
 <!-- 3.1717 사이엔 홀드 기능 원복: 3.1717 (36).html의 홀드 도입 전 사이엔 블록을 그대로 복원. RMB는 즉시 패리, 격 최대 시 기존 alternate로 절격이 발동하며 0.3초 홀드/홀드 게이지/완료 미리보기는 사용하지 않는다. 이후 타 캐릭터 및 공통 수정은 유지. -->
@@ -11900,7 +11901,7 @@ const CHARACTER_DATA=freezeCharacterData({
       {key: "LMB", name: "사슬낫 휘두르기", attack: "lmb", text: "사슬낫을 휘둘러 피해. 적중한 적마다 스파크 {progressAmount} 충전 ({damage})"},
       {key: "LMB CRIT", name: "", attack: "lmbCharged", showCost: false, text: "스파크 최대 충전 시 강화 피해 ({damage})"},
       {key: "RMB", name: "쇠사슬 추격", attack: "rmb", text: "낫을 던져 적중 시 해당 위치로 이동 후 피해. ({damage})"},
-      {key: "L-Shift", name: "체인 웨이브", attack: "counter", text: "낫을 한 바퀴 돌려 주변 광역 피해 ({damage})"}
+      {key: "L-Shift", name: "스파크 웨이브", attack: "counter", text: "낫을 한 바퀴 돌려 주변 광역 피해 ({damage})"}
     ],
     attacks: {
       lmb: {
@@ -11928,7 +11929,7 @@ const CHARACTER_DATA=freezeCharacterData({
       },
       lmbCharged: {
         id: "attack.tau.lmb-charged",
-        damageRatio: 2.25,
+        damageRatio: 2.75,
         cost: 200,
         cd: 350,
         attackDelayGroup: "tau-primary",
