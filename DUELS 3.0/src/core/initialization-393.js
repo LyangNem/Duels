@@ -1,2 +1,0 @@
-
-DebugMapService.rebuild();

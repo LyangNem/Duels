@@ -1,4 +1,0 @@
-
-
-/* CC */
-let CC_PRESENTATION_SEQUENCE=0;

@@ -1,3 +1,0 @@
-
-
-let abilityUseSequence=0;
