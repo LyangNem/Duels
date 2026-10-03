@@ -1,0 +1,3 @@
+
+
+const DUELS2_TILE_COLS = 40;
