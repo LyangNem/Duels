@@ -51,7 +51,7 @@ def verify(baseline=False):
  assert all(p in registered and (ROOT/p).is_file() for p in paths),'미등록 캐릭터'
  runtime=assemble();assert sha(runtime)==m['original_script_sha256' if baseline else 'current_script_sha256'],'기준 JavaScript와 불일치'
  assert (ROOT/'runtime.js').read_text(encoding='utf-8')==runtime,'배포 runtime.js가 소스와 불일치'
- html=(ROOT/'DUELS 3.0.html').read_text(encoding='utf-8')
+ html=(ROOT/'Duels.html').read_text(encoding='utf-8')
  # Replace only actual resource elements, not examples inside comments/raw-text blocks.
  doc=Document(html);changes=[];used=[]
  resources=m['baseline_resources'];by_path={r['path']:r for r in resources}

@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-text.1",
+  "version": "3.0.0-package.1",
   "source": "3.1717 (65).html",
   "original_script_sha256": "6fd12004e89d39fffe6a916d711147f63a7039b1a1cc995f7cc8532751f0ed8e",
   "load_order": [
@@ -6672,8 +6672,8 @@
       "symbols": []
     },
     {
-      "path": "DUELS 3.0.html",
-      "role": "화면 DOM·외부 리소스·스타일·실행 스크립트 연결",
+      "path": "Duels.html",
+      "role": "Duels.html 진입 화면·DOM·정적 CSS/JS 리소스 연결",
       "symbols": []
     },
     {
@@ -6742,7 +6742,7 @@
     },
     {
       "path": "tools/verify.py",
-      "role": "원본 HTML 구조·규칙·실행 순서와 배포 검증. 의도한 리소스 변경은 current_resource_sha256, --baseline은 보존된 원본 해시로 검사.",
+      "role": "Duels.html의 원본 DOM·리소스·실행 순서·규칙 및 현재 배포 일치 검사. 원본 리소스 해시와 현재 변경 해시 분리.",
       "symbols": [
         "Document",
         "document_hash",
@@ -6846,7 +6846,7 @@
   "baseline_document_sha256": "e77d39df0255f3257c9162e12d5e43d60fa45cb7c304a52ab9c009bcc6779f13",
   "baseline_rules_sha256": "eaaf531ff3eedf5244ec6829d0fe12d1932bab4c252c79b68ecf839e27ea6bac",
   "old_rule_16": "16. Duels 3.0은 반드시 단일 HTML 파일로 유지한다.\n- 외부 JS/CSS 파일로 게임 코드를 분리하지 않는다.\n- 단일 파일 내부에서도 시스템별 영역과 책임을 명확하게 구획한다.\n- 단일 파일 조건은 모듈화 금지를 의미하지 않는다.",
-  "new_rule_16": "16. DUELS 3.0은 역할별 여러 소스 파일로 개발한다.\n- 캐릭터는 캐릭터별 데이터 원본, 실행 기능은 공통 서비스 단위로 분리한다.\n- 실행 순서와 공유 문맥을 유지하는 조립은 허용한다. 생성 결과를 직접 수정하지 않는다.\n- 배포 파일명은 DUELS 3.0.zip, 진입 HTML은 DUELS 3.0.html로 고정한다.",
+  "new_rule_16": "16. DUELS 3.0은 역할별 여러 소스 파일로 개발한다.\n- 캐릭터는 캐릭터별 데이터 원본, 실행 기능은 공통 서비스 단위로 분리한다.\n- 실행 순서와 공유 문맥을 유지하는 조립은 허용한다. 생성 결과를 직접 수정하지 않는다.\n- 배포 파일명은 Duels.zip, 진입 HTML은 Duels.html로 고정한다.",
   "current_script_sha256": "97cc859a5cfe230ff6954e02eabfb0412091cf3db99a4cc6809430c9a953d516",
   "baseline_layout_sha256": "91b3fa54ece362a30852be9cdb5fccd051c0afda78cc6e891b240eab54747aac",
   "current_resource_sha256": {

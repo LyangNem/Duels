@@ -22,12 +22,12 @@ class Handler(SimpleHTTPRequestHandler):
  def do_GET(self):
   if self.path.split('?')[0]=='/runtime.js':self.runtime()
   else:
-   if self.path=='/':self.path='/DUELS%203.0.html'
+   if self.path=='/':self.path='/Duels.html'
    super().do_GET()
  def do_HEAD(self):
   if self.path.split('?')[0]=='/runtime.js':self.runtime(head=True)
   else:
-   if self.path=='/':self.path='/DUELS%203.0.html'
+   if self.path=='/':self.path='/Duels.html'
    super().do_HEAD()
 port=int(sys.argv[1]) if len(sys.argv)>1 else 8000
 print(f'DUELS 3.0: http://localhost:{port}/',flush=True)

@@ -1,6 +1,6 @@
 # DIVIDE TASKS
 
-버전: 3.0.0-text.1
+버전: 3.0.0-package.1
 
 역할 변경 시 project.json의 role/symbols도 수정하고 `python tools/project.py docs`로 이 문서를 갱신한다. 해시 검사는 역할 의미의 정확성을 대신하지 않는다. runtime.js는 생성 결과이며 직접 편집하지 않는다.
 
@@ -8,9 +8,9 @@
 |---|---|---|---|
 | `AGENTS.md` | AI 작업자에게 README 정독·문서 갱신 의무 안내 |  | e22055c0c72b7010c9e6eef168ac2f49e01a5411385ce87b4370aba513f29590 |
 | `DIVIDE TASKS.md` | 전체 파일 역할·심볼·해시 목록 |  | 자기 참조 제외 |
-| `DUELS 3.0.html` | 화면 DOM·외부 리소스·스타일·실행 스크립트 연결 |  | 55dd493a5537a9608a682341a963234c30ee0df276f2c8ce3327a2d81e49a305 |
-| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | 4cf6f08aa807352e49fe8bc7dbfb751961d29a237cb6a315912c6d065eab0d19 |
-| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | a68f6315aa06105f7c1cf1044eba6918da96d3c4f51c043774b207a4accec26d |
+| `Duels.html` | Duels.html 진입 화면·DOM·정적 CSS/JS 리소스 연결 |  | 55dd493a5537a9608a682341a963234c30ee0df276f2c8ce3327a2d81e49a305 |
+| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | a5900e3fa4862e18ff5be07451cc3fc34c8e5453a0c32464391c46b892bcda8f |
+| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | e073cba5086dcc2d0821071910ffbd741ad30fceef25076cc8e858c0a13c5114 |
 | `START.bat` | Windows 로컬 서버 실행 |  | d383b503b5d39e16324de2f7031e5cd69175f3b54bfbf477097ee758f094c849 |
 | `START.sh` | Linux/macOS 로컬 서버 실행 |  | 14be4f1c3b060556e2df88e1811eabe8d8ceeb8011f4c0c498399a9675e94bfa |
 | `docs/CHARACTER CONTRACT.md` | 공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약 |  | 723412b54930c7bf22771ff70fdbf9e1e1414468e6a08905f6ee2821b74bb90e |
@@ -19,7 +19,7 @@
 | `docs/ROOM CONNECTION.md` | 현재 방 연결 상태 전이·승인 계약·승계·제한 시간·호환성·실기기 검사 안내 |  | c2afdb21a6258eea896ee909299b3aa64202c75c1dc6630aa0dffe8fec3cd54a |
 | `docs/STRUCTURE AUDIT.md` | 구조 검수 범위·발견/수정·58명 결과·우선 플레이 테스트와 검증 한계 |  | f98c1c01ed30000c6c84692a55a0d0af39403f71a8a5d49cbb33736d74013935 |
 | `docs/VERIFICATION.md` | split.2 검수 발견 오류·수정·통과 검사·실행 한계와 재현 방법 기록 |  | ae9d7cc0de36c42ea51f7ed040a8fc4ef8a53b31cb750f2bf010dc482d7038e9 |
-| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | e60e75e54bc47747d7109318b7eb3f832dce5d06e3d31a837c286dd5becac1c9 |
+| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | c93f4600fec625ab9a5c3994d6510c91906605007e06bfba2886d62a0e7a7df1 |
 | `src/abilities/AbilityAttackExecutionService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: AbilityAttackExecutionService. | AbilityAttackExecutionService, execute | 6aa6f2993ec47e9ca212f2f318d8a66ae4266eaf68021cb10d1cc7710d0ce019 |
 | `src/abilities/AbilityModuleService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: AbilityModuleService. | AbilityModuleService, addUsageTags, handlers, run | 376d52706c68eb4f53ad524b9a3ebf99e41d466731f032d72fd14b81b22cf052 |
 | `src/abilities/AbilityService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: AbilityService. | AbilityService, attackById, damageRatio, eventAttack, resolvedInputAttack, trigger, canActivate, activate | c4cbeb6bdfd6160af9368aa95569285245ca86ebce7b2a4c29e7a7de46e8f568 |
@@ -518,8 +518,8 @@
 | `styles/debug.css` | 기존 디버그/맵 편집·후속 화면 스타일 |  | 8ad630d95129694ef16e3c287c24d31b63bf55d50d2ee1d2a7a3540c3e6ddd42 |
 | `styles/game.css` | 게임·메뉴·HUD·카드 CSS. 카드 칭호는 10px/800 그라데이션, 이름 그림자 상속 차단·칭호 포함 이름의 필터 제거로 선명도 유지. |  | 92d09aeb5e332feb7bed8f66542ec8622b600f2edfc6aa047eb77dd64d166a82 |
 | `tools/project.py` | 소스 조립·전체 역할 문서 생성·최신화 검사 |  | b69e7085f81a06eb2448ca6b0ff712c76d95f0788658e2c820e31cfe2fbe9e0e |
-| `tools/serve.py` | 로컬 서버와 시작 전 검사·자동 조립 |  | 032ba6a166e50a29ba1ae6e73281b20539580477a73cecc11d2ce4a2946f2e93 |
+| `tools/serve.py` | 로컬 서버와 시작 전 검사·자동 조립 |  | 28500bbd995bffb97083aed18f06c16c3ccdea0489496cb144603075699be86d |
 | `tools/test-gameplay-fixes.cjs` | 실제 서비스 실행 회귀 15개: 사망 관전·방어 경로·선택 상한·불규칙 잔향 수신 보간·종료/축소·독립성 |  | 02b44ee757277225a7db98e54ccf1dc390f45da701d70b9ec48f24ac74f7a304 |
 | `tools/test-room-connection.cjs` | 가짜 Peer/시계·패킷 복사·실제 RoomUI 정렬을 통한 연결·승계·재입장 순서 17개 회귀 검사 |  | 02a38579189fa2cf5d761eddb086b37ce521a4f86ce3fdbaf17efa9a489718b7 |
 | `tools/test-structure.cjs` | 58명 데이터/Trigger/반격/태그 구조 검사와 증강·수리·지연·회피 보상·이동·전역 장판 11개 회귀 검사 |  | 0cb2d2570fb0bdcff7b867855a62183229755f03645278651d1bfdf34ca7b75b |
-| `tools/verify.py` | 원본 HTML 구조·규칙·실행 순서와 배포 검증. 의도한 리소스 변경은 current_resource_sha256, --baseline은 보존된 원본 해시로 검사. | Document, document_hash, verify | 301d095e4268844c4557da6ecb642c4507a2f8f1709515f8e5a9e267f21e9d47 |
+| `tools/verify.py` | Duels.html의 원본 DOM·리소스·실행 순서·규칙 및 현재 배포 일치 검사. 원본 리소스 해시와 현재 변경 해시 분리. | Document, document_hash, verify | 6524a53122ecb233c6ba3f7e78f2ef33cc1f67ac5f08687d62f70269ac5a7a89 |
