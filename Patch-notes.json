@@ -8,6 +8,12 @@
 ],
 "balance": [
 {
+"character": "슈비",
+"changes": [
+"반격기 사거리 약 25% 감소"
+]
+},
+{
 "character": "타우",
 "changes": [
 "평타 피해량 200 → 150",
