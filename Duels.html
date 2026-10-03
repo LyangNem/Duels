@@ -906,6 +906,7 @@ RMB `광석 발견`: 최대 180px 지정지점으로 180ms 이동 후 원형 200
 <!-- 3.1717 구조 통합 22차: CharacterTriggerEffectService와 AugmentEffectModuleService가 resource.restore의 최대자원 비율/잃은자원 비율/Health·Stamina·Shield 분기를 각각 재구현하던 중복을 제거하고 공통 ResourceRestoreEffectService로 통합했다. 증강 부활의 체력·스테미나 완전회복도 같은 공통 경로를 사용한다. -->
 <!-- 3.1717 타우 피해량 조정: Base Damage 200 기준 LMB CRIT 피해를 550→450(damageRatio 2.25), 스파크 웨이브 반격 피해를 200→150(damageRatio 0.75)으로 조정. 일반 LMB 150과 스파크 충전/소모 구조는 유지. -->
 <!-- 3.1717 에즈레일 설명 추가: ALWAYS 바람지대 항목에 "범위 내 아군에게 보호막을 적용" 설명을 추가. 전투 수치/동작은 변경하지 않음. -->
+<!-- 3.1717 타우 설명 수정: 캐릭터 설명을 "스파크와 사슬 낫을 이용한 변칙적인 움직임으로 전투하는 캐릭터"로 변경. 전투 수치와 동작은 변경하지 않음. -->
 <!DOCTYPE html>
 <!-- 3.1717 디버그 캐릭터 레코드 삭제: 계정 탭에 Firebase UID + 캐릭터 선택 기반의 개별 삭제 UI를 추가했다. DebugAccessService.deleteCharacterRecord()는 /firebase/admin/progress/character/delete 관리자 API를 호출해 해당 UID의 선택 캐릭터 characterRecords/characterStats와 랭킹 항목만 삭제하며 다른 캐릭터/계정 데이터는 유지한다. debugTools + rankingAdmin 권한을 요구하고 성공 후 랭킹 캐시를 즉시 갱신한다. -->
 <!-- 3.1717 뉴 마검 적중 정지 원인 고정 보강: 뉴 RMB는 targetPoint/targetDistance를 사용하지 않는 일반 직선 투사체라 travel<targetDistance 방식만으로는 적중 정지를 식별할 수 없었다. 적 충돌/권위 적중 확정에서 beginLinger에 stopReason=target을 직접 전달하고 projectile/stationaryArrival에 보존한다. target 정지 상태는 대상 사망·소멸 뒤에도 고정 좌표/이동거리를 유지하며 snapToRangeEnd 사거리 끝 보정을 차단한다. -->
@@ -11937,7 +11938,7 @@ const CHARACTER_DATA=freezeCharacterData({
     color: "#00ffff",
     classification: {style: 1, range: 0, role: 1},
     stats: {maxHealth: 1000, speed: 4.5, radius: 20, baseDamage: 200, difficulty: 2},
-    desc: "스파크 낫을 이용한 변칙적인 움직임으로 전투하는 캐릭터",
+    desc: "스파크와 사슬 낫을 이용한 변칙적인 움직임으로 전투하는 캐릭터",
     tooltipSkills: [
       {key: "LMB", name: "사슬낫 휘두르기", attack: "lmb", text: "사슬낫을 휘둘러 피해. 적중한 적마다 스파크 {progressAmount} 충전 ({damage})"},
       {key: "LMB CRIT", name: "", attack: "lmbCharged", showCost: false, text: "스파크 최대 충전 시 강화 피해 ({damage})"},
