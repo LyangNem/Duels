@@ -1464,7 +1464,7 @@ const Training={
       );
     return true;
   },
-  use(slot,angle=null){
+  use(slot,angle=null,inputOptions={}){
     const player=this.player;
     const ability=player?.character?.abilities?.[slot];
     if(!player||!ability)return false;
@@ -1485,6 +1485,7 @@ const Training={
       ability,
       {
         event:'input.press',
+        modeStep:Number(inputOptions.modeStep)<0?-1:1,
         inputSlot:slot,
         angle:resolvedAngle,
         resolveAim:()=>this.aimAngle(),
@@ -2065,6 +2066,7 @@ const Training={
       }
     }
 
+    AttackPreviewService.updateAim(p,this.aimAngle(),now);
     AttackPreviewService.updateLive(
       p,
       ()=>this.aimAngle(),
@@ -3241,9 +3243,10 @@ const Training={
         ctx.stroke();
 
         if(!stationaryNumbered){
-          const half=Math.max(1,Number(style.crossHalfLength)||8);
-          ctx.strokeStyle=`rgba(${ColorService.rgbString(style.innerColor,b.renderRgb)},${returningStrokeAlpha*.85})`;
-          ctx.lineWidth=Math.max(1,Number(style.innerStrokeWidth)||2.5);
+          const half=radius*.5;
+          const crossColor=ColorService.rgbString(ColorService.brighten(b.source?.character?.color||b.source?.color||b.renderRgb));
+          ctx.strokeStyle=`rgba(${crossColor},${returningStrokeAlpha*.85})`;
+          ctx.lineWidth=Math.max(.5,radius/6*visual.scale);
 
           ctx.beginPath();
           ctx.moveTo(visual.x-half*visual.scale,visual.y);
@@ -3433,7 +3436,7 @@ const Training={
     }
 
     for(const f of this.fx){
-      if(f?.type==='recordDodgeTrail'||f?.type==='dmgNum')continue;
+      if(f?.type==='recordDodgeTrail'||f?.type==='dmgNum'||f?.type==='gearCluster')continue;
       const progress=Math.max(0,Math.min(1,(now-f.start)/Math.max(1,f.dur)));
       if(
         f.visible===false||
@@ -6229,7 +6232,7 @@ const Training={
       TrainingWorldDrawService.drawAttackPreview(
         ctx,
         this.player,
-        this.player.attackPreview,
+        this.player.attackPreview||this.player.aimAttackPreview,
         now
       );
       CounterModuleService.drawProjectilePreviews(

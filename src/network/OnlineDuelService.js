@@ -1329,6 +1329,7 @@ charRow.appendChild(card);
 
     return {
       type:'duel-state',
+      worldDestruction:includeCombatSnapshot?WorldDestructionService.snapshot():undefined,
       sequence:++this.packetSequence,
       roundToken:this.roundToken,
       sentAt:Date.now(),
@@ -1427,6 +1428,8 @@ charRow.appendChild(card);
         TimedActionStateService.serialize(player,now),
       progressStates:
         ProgressStateService.serialize(player),
+      modeStates:ModeStateService.serialize(player,now),
+      limitedUseBuffs:LimitedUseBuffService.serialize(player),
       fieldDodgeRewards:
         FieldDodgeRewardService.serialize(player,now),
       projectileStates:ProjectileStateService.serialize(player),
@@ -1683,6 +1686,8 @@ charRow.appendChild(card);
           ''
         ),
       handled:result?.handled===true,
+      modeStep:Number(result?.modeStep)<0?-1:1,
+      modeStates:result?.modeStates||ModeStateService.serialize(Training.player),
       skipAttackWindup:
         result?.skipAttackWindup===true,
       resolvedAttackId:String(result?.attackId||''),
@@ -1796,6 +1801,7 @@ charRow.appendChild(card);
       slot,
       angle:Number(angle)||0,
       senderHandled:result?.handled===true,
+      modeStates:result?.modeStates||ModeStateService.serialize(Training.player),
       senderExecuted:result?.executed===true,
       resolvedAttackId:String(result?.attackId||''),
       executionSequence:
@@ -1973,6 +1979,10 @@ charRow.appendChild(card);
     }
     if(Number(payload?.roundToken)&&Number(payload.roundToken)!==this.roundToken){
       return false;
+    }
+
+    if(payload.type==='duel-world-destruction'){
+      return OnlineWorldDestructionSyncService.receive(payload);
     }
 
     const remote=
@@ -2242,6 +2252,13 @@ charRow.appendChild(card);
         carrier,
         reason
       );
+      const delivery=AttackModuleService.module(attack,'delivery.projectile');
+      if(reason==='target'&&delivery?.arrival?.linger?.atTarget===true){
+        const restored=ProjectileService.spawn({...carrier,projectile:{...delivery,networkSpawnCompensation:false},
+          behavior:ProjectileModuleService.config(attack),angle:Number(payload.angle)||0});
+        restored.impactResolved=true;
+        TargetPointProjectileService.beginLinger(restored,performance.now(),'target');
+      }
       return true;
     }
 
@@ -2762,6 +2779,10 @@ charRow.appendChild(card);
         }
       }
 
+      if(Number(payload.roundToken)===Number(this.roundToken)&&payload.worldDestruction){
+        WorldDestructionService.applySnapshot(payload.worldDestruction);
+      }
+
       const x=Number(payload.x);
       const y=Number(payload.y);
 
@@ -2905,6 +2926,8 @@ charRow.appendChild(card);
         remote,
         payload.progressStates||[]
       );
+      if(Array.isArray(payload.modeStates))ModeStateService.applyRemote(remote,payload.modeStates);
+      if(Array.isArray(payload.limitedUseBuffs))LimitedUseBuffService.applyRemote(remote,payload.limitedUseBuffs);
       FieldDodgeRewardService.applyRemote(
         remote,
         payload.fieldDodgeRewards||[],
@@ -2919,7 +2942,8 @@ charRow.appendChild(card);
         remote,
         payload.stationaryProjectiles||[],
         payload.sentAt,
-        performance.now()
+        performance.now(),
+        delayMs
       );
       ProjectileHomingTargetSyncService.applyRemote(
         remote,
@@ -3182,6 +3206,7 @@ charRow.appendChild(card);
       }
 
       this.reconcileRemoteAction(pid,remote,payload);
+      if(Array.isArray(payload.modeStates))ModeStateService.applyRemote(remote,payload.modeStates);
 
       if(Array.isArray(payload.commandFeatures)){
         CommandFeatureService.applyNetworkSnapshot(
@@ -3232,6 +3257,8 @@ charRow.appendChild(card);
           ability,
           {
             event:'input.press',
+            modeStep:Number(payload.modeStep)<0?-1:1,
+            modeStates:payload.modeStates,
             inputSlot:payload.slot,
             angle:Number(payload.angle)||0,
             targetPoint:
@@ -3286,6 +3313,7 @@ charRow.appendChild(card);
           ability,
           {
             event:'input.hold',
+            modeStates:payload.modeStates,
             inputSlot:payload.slot,
             angle:Number(payload.angle)||0,
             targetPoint:

@@ -269,6 +269,7 @@ const TrainingWorldDrawService=Object.freeze({
       // 내구도가 남아 있는 동안 자신/상대 화면 모두에서 캐릭터 뒤에 표시한다.
       ctx.save();
       ctx.translate(bodyX,bodyY);
+      ModeGearPresentationService.drawBehind(ctx,e,bodyAlpha,now);
       VanWrenchDurabilityPresentationService.drawBehind(
         ctx,
         e,

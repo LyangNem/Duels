@@ -13,7 +13,7 @@ const TargetPointProjectileService=Object.freeze({
   snapToRangeEnd(projectile,range){
     const linger=this.arrival(projectile)?.linger;
     if(
-      linger?.snapToRangeEnd!==true||
+      (linger?.snapToRangeEnd!==true&&projectile?.behavior?.impact?.snapToRangeEnd!==true)||
       !projectile?.origin||
       projectile.targetPoint||
       projectile.stationaryArrival?.arrivalReason==='target'||
@@ -349,6 +349,18 @@ const TargetPointProjectileService=Object.freeze({
       fixedTravel:stoppedOnTarget?stoppedTravel:null
     };
 
+    if(projectile.behavior?.impact&&!projectile.impactResolved){
+      ProjectileImpactService.resolve(projectile,normalizedStopReason==='target-point'?'arrival':normalizedStopReason);
+    }
+    // Opt-in landing contact uses the same damage/guard/dodge path as target-point arrival.
+    if(this.arrival(projectile)?.triggerOnLanding===true&&
+       projectile.landingContactResolved!==true){
+      projectile.landingContactResolved=true;
+      if(normalizedStopReason!=='target'){
+        const target=this.contactTarget(projectile);
+        if(target)this.triggerTarget(projectile,target);
+      }
+    }
     this.enforceLingerCapacity(
       projectile,
       linger
@@ -412,6 +424,9 @@ const TargetPointProjectileService=Object.freeze({
     const state=projectile?.stationaryArrival;
     const source=projectile?.source;
     if(!state||!source?.alive)return false;
+    // Network-synced pickups are decided only by the owning simulation.
+    if(this.arrival(projectile)?.linger?.interaction?.networkSync===true&&
+       !EntitySimulationAuthorityService.isLocal(source))return false;
     if(this.sourcePickupSuppressed(source))return false;
 
     const pickupRange=Math.max(
@@ -628,6 +643,7 @@ const TargetPointProjectileService=Object.freeze({
       );
     }
 
+    if(triggered&&projectile.stationaryArrival?.removeOnTrigger===false)return 'linger';
     return triggered;
   },
 
@@ -820,6 +836,7 @@ const TargetPointProjectileService=Object.freeze({
       projectile.y=
         Number(wallPoint.y)||projectile.y;
 
+      if(arrival?.linger?.atWall===true&&this.beginLinger(projectile,performance.now(),'wall'))return 'linger';
       const field=AttackModuleService.module(
         projectile.attack,
         'field.area'

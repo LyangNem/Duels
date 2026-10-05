@@ -14,9 +14,9 @@ def assemble():
  return ''.join((ROOT/p).read_text(encoding='utf-8').replace('/* @CHARACTER_DATA */',chars) for p in m['load_order'])
 def inventory():
  m=manifest();known={e['path']:e for e in m['files']}
- extra={'README.md':'작업 전 필독 규칙·실행 안내·현 상태와 제약','AGENTS.md':'AI 작업자에게 README 정독·문서 갱신 의무 안내','DIVIDE TASKS.md':'전체 파일 역할·심볼·해시 목록','PATCH LOG.md':'버전별 변경·검증·잔여 작업 기록','project.json':'원본 기준·실행 순서·역할 메타데이터','docs/LEGACY RULES.md':'이전 규칙 전체 원문 보존(단일 파일 제한은 폐기)','docs/LEGACY PATCH LOG.md':'기존 HTML의 과거 수정 주석 전체 보존','docs/CHARACTER CONTRACT.md':'공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약','tools/project.py':'소스 조립·전체 역할 문서 생성·최신화 검사','tools/serve.py':'로컬 서버와 시작 전 검사·자동 조립','START.bat':'Windows 로컬 서버 실행','START.sh':'Linux/macOS 로컬 서버 실행'}
+ extra={'README.md':'작업 전 필독 규칙·실행 안내·현 상태와 제약','AGENTS.md':'AI 작업자에게 README 정독·문서 갱신 의무 안내','DIVIDE TASKS.md':'전체 파일 역할·심볼·해시 목록','PATCH LOG.md':'버전별 변경·검증·잔여 작업 기록','project.json':'원본 기준·실행 순서·역할 메타데이터','docs/LEGACY RULES.md':'이전 규칙 전체 원문 보존(단일 파일 제한은 폐기)','docs/LEGACY PATCH LOG.md':'기존 HTML의 과거 수정 주석 전체 보존','docs/CHARACTER CONTRACT.md':'공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약','tools/project.py':'소스 조립·역할 문서·최신화 검사; 루트 graphify-out 분석 생성물 제외','tools/serve.py':'로컬 서버와 시작 전 검사·자동 조립','START.bat':'Windows 로컬 서버 실행','START.sh':'Linux/macOS 로컬 서버 실행'}
  for p,r in extra.items():known[p]={'path':p,'role':r,'symbols':[]}
- actual={p.relative_to(ROOT).as_posix() for p in ROOT.rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.name!='runtime.js'}
+ actual={p.relative_to(ROOT).as_posix() for p in ROOT.rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.name!='runtime.js' and p.relative_to(ROOT).parts[0]!='graphify-out'}
  actual.add('DIVIDE TASKS.md')
  if set(known)-actual:raise ValueError('등록 파일 누락: '+str(sorted(set(known)-actual)))
  if actual-set(known):raise ValueError('역할 등록 누락: '+str(sorted(actual-set(known))))

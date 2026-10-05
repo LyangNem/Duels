@@ -36,7 +36,7 @@ const VanWrenchDurabilityPresentationService=Object.freeze({
       bodyRgb:darkRgb,
       strokeColor:'218,240,192',
       strokeWidth:Math.max(2,Math.round(radius*.12)),
-      glow:Math.max(8,radius*.72)
+      glow:Math.max(2,radius*.15)
     });
   }
 });

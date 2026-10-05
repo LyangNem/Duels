@@ -1,0 +1,2982 @@
+{
+  "communities": {
+    "0": [
+      "runtime",
+      "runtime_abilityattackexecutionservice",
+      "runtime_abilityservice",
+      "runtime_accountservice",
+      "runtime_accountstate",
+      "runtime_accountui",
+      "runtime_actionstatecombatpolicyservice",
+      "runtime_arcgaugepresentationservice",
+      "runtime_arctrajectoryservice",
+      "runtime_areaattackservice",
+      "runtime_areacircleeffectpresentationservice",
+      "runtime_areageometryservice",
+      "runtime_areawallcutpresentationservice",
+      "runtime_areazonepresentationservice",
+      "runtime_attackendanchorservice",
+      "runtime_attackexecutionservice",
+      "runtime_attackfeaturetransformservice",
+      "runtime_attackguardservice",
+      "runtime_attackpresentationcolorservice",
+      "runtime_attackpreviewareaservice",
+      "runtime_attackpreviewservice",
+      "runtime_attackqueryservice",
+      "runtime_attackservice",
+      "runtime_attacktagcache",
+      "runtime_attacktagmetadatacache",
+      "runtime_attackvisualstyle",
+      "runtime_attackwindupservice",
+      "runtime_augmentacquisitionresultrenderer",
+      "runtime_augmentcooldownservice",
+      "runtime_augmentdataservice",
+      "runtime_augmentdodgesequenceservice",
+      "runtime_augmenthudstyleservice",
+      "runtime_augmentpresentationservice",
+      "runtime_augmentraritypresentation",
+      "runtime_augments",
+      "runtime_augmentselectioncardviewservice",
+      "runtime_authresolutionui",
+      "runtime_betweenaugmenthudservice",
+      "runtime_betweenmappreviewservice",
+      "runtime_buffservice",
+      "runtime_buffstatuspresentation",
+      "runtime_cameraaimoffsetservice",
+      "runtime_camerafovservice",
+      "runtime_cardinaldirectionservice",
+      "runtime_ccservice",
+      "runtime_channelattackservice",
+      "runtime_character_data",
+      "runtime_character_rules",
+      "runtime_characterbanpresentationservice",
+      "runtime_characterbanui",
+      "runtime_charactercardcolorservice",
+      "runtime_charactercarddataservice",
+      "runtime_charactercardinteractionservice",
+      "runtime_charactercardlayoutservice",
+      "runtime_charactercardportraitservice",
+      "runtime_charactercardstatsservice",
+      "runtime_charactercardviewservice",
+      "runtime_charactercommandinputservice",
+      "runtime_charactercount",
+      "runtime_characterdataservice",
+      "runtime_characterdescriptionservice",
+      "runtime_characterdifficultyservice",
+      "runtime_characterexitactionservice",
+      "runtime_characterkillprogressservice",
+      "runtime_characternamepresentationservice",
+      "runtime_characterportraitservice",
+      "runtime_characterproduct",
+      "runtime_characterrecordliverefreshservice",
+      "runtime_characterrecordprogressionservice",
+      "runtime_characterrecordservice",
+      "runtime_characterselectiondeferredworkservice",
+      "runtime_charactersortservice",
+      "runtime_charactersum",
+      "runtime_charactertitleservice",
+      "runtime_charactertooltip",
+      "runtime_charactertooltippointertracking",
+      "runtime_charactertriggereffectservice",
+      "runtime_charactervalue",
+      "runtime_chargedattackservice",
+      "runtime_clipboardservice",
+      "runtime_clustersummonruntime",
+      "runtime_clustersummonservice",
+      "runtime_collisionpolicyservice",
+      "runtime_colorservice",
+      "runtime_combat_buff_defs",
+      "runtime_combat_dot_status_types",
+      "runtime_combat_status_defs",
+      "runtime_combat_status_types",
+      "runtime_combateventtoastservice",
+      "runtime_combathudinputshieldservice",
+      "runtime_combathudrosterservice",
+      "runtime_combatmodifierservice",
+      "runtime_combatscreenfeedback",
+      "runtime_combatstatlimitservice",
+      "runtime_combatstatsservice",
+      "runtime_combatstatusapplicationservice",
+      "runtime_commandfeatureservice",
+      "runtime_conditionaltargetlinkpresentationservice",
+      "runtime_cookingservice",
+      "runtime_countermoduleservice",
+      "runtime_counterstockservice",
+      "runtime_damagerangebandservice",
+      "runtime_damageresourcelayerservice",
+      "runtime_debugaccessservice",
+      "runtime_debugcontrolservice",
+      "runtime_debuggaugecontrolservice",
+      "runtime_debugmanipulationservice",
+      "runtime_debugmapeditorservice",
+      "runtime_debugmapservice",
+      "runtime_debugpanel",
+      "runtime_displaysettings",
+      "runtime_dodgefollowupstateservice",
+      "runtime_dodgetrailfieldservice",
+      "runtime_dragpathinputservice",
+      "runtime_duels2_map_class_label",
+      "runtime_duels2_tile",
+      "runtime_duels2_tile_world_size",
+      "runtime_duels2buildtrainingtilelayout",
+      "runtime_duels2createdesigntilegrid",
+      "runtime_duels2decodeofficialmaptiles",
+      "runtime_duels2enforceleftrightsymmetry",
+      "runtime_duels3_config",
+      "runtime_duels3_release",
+      "runtime_duels3canviewteamgauge",
+      "runtime_duels_tips_urls",
+      "runtime_duelstipservice",
+      "runtime_dynamicwallservice",
+      "runtime_effectpresentationvisibilityservice",
+      "runtime_effectspawnservice",
+      "runtime_empty_augment_effects",
+      "runtime_empty_counter_stock_kinds",
+      "runtime_empty_runtime_items",
+      "runtime_entitycharacterdeathresetservice",
+      "runtime_entitydodgeservice",
+      "runtime_entityrespawnservice",
+      "runtime_entityringlayoutservice",
+      "runtime_entityservice",
+      "runtime_entitysimulationauthorityservice",
+      "runtime_entitysquashpresentationservice",
+      "runtime_entitytargetreferenceservice",
+      "runtime_envelopeiconpresentationservice",
+      "runtime_executiondamageledgerservice",
+      "runtime_fielddodgerewardservice",
+      "runtime_firebaseaccountcacheservice",
+      "runtime_firebaseaccountmigrationui",
+      "runtime_firebaseaccountpersistenceservice",
+      "runtime_firebaseprofilepersistenceservice",
+      "runtime_firebaseprogresspersistenceservice",
+      "runtime_forcedmotioncompletionservice",
+      "runtime_forcedmovementwindupinterruptservice",
+      "runtime_formulasequenceconfigservice",
+      "runtime_formulasequenceservice",
+      "runtime_game_data",
+      "runtime_gameevents",
+      "runtime_gamehudvisibilityservice",
+      "runtime_gameinputresetservice",
+      "runtime_gameplayattacksnapshotsyncservice",
+      "runtime_gameplayeffecteventsyncservice",
+      "runtime_gameplayfeaturestatesyncservice",
+      "runtime_gamewrapper",
+      "runtime_gridpathfindingservice",
+      "runtime_healthbarpresentationservice",
+      "runtime_healthregenservice",
+      "runtime_healthservice",
+      "runtime_helptabs",
+      "runtime_hitcontactfeedbackservice",
+      "runtime_hitscangeometryservice",
+      "runtime_impactdirectionservice",
+      "runtime_installedareafieldservice",
+      "runtime_invitelinkservice",
+      "runtime_justdodgeservice",
+      "runtime_killrewardservice",
+      "runtime_kobeampresentationservice",
+      "runtime_koreanparticleservice",
+      "runtime_legacymigrationservice",
+      "runtime_limitedusebuffservice",
+      "runtime_masterrecordmilestonepresentationservice",
+      "runtime_matchchoiceservice",
+      "runtime_matchmapservice",
+      "runtime_matchmodeservice",
+      "runtime_matchreadycountdownservice",
+      "runtime_matchresultsubmissionservice",
+      "runtime_matchselectionlayoutservice",
+      "runtime_matchspawnservice",
+      "runtime_modestateservice",
+      "runtime_modifierlimitservice",
+      "runtime_modulevalueservice",
+      "runtime_movementabilityservice",
+      "runtime_movementpresentationservice",
+      "runtime_movementservice",
+      "runtime_multiclickattackservice",
+      "runtime_naturalhealthregenactivityservice",
+      "runtime_naturalhealthregengaugepresentationservice",
+      "runtime_networkcollisionpositionservice",
+      "runtime_networkcombatsnapshotservice",
+      "runtime_networkhitauthorityservice",
+      "runtime_networkpayloadcodec",
+      "runtime_networktimevalueservice",
+      "runtime_neutralizingknockbackservice",
+      "runtime_nextccpresentationorder",
+      "runtime_official_duels_map_data",
+      "runtime_official_duels_map_source",
+      "runtime_officialmapdataservice",
+      "runtime_onlineaugmentinventorysyncservice",
+      "runtime_onlinechatservice",
+      "runtime_onlinedebugcontrolsyncservice",
+      "runtime_onlinedebugmapsyncservice",
+      "runtime_onlineduelservice",
+      "runtime_onlinekillattributionservice",
+      "runtime_onlineparticipantentityservice",
+      "runtime_onlinepresentationsyncservice",
+      "runtime_onlineworlddestructionsyncservice",
+      "runtime_orbitinventoryservice",
+      "runtime_ownedfieldmanagementpresentationservice",
+      "runtime_panelcontroller",
+      "runtime_passiveprogressrateservice",
+      "runtime_patchtabs",
+      "runtime_peerruntime",
+      "runtime_playerdisplaynameservice",
+      "runtime_playerprofilecardservice",
+      "runtime_playerprofiledetailservice",
+      "runtime_playerprofileservice",
+      "runtime_pointerholdinputservice",
+      "runtime_positionmemoryservice",
+      "runtime_presentation",
+      "runtime_profilecharacterimageservice",
+      "runtime_profilecharacterservice",
+      "runtime_profilesettingsui",
+      "runtime_progresshittargetpolicy",
+      "runtime_progressiveclippedareaoutlinepresentationservice",
+      "runtime_progressscaledattackservice",
+      "runtime_progressstateservice",
+      "runtime_projectilecollisionshapeservice",
+      "runtime_projectilehomingtargetsyncservice",
+      "runtime_projectilehomingtargetvisibilityservice",
+      "runtime_projectileimpactservice",
+      "runtime_projectilemoduleservice",
+      "runtime_projectileorbitservice",
+      "runtime_projectilerideservice",
+      "runtime_projectileservice",
+      "runtime_projectilestateservice",
+      "runtime_projectiletargetfilterservice",
+      "runtime_projectiletethermovementservice",
+      "runtime_projectilevisualpositionservice",
+      "runtime_projectilewallcollisionmodeservice",
+      "runtime_recipientassignmentpresentationservice",
+      "runtime_recorddodgepresentationservice",
+      "runtime_relationservice",
+      "runtime_remoteprojectilehomingpresentationbufferservice",
+      "runtime_remoteprojectilehomingpresentationservice",
+      "runtime_render_neutral_attack",
+      "runtime_render_neutral_health_bar",
+      "runtime_render_neutral_motion",
+      "runtime_resourcerestoreeffectservice",
+      "runtime_resourcevalueservice",
+      "runtime_room_chat_packet_types",
+      "runtime_room_gameplay_packet_types",
+      "runtime_roomconnectionservice",
+      "runtime_roomidentityservice",
+      "runtime_roommatchlifecycleservice",
+      "runtime_roommembercleanupservice",
+      "runtime_roomservice",
+      "runtime_roomteams",
+      "runtime_roomui",
+      "runtime_roundresolutionprotectionservice",
+      "runtime_roundscorepresentationservice",
+      "runtime_rulirulerpresentationservice",
+      "runtime_runtimevaluereferenceproviders",
+      "runtime_runtimevaluereferenceservice",
+      "runtime_screenshakeservice",
+      "runtime_scriptedprojectilemotionservice",
+      "runtime_segmentedgaugepresentationservice",
+      "runtime_selectionentranceanimationservice",
+      "runtime_shieldservice",
+      "runtime_simulationscheduleservice",
+      "runtime_soundservice",
+      "runtime_stackmarkservice",
+      "runtime_stagestatuseffectservice",
+      "runtime_staminaservice",
+      "runtime_staticworldrenderer",
+      "runtime_stationaryprojectileinteractionservice",
+      "runtime_status_effect_rules",
+      "runtime_statusdamageservice",
+      "runtime_statuspresentation",
+      "runtime_stealthpresentationservice",
+      "runtime_steppedrangerewinddeliveryservice",
+      "runtime_summonconnectionpresentationservice",
+      "runtime_summonvisualpresentationservice",
+      "runtime_sustainedbuffmodeservice",
+      "runtime_tagservice",
+      "runtime_targetpointprojectileservice",
+      "runtime_teamcolorpresentationservice",
+      "runtime_temporalsnapshotservice",
+      "runtime_timedactionstateservice",
+      "runtime_timedtargetlinkpresentationservice",
+      "runtime_training",
+      "runtime_training_runtime_triggers",
+      "runtime_training_tilemap",
+      "runtime_trainingcanvas",
+      "runtime_traininginputvectorservice",
+      "runtime_trainingpresentationbindings",
+      "runtime_trainingworlddrawservice",
+      "runtime_triggerconditionservice",
+      "runtime_triggerdispatchservice",
+      "runtime_triggeredattackservice",
+      "runtime_triggermoduleservice",
+      "runtime_uistatusservice",
+      "runtime_vanwrenchdurabilitypresentationservice",
+      "runtime_visualfeedbackservice",
+      "runtime_walloverlapattackdeferservice",
+      "runtime_waypointprojectileservice",
+      "runtime_weightedcircleattackdeliveryservice",
+      "runtime_windowresizecoordinator",
+      "runtime_worldboundsservice",
+      "runtime_worlddestructionservice",
+      "runtime_worldgaugebarpresentationservice",
+      "runtime_worldgaugemoduleservice",
+      "runtime_worldgeometryservice",
+      "runtime_worldhealthbarpresentationservice",
+      "runtime_worldhealthbarsegmentpresentationservice",
+      "runtime_worldnamepresentationservice",
+      "runtime_worldviewportvisibilityservice",
+      "runtime_wrenchshaperenderservice"
+    ],
+    "1": [
+      "ref_node_crypto",
+      "runtime_attackmoduleservice",
+      "runtime_damagepipeline",
+      "runtime_hittargetsequenceservice",
+      "src_combat_attackmoduleservice",
+      "src_combat_attackmoduleservice_attackmoduleservice",
+      "src_combat_damagepipeline",
+      "src_combat_damagepipeline_damagepipeline",
+      "src_combat_hittargetsequenceservice",
+      "src_combat_hittargetsequenceservice_hittargetsequenceservice",
+      "src_core_initialization_340",
+      "tools_test_terdion",
+      "tools_test_terdion_assert",
+      "tools_test_terdion_broadcastprojectileresolution",
+      "tools_test_terdion_c",
+      "tools_test_terdion_carrier",
+      "tools_test_terdion_ch",
+      "tools_test_terdion_clear",
+      "tools_test_terdion_damage",
+      "tools_test_terdion_effects",
+      "tools_test_terdion_followuphit",
+      "tools_test_terdion_fs",
+      "tools_test_terdion_h",
+      "tools_test_terdion_impacts",
+      "tools_test_terdion_load",
+      "tools_test_terdion_loadcancellation",
+      "tools_test_terdion_map",
+      "tools_test_terdion_motions",
+      "tools_test_terdion_notify",
+      "tools_test_terdion_ondamageapplied",
+      "tools_test_terdion_ondamaged",
+      "tools_test_terdion_packets",
+      "tools_test_terdion_parryfx",
+      "tools_test_terdion_path",
+      "tools_test_terdion_projectileblockgroupkey",
+      "tools_test_terdion_record",
+      "tools_test_terdion_recordpredicteddodgedamage",
+      "tools_test_terdion_registerblockoccurrence",
+      "tools_test_terdion_releaseprojectile",
+      "tools_test_terdion_rememberdamagesource",
+      "tools_test_terdion_root",
+      "tools_test_terdion_shots",
+      "tools_test_terdion_source",
+      "tools_test_terdion_target",
+      "tools_test_terdion_test",
+      "tools_test_terdion_update",
+      "tools_test_terdion_vm"
+    ],
+    "2": [
+      "hashlib",
+      "html_parser",
+      "htmlparser",
+      "http_server",
+      "json",
+      "os",
+      "pathlib",
+      "re",
+      "simplehttprequesthandler",
+      "start",
+      "start_sh__entry",
+      "sys",
+      "tools_project",
+      "tools_project_assemble",
+      "tools_project_digest",
+      "tools_project_documentation_current",
+      "tools_project_inventory",
+      "tools_project_manifest",
+      "tools_project_rationale_1",
+      "tools_project_tasks",
+      "tools_serve",
+      "tools_serve_handler",
+      "tools_serve_handler_do_get",
+      "tools_serve_handler_do_head",
+      "tools_serve_handler_end_headers",
+      "tools_serve_handler_runtime",
+      "tools_verify",
+      "tools_verify_document",
+      "tools_verify_document_handle_charref",
+      "tools_verify_document_handle_data",
+      "tools_verify_document_handle_decl",
+      "tools_verify_document_handle_endtag",
+      "tools_verify_document_handle_entityref",
+      "tools_verify_document_handle_startendtag",
+      "tools_verify_document_handle_starttag",
+      "tools_verify_document_hash",
+      "tools_verify_document_init",
+      "tools_verify_document_position",
+      "tools_verify_layout_hash",
+      "tools_verify_rationale_1",
+      "tools_verify_sha",
+      "tools_verify_verify",
+      "tools_verify_verify_handle_starttag",
+      "tools_verify_verify_init"
+    ],
+    "3": [
+      "runtime_augmenteffectmoduleservice",
+      "runtime_augmentservice",
+      "runtime_characterpassivebuffservice",
+      "runtime_circleformationservice",
+      "runtime_stealthmodeservice",
+      "runtime_summonaiservice",
+      "runtime_summondeployservice",
+      "runtime_timedthresholdbuffservice",
+      "src_abilities_circleformationservice",
+      "src_abilities_circleformationservice_circleformationservice",
+      "src_combat_stealthmodeservice",
+      "src_combat_stealthmodeservice_stealthmodeservice",
+      "src_core_augmentservice",
+      "src_core_augmentservice_augmentservice",
+      "src_core_characterpassivebuffservice",
+      "src_core_characterpassivebuffservice_characterpassivebuffservice",
+      "src_core_initialization_171",
+      "src_core_initialization_259",
+      "src_core_initialization_266",
+      "src_core_initialization_307",
+      "src_core_initialization_334",
+      "src_core_initialization_337",
+      "src_core_initialization_338",
+      "src_core_initialization_339",
+      "src_core_initialization_391",
+      "src_core_timedthresholdbuffservice",
+      "src_core_timedthresholdbuffservice_timedthresholdbuffservice",
+      "src_render_augmenteffectmoduleservice",
+      "src_render_augmenteffectmoduleservice_augmenteffectmoduleservice",
+      "src_summons_summonaiservice",
+      "src_summons_summonaiservice_summonaiservice",
+      "src_summons_summondeployservice",
+      "src_summons_summondeployservice_summondeployservice",
+      "tools_test_structure_entity"
+    ],
+    "4": [
+      "ref_node_assert",
+      "runtime_abilitymoduleservice",
+      "runtime_attackhittriggerservice",
+      "src_abilities_abilitymoduleservice",
+      "src_abilities_abilitymoduleservice_abilitymoduleservice",
+      "src_combat_attackhittriggerservice",
+      "src_combat_attackhittriggerservice_attackhittriggerservice",
+      "tools_test_gameplay_fixes",
+      "tools_test_gameplay_fixes_addeventlistener",
+      "tools_test_gameplay_fixes_appendchild",
+      "tools_test_gameplay_fixes_assert",
+      "tools_test_gameplay_fixes_context",
+      "tools_test_gameplay_fixes_fields",
+      "tools_test_gameplay_fixes_fs",
+      "tools_test_gameplay_fixes_init",
+      "tools_test_gameplay_fixes_liveeffects",
+      "tools_test_gameplay_fixes_load",
+      "tools_test_gameplay_fixes_path",
+      "tools_test_gameplay_fixes_root",
+      "tools_test_gameplay_fixes_showbetween",
+      "tools_test_gameplay_fixes_test",
+      "tools_test_gameplay_fixes_vm"
+    ],
+    "5": [
+      "tools_test_gae",
+      "tools_test_gae_assert",
+      "tools_test_gae_c",
+      "tools_test_gae_ch",
+      "tools_test_gae_close",
+      "tools_test_gae_e",
+      "tools_test_gae_emit",
+      "tools_test_gae_execute",
+      "tools_test_gae_filltext",
+      "tools_test_gae_fs",
+      "tools_test_gae_load",
+      "tools_test_gae_packets",
+      "tools_test_gae_path",
+      "tools_test_gae_preventdefault",
+      "tools_test_gae_releaseall",
+      "tools_test_gae_restore",
+      "tools_test_gae_root",
+      "tools_test_gae_save",
+      "tools_test_gae_stoppropagation",
+      "tools_test_gae_stroketext",
+      "tools_test_gae_test",
+      "tools_test_gae_vm"
+    ],
+    "6": [
+      "tools_test_structure",
+      "tools_test_structure_applybuffs",
+      "tools_test_structure_assert",
+      "tools_test_structure_broadcasteffects",
+      "tools_test_structure_c",
+      "tools_test_structure_chars",
+      "tools_test_structure_enforcecontainment",
+      "tools_test_structure_fs",
+      "tools_test_structure_fx",
+      "tools_test_structure_index",
+      "tools_test_structure_items",
+      "tools_test_structure_load",
+      "tools_test_structure_path",
+      "tools_test_structure_refreshendpoints",
+      "tools_test_structure_root",
+      "tools_test_structure_runtrigger",
+      "tools_test_structure_send",
+      "tools_test_structure_test",
+      "tools_test_structure_vm",
+      "tools_test_structure_walk"
+    ],
+    "7": [
+      "ref_https",
+      "src_account_firebase_bootstrap",
+      "src_account_firebase_bootstrap_app",
+      "src_account_firebase_bootstrap_auth",
+      "src_account_firebase_bootstrap_createownaccount",
+      "src_account_firebase_bootstrap_currentuser",
+      "src_account_firebase_bootstrap_db",
+      "src_account_firebase_bootstrap_deleteownaccountdata",
+      "src_account_firebase_bootstrap_deleteownprofile",
+      "src_account_firebase_bootstrap_firebaseconfig",
+      "src_account_firebase_bootstrap_googleprovider",
+      "src_account_firebase_bootstrap_loadownaccount",
+      "src_account_firebase_bootstrap_loadownprofile",
+      "src_account_firebase_bootstrap_loadownprogress",
+      "src_account_firebase_bootstrap_saveownaccount",
+      "src_account_firebase_bootstrap_signingoogle",
+      "src_account_firebase_bootstrap_signoutcurrent",
+      "src_account_firebase_bootstrap_upsertownprofile",
+      "src_account_firebase_bootstrap_upsertownprogress"
+    ],
+    "8": [
+      "ref_node_fs",
+      "ref_node_path",
+      "ref_node_vm",
+      "tools_test_room_connection",
+      "tools_test_room_connection_assert",
+      "tools_test_room_connection_displaypids",
+      "tools_test_room_connection_fs",
+      "tools_test_room_connection_harness",
+      "tools_test_room_connection_path",
+      "tools_test_room_connection_remove",
+      "tools_test_room_connection_root",
+      "tools_test_room_connection_test",
+      "tools_test_room_connection_vm"
+    ],
+    "9": [
+      "runtime_applyduels3release",
+      "runtime_bootstrap",
+      "runtime_duels3describepatchnotejsonerror",
+      "runtime_duels3loadpatchnotes",
+      "runtime_duels3normalizepatchnoteitem",
+      "runtime_duels3normalizepatchnotes",
+      "runtime_duels3parsepatchnotestext",
+      "runtime_duels3renderpatchnotes",
+      "runtime_duels3renderpatchnotessection"
+    ],
+    "10": [
+      "runtime_duels2cleardesignplayroutes",
+      "runtime_duels2enforcerotationalsymmetry",
+      "runtime_duels2finalizeplayabledesign",
+      "runtime_duels2mergefourdesigntiles",
+      "runtime_duels2paintdesignframepair",
+      "runtime_duels2paintdesignrect",
+      "runtime_duels2paintdesignsymmetricrect",
+      "runtime_duels2setdesigntile"
+    ],
+    "11": [
+      "src_core_duels3normalizepatchnoteitem",
+      "src_core_duels3normalizepatchnoteitem_duels3normalizepatchnoteitem",
+      "src_core_duels3normalizepatchnotes",
+      "src_core_duels3normalizepatchnotes_duels3normalizepatchnotes"
+    ],
+    "12": [
+      "src_core_bootstrap",
+      "src_core_bootstrap_bootstrap",
+      "src_core_initialization_431"
+    ],
+    "13": [
+      "runtime_duels2createtilemap",
+      "runtime_duels2tilewalls"
+    ],
+    "14": [
+      "src_abilities_abilityattackexecutionservice",
+      "src_abilities_abilityattackexecutionservice_abilityattackexecutionservice"
+    ],
+    "15": [
+      "src_abilities_abilityservice",
+      "src_abilities_abilityservice_abilityservice"
+    ],
+    "16": [
+      "src_abilities_channelattackservice",
+      "src_abilities_channelattackservice_channelattackservice"
+    ],
+    "17": [
+      "src_abilities_chargedattackservice",
+      "src_abilities_chargedattackservice_chargedattackservice"
+    ],
+    "18": [
+      "src_abilities_cookingservice",
+      "src_abilities_cookingservice_cookingservice"
+    ],
+    "19": [
+      "src_abilities_formulasequenceconfigservice",
+      "src_abilities_formulasequenceconfigservice_formulasequenceconfigservice"
+    ],
+    "20": [
+      "src_abilities_formulasequenceservice",
+      "src_abilities_formulasequenceservice_formulasequenceservice"
+    ],
+    "21": [
+      "src_abilities_movementabilityservice",
+      "src_abilities_movementabilityservice_movementabilityservice"
+    ],
+    "22": [
+      "src_abilities_multiclickattackservice",
+      "src_abilities_multiclickattackservice_multiclickattackservice"
+    ],
+    "23": [
+      "src_abilities_orbitinventoryservice",
+      "src_abilities_orbitinventoryservice_orbitinventoryservice"
+    ],
+    "24": [
+      "src_account_accountservice",
+      "src_account_accountservice_accountservice"
+    ],
+    "25": [
+      "src_account_accountstate",
+      "src_account_accountstate_accountstate"
+    ],
+    "26": [
+      "src_account_accountui",
+      "src_account_accountui_accountui"
+    ],
+    "27": [
+      "src_account_authresolutionui",
+      "src_account_authresolutionui_authresolutionui"
+    ],
+    "28": [
+      "src_account_characterrecordliverefreshservice",
+      "src_account_characterrecordliverefreshservice_characterrecordliverefreshservice"
+    ],
+    "29": [
+      "src_account_characterrecordprogressionservice",
+      "src_account_characterrecordprogressionservice_characterrecordprogressionservice"
+    ],
+    "30": [
+      "src_account_characterrecordservice",
+      "src_account_characterrecordservice_characterrecordservice"
+    ],
+    "31": [
+      "src_account_entitysimulationauthorityservice",
+      "src_account_entitysimulationauthorityservice_entitysimulationauthorityservice"
+    ],
+    "32": [
+      "src_account_firebaseaccountcacheservice",
+      "src_account_firebaseaccountcacheservice_firebaseaccountcacheservice"
+    ],
+    "33": [
+      "src_account_firebaseaccountmigrationui",
+      "src_account_firebaseaccountmigrationui_firebaseaccountmigrationui"
+    ],
+    "34": [
+      "src_account_firebaseaccountpersistenceservice",
+      "src_account_firebaseaccountpersistenceservice_firebaseaccountpersistenceservice"
+    ],
+    "35": [
+      "src_account_firebaseprofilepersistenceservice",
+      "src_account_firebaseprofilepersistenceservice_firebaseprofilepersistenceservice"
+    ],
+    "36": [
+      "src_account_firebaseprogresspersistenceservice",
+      "src_account_firebaseprogresspersistenceservice_firebaseprogresspersistenceservice"
+    ],
+    "37": [
+      "src_account_masterrecordmilestonepresentationservice",
+      "src_account_masterrecordmilestonepresentationservice_masterrecordmilestonepresentationservice"
+    ],
+    "38": [
+      "src_account_playerprofilecardservice",
+      "src_account_playerprofilecardservice_playerprofilecardservice"
+    ],
+    "39": [
+      "src_account_playerprofiledetailservice",
+      "src_account_playerprofiledetailservice_playerprofiledetailservice"
+    ],
+    "40": [
+      "src_account_playerprofileservice",
+      "src_account_playerprofileservice_playerprofileservice"
+    ],
+    "41": [
+      "src_account_profilecharacterimageservice",
+      "src_account_profilecharacterimageservice_profilecharacterimageservice"
+    ],
+    "42": [
+      "src_account_profilecharacterservice",
+      "src_account_profilecharacterservice_profilecharacterservice"
+    ],
+    "43": [
+      "src_account_profilesettingsui",
+      "src_account_profilesettingsui_profilesettingsui"
+    ],
+    "44": [
+      "src_account_recorddodgepresentationservice",
+      "src_account_recorddodgepresentationservice_recorddodgepresentationservice"
+    ],
+    "45": [
+      "src_combat_actionstatecombatpolicyservice",
+      "src_combat_actionstatecombatpolicyservice_actionstatecombatpolicyservice"
+    ],
+    "46": [
+      "src_combat_areaattackservice",
+      "src_combat_areaattackservice_areaattackservice"
+    ],
+    "47": [
+      "src_combat_attackendanchorservice",
+      "src_combat_attackendanchorservice_attackendanchorservice"
+    ],
+    "48": [
+      "src_combat_attackexecutionservice",
+      "src_combat_attackexecutionservice_attackexecutionservice"
+    ],
+    "49": [
+      "src_combat_attackfeaturetransformservice",
+      "src_combat_attackfeaturetransformservice_attackfeaturetransformservice"
+    ],
+    "50": [
+      "src_combat_attackguardservice",
+      "src_combat_attackguardservice_attackguardservice"
+    ],
+    "51": [
+      "src_combat_attackpreviewareaservice",
+      "src_combat_attackpreviewareaservice_attackpreviewareaservice"
+    ],
+    "52": [
+      "src_combat_attackpreviewservice",
+      "src_combat_attackpreviewservice_attackpreviewservice"
+    ],
+    "53": [
+      "src_combat_attackqueryservice",
+      "src_combat_attackqueryservice_attackqueryservice"
+    ],
+    "54": [
+      "src_combat_attackservice",
+      "src_combat_attackservice_attackservice"
+    ],
+    "55": [
+      "src_combat_attackvisualstyle",
+      "src_combat_attackvisualstyle_attackvisualstyle"
+    ],
+    "56": [
+      "src_combat_attackwindupservice",
+      "src_combat_attackwindupservice_attackwindupservice"
+    ],
+    "57": [
+      "src_combat_augmentdodgesequenceservice",
+      "src_combat_augmentdodgesequenceservice_augmentdodgesequenceservice"
+    ],
+    "58": [
+      "src_combat_ccservice",
+      "src_combat_ccservice_ccservice"
+    ],
+    "59": [
+      "src_combat_combathudrosterservice",
+      "src_combat_combathudrosterservice_combathudrosterservice"
+    ],
+    "60": [
+      "src_combat_combatmodifierservice",
+      "src_combat_combatmodifierservice_combatmodifierservice"
+    ],
+    "61": [
+      "src_combat_combatstatlimitservice",
+      "src_combat_combatstatlimitservice_combatstatlimitservice"
+    ],
+    "62": [
+      "src_combat_combatstatsservice",
+      "src_combat_combatstatsservice_combatstatsservice"
+    ],
+    "63": [
+      "src_combat_combatstatusapplicationservice",
+      "src_combat_combatstatusapplicationservice_combatstatusapplicationservice"
+    ],
+    "64": [
+      "src_combat_countermoduleservice",
+      "src_combat_countermoduleservice_countermoduleservice"
+    ],
+    "65": [
+      "src_combat_counterstockservice",
+      "src_combat_counterstockservice_counterstockservice"
+    ],
+    "66": [
+      "src_combat_damagerangebandservice",
+      "src_combat_damagerangebandservice_damagerangebandservice"
+    ],
+    "67": [
+      "src_combat_damageresourcelayerservice",
+      "src_combat_damageresourcelayerservice_damageresourcelayerservice"
+    ],
+    "68": [
+      "src_combat_dodgefollowupstateservice",
+      "src_combat_dodgefollowupstateservice_dodgefollowupstateservice"
+    ],
+    "69": [
+      "src_combat_dodgetrailfieldservice",
+      "src_combat_dodgetrailfieldservice_dodgetrailfieldservice"
+    ],
+    "70": [
+      "src_combat_entitydodgeservice",
+      "src_combat_entitydodgeservice_entitydodgeservice"
+    ],
+    "71": [
+      "src_combat_executiondamageledgerservice",
+      "src_combat_executiondamageledgerservice_executiondamageledgerservice"
+    ],
+    "72": [
+      "src_combat_fielddodgerewardservice",
+      "src_combat_fielddodgerewardservice_fielddodgerewardservice"
+    ],
+    "73": [
+      "src_combat_gameplayattacksnapshotsyncservice",
+      "src_combat_gameplayattacksnapshotsyncservice_gameplayattacksnapshotsyncservice"
+    ],
+    "74": [
+      "src_combat_healthregenservice",
+      "src_combat_healthregenservice_healthregenservice"
+    ],
+    "75": [
+      "src_combat_healthservice",
+      "src_combat_healthservice_healthservice"
+    ],
+    "76": [
+      "src_combat_hitcontactfeedbackservice",
+      "src_combat_hitcontactfeedbackservice_hitcontactfeedbackservice"
+    ],
+    "77": [
+      "src_combat_justdodgeservice",
+      "src_combat_justdodgeservice_justdodgeservice"
+    ],
+    "78": [
+      "src_combat_modifierlimitservice",
+      "src_combat_modifierlimitservice_modifierlimitservice"
+    ],
+    "79": [
+      "src_combat_naturalhealthregenactivityservice",
+      "src_combat_naturalhealthregenactivityservice_naturalhealthregenactivityservice"
+    ],
+    "80": [
+      "src_combat_progresshittargetpolicy",
+      "src_combat_progresshittargetpolicy_progresshittargetpolicy"
+    ],
+    "81": [
+      "src_combat_progressscaledattackservice",
+      "src_combat_progressscaledattackservice_progressscaledattackservice"
+    ],
+    "82": [
+      "src_combat_staminaservice",
+      "src_combat_staminaservice_staminaservice"
+    ],
+    "83": [
+      "src_combat_statusdamageservice",
+      "src_combat_statusdamageservice_statusdamageservice"
+    ],
+    "84": [
+      "src_combat_triggeredattackservice",
+      "src_combat_triggeredattackservice_triggeredattackservice"
+    ],
+    "85": [
+      "src_combat_uistatusservice",
+      "src_combat_uistatusservice_uistatusservice"
+    ],
+    "86": [
+      "src_combat_weightedcircleattackdeliveryservice",
+      "src_combat_weightedcircleattackdeliveryservice_weightedcircleattackdeliveryservice"
+    ],
+    "87": [
+      "src_config_duels3_config",
+      "src_config_duels3_config_duels3_config"
+    ],
+    "88": [
+      "src_config_duels3_release",
+      "src_config_duels3_release_duels3_release"
+    ],
+    "89": [
+      "src_config_duels_tips_urls",
+      "src_config_duels_tips_urls_duels_tips_urls"
+    ],
+    "90": [
+      "src_core_applyduels3release",
+      "src_core_applyduels3release_applyduels3release"
+    ],
+    "91": [
+      "src_core_arctrajectoryservice",
+      "src_core_arctrajectoryservice_arctrajectoryservice"
+    ],
+    "92": [
+      "src_core_attacktagcache",
+      "src_core_attacktagcache_attacktagcache"
+    ],
+    "93": [
+      "src_core_attacktagmetadatacache",
+      "src_core_attacktagmetadatacache_attacktagmetadatacache"
+    ],
+    "94": [
+      "src_core_augmentcooldownservice",
+      "src_core_augmentcooldownservice_augmentcooldownservice"
+    ],
+    "95": [
+      "src_core_augmentdataservice",
+      "src_core_augmentdataservice_augmentdataservice"
+    ],
+    "96": [
+      "src_core_augmenthudstyleservice",
+      "src_core_augmenthudstyleservice_augmenthudstyleservice"
+    ],
+    "97": [
+      "src_core_betweenaugmenthudservice",
+      "src_core_betweenaugmenthudservice_betweenaugmenthudservice"
+    ],
+    "98": [
+      "src_core_buffservice",
+      "src_core_buffservice_buffservice"
+    ],
+    "99": [
+      "src_core_characterdifficultyservice",
+      "src_core_characterdifficultyservice_characterdifficultyservice"
+    ],
+    "100": [
+      "src_core_characterexitactionservice",
+      "src_core_characterexitactionservice_characterexitactionservice"
+    ],
+    "101": [
+      "src_core_characterkillprogressservice",
+      "src_core_characterkillprogressservice_characterkillprogressservice"
+    ],
+    "102": [
+      "src_core_characterportraitservice",
+      "src_core_characterportraitservice_characterportraitservice"
+    ],
+    "103": [
+      "src_core_charactersortservice",
+      "src_core_charactersortservice_charactersortservice"
+    ],
+    "104": [
+      "src_core_charactertitleservice",
+      "src_core_charactertitleservice_charactertitleservice"
+    ],
+    "105": [
+      "src_core_clipboardservice",
+      "src_core_clipboardservice_clipboardservice"
+    ],
+    "106": [
+      "src_core_collisionpolicyservice",
+      "src_core_collisionpolicyservice_collisionpolicyservice"
+    ],
+    "107": [
+      "src_core_colorservice",
+      "src_core_colorservice_colorservice"
+    ],
+    "108": [
+      "src_core_combat_buff_defs",
+      "src_core_combat_buff_defs_combat_buff_defs"
+    ],
+    "109": [
+      "src_core_combat_dot_status_types",
+      "src_core_combat_dot_status_types_combat_dot_status_types"
+    ],
+    "110": [
+      "src_core_combat_status_defs",
+      "src_core_combat_status_defs_combat_status_defs"
+    ],
+    "111": [
+      "src_core_combat_status_types",
+      "src_core_combat_status_types_combat_status_types"
+    ],
+    "112": [
+      "src_core_commandfeatureservice",
+      "src_core_commandfeatureservice_commandfeatureservice"
+    ],
+    "113": [
+      "src_core_displaysettings",
+      "src_core_displaysettings_displaysettings"
+    ],
+    "114": [
+      "src_core_duels2_map_class_label",
+      "src_core_duels2_map_class_label_duels2_map_class_label"
+    ],
+    "115": [
+      "src_core_duels2_tile",
+      "src_core_duels2_tile_duels2_tile"
+    ],
+    "116": [
+      "src_core_duels2_tile_world_size",
+      "src_core_duels2_tile_world_size_duels2_tile_world_size"
+    ],
+    "117": [
+      "src_core_duels2cleardesignplayroutes",
+      "src_core_duels2cleardesignplayroutes_duels2cleardesignplayroutes"
+    ],
+    "118": [
+      "src_core_duels2createdesigntilegrid",
+      "src_core_duels2createdesigntilegrid_duels2createdesigntilegrid"
+    ],
+    "119": [
+      "src_core_duels2createtilemap",
+      "src_core_duels2createtilemap_duels2createtilemap"
+    ],
+    "120": [
+      "src_core_duels2enforceleftrightsymmetry",
+      "src_core_duels2enforceleftrightsymmetry_duels2enforceleftrightsymmetry"
+    ],
+    "121": [
+      "src_core_duels2enforcerotationalsymmetry",
+      "src_core_duels2enforcerotationalsymmetry_duels2enforcerotationalsymmetry"
+    ],
+    "122": [
+      "src_core_duels2finalizeplayabledesign",
+      "src_core_duels2finalizeplayabledesign_duels2finalizeplayabledesign"
+    ],
+    "123": [
+      "src_core_duels2mergefourdesigntiles",
+      "src_core_duels2mergefourdesigntiles_duels2mergefourdesigntiles"
+    ],
+    "124": [
+      "src_core_duels2paintdesignframepair",
+      "src_core_duels2paintdesignframepair_duels2paintdesignframepair"
+    ],
+    "125": [
+      "src_core_duels2paintdesignrect",
+      "src_core_duels2paintdesignrect_duels2paintdesignrect"
+    ],
+    "126": [
+      "src_core_duels2paintdesignsymmetricrect",
+      "src_core_duels2paintdesignsymmetricrect_duels2paintdesignsymmetricrect"
+    ],
+    "127": [
+      "src_core_duels2setdesigntile",
+      "src_core_duels2setdesigntile_duels2setdesigntile"
+    ],
+    "128": [
+      "src_core_duels3canviewteamgauge",
+      "src_core_duels3canviewteamgauge_duels3canviewteamgauge"
+    ],
+    "129": [
+      "src_core_duels3describepatchnotejsonerror",
+      "src_core_duels3describepatchnotejsonerror_duels3describepatchnotejsonerror"
+    ],
+    "130": [
+      "src_core_duels3loadpatchnotes",
+      "src_core_duels3loadpatchnotes_duels3loadpatchnotes"
+    ],
+    "131": [
+      "src_core_duels3parsepatchnotestext",
+      "src_core_duels3parsepatchnotestext_duels3parsepatchnotestext"
+    ],
+    "132": [
+      "src_core_duelstipservice",
+      "src_core_duelstipservice_duelstipservice"
+    ],
+    "133": [
+      "src_core_empty_counter_stock_kinds",
+      "src_core_empty_counter_stock_kinds_empty_counter_stock_kinds"
+    ],
+    "134": [
+      "src_core_empty_runtime_items",
+      "src_core_empty_runtime_items_empty_runtime_items"
+    ],
+    "135": [
+      "src_core_entitycharacterdeathresetservice",
+      "src_core_entitycharacterdeathresetservice_entitycharacterdeathresetservice"
+    ],
+    "136": [
+      "src_core_entityrespawnservice",
+      "src_core_entityrespawnservice_entityrespawnservice"
+    ],
+    "137": [
+      "src_core_entityringlayoutservice",
+      "src_core_entityringlayoutservice_entityringlayoutservice"
+    ],
+    "138": [
+      "src_core_entityservice",
+      "src_core_entityservice_entityservice"
+    ],
+    "139": [
+      "src_core_entitytargetreferenceservice",
+      "src_core_entitytargetreferenceservice_entitytargetreferenceservice"
+    ],
+    "140": [
+      "src_core_forcedmotioncompletionservice",
+      "src_core_forcedmotioncompletionservice_forcedmotioncompletionservice"
+    ],
+    "141": [
+      "src_core_forcedmovementwindupinterruptservice",
+      "src_core_forcedmovementwindupinterruptservice_forcedmovementwindupinterruptservice"
+    ],
+    "142": [
+      "src_core_gameevents",
+      "src_core_gameevents_gameevents"
+    ],
+    "143": [
+      "src_core_gamehudvisibilityservice",
+      "src_core_gamehudvisibilityservice_gamehudvisibilityservice"
+    ],
+    "144": [
+      "src_core_gameplayfeaturestatesyncservice",
+      "src_core_gameplayfeaturestatesyncservice_gameplayfeaturestatesyncservice"
+    ],
+    "145": [
+      "src_core_gamewrapper",
+      "src_core_gamewrapper_gamewrapper"
+    ],
+    "146": [
+      "src_core_gridpathfindingservice",
+      "src_core_gridpathfindingservice_gridpathfindingservice"
+    ],
+    "147": [
+      "src_core_helptabs",
+      "src_core_helptabs_helptabs"
+    ],
+    "148": [
+      "src_core_impactdirectionservice",
+      "src_core_impactdirectionservice_impactdirectionservice"
+    ],
+    "149": [
+      "src_core_installedareafieldservice",
+      "src_core_installedareafieldservice_installedareafieldservice"
+    ],
+    "150": [
+      "src_core_invitelinkservice",
+      "src_core_invitelinkservice_invitelinkservice"
+    ],
+    "151": [
+      "src_core_killrewardservice",
+      "src_core_killrewardservice_killrewardservice"
+    ],
+    "152": [
+      "src_core_koreanparticleservice",
+      "src_core_koreanparticleservice_koreanparticleservice"
+    ],
+    "153": [
+      "src_core_legacymigrationservice",
+      "src_core_legacymigrationservice_legacymigrationservice"
+    ],
+    "154": [
+      "src_core_limitedusebuffservice",
+      "src_core_limitedusebuffservice_limitedusebuffservice"
+    ],
+    "155": [
+      "src_core_matchchoiceservice",
+      "src_core_matchchoiceservice_matchchoiceservice"
+    ],
+    "156": [
+      "src_core_matchmodeservice",
+      "src_core_matchmodeservice_matchmodeservice"
+    ],
+    "157": [
+      "src_core_matchreadycountdownservice",
+      "src_core_matchreadycountdownservice_matchreadycountdownservice"
+    ],
+    "158": [
+      "src_core_matchresultsubmissionservice",
+      "src_core_matchresultsubmissionservice_matchresultsubmissionservice"
+    ],
+    "159": [
+      "src_core_matchspawnservice",
+      "src_core_matchspawnservice_matchspawnservice"
+    ],
+    "160": [
+      "src_core_modestateservice",
+      "src_core_modestateservice_modestateservice"
+    ],
+    "161": [
+      "src_core_modulevalueservice",
+      "src_core_modulevalueservice_modulevalueservice"
+    ],
+    "162": [
+      "src_core_movementservice",
+      "src_core_movementservice_movementservice"
+    ],
+    "163": [
+      "src_core_neutralizingknockbackservice",
+      "src_core_neutralizingknockbackservice_neutralizingknockbackservice"
+    ],
+    "164": [
+      "src_core_official_duels_map_source",
+      "src_core_official_duels_map_source_official_duels_map_source"
+    ],
+    "165": [
+      "src_core_panelcontroller",
+      "src_core_panelcontroller_panelcontroller"
+    ],
+    "166": [
+      "src_core_passiveprogressrateservice",
+      "src_core_passiveprogressrateservice_passiveprogressrateservice"
+    ],
+    "167": [
+      "src_core_patchtabs",
+      "src_core_patchtabs_patchtabs"
+    ],
+    "168": [
+      "src_core_peerruntime",
+      "src_core_peerruntime_peerruntime"
+    ],
+    "169": [
+      "src_core_playerdisplaynameservice",
+      "src_core_playerdisplaynameservice_playerdisplaynameservice"
+    ],
+    "170": [
+      "src_core_positionmemoryservice",
+      "src_core_positionmemoryservice_positionmemoryservice"
+    ],
+    "171": [
+      "src_core_progressstateservice",
+      "src_core_progressstateservice_progressstateservice"
+    ],
+    "172": [
+      "src_core_relationservice",
+      "src_core_relationservice_relationservice"
+    ],
+    "173": [
+      "src_core_render_neutral_attack",
+      "src_core_render_neutral_attack_render_neutral_attack"
+    ],
+    "174": [
+      "src_core_render_neutral_health_bar",
+      "src_core_render_neutral_health_bar_render_neutral_health_bar"
+    ],
+    "175": [
+      "src_core_render_neutral_motion",
+      "src_core_render_neutral_motion_render_neutral_motion"
+    ],
+    "176": [
+      "src_core_resourcevalueservice",
+      "src_core_resourcevalueservice_resourcevalueservice"
+    ],
+    "177": [
+      "src_core_room_chat_packet_types",
+      "src_core_room_chat_packet_types_room_chat_packet_types"
+    ],
+    "178": [
+      "src_core_room_gameplay_packet_types",
+      "src_core_room_gameplay_packet_types_room_gameplay_packet_types"
+    ],
+    "179": [
+      "src_core_roomidentityservice",
+      "src_core_roomidentityservice_roomidentityservice"
+    ],
+    "180": [
+      "src_core_roommatchlifecycleservice",
+      "src_core_roommatchlifecycleservice_roommatchlifecycleservice"
+    ],
+    "181": [
+      "src_core_roommembercleanupservice",
+      "src_core_roommembercleanupservice_roommembercleanupservice"
+    ],
+    "182": [
+      "src_core_roomteams",
+      "src_core_roomteams_roomteams"
+    ],
+    "183": [
+      "src_core_roundresolutionprotectionservice",
+      "src_core_roundresolutionprotectionservice_roundresolutionprotectionservice"
+    ],
+    "184": [
+      "src_core_runtimevaluereferenceproviders",
+      "src_core_runtimevaluereferenceproviders_runtimevaluereferenceproviders"
+    ],
+    "185": [
+      "src_core_runtimevaluereferenceservice",
+      "src_core_runtimevaluereferenceservice_runtimevaluereferenceservice"
+    ],
+    "186": [
+      "src_core_shieldservice",
+      "src_core_shieldservice_shieldservice"
+    ],
+    "187": [
+      "src_core_simulationscheduleservice",
+      "src_core_simulationscheduleservice_simulationscheduleservice"
+    ],
+    "188": [
+      "src_core_soundservice",
+      "src_core_soundservice_soundservice"
+    ],
+    "189": [
+      "src_core_stackmarkservice",
+      "src_core_stackmarkservice_stackmarkservice"
+    ],
+    "190": [
+      "src_core_steppedrangerewinddeliveryservice",
+      "src_core_steppedrangerewinddeliveryservice_steppedrangerewinddeliveryservice"
+    ],
+    "191": [
+      "src_core_sustainedbuffmodeservice",
+      "src_core_sustainedbuffmodeservice_sustainedbuffmodeservice"
+    ],
+    "192": [
+      "src_core_tagservice",
+      "src_core_tagservice_tagservice"
+    ],
+    "193": [
+      "src_core_temporalsnapshotservice",
+      "src_core_temporalsnapshotservice_temporalsnapshotservice"
+    ],
+    "194": [
+      "src_core_timedactionstateservice",
+      "src_core_timedactionstateservice_timedactionstateservice"
+    ],
+    "195": [
+      "src_core_training_runtime_triggers",
+      "src_core_training_runtime_triggers_training_runtime_triggers"
+    ],
+    "196": [
+      "src_core_training_tilemap",
+      "src_core_training_tilemap_training_tilemap"
+    ],
+    "197": [
+      "src_core_trainingcanvas",
+      "src_core_trainingcanvas_trainingcanvas"
+    ],
+    "198": [
+      "src_core_triggerconditionservice",
+      "src_core_triggerconditionservice_triggerconditionservice"
+    ],
+    "199": [
+      "src_core_triggerdispatchservice",
+      "src_core_triggerdispatchservice_triggerdispatchservice"
+    ],
+    "200": [
+      "src_core_triggermoduleservice",
+      "src_core_triggermoduleservice_triggermoduleservice"
+    ],
+    "201": [
+      "src_core_visualfeedbackservice",
+      "src_core_visualfeedbackservice_visualfeedbackservice"
+    ],
+    "202": [
+      "src_core_windowresizecoordinator",
+      "src_core_windowresizecoordinator_windowresizecoordinator"
+    ],
+    "203": [
+      "src_core_worldgaugemoduleservice",
+      "src_core_worldgaugemoduleservice_worldgaugemoduleservice"
+    ],
+    "204": [
+      "src_core_worldviewportvisibilityservice",
+      "src_core_worldviewportvisibilityservice_worldviewportvisibilityservice"
+    ],
+    "205": [
+      "src_data_augments",
+      "src_data_augments_augments"
+    ],
+    "206": [
+      "src_data_character_rules",
+      "src_data_character_rules_character_rules"
+    ],
+    "207": [
+      "src_data_charactercount",
+      "src_data_charactercount_charactercount"
+    ],
+    "208": [
+      "src_data_characterdataservice",
+      "src_data_characterdataservice_characterdataservice"
+    ],
+    "209": [
+      "src_data_characterproduct",
+      "src_data_characterproduct_characterproduct"
+    ],
+    "210": [
+      "src_data_charactersum",
+      "src_data_charactersum_charactersum"
+    ],
+    "211": [
+      "src_data_charactervalue",
+      "src_data_charactervalue_charactervalue"
+    ],
+    "212": [
+      "src_data_empty_augment_effects",
+      "src_data_empty_augment_effects_empty_augment_effects"
+    ],
+    "213": [
+      "src_data_freezecharacterdata",
+      "src_data_freezecharacterdata_freezecharacterdata"
+    ],
+    "214": [
+      "src_data_game_data",
+      "src_data_game_data_game_data"
+    ],
+    "215": [
+      "src_data_official_duels_map_data",
+      "src_data_official_duels_map_data_official_duels_map_data"
+    ],
+    "216": [
+      "src_data_status_effect_rules",
+      "src_data_status_effect_rules_status_effect_rules"
+    ],
+    "217": [
+      "src_debug_debugaccessservice",
+      "src_debug_debugaccessservice_debugaccessservice"
+    ],
+    "218": [
+      "src_debug_debugcontrolservice",
+      "src_debug_debugcontrolservice_debugcontrolservice"
+    ],
+    "219": [
+      "src_debug_debuggaugecontrolservice",
+      "src_debug_debuggaugecontrolservice_debuggaugecontrolservice"
+    ],
+    "220": [
+      "src_debug_debugmanipulationservice",
+      "src_debug_debugmanipulationservice_debugmanipulationservice"
+    ],
+    "221": [
+      "src_debug_debugmapeditorservice",
+      "src_debug_debugmapeditorservice_debugmapeditorservice"
+    ],
+    "222": [
+      "src_debug_debugmapservice",
+      "src_debug_debugmapservice_debugmapservice"
+    ],
+    "223": [
+      "src_debug_debugpanel",
+      "src_debug_debugpanel_debugpanel"
+    ],
+    "224": [
+      "src_debug_onlinedebugcontrolsyncservice",
+      "src_debug_onlinedebugcontrolsyncservice_onlinedebugcontrolsyncservice"
+    ],
+    "225": [
+      "src_debug_onlinedebugmapsyncservice",
+      "src_debug_onlinedebugmapsyncservice_onlinedebugmapsyncservice"
+    ],
+    "226": [
+      "src_input_charactercommandinputservice",
+      "src_input_charactercommandinputservice_charactercommandinputservice"
+    ],
+    "227": [
+      "src_input_charactertooltippointertracking",
+      "src_input_charactertooltippointertracking_charactertooltippointertracking"
+    ],
+    "228": [
+      "src_input_combathudinputshieldservice",
+      "src_input_combathudinputshieldservice_combathudinputshieldservice"
+    ],
+    "229": [
+      "src_input_dragpathinputservice",
+      "src_input_dragpathinputservice_dragpathinputservice"
+    ],
+    "230": [
+      "src_input_gameinputresetservice",
+      "src_input_gameinputresetservice_gameinputresetservice"
+    ],
+    "231": [
+      "src_input_pointerholdinputservice",
+      "src_input_pointerholdinputservice_pointerholdinputservice"
+    ],
+    "232": [
+      "src_input_traininginputvectorservice",
+      "src_input_traininginputvectorservice_traininginputvectorservice"
+    ],
+    "233": [
+      "src_modes_duels2buildtrainingtilelayout",
+      "src_modes_duels2buildtrainingtilelayout_duels2buildtrainingtilelayout"
+    ],
+    "234": [
+      "src_modes_training",
+      "src_modes_training_training"
+    ],
+    "235": [
+      "src_modes_trainingworlddrawservice",
+      "src_modes_trainingworlddrawservice_trainingworlddrawservice"
+    ],
+    "236": [
+      "src_network_matchselectionlayoutservice",
+      "src_network_matchselectionlayoutservice_matchselectionlayoutservice"
+    ],
+    "237": [
+      "src_network_networkcollisionpositionservice",
+      "src_network_networkcollisionpositionservice_networkcollisionpositionservice"
+    ],
+    "238": [
+      "src_network_networkcombatsnapshotservice",
+      "src_network_networkcombatsnapshotservice_networkcombatsnapshotservice"
+    ],
+    "239": [
+      "src_network_networkhitauthorityservice",
+      "src_network_networkhitauthorityservice_networkhitauthorityservice"
+    ],
+    "240": [
+      "src_network_networkpayloadcodec",
+      "src_network_networkpayloadcodec_networkpayloadcodec"
+    ],
+    "241": [
+      "src_network_networktimevalueservice",
+      "src_network_networktimevalueservice_networktimevalueservice"
+    ],
+    "242": [
+      "src_network_onlineaugmentinventorysyncservice",
+      "src_network_onlineaugmentinventorysyncservice_onlineaugmentinventorysyncservice"
+    ],
+    "243": [
+      "src_network_onlinechatservice",
+      "src_network_onlinechatservice_onlinechatservice"
+    ],
+    "244": [
+      "src_network_onlineduelservice",
+      "src_network_onlineduelservice_onlineduelservice"
+    ],
+    "245": [
+      "src_network_onlinekillattributionservice",
+      "src_network_onlinekillattributionservice_onlinekillattributionservice"
+    ],
+    "246": [
+      "src_network_onlineparticipantentityservice",
+      "src_network_onlineparticipantentityservice_onlineparticipantentityservice"
+    ],
+    "247": [
+      "src_network_onlinepresentationsyncservice",
+      "src_network_onlinepresentationsyncservice_onlinepresentationsyncservice"
+    ],
+    "248": [
+      "src_network_onlineworlddestructionsyncservice",
+      "src_network_onlineworlddestructionsyncservice_onlineworlddestructionsyncservice"
+    ],
+    "249": [
+      "src_network_roomconnectionservice",
+      "src_network_roomconnectionservice_roomconnectionservice"
+    ],
+    "250": [
+      "src_network_roomservice",
+      "src_network_roomservice_roomservice"
+    ],
+    "251": [
+      "src_projectiles_projectilecollisionshapeservice",
+      "src_projectiles_projectilecollisionshapeservice_projectilecollisionshapeservice"
+    ],
+    "252": [
+      "src_projectiles_projectilehomingtargetsyncservice",
+      "src_projectiles_projectilehomingtargetsyncservice_projectilehomingtargetsyncservice"
+    ],
+    "253": [
+      "src_projectiles_projectilehomingtargetvisibilityservice",
+      "src_projectiles_projectilehomingtargetvisibilityservice_projectilehomingtargetvisibilityservice"
+    ],
+    "254": [
+      "src_projectiles_projectileimpactservice",
+      "src_projectiles_projectileimpactservice_projectileimpactservice"
+    ],
+    "255": [
+      "src_projectiles_projectilemoduleservice",
+      "src_projectiles_projectilemoduleservice_projectilemoduleservice"
+    ],
+    "256": [
+      "src_projectiles_projectileorbitservice",
+      "src_projectiles_projectileorbitservice_projectileorbitservice"
+    ],
+    "257": [
+      "src_projectiles_projectilerideservice",
+      "src_projectiles_projectilerideservice_projectilerideservice"
+    ],
+    "258": [
+      "src_projectiles_projectileservice",
+      "src_projectiles_projectileservice_projectileservice"
+    ],
+    "259": [
+      "src_projectiles_projectilestateservice",
+      "src_projectiles_projectilestateservice_projectilestateservice"
+    ],
+    "260": [
+      "src_projectiles_projectiletargetfilterservice",
+      "src_projectiles_projectiletargetfilterservice_projectiletargetfilterservice"
+    ],
+    "261": [
+      "src_projectiles_projectiletethermovementservice",
+      "src_projectiles_projectiletethermovementservice_projectiletethermovementservice"
+    ],
+    "262": [
+      "src_projectiles_projectilevisualpositionservice",
+      "src_projectiles_projectilevisualpositionservice_projectilevisualpositionservice"
+    ],
+    "263": [
+      "src_projectiles_projectilewallcollisionmodeservice",
+      "src_projectiles_projectilewallcollisionmodeservice_projectilewallcollisionmodeservice"
+    ],
+    "264": [
+      "src_projectiles_remoteprojectilehomingpresentationbufferservice",
+      "src_projectiles_remoteprojectilehomingpresentationbufferservice_remoteprojectilehomingpresentationbufferservice"
+    ],
+    "265": [
+      "src_projectiles_remoteprojectilehomingpresentationservice",
+      "src_projectiles_remoteprojectilehomingpresentationservice_remoteprojectilehomingpresentationservice"
+    ],
+    "266": [
+      "src_projectiles_scriptedprojectilemotionservice",
+      "src_projectiles_scriptedprojectilemotionservice_scriptedprojectilemotionservice"
+    ],
+    "267": [
+      "src_projectiles_stationaryprojectileinteractionservice",
+      "src_projectiles_stationaryprojectileinteractionservice_stationaryprojectileinteractionservice"
+    ],
+    "268": [
+      "src_projectiles_targetpointprojectileservice",
+      "src_projectiles_targetpointprojectileservice_targetpointprojectileservice"
+    ],
+    "269": [
+      "src_projectiles_waypointprojectileservice",
+      "src_projectiles_waypointprojectileservice_waypointprojectileservice"
+    ],
+    "270": [
+      "src_render_arcgaugepresentationservice",
+      "src_render_arcgaugepresentationservice_arcgaugepresentationservice"
+    ],
+    "271": [
+      "src_render_areacircleeffectpresentationservice",
+      "src_render_areacircleeffectpresentationservice_areacircleeffectpresentationservice"
+    ],
+    "272": [
+      "src_render_areazonepresentationservice",
+      "src_render_areazonepresentationservice_areazonepresentationservice"
+    ],
+    "273": [
+      "src_render_attackpresentationcolorservice",
+      "src_render_attackpresentationcolorservice_attackpresentationcolorservice"
+    ],
+    "274": [
+      "src_render_augmentacquisitionresultrenderer",
+      "src_render_augmentacquisitionresultrenderer_augmentacquisitionresultrenderer"
+    ],
+    "275": [
+      "src_render_augmentpresentationservice",
+      "src_render_augmentpresentationservice_augmentpresentationservice"
+    ],
+    "276": [
+      "src_render_augmentraritypresentation",
+      "src_render_augmentraritypresentation_augmentraritypresentation"
+    ],
+    "277": [
+      "src_render_buffstatuspresentation",
+      "src_render_buffstatuspresentation_buffstatuspresentation"
+    ],
+    "278": [
+      "src_render_cameraaimoffsetservice",
+      "src_render_cameraaimoffsetservice_cameraaimoffsetservice"
+    ],
+    "279": [
+      "src_render_camerafovservice",
+      "src_render_camerafovservice_camerafovservice"
+    ],
+    "280": [
+      "src_render_characterbanpresentationservice",
+      "src_render_characterbanpresentationservice_characterbanpresentationservice"
+    ],
+    "281": [
+      "src_render_characternamepresentationservice",
+      "src_render_characternamepresentationservice_characternamepresentationservice"
+    ],
+    "282": [
+      "src_render_charactertriggereffectservice",
+      "src_render_charactertriggereffectservice_charactertriggereffectservice"
+    ],
+    "283": [
+      "src_render_conditionaltargetlinkpresentationservice",
+      "src_render_conditionaltargetlinkpresentationservice_conditionaltargetlinkpresentationservice"
+    ],
+    "284": [
+      "src_render_duels3renderpatchnotes",
+      "src_render_duels3renderpatchnotes_duels3renderpatchnotes"
+    ],
+    "285": [
+      "src_render_duels3renderpatchnotessection",
+      "src_render_duels3renderpatchnotessection_duels3renderpatchnotessection"
+    ],
+    "286": [
+      "src_render_effectpresentationvisibilityservice",
+      "src_render_effectpresentationvisibilityservice_effectpresentationvisibilityservice"
+    ],
+    "287": [
+      "src_render_effectspawnservice",
+      "src_render_effectspawnservice_effectspawnservice"
+    ],
+    "288": [
+      "src_render_entitysquashpresentationservice",
+      "src_render_entitysquashpresentationservice_entitysquashpresentationservice"
+    ],
+    "289": [
+      "src_render_envelopeiconpresentationservice",
+      "src_render_envelopeiconpresentationservice_envelopeiconpresentationservice"
+    ],
+    "290": [
+      "src_render_gameplayeffecteventsyncservice",
+      "src_render_gameplayeffecteventsyncservice_gameplayeffecteventsyncservice"
+    ],
+    "291": [
+      "src_render_healthbarpresentationservice",
+      "src_render_healthbarpresentationservice_healthbarpresentationservice"
+    ],
+    "292": [
+      "src_render_kobeampresentationservice",
+      "src_render_kobeampresentationservice_kobeampresentationservice"
+    ],
+    "293": [
+      "src_render_movementpresentationservice",
+      "src_render_movementpresentationservice_movementpresentationservice"
+    ],
+    "294": [
+      "src_render_naturalhealthregengaugepresentationservice",
+      "src_render_naturalhealthregengaugepresentationservice_naturalhealthregengaugepresentationservice"
+    ],
+    "295": [
+      "src_render_nextccpresentationorder",
+      "src_render_nextccpresentationorder_nextccpresentationorder"
+    ],
+    "296": [
+      "src_render_ownedfieldmanagementpresentationservice",
+      "src_render_ownedfieldmanagementpresentationservice_ownedfieldmanagementpresentationservice"
+    ],
+    "297": [
+      "src_render_presentation",
+      "src_render_presentation_presentation"
+    ],
+    "298": [
+      "src_render_progressiveclippedareaoutlinepresentationservice",
+      "src_render_progressiveclippedareaoutlinepresentationservice_progressiveclippedareaoutlinepresentationservice"
+    ],
+    "299": [
+      "src_render_recipientassignmentpresentationservice",
+      "src_render_recipientassignmentpresentationservice_recipientassignmentpresentationservice"
+    ],
+    "300": [
+      "src_render_resourcerestoreeffectservice",
+      "src_render_resourcerestoreeffectservice_resourcerestoreeffectservice"
+    ],
+    "301": [
+      "src_render_roundscorepresentationservice",
+      "src_render_roundscorepresentationservice_roundscorepresentationservice"
+    ],
+    "302": [
+      "src_render_rulirulerpresentationservice",
+      "src_render_rulirulerpresentationservice_rulirulerpresentationservice"
+    ],
+    "303": [
+      "src_render_segmentedgaugepresentationservice",
+      "src_render_segmentedgaugepresentationservice_segmentedgaugepresentationservice"
+    ],
+    "304": [
+      "src_render_stagestatuseffectservice",
+      "src_render_stagestatuseffectservice_stagestatuseffectservice"
+    ],
+    "305": [
+      "src_render_staticworldrenderer",
+      "src_render_staticworldrenderer_staticworldrenderer"
+    ],
+    "306": [
+      "src_render_statuspresentation",
+      "src_render_statuspresentation_statuspresentation"
+    ],
+    "307": [
+      "src_render_stealthpresentationservice",
+      "src_render_stealthpresentationservice_stealthpresentationservice"
+    ],
+    "308": [
+      "src_render_teamcolorpresentationservice",
+      "src_render_teamcolorpresentationservice_teamcolorpresentationservice"
+    ],
+    "309": [
+      "src_render_timedtargetlinkpresentationservice",
+      "src_render_timedtargetlinkpresentationservice_timedtargetlinkpresentationservice"
+    ],
+    "310": [
+      "src_render_trainingpresentationbindings",
+      "src_render_trainingpresentationbindings_trainingpresentationbindings"
+    ],
+    "311": [
+      "src_render_vanwrenchdurabilitypresentationservice",
+      "src_render_vanwrenchdurabilitypresentationservice_vanwrenchdurabilitypresentationservice"
+    ],
+    "312": [
+      "src_render_worldgaugebarpresentationservice",
+      "src_render_worldgaugebarpresentationservice_worldgaugebarpresentationservice"
+    ],
+    "313": [
+      "src_render_worldhealthbarpresentationservice",
+      "src_render_worldhealthbarpresentationservice_worldhealthbarpresentationservice"
+    ],
+    "314": [
+      "src_render_worldhealthbarsegmentpresentationservice",
+      "src_render_worldhealthbarsegmentpresentationservice_worldhealthbarsegmentpresentationservice"
+    ],
+    "315": [
+      "src_render_worldnamepresentationservice",
+      "src_render_worldnamepresentationservice_worldnamepresentationservice"
+    ],
+    "316": [
+      "src_render_wrenchshaperenderservice",
+      "src_render_wrenchshaperenderservice_wrenchshaperenderservice"
+    ],
+    "317": [
+      "src_summons_clustersummonruntime",
+      "src_summons_clustersummonruntime_clustersummonruntime"
+    ],
+    "318": [
+      "src_summons_clustersummonservice",
+      "src_summons_clustersummonservice_clustersummonservice"
+    ],
+    "319": [
+      "src_summons_summonconnectionpresentationservice",
+      "src_summons_summonconnectionpresentationservice_summonconnectionpresentationservice"
+    ],
+    "320": [
+      "src_summons_summonvisualpresentationservice",
+      "src_summons_summonvisualpresentationservice_summonvisualpresentationservice"
+    ],
+    "321": [
+      "src_ui_augmentselectioncardviewservice",
+      "src_ui_augmentselectioncardviewservice_augmentselectioncardviewservice"
+    ],
+    "322": [
+      "src_ui_cardinaldirectionservice",
+      "src_ui_cardinaldirectionservice_cardinaldirectionservice"
+    ],
+    "323": [
+      "src_ui_characterbanui",
+      "src_ui_characterbanui_characterbanui"
+    ],
+    "324": [
+      "src_ui_charactercardcolorservice",
+      "src_ui_charactercardcolorservice_charactercardcolorservice"
+    ],
+    "325": [
+      "src_ui_charactercarddataservice",
+      "src_ui_charactercarddataservice_charactercarddataservice"
+    ],
+    "326": [
+      "src_ui_charactercardinteractionservice",
+      "src_ui_charactercardinteractionservice_charactercardinteractionservice"
+    ],
+    "327": [
+      "src_ui_charactercardlayoutservice",
+      "src_ui_charactercardlayoutservice_charactercardlayoutservice"
+    ],
+    "328": [
+      "src_ui_charactercardportraitservice",
+      "src_ui_charactercardportraitservice_charactercardportraitservice"
+    ],
+    "329": [
+      "src_ui_charactercardstatsservice",
+      "src_ui_charactercardstatsservice_charactercardstatsservice"
+    ],
+    "330": [
+      "src_ui_charactercardviewservice",
+      "src_ui_charactercardviewservice_charactercardviewservice"
+    ],
+    "331": [
+      "src_ui_characterdescriptionservice",
+      "src_ui_characterdescriptionservice_characterdescriptionservice"
+    ],
+    "332": [
+      "src_ui_characterselectiondeferredworkservice",
+      "src_ui_characterselectiondeferredworkservice_characterselectiondeferredworkservice"
+    ],
+    "333": [
+      "src_ui_charactertooltip",
+      "src_ui_charactertooltip_charactertooltip"
+    ],
+    "334": [
+      "src_ui_combateventtoastservice",
+      "src_ui_combateventtoastservice_combateventtoastservice"
+    ],
+    "335": [
+      "src_ui_combatscreenfeedback",
+      "src_ui_combatscreenfeedback_combatscreenfeedback"
+    ],
+    "336": [
+      "src_ui_roomui",
+      "src_ui_roomui_roomui"
+    ],
+    "337": [
+      "src_ui_screenshakeservice",
+      "src_ui_screenshakeservice_screenshakeservice"
+    ],
+    "338": [
+      "src_ui_selectionentranceanimationservice",
+      "src_ui_selectionentranceanimationservice_selectionentranceanimationservice"
+    ],
+    "339": [
+      "src_world_areageometryservice",
+      "src_world_areageometryservice_areageometryservice"
+    ],
+    "340": [
+      "src_world_areawallcutpresentationservice",
+      "src_world_areawallcutpresentationservice_areawallcutpresentationservice"
+    ],
+    "341": [
+      "src_world_betweenmappreviewservice",
+      "src_world_betweenmappreviewservice_betweenmappreviewservice"
+    ],
+    "342": [
+      "src_world_duels2decodeofficialmaptiles",
+      "src_world_duels2decodeofficialmaptiles_duels2decodeofficialmaptiles"
+    ],
+    "343": [
+      "src_world_duels2tilewalls",
+      "src_world_duels2tilewalls_duels2tilewalls"
+    ],
+    "344": [
+      "src_world_dynamicwallservice",
+      "src_world_dynamicwallservice_dynamicwallservice"
+    ],
+    "345": [
+      "src_world_hitscangeometryservice",
+      "src_world_hitscangeometryservice_hitscangeometryservice"
+    ],
+    "346": [
+      "src_world_matchmapservice",
+      "src_world_matchmapservice_matchmapservice"
+    ],
+    "347": [
+      "src_world_officialmapdataservice",
+      "src_world_officialmapdataservice_officialmapdataservice"
+    ],
+    "348": [
+      "src_world_walloverlapattackdeferservice",
+      "src_world_walloverlapattackdeferservice_walloverlapattackdeferservice"
+    ],
+    "349": [
+      "src_world_worldboundsservice",
+      "src_world_worldboundsservice_worldboundsservice"
+    ],
+    "350": [
+      "src_world_worlddestructionservice",
+      "src_world_worlddestructionservice_worlddestructionservice"
+    ],
+    "351": [
+      "src_world_worldgeometryservice",
+      "src_world_worldgeometryservice_worldgeometryservice"
+    ],
+    "352": [
+      "runtime_freezecharacterdata"
+    ],
+    "353": [
+      "src_combat_cc_presentation_sequence"
+    ],
+    "354": [
+      "src_config_duels_patch_notes_url"
+    ],
+    "355": [
+      "src_config_profile_character_image_base"
+    ],
+    "356": [
+      "src_core_abilityusesequence"
+    ],
+    "357": [
+      "src_core_duels2_tile_cols"
+    ],
+    "358": [
+      "src_core_duels2_tile_design_cols"
+    ],
+    "359": [
+      "src_core_duels2_tile_design_rows"
+    ],
+    "360": [
+      "src_core_duels2_tile_rows"
+    ],
+    "361": [
+      "src_core_duels2_tile_world_h"
+    ],
+    "362": [
+      "src_core_duels2_tile_world_w"
+    ],
+    "363": [
+      "src_core_duels3patchnotesloaded"
+    ],
+    "364": [
+      "src_core_initialization_000"
+    ],
+    "365": [
+      "src_core_initialization_001"
+    ],
+    "366": [
+      "src_core_initialization_037"
+    ],
+    "367": [
+      "src_core_initialization_038"
+    ],
+    "368": [
+      "src_core_initialization_068"
+    ],
+    "369": [
+      "src_core_initialization_073"
+    ],
+    "370": [
+      "src_core_initialization_120"
+    ],
+    "371": [
+      "src_core_initialization_121"
+    ],
+    "372": [
+      "src_core_initialization_122"
+    ],
+    "373": [
+      "src_core_initialization_141"
+    ],
+    "374": [
+      "src_core_initialization_146"
+    ],
+    "375": [
+      "src_core_initialization_147"
+    ],
+    "376": [
+      "src_core_initialization_172"
+    ],
+    "377": [
+      "src_core_initialization_199"
+    ],
+    "378": [
+      "src_core_initialization_202"
+    ],
+    "379": [
+      "src_core_initialization_203"
+    ],
+    "380": [
+      "src_core_initialization_217"
+    ],
+    "381": [
+      "src_core_initialization_218"
+    ],
+    "382": [
+      "src_core_initialization_219"
+    ],
+    "383": [
+      "src_core_initialization_232"
+    ],
+    "384": [
+      "src_core_initialization_233"
+    ],
+    "385": [
+      "src_core_initialization_250"
+    ],
+    "386": [
+      "src_core_initialization_262"
+    ],
+    "387": [
+      "src_core_initialization_332"
+    ],
+    "388": [
+      "src_core_initialization_333"
+    ],
+    "389": [
+      "src_core_initialization_336"
+    ],
+    "390": [
+      "src_core_initialization_352"
+    ],
+    "391": [
+      "src_core_initialization_353"
+    ],
+    "392": [
+      "src_core_initialization_354"
+    ],
+    "393": [
+      "src_core_initialization_359"
+    ],
+    "394": [
+      "src_core_initialization_393"
+    ],
+    "395": [
+      "src_core_initialization_403"
+    ],
+    "396": [
+      "src_core_initialization_405"
+    ],
+    "397": [
+      "src_core_initialization_406"
+    ],
+    "398": [
+      "src_core_initialization_407"
+    ],
+    "399": [
+      "src_core_initialization_408"
+    ],
+    "400": [
+      "src_core_initialization_409"
+    ],
+    "401": [
+      "src_core_initialization_410"
+    ],
+    "402": [
+      "src_core_initialization_411"
+    ],
+    "403": [
+      "src_core_initialization_412"
+    ],
+    "404": [
+      "src_core_initialization_414"
+    ],
+    "405": [
+      "src_core_initialization_416"
+    ],
+    "406": [
+      "src_core_initialization_417"
+    ],
+    "407": [
+      "src_core_initialization_418"
+    ],
+    "408": [
+      "src_core_initialization_419"
+    ],
+    "409": [
+      "src_core_initialization_420"
+    ],
+    "410": [
+      "src_core_initialization_421"
+    ],
+    "411": [
+      "src_core_initialization_422"
+    ],
+    "412": [
+      "src_core_initialization_423"
+    ],
+    "413": [
+      "src_core_initialization_424"
+    ],
+    "414": [
+      "src_core_initialization_425"
+    ],
+    "415": [
+      "src_core_initialization_426"
+    ],
+    "416": [
+      "src_core_initialization_427"
+    ],
+    "417": [
+      "src_core_initialization_428"
+    ],
+    "418": [
+      "src_core_profileapplyingcharacterid"
+    ],
+    "419": [
+      "src_core_profilecharacterpickeropen"
+    ],
+    "420": [
+      "src_core_tail"
+    ],
+    "421": [
+      "src_data_character_data"
+    ],
+    "422": [
+      "src_data_characters_atsuteo"
+    ],
+    "423": [
+      "src_data_characters_cherity"
+    ],
+    "424": [
+      "src_data_characters_clea"
+    ],
+    "425": [
+      "src_data_characters_cyien"
+    ],
+    "426": [
+      "src_data_characters_dazbin"
+    ],
+    "427": [
+      "src_data_characters_deltroove"
+    ],
+    "428": [
+      "src_data_characters_dira"
+    ],
+    "429": [
+      "src_data_characters_elin"
+    ],
+    "430": [
+      "src_data_characters_erapabi"
+    ],
+    "431": [
+      "src_data_characters_ezrail"
+    ],
+    "432": [
+      "src_data_characters_gae"
+    ],
+    "433": [
+      "src_data_characters_hapupu"
+    ],
+    "434": [
+      "src_data_characters_hatsuhats"
+    ],
+    "435": [
+      "src_data_characters_herjang"
+    ],
+    "436": [
+      "src_data_characters_intu"
+    ],
+    "437": [
+      "src_data_characters_jerry"
+    ],
+    "438": [
+      "src_data_characters_kan"
+    ],
+    "439": [
+      "src_data_characters_kanon"
+    ],
+    "440": [
+      "src_data_characters_ki"
+    ],
+    "441": [
+      "src_data_characters_kines"
+    ],
+    "442": [
+      "src_data_characters_konyeong"
+    ],
+    "443": [
+      "src_data_characters_lete"
+    ],
+    "444": [
+      "src_data_characters_levina"
+    ],
+    "445": [
+      "src_data_characters_lian"
+    ],
+    "446": [
+      "src_data_characters_lime"
+    ],
+    "447": [
+      "src_data_characters_mainmad"
+    ],
+    "448": [
+      "src_data_characters_maisil"
+    ],
+    "449": [
+      "src_data_characters_mehugu"
+    ],
+    "450": [
+      "src_data_characters_meramona"
+    ],
+    "451": [
+      "src_data_characters_miaruky"
+    ],
+    "452": [
+      "src_data_characters_nanamnang"
+    ],
+    "453": [
+      "src_data_characters_nare"
+    ],
+    "454": [
+      "src_data_characters_nsonya"
+    ],
+    "455": [
+      "src_data_characters_nyu"
+    ],
+    "456": [
+      "src_data_characters_peluna"
+    ],
+    "457": [
+      "src_data_characters_phase"
+    ],
+    "458": [
+      "src_data_characters_prill"
+    ],
+    "459": [
+      "src_data_characters_quri"
+    ],
+    "460": [
+      "src_data_characters_raise"
+    ],
+    "461": [
+      "src_data_characters_reika"
+    ],
+    "462": [
+      "src_data_characters_roon"
+    ],
+    "463": [
+      "src_data_characters_ruli"
+    ],
+    "464": [
+      "src_data_characters_runef"
+    ],
+    "465": [
+      "src_data_characters_ruvu"
+    ],
+    "466": [
+      "src_data_characters_shairaz"
+    ],
+    "467": [
+      "src_data_characters_shello"
+    ],
+    "468": [
+      "src_data_characters_sherbet"
+    ],
+    "469": [
+      "src_data_characters_sherina"
+    ],
+    "470": [
+      "src_data_characters_shubi"
+    ],
+    "471": [
+      "src_data_characters_sor"
+    ],
+    "472": [
+      "src_data_characters_sya"
+    ],
+    "473": [
+      "src_data_characters_tadta"
+    ],
+    "474": [
+      "src_data_characters_tau"
+    ],
+    "475": [
+      "src_data_characters_terdion"
+    ],
+    "476": [
+      "src_data_characters_tinya"
+    ],
+    "477": [
+      "src_data_characters_van"
+    ],
+    "478": [
+      "src_data_characters_veleu"
+    ],
+    "479": [
+      "src_data_characters_xianelli"
+    ],
+    "480": [
+      "src_data_characters_yui"
+    ],
+    "481": [
+      "src_render_trainingpresentationbindingsinitialized"
+    ],
+    "482": [
+      "src_ui_charactercardtopplayerbaseline"
+    ],
+    "483": [
+      "src_ui_inline_2"
+    ]
+  },
+  "cohesion": {
+    "0": 0.006191950464396285,
+    "1": 0.0425531914893617,
+    "2": 0.0824524312896406,
+    "3": 0.058823529411764705,
+    "4": 0.10822510822510822,
+    "5": 0.09090909090909091,
+    "6": 0.1,
+    "7": 0.11695906432748537,
+    "8": 0.16666666666666666,
+    "9": 0.25,
+    "10": 0.25,
+    "11": 0.5,
+    "12": 0.6666666666666666,
+    "13": 1.0,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0,
+    "21": 1.0,
+    "22": 1.0,
+    "23": 1.0,
+    "24": 1.0,
+    "25": 1.0,
+    "26": 1.0,
+    "27": 1.0,
+    "28": 1.0,
+    "29": 1.0,
+    "30": 1.0,
+    "31": 1.0,
+    "32": 1.0,
+    "33": 1.0,
+    "34": 1.0,
+    "35": 1.0,
+    "36": 1.0,
+    "37": 1.0,
+    "38": 1.0,
+    "39": 1.0,
+    "40": 1.0,
+    "41": 1.0,
+    "42": 1.0,
+    "43": 1.0,
+    "44": 1.0,
+    "45": 1.0,
+    "46": 1.0,
+    "47": 1.0,
+    "48": 1.0,
+    "49": 1.0,
+    "50": 1.0,
+    "51": 1.0,
+    "52": 1.0,
+    "53": 1.0,
+    "54": 1.0,
+    "55": 1.0,
+    "56": 1.0,
+    "57": 1.0,
+    "58": 1.0,
+    "59": 1.0,
+    "60": 1.0,
+    "61": 1.0,
+    "62": 1.0,
+    "63": 1.0,
+    "64": 1.0,
+    "65": 1.0,
+    "66": 1.0,
+    "67": 1.0,
+    "68": 1.0,
+    "69": 1.0,
+    "70": 1.0,
+    "71": 1.0,
+    "72": 1.0,
+    "73": 1.0,
+    "74": 1.0,
+    "75": 1.0,
+    "76": 1.0,
+    "77": 1.0,
+    "78": 1.0,
+    "79": 1.0,
+    "80": 1.0,
+    "81": 1.0,
+    "82": 1.0,
+    "83": 1.0,
+    "84": 1.0,
+    "85": 1.0,
+    "86": 1.0,
+    "87": 1.0,
+    "88": 1.0,
+    "89": 1.0,
+    "90": 1.0,
+    "91": 1.0,
+    "92": 1.0,
+    "93": 1.0,
+    "94": 1.0,
+    "95": 1.0,
+    "96": 1.0,
+    "97": 1.0,
+    "98": 1.0,
+    "99": 1.0,
+    "100": 1.0,
+    "101": 1.0,
+    "102": 1.0,
+    "103": 1.0,
+    "104": 1.0,
+    "105": 1.0,
+    "106": 1.0,
+    "107": 1.0,
+    "108": 1.0,
+    "109": 1.0,
+    "110": 1.0,
+    "111": 1.0,
+    "112": 1.0,
+    "113": 1.0,
+    "114": 1.0,
+    "115": 1.0,
+    "116": 1.0,
+    "117": 1.0,
+    "118": 1.0,
+    "119": 1.0,
+    "120": 1.0,
+    "121": 1.0,
+    "122": 1.0,
+    "123": 1.0,
+    "124": 1.0,
+    "125": 1.0,
+    "126": 1.0,
+    "127": 1.0,
+    "128": 1.0,
+    "129": 1.0,
+    "130": 1.0,
+    "131": 1.0,
+    "132": 1.0,
+    "133": 1.0,
+    "134": 1.0,
+    "135": 1.0,
+    "136": 1.0,
+    "137": 1.0,
+    "138": 1.0,
+    "139": 1.0,
+    "140": 1.0,
+    "141": 1.0,
+    "142": 1.0,
+    "143": 1.0,
+    "144": 1.0,
+    "145": 1.0,
+    "146": 1.0,
+    "147": 1.0,
+    "148": 1.0,
+    "149": 1.0,
+    "150": 1.0,
+    "151": 1.0,
+    "152": 1.0,
+    "153": 1.0,
+    "154": 1.0,
+    "155": 1.0,
+    "156": 1.0,
+    "157": 1.0,
+    "158": 1.0,
+    "159": 1.0,
+    "160": 1.0,
+    "161": 1.0,
+    "162": 1.0,
+    "163": 1.0,
+    "164": 1.0,
+    "165": 1.0,
+    "166": 1.0,
+    "167": 1.0,
+    "168": 1.0,
+    "169": 1.0,
+    "170": 1.0,
+    "171": 1.0,
+    "172": 1.0,
+    "173": 1.0,
+    "174": 1.0,
+    "175": 1.0,
+    "176": 1.0,
+    "177": 1.0,
+    "178": 1.0,
+    "179": 1.0,
+    "180": 1.0,
+    "181": 1.0,
+    "182": 1.0,
+    "183": 1.0,
+    "184": 1.0,
+    "185": 1.0,
+    "186": 1.0,
+    "187": 1.0,
+    "188": 1.0,
+    "189": 1.0,
+    "190": 1.0,
+    "191": 1.0,
+    "192": 1.0,
+    "193": 1.0,
+    "194": 1.0,
+    "195": 1.0,
+    "196": 1.0,
+    "197": 1.0,
+    "198": 1.0,
+    "199": 1.0,
+    "200": 1.0,
+    "201": 1.0,
+    "202": 1.0,
+    "203": 1.0,
+    "204": 1.0,
+    "205": 1.0,
+    "206": 1.0,
+    "207": 1.0,
+    "208": 1.0,
+    "209": 1.0,
+    "210": 1.0,
+    "211": 1.0,
+    "212": 1.0,
+    "213": 1.0,
+    "214": 1.0,
+    "215": 1.0,
+    "216": 1.0,
+    "217": 1.0,
+    "218": 1.0,
+    "219": 1.0,
+    "220": 1.0,
+    "221": 1.0,
+    "222": 1.0,
+    "223": 1.0,
+    "224": 1.0,
+    "225": 1.0,
+    "226": 1.0,
+    "227": 1.0,
+    "228": 1.0,
+    "229": 1.0,
+    "230": 1.0,
+    "231": 1.0,
+    "232": 1.0,
+    "233": 1.0,
+    "234": 1.0,
+    "235": 1.0,
+    "236": 1.0,
+    "237": 1.0,
+    "238": 1.0,
+    "239": 1.0,
+    "240": 1.0,
+    "241": 1.0,
+    "242": 1.0,
+    "243": 1.0,
+    "244": 1.0,
+    "245": 1.0,
+    "246": 1.0,
+    "247": 1.0,
+    "248": 1.0,
+    "249": 1.0,
+    "250": 1.0,
+    "251": 1.0,
+    "252": 1.0,
+    "253": 1.0,
+    "254": 1.0,
+    "255": 1.0,
+    "256": 1.0,
+    "257": 1.0,
+    "258": 1.0,
+    "259": 1.0,
+    "260": 1.0,
+    "261": 1.0,
+    "262": 1.0,
+    "263": 1.0,
+    "264": 1.0,
+    "265": 1.0,
+    "266": 1.0,
+    "267": 1.0,
+    "268": 1.0,
+    "269": 1.0,
+    "270": 1.0,
+    "271": 1.0,
+    "272": 1.0,
+    "273": 1.0,
+    "274": 1.0,
+    "275": 1.0,
+    "276": 1.0,
+    "277": 1.0,
+    "278": 1.0,
+    "279": 1.0,
+    "280": 1.0,
+    "281": 1.0,
+    "282": 1.0,
+    "283": 1.0,
+    "284": 1.0,
+    "285": 1.0,
+    "286": 1.0,
+    "287": 1.0,
+    "288": 1.0,
+    "289": 1.0,
+    "290": 1.0,
+    "291": 1.0,
+    "292": 1.0,
+    "293": 1.0,
+    "294": 1.0,
+    "295": 1.0,
+    "296": 1.0,
+    "297": 1.0,
+    "298": 1.0,
+    "299": 1.0,
+    "300": 1.0,
+    "301": 1.0,
+    "302": 1.0,
+    "303": 1.0,
+    "304": 1.0,
+    "305": 1.0,
+    "306": 1.0,
+    "307": 1.0,
+    "308": 1.0,
+    "309": 1.0,
+    "310": 1.0,
+    "311": 1.0,
+    "312": 1.0,
+    "313": 1.0,
+    "314": 1.0,
+    "315": 1.0,
+    "316": 1.0,
+    "317": 1.0,
+    "318": 1.0,
+    "319": 1.0,
+    "320": 1.0,
+    "321": 1.0,
+    "322": 1.0,
+    "323": 1.0,
+    "324": 1.0,
+    "325": 1.0,
+    "326": 1.0,
+    "327": 1.0,
+    "328": 1.0,
+    "329": 1.0,
+    "330": 1.0,
+    "331": 1.0,
+    "332": 1.0,
+    "333": 1.0,
+    "334": 1.0,
+    "335": 1.0,
+    "336": 1.0,
+    "337": 1.0,
+    "338": 1.0,
+    "339": 1.0,
+    "340": 1.0,
+    "341": 1.0,
+    "342": 1.0,
+    "343": 1.0,
+    "344": 1.0,
+    "345": 1.0,
+    "346": 1.0,
+    "347": 1.0,
+    "348": 1.0,
+    "349": 1.0,
+    "350": 1.0,
+    "351": 1.0,
+    "352": 1.0,
+    "353": 1.0,
+    "354": 1.0,
+    "355": 1.0,
+    "356": 1.0,
+    "357": 1.0,
+    "358": 1.0,
+    "359": 1.0,
+    "360": 1.0,
+    "361": 1.0,
+    "362": 1.0,
+    "363": 1.0,
+    "364": 1.0,
+    "365": 1.0,
+    "366": 1.0,
+    "367": 1.0,
+    "368": 1.0,
+    "369": 1.0,
+    "370": 1.0,
+    "371": 1.0,
+    "372": 1.0,
+    "373": 1.0,
+    "374": 1.0,
+    "375": 1.0,
+    "376": 1.0,
+    "377": 1.0,
+    "378": 1.0,
+    "379": 1.0,
+    "380": 1.0,
+    "381": 1.0,
+    "382": 1.0,
+    "383": 1.0,
+    "384": 1.0,
+    "385": 1.0,
+    "386": 1.0,
+    "387": 1.0,
+    "388": 1.0,
+    "389": 1.0,
+    "390": 1.0,
+    "391": 1.0,
+    "392": 1.0,
+    "393": 1.0,
+    "394": 1.0,
+    "395": 1.0,
+    "396": 1.0,
+    "397": 1.0,
+    "398": 1.0,
+    "399": 1.0,
+    "400": 1.0,
+    "401": 1.0,
+    "402": 1.0,
+    "403": 1.0,
+    "404": 1.0,
+    "405": 1.0,
+    "406": 1.0,
+    "407": 1.0,
+    "408": 1.0,
+    "409": 1.0,
+    "410": 1.0,
+    "411": 1.0,
+    "412": 1.0,
+    "413": 1.0,
+    "414": 1.0,
+    "415": 1.0,
+    "416": 1.0,
+    "417": 1.0,
+    "418": 1.0,
+    "419": 1.0,
+    "420": 1.0,
+    "421": 1.0,
+    "422": 1.0,
+    "423": 1.0,
+    "424": 1.0,
+    "425": 1.0,
+    "426": 1.0,
+    "427": 1.0,
+    "428": 1.0,
+    "429": 1.0,
+    "430": 1.0,
+    "431": 1.0,
+    "432": 1.0,
+    "433": 1.0,
+    "434": 1.0,
+    "435": 1.0,
+    "436": 1.0,
+    "437": 1.0,
+    "438": 1.0,
+    "439": 1.0,
+    "440": 1.0,
+    "441": 1.0,
+    "442": 1.0,
+    "443": 1.0,
+    "444": 1.0,
+    "445": 1.0,
+    "446": 1.0,
+    "447": 1.0,
+    "448": 1.0,
+    "449": 1.0,
+    "450": 1.0,
+    "451": 1.0,
+    "452": 1.0,
+    "453": 1.0,
+    "454": 1.0,
+    "455": 1.0,
+    "456": 1.0,
+    "457": 1.0,
+    "458": 1.0,
+    "459": 1.0,
+    "460": 1.0,
+    "461": 1.0,
+    "462": 1.0,
+    "463": 1.0,
+    "464": 1.0,
+    "465": 1.0,
+    "466": 1.0,
+    "467": 1.0,
+    "468": 1.0,
+    "469": 1.0,
+    "470": 1.0,
+    "471": 1.0,
+    "472": 1.0,
+    "473": 1.0,
+    "474": 1.0,
+    "475": 1.0,
+    "476": 1.0,
+    "477": 1.0,
+    "478": 1.0,
+    "479": 1.0,
+    "480": 1.0,
+    "481": 1.0,
+    "482": 1.0,
+    "483": 1.0
+  },
+  "gods": [
+    {
+      "id": "tools_test_structure_entity",
+      "label": "entity()",
+      "degree": 27
+    },
+    {
+      "id": "tools_verify_document",
+      "label": "Document",
+      "degree": 14
+    },
+    {
+      "id": "tools_verify_verify",
+      "label": "verify()",
+      "degree": 10
+    },
+    {
+      "id": "tools_test_terdion_target",
+      "label": "target()",
+      "degree": 9
+    },
+    {
+      "id": "tools_test_gameplay_fixes_context",
+      "label": "context()",
+      "degree": 7
+    },
+    {
+      "id": "tools_serve_handler",
+      "label": "Handler",
+      "degree": 6
+    },
+    {
+      "id": "tools_project_assemble",
+      "label": "assemble()",
+      "degree": 6
+    },
+    {
+      "id": "tools_project_inventory",
+      "label": "inventory()",
+      "degree": 6
+    },
+    {
+      "id": "tools_project_manifest",
+      "label": "manifest()",
+      "degree": 6
+    },
+    {
+      "id": "runtime_duels3loadpatchnotes",
+      "label": "duels3LoadPatchNotes()",
+      "degree": 6
+    }
+  ],
+  "surprises": [
+    {
+      "source": "AttackModuleService",
+      "target": "target()",
+      "source_files": [
+        "runtime.js",
+        "tools/test-terdion.cjs"
+      ],
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; peripheral node `AttackModuleService` unexpectedly reaches hub `target()`"
+    },
+    {
+      "source": "DamagePipeline",
+      "target": "target()",
+      "source_files": [
+        "runtime.js",
+        "tools/test-terdion.cjs"
+      ],
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; peripheral node `DamagePipeline` unexpectedly reaches hub `target()`"
+    },
+    {
+      "source": "HitTargetSequenceService",
+      "target": "target()",
+      "source_files": [
+        "runtime.js",
+        "tools/test-terdion.cjs"
+      ],
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; peripheral node `HitTargetSequenceService` unexpectedly reaches hub `target()`"
+    },
+    {
+      "source": "AttackModuleService",
+      "target": "target()",
+      "source_files": [
+        "src/combat/AttackModuleService.js",
+        "tools/test-terdion.cjs"
+      ],
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; peripheral node `AttackModuleService` unexpectedly reaches hub `target()`"
+    },
+    {
+      "source": "DamagePipeline",
+      "target": "target()",
+      "source_files": [
+        "src/combat/DamagePipeline.js",
+        "tools/test-terdion.cjs"
+      ],
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; peripheral node `DamagePipeline` unexpectedly reaches hub `target()`"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `entity()` connect `entity` to `runtime.js`, `test-structure.cjs`?",
+      "why": "High betweenness centrality (0.038) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `target()` connect `test-terdion.cjs` to `runtime.js`?",
+      "why": "High betweenness centrality (0.026) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 26 inferred relationships involving `entity()` (e.g. with `runtime.js` and `AugmentEffectModuleService`) actually correct?",
+      "why": "`entity()` has 26 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 8 inferred relationships involving `target()` (e.g. with `runtime.js` and `AttackModuleService`) actually correct?",
+      "why": "`target()` has 8 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 4 inferred relationships involving `context()` (e.g. with `AbilityModuleService` and `AttackHitTriggerService`) actually correct?",
+      "why": "`context()` has 4 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `AbilityAttackExecutionService`, `AbilityService`, `AccountService` to the rest of the system?",
+      "why": "669 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `runtime.js` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.006191950464396285 - nodes in this community are weakly interconnected."
+    }
+  ]
+}

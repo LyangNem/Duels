@@ -376,6 +376,7 @@ const CharacterSortService=Object.freeze({
   },
   distanceTag(character){
     const combat=character?.combat||character;
+    if(combat?.classification?.rangeLabel)return String(combat.classification.rangeLabel);
     const rangeId=Number(combat?.classification?.range)||0;
     if(rangeId)return CHARACTER_RULES.ranges.find(item=>item.id===rangeId)?.tag||'';
     return GAME_DATA.ranges.find(item=>this.basicRange(character)<=item.maxInclusive)?.tag||'';

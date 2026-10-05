@@ -780,6 +780,9 @@ const AugmentService=Object.freeze({
   ){
     if(!entity||!spec)return spec;
 
+    // 프리뷰/자동 공격도 실제 발사와 같은 모드 조합을 준비한다. 이미 고정된 조합은 재변환하지 않는다.
+    if(spec.attackFeatureTransform)spec=AttackFeatureTransformService.prepare(entity,spec,now);
+
     let modules=(spec.modules||[]).map(
       module=>typeof module==='string'?module:{...module}
     );
@@ -1127,6 +1130,7 @@ const AugmentService=Object.freeze({
                 :spec.charge.range
           }
           :spec.charge,
+      attackDelay:Math.max(0,Number(spec.attackDelay)||0)/Math.max(.10,combatStats.attackSpeedMult),
       cd:Math.max(
         10,
         (Number(spec.cd)||0)/

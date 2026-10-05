@@ -239,6 +239,7 @@
               type: "movement.move",
               stateKey: "movement:hatsuhats-canvas",
               pathSource: "drag-path",
+              presentation: false,
               speed: 900,
               conditions: [{type: "state.exists", stateKey: "drag:hatsuhats:rmb"}],
               collision: {passWalls: true, passEnemies: true},

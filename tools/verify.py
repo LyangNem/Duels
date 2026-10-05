@@ -47,7 +47,7 @@ def verify(baseline=False):
   assert (ROOT/p).is_file(),p
   assert (ROOT/p).resolve().is_relative_to(ROOT),'프로젝트 외부 소스'
  data=json.loads((ROOT/'src/data/characters/index.json').read_text(encoding='utf-8'))
- paths=[c['path'] for c in data['characters']];assert len(paths)==58 and len(set(paths))==58,'캐릭터 중복/누락'
+ paths=[c['path'] for c in data['characters']];assert len(paths)==59 and len(set(paths))==59,'캐릭터 중복/누락'
  assert all(p in registered and (ROOT/p).is_file() for p in paths),'미등록 캐릭터'
  runtime=assemble();assert sha(runtime)==m['original_script_sha256' if baseline else 'current_script_sha256'],'기준 JavaScript와 불일치'
  assert (ROOT/'runtime.js').read_text(encoding='utf-8')==runtime,'배포 runtime.js가 소스와 불일치'
@@ -74,5 +74,5 @@ def verify(baseline=False):
  legacy=(ROOT/'docs/LEGACY RULES.md').read_text(encoding='utf-8');assert sha(legacy)==m['baseline_rules_sha256'],'기존 규칙 보존 실패'
  readme=(ROOT/'README.md').read_text(encoding='utf-8');assert all(f'{i}. ' in readme for i in range(25)),'규칙 번호 누락'
  normalized=legacy.strip().replace(m['old_rule_16'],m['new_rule_16']);assert normalized in readme,'전체 규칙 이관 실패'
- print('PASS: HTML 구조·리소스 5개·스크립트 실행 순서·58명 등록·전체 규칙 이관·배포 결과·소스 목록')
+ print('PASS: HTML 구조·리소스 5개·스크립트 실행 순서·59명 등록·전체 규칙 이관·배포 결과·소스 목록')
 if __name__=='__main__':verify('--baseline' in sys.argv)

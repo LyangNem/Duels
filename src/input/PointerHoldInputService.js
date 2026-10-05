@@ -25,6 +25,20 @@ const PointerHoldInputService=Object.freeze({
   slot(button){
     return button===0?'lmb':button===2?'rmb':null;
   },
+  wheel(deltaY,now=performance.now()){
+    const source=Training.player;
+    const config=source?.character?.wheelInput;
+    if(!config||!source?.alive||!Number.isFinite(Number(deltaY))||Number(deltaY)===0)return false;
+    const modifier=this.state[String(config.modifierSlot||'rmb')];
+    let slot=String(config.slot||'');
+    if(modifier?.held){
+      slot=now-modifier.pressedAt>=Math.max(1,Number(config.holdThresholdMs)||250)
+        ?String(config.heldSlot||''):String(config.modifiedSlot||'');
+    }
+    if(!slot||!Training.use(slot,null,{modeStep:Number(deltaY)<0?-1:1}))return false;
+    if(modifier?.held){modifier.wheelConsumed=true;modifier.holdConsumed=true;}
+    return true;
+  },
   isRepeatablePrimary(source,ability){
     if(
       !source||
@@ -248,6 +262,7 @@ const PointerHoldInputService=Object.freeze({
     current.held=true;
     current.pressedAt=performance.now();
     current.holdConsumed=false;
+    current.wheelConsumed=false;
     current.holdRepeatTicks=0;
     current.holdRepeatLastStepAt=current.pressedAt;
     current.blockedUntilRelease=this.matchesBlockCondition(
@@ -344,6 +359,7 @@ const PointerHoldInputService=Object.freeze({
       !!ability?.holdTrigger;
     const deferredTap=ability?.inputPolicy?.deferTapUntilRelease===true;
     const holdConsumed=current.holdConsumed===true;
+    const wheelConsumed=current.wheelConsumed===true;
     const holdRepeatTicks=Number(current.holdRepeatTicks)||0;
     this.clearHoldRepeatProgress(current);
 
@@ -351,8 +367,14 @@ const PointerHoldInputService=Object.freeze({
     current.blockedUntilRelease=false;
     current.pressedAt=0;
     current.holdConsumed=false;
+    current.wheelConsumed=false;
     current.holdRepeatTicks=0;
     current.holdRepeatLastStepAt=0;
+
+    if(wasHeld&&wheelConsumed){
+      this.clearHoldGauge(source,ability);
+      return true;
+    }
 
     if(wasHeld&&deferredTap&&!tapHoldSplit){
       if(
@@ -509,7 +531,8 @@ const PointerHoldInputService=Object.freeze({
       const current=this.state[slot];
       if(
         !current.held||
-        current.blockedUntilRelease
+        current.blockedUntilRelease||
+        current.wheelConsumed===true
       )continue;
 
       const ability=

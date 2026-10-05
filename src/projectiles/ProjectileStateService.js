@@ -377,7 +377,7 @@ const ProjectileStateService=Object.freeze({
           }
           for(const key of ['fixedX','fixedY','fixedTravel']){
             const value=Number(snapshot.stationary[key]);
-            if(Number.isFinite(value)){
+            if(snapshot.stationary[key]!=null&&Number.isFinite(value)){
               projectile.stationaryArrival[key]=value;
             }
           }

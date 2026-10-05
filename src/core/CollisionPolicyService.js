@@ -22,8 +22,9 @@ const CollisionPolicyService=Object.freeze({
         RelationService.relation(entity,target)!=='enemy'
       )continue;
 
-      const ox=sx-(Number(target.x)||0);
-      const oy=sy-(Number(target.y)||0);
+      const point=NetworkCollisionPositionService.point(target);
+      const ox=sx-point.x;
+      const oy=sy-point.y;
       const radius=
         Math.max(0,Number(entity.radius)||0)+
         Math.max(0,Number(target.radius)||0);

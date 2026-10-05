@@ -13,7 +13,7 @@ const TagService=Object.freeze({
         '일반 투사체','무기 투사체','레이저 투사체','즉발 레이저 투사체','범위 투사체','특수 투사체',
         '근접 무기','이동기','벽 관통','적 관통','유도','귀환','설치형','소환','차징','충전','채널링',
         '다중 공격','대상당 1회','넉백','무력화 넉백','끌어오기','체력 회복','스테미나 회복','보호막',
-        '최대 체력 비례 피해','조건부 피해','방어','버프','은신',
+        '최대 체력 비례 피해','조건부 피해','방어','버프','은신','벽 파괴',
         // 예전 표기의 별칭도 보관된 태그에서 다시 유입시키지 않는다.
         '범위','투사체','일반','관통','근접','회복'
       ].includes(tag);
@@ -242,6 +242,7 @@ const TagService=Object.freeze({
       if(type==='damage.target-max-health-ratio')tags.add('최대 체력 비례 피해');
       if(type==='damage.range-band-multiplier'||type==='damage.target-health-ratio-multiplier'||type==='damage.target-status-multiplier')tags.add('조건부 피해');
       if(type==='attack.guard')tags.add('방어');
+      if(type==='world.destroy-walls')tags.add('벽 파괴');
       if(type==='hit.once-per-execution')tags.add('대상당 1회');
       if(['movement.knockback','movement.neutralize-knockback'].includes(type)&&module.target==='hit-target'){
         tags.add('넉백');

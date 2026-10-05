@@ -66,7 +66,7 @@ const CharacterDataService=Object.freeze({
       difficulty:stats.difficulty,
       moveLabel:CHARACTER_RULES.moveLabels[id]||'보통',
       // 구형 소비자를 위한 파생 문자열. 분류 원본은 classification에만 둔다.
-      styleLabel:[style,role].join(' '),
+      styleLabel:[style,classification.rangeLabel,role].filter(Boolean).join(' '),
       tags:Object.freeze([...new Set([style,...(extraTags||[]),role])])
     };
     return Object.freeze(character);

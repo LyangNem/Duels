@@ -60,6 +60,16 @@ const ProjectileHomingTargetVisibilityService=Object.freeze({
         ?.includes(relation)
     )return false;
 
+    const resource=projectile.homing?.requiresResource;
+    if(resource){
+      const maximum=resource==='stamina'
+        ?Number(target.maxStamina)
+        :resource==='health'
+          ?Number(target.maxHealth)
+          :Number(target.resources?.[resource]?.max);
+      if(!(maximum>0))return false;
+    }
+
     return (
       this.withinSourceRange(
         projectile,

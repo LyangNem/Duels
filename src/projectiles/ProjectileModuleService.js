@@ -115,6 +115,10 @@ const ProjectileModuleService=Object.freeze({
       trajectory:trajectory||null,
       impact:impact
         ?{
+          shareHitTargets:impact.shareHitTargets===true,
+          snapToRangeEnd:impact.snapToRangeEnd===true,
+          oncePerProjectile:impact.oncePerProjectile===true,
+          cancelDelayedOnRemove:impact.cancelDelayedOnRemove===true,
           attackIds:Array.isArray(impact.attackIds)
             ?impact.attackIds.map(String)
             :(

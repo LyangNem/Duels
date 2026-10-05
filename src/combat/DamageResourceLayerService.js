@@ -36,6 +36,7 @@ const DamageResourceLayerService=Object.freeze({
   absorb(target,amount,{impact=null,now=performance.now()}={}){
     let remaining=Math.max(0,Number(amount)||0);
     let absorbed=0;
+    let healthDamage=0;
     let blockHitEffects=false;
     const entries=[];
     for(const config of this.configs(target)){
@@ -57,6 +58,7 @@ const DamageResourceLayerService=Object.freeze({
       const after=Math.max(0,Number(ProgressStateService.state(target,stateKey)?.value)||0);
       remaining=Math.max(0,remaining-damageAbsorbed);
       absorbed+=damageAbsorbed;
+      if(config.countsAsHealthDamage===true)healthDamage+=damageAbsorbed;
       entries.push({config,stateKey,before,after,damageAbsorbed,resourceSpent});
       if(before>0&&after<=0&&config.depletedEffect){
         this.spawnTransitionEffect(target,config.depletedEffect,now);
@@ -69,6 +71,6 @@ const DamageResourceLayerService=Object.freeze({
         blockHitEffects=true;
       }
     }
-    return {remaining,absorbed,blockHitEffects,entries};
+    return {remaining,absorbed,healthDamage,blockHitEffects,entries};
   }
 });

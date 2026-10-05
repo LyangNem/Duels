@@ -1,7 +1,7 @@
 
 
 const AttackPreviewService=Object.freeze({
-  delayedProjectileVolleyParts(source,attack,angle){
+  delayedProjectileVolleyParts(source,attack,angle,options=null){
     if(!source||!attack?.previewProjectilePaths)return [];
 
     const volley=AttackModuleService.module(
@@ -63,7 +63,7 @@ const AttackPreviewService=Object.freeze({
       )==='center'
         ?0
         :radius;
-    const range=Math.max(0,Number(projectileAttack.range)||0);
+    const range=AttackModuleService.volleyTravelRange(source,projectileAttack,volley,options?.targetPoint);
     const parts=[];
 
     for(let index=0;index<count;index++){
@@ -86,7 +86,15 @@ const AttackPreviewService=Object.freeze({
             wallPadding
           )
           :range;
-      parts.push({
+      const impactSource={...source,x:(Number(source.x)||0)+Math.cos(partAngle)*partRange,
+        y:(Number(source.y)||0)+Math.sin(partAngle)*partRange};
+      for(const id of AttackModuleService.module(projectileAttack,'projectile.impact')?.attackIds||[]){
+        const base=AbilityService.attackById(source.character,String(id));
+        if(!base)continue;
+        const linked=AugmentService.prepareAttack(source,ProgressScaledAttackService.resolve(source,base),performance.now());
+        parts.push(...AttackPreviewAreaService.parts(impactSource,linked,partAngle,[],{includeDeliveryAreas:true}));
+      }
+      if(attack.previewProjectilePaths!=='impact-only')parts.push({
         type:'projectile-path',
         angle:partAngle,
         range:partRange,
@@ -106,6 +114,13 @@ const AttackPreviewService=Object.freeze({
         ProgressScaledAttackService.resolve(source,attack),
         performance.now()
       );
+    if(preparedAttack.previewProjectilePaths==='impact-only'){
+      preview.parts=this.delayedProjectileVolleyParts(source,preparedAttack,angle,options);
+      preview.type='circle';preview.range=0;preview.halfWidth=0;preview.halfAngle=0;
+      preview.projectile=false;preview.angle=angle;preview.until=until;
+      if(Array.isArray(preview.points))preview.points.length=0;
+      return preview;
+    }
     preview.parts=
       AttackPreviewAreaService.parts(
         source,
@@ -118,7 +133,8 @@ const AttackPreviewService=Object.freeze({
       this.delayedProjectileVolleyParts(
         source,
         preparedAttack,
-        angle
+        angle,
+        options
       );
     if(delayedVolleyPreviewParts.length){
       preview.parts=Array.isArray(preview.parts)?preview.parts:[];
@@ -433,7 +449,7 @@ const AttackPreviewService=Object.freeze({
           ?0
           :projectileRadius;
       const wallPolicy=
-        pierce?.walls===true
+        pierce?.walls===true||projectileModule.arrival?.passWallsInFlight===true
           ?'ignore'
           :'block';
       const mainRange=
@@ -475,7 +491,7 @@ const AttackPreviewService=Object.freeze({
         );
       if(
         impactModule&&
-        Array.isArray(impactModule.attackIds)
+        Array.isArray(impactModule.previewAttackIds||impactModule.attackIds)
       ){
         const impactSource={
           ...source,
@@ -483,7 +499,7 @@ const AttackPreviewService=Object.freeze({
           y:impactY
         };
 
-        for(const linkedAttackId of impactModule.attackIds){
+        for(const linkedAttackId of (impactModule.previewAttackIds||impactModule.attackIds)){
           const linkedBase=
             AbilityService.attackById(
               source.character,
@@ -535,8 +551,7 @@ const AttackPreviewService=Object.freeze({
     );
     if(
       projectile&&
-      preparedAttack?.previewProjectilePaths===true&&
-      scatterCount>1
+      preparedAttack?.previewProjectilePaths===true
     ){
       const spread=Math.max(0,Number(scatterModule?.spread)||0);
       const pierce=AttackModuleService.module(
@@ -589,7 +604,7 @@ const AttackPreviewService=Object.freeze({
       for(let index=0;index<scatterCount;index++){
         const partAngle=
           angle+
-          (index/(scatterCount-1)-.5)*spread;
+          (scatterCount<=1?0:(index/(scatterCount-1)-.5)*spread);
         const sideRatio=
           scatterCount<=1
             ?0
@@ -627,11 +642,15 @@ const AttackPreviewService=Object.freeze({
               wallCollisionPadding
             )
             :fallbackRange;
+        if(impactModule?.previewStopAtFirstEnemy===true&&pierce?.targets!==true){
+          const probe={...source,x:anchorX,y:anchorY};
+          part.range=HitScanGeometryService.firstEnemyRange(probe,{range:part.range,halfWidth:projectileRadius,stopAtFirstEnemy:true},partAngle);
+        }
         preview.parts.push(part);
 
         if(
           impactModule&&
-          Array.isArray(impactModule.attackIds)
+          Array.isArray(impactModule.previewAttackIds||impactModule.attackIds)
         ){
           const impactSource={
             ...source,
@@ -643,7 +662,7 @@ const AttackPreviewService=Object.freeze({
               Math.sin(partAngle)*part.range
           };
 
-          for(const linkedAttackId of impactModule.attackIds){
+          for(const linkedAttackId of (impactModule.previewAttackIds||impactModule.attackIds)){
             const linkedBase=
               AbilityService.attackById(
                 source.character,
@@ -758,6 +777,16 @@ const AttackPreviewService=Object.freeze({
       preview
     );
     return preview;
+  },
+  updateAim(source,angle,now=performance.now()){
+    const config=source?.character?.aimPreview;
+    if(!config||!source.alive){source.aimAttackPreview=null;return false;}
+    const ability=source.character.abilities?.[config.input||'lmb'];
+    const attack=AbilityService.resolvedInputAttack(source,ability);
+    if(!attack){source.aimAttackPreview=null;return false;}
+    source.aimAttackPreview=this.fromAttack(source,attack,angle,now+100,
+      source.aimAttackPreview,{includeDeliveryAreas:true});
+    return true;
   },
   updateLive(source,resolveAim,now=performance.now()){
     const preview=source?.attackPreview;

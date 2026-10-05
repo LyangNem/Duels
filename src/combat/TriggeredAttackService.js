@@ -36,6 +36,7 @@ const TriggeredAttackService=Object.freeze({
         ),
       skipWindup:
         execution.skipWindup===true,
+      hitGroupSequence:execution.hitGroupSequence??null,
       targetEntityId:
         String(
           execution.targetEntityId||''
@@ -65,7 +66,8 @@ const TriggeredAttackService=Object.freeze({
       targetPoint=null,
       abilityUseId=null,
       skipWindup=false,
-      targetEntityId=null
+      targetEntityId=null,
+      hitGroupSequence=null
     }={}
   ){
     if(
@@ -112,6 +114,10 @@ const TriggeredAttackService=Object.freeze({
     }
 
     execution.networkReplay=networkReplay===true;
+    if(hitGroupSequence!==null&&Number.isFinite(Number(hitGroupSequence))){
+      const parent=source._attackExecutionRegistry?.get(Math.floor(Number(hitGroupSequence)));
+      AttackExecutionService.shareHits(execution,parent);
+    }
     execution.abilityUseId=abilityUseId||null;
     execution.skipWindup=
       skipWindup===true;
@@ -247,6 +253,7 @@ const TriggeredAttackService=Object.freeze({
         executionSequence:
           payload.executionSequence,
         broadcast:false,
+        hitGroupSequence:payload.hitGroupSequence??null,
         skipWindup:
           payload.skipWindup===true,
         targetEntityId:

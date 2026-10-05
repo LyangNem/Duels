@@ -21,9 +21,12 @@ const ProgressStateService=Object.freeze({
           0,
           Number(combatIdleProgressRepair.delay)||0
         );
+        const hitCountRepair=combatIdleProgressRepair.repairMode==='hit-count';
         const duration=Math.max(
           1,
-          Number(combatIdleProgressRepair.duration)||3000
+          Number(hitCountRepair
+            ?combatIdleProgressRepair.requiredHits
+            :combatIdleProgressRepair.duration)||(hitCountRepair?1:3000)
         );
         const durability=
           durabilityStateKey
@@ -84,7 +87,7 @@ const ProgressStateService=Object.freeze({
 
             // 고갈되지 않은 자원은 전투 여부와 관계없이
             // 초당 지정량만큼 내구도를 자연 회복한다. 파괴 상태(0)는
-            // 기존 완전 수리 타이머만 사용한다.
+            // 지정된 시간 또는 적중 누적 정책으로만 복구한다.
             if(
               !full&&
               !depleted&&
@@ -117,7 +120,7 @@ const ProgressStateService=Object.freeze({
               now-lastRepairInterruptAt
             );
 
-            if(idleFor>=delay){
+            if(hitCountRepair||idleFor>=delay){
               const currentProgress=Math.max(
                 0,
                 Math.min(
@@ -127,7 +130,7 @@ const ProgressStateService=Object.freeze({
               );
               const nextProgress=Math.min(
                 duration,
-                currentProgress+Math.max(0,now-lastRepairTickAt)
+                currentProgress+(hitCountRepair?0:Math.max(0,now-lastRepairTickAt))
               );
 
               if(Math.abs(currentProgress-nextProgress)>.5){
@@ -142,7 +145,7 @@ const ProgressStateService=Object.freeze({
                 );
               }
 
-              if(nextProgress>=duration-.5){
+              if(nextProgress>=duration-(hitCountRepair?0:.5)){
                 const durabilityBeforeRepair=Math.max(
                   0,
                   Number(

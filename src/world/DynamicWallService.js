@@ -5,17 +5,26 @@ const DynamicWallService={
   revision:0,
   cacheRevision:-1,
   cache:[],
+  activeByOwner:new Map(),
   ownerKey(owner){
     return String(owner?.id||owner||'');
   },
   wallsFor(owner){
-    return this.byOwner.get(this.ownerKey(owner))||[];
+    const key=this.ownerKey(owner);
+    const walls=this.byOwner.get(key)||[];
+    if(!WorldDestructionService.removedDynamic.size)return walls;
+    if(!this.activeByOwner.has(key)){
+      this.activeByOwner.set(key,walls.filter(wall=>!WorldDestructionService.removedDynamic.has(wall.id)));
+    }
+    return this.activeByOwner.get(key);
   },
   all(){
     if(this.cacheRevision===this.revision)return this.cache;
     const merged=[];
     for(const walls of this.byOwner.values()){
-      for(const wall of walls)merged.push(wall);
+      for(const wall of walls){
+        if(!WorldDestructionService.removedDynamic.has(wall.id))merged.push(wall);
+      }
     }
     this.cache=merged;
     this.cacheRevision=this.revision;
@@ -24,6 +33,7 @@ const DynamicWallService={
   invalidate(){
     this.revision++;
     this.cacheRevision=-1;
+    this.activeByOwner.clear();
   },
   clearOwner(owner){
     const key=this.ownerKey(owner);

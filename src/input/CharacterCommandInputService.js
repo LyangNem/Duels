@@ -154,9 +154,8 @@ const CharacterCommandInputService={
         return true;
       }
 
-      this.appendCode(
-        event.code
-      );
+      this.appendCode(event.code);
+      if(CommandFeatureService.commandMap[String(this.buffer||'').trim().toLowerCase()])this.submit();
       return true;
     }
 
@@ -238,16 +237,12 @@ const CharacterCommandInputService={
       !CommandFeatureService.isCharacter(entity)
     )return 0;
 
-    const entries=
-      CommandFeatureService.featureEntries
-        .filter(
-          entry=>entry.oneShot!==true
-        );
+    const entries=CommandFeatureService.featureEntries;
 
-    // DUAL부터 무조건 두 번째 줄.
+    // 4개 핵심 명령을 윗줄, 기존 레이저 옵션을 아랫줄에 표시.
     const rows=[
-      entries.slice(0,3),
-      entries.slice(3)
+      entries.slice(0,4),
+      entries.slice(4)
     ];
 
     const startY=
@@ -279,6 +274,7 @@ const CharacterCommandInputService={
 
             return {
               text:entry.label,
+              feature:entry.feature,
               active,
               paused
             };
@@ -329,6 +325,8 @@ const CharacterCommandInputService={
                 ?'#9fe3b0'
                 :'#ff9c9c';
 
+          ctx.shadowColor='transparent';
+          ctx.shadowBlur=0;
           ctx.strokeText(
             part.text,
             tx,
@@ -340,6 +338,7 @@ const CharacterCommandInputService={
             ty
           );
 
+          ctx.shadowBlur=0;
           dx+=
             widths[index]+
             gap;

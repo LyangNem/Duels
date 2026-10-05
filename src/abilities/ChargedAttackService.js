@@ -204,7 +204,7 @@ const ChargedAttackService=Object.freeze({
     const minimum=
       Math.max(
         0,
-        Number(attack.charge.costMin)||Number(attack.cost)||0
+        Number(attack.charge.costMin??attack.cost??0)
       )*costMultiplier;
     if(
       context.network!==true&&
@@ -337,7 +337,7 @@ const ChargedAttackService=Object.freeze({
           costMultiplier;
         const maxCost=Math.max(
           minCost,
-          (Number(charge.costMax)||Number(charge.costMin)||0)*
+          Number(charge.costMax??charge.costMin??0)*
             costMultiplier
         );
         const rate=String(charge.costTiming||'release')==='during-charge'
@@ -441,11 +441,11 @@ const ChargedAttackService=Object.freeze({
       const minCost=
         Math.max(
           0,
-          Number(attack.charge.costMin)||Number(attack.cost)||0
+          Number(attack.charge.costMin??attack.cost??0)
         )*costMultiplier;
       const maxCost=Math.max(
         minCost,
-        (Number(attack.charge.costMax)||Number(attack.charge.costMin)||Number(attack.cost)||0)*
+        (Number(attack.charge.costMax)||Number(attack.charge.costMin??attack.cost??0))*
           costMultiplier
       );
       const availableBudget=Math.max(0,Number(state.drained)||0)+StaminaService.nominalBudget(source,now);

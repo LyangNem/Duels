@@ -2,6 +2,19 @@
 
 /* 조건부 피해 구간 판정: 피해 계산과 on-hit 조건이 동일 geometry 규칙을 공유한다. */
 const DamageRangeBandService=Object.freeze({
+  multiplier(source,target,attack,impact,module){
+    if(module.mode!=='radial-linear'){
+      return this.matches(source,target,attack,impact,module)
+        ?Math.max(0,Number.isFinite(Number(module.multiplier))?Number(module.multiplier):1)
+        :1;
+    }
+    const center=impact?.origin||impact?.execution?.projectileImpactPoint||source;
+    const point=NetworkCollisionPositionService.point(target);
+    const radius=Math.max(.001,Number(module.radius)||Number(attack.range)||1);
+    const distance=Math.hypot(point.x-center.x,point.y-center.y);
+    const edge=Math.max(0,Math.min(1,Number(module.multiplier)||0));
+    return 1+(edge-1)*Math.min(1,distance/radius);
+  },
   matches(source,target,attack,impact,module){
     if(!source||!target||!attack||!module)return false;
 
@@ -11,8 +24,10 @@ const DamageRangeBandService=Object.freeze({
     );
     const threshold=Math.max(0,Number(attack.range)||0)*thresholdRatio;
     const point=NetworkCollisionPositionService.point(target);
-    const dx=(Number(point.x)||0)-(Number(source.x)||0);
-    const dy=(Number(point.y)||0)-(Number(source.y)||0);
+    const center=module.centerMode==='impact'
+      ?(impact?.origin||impact?.execution?.projectileImpactPoint||source):source;
+    const dx=(Number(point.x)||0)-(Number(center.x)||0);
+    const dy=(Number(point.y)||0)-(Number(center.y)||0);
 
     if(module.mode==='forward'){
       const direction=Number(impact?.directionAngle)||0;

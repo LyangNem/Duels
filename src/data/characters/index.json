@@ -232,6 +232,10 @@
     {
       "before": ",\n  // 디라: 능력치 → 분류 → 요리 자원·소환·기술·설명 (모든 수치는 이 블록에서 편집)\n  dira: ",
       "path": "src/data/characters/dira.js"
+    },
+    {
+      "before": ",\n  // 테르디온: 순수 데이터·공통 투사체/착탄/범위/지형 모듈 조합\n  terdion: ",
+      "path": "src/data/characters/terdion.js"
     }
   ],
   "suffix": ",\n});"

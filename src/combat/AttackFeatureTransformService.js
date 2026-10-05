@@ -15,10 +15,11 @@ const AttackFeatureTransformService=Object.freeze({
     return ModeStateService.current(
       entity,
       `${String(profile.statePrefix||'')}${feature}`,
-      'inactive'
+      profile.initialFeatures?.includes(feature)?'active':'inactive'
     )==='active';
   },
   modularLaser(entity,spec,profile){
+    if(spec._modularLaserPrepared===true)return spec;
     const laser=this.path(entity?.character,profile.configPath)||null;
     if(!laser||!this.active(entity,profile,'base'))return spec;
 
@@ -27,6 +28,9 @@ const AttackFeatureTransformService=Object.freeze({
     const instant=this.active(entity,profile,'instant');
     const wide=this.active(entity,profile,'wide');
     const rangeBoost=this.active(entity,profile,'range');
+    const electric=this.active(entity,profile,'electric');
+    const accelerate=this.active(entity,profile,'accelerate');
+    const electricRgb=electric?String(profile.electricColor||'255,145,35'):null;
     const baseRange=Math.max(0,Number(spec.range)||0);
     const rangeBonus=rangeBoost
       ?(Number.isFinite(Number(profile.rangeBonus))
@@ -43,13 +47,17 @@ const AttackFeatureTransformService=Object.freeze({
     ]);
     const modules=(spec.modules||[]).filter(module=>!replacedTypes.has(AttackModuleService.type(module)));
 
+    for(const [feature,values]of Object.entries(profile.hitFeatureModules||{})){
+      if(this.active(entity,profile,feature))for(const value of values)modules.push(Object.freeze({...value}));
+    }
     if(instant){
       const halfWidth=Math.max(0,Number(laser.instantHalfWidth??laser.radius)||0)*widthMultiplier;
       const count=dual?Math.max(1,Math.floor(Number(laser.dualCount)||1)):1;
       const offsets=dual
         ?Array.from({length:count},(_,index)=>(index-(count-1)/2)*Math.max(0,Number(laser.dualOffset)||0)*2)
         :[0];
-      const effect=this.path(entity?.character,profile.effectPath)||{};
+      const baseEffect=this.path(entity?.character,profile.effectPath)||{};
+      const effect=electric?{...baseEffect,color:electricRgb,coreColor:electricRgb}:baseEffect;
       for(const perpendicularOffset of offsets){
         modules.push(Object.freeze({
           type:'delivery.area',shape:'rect',range:resolvedRange,halfWidth,perpendicularOffset,
@@ -82,13 +90,32 @@ const AttackFeatureTransformService=Object.freeze({
           type:'projectile.presentation',kind:'projectile-style',
           style:Object.freeze({
             type:String(profile.projectileStyle||'laser-bolt'),baseRadius:Math.max(0,Number(laser.radius)||0),
-            outerColor:'122,134,144',midColor:'190,202,210',coreColor:'225,233,238',centerColor:'255,255,255'
+            outerColor:electricRgb||'122,134,144',midColor:electricRgb||'190,202,210',coreColor:electricRgb||'225,233,238',centerColor:electricRgb||'255,255,255'
           })
         })
       );
     }
 
-    return Object.freeze({...spec,range:resolvedRange,modules:Object.freeze(modules),tags:spec.tags});
+    return Object.freeze({...spec,_modularLaserPrepared:true,_modularLaserBaseCd:spec._modularLaserBaseCd??spec.cd,cd:accelerate?Number(spec._modularLaserBaseCd??spec.cd)/(1+Number(profile.attackRateIncrease||0)):(spec._modularLaserBaseCd??spec.cd),range:resolvedRange,modules:Object.freeze(modules),tags:spec.tags});
+  },
+  modeModules(entity,spec,profile){
+    if(spec._modeModulesPrepared===true)return spec;
+    let modules=[...(spec.modules||[])];
+    let rate=1;
+    for(const option of profile.options||[]){
+      if(ModeStateService.current(entity,option.stateKey,option.initial)!==String(option.value))continue;
+      const removeTypes=new Set(option.removeTypes||[]);
+      modules=modules.filter(module=>!removeTypes.has(AttackModuleService.type(module)));
+      modules=modules.map(module=>{
+        const override=option.moduleOverrides?.find(candidate=>candidate.type===AttackModuleService.type(module))?.values;
+        return override?Object.freeze({...module,...override}):module;
+      });
+      for(const module of option.modules||[])modules.push(Object.freeze({...module}));
+      rate*=1+Math.max(0,Number(option.attackRateIncrease)||0);
+    }
+    return Object.freeze({...spec,_modeModulesPrepared:true,
+      cd:Number(spec.cd||0)/rate,attackDelay:Number(spec.attackDelay||0)/rate,
+      modules:Object.freeze(modules)});
   },
   pulseTint(entity,spec,profile,now=performance.now()){
     if(!entity||!spec||!profile)return spec;
@@ -146,6 +173,9 @@ const AttackFeatureTransformService=Object.freeze({
     const featureProfile=resolved?.attackFeatureTransform;
     if(String(featureProfile?.type||'')==='modular-laser'){
       resolved=this.modularLaser(entity,resolved,featureProfile);
+    }
+    if(String(featureProfile?.type||'')==='mode-modules'){
+      resolved=this.modeModules(entity,resolved,featureProfile);
     }
     const presentationProfile=entity?.character?.attackPresentationTransform;
     if(String(presentationProfile?.type||'')==='pulse-tint'){

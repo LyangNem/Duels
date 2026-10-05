@@ -56,10 +56,10 @@ const DebugMapService={
     );
   },
   walls(){
-    return this.current()?.walls||[];
+    return WorldDestructionService.walls(this.current());
   },
   movementWalls(){
-    const staticWalls=this.current()?.walls||[];
+    const staticWalls=this.walls();
     const dynamicWalls=DynamicWallService.all();
     if(!dynamicWalls.length)return staticWalls;
     return staticWalls.concat(dynamicWalls);
@@ -84,6 +84,7 @@ const DebugMapService={
 
     this.currentId=map.id;
     this.currentMap=map;
+    WorldDestructionService.reset(map);
     StaticWorldRenderer.invalidate();
     ProjectileService.clear();
     SimulationScheduleService.clear();

@@ -69,10 +69,12 @@ const ModeStateService=Object.freeze({
       0,
       values.indexOf(current)
     );
-    const next=
-      values[
-        (index+1)%values.length
-      ];
+    const step=Number(module.step)<0?-1:1;
+    const next=values[(index+step+values.length)%values.length];
+    const state=this.state(entity,stateKey,true,current);
+    state.previousTurns=Number(state.turns)||0;
+    state.turns=state.previousTurns+step;
+    state.changedAt=performance.now();
 
     this.set(
       entity,
@@ -85,5 +87,36 @@ const ModeStateService=Object.freeze({
       previous:current,
       value:next
     };
+  },
+  serialize(entity,now=performance.now()){
+    const result=[];
+    for(const state of entity?.actionState?.values?.()||[]){
+      if(state?.kind!==this.KIND)continue;
+      result.push({stateKey:state.stateKey,value:state.value,
+        turns:Number(state.turns)||0,previousTurns:Number(state.previousTurns)||0,
+        changedAgoMs:Math.max(0,now-Number(state.changedAt??now)),
+        hasChanged:state.changedAt!==undefined});
+    }
+    return result;
+  },
+  applyRemote(entity,snapshots,now=performance.now()){
+    if(!entity?.actionState||!Array.isArray(snapshots))return false;
+    const keys=new Set();
+    for(const snapshot of snapshots.slice(0,64)){
+      const stateKey=String(snapshot?.stateKey||'');
+      if(!stateKey||typeof snapshot.value!=='string')continue;
+      keys.add(this.key(stateKey));
+      const state=this.state(entity,stateKey,true,snapshot.value);
+      const turns=Number(snapshot.turns)||0;
+      const changed=state.value!==snapshot.value||Number(state.turns||0)!==turns||state.changedAt===undefined;
+      state.value=snapshot.value;
+      state.turns=turns;
+      state.previousTurns=Number(snapshot.previousTurns)||0;
+      if(changed&&snapshot.hasChanged!==false)state.changedAt=now-Math.max(0,Number(snapshot.changedAgoMs)||0);
+    }
+    for(const [key,state] of entity.actionState){
+      if(state?.kind===this.KIND&&!keys.has(key))entity.actionState.delete(key);
+    }
+    return true;
   }
 });

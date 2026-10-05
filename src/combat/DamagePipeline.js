@@ -126,27 +126,10 @@ const DamagePipeline=Object.freeze({
           continue;
         }
         if(moduleType==='damage.range-band-multiplier'){
-          if(
-            DamageRangeBandService.matches(
-              source,
-              target,
-              attack,
-              impact,
-              module
-            )
-          ){
-            const multiplier=Number(module.multiplier);
-            const resolvedMultiplier=
-              Number.isFinite(multiplier)
-                ?Math.max(0,multiplier)
-                :1;
-            baseAmount*=resolvedMultiplier;
-            if(
-              resolvedMultiplier===0&&
-              module.preserveHitEffects===true
-            ){
-              preserveZeroDamageHit=true;
-            }
+          const resolvedMultiplier=DamageRangeBandService.multiplier(source,target,attack,impact,module);
+          baseAmount*=resolvedMultiplier;
+          if(resolvedMultiplier===0&&module.preserveHitEffects===true){
+            preserveZeroDamageHit=true;
           }
         }
         if(moduleType==='damage.target-status-multiplier'){
@@ -400,7 +383,8 @@ const DamagePipeline=Object.freeze({
       hit:true,
       amount:totalApplied,
       shieldDamage:Math.max(0,Number(shieldResult.absorbed)||0),
-      healthDamage:Math.max(0,Number(healthResult.healthDamage)||0),
+      healthDamage:Math.max(0,Number(healthResult.healthDamage)||0)+
+        Math.max(0,Number(resourceLayerResult.healthDamage)||0),
       prevented:healthResult.prevented===true||healthResult.defeatPrevented===true,
       defeatPrevented:healthResult.defeatPrevented===true,
       defeated:healthResult.defeated,

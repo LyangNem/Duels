@@ -1,12 +1,23 @@
 
 
 const ProjectileImpactService=Object.freeze({
+  cancelPending(source,projectileKey,now=performance.now()){
+    const pending=source?._pendingProjectileImpacts;
+    const key=String(projectileKey||'');
+    const token=pending?.get(key);
+    if(!token||now>=token.until)return false;
+    token.cancelled=true;
+    pending.delete(key);
+    for(const effectKey of token.effectKeys)EffectSpawnService.removeKey(effectKey);
+    return true;
+  },
   correctGuardPath(source,projectileKey,point){
+    const cancelled=this.cancelPending(source,projectileKey);
     if(!source?.actionState||!projectileKey||!point||
       !Number.isFinite(point.x)||!Number.isFinite(point.y))return false;
     const prefix=`projectile-impact:${String(projectileKey)}:`;
     const now=performance.now();
-    let corrected=false;
+    let corrected=cancelled;
     for(const state of source.actionState.values()){
       if(state?.kind!==InstalledAreaFieldService.KIND||state.phase!=='point'||
         !String(state.instanceId||'').startsWith(prefix)||
@@ -55,6 +66,14 @@ const ProjectileImpactService=Object.freeze({
     if(guardPathCorrection)projectile.impactResolved=false;
 
     if(projectile.impactResolved===true)return false;
+    // 확정 피해와 확정 착탄 패킷이 서로 다른 carrier로 재생돼도 한 폭약은 한 번만 착탄한다.
+    if(source?.alive&&!pathProgress&&impact.oncePerProjectile===true&&projectile.networkKey){
+      const keys=source._resolvedProjectileImpactKeys||(source._resolvedProjectileImpactKeys=new Set());
+      const key=String(projectile.networkKey);
+      if(keys.has(key))return false;
+      keys.add(key);
+      while(keys.size>2048)keys.delete(keys.values().next().value);
+    }
     if(!pathProgress)projectile.impactResolved=true;
 
     if(
@@ -81,6 +100,17 @@ const ProjectileImpactService=Object.freeze({
 
     let resolved=false;
     const preparedAttacks=new Map();
+    let pendingToken=null;
+    const pendingKey=String(projectile.networkKey||'');
+    if(impact.cancelDelayedOnRemove===true&&pendingKey){
+      const pending=source._pendingProjectileImpacts||(source._pendingProjectileImpacts=new Map());
+      for(const [key,token] of pending){
+        if(token.until<=performance.now())pending.delete(key);
+      }
+      pendingToken={until:performance.now(),cancelled:false,effectKeys:[]};
+      pending.set(pendingKey,pendingToken);
+    }
+
 
     const fieldBeforeAttacks=
       String(impact.fieldOrder||'after-attacks')===
@@ -367,6 +397,7 @@ const ProjectileImpactService=Object.freeze({
           attack,
           angle
         );
+      if(impact.shareHitTargets===true)AttackExecutionService.shareHits(execution,projectile.volley?.execution);
       execution.projectileImpactReason=String(reason||'impact');
       execution.projectileImpactPoint={...point};
       execution.targetPoint={...point};
@@ -400,7 +431,7 @@ const ProjectileImpactService=Object.freeze({
       };
 
       const executeImpactAttack=()=>{
-        if(!source?.alive)return;
+        if(pendingToken?.cancelled===true||!source?.alive)return;
         const impactAngle=
           Number(angle||0)+
           (Number(areaModule?.angleOffset)||0);
@@ -431,16 +462,31 @@ const ProjectileImpactService=Object.freeze({
           impactAngle,
           execution
         );
+        if(pendingToken){
+          for(const module of attack.modules||[]){
+            if(module.type==='effect.spawn'&&module.stateKey){
+              pendingToken.effectKeys.push(`attack-effect:${source.id}:${execution.sequence}:${module.stateKey}`);
+            }
+          }
+        }
+
       };
       const impactDelay=Math.max(
         0,
         Number(delivery?.delay)||0
       );
       if(impactDelay>0){
+        const at=performance.now()+impactDelay;
+        if(pendingToken)pendingToken.until=Math.max(pendingToken.until,at);
         SimulationScheduleService.scheduleContinuation({
-          at:performance.now()+impactDelay,
+          at,
           source,
-          continue:executeImpactAttack
+          continue:()=>{
+            executeImpactAttack();
+            if(pendingToken&&performance.now()>=pendingToken.until&&source._pendingProjectileImpacts?.get(pendingKey)===pendingToken){
+              source._pendingProjectileImpacts.delete(pendingKey);
+            }
+          }
         });
       }else{
         executeImpactAttack();

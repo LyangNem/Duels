@@ -735,23 +735,6 @@ const AbilityModuleService=Object.freeze({
       }
     },
 
-    'resource.cooling-burst'(context,next,module){
-      CommandFeatureService.beginCooling(context,module);
-      next();
-    },
-    'resource.overclock-charge'(context,next,module){
-      CommandFeatureService.startOverclock(context.source,module,Number(context.now)||performance.now());
-      next();
-    },
-    'resource.rapid-cooling'(context,next,module){
-      CommandFeatureService.startRapidCooling(
-        context.source,
-        module,
-        Number(context.now)||performance.now()
-      );
-      next();
-    },
-
     'context.position-memory'(context,next,module){
       const source=context.source;
       const now=Number(context.now)||performance.now();
@@ -1582,6 +1565,10 @@ const AbilityModuleService=Object.freeze({
       }
       next();
     },
+    'modifier.limited-use'(context,next,module){
+      if(LimitedUseBuffService.grant(context.source,module,context.now))context.executed=true;
+      next();
+    },
     'mode.set'(context,next,module){
       if(
         module.requireExecuted===true&&
@@ -1621,10 +1608,10 @@ const AbilityModuleService=Object.freeze({
       }
 
       const changed=
-        ModeStateService.toggle(
-          source,
-          module
-        );
+        context.network===true&&Array.isArray(context.modeStates)
+          ?context.modeStates.find(state=>state.stateKey===String(module.stateKey||''))
+          :ModeStateService.toggle(source,{...module,
+            step:module.inputStep===true?(Number(context.modeStep)||1):module.step});
 
       if(!changed){
         next();

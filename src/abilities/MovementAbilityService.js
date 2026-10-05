@@ -585,6 +585,7 @@ const MovementAbilityService=Object.freeze({
         Array.isArray(module.onEndAttackIds)
           ?module.onEndAttackIds.map(String)
           :[],
+      onEndShareHitTargets:module.onEndShareHitTargets===true,
       executionSequence:
         Math.max(
           0,
@@ -761,7 +762,8 @@ const MovementAbilityService=Object.freeze({
         TriggeredAttackService.execute(
           entity,
           attack,
-          Number(state.angle)||0
+          Number(state.angle)||0,
+          {hitGroupSequence:state.onEndShareHitTargets===true?state.executionSequence:null}
         );
       }
     }

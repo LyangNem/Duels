@@ -9,6 +9,8 @@ const LimitedUseBuffService=Object.freeze({
     if(!COMBAT_BUFF_DEFS[stat])return false;
     const uses=Math.max(0,Math.floor(Number(config.uses)||0));
     if(uses<=0)return false;
+    const increase=Math.max(0,Number(config.attackRateIncrease)||0);
+    const value=stat==='attackRate'&&increase>0?increase/(1+increase):Number(config.value)||0;
     const sourceId=`limited-use:${entity.id}:${stateKey}:${stat}`;
     entity.actionState.set(stateKey,{
       kind:this.KIND,
@@ -18,9 +20,27 @@ const LimitedUseBuffService=Object.freeze({
       remaining:uses,
       maximum:uses,
       attackTag:String(config.attackTag||''),
-      value:Number(config.value)||0
+      value
     });
-    BuffService.set(entity,stat,Number(config.value)||0,sourceId,Infinity,{tags:TagService.effectTags({type:'modifier.constant',value:Number(config.value)||0})});
+    BuffService.set(entity,stat,value,sourceId,Infinity,{tags:TagService.effectTags({type:'modifier.constant',value})});
+    return true;
+  },
+  serialize(entity){
+    return [...(entity?.actionState?.values?.()||[])].filter(state=>state?.kind===this.KIND)
+      .map(({stateKey,stat,remaining,maximum,attackTag,value})=>({stateKey,stat,remaining,maximum,attackTag,value}));
+  },
+  applyRemote(entity,snapshots){
+    if(!entity?.actionState||!Array.isArray(snapshots))return false;
+    const keys=new Set();
+    for(const snapshot of snapshots.slice(0,32)){
+      if(!snapshot?.stateKey||!COMBAT_BUFF_DEFS[snapshot.stat]||Number(snapshot.remaining)<=0)continue;
+      keys.add(String(snapshot.stateKey));
+      this.grant(entity,{...snapshot,uses:Math.max(Number(snapshot.maximum)||0,Number(snapshot.remaining)||0)});
+      entity.actionState.get(String(snapshot.stateKey)).remaining=Math.floor(Number(snapshot.remaining));
+    }
+    for(const state of [...entity.actionState.values()]){
+      if(state?.kind===this.KIND&&!keys.has(state.stateKey))this.clear(entity,state.stateKey);
+    }
     return true;
   },
   consume(entity,attack){

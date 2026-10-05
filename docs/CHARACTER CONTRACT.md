@@ -1,6 +1,6 @@
 # 캐릭터 데이터 계약
 
-현재 공식 캐릭터 58명의 데이터는 src/data/characters/<id>.js에 각각 보관한다. 파일 내용은 캐릭터 객체 표현식이며 독립 실행 스크립트나 ESM이 아니다. 조립기가 index.json의 출시 순서로 합쳐 freezeCharacterData를 한 번 적용한다. 기존 characterValue/characterCount/characterSum/characterProduct 참조도 같은 원본 실행 문맥에서 해석한다.
+현재 공식 캐릭터 59명의 데이터는 src/data/characters/<id>.js에 각각 보관한다. 파일 내용은 캐릭터 객체 표현식이며 독립 실행 스크립트나 ESM이 아니다. 조립기가 index.json의 출시 순서로 합쳐 freezeCharacterData를 한 번 적용한다. 기존 characterValue/characterCount/characterSum/characterProduct 참조도 같은 원본 실행 문맥에서 해석한다.
 
 | 필드 | 책임 |
 |---|---|
@@ -19,3 +19,7 @@
 미래 구현 순서: 편집기 데이터 → 스키마/수치/참조/모듈 조합 검증 → 현재 공식 캐릭터 객체 형식으로 정규화 → CharacterDataService의 공통 컴파일 → 같은 Entity/Ability/Attack/피해/투사체 경로. 식별자는 공식 ID와 충돌하지 않는 네임스페이스를 사용한다. 원본 정의와 전투 중 상태는 분리하고, 공식 데이터의 동결·출시 순서·계정 호환성을 보존한다.
 
 지금은 편집기·카탈로그·유저 데이터 로더·검증기·변환기·런타임 등록 기능을 구현하지 않았다. 미래 등록은 GAME_DATA 동결 이전에 통합할지 별도 레지스트리로 확장할지 검토해야 한다. 동결된 CHARACTER_DATA에 런타임으로 속성을 추가해서는 안 된다. 먼저 현재 데이터의 참조 해석·스펙 등록 경로를 공통 API로 확장한다. JSON의 Infinity 표현과 $ref 등의 참조도 버전이 있는 데이터 계약으로 정의할 필요가 있다.
+
+기어 조합형 캐릭터는 gearSettings, wheelInput, ModeState 및 AttackSpec.attackFeatureTransform.mode-modules 데이터를 사용한다. 선택은 기존 모드 상태로 동기화하고 캐릭터 파일에 실행 코드를 넣지 않는다. classification.rangeLabel은 혼합 사거리 표시를 지원한다. worldEffectModules의 gearCluster는 effect.spawn을 거쳐 공통 ModeGearPresentationService가 표시한다.
+
+선택적 aimPreview {input}은 현재 Ability가 해석한 공격의 상시 소유자 조준 미리보기다. gearCluster는 모드별 외곽 회전과 idleAlpha/useHoldMs/useFadeMs를 데이터로 조정한다. delivery.area의 centerPathFirstEnemy/centerPathHalfWidth는 비관통 직사각 경로의 첫 적에서 후속 원형 중심을 절단한다. projectile.impact.previewAttackIds/previewStopAtFirstEnemy는 종료 후속 공격의 미리보기만 해석하며 실제 착탄은 기존 reasonAttackIds로 실행한다.

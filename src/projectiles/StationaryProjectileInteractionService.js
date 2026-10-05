@@ -80,7 +80,7 @@ const StationaryProjectileInteractionService=Object.freeze({
     }
     return snapshots;
   },
-  restoreNetworkProjectile(source,snapshot,now=performance.now(),stateSentAt=0){
+  restoreNetworkProjectile(source,snapshot,now=performance.now(),stateSentAt=0,transitDelayMs=null){
     if(!source?.alive||!snapshot)return null;
     const networkKey=String(snapshot.networkKey||'');
     const attackId=String(snapshot.attackId||'');
@@ -120,7 +120,9 @@ const StationaryProjectileInteractionService=Object.freeze({
     const interaction=this.interaction(projectile);
     if(interaction?.networkSync!==true)return projectile;
 
-    const delay=Math.max(0,Date.now()-Math.max(0,Number(stateSentAt)||Date.now()));
+    const delay=transitDelayMs!==null
+      ?Math.max(0,Number(transitDelayMs)||0)
+      :Math.max(0,Date.now()-Math.max(0,Number(stateSentAt)||Date.now()));
     const infinite=snapshot.remainingMs==='infinite'||snapshot.duration==='infinite';
     const remaining=infinite
       ?Infinity
@@ -140,6 +142,10 @@ const StationaryProjectileInteractionService=Object.freeze({
     projectile.vy=0;
     projectile.angle=Number(snapshot.angle)||0;
     projectile.persistent=true;
+    // An authoritative stationary snapshot supersedes a predicted return.
+    if(projectile.behavior?.returning){
+      projectile.behavior.returning.phase='outbound';
+    }
 
     const linger=this.linger(projectile)||{};
     const duration=infinite
@@ -169,14 +175,14 @@ const StationaryProjectileInteractionService=Object.freeze({
       pickupRestoreClaimed:false,
       rangeEffectKey:null,
       arrivalReason,
-      fixedX:Number.isFinite(Number(snapshot.fixedX))?Number(snapshot.fixedX):Number(snapshot.x)||0,
-      fixedY:Number.isFinite(Number(snapshot.fixedY))?Number(snapshot.fixedY):Number(snapshot.y)||0,
-      fixedTravel:Number.isFinite(Number(snapshot.fixedTravel))?Number(snapshot.fixedTravel):Math.max(0,Number(projectile.travel)||0)
+      fixedX:snapshot.fixedX!=null&&Number.isFinite(Number(snapshot.fixedX))?Number(snapshot.fixedX):Number(snapshot.x)||0,
+      fixedY:snapshot.fixedY!=null&&Number.isFinite(Number(snapshot.fixedY))?Number(snapshot.fixedY):Number(snapshot.y)||0,
+      fixedTravel:snapshot.fixedTravel!=null&&Number.isFinite(Number(snapshot.fixedTravel))?Number(snapshot.fixedTravel):Math.max(0,Number(projectile.travel)||0)
     };
     projectile._stationaryInteractionMissingSince=0;
     return projectile;
   },
-  applyNetworkSnapshots(source,snapshots,stateSentAt=0,now=performance.now()){
+  applyNetworkSnapshots(source,snapshots,stateSentAt=0,now=performance.now(),transitDelayMs=null){
     if(!source||!Array.isArray(snapshots))return false;
     const seen=new Set();
     let changed=false;
@@ -184,7 +190,7 @@ const StationaryProjectileInteractionService=Object.freeze({
       const key=String(snapshot?.networkKey||'');
       if(!key)continue;
       seen.add(key);
-      if(this.restoreNetworkProjectile(source,snapshot,now,stateSentAt))changed=true;
+      if(this.restoreNetworkProjectile(source,snapshot,now,stateSentAt,transitDelayMs))changed=true;
     }
 
     for(const projectile of [...ProjectileService.items]){

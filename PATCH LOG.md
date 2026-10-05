@@ -112,3 +112,263 @@
 - 변경: 진입 HTML 이름 변경, serve.py의 루트 GET/HEAD 경로 및 verify.py·project.json·README의 현 파일명 규칙 갱신. 압축 내부 최상위 폴더는 Duels. 기존 개발 로그·원본 규칙 기록은 보존. 게임 코드와 HTML 내용은 그대로 유지.
 - 변경 파일: Duels.html(이름), tools/serve.py, tools/verify.py, project.json, README.md, PATCH LOG.md, DIVIDE TASKS.md.
 - 검증: 문서 최신화·원본 HTML 구조/리소스·현재 배포 일치 및 ZIP 무결성·내부 진입 파일 이름 확인.
+
+## 3.0.0-character.1 — 2026-10-04 테르디온 구현
+- 요청: 노련한 발파원 테르디온, HP1500/보통 이속/새 색상, 착탄 0.5초 뒤 중심 거리별 폭발 피해·넉백, 평타 카트리지, 지정점 발파/벽 파괴, 8방향 시계 순차 반격. 직격 피해도 포함하도록 최종 지시 반영.
+- 순수 데이터: src/data/characters/terdion.js를 공식 59번째로 등록. #c49a68, speed4, Base Damage100, 지속전투형/원거리/컨트롤러. 함수/캐릭터 전용 실행 분기나 유저 제작 UI 없음. 임시 LMB 직격100/폭발100~300·범위120·비용200·쿨450ms, RMB 직격150/폭발150~450·범위180·비용400·쿨1200ms, 반격 폭약당 직격100/폭발100~300·범위120·비용0·8발80ms간격. 반격 공통 선딜300ms와 무력화 CC.
+- 재사용: delivery.projectile/pierce/impact, effect.spawn, delivery.area.delay와 SimulationScheduleService, impact-proximity 넉백, counter.execute/ccRefAttackId, delayed-projectile-volley/angleOffsets. damage.range-band-multiplier를 radial-linear로 확장하고 공통 DamagePipeline에서 실제 impact.origin 거리로 보간. 설명 피해는 같은 원본 참조. 기존 단계별 거리 피해 동작 보존.
+- 착탄: projectile.impact.oncePerProjectile를 설정/실행 경로 모두 지원. 확정 피해와 착탄 패킷이 별도 carrier로 들어와도 key별 1회만 실행. 일반 직격 투사체의 피격 권위 착탄 확정도 전송해 제3 참가자/관전자에 같은 착탄 경로 전달.
+- 새 모듈: world.destroy-walls. 기존 geometry/벽 설치/채굴은 실제 맵 제거·원본 보존·복원·스냅샷을 제공하지 않아 신규 책임 분리 필요. WorldDestructionService가 실제 범위 발동 중심·반경으로 맵 블록/설치 벽 제거, 원본 맵 보존/라운드 복원. 다른 폭발/지형 파괴 기술도 재사용 가능. TagService에서 벽 파괴 자동 파생. 온라인 어댑터는 사건과 기존 전투 스냅샷 주기만 사용하며 다른 라운드/맵 차단·단조 제거 집합·늦은 설치 벽 복제 재등장 방지.
+- 성능: 파괴 변화 때만 벽 배열/렌더 캐시 갱신. 인접 잔존 블록을 행별로 합쳐 충돌 탐색 수 감소, 설치 벽 소유자별 필터도 revision 캐시. 게임플레이 raw timer 없음.
+- 변경 파일: src/data/characters/terdion.js, index.json, src/combat/DamageRangeBandService.js, DamagePipeline.js, AreaAttackService.js, src/projectiles/ProjectileImpactService.js, ProjectileModuleService.js, ProjectileService.js, src/world/WorldDestructionService.js, DynamicWallService.js, src/debug/DebugMapService.js, src/network/OnlineWorldDestructionSyncService.js, OnlineDuelService.js, src/core/TagService.js, tools/test-terdion.cjs, test-structure.cjs, verify.py, docs/TERDION.md, CHARACTER CONTRACT.md, README.md, PATCH LOG.md, project.json, DIVIDE TASKS.md 및 생성 runtime.js.
+- 검증: 테르디온 12개 실제 서비스/모의환경 회귀(직격/감쇠·회피/방어/팀·넉백·499/500ms·중복 착탄·8발 시계 순서·반격·원본 보존/복원·stale 설치 벽·토큰/합집합·실제 impact→area 벽 파괴). 전체59명 구조11개·기존 게임15개·방 연결17개. runtime 구문·현재 소스/배포 일치·원본 UI/미변경 리소스·기존 규칙 보존·역할 문서·ZIP 추출본 검사.
+- 한계/직접 검사: 실제 브라우저/WebRTC/Firebase·시각/실기기 성능·실전 밸런스 미검증. 테르디온 직접 착탄/벽/회피/반격/다음 라운드 복원과 상대·관전자·승계 화면을 확인. 공통 경로 회귀 대상 루네프/메후구/시아넬리/클레아. 모듈별 값/설치 벽 단위 정책 등은 docs/TERDION.md.
+
+## 3.0.0-character.2 — 2026-10-04 테르디온 투척·맵 교체
+- 요청: 첨부 맵2개 교체, 가벼운 벽 파괴 연출, 평타/스킬/반격 무기 투사체, 폭발1/.8/.4 단계, 메후구형 공중 스킬/근거리 반격, 피해 괄호 단순화, 착탄 호 게이지, 8방향 폭발 미리보기.
+- 맵: 비오픈맵3/8의 기존ID/크기를 유지하고 첨부 전체 타일을 기존 압축 wallRects로 변환. 전체 타일 SHA-256 대조. 팀전은 기존 생성 경로로 새 원본을 사용.
+- 데이터: 기존 weapon-projectile/anchor-cross·trajectory.arc·arrival.linger·effect.spawn remainingArcGauge 조합. 스킬은 비행 벽 통과/경로 피해 없음/착탄 적 우선 직격150을 사용해 메후구형 지정점 투척. 반격350/8발80ms/8방향 미리보기. 착탄500ms 잔류와 게이지·폭발 delay를 같은 원본 값으로 참조. 설명(100/300)/(150/450)/(100/300).
+- 피해: 기존 radial 모듈 centerMode:impact 확장. 반경을3등분하고 .8/.5 누적으로1/.8/.4. 정확한 경계는 기존 > 규칙대로 안쪽 단계. 평타/반격300/240/120, 스킬450/360/180. 넉백만 기존 선형 유지.
+- 공통 수정: 잔류 진입의 벽/빈 지정점에서도 impact를 실행하고 target-point 직격 removeOnTrigger:false는 잔류를 보존. 예측 접촉만으로 착탄 확정하지 않음. 사거리 착탄은 snapToRangeEnd 옵션을 재사용해 정확한 위치 유지. 온라인 확정에 앞서 예측 소비된 무기 객체는 기존 spawn/linger로 복원, 비행 지연 보정 금지/키별 중복 방지. 다방향 delayedVolley 미리보기마다 실제 linked area를 추가. 지정점 비행 벽 통과 미리보기 정책 반영.
+- 벽 연출: 공통 effectShape/animation/spawn의240ms 작은 조각, 사건최대32개. owner 생성/같은 presentation snapshot 복제, 기존 지형 사건/상태 복제 유지. 새 gameplay 모듈/캐릭터 분기/전용 렌더러/타이머 없음.
+- 변경 파일: src/core/OFFICIAL_DUELS_MAP_SOURCE.js, src/data/characters/terdion.js, src/combat/DamageRangeBandService.js, AttackPreviewService.js, src/projectiles/TargetPointProjectileService.js, ProjectileService.js, src/network/OnlineDuelService.js, src/world/WorldDestructionService.js, tools/test-terdion.cjs, docs/TERDION.md, README.md, PATCH LOG.md, project.json, DIVIDE TASKS.md, 생성runtime.js.
+- 검증: 테르디온21개(기존12+단계 경계/무기·궤적·설명/실제 잔류/8방향 preview/Canvas 호 렌더/조각 snapshot/첨부 타일 전체 SHA-256/실제 적·벽·빈 지정점 도착/실제 온라인 확정 수신 복원), 59명 구조11개·기존 게임15개·방17개. 구문·현재 소스/배포·원본 UI·미변경 리소스·전체 기존 규칙·역할 문서 및 ZIP 추출본 검사.
+- 한계: 실제 브라우저·WebRTC·로그인·시각/프레임 성능/실전 밸런스는 미검증. 테르디온 전체 착탄/8방향/벽 파괴/라운드 복원과 상대·관전자 화면, 메후구/시아넬리/루네프/클레아 공통 경로를 직접 플레이 확인.
+
+### character.2 추가 지시 반영 — 2026-10-04
+- 최종 폭발 단계는 평타/반격300/200/100, 스킬450/300/150. 기존 radial 단계에2/3와1/2를 누적해1/(2/3)/(1/3)으로 적용. 앞 character.2의1/.8/.4 기록은 최초 요청 경과이며 이 최종 지시가 우선한다.
+- 반격 투척 간격80ms→40ms. 첫 발부터 마지막 발까지560ms→280ms이며8방향/공통 선딜300ms는 유지. 피해 경계 및 실제 순차 예약 검사도 최종값으로 변경.
+
+## 3.0.0-character.3 — 2026-10-04 테르디온 접촉 벽만 파괴
+- 요청: 스킬이 직접 맞닿은 벽만 파괴.
+- 변경: 기존 world.destroy-walls.range를 rmb 투사체 판정 radius 참조로 설정(현재12). 폭발180 범위 전체 파괴에서 착탄 투사체 원과 실제 겹치는 블록/설치 벽만 파괴하도록 변경. 500ms 폭발 시점·조각 연출·기존 지형 동기화 재사용. 설명도 직접 닿은 벽으로 갱신. 신규 모듈/공통 실행 코드 변경 없음.
+- 변경 파일: src/data/characters/terdion.js, tools/test-terdion.cjs, README.md, docs/TERDION.md, project.json, DIVIDE TASKS.md, PATCH LOG.md, 생성runtime.js.
+- 검증: 테르디온22개, 구조11개·게임15개·방17개. 추가 실제impact→area 검사에서 접촉 블록1개 파괴/인접 블록 및 설치 벽 보존/벽 근처 바닥 착탄 파괴 없음 확인. 구문·배포·문서·ZIP 무결성 검사.
+- 한계: 실제 브라우저/WebRTC 시각 검수 미실시.
+
+## 3.0.0-character.4 — 2026-10-04 폭발 벽 차단·도달 벽 파괴 및 스킬 수치
+- 최종 지시: 폭발은 벽에 막히며 폭발이나 탄환에 직접 닿은 벽 파괴. 이전 character.3의 탄환 접촉만 파괴 해석을 수정.
+- 스킬: 직격150 유지, 폭발600/400/200(Base Damage100×6과2/3·1/2 단계), 스테미나1000. 반격40ms 간격 유지.
+- 공통: AreaAttackService는 기존 벽으로 판정/FX를 완료한 뒤 지형 파괴 실행. world.destroy-walls의 기존 range에 폭발 반경 참조, contactRange에 탄환 반경 참조, wallPolicy:block으로 파괴 전 벽 목록의 가시성 검사. WorldGeometryService.segmentRectEntry 재사용. 폭발 범위 안이어도 다른 벽에 가려진 벽은 파괴하지 않고 탄환이 직접 접촉한 벽은 포함. 같은 폭발이 부서진 벽 뒤로 추가 피해/파괴를 전달하지 않음. 새 모듈/캐릭터 예외 없음.
+- 변경 파일: src/data/characters/terdion.js, src/combat/AreaAttackService.js, src/world/WorldDestructionService.js, tools/test-terdion.cjs, README.md, docs/TERDION.md, PATCH LOG.md, project.json, DIVIDE TASKS.md, 생성runtime.js.
+- 검증: 테르디온22개(600/400/200·cost1000·벽 차단 옵션·노출 벽/가려진 벽·탄환 접촉·형상 확정 후 파괴 순서 포함), 구조11개·게임15개·방17개, 구문·배포·문서·ZIP 검사. 실제 브라우저/WebRTC 화면은 미검증.
+
+## 3.0.0-character.5 — 2026-10-04 스킬 탄환 크기·소모 조정
+- 테르디온 RMB 투사체 반경12→18(지름24→36), 스테미나1000→800. 표시 무기 크기/착탄 호 반경/벽 직접 접촉 반경은 기존 데이터 참조로 함께 반영. 폭발600/400/200·범위180·벽 차단/도달 벽 파괴 유지.
+- 변경: src/data/characters/terdion.js, tools/test-terdion.cjs, README.md, docs/TERDION.md, project.json, DIVIDE TASKS.md, PATCH LOG.md, 생성runtime.js.
+- 검증: 테르디온22개(실제 컴파일된 판정/표시/게이지/접촉 반경18·비용800 포함), 구조11개·구문·배포·역할 문서·ZIP 검사. 실제 브라우저/WebRTC 시각 검수는 미실시.
+
+## 3.0.0-character.6 — 2026-10-04 반격 거리·미리보기
+- 반격 투척 거리350→175(50% 감소). 미리보기는8방향 폭발 원만 표시하고 비행 경로를 숨김. 공통 AttackPreviewService의 기존 previewProjectilePaths에 impact-only 선택 지원; 다른 공격의 경로 표시는 유지.
+- 변경: src/data/characters/terdion.js, src/combat/AttackPreviewService.js, tools/test-terdion.cjs, README.md, docs/TERDION.md, project.json, DIVIDE TASKS.md, PATCH LOG.md, 생성runtime.js.
+- 검증: 테르디온22개(175거리·경로0개/폭발 원8개·벽에 막힌 방향 착탄 위치 포함), 구조11개·구문·배포·문서·ZIP 검사. 실제 브라우저/WebRTC 시각 검수 미실시.
+
+## 3.0.0-character.7 — 2026-10-04 스킬 투척 사거리
+- 테르디온 RMB 투척 가능 사거리950→500. 기존 AttackSpec.range를 사용해 지정점 제한·발사·미리보기에 함께 적용.
+- 변경: src/data/characters/terdion.js, tools/test-terdion.cjs, README.md, docs/TERDION.md, project.json, DIVIDE TASKS.md, PATCH LOG.md, 생성runtime.js.
+- 검증: 테르디온22개(컴파일된 RMB range500 포함), 구조11개·구문·배포·문서·ZIP 검사. 실제 브라우저/WebRTC 미검증.
+
+## 3.0.0-character.8 — 2026-10-04 반격 조준 방향 잔여 미리보기 수정
+- 원인: 순차8방향 경로는 숨겼으나 공통 AttackPreviewAreaService의 기본 조준 방향 projectile-impact 미리보기가 먼저 추가되고 있었음. 이전 부분 검사에서 전체 fromAttack 경로 누락.
+- 수정: impact-only는 fromAttack에서8방향 착탄 범위만 생성 후 반환해 기본 경로/중앙 착탄 중복과 단일 경로 fallback을 제거. 다른 공격의 미리보기 경로는 유지.
+- 변경: src/combat/AttackPreviewService.js, tools/test-terdion.cjs, README.md, docs/TERDION.md, project.json, DIVIDE TASKS.md, PATCH LOG.md, 생성runtime.js.
+- 검증: 테르디온22개에 실제 전체 fromAttack 및 기존 경로 객체 재사용 검사 추가: 정확히 원8개·경로0개·본체 projectile=false/range0. 구조11개·구문·배포·문서·ZIP 검사. 실제 브라우저/WebRTC 시각 검수 미실시.
+
+## 3.0.0-text.2 — 2026-10-04 테르디온 ALWAYS 표기
+- 테르디온 tooltipSkills의 항시 항목 key를 ALWAYS로 변경. 표시 문자열만 수정.
+- 변경: src/data/characters/terdion.js, project.json, DIVIDE TASKS.md, PATCH LOG.md, 생성runtime.js.
+- 검증: 테르디온22개·구문·배포·문서·ZIP 검사. 실제 브라우저 화면 미검증.
+
+## 3.0.0-character.9 — 2026-10-04 공중 반격 적 충돌 제거
+- 원인: trajectory.arc는 시각 궤적이며 반격 delivery.projectile의 기본 비행 피해/적 충돌이 활성 상태였음.
+- 수정: 기존 damageOnTravel:false 설정, collisionTargets 미설정으로 ProjectileService의 비행 대상 검사에서 제외. 공중 적을 통과하고 벽/사거리 착탄 후500ms 폭발만 적중. 반격 설명도 사용하지 않는 비행 직격 피해를 제외하고 폭발 피해만 표시. 신규 모듈/전용 분기 없음.
+- 변경: src/data/characters/terdion.js, tools/test-terdion.cjs, README.md, docs/TERDION.md, project.json, DIVIDE TASKS.md, PATCH LOG.md, 생성runtime.js.
+- 검증: 테르디온22개·구조11개·구문·배포·문서·ZIP. 비행 대상 검사 조건 damageOnTravel=false/collisionTargets!=true 확인. 실제 브라우저/WebRTC 시각 검수 미실시.
+
+## 3.0.0-ui.2 — 2026-10-04 테르디온 색상 변경
+- 요청: 테르디온 색상 변경. 기존 황갈색 #c49a68 → 짙은 청록 #238f96 (RGB 35,143,150). 59명 기본 색상과 동일 HEX 없음 확인. 본체·공격 프레젠테이션·폭발·착탄 호의 HEX/RGB 값을 함께 변경.
+- 변경: src/data/characters/terdion.js, README.md, docs/TERDION.md, project.json, DIVIDE TASKS.md, PATCH LOG.md, 생성runtime.js.
+- 검증: 테르디온22개, 구문·배포·문서·ZIP 검사. 실제 브라우저 색상 시각 검수 미실시.
+
+## 3.0.0-ui.3 — 2026-10-04 상대 착탄 호 숨김
+- 요청: 상대 화면에서 테르디온 투사체 주변 호 게이지 숨김. 평타/스킬/반격 착탄 effect.spawn 3개에 기존 visibility:owner-team 적용. 본인·아군 표시, 적 숨김. 투사체/폭발/피해/500ms 타이밍은 유지. 공통 EffectPresentationVisibilityService 재사용, 신규 모듈 없음.
+- 변경: src/data/characters/terdion.js, README.md, docs/TERDION.md, project.json, DIVIDE TASKS.md, PATCH LOG.md, 생성runtime.js.
+- 검증: 공개 범위 본인/아군/적 실행 검사, 테르디온22개, 구문·배포·문서·ZIP 검사. 실제 브라우저/WebRTC 화면 미검증.
+
+## 3.0.0-game.3 — 2026-10-04 레테 평타 자원 없는 소환수 유도 제외
+- 원인: 평타 delivery의 friendlyRequiresResource는 적중에만 적용되고 homing 후보 선택은 자원을 확인하지 않았음.
+- 수정: LMB homing.requiresResource:stamina, 공통 valid에서 최대 자원>0 조건 검사. 아군/적 자원 없는 소환수 제외, 현재 스테미나0인 자원 보유 개체 유지. 같은 valid가 탐색/기존 유도 유지에 사용됨. 적중 및 우편함 수취인/스킬 정책 유지. 신규 모듈/캐릭터 ID 분기 없음.
+- 모듈: 기존 delivery.projectile.homing에 requiresResource 선택값 추가. stamina/health 및 resources[name].max를 최대 자원 기준으로 검사하며 미설정 공격에는 적용하지 않음.
+- 변경: src/data/characters/lete.js, src/projectiles/ProjectileHomingTargetVisibilityService.js, src/combat/AttackModuleService.js, tools/test-structure.cjs, README.md, PATCH LOG.md, project.json, DIVIDE TASKS.md, 생성runtime.js.
+- 검증: 구조12개(실제 컴파일→AttackModuleService.projectile 변환 후 레테 설정·아군/적 maxStamina 누락/0 제외·현재0 허용·기존 대상 자원 제거·미설정 공격 유지), 게임15개, 구문·배포·문서·ZIP 검사. 실제 브라우저/WebRTC 미검증.
+
+## 3.0.0-character.10 — 2026-10-04 순차 산탄 평타·제거된 폭약 폭발 취소
+- 요청: 테르디온 평타 폭약5개 왼쪽부터 순차 산탄,500ms 폭발 전에 방패 등으로 제거되면 폭발 금지.
+- 평타: 기존 delivery.delayed-projectile-volley count5/40ms/locked/방향 -30,-15,0,+15,+30도(총60도). 비용200·쿨450ms·폭약당 피해/범위 유지. 설명은 개수 참조·타당 피해로 수정.
+- 원인: 착탄 예약 continuation은 source 생존만 확인하고 폭약 제거와 연결되지 않았음. 수정: 기존 projectile.impact에 선택 cancelDelayedOnRemove, source+networkKey별 토큰. discard와 원격 guard 확정으로 폭발 전 제거 토큰 취소, 해당 착탄 호 키 제거. 정상500ms 만료는 예약 유지. stationary 폭약도 방패 접촉 검사. 다른 공격은 옵션 미설정 시 기존 지연 유지. 신규 모듈/캐릭터 ID 분기 없음.
+- 변경: src/data/characters/terdion.js, src/projectiles/ProjectileModuleService.js, src/projectiles/ProjectileImpactService.js, src/projectiles/ProjectileService.js, tools/test-terdion.cjs, README.md, docs/TERDION.md, project.json, DIVIDE TASKS.md, PATCH LOG.md, 생성runtime.js.
+- 검증: 테르디온25개(실제5발/40ms/각도·실제 guard.remove/discard·평타/스킬/반격 취소·호 제거·다른 폭약 유지·원격guard key취소·만료 프레임 선제 제거 정상 폭발·미설정 공격 유지), 구조12개·게임15개·방17개, 구문·배포·문서·ZIP 검사. 실제 브라우저/WebRTC 미검증.
+
+## 3.0.0-character.11 — 2026-10-04 정상 만료 폭발 누락 수정
+- 원인 재현: 착탄 수명은 프레임 now, 폭발 예약은 이후 performance.now() 기준. 만료 시각이0.1ms만 먼저 도달해도 기존 discard가 예약 전 강제 제거로 오인해 폭발 취소. 이전 검사는 두 시각을 동일하게 두어 누락.
+- 수정: 공통 ProjectileService.finish/discard의 종료 이유 전달. updateStationary 수명 만료는 expired로 예약 취소 제외. 방패/기타 제거는 removed로 기존 취소 정책 유지. 지연/피해/발사 수치와 신규 모듈 변경 없음.
+- 변경: src/projectiles/ProjectileService.js, tools/test-terdion.cjs, README.md, docs/TERDION.md, PATCH LOG.md, project.json, DIVIDE TASKS.md, 생성runtime.js.
+- 검증: 수정 전 신규 회귀 실패 확인 후 수정 후 통과. 테르디온26개(평타/스킬/반격×0.1/1/8ms 차이×만료/예약 순서2종18조건 포함), 구조12개·게임15개, 구문·배포·문서·ZIP 검사. 실제 브라우저/WebRTC 미검증.
+
+## 3.0.0-balance.2 — 2026-10-04 테르디온 평타 소모량
+- 최종 요청250에 따라 LMB cost200→250. 폭약5개 발사1회 기준. 설명 비용은 실제 AttackSpec 참조로250 표시.
+- 변경: src/data/characters/terdion.js, tools/test-terdion.cjs, README.md, docs/TERDION.md, PATCH LOG.md, project.json, DIVIDE TASKS.md, 생성runtime.js.
+- 검증: 테르디온26개(cost250 포함), 구문·배포·문서·ZIP 검사. 실제 브라우저 플레이 미검증.
+
+## 3.0.0-character.12 — 2026-10-04
+
+- 요청: 테르디온 평타 산탄/스테미나 롤백 및 직격 상향.
+- 평타 단발·비용200으로 복원, 판정/표시/호 반경14. 평타·스킬 직격200. 반격은 비행 접촉 없이 착탄 순간200을1회 적용한다. 폭발 수치와 조기 제거/정상 만료 정책은 유지한다.
+- 공통 TargetPointProjectileService의 선택형 arrival.triggerOnLanding이 기존 접촉 탐색/피해/회피/방어 경로를 사용한다. 캐릭터 전용 실행 분기는 없다.
+- 변경: 테르디온 데이터, 공통 착탄 서비스, 테르디온 회귀, README, TERDION 문서, project.json, DIVIDE TASKS, 생성 runtime.js.
+- 검증: 테르디온27·구조12·게임15·방17, build/docs/check/verify 및 runtime 구문 검사. 실제 브라우저/WebRTC 실기기 전투는 미검증.
+
+## 3.0.0-character.13 — 2026-10-04
+- 요청: 테르디온 반격기 투사체 크기14. delivery.projectile.radius10→14, 기존 참조로 무기 표시/착탄 직격 판정/호 반경 동시 반영.
+- 변경: 테르디온 데이터, 기존 테르디온 회귀, README, TERDION 문서, project.json, DIVIDE TASKS, 생성runtime.js.
+- 검증: 테르디온27개(반격 판정/표시/호 반경14 포함), build/docs/check/verify, runtime 구문 및 ZIP 검사. 실제 브라우저 플레이는 미검증.
+
+## 3.0.0-balance.3 — 2026-10-04
+- 요청: 테르디온 평타 탄속30% 증가. delivery.projectile.speed16→20.8.
+- 변경: 테르디온 데이터, README, TERDION 문서, project.json, DIVIDE TASKS, 생성runtime.js.
+- 검증: 테르디온27개 회귀, build/docs/check/verify, runtime 구문 및 ZIP 검사. 실제 브라우저 플레이 미검증.
+
+## 3.0.0-game.4 — 2026-10-04
+- 요청: 하츠하츠 우클릭에 원래 없던 초록 이동 경로 선 수정.
+- 원인: movement.move의 파생 이동기 태그가 공통 기본 dash-line 표시를 활성화했으나 캐릭터 데이터에 표시 제외가 없었음.
+- 수정: 기존 presentation:false 옵션으로 자동 이동 선을 제외. 드래그 점선 미리보기·이동·방어 수치는 유지. 공통 런타임 변경/캐릭터 전용 분기 없음.
+- 변경: hatsuhats.js, 기존 구조 회귀, README, project.json, DIVIDE TASKS, 생성runtime.js.
+- 검증: 실제 컴파일한 하츠하츠 이동 모듈을 공통 start에 적용해 이동 성공/선0개 확인, 구조12·게임15 회귀, build/docs/check/verify, 구문/ZIP 검사. 실제 브라우저/WebRTC 미검증.
+
+## 3.0.0-game.5 — 2026-10-04
+- 요청: 시아넬리 착탄 투사체 미표시. 기본 linger.fadeOut 알파 감소를3종 비도에서 제외해4초 동안 본체 표시 유지.
+- 수정: xianelli 평타/counterDagger/shunpoDagger의 fadeOut:false. 공통 로컬/원격 잔류 해석에 동일 적용. 호 게이지·회수·수명 수치는 유지.
+- 변경: xianelli.js, 구조 회귀, README, project.json, DIVIDE TASKS, 생성runtime.js.
+- 검증: 실제3종 데이터 컴파일·4초/비영구 수명·만료1ms 전 로컬/원격 공통 visual 알파1, 기존 구조/테르디온 회귀, build/docs/check/verify·구문·ZIP. 실제 브라우저/WebRTC 미검증.
+
+## 3.0.0-game.6 — 2026-10-04
+- 정정: game.5의 알파 변경은 상대 미표시 문제의 원인을 해결하지 않았음. xianelli fadeOut 설정 롤백.
+- 공통 수정: networkSync 잔류 비도는 비소유 화면의 sourcePickupReady를 차단. 착탄 snapshot 복원은 예측 returning.phase를 outbound로 돌려 stationary 분기를 유지. 상대 위치 지연에 따른 자체 회수/귀환 제거를 방지.
+- 변경: TargetPointProjectileService, StationaryProjectileInteractionService, xianelli 데이터 롤백, 구조 회귀, README, project.json, DIVIDE TASKS, 생성runtime.js.
+- 검증:3종 실제 데이터의 원격 회수 금지/소유 회수 유지/예측 귀환→착탄 복원; 구조13·테르디온27·게임15 회귀, build/docs/check/verify·구문·ZIP 검사. 실제 두 기기 WebRTC는 미검증.
+
+## 3.0.0-balance.4 — 2026-10-04
+- 테르디온 평타/반격 직격200→150. 스킬 직격200 유지. 반격 최대 투척175→350,8방향 폭발 미리보기/착탄 사거리 공통 참조.
+- 변경: 테르디온 데이터·회귀, README, TERDION 문서, project.json, DIVIDE TASKS, 생성runtime.js.
+- 검증: 테르디온27개(직격150/착탄1회/8방향 사거리350), build/docs/check/verify·runtime 구문·ZIP 검사. 실제 브라우저 플레이 미검증.
+
+## 3.0.0-character.14 — 2026-10-04
+- 요청: 테르디온 반격 착탄 거리를 마우스 위치로 조절. 최대350,8방향은 동일 선택 거리. 선딜 동안 조준 갱신 후 발사 시작 시 거리 확정.
+- 공통 volleyTravelRange + delayed-projectile-volley.distanceMode:target-point, 기존 Counter aim-point 사용. 실행/미리보기에 같은 거리 해석. 캐릭터 전용 분기 없음.
+- 변경: AttackModuleService, AttackPreviewService, 테르디온 데이터/회귀, README, TERDION 문서, project.json, DIVIDE TASKS, 생성runtime.js.
+- 검증: 테르디온28개(0/100/350/초과600 실제8발·미리보기 일치), 구조13, build/docs/check/verify·구문·ZIP. 실제 브라우저/WebRTC 미검증.
+
+## 3.0.0-ui.2 — 2026-10-04
+- 요청: 무기 투사체 중앙+ 크기를 절대값이 아닌 비율로 통일, 밝은 본인 캐릭터 색으로 통일.
+- 공통 anchor-cross 렌더에서 반길이=반경*0.5, 선 굵기=반경/6(최소0.5), 궤적scale 동시 적용. 색은 source.character.color 우선, ColorService.brighten 기본35% 사용. numbered 표시는 기존 유지.
+- 변경: Training.js, README, project.json, DIVIDE TASKS, 생성runtime.js.
+- 검증: 테르디온28·구조13 회귀, build/docs/check/verify·runtime 구문·ZIP 검사. 실제 브라우저 시각 검수는 미실행.
+
+## 3.0.0-game.7 — 2026-10-04
+- 요청: 분할 전 원본에서 선 없던 이동기들의 이동 선 제거. 원본 movement state.tags(명시값만 사용) 및 이동 선 조건과 전체58명 데이터 대조.
+- 대상11개: 슈비.attacks.rmb.modules.2, 슈비.attacks.counter.modules.2, 루뷰.attacks.rmb.modules.1.autoArrivalMovement, 루뷰.abilities.rmb.trigger.modules.0.movement, 메인마드.attacks.rmb.modules.0, 리안.attacks.rmb.modules.0, 타우.attacks.rmb.modules.5, 타우.attacks.rmb.modules.7, 헤르쟝.attacks.lmb.modules.1, 헤르쟝.attacks.counter.modules.3, 레비나.attacks.counter.modules.2; 하츠하츠 기존 제외 유지.
+- 각 모듈 presentation:false 명시. 원본에 presentation 정의가 있어도 이동기 태그가 없으면 실행되지 않던 루뷰/타우도 포함. 신규 태그 파생 및 게임 효과는 유지.
+- 변경: 대상7개 캐릭터 데이터, 구조 회귀, README, project.json, DIVIDE TASKS, 생성runtime.js.
+- 검증: 구조14개(대상11개+하츠하츠), 게임15·테르디온28, build/docs/check/verify·구문·ZIP. 실제 브라우저/WebRTC 미검증.
+
+## 3.0.0-remake.1 — 2026-10-04
+- 요청: 반 CC/재생, 가에 명령/정상 스테미나/스킬/고정 반격 리메이크, 레테 비용/체리티 탄속. 추가 답변에 따라 명령 윗줄 KNOCKBACK/ACCELERATE/FIX/ELECTRIC.
+- 변경: van/gae/lete/cherity 데이터, CommandFeatureService 과열/냉각 제거 및 기본 모드/FIX 원격 표시, AttackFeatureTransformService 데이터 기반 적중 옵션/레이저 팔레트/평타1.4배, CharacterCommandInputService 자동완성 실행/정렬/FIX 글로우, AbilityModuleService 사용 안 하는 냉각 핸들러 제거, 구조 회귀, 신규 가에 회귀, README/GAE REMAKE 문서, project.json/DIVIDE TASKS/생성runtime.js.
+- 세부 수치는 docs/GAE REMAKE.md. 미지정 스킬 피해150/넉백160/소모200 선택, 기존 범위190/쿨700 유지. 반격 기존 피해/무력화 넉백은 유지하고 무적/자기 기절2초로 고정.
+- 검증: 가에7개 그룹·구조14·테르디온28·게임15·방17, build/docs/check/verify·runtime 구문·ZIP. 실제 브라우저/WebRTC 미검증.
+- Ctrl+W는 일반 탭의 브라우저 예약 단축키이므로 차단을 보장할 수 없다. 전체화면/권한이 필요한 Keyboard Lock을 현재 일반 탭 실행에 무조건 적용하거나 가짜 preventDefault 차단을 넣지 않음.
+
+## 3.0.0-remake.2 — 2026-10-05
+
+요청/이유: 반 스킬 소모200, 가에 FIX 글로우 제거, ELECTRIC 고정 주황색, 우클릭 선딜 복구, 설명 정렬. 공격 전 timing.delay에 공격 실행 후 ID를 요구하는 조건이 붙어 지연이 건너뛰어졌다. 해당 조건을 제거하고 기존 preview.create로500ms 선딜 표시와 쿨다운 검사를 연결했다. 공통 레이저 변환은 데이터 electricColor를 사용하며 투사체 전체 층과 INSTANT 코어도 같은 주황색이다. FIX의1초 녹색 표시와 회복은 유지한다. 신규 캐릭터 전용 실행 모듈은 추가하지 않았다.
+
+대상: src/data/characters/gae.js, van.js, src/input/CharacterCommandInputService.js, src/combat/AttackFeatureTransformService.js, tools/test-gae.cjs, README.md, docs/GAE REMAKE.md, project.json, DIVIDE TASKS.md, runtime.js. 기존 심볼 유지; 파일 역할 메타데이터 갱신.
+
+검증: 가에9개·구조14개·테르디온28개·게임15개·방17개 모두 통과. 실제 AbilityModuleService/SimulationScheduleService로499ms 미발동/500ms 발동과 쿨다운 차단 확인. build/docs/check/verify 및 runtime 구문 검사 실행. 실제 브라우저 표시·두 기기 WebRTC 전투는 미검증.
+
+## 3.0.0-tools.1 — 2026-10-05
+
+요청/원인: START.bat 실행 시 graphify-out 분석 결과·캐시의 역할 등록 누락으로 서버 시작이 중단됨. tools/project.py inventory에서 루트 graphify-out 하위 생성물만 제외한다. 기존 미등록 파일 및 등록 소스 누락 검사는 유지한다. 분석 파일은 보존한다.
+대상: tools/project.py, README.md, project.json, DIVIDE TASKS.md, PATCH LOG.md. 기존 심볼 유지.
+검증: 실제 분석 생성물 포함 inventory 통과; 임시 프로젝트에서 새 버전 중첩 분석 캐시 제외, 미등록 JS 및 등록 소스 누락 거부 확인. START가 실행하는 tools/serve.py 서버 시작 및 HTML/runtime HTTP200·조립 소스 일치 확인. docs/check/verify 검사. 배치 창 수동 조작은 미검증.
+
+## 3.0.0-remake.3 — 2026-10-05
+
+요청: 가에 FIX 회복량을 잃은체력25%로 변경. fixMissingHealthRatio=0.25와 기존 ResourceRestoreEffectService의 missingResourceRatio를 연결한다. 설명도 동일 데이터 비율을 참조한다. 예: 최대1300/현재100이면300 회복하여400. 최대체력에서는0 회복.
+대상: src/data/characters/gae.js, src/core/CommandFeatureService.js, tools/test-gae.cjs, README.md, docs/GAE REMAKE.md, project.json, DIVIDE TASKS.md, runtime.js. 기존 심볼 유지·역할 갱신.
+검증: 가에9개 및 구조14개 통과; 현재100/1000/1300에서 각300/75/0 회복 및 원격 중복 회복 없음. build·runtime 구문·docs/check/verify 검사. 실제 브라우저 및 두 기기 전투는 미검증.
+
+## 3.0.0-game.8 — 2026-10-05
+
+요청/원인: 첨부 Duels(1).zip 기준 엘린 스킬 홀드가 낮은 스테미나에서 막힘. 공통 차징 최소비용의 || fallback이 명시0을 무시하고 소환 비용750으로 대체해 PointerHoldInputService.press가 홀드를 취소하고 탭 입력으로 전환했다. 시작·릴리스·지속 비용 해석에서 nullish fallback으로 명시0을 보존한다. 모드 전환150 및 소환750 데이터는 유지. 신규 모듈/캐릭터 예외 없음.
+대상: src/abilities/ChargedAttackService.js, tools/test-structure.cjs, README.md, project.json, DIVIDE TASKS.md, 생성runtime.js. 기존 심볼 유지·역할 설명 갱신.
+검증: 구조15개(실제 차징 start:0/149/150/200/749/750, 포인터 press:150/200/749, 비용 생략750 및 명시100 제한), 기존 회귀·build/docs/check/verify·구문 검사. 실제 브라우저/두 기기 전투 미검증.
+
+## 3.0.0-game.9 — 2026-10-05
+
+요청: 반 정상 스패너 회복25/초, 파괴 후6회 타격으로 완전 복구. 기준은 직전 엘린 수정본(첨부 Duels(1).zip 파생). van 데이터에 기존 damage-dealt Trigger/state.progress 조합 추가. 공통 ProgressStateService 수리 정책에 repairMode:hit-count/requiredHits를 추가해 시간 누적 대신 적중 누적을 해석한다. 일반 시간형 수리는 기존 경로 유지. 파괴 시 직접 피해 확정 적중만 집계하고, 기존 ProgressHitTargetPolicy에 따라 소환수/훈련봇 및 DOT 제외. 6회복구 시800·횟수0, 대기/이동 중 누적 유지. 기존 FX/진행도 온라인 복제 재사용, 캐릭터 전용 서비스/새 모듈 없음.
+대상: van.js, ProgressStateService.js, test-structure.cjs, test-gae.cjs, README, GAE REMAKE, project.json, DIVIDE TASKS, runtime.js. 기존 심볼 유지·역할 갱신.
+검증: 구조16개(시간 복구 없음·초당25·실제 Trigger/모듈6회·5회 누적·DOT/소환수 제외·복구 후 초기화), 가에9개, 게임15개, 테르디온28개, build/docs/check/verify·구문 검사. 실제 브라우저·다기기 전투는 미검증.
+
+## 3.0.0-balance.2 — 2026-10-05
+요청: 반 정상 스패너 회복15/초, 파괴 후 복구 타격5회. van 단일 원본 수치를 수정해 실제 재생·복구·호 게이지·툴팁 참조가 함께 변경된다. 기존 대상/적중/초기화 정책 유지.
+대상: van.js, test-structure.cjs, test-gae.cjs, README.md, docs/GAE REMAKE.md, project.json, DIVIDE TASKS.md, 생성runtime.js. 역할 갱신.
+검증: 구조16개·가에9개, build/docs/check/verify·runtime 구문.4회 누적 유지/5회 완전복구·초당15 확인. 실제 온라인 전투는 미검증.
+
+## 3.0.0-game.10 — 2026-10-05
+요청: 반 내구도가 방어 판정으로 적중 효과를 무시하지 않도록 변경, 정상 스패너 회복25/초. 기존 damageResourceLayers.blockHitEffectsWhenFullyAbsorbed:false로 내구도에 피해를 전부 받아도 DamagePipeline의 정상 applied/hit 및 onHit/네트워크 확정 경로를 사용한다. 내구도 우선 피해·초과분 본체 피해·파괴 후5회복구 유지. 설명에서 방어 문구 제거. 새 모듈/전용 실행 코드 없음.
+대상: van.js, test-structure.cjs, test-gae.cjs, README.md, docs/GAE REMAKE.md, project.json, DIVIDE TASKS.md, 생성runtime.js. 역할 갱신.
+검증: 구조17개(실제 DamageResourceLayerService로 투사체/근접/장판 완전흡수 시 적중차단false 및 초과피해50 확인·재생25·5회복구), 가에9개, build/docs/check/verify·runtime 구문. 실제 두 기기 전투는 미검증.
+
+## 3.0.0-game.11 — 2026-10-05
+원인: 이전 패치는 완전흡수 시 적중차단만 제거했다. 레이카 damage-dealt Trigger는 healthDamage를 읽는데 DamagePipeline은 내구도 피해를 여전히 해당 집계에서 제외하고 온라인 notify도 amount0을 전송했다.
+변경: van 선행자원에 countsAsHealthDamage:true, 공통 DamageResourceLayerService가 해당 피해를 healthDamage로 반환하고 DamagePipeline에서 실제 본체 피해와 합산한다. 기존 레이카 데이터·Trigger 및 duel-hit-confirmed 형식 그대로 재사용. 본체 체력은 초과 피해만 감소하며 일반 방어/쉴드 정책은 유지. 초당25·파괴후5회복구 유지.
+대상: van.js, DamageResourceLayerService.js, DamagePipeline.js, test-terdion.cjs, README, project.json, DIVIDE TASKS, runtime.js. 기존 심볼 유지·역할 갱신.
+검증: 전투29개(실제 내구도100/혼합50+50/본체100 각각 레이카 가호+6, 본체체력 보존·온라인 notify amount100), 구조17개 및 build/docs/check/verify·구문. 실제 두 기기 전투 미검증.
+
+## 3.0.0-game.12 — 2026-10-05
+요청: 지오핀(천재 발명가) 추가. 체력1100/느림/고유 노랑, 세 기어27조합,300ms 반격 및 다음3회 연사40% 강화. 미지정 기본값: 평타150/200/600ms, 광선300·탄850·추진220, 반격300/반경200. 상세는 docs/GEOPIN.md.
+구조: 순수 geopin 데이터에 기존 모드·평타·이동·CC·패시브·횟수 버프 조합. 공통 mode-modules 변환, modifier.limited-use 어댑터, 기어 렌더만 추가. 공통 입력에서 탭/홀드/스크롤을 처리하고 기존 네트워크 패킷에 모드/횟수 스냅샷을 포함한다. 발사 조합 고정·후속 폭발 적중 집합 공유. 공유 attackDelay에도 공격속도 적용, 가에 변환 멱등화. 투사체 범위 끝 정렬 및 형상별 FX 대체로 폭발 위치·표시를 보존한다.
+대상: geopin.js, characters/index.json, CHARACTER_RULES, CharacterDataService, CharacterSortService, ModeStateService, AttackFeatureTransformService, AugmentService, AbilityModuleService, LimitedUseBuffService, AbilityService, Training, PointerHoldInputService, initialization-417, OnlineDuelService, AttackExecutionService, AttackService, TriggeredAttackService, MovementAbilityService, ProjectileImpactService, ProjectileModuleService, ProjectileService, TargetPointProjectileService, AreaGeometryService, TrainingPresentationBindings, EffectSpawnService, ModeGearPresentationService, TrainingWorldDrawService, tools/test-geopin.cjs, 기존 카탈로그 검사3파일, README, CHARACTER CONTRACT, GEOPIN, project.json, DIVIDE TASKS, 생성runtime.js. 역할·심볼 목록 갱신.
+검증: 지오핀19그룹/27조합 및 기존 구조17·가에9·테르디온29·게임15·방17, build·구문·docs/check/verify. 실제 브라우저/두 기기 온라인 전투 미검증.
+
+## 3.0.0-ui.3 — 2026-10-05
+요청: 지오핀 확실한 노랑, 큰 기어3개 전부 맞물림, 왼쪽2/오른쪽1 배치, 새 디자인, 기어 글자 제거.
+변경: #d8e21b→#ffdc24 및 탄환 밝은 층·강화 게이지 노랑 통일. 반경22→36(약64% 확대), 삼각 배치와 중심 거리64.8/치형 위상으로 세 쌍 모두 접촉. 이중 림·세 살·육각 축과 밝은 선택점, caption/labels 및 텍스트 렌더 제거. 삼각 외접 기어 폐회로의 회전 충돌을 피하기 위해 stationaryRim 옵션으로 맞물림을 유지하며 내부 선택판은 기존 동기화 시간축으로 회전한다. effect.spawn·관계 투명도·사망 정리·전투 수치 유지, 신규 모듈 없음. 치형 루프 임시 배열 제거·색상 변환 캐시로 고빈도 할당 감소.
+대상: src/data/characters/geopin.js, src/render/ModeGearPresentationService.js, tools/test-geopin.cjs, README.md, docs/GEOPIN.md, project.json, DIVIDE TASKS.md, 생성runtime.js. 변경 역할 설명 갱신.
+검증: 지오핀20그룹/27조합(문자 없음·36반경·2/1배치·모든 기어 쌍 접촉·색상 중복 없음·관계40%·수명·타임라인), 구조17그룹, 실제 Canvas 렌더로 본인/적 배치·색상 확인, build/구문/docs/check/verify. 실제 브라우저·두 기기 온라인 전투 미검증.
+
+## 3.0.0-game.13 — 2026-10-05
+요청: 지오핀 기어 자체 회전, 일반 직사각 히트스캔/원형 투사체/기존 점프, 조작한 기어만 일시 선명, 적중·비관통 끝점의 일반 원형 폭발, 상시 조준 미리보기, 반 스패너 리디자인.
+변경: 고정 림 제거·모드별 독립450ms 회전. 평상시35%→조작 기어만500ms100%→400ms 복귀(적 관계40% 곱). ModeState의 명시적 hasChanged 및0시각 보존으로 미사용 기어가 원격에서 번쩍이지 않으며 반복 패킷도 시각을 재시작하지 않는다. 광선 커스텀beamLine/탄laser-bolt/폭발bombBlast 제거, 기존 rect/기본projectile/areaCircle 사용. 추진은 에즈레일 궤적과360ms 공통 점프 정책 재사용(기존 거리220·출발피해120 유지). 투사체 target 적중도 폭발; 광선 후속 원은 첫 적/벽/최대거리 중 비관통 종료점에서 생성하고 적중 집합 공유로 중첩 방지. 조준 미리보기는 현재 Ability 해석과 기존 AttackPreview 경로로27조합을 상시 표시, 단발 탄 경로 및 후속 폭발 원도 지원한다. 반 스패너는 열린 육각 턱·끝 구멍·손잡이 홈의 단일 도형, 약한 광택으로 변경하며 전투 판정 불변. 신규 모듈 없음.
+대상: geopin.js, ModeGearPresentationService.js, ModeStateService.js, HitScanGeometryService.js, AreaGeometryService.js, AreaAttackService.js, AttackPreviewService.js, Training.js, WrenchShapeRenderService.js, VanWrenchDurabilityPresentationService.js, test-geopin.cjs, README, GEOPIN, CHARACTER CONTRACT, project.json, DIVIDE TASKS, 생성runtime.js. 책임·선언 갱신.
+검증: 지오핀24그룹/27조합, 구조17·가에9·테르디온29·게임15·방17, 실제Canvas로 반투명/조작기어 회전·밝기/스패너 모양 확인, build/구문/docs/check/verify. 실제 브라우저 및 두 기기 온라인 전투 미검증.
+
+## 3.0.0-game.14 — 2026-10-05
+요청: 시아넬리 착탄 비도가 상대 화면에서 여전히 보이지 않음.
+원인/변경: 기존 검사는 상태 복원만 확인했다. StationaryProjectileInteractionService.restoreNetworkProjectile은 원격 sentAt과 로컬 Date.now의 원시 차이를 남은4초 수명에서 차감해 컴퓨터 시계 차이만으로 복원 즉시 discard할 수 있었다. OnlineDuelService의 기존 networkDelayMs 기준선 보정 지연을 동일 착탄 스냅샷 복원에 전달하도록 수정. 별도 시계 시스템/캐릭터 예외 없음. 함께 null 고정좌표·거리를 Number(null)=0으로 대입하는 원격 복원/정지 update 경로를 수정해 착탄 위치와 travel을 보존한다.
+대상: StationaryProjectileInteractionService.js, OnlineDuelService.js, ProjectileStateService.js, ProjectileService.js, test-structure.cjs, README, project.json, DIVIDE TASKS, 생성runtime.js. 역할 갱신.
+검증: 실제 networkDelayMs·세 비도 평타/반격/순보·시계차±60초·보정 지연20ms·복원 후 실제 updateStationary 및 표시 위치/alpha·null 좌표 거리 보존. 구조18·지오핀24·가에9·테르디온29·게임15·방17 및 build/구문/docs/check/verify. 실제 두 기기 WebRTC 전투는 미검증이다.
+
+## 3.0.0-game.15 — 2026-10-05
+요청: 같은 방향으로 이동하는 적에게 라임 평타/레이카 반격 피해가 간헐적으로 누락됨.
+원인: movement의 발동 순간 presentationDistance가 당시 적의 정지 위치로 잘려 있었고, 원격 EffectSpec 피해 timeline이 그 길이를 전체 이동 duration 동안 진행했다. 실제 소유자 돌진은 매 프레임 움직인 적의 위치로 검사하지만 상대 권위 화면의 경로는 짧고 느리게 고정돼 접촉하지 않을 수 있었다. 기존 길이 경로로 돌린 회귀 검사에서 라임 moving-away 피해0회 재현.
+수정: AttackModuleService가 전체 movement.distance와 duration·collision·enemyCollisionOvershoot를 기존 EffectSpec에 보존. EffectSpawnService는 각 원격 진행 구간에서 기존 MovementAbilityService.travelWithEnemyOvershoot를 재사용해 현재 적/벽/장판 충돌을 처리하고 실제 허용 끝점에서 피해/경로 표시를 함께 종료. 정지 후 전체 사거리로 재진행 금지, 대상별1회/상대운동 접촉/AttackHitTriggerService→onHit 경로 유지. CollisionPolicyService 적 몸통 충돌도 피해와 같은 최신 NetworkCollisionPositionService 위치 사용. 프레임별 충돌 앵커/상태 객체는 timeline에 재사용. 신규 모듈·캐릭터 예외·밸런스 변경 없음.
+대상: src/combat/AttackModuleService.js, src/render/EffectSpawnService.js, src/core/CollisionPolicyService.js, tools/test-movement-contact.cjs, README.md, project.json, DIVIDE TASKS.md, 생성runtime.js. 역할/선언 갱신.
+검증: 실제 lime.lmb/reika.counter/reika.counterBlessed 데이터→실제 spawnAttackEffect→원격 복원→매 프레임 applyMovementTrackedDamage19개(동일 방향 이동·1회 적중·정지 적 접촉·첫 적 뒤 경로 중단·빠른 도주/범위 밖 미적중·최신 충돌 좌표). 기존 구조18/지오핀24/가에9/테르디온29/게임15/방17, build/구문/docs/check/verify 및 배포 ZIP 모든 원본 일치/CRC. 실제 두 기기 WebRTC 전투는 미검증.
+
+## 3.0.0-game.16 — 2026-10-05
+요청: 지오핀을 파일에서 제거.
+변경: 지오핀 캐릭터 데이터·출시 등록·이동 표기·전용 문서/회귀 파일 삭제, 현재 공식 캐릭터59명으로 카탈로그 검사/안내 갱신. 기존 공통 기어/모드/무기 모듈과 반 스패너 리디자인은 유지. 이전 PATCH LOG 이력 보존. runtime 재생성으로 선택/랜덤/훈련장/라운드 후보에서 제외.
+대상: characters/index.json, CHARACTER_RULES.js, geopin.js(삭제), GEOPIN.md(삭제), test-geopin.cjs(삭제), test-structure.cjs, test-terdion.cjs, verify.py, README, CHARACTER CONTRACT, project.json, DIVIDE TASKS, 생성runtime.js.
+검증:59명 등록·컴파일, 배포 runtime에 지오핀 데이터 없음, 나머지 구조/전투/이동/방 회귀·build·구문·docs/check/verify·ZIP 무결성. 실제 브라우저/두 기기 온라인 미검증.

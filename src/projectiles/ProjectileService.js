@@ -662,8 +662,11 @@ const ProjectileService={
     );
   },
 
-  discard(projectile){
+  discard(projectile,reason='removed'){
     if(!projectile)return false;
+    if(reason!=='expired'&&projectile.behavior?.impact?.cancelDelayedOnRemove===true){
+      ProjectileImpactService.cancelPending(projectile.source,projectile.networkKey);
+    }
     this.clearBoundField(projectile);
     ProjectileTetherMovementService.releaseProjectile(projectile);
     RemoteProjectileHomingPresentationService.clear(projectile);
@@ -675,8 +678,8 @@ const ProjectileService={
 
     return true;
   },
-  finish(projectile,hit=false){
-    this.discard(projectile);
+  finish(projectile,hit=false,reason='removed'){
+    this.discard(projectile,reason);
 
     if(projectile&&projectile._resolvedEventEmitted!==true){
       projectile._resolvedEventEmitted=true;
@@ -1185,11 +1188,15 @@ const ProjectileService={
     const state=projectile?.stationaryArrival;
     if(!state)return false;
 
+    if(projectile.behavior?.impact?.cancelDelayedOnRemove===true&&
+      now<Number(state.endsAt)&&AttackGuardService.intercept(projectile,index,now))return true;
+
     if(
       (
         state.arrivalReason==='target'||
         projectile.arrivalReason==='target'
       )&&
+      state.fixedX!=null&&state.fixedY!=null&&
       Number.isFinite(Number(state.fixedX))&&
       Number.isFinite(Number(state.fixedY))
     ){
@@ -1245,7 +1252,8 @@ const ProjectileService={
     ){
       this.finish(
         projectile,
-        projectile.hadHit===true
+        projectile.hadHit===true,
+        'expired'
       );
       this.items.splice(index,1);
       return true;
@@ -3891,7 +3899,8 @@ const ProjectileService={
               projectile
             );
           if(
-            targetArrival?.linger?.atTarget===true
+            targetArrival?.linger?.atTarget===true&&
+            projectile.predictedContactConsumeOnly!==true
           ){
             projectile.predictedContactConsumeOnly=false;
             ProjectileImpactService.resolve(
@@ -3939,6 +3948,10 @@ const ProjectileService={
             return true;
           }
           ProjectileImpactService.resolve(projectile,'target');
+          if(projectile.behavior?.impact&&Training.sessionMode==='online'&&
+            relation==='enemy'&&NetworkHitAuthorityService.targetAuthoritative(target)){
+            OnlineDuelService.sendProjectileImpactConfirmed(projectile,'target');
+          }
           this.finish(
             projectile,
             projectile.hadHit===true
@@ -4053,6 +4066,7 @@ const ProjectileService={
         .arrival(projectile)
         ?.linger?.atRange===true
     ){
+      TargetPointProjectileService.snapToRangeEnd(projectile,expiryDistance);
       ProjectileImpactService.resolve(
         projectile,
         'range'
@@ -4091,6 +4105,9 @@ const ProjectileService={
     }
 
     if(expired){
+      if(projectile.behavior?.impact?.snapToRangeEnd===true&&Number.isFinite(expiryDistance)){
+        TargetPointProjectileService.snapToRangeEnd(projectile,expiryDistance);
+      }
       const arrival=
         TargetPointProjectileService.arrival(
           projectile

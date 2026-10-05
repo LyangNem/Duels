@@ -309,6 +309,7 @@ const AttackService=Object.freeze({
           options.extraModules||null
         );
     execution.networkReplay=networkReplay;
+    if(networkReplay)AttackExecutionService.remember(source,execution);
     execution.networkAttackAdjustments={
       ...networkAttackAdjustments
     };

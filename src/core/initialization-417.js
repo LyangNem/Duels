@@ -13,6 +13,11 @@ trainingCanvas?.addEventListener(
       return;
     }
 
+    if(Training.active&&!Training.spectating&&!DebugPanel.capturesGameInput()){
+      if(PointerHoldInputService.wheel(event.deltaY))event.preventDefault();
+      return;
+    }
+
     if(
       !Training.active||
       !Training.spectating||

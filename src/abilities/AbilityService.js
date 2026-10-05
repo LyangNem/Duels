@@ -225,6 +225,8 @@ const AbilityService=Object.freeze({
     }
 
     if(context.result&&typeof context.result==='object'){
+      context.result.modeStep=Number(runtime.modeStep)<0?-1:1;
+      context.result.modeStates=ModeStateService.serialize(source);
       context.result.handled=runtime.handled===true;
       context.result.executed=runtime.executed===true;
       context.result.deferredExecution=

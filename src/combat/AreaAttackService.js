@@ -284,6 +284,7 @@ const AreaAttackService=Object.freeze({
       Number.isFinite(Number(geometrySource.x))&&
       Number.isFinite(Number(geometrySource.y))
         ?{
+          ...source,
           x:Number(geometrySource.x),
           y:Number(geometrySource.y)
         }
@@ -315,88 +316,9 @@ const AreaAttackService=Object.freeze({
     // AreaAttackService에서 다시 더하면 실제 판정만 두 번 기울어지므로 여기서는 전달 각도를 그대로 사용한다.
     const resolvedAngle=Number(angle)||0;
 
-    let collisionModule=
-      resolvedModule;
-
-    if(
-      resolvedModule?.stopAtFirstEnemy===true&&
-      resolvedModule?.shape==='rect'
-    ){
-      const range=
-        Math.max(
-          0,
-          Number(resolvedModule.range)||0
-        );
-      const halfWidth=
-        Math.max(
-          0,
-          Number(resolvedModule.halfWidth)||0
-        );
-      const cos=
-        Math.cos(Number(angle)||0);
-      const sin=
-        Math.sin(Number(angle)||0);
-      let stopRange=range;
-
-      for(const target of EntityService.items.values()){
-        if(
-          !target?.alive||
-          target.hidden||
-          RelationService.relation(
-            source,
-            target
-          )!=='enemy'
-        )continue;
-
-        const point=
-          NetworkCollisionPositionService.point(
-            target
-          );
-        const dx=
-          Number(point.x)-
-          Number(geometryOrigin.x);
-        const dy=
-          Number(point.y)-
-          Number(geometryOrigin.y);
-        const forward=
-          dx*cos+
-          dy*sin;
-        const lateral=
-          Math.abs(
-            -dx*sin+
-            dy*cos
-          );
-        const radius=
-          Math.max(
-            0,
-            Number(target.radius)||0
-          );
-
-        if(
-          forward<0||
-          forward>range||
-          lateral>
-            halfWidth+
-            radius
-        )continue;
-
-        stopRange=
-          Math.min(
-            stopRange,
-            Math.max(
-              0,
-              forward
-            )
-          );
-      }
-
-      if(stopRange<range){
-        collisionModule={
-          ...resolvedModule,
-          range:stopRange
-        };
-      }
-    }
+    const collisionModule=resolvedModule.stopAtFirstEnemy===true&&resolvedModule.shape==='rect'
+      ?{...resolvedModule,range:HitScanGeometryService.firstEnemyRange(geometryOrigin,resolvedModule,resolvedAngle)}
+      :resolvedModule;
 
     const effectiveModule=
       collisionModule.shape==='circle'
@@ -637,6 +559,16 @@ const AreaAttackService=Object.freeze({
           effectiveModule
         );
         volley.hits++;
+      }
+    }
+
+    // 이번 공격의 벽 차단 판정/FX를 완료한 뒤 지형을 변경한다.
+    const destructionCenter=AreaGeometryService.center(geometryOrigin,resolvedModule,resolvedAngle);
+    for(const effect of spec.modules||[]){
+      if(effect?.type==='world.destroy-walls'){
+        WorldDestructionService.destroyCircle(destructionCenter,
+          Number(effect.range)||Number(resolvedModule.range)||0,
+          {source,wallPolicy:effect.wallPolicy,contactRange:Number(effect.contactRange)||0});
       }
     }
 

@@ -1,6 +1,12 @@
 
 
 const AttackModuleService=Object.freeze({
+  volleyTravelRange(source,attack,module,targetPoint=null){
+    const maximum=Math.max(0,Number(attack?.range)||0);
+    if(module?.distanceMode!=='target-point'||!targetPoint||
+       !Number.isFinite(Number(targetPoint.x))||!Number.isFinite(Number(targetPoint.y)))return maximum;
+    return Math.min(maximum,Math.hypot(Number(targetPoint.x)-(Number(source.x)||0),Number(targetPoint.y)-(Number(source.y)||0)));
+  },
   progressConditionsMatch(source,target,module,context={}){
     for(const condition of module?.conditions||[]){
       if(TriggerConditionService.matches(condition,{
@@ -434,6 +440,7 @@ const AttackModuleService=Object.freeze({
       homing:
         module.homing&&typeof module.homing==='object'
           ?{
+            requiresResource:String(module.homing.requiresResource||''),
             startAfterHit:
               module.homing.startAfterHit===true,
             stopAfterAligned:
@@ -1252,7 +1259,7 @@ const AttackModuleService=Object.freeze({
               String(module.attackId)
             )
             :spec;
-        const volleyAttack=
+        let volleyAttack=
           volleyAttackBase===spec
             ?spec
             :AugmentService.prepareAttack(
@@ -1264,6 +1271,9 @@ const AttackModuleService=Object.freeze({
               performance.now()
             );
         if(!volleyAttack)continue;
+        if(module.distanceMode==='target-point'){
+          volleyAttack={...volleyAttack,range:this.volleyTravelRange(source,volleyAttack,module,volley?.execution?.targetPoint)};
+        }
         const count=Math.max(1,Number(module.count)||1);
         const delay=Math.max(0,Number(module.delay)||0);
         const interval=Math.max(0,Number(module.interval)||0);
@@ -1655,7 +1665,6 @@ const AttackModuleService=Object.freeze({
           angle:Number(movement.angle)||Number(angle)||0,
           distance:Math.max(
             0,
-            Number(movement.presentationDistance)||
             Number(movement.distance)||
             0
           ),
@@ -1663,7 +1672,9 @@ const AttackModuleService=Object.freeze({
             GAME_DATA.frameMs,
             Number(movement.duration)||GAME_DATA.frameMs
           ),
-          easing:String(movement.easing||'linear')
+          easing:String(movement.easing||'linear'),
+          collision:{...movement.collision},
+          enemyCollisionOvershoot:Math.max(0,Number(movement.enemyCollisionOvershoot)||0)
         };
       }
     }

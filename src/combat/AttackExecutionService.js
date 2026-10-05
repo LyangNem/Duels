@@ -120,6 +120,12 @@ const AttackExecutionService=Object.freeze({
   hasHitOn(execution,target){
     return !!(execution&&target&&execution.hitTargets.has(target.id));
   },
+  shareHits(execution,parent){
+    if(!execution||!parent||execution===parent)return false;
+    execution.hitTargets=parent.hitTargets;
+    execution.hitGroupSequence=parent.hitGroupSequence??parent.sequence;
+    return true;
+  },
   markHitOn(execution,target){
     if(!execution||!target)return false;
     execution.hitTargets.add(target.id);

@@ -362,6 +362,7 @@ GameEvents.on('entity-defeated',event=>{
           candidate?.type!=='effect.spawn'||
           candidate.replaceAutoAreaEffect!==true
         )return false;
+        if(candidate.replaceAreaShape&&candidate.replaceAreaShape!==module.shape)return false;
         if(!Array.isArray(candidate.conditions))return true;
         return TriggerModuleService.matches(
           {

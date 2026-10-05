@@ -14,7 +14,13 @@ const AreaGeometryService=Object.freeze({
       x=Number(module.centerPoint.x);
       y=Number(module.centerPoint.y);
     }else{
-      const distance=Math.max(0,Number(module?.centerDistance)||0);
+      let distance=Math.max(0,Number(module?.centerDistance)||0);
+      if(distance>0&&module?.centerPathFirstEnemy===true){
+        distance=HitScanGeometryService.firstEnemyRange(source,{range:distance,halfWidth:module.centerPathHalfWidth,stopAtFirstEnemy:true},angle);
+      }
+      if(distance>0&&module?.centerPathWallPolicy==='block'){
+        distance=WorldGeometryService.raycastDistance(x,y,angle,distance);
+      }
       if(distance>0){
         x+=(Math.cos(angle)*distance);
         y+=(Math.sin(angle)*distance);

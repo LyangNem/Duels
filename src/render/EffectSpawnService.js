@@ -987,6 +987,8 @@ const EffectSpawnService=Object.freeze({
           Number(remoteTimeline.duration)||GAME_DATA.frameMs
         ),
         easing:String(remoteTimeline.easing||'linear'),
+        collision:remoteTimeline.collision||null,
+        enemyCollisionOvershoot:Math.max(0,Number(remoteTimeline.enemyCollisionOvershoot)||0),
         visualDistance:0,
         damageDistance:0
       };
@@ -1312,11 +1314,6 @@ const EffectSpawnService=Object.freeze({
         state.movementDamageExecutionValidated===true&&
         timeline
       ){
-        this.appendRemoteMovementTimelinePresentation(
-          effect,
-          timelineNow
-        );
-
         const duration=Math.max(
           GAME_DATA.frameMs,
           Number(timeline.duration)||GAME_DATA.frameMs
@@ -1332,8 +1329,9 @@ const EffectSpawnService=Object.freeze({
           raw,
           String(timeline.easing||'linear')
         );
-        const targetDistance=
-          Math.max(0,Number(timeline.distance)||0)*progress;
+        let targetDistance=timeline.stopped===true
+          ?Math.max(0,Number(timeline.distance)||0)
+          :Math.max(0,Number(timeline.distance)||0)*progress;
         const previousDistance=Math.max(
           0,
           Math.min(
@@ -1350,6 +1348,22 @@ const EffectSpawnService=Object.freeze({
             timelineStartX+Math.cos(timelineAngle)*previousDistance;
           const damageFromY=
             timelineStartY+Math.sin(timelineAngle)*previousDistance;
+          // 발동 순간의 적 위치로 고정하지 않고 매 구간 공통 이동 충돌을 다시 검사한다.
+          if(timeline.collision){
+            const anchor=timeline.collisionAnchor||(timeline.collisionAnchor=Object.create(source));
+            anchor.x=damageFromX;anchor.y=damageFromY;
+            timeline.traveled=previousDistance;
+            const travel=MovementAbilityService.travelWithEnemyOvershoot(
+              anchor,timeline,
+              timelineAngle,targetDistance-previousDistance
+            );
+            const requested=targetDistance-previousDistance;
+            targetDistance=previousDistance+travel.allowed;
+            if(travel.enemyCollision||travel.allowed+1e-6<requested){
+              timeline.distance=targetDistance;
+              timeline.stopped=true;
+            }
+          }
           const damageToX=
             timelineStartX+Math.cos(timelineAngle)*targetDistance;
           const damageToY=
@@ -1363,6 +1377,8 @@ const EffectSpawnService=Object.freeze({
             damageToY,
             {skipMovementValidation:true}
           )||applied;
+          this.appendMovementPathPresentation(effect,damageFromX,damageFromY,damageToX,damageToY);
+          timeline.visualDistance=targetDistance;
           timeline.damageDistance=targetDistance;
         }
       }
@@ -1437,6 +1453,13 @@ const EffectSpawnService=Object.freeze({
   update(now=performance.now()){
     if(!Training.active)return false;
     for(const effect of Training.fx){
+      if(effect?.entityDecoration===true){
+        const owner=EntityService.items.get(String(effect.sourceEntityId||''));
+        if(!owner?.alive||owner.character?.id!==effect.decorationCharacterId){
+          effect.dur=0;
+          continue;
+        }
+      }
       if(effect?.followSource===true){
         const source=
           EntityService.items.get(
