@@ -1,0 +1,23 @@
+{
+"version": "3.48.0",
+"date": "2026-10-05",
+"features": [
+"길은 만드는거니까, 신규 캐릭터 테르디온 추가"
+],
+"balance": [
+{
+"character": "가에",
+"changes": [
+"리워크"
+]
+},
+{
+"character": "반",
+"changes": [
+"리워크"
+]
+}
+],
+"bugfixes": [
+]
+}
