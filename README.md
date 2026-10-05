@@ -17,6 +17,9 @@ Python 3가 필요하다. Windows에서는 START.bat, Linux/macOS에서는 `sh S
 ## 분할 검수
 `python tools/verify.py`는 초기 분할 기준의 HTML 구조, CSS/JS 원문, 실행 순서, 현재 59명 등록, 전체 규칙 이관 및 배포 runtime을 대조한다. 기능을 의도적으로 변경한 이후에는 원본 동일성 검사가 실패할 수 있으므로, 그 변경의 회귀 검사와 구분한다. 문서 최신화 검사(`project.py check`)는 개발용 엄격 검사로 유지한다. 서버 실행은 문서가 오래됐다는 이유만으로 중단하지 않고 안내를 출력한다. 실제 소스 파일 누락은 실행 전에 검사한다. SHA-256 목록은 UTF-8 텍스트의 LF/CRLF 차이를 정규화하므로 Windows 줄바꿈 변환만으로 오래된 문서로 판정하지 않는다. 문서는 개발 작업자가 역할과 변경 기록을 확인한 뒤 갱신하며 서버가 자동으로 덮어쓰지 않는다. 모든 한글 소스·메타데이터는 UTF-8로 읽고 쓴다.
 
+## 티냐 반격 — 3.0.0-game.17
+반격은 마지막으로 발동한 마법진 배치를 조준 위치에 재발동한다. 기록이 없으면 최소 크기 원 하나를 사용한다. 미리보기는 반격 AttackSpec의 formation.manifest 모듈을 실제 발동과 동일한 resolveModuleCircles로 해석한다. 현재 설치된 마법진이나 예약 평타를 대신 표시/소비하지 않는다. 일반 평타 source:pending만 예약 마법진을 소비한다. 설명도 마지막 발동 기준으로 통일. 구조 회귀19개에 현재/마지막 배치 불일치·조준 이동·기록 없음·예약 상태 보존 검사 포함.
+
 ## 이동 접촉 공격의 원격 경로 — 3.0.0-game.15
 라임 평타와 레이카 일반/가호 반격의 공통 effect.spawn 몸통 접촉은 발동 순간 적 위치로 잘린 presentationDistance를 원격 피해 사거리로 사용하지 않는다. 실제 movement.distance/duration/collision/적 충돌 오버슈트를 같은 EffectSpec에 담고, 상대의 각 진행 구간에서 기존 MovementAbilityService.travelWithEnemyOvershoot로 현재 충돌을 재평가한다. 막힌 구간에서 피해·경로 표시를 함께 종료하며 대상별1회 적중은 유지한다. 적 충돌과 피해 접촉은 동일 NetworkCollisionPositionService 좌표를 사용해 보간 표시 좌표와 충돌 좌표의 차이로 일찍 멈추는 경우도 줄인다. 캐릭터 수치·모듈 구성·피격 권위 변경 없음. node tools/test-movement-contact.cjs19개 및 기존 회귀 검사 사용. 실제 두 기기 온라인은 미검증이다.
 

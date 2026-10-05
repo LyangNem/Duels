@@ -372,3 +372,9 @@
 변경: 지오핀 캐릭터 데이터·출시 등록·이동 표기·전용 문서/회귀 파일 삭제, 현재 공식 캐릭터59명으로 카탈로그 검사/안내 갱신. 기존 공통 기어/모드/무기 모듈과 반 스패너 리디자인은 유지. 이전 PATCH LOG 이력 보존. runtime 재생성으로 선택/랜덤/훈련장/라운드 후보에서 제외.
 대상: characters/index.json, CHARACTER_RULES.js, geopin.js(삭제), GEOPIN.md(삭제), test-geopin.cjs(삭제), test-structure.cjs, test-terdion.cjs, verify.py, README, CHARACTER CONTRACT, project.json, DIVIDE TASKS, 생성runtime.js.
 검증:59명 등록·컴파일, 배포 runtime에 지오핀 데이터 없음, 나머지 구조/전투/이동/방 회귀·build·구문·docs/check/verify·ZIP 무결성. 실제 브라우저/두 기기 온라인 미검증.
+
+## 3.0.0-game.17 — 2026-10-05
+요청/확정: 티냐 반격은 마지막 발동 마법진 기준. 설명과 미리보기 불일치 수정.
+변경: 티냐 설명을 마지막 발동 배치 재사용/기록 없으면 최소 원으로 교정. CircleFormationService.drawCounterPreview가 현재 설치 배치를 사용하던 defaultCounterFormation 대신 반격의 formation.manifest 데이터와 실제 resolveModuleCircles를 공유. pendingManifest는 source:pending 평타만 소비하도록 제한해 반격/미리보기에서 예약 평타를 잘못 사용하는 경로 제거. 새 모듈/캐릭터 예외 없음.
+대상: tinya.js, CircleFormationService.js, test-structure.cjs, README, project.json, DIVIDE TASKS, 생성runtime.js.
+검증: 실제 마지막 배치와 미리보기 geometry 일치·현재 설치 배치 불일치·조준 이동·최소 원 fallback·예약 평타 비소비/평타 소비. 구조19·가에9·테르디온29·게임15·방17·이동19 및 build/구문/docs/check/verify·ZIP 원본 일치/CRC. 실제 브라우저/두 기기 온라인 미검증.

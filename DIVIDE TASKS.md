@@ -1,6 +1,6 @@
 # DIVIDE TASKS
 
-버전: 3.0.0-game.16
+버전: 3.0.0-game.17
 
 역할 변경 시 project.json의 role/symbols도 수정하고 `python tools/project.py docs`로 이 문서를 갱신한다. 해시 검사는 역할 의미의 정확성을 대신하지 않는다. runtime.js는 생성 결과이며 직접 편집하지 않는다.
 
@@ -9,8 +9,8 @@
 | `AGENTS.md` | AI 작업자에게 README 정독·문서 갱신 의무 안내 |  | e22055c0c72b7010c9e6eef168ac2f49e01a5411385ce87b4370aba513f29590 |
 | `DIVIDE TASKS.md` | 전체 파일 역할·심볼·해시 목록 |  | 자기 참조 제외 |
 | `Duels.html` | Duels.html 진입 화면·DOM·정적 CSS/JS 리소스 연결 |  | 55dd493a5537a9608a682341a963234c30ee0df276f2c8ce3327a2d81e49a305 |
-| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | f0bc175544b67d81d681afe35c2bca131fe377f8f0e3d19f99cb1e2fa63f3c05 |
-| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | d7b745f830116f26ba9f93d689f75028a03882d14f248711c25c63f7d343f118 |
+| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | 16be45ae2b7bbe54e3d06d5afb1508ffb0b4736c010d9ca20d8a5402ca306c42 |
+| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | 71c502af2d9faeb1671002f25da7cfa6a3ccca46e83128995efb21f2e0fb9fee |
 | `START.bat` | Windows 로컬 서버 실행 |  | d383b503b5d39e16324de2f7031e5cd69175f3b54bfbf477097ee758f094c849 |
 | `START.sh` | Linux/macOS 로컬 서버 실행 |  | 14be4f1c3b060556e2df88e1811eabe8d8ceeb8011f4c0c498399a9675e94bfa |
 | `docs/CHARACTER CONTRACT.md` | 공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약 |  | 3ca83db0d47af33b6b36590a4a16e9735467703b0cc07ebaf9af41232ea5b858 |
@@ -21,13 +21,13 @@
 | `docs/STRUCTURE AUDIT.md` | 구조 검수 범위·발견/수정·58명 결과·우선 플레이 테스트와 검증 한계 |  | f98c1c01ed30000c6c84692a55a0d0af39403f71a8a5d49cbb33736d74013935 |
 | `docs/TERDION.md` | 테르디온 현재 단발/직격200/착탄 직격 및 모듈 책임·수치·검증·실기기 확인 안내·반격 반경14·평타 탄속20.8·평타/반격 직격150·반격350·반격 마우스 거리 조절 |  | 7764cc3d9596f0cacc052c40de03eb4758cc6fcc75f0e8fb8e6f7b561180abee |
 | `docs/VERIFICATION.md` | split.2 검수 발견 오류·수정·통과 검사·실행 한계와 재현 방법 기록 |  | ae9d7cc0de36c42ea51f7ed040a8fc4ef8a53b31cb750f2bf010dc482d7038e9 |
-| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | 96c1a9ade1f4edbfece097a37b0d0e6fe50bf7b1c815a37968308b36edf5e58d |
+| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | 1af9106776be5b3f84f380911ebbc80a75116afce6a252bf4eee1860a88e2561 |
 | `src/abilities/AbilityAttackExecutionService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: AbilityAttackExecutionService. | AbilityAttackExecutionService, execute | 6aa6f2993ec47e9ca212f2f318d8a66ae4266eaf68021cb10d1cc7710d0ce019 |
 | `src/abilities/AbilityModuleService.js` | 공통 능력 실행: 기존 상태/공격 합성·modifier.limited-use 어댑터·원격 모드 재회전 방지 | AbilityModuleService, addUsageTags, handlers, run | fe20080b94d27dbba92f7d33399ce12494bad025a5672bb7ff369cf9aa9b34a4 |
 | `src/abilities/AbilityService.js` | 공통 Trigger/능력 실행·선택 무기 해석·행동 결과의 모드 snapshot/입력 방향 | AbilityService, attackById, damageRatio, eventAttack, resolvedInputAttack, trigger, canActivate, activate | 6b265ec62f13153df17abc8966a5ab4ae8cebe388e97f99d669e19da01bacdeb |
 | `src/abilities/ChannelAttackService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: ChannelAttackService. | ChannelAttackService, KIND, GAUGE_COMPLETE_KIND, EMPTY_SNAPSHOTS, attackAnimationDuration, state, serialize, applyRemote, updatePresentation, start, interruptCharging, locksAction, hasGauge, hasFlash, drawGauge, applySelfStatus, clearSelfStatus, stop, update | f46708f7d398f8a9e98ba5c357be3422f1fe248545f2bbab3dc693e457101418 |
 | `src/abilities/ChargedAttackService.js` | 공통 차징 시작·진행·릴리스·게이지; 명시 비용0 보존 및 생략 비용 fallback | ChargedAttackService, KIND, state, states, attack, maxProgress, resourceProgressCap, progress, lerp, dynamicSpec, syncPreview, start, update, releaseData, release, releaseQueued, cancel, blocksMovement, allowsStaminaRegen, hasGauge, isFull, draw | 7ed631b8a9b169d8a8ed88114cc719688f9cfecb01dd2c328cf523d16ef744e7 |
-| `src/abilities/CircleFormationService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: CircleFormationService. | CircleFormationService, states, KIND, EMPTY, config, state, pointerFor, cloneCircle, cloneCircles, snapshotRelative, cloneRelative, circleConfig, activationConfig, maxCount, minRadius, maxRadius, isMinimum, relation, graph, connectedIds, intersectionPoints, pointInside, circleTouchesCrossLens, sharedCrossEffects, amplifierEffects, pairKey, damageModel, circleAtPointer, circlesAtPointer, removeAtPointer, utilityAttack, canUtility, commitUtility, placeCircle, placeMinimum, handlesInput, isLocalEntity, press, release, beginActivation, cancelActivation, cancelWindupOnForcedMovement, beginReveal, finishGroupMove, updateCircleInput, updateActivation, update, resolveActivation, defaultCounterFormation, resolveModuleCircles, strongestImpactCircle, amplifierStageForTarget, amplifierStatusConfig, applyManifestDamage, manifestFromModule, createBurst, broadcastManifest, receiveManifest, counterNetworkSnapshot, setPendingCounterSnapshot, serialize, applyRemote, roleMeta, drawRoleIcon, drawSet, entityHoldGaugeState, drawCountGauge, drawHoldGauge, drawCounterPreview, draw | 62d986521e1b38bfd14b9d52dd9ac6a6c722b8d8a410167b987d02ceac812f23 |
+| `src/abilities/CircleFormationService.js` | 공통 마법진 생성/연결/발동/복제·반격 미리보기와 실제 모듈 해석 공유·pending 평타만 예약 소비 | CircleFormationService, states, KIND, EMPTY, config, state, pointerFor, cloneCircle, cloneCircles, snapshotRelative, cloneRelative, circleConfig, activationConfig, maxCount, minRadius, maxRadius, isMinimum, relation, graph, connectedIds, intersectionPoints, pointInside, circleTouchesCrossLens, sharedCrossEffects, amplifierEffects, pairKey, damageModel, circleAtPointer, circlesAtPointer, removeAtPointer, utilityAttack, canUtility, commitUtility, placeCircle, placeMinimum, handlesInput, isLocalEntity, press, release, beginActivation, cancelActivation, cancelWindupOnForcedMovement, beginReveal, finishGroupMove, updateCircleInput, updateActivation, update, resolveActivation, defaultCounterFormation, resolveModuleCircles, strongestImpactCircle, amplifierStageForTarget, amplifierStatusConfig, applyManifestDamage, manifestFromModule, createBurst, broadcastManifest, receiveManifest, counterNetworkSnapshot, setPendingCounterSnapshot, serialize, applyRemote, roleMeta, drawRoleIcon, drawSet, entityHoldGaugeState, drawCountGauge, drawHoldGauge, drawCounterPreview, draw | d091a6a5986946c93de8aebd86c7e17982d78b566b2278aa3d017de8902f5c47 |
 | `src/abilities/CookingService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: CookingService. | CookingService, KIND, config, state, capacity, stoveCapacity, stoveFull, mealProjectileRadius, mealWeaponStyle, syncReady, acquire, consumeIngredient, addStoveInput, spawnMealProjectile, allyAtPoint, drawMealTargetRanges, launchIngredient, finishStove, isOwnStove, applyThrownMeal, commitMealThrow, update, serialize, applyRemote | 659b07e53111b5add4e1dde5ffd549aa61d1f23a5c3a7db2c5076ea53ec026b2 |
 | `src/abilities/FormulaSequenceConfigService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: FormulaSequenceConfigService. | FormulaSequenceConfigService | 187563e3b9a67f7d5ac7f7b1e0bf33e44a7714be24458e9bded3adf4218c78ad |
 | `src/abilities/FormulaSequenceService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: FormulaSequenceService. | FormulaSequenceService, KIND, FLASH_KIND, flashStateKey, completeFlashActive, startCompleteFlash, normalizeFormula, expanded, stage, pointerDistance, withinActivation, chooseIndex, state, mistakeProgress, input, presentation, tokenProgress | ea397f140609f32c7bc76d2a771b339f2a8bd17aa87819033f80191555ddcc9d |
@@ -373,7 +373,7 @@
 | `src/data/characters/tadta.js` | tadta 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | tadta | 5dbfee81e553e1ea9f89c0482cf0831a0faa06a5d9214763cd6279159be618ea |
 | `src/data/characters/tau.js` | 타우 공식 캐릭터의 능력치·공격·Trigger·스파크 진행도·설명 데이터. 충전 평타는 Base Damage 200 × Damage Ratio 2.5로 기본 피해 500. 실행은 공통 서비스에 위임. 분할 전 원본의 이동 선 미표시를 presentation:false로 보존. | tau | 19ba663e9193a40f2b613f886d7092c61d8423cdb4a235c4e2c2c8ea1975240b |
 | `src/data/characters/terdion.js` | 테르디온 순수 데이터: 단발 평타 비용200/반경14/탄속20.8, 평타 직격150·스킬 직격200, 비행 중 적 통과/착탄 직격150/최대350의 8방향 반격(판정/표시/호 반경14); 500ms 잔류·아군 공개 호·조기 제거 취소·3단계 벽 차단 폭발·스킬 도달/접촉 벽 파괴 반격8방향 마우스 거리 조절(최대350), 선딜 aim-point 갱신. | terdion | 2f93b2d9ff3c8c680a435af6c0c4b126480bc7b238decd27f0ac39766585d74a |
-| `src/data/characters/tinya.js` | tinya 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | tinya | d8000a8b1979d6c239c2e72063268799b1cceff941871b6e9b740963a5abf4f6 |
+| `src/data/characters/tinya.js` | 티냐 순수 마법진 데이터·마지막 발동 마법진 재사용 반격 및 설명 | tinya | fa1b91f48ccf7d0a6f70f10799ed81b81a65300969c9fcd147a5e018e8b5552d |
 | `src/data/characters/van.js` | 반 순수 데이터·스패너25/초·파괴후5회복구·내구도 적중 정상/체력피해 집계 | van | 52113512e03ffc7f2e95f7c8abe254bf9a26c6954dd2b4f45a4bd2b9c182754e |
 | `src/data/characters/veleu.js` | veleu 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | veleu | 48fa3428e5b1a27c31ce60e593e2c9b5301402ea08d9907a20edad4ea2c424cb |
 | `src/data/characters/xianelli.js` | 시아넬리 데이터 원본; 공통 평타 홀드·정지 투사체 교환 이동/도착 공격 설정 | xianelli | f8d1356a96aef8787ab256a060126351feabf65d65272169c98edd20927d9813 |
@@ -529,6 +529,6 @@
 | `tools/test-gameplay-fixes.cjs` | 실제 서비스 실행 회귀 15개: 사망 관전·방어 경로·선택 상한·불규칙 잔향 수신 보간·종료/축소·독립성 |  | 02b44ee757277225a7db98e54ccf1dc390f45da701d70b9ec48f24ac74f7a304 |
 | `tools/test-movement-contact.cjs` | 라임 평타/레이카 일반·가호 반격 실제 EffectSpec 원격 접촉19개 회귀·같은 방향 이동/정지/중복/범위 밖/최신 좌표 검증 |  | a67ded1f59a08e65948b3026548037395877ae04ce9a2982b428d4dec204ff4c |
 | `tools/test-room-connection.cjs` | 가짜 Peer/시계·패킷 복사·실제 RoomUI 정렬을 통한 연결·승계·재입장 순서 17개 회귀 검사 |  | 02a38579189fa2cf5d761eddb086b37ce521a4f86ce3fdbaf17efa9a489718b7 |
-| `tools/test-structure.cjs` | 59명 구조18그룹 회귀. 시아넬리3종 시계차±60초·실제 착탄 update/표시·null 좌표 검사 포함 |  | 0e23786ab5d97de382d6a08bc58106ac018b04d94500aec088248e24d65fd6bc |
+| `tools/test-structure.cjs` | 공식59명 구조/회귀19개·티냐 반격 마지막 배치 미리보기/실제 발동 및 예약 비소비 검증 |  | bdd909c3532ff794948c1c32f0dc2d0e65bddbf605b247613e46e20712f61cdb |
 | `tools/test-terdion.cjs` | 테르디온/공통 공격·착탄·내구도 피해 파이프라인 및 59명 카탈로그 회귀 | test, load, carrier, damage, loadCancellation | 82c9872bbe1a6da56cf714cc439400b2d49085f2cdc9f6699d3862a05d38eb43 |
 | `tools/verify.py` | 초기 원본 구조/규칙 및 현재 59명·리소스·조립/배포 검사 | Document, document_hash, verify | 81b6c60c61bb23a40c1eeb6ad7f26878d25ff35ec6cd2b28b100c59f1547aa65 |

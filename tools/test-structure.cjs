@@ -192,4 +192,23 @@ test('시아넬리 3종 원격 착탄:시계차±60초/보정20ms·실제 정지
  }
  assert.ok(fs.readFileSync(path.join(root,'src/network/OnlineDuelService.js'),'utf8').includes('payload.stationaryProjectiles||[],\n        payload.sentAt,\n        performance.now(),\n        delayMs'));
 });
+load('src/abilities/CircleFormationService.js','CircleFormationService');
+test('티냐 반격 설명/미리보기/실제 마지막 발동 마법진 일치·미발동 최소 원·미리보기 비소비',()=>{
+ const ch=chars.tinya,e={id:'tinya-preview',character:ch,local:true,alive:true,actionState:new Map()},service=c.CircleFormationService;
+ let mouse={x:500,y:400};c.Training={active:true,sessionMode:'training',mouseWorld:()=>mouse,player:e};
+ const state=service.state(e),attack=ch.attacks.counter,module=attack.modules.find(m=>m.type==='formation.manifest');
+ e.counterWindup={attack};state.circles=[{id:'placed',x:10,y:20,r:200,order:1}];
+ state.lastFormation=[{dx:-50,dy:0,r:70,order:1},{dx:50,dy:0,r:90,order:2}];
+ const pending={circles:[{x:5,y:5,r:220}]};state.pendingManifest=pending;
+ let drawn;const view={...service,drawSet(ctx,entity,circles){drawn=circles;return true}};
+ const geometry=list=>Array.from(list,x=>[x.x,x.y,x.r,x.order]);
+ for(const point of [{x:500,y:400},{x:700,y:100}]){
+  mouse=point;assert.equal(view.drawCounterPreview({},e,1000),true);
+  const actual=service.resolveModuleCircles(e,module,{targetPoint:point});
+  assert.deepEqual(geometry(drawn),geometry(actual));assert.equal(actual.length,2);assert.equal(actual[0].x,point.x-50);assert.equal(state.pendingManifest,pending);
+ }
+ state.lastFormation=[];view.drawCounterPreview({},e,1000);assert.equal(drawn.length,1);assert.equal(drawn[0].r,ch.circleFormation.circle.minRadius);
+ assert.ok(ch.tooltipSkills.find(x=>x.key==='L-Shift').text.includes('마지막으로 발동한'));
+ assert.equal(service.resolveModuleCircles(e,{source:'pending'},{}).length,1);assert.equal(state.pendingManifest,null);
+});
 console.log(`PASS ${passed} structure/regression groups / ${Object.keys(chars).length} characters`);

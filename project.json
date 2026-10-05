@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-game.16",
+  "version": "3.0.0-game.17",
   "source": "3.1717 (65).html",
   "original_script_sha256": "6fd12004e89d39fffe6a916d711147f63a7039b1a1cc995f7cc8532751f0ed8e",
   "load_order": [
@@ -1046,7 +1046,7 @@
     },
     {
       "path": "src/data/characters/tinya.js",
-      "role": "tinya 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.",
+      "role": "티냐 순수 마법진 데이터·마지막 발동 마법진 재사용 반격 및 설명",
       "symbols": [
         "tinya"
       ]
@@ -5154,7 +5154,7 @@
     },
     {
       "path": "src/abilities/CircleFormationService.js",
-      "role": "기술 실행·범용 기능 조합。 담당 선언/초기화: CircleFormationService.",
+      "role": "공통 마법진 생성/연결/발동/복제·반격 미리보기와 실제 모듈 해석 공유·pending 평타만 예약 소비",
       "symbols": [
         "CircleFormationService",
         "states",
@@ -6784,7 +6784,7 @@
     },
     {
       "path": "tools/test-structure.cjs",
-      "role": "59명 구조18그룹 회귀. 시아넬리3종 시계차±60초·실제 착탄 update/표시·null 좌표 검사 포함",
+      "role": "공식59명 구조/회귀19개·티냐 반격 마지막 배치 미리보기/실제 발동 및 예약 비소비 검증",
       "symbols": []
     },
     {
@@ -6929,7 +6929,7 @@
   "baseline_rules_sha256": "eaaf531ff3eedf5244ec6829d0fe12d1932bab4c252c79b68ecf839e27ea6bac",
   "old_rule_16": "16. Duels 3.0은 반드시 단일 HTML 파일로 유지한다.\n- 외부 JS/CSS 파일로 게임 코드를 분리하지 않는다.\n- 단일 파일 내부에서도 시스템별 영역과 책임을 명확하게 구획한다.\n- 단일 파일 조건은 모듈화 금지를 의미하지 않는다.",
   "new_rule_16": "16. DUELS 3.0은 역할별 여러 소스 파일로 개발한다.\n- 캐릭터는 캐릭터별 데이터 원본, 실행 기능은 공통 서비스 단위로 분리한다.\n- 실행 순서와 공유 문맥을 유지하는 조립은 허용한다. 생성 결과를 직접 수정하지 않는다.\n- 배포 파일명은 Duels.zip, 진입 HTML은 Duels.html로 고정한다.",
-  "current_script_sha256": "7ced35e5e92dd10a99d29b8a972a9b6778815ed624ccd5e26cf3373264671e1e",
+  "current_script_sha256": "1a66f93798126ee30cdccf5b64867f3aaf91998a988af065e9591b3fcf153b61",
   "baseline_layout_sha256": "91b3fa54ece362a30852be9cdb5fccd051c0afda78cc6e891b240eab54747aac",
   "current_resource_sha256": {
     "styles/game.css": "92d09aeb5e332feb7bed8f66542ec8622b600f2edfc6aa047eb77dd64d166a82"

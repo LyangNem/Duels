@@ -2072,8 +2072,9 @@ const CircleFormationService=Object.freeze({
     const state=this.state(entity);
     if(!state)return [];
 
+    const sourceMode=String(module?.source||'placed');
     if(
-      state.pendingManifest?.circles?.length
+      sourceMode==='pending'&&state.pendingManifest?.circles?.length
     ){
       const circles=this.cloneCircles(
         state.pendingManifest.circles,
@@ -2082,8 +2083,6 @@ const CircleFormationService=Object.freeze({
       state.pendingManifest=null;
       return circles;
     }
-
-    const sourceMode=String(module?.source||'placed');
 
     if(sourceMode==='last'){
       const pointer=this.pointerFor(
@@ -3448,11 +3447,11 @@ const CircleFormationService=Object.freeze({
     )return false;
 
     const pointer=this.pointerFor(entity);
-    const circles=
-      this.defaultCounterFormation(
-        entity,
-        pointer
-      );
+    const module=(windup.attack.modules||[]).find(
+      item=>item?.type==='formation.manifest'
+    );
+    if(!module)return false;
+    const circles=this.resolveModuleCircles(entity,module,{targetPoint:pointer});
     return this.drawSet(
       ctx,
       entity,

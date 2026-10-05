@@ -66,7 +66,7 @@
         text: "최소 크기 마법진만 증폭 마법진이 될 수 있음. 직ㆍ간접 연결된 마법진에 증폭 단계에 따라 {v:circleFormation.amplifier.duration|seconds}초 감속ㆍ속박ㆍ빙결"
       },
       {key: "RMB HOLD", name: "마법진 수정", attack: "rmb", showCost: false, text: "선택한 마법진의 위치 조정"},
-      {key: "L-Shift", name: "무영창 주문서", attack: "counter", text: "현재 그려진 마법진을 조준 위치에서 즉시 발동"}
+      {key: "L-Shift", name: "무영창 주문서", attack: "counter", text: "마지막으로 발동한 마법진을 조준 위치에서 재발동. 발동 기록이 없으면 최소 크기 마법진 발동"}
     ],
     attacks: {
       lmb: {
