@@ -1,0 +1,2 @@
+
+const DUELS2_TILE_DESIGN_COLS = 80;

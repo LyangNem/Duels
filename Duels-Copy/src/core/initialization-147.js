@@ -1,0 +1,2 @@
+
+SoundService.installUnlock();

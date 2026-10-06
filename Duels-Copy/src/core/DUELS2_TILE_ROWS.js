@@ -1,0 +1,2 @@
+
+const DUELS2_TILE_ROWS = 28;
