@@ -138,6 +138,7 @@
           {
             type: "field.area",
             stateKey: "ki-forecast",
+            reactiveEquipmentEntry: false,
             anchorMode: "target-point",
             shape: "circle",
             range: 347,

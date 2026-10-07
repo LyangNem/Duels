@@ -120,6 +120,7 @@
         cd: 900,
         range: 150,
         progressScale: {
+          rangeBasis: "initial",
           stateKey: "quri-cube-stage",
           valueRange: {from: 0, to: 4},
           range: {from: characterValue("attacks.lmb.range"), to: 300},

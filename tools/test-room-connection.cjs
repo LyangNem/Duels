@@ -23,13 +23,35 @@ function harness(identity="local"){
 }
 function displayPids(h){
  const grid={children:[],replaceChildren(){this.children=[]},appendChild(node){this.children.push(node)}};
- const context={RoomService:h.r,CharacterBanUI:{sync(){}},document:{getElementById:id=>id==='room-member-grid'?grid:null,createElement:()=>({})}};
+ const context={RoomService:h.r,CharacterBanUI:{sync(){}},document:{querySelectorAll:()=>[],getElementById:id=>id==='room-member-grid'?grid:null,createElement:()=>({})}};
  // Run the real UI renderer with only card appearance stubbed out.
  vm.runInNewContext(fs.readFileSync(root+'/src/ui/RoomUI.js','utf8')+';RoomUI.render.call({profileModes:new Map(),profileCard:member=>({pid:member.pid})});',context);
  return grid.children.filter(n=>n.pid).map(n=>n.pid);
 }
 async function test(name,fn){await fn();console.log('PASS '+name)}
 (async()=>{
+ await test('충격 전달/반사 패킷은 실제 Room 호스트 전달·클라이언트 수신 통과',async()=>{
+  const h=harness(),received=[],sent=[];
+  vm.runInContext(fs.readFileSync(root+'/src/core/ROOM_GAMEPLAY_PACKET_TYPES.js','utf8'),h.sandbox);
+  vm.runInContext('const ROOM_CHAT_PACKET_TYPES=new Set();',h.sandbox);
+  h.sandbox.OnlineDuelService={receive:(pid,p)=>received.push([pid,p.type])};h.r.sendToPeers=p=>sent.push(p);h.r.isHost=true;
+  for(const type of ['duel-projectile-relay','duel-projectile-redirect'])assert.equal(h.r.receiveGameplay('P2',{type,sourcePid:'P2'}),true);
+  assert.equal(received.length,2);assert.equal(sent.length,2);
+  h.r.isHost=false;for(const type of ['duel-projectile-relay','duel-projectile-redirect'])assert.equal(h.r.handleClientPacket({type,sourcePid:'P1'}),true);
+  assert.equal(received.length,4);
+ });
+
+ await test('복제 탭의 sessionStorage가 같아도 창별 세션·같은 창 재연결 키 유지',async()=>{
+  const source=fs.readFileSync(root+'/src/core/RoomIdentityService.js','utf8')+';globalThis.identity=RoomIdentityService;';let sequence=0;const store=new Map([['duels3.room.sessionIdentity.v1','copied-session']]);
+  const shared={getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)};
+  const page=()=>{const context={Date,Math,sessionStorage:shared,localStorage:shared,crypto:{randomUUID:()=>`page-${++sequence}`}};vm.runInNewContext(source,context);return context.identity};
+  const a=page(),b=page();assert.notEqual(a.key(),b.key());assert.equal(a.key(),a.key());assert.equal(a.deviceKey(),b.deviceKey());assert.notEqual(a.profileKey({isGuest:true}),b.profileKey({isGuest:true}));assert.equal(a.profileKey({accountId:'same'}),b.profileKey({accountId:'same'}));
+ });
+ await test('같은 계정/기기여도 다른 창의 세션은 독립 참가·중복 연결만 거절',async()=>{
+  const h=harness();await h.r.host();h.peers[0].ready();const profile={accountId:'same',isGuest:false};h.r.members.get('P1').profile=profile;
+  const add=key=>{const c=new h.Channel();c.ready();h.r.bindHostConnection(c);c.emit('data',{type:'hello',protocol:1,code:h.r.code,profile,sessionKey:key,deviceKey:'device',identityKey:'account:same'});return c};
+  assert.equal(add('tab-a').sent[0].pid,'P2');assert.equal(add('tab-b').sent[0].pid,'P3');assert.equal(h.r.members.size,3);assert.equal(add('tab-a').sent[0].reason,'duplicate');assert.deepEqual(displayPids(h),['P1','P2','P3']);
+ });
  await test('번호 확보 전 권한 없음 / 중복 생성 차단 / 충돌 번호 재시도',async()=>{const h=harness();await h.r.host();assert.equal(h.r.isHost,false);assert.equal(h.r.code,'');await h.r.host();assert.equal(h.peers.length,1);const old=h.peers[0];old.emit('error',{type:'unavailable-id'});assert.equal(h.peers.length,2);old.ready();assert.equal(h.r.isHost,false);h.peers[1].ready();assert.equal(h.r.isHost,true);assert.match(h.r.code,/^[1-9]\d{3}$/);assert.match(h.peers[1].id,/^duels3-room-v1-/)});
  await test('취소 후 늦은 모듈 로딩 / open / data 무시',async()=>{const h=harness();let resolve;h.sandbox.PeerRuntime.ensure=()=>new Promise(r=>resolve=r);const task=h.r.host();h.r.reset();resolve();await task;assert.equal(h.peers.length,0);h.sandbox.PeerRuntime.ensure=()=>Promise.resolve();await h.r.join('1234');const p=h.peers[0];h.r.reset();p.ready();assert.equal(p.channels.length,0);assert.equal(h.r.localPid,null)});
  await test('생성 시간 초과는 자원 정리 후 재시도 가능',async()=>{const h=harness();await h.r.host();h.tick(12000);assert.equal(h.r.peer,null);assert.equal(h.r.code,'');assert.equal(h.timers.size,0);await h.r.host();h.peers.at(-1).ready();assert.equal(h.r.isHost,true)});

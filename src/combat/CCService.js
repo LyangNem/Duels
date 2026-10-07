@@ -15,6 +15,12 @@ const CCService=Object.freeze({
       ?Infinity
       :Math.max(0,Number(duration)||0);
 
+    // Maintaining an active CC instance is not a new restriction event.
+    const refreshesRestriction=
+      (params.stackMode==='replace-source'||params.stackMode==='refresh-type')&&
+      list.some(item=>item.end>now&&item.sourceId===sourceId);
+    if(!refreshesRestriction&&entity.character?.reactiveEquipment&&finiteDuration>0&&EntitySimulationAuthorityService.isLocal(entity))ReactiveEquipmentService.restriction(entity,type,String(data?.sourceEntityId||sourceId||''),now);
+
     let storedParams=params;
 
     if(params.stackMode==='refresh-type'){

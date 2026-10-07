@@ -28,7 +28,6 @@ const CharacterCardDataService=Object.freeze({
       maxHealth:combat.maxHealth,
       moveLabel:combat.moveLabel,
       styleLabel:
-        combat.styleLabel||
         TagService.characterStyleLabel(combat),
       desc:combat.desc||'',
       combat

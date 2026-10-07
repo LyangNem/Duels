@@ -52,7 +52,7 @@
       },
       {key: "RMB", name: "분열", attack: "split", text: "현재 잃은 체력만큼 최대 체력을 소모하여 어린 슬라임 소환. 사망 시 가장 강한 슬라임으로 부활"},
       {
-        key: "RMB/RMB",
+        key: "RMB SUMMONER",
         name: "뛰어오르기",
         attack: "jump",
         detailAttack: "jumpLand",

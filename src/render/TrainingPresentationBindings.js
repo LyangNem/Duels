@@ -351,6 +351,7 @@ GameEvents.on('entity-defeated',event=>{
         center,
         polygon
       }=event;
+      const geometrySource=event.geometryOrigin||source;
       const effectColor=AttackPresentationColorService.resolve(
         source,
         event.attack,
@@ -381,7 +382,7 @@ GameEvents.on('entity-defeated',event=>{
       });
       const wallCutSegments=
         AreaWallCutPresentationService.segments(
-          source,
+          geometrySource,
           event.attack,
           module,
           angle,
@@ -435,8 +436,8 @@ GameEvents.on('entity-defeated',event=>{
       if(module.shape==='sector'){
         spawnAreaEffect({
           type:'botSwing',
-          x:source.x,
-          y:source.y,
+          x:geometrySource.x,
+          y:geometrySource.y,
           angle,
           range:module.range,
           halfAngle:module.halfAngle,
@@ -459,8 +460,8 @@ GameEvents.on('entity-defeated',event=>{
         const renderType=String(module.renderType||'areaCircle');
         spawnAreaEffect({
           type:renderType,
-          x:center?.x??source.x,
-          y:center?.y??source.y,
+          x:center?.x??geometrySource.x,
+          y:center?.y??geometrySource.y,
           angle,
           range:module.range,
           r:renderType==='annularDoubleSweep'?module.range:0,
@@ -519,8 +520,8 @@ GameEvents.on('entity-defeated',event=>{
       }else if(module.shape==='tapered-rect'){
         spawnAreaEffect({
           type:'taperedArea',
-          x:source.x,
-          y:source.y,
+          x:geometrySource.x,
+          y:geometrySource.y,
           angle,
           range:module.range,
           startHalfWidth:
@@ -548,18 +549,10 @@ GameEvents.on('entity-defeated',event=>{
           color:effectColor
         },source);
       }else{
-        const perpendicularOffset=
-          Number(module.perpendicularOffset)||0;
         spawnAreaEffect({
           type:'botDrill',
-          x:
-            (Number(source.x)||0)-
-            Math.sin(Number(angle)||0)*
-            perpendicularOffset,
-          y:
-            (Number(source.y)||0)+
-            Math.cos(Number(angle)||0)*
-            perpendicularOffset,
+          x:Number(geometrySource.x)||0,
+          y:Number(geometrySource.y)||0,
           angle,
           len:module.range,
           width:module.halfWidth,

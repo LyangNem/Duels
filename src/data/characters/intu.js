@@ -41,18 +41,12 @@
           {value: 11, color: "#a18a8a"},
           {value: 12, color: "#a18a8a"}
         ]
-      },
-      {
-        type: "gauge.segmented",
-        valueRef: {type: "mode", target: "self", stateKey: "intu-weapon", initial: "pistol"},
-        gap: 2,
-        height: 4,
-        activeAlpha: 0.95,
-        background: "rgba(10,18,22,0.92)",
-        stroke: "rgba(161,138,138,0.40)",
-        colorVariants: [{color: "#9bdcff", conditions: [{type: "state.exists", stateKey: "intu-sniper"}]}],
-        segments: [{value: "pistol", color: "#a18a8a"}, {value: "shotgun", color: "#a18a8a"}]
       }
+    ],
+    worldEffectModules: [
+      {type:"effect.spawn",renderType:"gunSilhouette",rotationStateKey:"intu-gun-rotation",rotationMs:300,style:"pistol",angle:-0.6,color:"#a18a8a",conditions:[{type:"state.absent",stateKey:"intu-sniper"},{type:"state.mode-is",stateKey:"intu-weapon",value:"pistol",initial:"pistol"}]},
+      {type:"effect.spawn",renderType:"gunSilhouette",rotationStateKey:"intu-gun-rotation",rotationMs:300,style:"shotgun",angle:-0.6,color:"#a18a8a",conditions:[{type:"state.absent",stateKey:"intu-sniper"},{type:"state.mode-is",stateKey:"intu-weapon",value:"shotgun",initial:"pistol"}]},
+      {type:"effect.spawn",renderType:"gunSilhouette",rotationStateKey:"intu-gun-rotation",rotationMs:300,style:"sniper",angle:-0.6,color:"#9bdcff",conditions:[{type:"state.exists",stateKey:"intu-sniper"}]}
     ],
     tooltipSkills: [
       {key: "LMB PISTOL", name: "권총 사격", attack: "pistol", text: "권총 발사. ({damage})"},
@@ -114,7 +108,8 @@
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -150,7 +145,8 @@
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -185,7 +181,8 @@
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "평타"]
       },
@@ -221,7 +218,8 @@
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "평타"]
       },
@@ -256,7 +254,8 @@
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "평타"]
       },
@@ -292,7 +291,8 @@
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "평타"]
       },
@@ -336,7 +336,8 @@
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -376,7 +377,8 @@
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["반격"]
       }
@@ -420,6 +422,7 @@
                 {attackId: "attack.intu.sniper", conditions: [{type: "state.exists", stateKey: "intu-sniper"}]},
                 {
                   attackId: "attack.intu.shotgun",
+                  rangeAvailableInitially: true,
                   conditions: [{type: "state.mode-is", stateKey: "intu-weapon", initial: "pistol", value: "shotgun"}]
                 }
               ]

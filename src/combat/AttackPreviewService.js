@@ -1,6 +1,23 @@
 
 
 const AttackPreviewService=Object.freeze({
+  fromTargetPoint(config,point,until,reuse=null){
+    const preview=reuse&&typeof reuse==='object'?reuse:{};
+    const radius=Math.max(0,Number(config.range)||0);
+    const points=Array.isArray(preview.points)?preview.points:[];
+    for(let i=0;i<48;i++){
+      const theta=Math.PI*2*i/48;
+      const vertex=points[i]||(points[i]={x:0,y:0});
+      vertex.x=Number(point.x)+Math.cos(theta)*radius;
+      vertex.y=Number(point.y)+Math.sin(theta)*radius;
+    }
+    points.length=48;
+    if(Array.isArray(preview.parts))preview.parts.length=0;
+    delete preview.liveTracking;
+    Object.assign(preview,{type:String(config.shape||'circle'),x:Number(point.x),y:Number(point.y),
+      range:radius,points,style:config.style||null,until,projectile:false,progress:0});
+    return preview;
+  },
   delayedProjectileVolleyParts(source,attack,angle,options=null){
     if(!source||!attack?.previewProjectilePaths)return [];
 
@@ -114,6 +131,21 @@ const AttackPreviewService=Object.freeze({
         ProgressScaledAttackService.resolve(source,attack),
         performance.now()
       );
+    const targetProjectile=AttackModuleService.module(preparedAttack,'delivery.projectile');
+    if(targetProjectile?.targetPoint===true&&targetProjectile.targetPreview&&options?.targetPoint){
+      let point={x:Number(options.targetPoint.x),y:Number(options.targetPoint.y)};
+      if(Number.isFinite(point.x)&&Number.isFinite(point.y)){
+        const dx=point.x-source.x,dy=point.y-source.y,distance=Math.hypot(dx,dy);
+        const range=Math.max(0,Number(preparedAttack.range)||0);
+        if(targetProjectile.targetPointClampToAttackRange!==false&&range>0&&distance>range){
+          point.x=source.x+dx*range/distance;point.y=source.y+dy*range/distance;
+        }
+        if(String(targetProjectile.targetPointResolve||'nearest-open')==='nearest-open'){
+          point=WorldGeometryService.nearestOpenPoint(point.x,point.y,Math.max(1,Number(targetProjectile.targetPointClearance)||2))||point;
+        }
+        return this.fromTargetPoint(targetProjectile.targetPreview,point,until,preview);
+      }
+    }
     if(preparedAttack.previewProjectilePaths==='impact-only'){
       preview.parts=this.delayedProjectileVolleyParts(source,preparedAttack,angle,options);
       preview.type='circle';preview.range=0;preview.halfWidth=0;preview.halfAngle=0;

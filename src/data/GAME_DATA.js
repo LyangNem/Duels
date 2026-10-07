@@ -6,7 +6,7 @@ const GAME_DATA=freezeCharacterData({
   world: {width: 2000, height: 1400},
   stamina: {max: 2000, regenDelay: 500, regenTime: 4000},
   healthRegen: {idle: 4500, tick: 1000, ratio: 0.1},
-  dodge: {cost: 400, dist: 140, speed: 17.95, dur: 130, justWindow: 80},
+  dodge: {cost: 300, dist: 119, speed: 17.95, dur: 130, justWindow: 80},
   counter: {window: 5000, delay: 300},
   cameraFeedback: {
     strongDamage: 600,

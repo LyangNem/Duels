@@ -30,9 +30,9 @@ test('원격 경로도 보정 / 중복·더 먼 guard는 경로·수명 연장 �
 test('만료된 잔향을 늦은 확정으로 되살리지 않음 / 다른 화살·잘못된 점 무시',()=>{const h=fields();h.state.endsAt=500;h.c.ProjectileImpactService.correctGuardPath(h.source,'arrow',{x:110,y:20});assert.equal(h.source.actionState.get(h.state.storageKey).endsAt,500);const calls=h.effects.length;assert.equal(h.c.ProjectileImpactService.correctGuardPath(h.source,'other',{x:110,y:20}),false);assert.equal(h.c.ProjectileImpactService.correctGuardPath(h.source,'arrow',{x:NaN,y:20}),false);assert.equal(h.effects.length,calls)});
 test('온라인 guard 수신: 투사체 없어도 공통 경로 보정 실행',()=>{const h=fields();load(h.c,'src/network/OnlineDuelService.js','OnlineDuelService');const o=h.c.OnlineDuelService;o.active=true;o.localPid='P1';o.remotePids=['P2'];o.roundToken=2;h.c.Training.remotePlayers=new Map();h.entities.set('P1',h.source);assert.equal(o.receive('P2',{type:'duel-projectile-guard-resolved',roundToken:2,projectileOwnerPid:'P1',projectileKey:'arrow',outcome:'remove',impactPoint:{x:110,y:20}}),true);assert.equal(h.source.actionState.get(h.state.storageKey).module.range,100)});
 test('캐릭터·증강 설정 25 허용 / 초과는 25 / 선택지는 중복 없이 25',()=>{const h=context();load(h.c,'src/network/RoomService.js','RoomService');const r=h.c.RoomService;r.isHost=true;r.broadcast=()=>{};r.setSettings({characterCount:25,augmentCount:25});assert.equal(r.settings.characterCount,25);assert.equal(r.settings.augmentCount,25);r.setSettings({characterCount:50,augmentCount:100});assert.equal(r.settings.characterCount,25);assert.equal(r.settings.augmentCount,25);h.c.CharacterCardDataService={all:()=>Array.from({length:58},(_,i)=>({id:'c'+i}))};h.c.AugmentDataService={all:()=>Array.from({length:40},(_,i)=>({id:'a'+i,rarity:'common'}))};load(h.c,'src/core/MatchChoiceService.js','MatchChoiceService');for(const ids of [h.c.MatchChoiceService.characterOptions(25),h.c.MatchChoiceService.augmentOptions(25)]){assert.equal(ids.length,25);assert.equal(new Set(ids).size,25)}});
-test('라운드 준비 패킷도 캐릭터·패배자 증강 25개 전송',()=>{const h=context();load(h.c,'src/network/RoomService.js','RoomService');const r=h.c.RoomService;r.isHost=true;r.duelPhase='round-result';r.settings.characterCount=25;r.settings.augmentCount=25;for(const pid of ['P1','P2']){r.members.set(pid,{pid,connected:true});r.activeMatchPids.add(pid)}h.c.RoomMatchLifecycleService={applyNextRoundRoster:()=>true};h.c.MatchMapService={pick:()=> 'open'};h.c.MatchChoiceService={characterOptions:n=>Array.from({length:n},(_,i)=>'c'+i),augmentOptions:n=>Array.from({length:n},(_,i)=>'a'+i)};h.c.OnlineDuelService={showBetween(){}};r.sendToPeers=()=>{};assert.equal(r.beginBetween('P1',['P2']),true);assert.equal(r._betweenPacket.charChoices.length,25);assert.equal(r._betweenPacket.augChoicesByPid.P2.length,25)});
+test('라운드 준비 패킷도 캐릭터·패배자 증강 25개 전송',()=>{const h=context();load(h.c,'src/network/RoomService.js','RoomService');const r=h.c.RoomService;r.isHost=true;r.duelPhase='round-result';r.settings.characterCount=25;r.settings.augmentCount=25;r.settings.gameMode='augment';for(const pid of ['P1','P2']){r.members.set(pid,{pid,connected:true});r.activeMatchPids.add(pid)}h.c.RoomMatchLifecycleService={applyNextRoundRoster:()=>true};h.c.MatchMapService={pick:()=> 'open'};h.c.MatchChoiceService={characterOptions:n=>Array.from({length:n},(_,i)=>'c'+i),augmentOptions:n=>Array.from({length:n},(_,i)=>'a'+i)};h.c.OnlineDuelService={showBetween(){}};r.sendToPeers=()=>{};assert.equal(r.beginBetween('P1',['P2']),true);assert.equal(r._betweenPacket.charChoices.length,25);assert.equal(r._betweenPacket.augChoicesByPid.P2.length,25)});
 test('경로 보정 수신도 기존 잔향 수명·타격 기록 보존',()=>{const h=fields();h.source.local=false;h.c.EntityService={items:new Map([['owner',h.source]])};h.c.OnlineDuelService={active:true,roundToken:2};load(h.c,'src/network/OnlinePresentationSyncService.js','OnlinePresentationSyncService');const data={module:{...h.state.module,range:100,presentation:{type:'progressRect',range:100}},point:{x:10,y:20},instanceId:h.state.instanceId,preserveState:true};assert.equal(h.c.OnlinePresentationSyncService.receive('P1',{roundToken:2,presentationId:'correction',entityId:'owner',kind:'field-point-spawn',data}),true);const state=h.source.actionState.get(h.state.storageKey);assert.equal(state.module.range,100);assert.equal(state.endsAt,2600);assert.equal(state.lastTriggerAt,h.state.lastTriggerAt)});
-test('실제 방 UI의 캐릭터·증강 드롭다운 0~25 생성',()=>{const h=context();load(h.c,'src/network/RoomService.js','RoomService');const selects=new Map(['room-char-choices','room-aug-choices'].map(id=>[id,{options:[],appendChild(o){this.options.push(o)},addEventListener(){}}]));h.c.document={getElementById:id=>selects.get(id)||null,createElement:()=>({})};h.c.CharacterBanUI={init(){}};load(h.c,'src/ui/RoomUI.js','RoomUI');h.c.RoomUI.init();for(const s of selects.values()){assert.equal(s.options.length,26);assert.equal(s.options.at(-1).value,'25')}});
+test('실제 방 UI의 캐릭터·증강 드롭다운 0~25 생성',()=>{const h=context();load(h.c,'src/network/RoomService.js','RoomService');const selects=new Map(['room-char-choices','room-aug-choices'].map(id=>[id,{options:[],appendChild(o){this.options.push(o)},addEventListener(){}}]));h.c.document={querySelectorAll:()=>[],getElementById:id=>selects.get(id)||null,createElement:()=>({})};h.c.CharacterBanUI={init(){}};load(h.c,'src/ui/RoomUI.js','RoomUI');h.c.RoomUI.init();for(const s of selects.values()){assert.equal(s.options.length,26);assert.equal(s.options.at(-1).value,'25')}});
 function liveEffects(){
  const h=context();let clock=100;h.c.performance.now=()=>clock;
  h.c.Training={active:true,fx:[],sessionMode:'online'};
@@ -73,5 +73,51 @@ test('수신 몰림에서도 표시 길이 역행 없음 / 별도 투사체와 �
  const other=e.spawn({key:'other',type:'progressRect',range:80,start:190,dur:100});
  assert.equal(e.presentationRange(other,200),80);assert.equal(h.c.Training.fx.length,2);
  const snapshot=e.presentationSnapshot(fx,200);assert.equal(snapshot.rangeTransition,undefined);assert.equal(snapshot.rangeSampleAt,undefined);
+});
+test('일반전 기본·시작 선택지0·증강전10·일반전 증강 제출 차단',()=>{
+ const h=context();load(h.c,'src/network/RoomService.js','RoomService');const r=h.c.RoomService;
+ assert.equal(r.settings.gameMode,'normal');r.isHost=true;r.localPid='P1';
+ for(const pid of ['P1','P2']){r.members.set(pid,{pid,connected:true});r.activeMatchPids.add(pid)}
+ h.c.MatchChoiceService={augmentOptions:n=>Array.from({length:n},(_,i)=>'a'+i)};
+ let packet;h.c.OnlineDuelService={showStartAugment:p=>packet=p};r.sendToPeers=()=>{};let auto=0;r.beginStartCountdown=()=>auto++;
+ r.beginStartAugments();assert.equal(packet.gameMode,'normal');assert.equal(packet.choicesByPid.P1.length,0);assert.equal(auto,1);assert.equal(r.receiveStartAugment('P1','a0'),false);
+ r.settings.gameMode='augment';r.beginStartAugments();assert.equal(packet.gameMode,'augment');assert.equal(packet.choicesByPid.P1.length,10);
+});
+test('혼자 금지 제안 즉시 확정 후 실제 버튼 핸들러가 방으로 복귀',()=>{
+ const h=context();load(h.c,'src/network/RoomService.js','RoomService');const r=h.c.RoomService;
+ r.isHost=true;r.localPid='P1';r.members.set('P1',{pid:'P1',connected:true});r.broadcast=()=>{};
+ h.c.GAME_DATA.characters={a:{id:'a'},b:{id:'b'}};h.c.CharacterCardDataService={all:()=>[{id:'a'},{id:'b'}]};
+ let click,closed=0;h.c.document={getElementById:id=>id==='character-ban-screen-propose'?{addEventListener:(e,f)=>click=f}:null};h.c.RoomUI.showRoom=()=>closed++;
+ load(h.c,'src/ui/CharacterBanUI.js','CharacterBanUI');const ui=h.c.CharacterBanUI;ui.state.mode='select';ui.selectedIds.add('a');ui.proposalLeavesAllowedCharacter=()=>true;ui.init();click();
+ assert.equal(r.bannedCharacters.has('a'),true);assert.equal(r.characterBanProposal,null);assert.equal(ui.state.mode,null);assert.equal(closed,1);
+});
+test('모드별 설정 보존·저장소 복원·일반전 기본15',()=>{
+ const h=context();const storage=new Map();h.c.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
+ load(h.c,'src/network/RoomService.js','RoomService');const r=h.c.RoomService;r.isHost=true;r.broadcast=()=>{};
+ assert.equal(r.savedRoomSettings().characterCount,15);r.setSettings({characterCount:19,winsRequired:3});r.setSettings({gameMode:'augment'});assert.equal(r.settings.characterCount,7);
+ r.setSettings({characterCount:8,augmentCount:12});r.setSettings({gameMode:'normal'});assert.equal(r.settings.characterCount,19);assert.equal(r.settings.winsRequired,3);
+ const fresh=context();fresh.c.localStorage=h.c.localStorage;load(fresh.c,'src/network/RoomService.js','RoomService');const restored=fresh.c.RoomService.savedRoomSettings();assert.equal(restored.characterCount,19);assert.equal(restored.gameMode,'normal');assert.equal(fresh.c.RoomService.savedRoomSettings('augment').augmentCount,12);
+});
+test('금지창 재개방 스크롤 초기화 / 열린 투표 갱신은 위치 보존',()=>{
+ const h=context();let hidden=true;const screen={scrollTop:500,classList:{contains:()=>hidden}},grid={scrollTop:250};
+ h.c.document={getElementById:id=>id==='scr-character-ban'?screen:id==='character-ban-screen-grid'?grid:null};
+ h.c.RoomUI={showScreen:()=>{hidden=false}};
+ load(h.c,'src/ui/CharacterBanUI.js','CharacterBanUI');
+ h.c.CharacterBanUI.showScreen();assert.equal(screen.scrollTop,0);assert.equal(grid.scrollTop,0);
+ screen.scrollTop=320;grid.scrollTop=80;h.c.CharacterBanUI.showScreen();assert.equal(screen.scrollTop,320);assert.equal(grid.scrollTop,80);
+ hidden=true;h.c.CharacterBanUI.showScreen();assert.equal(screen.scrollTop,0);
+});
+test('지정점 미리보기는 입력 즉시 공통 색상 / 비행 갱신도 같은 범위',()=>{
+ const h=context();h.c.AugmentService={prepareAttack:(s,a)=>a};h.c.ProgressScaledAttackService={resolve:(s,a)=>a};
+ h.c.AttackModuleService={module:(a,t)=>a.modules.find(m=>m.type===t)};
+ h.c.WorldGeometryService={nearestOpenPoint:(x,y)=>({x:x+4,y})};
+ load(h.c,'src/combat/AttackPreviewService.js','AttackPreviewService');
+ const source={x:10,y:20},config={shape:'circle',range:90};
+ const attack={range:1200,modules:[{type:'delivery.projectile',targetPoint:true,targetPreview:config,targetPointResolve:'nearest-open',targetPointClampToAttackRange:false,delay:220}]};
+ const old={parts:[{type:'rect'}],liveTracking:{},style:{strokeColor:'56,189,248'}};
+ const preview=h.c.AttackPreviewService.fromAttack(source,attack,0,1320,old,{targetPoint:{x:2000,y:100}});
+ assert.equal(preview,old);assert.equal(preview.x,2004);assert.equal(preview.y,100);assert.equal(preview.range,90);assert.equal(preview.points.length,48);assert.equal(preview.parts.length,0);assert.equal(preview.style,null);assert.equal(preview.liveTracking,undefined);
+ const flight=h.c.AttackPreviewService.fromTargetPoint(config,{x:2004,y:100},1400,preview);
+ assert.equal(flight,preview);assert.equal(flight.points[0].x,2094);assert.equal(flight.until,1400);assert.equal(flight.style,null);
 });
 console.log('PASS '+count+' gameplay scenarios');

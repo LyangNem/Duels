@@ -3,7 +3,7 @@
 const RoomService={
   maxChoiceCount:25,
   maxPlayers:4,peer:null,hostConnection:null,connections:new Map(),members:new Map(),localPid:null,code:'',isHost:false,serverMatchId:'',
-  settings:{winsRequired:5,characterCount:7,augmentCount:5},
+  settings:{winsRequired:5,characterCount:15,augmentCount:5,gameMode:'normal'},
   teamOrder:['red','blue','yellow','green'],matchMode:null,
   duelPhase:'room',activeMatchPids:new Set(),duelSelections:new Map(),characterReady:new Set(),startAugmentChoices:new Map(),startAugments:new Map(),matchAugments:new Map(),
   betweenReady:new Set(),betweenSelections:new Map(),
@@ -23,10 +23,28 @@ const RoomService={
   characterPreviewSelections:new Map(),
   augmentPreviewSelections:new Map(),
   localSessionKey:'',roomInstance:'',
+  roomSettingsStore(){
+    let data={};
+    try{data=JSON.parse(localStorage.getItem('duels-room-settings-v1')||'{}')||{}}catch(_){}
+    return data;
+  },
+  savedRoomSettings(mode=null){
+    const data=this.roomSettingsStore();
+    const gameMode=(mode||data.gameMode)==='augment'?'augment':'normal';
+    const saved=data.modes?.[gameMode]||{};
+    const bounded=(value,fallback,max,min=0)=>Number.isFinite(Number(value))?Math.max(min,Math.min(max,Math.floor(Number(value)))):fallback;
+    return {gameMode,winsRequired:bounded(saved.winsRequired,5,8,1),characterCount:bounded(saved.characterCount,gameMode==='normal'?15:7,25),augmentCount:bounded(saved.augmentCount,5,25)};
+  },
+  saveRoomSettings(){
+    const data=this.roomSettingsStore();
+    data.gameMode=this.settings.gameMode;
+    data.modes={...(data.modes||{}),[this.settings.gameMode]:{winsRequired:this.settings.winsRequired,characterCount:this.settings.characterCount,augmentCount:this.settings.augmentCount}};
+    try{localStorage.setItem('duels-room-settings-v1',JSON.stringify(data))}catch(_){}
+  },
   reset(){
     RoomConnectionService.dispose(this);this.roomInstance='';
     this.members.clear();this.localPid=null;this.code='';this.isHost=false;this.serverMatchId='';
-    this.settings={winsRequired:5,characterCount:7,augmentCount:5};
+    this.settings=this.savedRoomSettings();
     this.matchMode=null;this.duelPhase='room';this.activeMatchPids.clear();this.duelSelections.clear();this.characterReady.clear();
     this.startAugmentChoices.clear();this.startAugments.clear();this.matchAugments.clear();
     this.betweenReady.clear();this.betweenSelections.clear();this.bannedCharacters.clear();this.characterBanProposal=null;this._characterBanProposalSequence=0;this.characterBanNotice=null;this._characterBanNoticeSequence=0;this._lastCharacterBanNoticeId=0;this.roundScores.clear();this.resolvedRoundTokens.clear();CharacterRecordProgressionService.reset();this.characterPreviewSelections.clear();this.augmentPreviewSelections.clear();
@@ -1069,17 +1087,22 @@ const RoomService={
     this.duelPhase='start-augment';
     const choicesByPid={};
     for(const pid of this.matchPids()){
-      const choices=MatchChoiceService.augmentOptions(10);
+      const choices=this.settings.gameMode==='augment'?MatchChoiceService.augmentOptions(10):[];
       this.startAugmentChoices.set(pid,choices);
       choicesByPid[pid]=choices;
     }
     const packet={
       type:'duel-start-augment',
+      gameMode:this.settings.gameMode,
       choicesByPid,
       selections:this.selectionObject(),
     };
     this.sendToPeers(packet);
     OnlineDuelService.showStartAugment(packet);
+    if(this.settings.gameMode!=='augment'){
+      for(const pid of this.matchPids())this.startAugments.set(pid,null);
+      this.beginStartCountdown();
+    }
   },
   submitStartAugment(augmentId){
     if(!this.localPid)return false;
@@ -1093,6 +1116,7 @@ const RoomService={
       !this.activeMatchPids.has(pid)
     )return false;
 
+    if(this.settings.gameMode!=='augment'&&augmentId)return false;
     const choices=this.startAugmentChoices.get(pid)||[];
     // 기존 Duels처럼 '선택 없이 시작'도 유효하다.
     if(augmentId&&choices.length&&!choices.includes(augmentId))return false;
@@ -1431,7 +1455,7 @@ const RoomService={
           Number(this.settings.characterCount)||0
         )
       );
-    const augmentMode=true;
+    const augmentMode=this.settings.gameMode==='augment';
     const augCount=
       augmentMode
         ?Math.max(
@@ -1479,6 +1503,7 @@ const RoomService={
       augChoices:
         augChoicesByPid[losers[0]]||[],
       augChoicesByPid,
+      gameMode:this.settings.gameMode,
       choiceConfig:{
         characterCount:charCount,
         augmentCount:augCount
@@ -1518,7 +1543,7 @@ const RoomService={
     const between=this._betweenPacket||{};
     const currentCharacter=this.duelSelections.get(pid);
     const requestedCharacter=payload?.characterId||null;
-    const augmentMode=true;
+    const augmentMode=this.settings.gameMode==='augment';
     const requestedAugment=
       augmentMode
         ?payload?.augmentId||null
@@ -1738,6 +1763,7 @@ const RoomService={
         connection,
         {
           type:'duel-start-augment',
+          gameMode:this.settings.gameMode,
           spectatorActivation:true,
           selections:this.selectionObject(),
           choicesByPid
@@ -3318,11 +3344,18 @@ const RoomService={
   },
   setSettings(next){
     if(!this.isHost||this.duelPhase!=='room')return false;
+    const nextMode=(next.gameMode??this.settings.gameMode)==='augment'?'augment':'normal';
+    if(nextMode!==this.settings.gameMode){
+      this.saveRoomSettings();
+      this.settings=this.savedRoomSettings(nextMode);
+    }
     this.settings={
+      gameMode:nextMode,
       winsRequired:Math.max(1,Math.min(8,Number(next.winsRequired??next.total??this.settings.winsRequired)||this.settings.winsRequired)),
       characterCount:Math.max(0,Math.min(this.maxChoiceCount,Number(next.characterCount??this.settings.characterCount)||0)),
       augmentCount:Math.max(0,Math.min(this.maxChoiceCount,Number(next.augmentCount??this.settings.augmentCount)||0))
     };
+    this.saveRoomSettings();
     this.broadcast();
     return true;
   },

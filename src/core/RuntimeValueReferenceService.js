@@ -112,7 +112,7 @@ const RuntimeValueReferenceService=Object.freeze({
       return '';
     }
 
-    if(ref.type==='mode-match-count-ratio'){
+    if(ref.type==='mode-match-count-ratio'||ref.type==='mode-match-count'){
       const target=
         ref.target==='owner'
           ?(EntityService.owner(entity)||entity)
@@ -129,7 +129,7 @@ const RuntimeValueReferenceService=Object.freeze({
           )===String(mode?.value||'')
         )matched+=1;
       }
-      return Math.max(0,Math.min(1,matched/modes.length));
+      return ref.type==='mode-match-count'?matched:Math.max(0,Math.min(1,matched/modes.length));
     }
 
     if(ref.type==='mode'){

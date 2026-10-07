@@ -246,6 +246,14 @@ const RoomUI=Object.freeze({
     }
     CharacterBanUI.sync();
 
+    const mode=RoomService.settings.gameMode||'normal';
+    const modeButton=document.getElementById('room-game-mode');
+    if(modeButton){
+      modeButton.textContent=mode==='augment'?'증강전':'일반전';
+      modeButton.disabled=!RoomService.isHost;
+    }
+    const augmentRow=document.getElementById('room-aug-choices-row');
+    if(augmentRow)augmentRow.hidden=mode!=='augment';
     const controls=[
       ['room-format-total','winsRequired'],
       ['room-char-choices','characterCount'],
@@ -260,6 +268,7 @@ const RoomUI=Object.freeze({
     }
   },
   init(){
+    document.getElementById('room-game-mode')?.addEventListener('click',()=>RoomService.setSettings({gameMode:RoomService.settings.gameMode==='augment'?'normal':'augment'}));
     CharacterBanUI.init();
     for(const id of ['room-char-choices','room-aug-choices']){
       const select=document.getElementById(id);

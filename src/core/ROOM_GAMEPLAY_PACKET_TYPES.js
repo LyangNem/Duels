@@ -11,6 +11,8 @@ const ROOM_GAMEPLAY_PACKET_TYPES=new Set([
   'duel-field-clear',
   'duel-field-resolved',
   'duel-projectile-impact-confirmed',
+  'duel-projectile-relay',
+  'duel-projectile-redirect',
   'duel-projectile-guard-resolved',
   'duel-attack-guard-resolved',
   'duel-counter-resolve',

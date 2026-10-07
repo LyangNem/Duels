@@ -17,7 +17,7 @@ const VanWrenchDurabilityPresentationService=Object.freeze({
       Number(entity.character?.wrenchDurability?.max)||0
     );
   },
-  drawBehind(ctx,entity,alpha=1){
+  drawBehind(ctx,entity,alpha=1,now=performance.now()){
     if(!ctx||!entity||this.value(entity)<=0)return false;
 
     const radius=Math.max(12,Number(entity.radius)||20);
@@ -30,7 +30,7 @@ const VanWrenchDurabilityPresentationService=Object.freeze({
     return WrenchShapeRenderService.draw(ctx,{
       x:0,
       y:0,
-      angle:-Math.PI*.75,
+      angle:-Math.PI*.75+ModeGearPresentationService.rotation(entity,{stateKey:entity.character.wrenchDurability.rotationStateKey,turnRadians:Math.PI*2},Number(entity.character.wrenchDurability.rotationMs)||300,now),
       radius:radius*2.73,
       alpha:Math.max(0,Math.min(1,Number(alpha)||0)),
       bodyRgb:darkRgb,

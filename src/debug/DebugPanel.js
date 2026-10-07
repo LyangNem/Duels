@@ -741,6 +741,19 @@ const DebugPanel={
       );
       section.appendChild(stamina.row);
 
+      const equipment=target.character?.reactiveEquipment;
+      if(equipment){
+        const weapons=this.row('발명품 활성화','선택한 무기를 완성하고 즉시 장착');
+        const current=ModeStateService.current(target,equipment.stateKey,equipment.initial);
+        for(const entry of [{value:equipment.initial,name:equipment.initialName||equipment.initial},...equipment.items]){
+          weapons.controls.appendChild(this.button(entry.name,()=>{
+            OnlineDebugControlSyncService.perform('equipment-equip',target,{value:entry.value});
+            this.render();
+          },current===entry.value?'active':''));
+        }
+        section.appendChild(weapons.row);
+      }
+
       const gaugeEntries=
         DebugGaugeControlService.entries(
           target

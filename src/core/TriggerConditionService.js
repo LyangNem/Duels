@@ -653,7 +653,7 @@ const TriggerConditionService=Object.freeze({
           String(condition.initial||'')
         )===
         String(condition.value||'')
-      );
+      )!== (condition.invert===true);
     }
     if(condition.type==='aim.cardinal-is'){
       return CardinalDirectionService.resolve(

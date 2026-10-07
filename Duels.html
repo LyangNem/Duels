@@ -1602,7 +1602,7 @@
       </section>
       <section class="duels-help-page" data-help-page="controls">
         <div class="duels-help-control-group"><div class="duels-help-section-title">이동</div><div class="duels-help-row"><kbd>W A S D</kbd><span>상하좌우 이동</span></div><div class="duels-help-row"><kbd>마우스</kbd><span>조준 방향 지정</span></div></div>
-        <div class="duels-help-control-group"><div class="duels-help-section-title">전투</div><div class="duels-help-row"><kbd>좌클릭</kbd><span>기본 공격 또는 캐릭터별 주 공격</span></div><div class="duels-help-row"><kbd>우클릭</kbd><span>스킬 또는 캐릭터별 보조 조작</span></div><div class="duels-help-row"><kbd>SPACE</kbd><span>회피 · 기본 스테미나 400 소모</span></div><div class="duels-help-row"><kbd>왼쪽 SHIFT</kbd><span>저스트 회피 후 활성화된 반격기 사용</span></div></div>
+        <div class="duels-help-control-group"><div class="duels-help-section-title">전투</div><div class="duels-help-row"><kbd>좌클릭</kbd><span>기본 공격 또는 캐릭터별 주 공격</span></div><div class="duels-help-row"><kbd>우클릭</kbd><span>스킬 또는 캐릭터별 보조 조작</span></div><div class="duels-help-row"><kbd>SPACE</kbd><span>회피 · 기본 스테미나 <span data-help-dodge-cost></span> 소모</span></div><div class="duels-help-row"><kbd>왼쪽 SHIFT</kbd><span>저스트 회피 후 활성화된 반격기 사용</span></div></div>
         <div class="duels-help-control-group"><div class="duels-help-section-title">기타</div><div class="duels-help-row"><kbd>TAB</kbd><span>누르고 있는 동안 각 캐릭터 왼쪽에 현재 적용 중인 버프·상태 효과의 상세 수치를 표시</span></div><div class="duels-help-row"><kbd>카드 우클릭</kbd><span>카드 앞면 → 개인 통계 → 캐릭터 랭킹 순환</span></div><div class="duels-help-row"><kbd>ENTER</kbd><span>채팅 입력창 열기 · 입력한 메시지 전송</span></div></div>
         <p class="duels-help-footnote">일부 캐릭터는 클릭, 홀드, 차징 또는 입력 조합에 따라 공격 방식이 달라집니다. 캐릭터 카드를 선택해 스킬 설명을 확인하세요.</p>
       </section>
@@ -1640,7 +1640,7 @@
           <div class="duels-help-status"><b>감전 <small class="duels-help-status-en" style="color:rgb(255,225,40)">ZAP</small></b><span id="duelsHelpZapDesc">스테미나 회복 속도가 40% 감소합니다.</span></div>
           <div class="duels-help-status"><b>방전 <small class="duels-help-status-en" style="color:rgb(255,195,30)">DISCHARGE</small></b><span>스테미나 회복이 정지됩니다.</span></div>
           <div class="duels-help-status"><b>수면 <small class="duels-help-status-en" style="color:rgb(255,105,180)">SLEEP</small></b><span>이동과 행동이 제한되지만, 피해를 입을 시 해제됩니다.</span></div>
-          <div class="duels-help-status"><b>침묵 <small class="duels-help-status-en" style="color:rgb(190,190,210)">SILENCE</small></b><span>WASD 이동을 제외한 행동을 사용할 수 없습니다.</span></div>
+          <div class="duels-help-status"><b>침묵 <small class="duels-help-status-en" style="color:rgb(190,170,225)">SILENCE</small></b><span>이동을 제외한 모든 행동이 제한됩니다.</span></div>
           <div class="duels-help-status"><b>화염 <small class="duels-help-status-en" style="color:rgb(255,150,0)">BURN</small></b><span id="duelsHelpBurnDesc">0.5초마다 일정 피해를 받습니다.</span></div>
           <div class="duels-help-status"><b>독 <small class="duels-help-status-en" style="color:rgb(50,200,80)">POISON</small></b><span>1초마다 입은 피해량 비례 피해를 받습니다.</span></div>
           <div class="duels-help-status"><b>출혈 <small class="duels-help-status-en" style="color:rgb(150,0,25)">BLEED</small></b><span id="duelsHelpBleedDesc">1초마다 최대 체력의 5% 피해를 받습니다.</span></div>
@@ -1692,14 +1692,18 @@
       <select id="room-char-choices"></select>
     </div>
 
+    <div class="duels-display-setting-row room-setting-row">
+      <span><b>게임 모드</b></span>
+      <button type="button" class="duels-display-cycle-button" id="room-game-mode">일반전</button>
+    </div>
+
     <div class="duels-display-setting-row room-setting-row" id="room-aug-choices-row">
       <span><b>증강 등장 수</b></span>
       <select id="room-aug-choices"></select>
     </div>
 
     <div class="duels-display-setting-row room-setting-row room-character-ban-row">
-      <span><b>캐릭터 금지</b></span>
-      <span id="room-character-ban-summary">없음</span>
+      <span><b>캐릭터 금지 <span id="room-character-ban-summary">없음</span></b></span>
       <div class="room-character-ban-inline-actions">
         <button class="btn" id="room-character-ban-list" type="button">금지 캐릭터 목록</button>
         <button class="btn" id="room-character-ban-open" type="button">캐릭터 금지</button>

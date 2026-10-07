@@ -1589,16 +1589,25 @@ const CharacterDescriptionService=Object.freeze({
         const points=Math.max(0,Math.floor(recordPoints));
         const tier=CharacterRecordService.tier(points);
         return `<div style="margin:3px 0 5px;">`+
-          `<strong>[RECORD]</strong> ${tier.name} · ${points}</div>`;
+          `<strong class="duels-skill-key">[RECORD]</strong> ${tier.name} · ${points}</div>`;
       })()
       :'';
-    const skillsHtml=(character.tooltipSkills||[]).map(skill=>{
+    const groupedSkills=new Map();
+    const basicSkills=[];
+    for(const skill of character.tooltipSkills||[]){
+      const key=String(skill.key||'');
+      const group=String(skill.section||(key.startsWith('/')?'COMMAND':key.match(/(?:^|\s)(WEAPON|PROTECTION|SUMMONER)(?:$|\s)/)?.[1])||'');
+      if(!group){basicSkills.push(skill);continue;}
+      if(!groupedSkills.has(group))groupedSkills.set(group,[]);
+      groupedSkills.get(group).push(skill);
+    }
+    const renderSkill=skill=>{
       if(Array.isArray(skill.inlineStages)){
         const inline=
           skill.inlineStages
             .map(stage=>{
               const stageText=this.interpolate(character,stage);
-              return `<strong>[${stage.key}]</strong>`+
+              return `<strong class="duels-skill-key">[${stage.key}]</strong>`+
                 `${stageText?` ${stageText}`:''}`;
             })
             .join(' ');
@@ -1614,7 +1623,7 @@ const CharacterDescriptionService=Object.freeze({
           ).trim();
         if(!description)return '';
         const skillNameText=skill.name?` ${skill.name}`:'';
-        return `<strong>[${skill.key}]</strong>${skillNameText} — ${description}`;
+        return `<strong class="duels-skill-key">[${skill.key}]</strong>${skillNameText} — ${description}`;
       }
       const costText=
         !includeCosts||skill.showCost===false
@@ -1629,8 +1638,12 @@ const CharacterDescriptionService=Object.freeze({
           }`;
       const skillNameText=skill.name?` ${skill.name}`:'';
       const description=this.interpolate(character,skill);
-      return `<strong>[${skill.key}]</strong>${skillNameText}${description?` — ${description}`:''}${costText}`;
-    }).filter(Boolean).join('<br>');
+      return `<strong class="duels-skill-key">[${skill.key}]</strong>${skillNameText}${description?` — ${description}`:''}${costText}`;
+    };
+    const skillsHtml=basicSkills.map(renderSkill).filter(Boolean).join('<br>');
+    const extraSkillsHtml=[...groupedSkills.values()].map(skills=>
+      `<div style="margin-top:11px;">${skills.map(renderSkill).filter(Boolean).join('<br>')}</div>`
+    ).join('');
 
     const summonHtml=(character.summonSpecs||[])
       .map(summon=>{
@@ -1645,6 +1658,7 @@ const CharacterDescriptionService=Object.freeze({
               typeof stat==='string'
                 ?String(stat||'')
                 :String(stat?.key||'');
+            if(key==='MOVE SPEED'&&Number(spec.speed||0)===0)return '';
             const value=
               this.interpolateSummon(
                 character,
@@ -1656,13 +1670,13 @@ const CharacterDescriptionService=Object.freeze({
               value===''
             )
               ?''
-              :`<strong>[${key}]</strong> ${value}`;
+              :`<strong class="duels-skill-key">[${key}]</strong> ${value}`;
           })
           .filter(Boolean)
           .join('<br>');
 
         return `<div style="margin-top:11px;">`+
-          `<strong>[SUMMON] ${spec.name||'소환수'}</strong>`+
+          `<strong class="duels-skill-key">[SUMMON] ${spec.name||'소환수'}</strong>`+
           `${stats?`<br>${stats}`:''}`+
           `</div>`;
       })
@@ -1677,14 +1691,15 @@ const CharacterDescriptionService=Object.freeze({
 
     const baseStatsHtml=
       `<div style="margin:3px 0 5px;white-space:nowrap;">`+
-      `<strong>[HEALTH]</strong> ${character.maxHealth}`+
+      `<strong class="duels-skill-key">[HEALTH]</strong> ${character.maxHealth}`+
       `<span style="display:inline-block;width:18px;"></span>`+
-      `<strong>[MOVE SPEED]</strong> ${character.moveLabel||character.speed}</div>`;
+      `<strong class="duels-skill-key">[MOVE SPEED]</strong> ${character.moveLabel||character.speed}</div>`;
 
-    return titleHtml+`${CharacterDataService.interpolate(character,character.desc)}<br>`+
+    return titleHtml+`<span class="duels-character-summary">${CharacterDataService.interpolate(character,character.desc)}</span><br>`+
       baseStatsHtml+
       recordHtml+
       skillsHtml+
+      extraSkillsHtml+
       summonHtml;
   }
 });

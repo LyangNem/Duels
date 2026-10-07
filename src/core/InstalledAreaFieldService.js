@@ -693,6 +693,8 @@ const InstalledAreaFieldService=Object.freeze({
           execution:state.execution,
           impact:{
             type:'field-area',
+            fieldDuration:Math.max(0,Number.isFinite(Number(state.module?.duration))?Number(state.module.duration):0),
+            fieldPersistent:state.module?.duration==='infinite'||state.module?.duration===Infinity||state.endsAt===Infinity,
             shape:String(area?.module?.shape||state.module?.shape||'circle'),
             directionAngle:Number(area?.angle)||0,
             origin:area?.center
@@ -777,6 +779,7 @@ const InstalledAreaFieldService=Object.freeze({
         target,
         now
       )||triggered;
+
 
     if(triggered){
       this.markTriggered(
@@ -2476,7 +2479,7 @@ const InstalledAreaFieldService=Object.freeze({
         now
       );
 
-    if(!globalDue)return true;
+
 
     let removeField=false;
     let triggeredAny=false;
@@ -2547,6 +2550,7 @@ const InstalledAreaFieldService=Object.freeze({
           !state.enteredAt.has(targetKey);
 
         if(newlyEntered){
+          if(target.character?.reactiveEquipment)ReactiveEquipmentService.field(target,source,state,now);
           state.enteredAt.set(
             targetKey,
             now
@@ -2567,6 +2571,8 @@ const InstalledAreaFieldService=Object.freeze({
           }
         }
       }
+
+      if(!globalDue)continue;
 
       if(
         mode==='per-target'&&

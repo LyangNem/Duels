@@ -10,7 +10,7 @@ const DamagePipeline=Object.freeze({
     amountOverride=null,
     targetPolicy=null
   }){
-    const relationAllowed=!!source&&!!target&&!!attack&&RelationService.canTarget(source,target,targetPolicy||{},attack);
+    const relationAllowed=!!source&&!!target&&!!attack&&RelationService.canTarget(source,target,{...(targetPolicy||{}),ignoreEvasionInvulnerable:true},attack);
     if(!relationAllowed){
       return {applied:false,amount:0};
     }
@@ -59,7 +59,8 @@ const DamagePipeline=Object.freeze({
       JustDodgeService.confirmDamageAttempt(
         target,
         now,
-        attack
+        attack,
+        {source,attack,execution,impact}
       )
     ){
       return {
@@ -78,9 +79,12 @@ const DamagePipeline=Object.freeze({
 
     if(
       target.invincibleUntil>now||
-      BuffService.live(target,'invulnerable',now).length>0
+      BuffService.live(target,'invulnerable',now).length>0||
+      (typeof ActionStateCombatPolicyService!=='undefined'&&targetPolicy?.ignoreEvasionInvulnerable!==true&&ActionStateCombatPolicyService.isEvasionUntargetable(target,now))
     ){
-      return {applied:false,amount:0,dodged:true};
+      const result={applied:false,hit:false,amount:0,dodged:true,source,target,attack,execution,impact,now};
+      GameEvents.emit('damage-avoided',result);
+      return result;
     }
 
     if(impact?.contactOnly===true){

@@ -38,7 +38,7 @@
       "text": "현재 위치에 대포 설치"
     },
     {
-      "key": "RMB/RMB",
+      "key": "RMB SUMMONER",
       "name": "대포 명령",
       "attack": "cannonBurst",
       "costRef": {

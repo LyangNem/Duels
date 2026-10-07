@@ -175,6 +175,8 @@ const TagService=Object.freeze({
         if(module.homing)tags.add('유도');
         if(module.phase==='returning')tags.add('귀환');
       }
+      if(type==='projectile.redirect')tags.add('유도');
+      if(type==='projectile.wall-relay')tags.add('벽 관통');
       if(type==='delivery.hitscan'||type==='delivery.area'){
         tags.add('히트스캔');tags.add('범위 공격');
         this.addShapeTags(tags,String(module.shape||'rect'));

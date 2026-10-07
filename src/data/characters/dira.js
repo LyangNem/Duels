@@ -60,7 +60,7 @@
       {key: "LMB", name: "이거나 먹어!", attack: "fryingPan", text: "프라이팬을 던져 적에게 피해. 적중 시 식재료 {v:cooking.fryingPanIngredientGain}개 획득. 식재료를 보유 중이면 프라이팬에 식재료를 얹어 날리며, 식재료는 아군의 최대 체력 {v:cooking.ingredientHealRatio|percent}% 회복. ({damage})"},
       {key: "LMB FOOD", name: "최상급 요리", attack: "meal", text: "음식에 들어간 식재료마다 최대 체력 {v:cooking.mealHealthRatioPerIngredient|percent}%와 최대 스테미나 {v:cooking.mealStaminaRatioPerIngredient|percent}% 회복. 아군을 향해 사용 시 해당 아군을 향해 음식 투척"},
       {key: "RMB", name: "휴대용 스토브", attack: "stove", text: "지정한 위치에 휴대용 스토브 설치. 식재료 최대 {v:cooking.stoveCapacity}개 투입 가능"},
-      {key: "RMB/RMB", name: "요리 완료", attack: "stove", showCost: false, text: "설치된 스토브를 회수해 투입된 식재료 수만큼의 음식을 조리해 획득"},
+      {key: "RMB SUMMONER", name: "요리 완료", attack: "stove", showCost: false, text: "설치된 스토브를 회수해 투입된 식재료 수만큼의 음식을 조리해 획득"},
       {key: "L-Shift", name: "주방 출입 금지", attack: "counter", text: "프라이팬을 휘둘러 주변 적에게 피해를 주고 식재료 {v:cooking.counterIngredientGain}개 획득 ({damage})"}
     ],
     summonSpecs: [

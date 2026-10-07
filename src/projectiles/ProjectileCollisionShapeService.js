@@ -235,6 +235,26 @@ const ProjectileCollisionShapeService=Object.freeze({
 
     return false;
   },
+  contactRatio(projectile,target){
+    if(projectile.orbitState||projectile.followSource===true)return 1;
+    if(this.shape(projectile)==='diamond'){
+      const probe=projectile._contactProbe||(projectile._contactProbe=Object.create(projectile));
+      let lo=0,hi=1;
+      for(let n=0;n<16;n++){
+        const t=(lo+hi)*.5;probe.x=projectile.prevX+(projectile.x-projectile.prevX)*t;probe.y=projectile.prevY+(projectile.y-projectile.prevY)*t;
+        if(this.sweptDiamondHitsTarget(probe,target))hi=t;else lo=t;
+      }
+      return hi;
+    }
+    const point=NetworkCollisionPositionService.point(target);
+    const dx=projectile.x-projectile.prevX,dy=projectile.y-projectile.prevY;
+    const rx=projectile.prevX-point.x,ry=projectile.prevY-point.y;
+    const radius=(Number(projectile.hitRadius)||this.radius(projectile))+(Number(target.radius)||0);
+    const a=dx*dx+dy*dy,c=rx*rx+ry*ry-radius*radius;
+    if(c<=0||a<=1e-12)return 0;
+    const b=rx*dx+ry*dy,disc=b*b-a*c;
+    return disc>=0?Math.max(0,Math.min(1,(-b-Math.sqrt(disc))/a)):1;
+  },
   hitsTarget(projectile,target){
     if(projectile.wallReachableCollisionPoint&&projectile.orbitState&&
       projectile.behavior?.collisionPolicy?.passWalls!==true&&projectile.behavior?.pierce?.walls!==true){

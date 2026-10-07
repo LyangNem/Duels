@@ -331,8 +331,8 @@ const AreaAttackService=Object.freeze({
               centerDistance:
                 String(collisionModule.wallPolicy||'ignore')==='block'
                   ?WorldGeometryService.raycastDistance(
-                    Number(source.x)||0,
-                    Number(source.y)||0,
+                    Number(geometryOrigin.x)||0,
+                    Number(geometryOrigin.y)||0,
                     resolvedAngle,
                     Math.max(0,Number(collisionModule.centerDistance)||0),
                     2
@@ -341,7 +341,7 @@ const AreaAttackService=Object.freeze({
             }
             :HitScanGeometryService
               .effectiveModule(
-                source,
+                geometryOrigin,
                 spec,
                 collisionModule,
                 resolvedAngle
@@ -361,6 +361,7 @@ const AreaAttackService=Object.freeze({
 
     GameEvents.emit('area-attack-fired',{
       source,
+      geometryOrigin,
       attack:spec,
       angle:resolvedAngle,
       module:effectiveModule,
@@ -440,7 +441,8 @@ const AreaAttackService=Object.freeze({
             angleValue,
             areaGeometry
           ),
-          performance.now()
+          performance.now(),
+          {attack:spec}
         )
       ){
         continue;

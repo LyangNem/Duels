@@ -142,13 +142,13 @@ const ProjectileService={
           0,
           Number(projectile.travel)||0
         )-(segmentDistance-clampedDistance);
-        projectile.prevX=projectile.x;
-        projectile.prevY=projectile.y;
       }
     }
 
     const action=projectile.behavior?.collision?.wall||'remove';
 
+
+    if((projectile.attack?.modules||[]).some(m=>m.type==='projectile.redirect'||m.type==='projectile.wall-relay')&&ProjectileRedirectService.wall(projectile,boundary))return true;
 
     AttackModuleService.onProjectileWallHit(projectile);
 
@@ -638,6 +638,7 @@ const ProjectileService={
       }
     }
 
+    if((projectile.attack?.modules||[]).some(m=>m.type==='projectile.redirect'))ProjectileRedirectSyncService.restore(projectile);
     return projectile;
   },
   findByNetworkKey(owner,networkKey){
@@ -937,10 +938,9 @@ const ProjectileService={
       :projectile.volley?.execution||null;
     let resolvedImpactOrigin=null;
     if(hitExecution){
-      const impactPoint={
-        x:Number(projectile.x)||0,
-        y:Number(projectile.y)||0
-      };
+      hitExecution.directionAngle=Number(projectile.angle)||0;
+      const targetPoint=NetworkCollisionPositionService.point(target);
+      const impactPoint={x:targetPoint.x-Math.cos(projectile.angle)*(Number(target.radius)||0),y:targetPoint.y-Math.sin(projectile.angle)*(Number(target.radius)||0)};
       const projectileOrigin={
         x:Number(projectile.origin?.x),
         y:Number(projectile.origin?.y)
@@ -1127,6 +1127,7 @@ const ProjectileService={
         );
       }
 
+      if((projectile.attack?.modules||[]).some(m=>m.type==='projectile.redirect'))ProjectileRedirectService.hit(projectile,target);
       return true;
     }
 
@@ -1287,6 +1288,437 @@ const ProjectileService={
     return true;
   },
 
+  contactOrder(projectile){
+    const ordered=projectile._contactTargets||(projectile._contactTargets=[]);
+    ordered.length=0;
+    for(const target of EntityService.items.values()){
+      if(!target?.alive)continue;
+      if(ProjectileCollisionShapeService.hitsTarget(projectile,target)||
+        (JustDodgeService.canConfirm(target)&&JustDodgeService.overlapsProjectile(target,projectile)))ordered.push(target);
+    }
+    const compare=projectile._contactCompare||(projectile._contactCompare=(a,b)=>ProjectileCollisionShapeService.contactRatio(projectile,a)-ProjectileCollisionShapeService.contactRatio(projectile,b));
+    ordered.sort(compare);
+    return ordered;
+  },
+  processTargets(projectile,index,now){
+    const returning=projectile.behavior?.returning;
+    const policy=projectile.behavior?.collisionPolicy||CollisionPolicyService.normalize({passWalls:projectile.behavior?.pierce?.walls===true,passEnemies:projectile.behavior?.pierce?.targets===true});
+    if(
+      projectile.behavior?.waypoint?.stopped!==true&&
+      (
+        projectile.damageOnTravel!==false||
+        projectile.projectile?.collisionTargets===true
+      )
+    ){
+      for(const target of this.contactOrder(projectile)){
+        const relation=
+          RelationService.relation(
+            projectile.source,
+            target
+          );
+        const configuredRelations=
+          Array.isArray(
+            projectile.targetRelations
+          )
+            ?projectile.targetRelations
+            :null;
+
+        if(!ProjectileTargetFilterService.allows(projectile,target))continue;
+
+        if(projectile.targetEntityOnly===true){
+          const designated=
+            EntityTargetReferenceService.resolve(
+              projectile.targetEntityId
+            );
+          if(designated!==target)continue;
+        }
+
+        if(configuredRelations){
+          if(
+            !target?.alive||
+            (
+              target.hidden&&
+              relation==='enemy'
+            )||
+            !configuredRelations.includes(
+              relation
+            )
+          )continue;
+
+          if(
+            relation!=='enemy'&&
+            projectile.friendlyRequiresResource
+          ){
+            const resource=
+              String(
+                projectile.friendlyRequiresResource
+              );
+            const maximum=
+              resource==='stamina'
+                ?Math.max(
+                  0,
+                  Number(target.maxStamina)||0
+                )
+                :resource==='health'
+                  ?Math.max(
+                    0,
+                    Number(target.maxHealth)||0
+                  )
+                  :1;
+            if(maximum<=0)continue;
+          }
+
+          if(
+            Array.isArray(
+              projectile.targetKinds
+            )&&
+            projectile.targetKinds.length&&
+            !projectile.targetKinds.includes(
+              String(target.kind||'')
+            )
+          )continue;
+        }else if(
+          !RelationService.canTarget(
+            projectile.source,
+            target,
+            {ignoreEvasionInvulnerable:true},
+            projectile.attack
+          )
+        )continue;
+
+        const overlapsTarget=
+          ProjectileCollisionShapeService.hitsTarget(
+            projectile,
+            target
+          );
+        const overlapsJustDodgePath=
+          relation==='enemy'&&
+          !overlapsTarget&&
+          Math.max(0,Number(projectile.rehitInterval)||0)<=0&&
+          JustDodgeService.canConfirm(target)&&
+          JustDodgeService.overlapsProjectile(
+            target,
+            projectile
+          );
+
+        // 저스트 회피는 프레임 끝의 정적 겹침보다 회피/투사체의 swept 경로를 먼저 인정한다.
+        // 큰·느린 투사체를 한 프레임에 완전히 통과해 반대편으로 빠져나가도 경로가 교차했다면
+        // 실제 접촉 시도와 동일하게 공통 confirmProjectile 경로를 통과한다.
+        if(!overlapsTarget&&!overlapsJustDodgePath)continue;
+        if(overlapsTarget&&relation==='enemy'&&typeof ActionStateCombatPolicyService!=='undefined'&&ActionStateCombatPolicyService.isEvasionUntargetable(target,now)){
+          const observed=projectile._avoidedTargets||(projectile._avoidedTargets=new Set());
+          if(!observed.has(target.id)){
+            observed.add(target.id);
+            GameEvents.emit('damage-avoided',{source:projectile.source,target,attack:projectile.attack,execution:projectile.volley?.execution,impact:{type:'projectile'},now,dodged:true,amount:0});
+          }
+          continue;
+        }
+
+
+        if(
+          overlapsTarget&&
+          projectile.applyHitEffects===true&&
+          (
+            relation!=='enemy'||
+            projectile.attack?.effectsOnly===true
+          )
+        ){
+          const execution=
+            projectile.volley?.execution||
+            AttackExecutionService.create(
+              projectile.source,
+              projectile.attack,
+              Number(projectile.angle)||0
+            );
+
+          AttackModuleService.onHit(
+            projectile.source,
+            target,
+            projectile.attack,
+            {
+              execution,
+              total:1,
+              resolved:0,
+              hits:0,
+              finished:false
+            },
+            Number(projectile.angle)||0,
+            {
+              type:'delivery.projectile',
+              phase:'support',
+              projectile
+            }
+          );
+          if(projectile.supportHitSound!==false){
+            SoundService.play('hit');
+          }
+
+          if(
+            projectile.supportHitEffect
+          ){
+            const supportEffect=
+              EffectSpawnService
+                .definitionSnapshot(
+                  projectile.supportHitEffect
+                );
+
+            EffectSpawnService.spawn(
+              {
+                ...supportEffect,
+                type:String(
+                  supportEffect.renderType||
+                  supportEffect.type||
+                  'areaCircle'
+                ),
+                x:Number(target.x)||0,
+                y:Number(target.y)||0,
+                sourceEntityId:
+                  String(
+                    projectile.source?.id||''
+                  ),
+                start:performance.now(),
+                dur:Math.max(
+                  GAME_DATA.frameMs,
+                  Number(
+                    supportEffect.duration
+                  )||
+                  Number(
+                    supportEffect.durationFrames
+                  )*
+                  GAME_DATA.frameMs||
+                  300
+                )
+              },
+              {source:projectile.source}
+            );
+          }
+
+          projectile.hitIds?.add(
+            target.id
+          );
+          projectile.hadHit=true;
+          this.finish(projectile,true);
+          this.items.splice(index,1);
+          return true;
+        }
+
+        const contactStatus=projectile.projectile?.contactStatus||null;
+        if(overlapsTarget&&contactStatus?.status&&COMBAT_STATUS_DEFS[String(contactStatus.status)]&&NetworkHitAuthorityService.targetAuthoritative(target)){
+          const relation=RelationService.relation(projectile.source,target);
+          const allowed=Array.isArray(contactStatus.targetRelations)?contactStatus.targetRelations:['enemy'];
+          if(allowed.includes(relation)){
+            CombatStatusApplicationService.apply({
+              source:projectile.source,target,type:String(contactStatus.status),duration:Math.max(0,Number(contactStatus.duration)||0),
+              sourceId:`projectile-contact:${String(projectile.networkKey||projectile.id||'projectile')}:${String(contactStatus.status)}`,
+              data:{...(contactStatus.data||{}),sourceEntityId:projectile.source?.id||null,stackMode:contactStatus.data?.stackMode||'replace-source'}
+            });
+          }
+        }
+
+        if(projectile.damageOnTravel===false){
+          if(
+            relation==='enemy'&&
+            JustDodgeService.confirmProjectile(
+              target,
+              projectile
+            )
+          ){
+            projectile.hadHit=false;
+            this.finish(projectile,false);
+            this.items.splice(index,1);
+            return true;
+          }
+
+          // swept 저회 후보였지만 현재 정적 충돌은 아니고 저회도 확정되지 않았다면
+          // 일반 착탄으로 오인하지 않는다.
+          if(!overlapsTarget)continue;
+
+          /*
+            충돌 전용 투사체의 target impact는 대상 권위 화면에서만 확정한다.
+            이전에는 공격자 화면의 보간된 원격 대상에 먼저 닿는 순간
+            projectile.impact를 즉시 실행해 루네프 화염구처럼 실제 방패/대상
+            도달 전에 폭발 FX가 생길 수 있었다.
+
+            비권위 화면에서는 투사체만 예측 소비하고 폭발은 만들지 않는다.
+            대상 권위 화면이 실제 충돌점을 확인한 뒤
+            duel-projectile-impact-confirmed로 동일 impact 좌표를 전파한다.
+          */
+          if(
+            Training.sessionMode==='online'&&
+            relation==='enemy'&&
+            !NetworkHitAuthorityService
+              .targetAuthoritative(target)
+          ){
+            projectile.hadHit=false;
+            this.finish(
+              projectile,
+              false
+            );
+            this.items.splice(
+              index,
+              1
+            );
+            return true;
+          }
+
+          const ratio=ProjectileCollisionShapeService.contactRatio(projectile,target);
+          const length=Math.hypot(projectile.x-projectile.prevX,projectile.y-projectile.prevY);
+          projectile.travel-=length*(1-ratio);
+          projectile.x=projectile.prevX+(projectile.x-projectile.prevX)*ratio;
+          projectile.y=projectile.prevY+(projectile.y-projectile.prevY)*ratio;
+          ProjectileImpactService.resolve(
+            projectile,
+            'target'
+          );
+
+          if(
+            Training.sessionMode==='online'&&
+            relation==='enemy'&&
+            NetworkHitAuthorityService
+              .targetAuthoritative(target)
+          ){
+            OnlineDuelService
+              .sendProjectileImpactConfirmed(
+                projectile,
+                'target'
+              );
+          }
+
+          projectile.hadHit=true;
+          this.finish(projectile,true);
+          this.items.splice(index,1);
+          return true;
+        }
+
+        const endX=projectile.x,endY=projectile.y,endTravel=projectile.travel;
+        const contact=overlapsTarget?ProjectileCollisionShapeService.contactRatio(projectile,target):1;
+        const segmentLength=Math.hypot(endX-projectile.prevX,endY-projectile.prevY);
+        projectile.x=projectile.prevX+(endX-projectile.prevX)*contact;
+        projectile.y=projectile.prevY+(endY-projectile.prevY)*contact;
+        projectile.travel=endTravel-segmentLength*(1-contact);
+        const revision=Number(projectile.redirectRevision)||0;
+        const hit=this.hitTarget(
+          projectile,
+          target,
+          'outbound',
+          overlapsTarget?'static':'swept-only'
+        );
+
+        if((Number(projectile.redirectRevision)||0)!==revision&&!projectile.redirectEnded)return false;
+        if(!hit||policy.passEnemies){projectile.x=endX;projectile.y=endY;projectile.travel=endTravel;}
+
+        if(projectile.redirectEnded===true){
+          this.finish(projectile,projectile.hadHit===true);
+          this.items.splice(index,1);
+          return true;
+        }
+
+        if(
+          hit&&
+          !policy.passEnemies
+        ){
+          const dodgedContact=
+            String(
+              projectile.dodgedContactTargetId||
+              ''
+            )===
+            String(target.id||'')&&
+            now-
+              Math.max(
+                0,
+                Number(projectile.dodgedContactAt)||0
+              )<
+              Math.max(
+                50,
+                GAME_DATA.frameMs*3
+              );
+
+          if(dodgedContact){
+            projectile.dodgedContactTargetId='';
+            projectile.dodgedContactAt=0;
+
+            /*
+              회피 성공은 "접촉 소비"이지만 "적중 impact"는 아니다.
+              비관통 투사체만 제거하고 폭발/장판/후속 공격은 만들지 않는다.
+            */
+            this.finish(
+              projectile,
+              false
+            );
+            this.items.splice(index,1);
+            return true;
+          }
+
+          const targetArrival=
+            TargetPointProjectileService.arrival(
+              projectile
+            );
+          if(
+            targetArrival?.linger?.atTarget===true&&
+            projectile.predictedContactConsumeOnly!==true
+          ){
+            projectile.predictedContactConsumeOnly=false;
+            ProjectileImpactService.resolve(
+              projectile,
+              'target'
+            );
+            if(
+              TargetPointProjectileService.beginLinger(
+                projectile,
+                now,
+                'target'
+              )
+            ){
+              if(
+                Training.sessionMode==='online'&&
+                relation==='enemy'&&
+                NetworkHitAuthorityService.targetAuthoritative(target)
+              ){
+                OnlineDuelService.sendProjectileImpactConfirmed(
+                  projectile,
+                  'target'
+                );
+              }
+              return false;
+            }
+          }
+
+          if(
+            projectile.predictedContactConsumeOnly===true
+          ){
+            projectile.predictedContactConsumeOnly=false;
+            this.finish(
+              projectile,
+              false
+            );
+            this.items.splice(index,1);
+            return true;
+          }
+
+          if(
+            returning?.returnOnMiss===true&&
+            projectile.hadHit!==true
+          ){
+            ProjectileStateService.beginReturn(projectile,{manual:false});
+            return true;
+          }
+          ProjectileImpactService.resolve(projectile,'target');
+          if(projectile.behavior?.impact&&Training.sessionMode==='online'&&
+            relation==='enemy'&&NetworkHitAuthorityService.targetAuthoritative(target)){
+            OnlineDuelService.sendProjectileImpactConfirmed(projectile,'target');
+          }
+          this.finish(
+            projectile,
+            projectile.hadHit===true
+          );
+          this.items.splice(index,1);
+          return true;
+        }
+      }
+    }
+
+    return null;
+  },
   updateOutbound(projectile,index,frameScale,now){
     if(projectile.stationaryArrival){
       return this.updateStationary(
@@ -2723,41 +3155,12 @@ const ProjectileService={
       EntitySimulationAuthorityService
         .isLocal(projectile.source)
     ){
-      const preview=
-        projectile.targetPreview;
-      const px=
-        Number(projectile.targetPoint.x)||0;
-      const py=
-        Number(projectile.targetPoint.y)||0;
-      const radius=
-        Math.max(
-          0,
-          Number(preview.range)||0
-        );
-      const points=preview.pointsScratch||(preview.pointsScratch=[]);
-      const segments=48;
-
-      for(let index=0;index<segments;index++){
-        const theta=Math.PI*2*index/segments;
-        let point=points[index];
-        if(!point){
-          point={x:0,y:0};
-          points[index]=point;
-        }
-        point.x=px+Math.cos(theta)*radius;
-        point.y=py+Math.sin(theta)*radius;
-      }
-      points.length=segments;
-
-      const attackPreview=projectile.source.attackPreview||{};
-      attackPreview.type=String(preview.shape||'circle');
-      attackPreview.x=px;
-      attackPreview.y=py;
-      attackPreview.range=radius;
-      attackPreview.points=points;
-      attackPreview.style=preview.style||{};
-      attackPreview.until=now+Math.max(GAME_DATA.frameMs*2,90);
-      projectile.source.attackPreview=attackPreview;
+      projectile.source.attackPreview=AttackPreviewService.fromTargetPoint(
+        projectile.targetPreview,
+        projectile.targetPoint,
+        now+Math.max(GAME_DATA.frameMs*2,90),
+        projectile.source.attackPreview
+      );
     }
 
     if(
@@ -3447,7 +3850,40 @@ const ProjectileService={
     // 원격 검은 표시와 피격 판정 모두 같은 프레임의 권위 궤도를 사용한다.
     RemoteProjectileHomingPresentationBufferService.syncCollision(projectile,now);
 
+    let targetsProcessed=false;
+    if(!orbitActive&&projectile.followSource!==true){
+      const sx=projectile.prevX,sy=projectile.prevY;
+      const dx=projectile.x-sx,dy=projectile.y-sy,length=Math.hypot(dx,dy);
+      if(length>1e-8){
+        const angle=Math.atan2(dy,dx);
+        const distance=passWallsInFlight
+          ?WorldGeometryService.boundaryRayDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile))
+          :WorldGeometryService.raycastDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile));
+        const allowed=Math.min(length,distance);
+        const ex=projectile.x,ey=projectile.y,travel=projectile.travel;
+        projectile.x=sx+dx*allowed/length;projectile.y=sy+dy*allowed/length;
+        projectile.travel=travel-(length-allowed);
+        const result=this.processTargets(projectile,index,now);
+        if(result!==null)return result;
+        // Ordinary flying shots resolve the earliest wall even when one fast step also crosses the map edge.
+        if(allowed<length-1e-6&&!returning&&!TargetPointProjectileService.arrival(projectile)&&!projectile.behavior?.waypoint){
+          const boundaryDistance=WorldGeometryService.boundaryRayDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile));
+          const boundary=boundaryDistance<=allowed+1e-6;
+          this.handleWallCollision(projectile,index,{forceBlock:boundary,boundary});
+          return false;
+        }
+        // Restore intended endpoint only after targets on the reachable segment were checked.
+        projectile.x=ex;projectile.y=ey;projectile.travel=travel;targetsProcessed=true;
+      }
+    }
+
     if(!this.insideBounds(projectile)){
+      const dx=projectile.x-projectile.prevX,dy=projectile.y-projectile.prevY,length=Math.hypot(dx,dy);
+      if(length>1e-8){
+        const distance=WorldGeometryService.boundaryRayDistance(projectile.prevX,projectile.prevY,Math.atan2(dy,dx),length,this.wallCollisionPadding(projectile));
+        projectile.x=projectile.prevX+dx*distance/length;projectile.y=projectile.prevY+dy*distance/length;
+        projectile.travel-=length-distance;
+      }
       this.clampToBounds(projectile);
 
       const boundaryArrival=
@@ -3520,7 +3956,7 @@ const ProjectileService={
     const movedDy=
       Number(projectile.y)-Number(projectile.prevY);
     const movedDistance=Math.hypot(movedDx,movedDy);
-    const sweptWallDistance=
+    const sweptWallDistance=targetsProcessed?movedDistance:
       movedDistance>.0001&&!passWallsInFlight
         ?WorldGeometryService.raycastDistance(
           Number(projectile.prevX)||0,
@@ -3578,388 +4014,9 @@ const ProjectileService={
       projectile.wallReachableCollisionPoint={x:visual.x,y:visual.y};
     }
 
-    if(
-      projectile.behavior?.waypoint?.stopped!==true&&
-      (
-        projectile.damageOnTravel!==false||
-        projectile.projectile?.collisionTargets===true
-      )
-    ){
-      for(const target of EntityService.items.values()){
-        const relation=
-          RelationService.relation(
-            projectile.source,
-            target
-          );
-        const configuredRelations=
-          Array.isArray(
-            projectile.targetRelations
-          )
-            ?projectile.targetRelations
-            :null;
-
-        if(!ProjectileTargetFilterService.allows(projectile,target))continue;
-
-        if(projectile.targetEntityOnly===true){
-          const designated=
-            EntityTargetReferenceService.resolve(
-              projectile.targetEntityId
-            );
-          if(designated!==target)continue;
-        }
-
-        if(configuredRelations){
-          if(
-            !target?.alive||
-            (
-              target.hidden&&
-              relation==='enemy'
-            )||
-            !configuredRelations.includes(
-              relation
-            )
-          )continue;
-
-          if(
-            relation!=='enemy'&&
-            projectile.friendlyRequiresResource
-          ){
-            const resource=
-              String(
-                projectile.friendlyRequiresResource
-              );
-            const maximum=
-              resource==='stamina'
-                ?Math.max(
-                  0,
-                  Number(target.maxStamina)||0
-                )
-                :resource==='health'
-                  ?Math.max(
-                    0,
-                    Number(target.maxHealth)||0
-                  )
-                  :1;
-            if(maximum<=0)continue;
-          }
-
-          if(
-            Array.isArray(
-              projectile.targetKinds
-            )&&
-            projectile.targetKinds.length&&
-            !projectile.targetKinds.includes(
-              String(target.kind||'')
-            )
-          )continue;
-        }else if(
-          !RelationService.canTarget(
-            projectile.source,
-            target,
-            {},
-            projectile.attack
-          )
-        )continue;
-
-        const overlapsTarget=
-          ProjectileCollisionShapeService.hitsTarget(
-            projectile,
-            target
-          );
-        const overlapsJustDodgePath=
-          relation==='enemy'&&
-          !overlapsTarget&&
-          Math.max(0,Number(projectile.rehitInterval)||0)<=0&&
-          JustDodgeService.canConfirm(target)&&
-          JustDodgeService.overlapsProjectile(
-            target,
-            projectile
-          );
-
-        // 저스트 회피는 프레임 끝의 정적 겹침보다 회피/투사체의 swept 경로를 먼저 인정한다.
-        // 큰·느린 투사체를 한 프레임에 완전히 통과해 반대편으로 빠져나가도 경로가 교차했다면
-        // 실제 접촉 시도와 동일하게 공통 confirmProjectile 경로를 통과한다.
-        if(!overlapsTarget&&!overlapsJustDodgePath)continue;
-
-        if(
-          overlapsTarget&&
-          projectile.applyHitEffects===true&&
-          (
-            relation!=='enemy'||
-            projectile.attack?.effectsOnly===true
-          )
-        ){
-          const execution=
-            projectile.volley?.execution||
-            AttackExecutionService.create(
-              projectile.source,
-              projectile.attack,
-              Number(projectile.angle)||0
-            );
-
-          AttackModuleService.onHit(
-            projectile.source,
-            target,
-            projectile.attack,
-            {
-              execution,
-              total:1,
-              resolved:0,
-              hits:0,
-              finished:false
-            },
-            Number(projectile.angle)||0,
-            {
-              type:'delivery.projectile',
-              phase:'support',
-              projectile
-            }
-          );
-          if(projectile.supportHitSound!==false){
-            SoundService.play('hit');
-          }
-
-          if(
-            projectile.supportHitEffect
-          ){
-            const supportEffect=
-              EffectSpawnService
-                .definitionSnapshot(
-                  projectile.supportHitEffect
-                );
-
-            EffectSpawnService.spawn(
-              {
-                ...supportEffect,
-                type:String(
-                  supportEffect.renderType||
-                  supportEffect.type||
-                  'areaCircle'
-                ),
-                x:Number(target.x)||0,
-                y:Number(target.y)||0,
-                sourceEntityId:
-                  String(
-                    projectile.source?.id||''
-                  ),
-                start:performance.now(),
-                dur:Math.max(
-                  GAME_DATA.frameMs,
-                  Number(
-                    supportEffect.duration
-                  )||
-                  Number(
-                    supportEffect.durationFrames
-                  )*
-                  GAME_DATA.frameMs||
-                  300
-                )
-              },
-              {source:projectile.source}
-            );
-          }
-
-          projectile.hitIds?.add(
-            target.id
-          );
-          projectile.hadHit=true;
-          this.finish(projectile,true);
-          this.items.splice(index,1);
-          return true;
-        }
-
-        const contactStatus=projectile.projectile?.contactStatus||null;
-        if(overlapsTarget&&contactStatus?.status&&COMBAT_STATUS_DEFS[String(contactStatus.status)]&&NetworkHitAuthorityService.targetAuthoritative(target)){
-          const relation=RelationService.relation(projectile.source,target);
-          const allowed=Array.isArray(contactStatus.targetRelations)?contactStatus.targetRelations:['enemy'];
-          if(allowed.includes(relation)){
-            CombatStatusApplicationService.apply({
-              source:projectile.source,target,type:String(contactStatus.status),duration:Math.max(0,Number(contactStatus.duration)||0),
-              sourceId:`projectile-contact:${String(projectile.networkKey||projectile.id||'projectile')}:${String(contactStatus.status)}`,
-              data:{...(contactStatus.data||{}),sourceEntityId:projectile.source?.id||null,stackMode:contactStatus.data?.stackMode||'replace-source'}
-            });
-          }
-        }
-
-        if(projectile.damageOnTravel===false){
-          if(
-            relation==='enemy'&&
-            JustDodgeService.confirmProjectile(
-              target,
-              projectile
-            )
-          ){
-            projectile.hadHit=false;
-            this.finish(projectile,false);
-            this.items.splice(index,1);
-            return true;
-          }
-
-          // swept 저회 후보였지만 현재 정적 충돌은 아니고 저회도 확정되지 않았다면
-          // 일반 착탄으로 오인하지 않는다.
-          if(!overlapsTarget)continue;
-
-          /*
-            충돌 전용 투사체의 target impact는 대상 권위 화면에서만 확정한다.
-            이전에는 공격자 화면의 보간된 원격 대상에 먼저 닿는 순간
-            projectile.impact를 즉시 실행해 루네프 화염구처럼 실제 방패/대상
-            도달 전에 폭발 FX가 생길 수 있었다.
-
-            비권위 화면에서는 투사체만 예측 소비하고 폭발은 만들지 않는다.
-            대상 권위 화면이 실제 충돌점을 확인한 뒤
-            duel-projectile-impact-confirmed로 동일 impact 좌표를 전파한다.
-          */
-          if(
-            Training.sessionMode==='online'&&
-            relation==='enemy'&&
-            !NetworkHitAuthorityService
-              .targetAuthoritative(target)
-          ){
-            projectile.hadHit=false;
-            this.finish(
-              projectile,
-              false
-            );
-            this.items.splice(
-              index,
-              1
-            );
-            return true;
-          }
-
-          ProjectileImpactService.resolve(
-            projectile,
-            'target'
-          );
-
-          if(
-            Training.sessionMode==='online'&&
-            relation==='enemy'&&
-            NetworkHitAuthorityService
-              .targetAuthoritative(target)
-          ){
-            OnlineDuelService
-              .sendProjectileImpactConfirmed(
-                projectile,
-                'target'
-              );
-          }
-
-          projectile.hadHit=true;
-          this.finish(projectile,true);
-          this.items.splice(index,1);
-          return true;
-        }
-
-        const hit=this.hitTarget(
-          projectile,
-          target,
-          'outbound',
-          overlapsTarget?'static':'swept-only'
-        );
-
-        if(
-          hit&&
-          !policy.passEnemies
-        ){
-          const dodgedContact=
-            String(
-              projectile.dodgedContactTargetId||
-              ''
-            )===
-            String(target.id||'')&&
-            now-
-              Math.max(
-                0,
-                Number(projectile.dodgedContactAt)||0
-              )<
-              Math.max(
-                50,
-                GAME_DATA.frameMs*3
-              );
-
-          if(dodgedContact){
-            projectile.dodgedContactTargetId='';
-            projectile.dodgedContactAt=0;
-
-            /*
-              회피 성공은 "접촉 소비"이지만 "적중 impact"는 아니다.
-              비관통 투사체만 제거하고 폭발/장판/후속 공격은 만들지 않는다.
-            */
-            this.finish(
-              projectile,
-              false
-            );
-            this.items.splice(index,1);
-            return true;
-          }
-
-          const targetArrival=
-            TargetPointProjectileService.arrival(
-              projectile
-            );
-          if(
-            targetArrival?.linger?.atTarget===true&&
-            projectile.predictedContactConsumeOnly!==true
-          ){
-            projectile.predictedContactConsumeOnly=false;
-            ProjectileImpactService.resolve(
-              projectile,
-              'target'
-            );
-            if(
-              TargetPointProjectileService.beginLinger(
-                projectile,
-                now,
-                'target'
-              )
-            ){
-              if(
-                Training.sessionMode==='online'&&
-                relation==='enemy'&&
-                NetworkHitAuthorityService.targetAuthoritative(target)
-              ){
-                OnlineDuelService.sendProjectileImpactConfirmed(
-                  projectile,
-                  'target'
-                );
-              }
-              return false;
-            }
-          }
-
-          if(
-            projectile.predictedContactConsumeOnly===true
-          ){
-            projectile.predictedContactConsumeOnly=false;
-            this.finish(
-              projectile,
-              false
-            );
-            this.items.splice(index,1);
-            return true;
-          }
-
-          if(
-            returning?.returnOnMiss===true&&
-            projectile.hadHit!==true
-          ){
-            ProjectileStateService.beginReturn(projectile,{manual:false});
-            return true;
-          }
-          ProjectileImpactService.resolve(projectile,'target');
-          if(projectile.behavior?.impact&&Training.sessionMode==='online'&&
-            relation==='enemy'&&NetworkHitAuthorityService.targetAuthoritative(target)){
-            OnlineDuelService.sendProjectileImpactConfirmed(projectile,'target');
-          }
-          this.finish(
-            projectile,
-            projectile.hadHit===true
-          );
-          this.items.splice(index,1);
-          return true;
-        }
-      }
+    if(!targetsProcessed){
+      const result=this.processTargets(projectile,index,now);
+      if(result!==null)return result;
     }
 
     if(
@@ -4104,6 +4161,7 @@ const ProjectileService={
       return false;
     }
 
+
     if(expired){
       if(projectile.behavior?.impact?.snapToRangeEnd===true&&Number.isFinite(expiryDistance)){
         TargetPointProjectileService.snapToRangeEnd(projectile,expiryDistance);
@@ -4228,6 +4286,8 @@ const ProjectileService={
       if(index>=this.items.length)continue;
       const projectile=this.items[index];
       if(!projectile)continue;
+
+      if(projectile.redirectEnded===true){this.finish(projectile,projectile.hadHit===true);this.items.splice(index,1);continue;}
 
       if(ScriptedProjectileMotionService.update(projectile,frameScale,now)){
         if(this.items.includes(projectile))ProjectileImpactService.updatePath(projectile);

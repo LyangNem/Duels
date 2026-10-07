@@ -1569,6 +1569,15 @@ const AbilityModuleService=Object.freeze({
       if(LimitedUseBuffService.grant(context.source,module,context.now))context.executed=true;
       next();
     },
+    'equipment.select'(context,next,module){
+      if(module.requireExecuted===true&&context.executed!==true){next();return;}
+      const config=ReactiveEquipmentService.config(context.source);
+      const value=module.operation==='previous'
+        ?ModeStateService.state(context.source,config?.stateKey)?.previousValue
+        :module.value;
+      if(ReactiveEquipmentService.select(context.source,String(value||''),context.now))context.executed=true;
+      next();
+    },
     'mode.set'(context,next,module){
       if(
         module.requireExecuted===true&&
@@ -2307,7 +2316,7 @@ const AbilityModuleService=Object.freeze({
             context.angle,
             until,
             context.source.attackPreview,
-            {includeDeliveryAreas:module.includeDeliveryAreas!==false}
+            {includeDeliveryAreas:module.includeDeliveryAreas!==false,targetPoint:context.targetPoint}
           );
       }
 

@@ -438,6 +438,15 @@ const OnlineDebugControlSyncService={
         if(!CommandFeatureService.isCharacter(target))return false;
         return CommandFeatureService.runRepair(target);
 
+      case 'equipment-equip':{
+        const config=ReactiveEquipmentService.config(target);if(!config)return false;
+        const value=String(data.value||'');
+        const item=config.items.find(entry=>entry.value===value);
+        if(item)return ReactiveEquipmentService.discover(target,item,true,performance.now());
+        if(value===config.initial){ReactiveEquipmentService.select(target,value);return true;}
+        return false;
+      }
+
       case 'gauge-set':
         return DebugGaugeControlService.set(
           target,

@@ -47,20 +47,20 @@
         text: "드래그로 마법진을 생성. 마법진의 생성 형태에 따라 추가 효과 적용 ({damage})"
       },
       {
-        key: "RMB INCLUDE",
+        key: "RMB INCLUDE", section: "CIRCLE",
         name: "",
         showCost: false,
         text: "큰 마법진이 작은 마법진을 완전히 포함하면 작은 마법진의 효과가 {v:circleFormation.damage.containMultiplier}배로 증폭. 일정 크기 이상은 포함 불가"
       },
-      {key: "RMB LINK", name: "", showCost: false, text: "겹치지 않고 서로 이어진 마법진이 효과를 공유"},
+      {key: "RMB LINK", section: "CIRCLE", name: "", showCost: false, text: "겹치지 않고 서로 이어진 마법진이 효과를 공유"},
       {
-        key: "RMB CROSS",
+        key: "RMB CROSS", section: "CIRCLE",
         name: "",
         showCost: false,
         text: "마법진이 교차되면 마법진의 피해가 {v:circleFormation.damage.crossMultiplier}배 증가하며 교차지점은 추가로 {v:circleFormation.damage.intersectionMultiplier}배 증가"
       },
       {
-        key: "RMB AMP",
+        key: "RMB AMP", section: "CIRCLE",
         name: "",
         showCost: false,
         text: "최소 크기 마법진만 증폭 마법진이 될 수 있음. 직ㆍ간접 연결된 마법진에 증폭 단계에 따라 {v:circleFormation.amplifier.duration|seconds}초 감속ㆍ속박ㆍ빙결"
@@ -124,7 +124,7 @@
       spellbook: {
         id: "attack.tinya.spellbook",
         damageRatio: 0,
-        cost: 800,
+        cost: 600,
         cd: 0,
         attackDelayGroup: "tinya-activation",
         attackDelay: 100,

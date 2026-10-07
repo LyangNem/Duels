@@ -1,3 +1,4 @@
+const TRAINING_DEFAULT_SETTINGS=Object.freeze({dummyHp:'killable',botHp:'killable',infiniteHp:false,infiniteStam:false,hasMelee:false,hasRanged:false,meleeDamage:100,rangedDamage:100,meleeAttackSpeed:100,rangedAttackSpeed:100,showCooldown:true,showDps:true});
 
 
 const Training={
@@ -15,7 +16,7 @@ const Training={
     dashY:0,
     dashRemaining:0,
     dashDuration:170
-  },koFreezeUntil:0,koFlashUntil:0,screenHitFlashUntil:0,keys:new Set(),mouse:{x:0,y:0},fx:[],stats:{totalDmg:0,comboHits:0,lastHit:0,dpsTimes:new Float64Array(256),dpsValues:new Float64Array(256),dpsHead:0,dpsCount:0,comboExecutions:new WeakSet()},settings:{dummyHp:'killable',botHp:'killable',infiniteHp:false,infiniteStam:false,hasMelee:false,hasRanged:false,meleeDamage:100,rangedDamage:100,meleeAttackSpeed:100,rangedAttackSpeed:100,showCooldown:true,showDps:true},lastFrame:0,raf:0,loopFrame:null,
+  },koFreezeUntil:0,koFlashUntil:0,screenHitFlashUntil:0,keys:new Set(),mouse:{x:0,y:0},fx:[],stats:{totalDmg:0,comboHits:0,lastHit:0,dpsTimes:new Float64Array(256),dpsValues:new Float64Array(256),dpsHead:0,dpsCount:0,comboExecutions:new WeakSet()},settings:{...TRAINING_DEFAULT_SETTINGS},lastFrame:0,raf:0,loopFrame:null,
   clampSpectatorPoint(x,y){
     const halfW=GAME_DATA.canvas.width/2;
     const halfH=GAME_DATA.canvas.height/2;
@@ -844,7 +845,18 @@ const Training={
   },
   reset(){
     if(!this.active)return false;
+    if(this.sessionMode==='training'){
+      this.closePanels();
+      CharacterCommandInputService.close();
+      CharacterCommandInputService.clearResult();
+      this.settings={...TRAINING_DEFAULT_SETTINGS};
+      DebugMapService.set('training-tilemap');
+      CameraFovService.reset();
+      this.cameraFollowState.initialized=false;
+      this.hudRefs=null;
+    }
     this.setupSession();
+    if(this.sessionMode==='training')this.buildHud();
     return true;
   },
   setupOnlineSession(){
@@ -1873,6 +1885,7 @@ const Training={
       CCService.update(entity,now);
       ShieldService.update(entity,now);
 
+      if(entity.character?.reactiveEquipment)ReactiveEquipmentService.update(entity,now);
       ProgressStateService.updateIdleRepair(entity,now);
 
       if(entity!==this.player)ChargedAttackService.update(entity,now);
@@ -3285,7 +3298,7 @@ const Training={
           );
         }
 
-        if(style.showLink!==false){
+        if(style.showLink!==false&&EntityService.owner(b.source)===this.player){
           ctx.beginPath();
           ctx.moveTo(b.source.x,b.source.y);
           ctx.lineTo(visual.x,visual.y);

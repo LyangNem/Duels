@@ -22,7 +22,9 @@
     "max": 800,
     "segmentSize": 100,
     "intactRegenPerSecond": 25,
-    "repairHits": 5
+    "repairHits": 5,
+    "rotationStateKey": "van-wrench-rotation",
+    "rotationMs": 300
   },
   "damageResourceLayers": [
     {
@@ -190,6 +192,15 @@
           "durationFrames": 14,
           "clipToAttackArea": true,
           "replaceAutoAreaEffect": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "van-wrench-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -272,6 +283,15 @@
             "crossHalfLength": 46,
             "showLink": false
           }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "van-wrench-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -297,6 +317,15 @@
             "$ref": "attacks.counter.halfWidth"
           },
           "wallPolicy": "block"
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "van-wrench-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [

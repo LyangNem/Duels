@@ -260,6 +260,7 @@ const PointerHoldInputService=Object.freeze({
     }
 
     current.held=true;
+    current.gaugeRetainUntil=0;
     current.pressedAt=performance.now();
     current.holdConsumed=false;
     current.wheelConsumed=false;
@@ -358,7 +359,13 @@ const PointerHoldInputService=Object.freeze({
       ability?.inputPolicy?.tapHoldSplit===true&&
       !!ability?.holdTrigger;
     const deferredTap=ability?.inputPolicy?.deferTapUntilRelease===true;
-    const holdConsumed=current.holdConsumed===true;
+    const elapsed=performance.now()-Number(current.pressedAt);
+    const holdConsumed=current.holdConsumed===true||(
+      wasHeld&&tapHoldSplit&&
+      ability?.inputPolicy?.holdTriggerWhilePressed!==true&&
+      performance.now()-Number(current.pressedAt)>=Math.max(1,Number(ability.inputPolicy.holdThresholdMs)||300)&&
+      this.holdAvailable(source,ability)
+    );
     const wheelConsumed=current.wheelConsumed===true;
     const holdRepeatTicks=Number(current.holdRepeatTicks)||0;
     this.clearHoldRepeatProgress(current);
@@ -393,6 +400,7 @@ const PointerHoldInputService=Object.freeze({
       triggerRelease
     ){
       let result=false;
+      if(ability.inputPolicy?.cancelUnavailableHold===true&&elapsed>=Number(ability.inputPolicy.holdThresholdMs)&&!holdConsumed){this.clearHoldGauge(source,ability);return false;}
 
       if(holdConsumed){
         result=
@@ -404,6 +412,7 @@ const PointerHoldInputService=Object.freeze({
           Training.use(slot)===true;
       }
 
+      if(result&&holdConsumed)current.gaugeRetainUntil=performance.now()+Math.max(0,Number(ability.inputPolicy.holdGaugeRetainMs)||0);
       this.clearHoldGauge(
         source,
         ability
@@ -445,27 +454,23 @@ const PointerHoldInputService=Object.freeze({
       Number(source.abilityPending.get(ability.id))||0
     );
   },
-  drawHoldGauge(
-    ctx,
-    source,
-    now=performance.now()
-  ){
-    if(!ctx||!source)return false;
-
+  holdGaugePresentationState(source,now=performance.now()){
+    if(!source)return {visible:false,ratio:0,full:false};
     const current=this.state.rmb;
     const ability=
       source.character?.abilities?.rmb;
 
+    const retained=now<Number(current?.gaugeRetainUntil||0);
     if(
-      !current?.held||
+      (!current?.held&&!retained)||
       current.blockedUntilRelease||
       ability?.inputPolicy?.tapHoldSplit!==true||
       ability.inputPolicy?.holdGauge!==true
-    )return false;
+    )return {visible:false,ratio:0,full:false};
     if(
-      ability.inputPolicy?.holdGaugeRequireAvailable===true&&
+      !retained&&ability.inputPolicy?.holdGaugeRequireAvailable===true&&
       !this.holdAvailable(source,ability)
-    )return false;
+    )return {visible:false,ratio:0,full:false};
 
     const duration=Math.max(
       1,
@@ -473,7 +478,7 @@ const PointerHoldInputService=Object.freeze({
         ability.inputPolicy.holdThresholdMs
       )||1
     );
-    const progress=Math.max(
+    const progress=retained?1:Math.max(
       0,
       Math.min(
         1,
@@ -486,6 +491,15 @@ const PointerHoldInputService=Object.freeze({
         )/duration
       )
     );
+
+
+    return {visible:progress>0,ratio:progress,full:progress>=1};
+  },
+  drawHoldGauge(ctx,source,now=performance.now()){
+    if(!ctx||!source)return false;
+    const state=this.holdGaugePresentationState(source,now);
+    if(!state.visible)return false;
+    const progress=state.ratio;
 
     return ArcGaugePresentationService.render(
       ctx,

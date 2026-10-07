@@ -19,9 +19,9 @@
   "desc": "명령어로 전투 기능을 활성화하며 전투하는 캐릭터",
   "worldGaugeModules": [
     {
-      "type": "gauge.arc",
+      "type": "gauge.segmented",
       "valueRef": {
-        "type": "mode-match-count-ratio",
+        "type": "mode-match-count",
         "modes": [
           {
             "stateKey": "command:accelerate",
@@ -66,8 +66,45 @@
         ]
       },
       "color": "#aeb8c0",
-      "lineWidth": 3.5,
-      "maxChargeFlash": true
+      "valueMode": "count",
+      "height": 4,
+      "gap": 2,
+      "background": "rgba(10,18,22,0.92)",
+      "stroke": "rgba(174,184,192,0.4)",
+      "segments": [
+        {
+          "value": 1,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 2,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 3,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 4,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 5,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 6,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 7,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 8,
+          "color": "#aeb8c0"
+        }
+      ]
     }
   ],
   "tooltipSkills": [

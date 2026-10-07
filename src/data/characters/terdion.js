@@ -22,28 +22,28 @@
       "key": "ALWAYS",
       "name": "폭발 주의",
       "showCost": false,
-      "text": "폭약은 벽 또는 적에게 적중 시 제자리에 착탄. 착탄 {v:attacks.lmbExplosion.modules.0.delay|seconds}초 뒤 폭발하며 중심에 가까울수록 피해와 넉백 증가"
+      "text": "착탄 {v:attacks.lmbExplosion.modules.0.delay|seconds}초 뒤 폭발하며 중심에 가까울수록 피해와 넉백 증가"
     },
     {
       "key": "LMB",
       "name": "폭약 카트리지",
       "attack": "lmb",
       "linkedAttack": "lmbExplosion",
-      "text": "폭약 카트리지 투척 ({damage}/{linkedDamage})"
+      "text": "폭약 카트리지를 투척하며 적중하거나 사거리 끝에 착탄({damage}/{linkedDamage})"
     },
     {
       "key": "RMB",
       "name": "발파 폭약",
       "attack": "rmb",
       "linkedAttack": "rmbExplosion",
-      "text": "지정 지점에 폭약 투척. 폭발은 벽에 막히며 폭발이나 폭약이 닿은 벽 파괴 ({damage}/{linkedDamage})"
+      "text": "지정 지점에 폭약 투척. 폭발은 벽에 막히며 폭발이 닿은 벽 파괴 ({damage}/{linkedDamage})"
     },
     {
       "key": "L-Shift",
       "name": "폭약밭",
       "attack": "counter",
       "linkedAttack": "counterExplosion",
-      "text": "마우스 거리에 따라 최대 {v:attacks.counter.range}까지 주변 {v:attacks.counter.modules.3.count}방향으로 시계방향 순차 투척 ({damage}/{linkedDamage})"
+      "text": "주변 {v:attacks.counter.modules.3.count}방향으로 폭약 카트리지 투척 ({damage}/{linkedDamage})"
     }
   ],
   "attacks": {

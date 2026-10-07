@@ -412,6 +412,8 @@ const OnlineDuelService={
     return true;
   },
   showStartAugment(payload){
+    const normalMode=(payload?.gameMode||RoomService.settings.gameMode)!=='augment';
+    document.getElementById('scr-start-aug')?.classList.toggle('normal-match',normalMode);
     document.querySelectorAll('#char-grid .char-card').forEach(card=>{
       card.classList.remove('selection-locked');
     });
@@ -444,15 +446,15 @@ const OnlineDuelService={
 
     const startTitle=document.getElementById('start-aug-title');
     const startSubtitle=document.getElementById('start-aug-subtitle');
-    if(startTitle)startTitle.style.display='';
-    if(startSubtitle)startSubtitle.style.display='';
+    if(startTitle){startTitle.style.display='';startTitle.textContent=normalMode?'게임 준비':'증강 선택';}
+    if(startSubtitle){startSubtitle.style.display='';startSubtitle.textContent=normalMode?'캐릭터를 확인하고 준비를 완료하세요':'게임 시작 전 증강을 하나 선택하세요';}
 
     const peerInfo=document.getElementById('start-aug-peer-info');
     const countdown=document.getElementById('start-aug-countdown');
     const button=document.getElementById('start-aug-confirm-btn');
     if(peerInfo){peerInfo.style.display='none';peerInfo.innerHTML=''}
     if(countdown){countdown.style.display='none';countdown.textContent=''}
-    if(button){button.style.display='';button.disabled=false;button.textContent='선택 완료'}
+    if(button){button.style.display='';button.disabled=false;button.textContent=normalMode?'준비 완료':'선택 완료'}
 
     const gridElement=document.getElementById('start-aug-grid');
     if(gridElement){
@@ -549,9 +551,10 @@ charRow.appendChild(card);
       }
     }
 
-    const options=payload?.choicesByPid?.[RoomService.localPid]||[];
+    const options=normalMode?[]:payload?.choicesByPid?.[RoomService.localPid]||[];
     const grid=document.getElementById('start-aug-grid');
     if(grid){
+      grid.style.display=normalMode?'none':'';
       grid.innerHTML='';
 
       for(const id of options){
@@ -649,7 +652,7 @@ charRow.appendChild(card);
       button.onclick=()=>{
         if(this.startAugmentReady)return;
 
-        if(!this.startAugmentSelected&&!this.startAugmentNoPickWarned){
+        if(!normalMode&&!this.startAugmentSelected&&!this.startAugmentNoPickWarned){
           this.startAugmentNoPickWarned=true;
           if(status){
             status.textContent='⚠ 증강을 선택하지 않았습니다. 계속하려면 다시 누르세요.';
@@ -817,11 +820,12 @@ charRow.appendChild(card);
       peerInfo.style.cssText=
         'display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:14px;margin-bottom:12px;';
 
-      const remotePids=
+      const remotePids=RoomService.settings.gameMode!=='augment'?[]:
         RoomService.matchPids().filter(
           pid=>pid!==RoomService.localPid
         );
 
+      if(RoomService.settings.gameMode!=='augment')peerInfo.style.display='none';
       for(const pid of remotePids){
         const result=
           document.createElement('div');
@@ -1610,12 +1614,14 @@ charRow.appendChild(card);
     projectileKey,
     stateKey,
     outcome,
-    impactPoint=null
+    impactPoint=null,
+    blockMetadata={}
   ){
     if(!this.active||this.roundResolving)return false;
 
     RoomService.sendGameplay({
       type:'duel-projectile-guard-resolved',
+      attackId:String(blockMetadata.attackId||''),executionSequence:Number(blockMetadata.executionSequence)||0,defenderPid:String(blockMetadata.defenderPid||''),
       roundToken:this.roundToken,
       sentAt:Date.now(),
       projectileOwnerPid:String(projectileOwnerPid||''),
@@ -2040,7 +2046,21 @@ charRow.appendChild(card);
       );
     }
 
+    if(payload.type==='duel-projectile-relay'){
+      const source=OnlineParticipantEntityService.entity(String(payload.ownerPid||''));
+      if(String(payload.ownerPid||'')!==pid||!(Number(payload.executionSequence)>0))return false;
+      const relay=(Object.values(source?.character?.attacks||{})).some(a=>(a.modules||[]).some(m=>m.type==='projectile.wall-relay'&&m.attackId===payload.attackId));
+      return relay&&ProjectileRedirectService.fireRelay(source,source&&AbilityService.attackById(source.character,String(payload.attackId||'')),payload.point,Number(payload.angle),String(payload.key||''),Number(payload.executionSequence));
+    }
+
+    if(payload.type==='duel-projectile-redirect'){
+      const owner=OnlineParticipantEntityService.entity(String(payload.projectileOwnerPid||''));
+      return ProjectileRedirectSyncService.receive(owner,payload);
+    }
+
     if(payload.type==='duel-attack-guard-resolved'){
+      const attacker=OnlineParticipantEntityService.entity(String(payload.attackerPid||''));
+      if(attacker?.character?.reactiveEquipment)ReactiveEquipmentService.blocked(attacker,String(payload.defenderPid||''),`${attacker.id}:${payload.attackId}:execution:${payload.executionSequence}`);
       return true;
     }
 
@@ -2273,6 +2293,7 @@ charRow.appendChild(card);
           ownerPid
         );
       if(!owner)return false;
+      if(owner.character?.reactiveEquipment)ReactiveEquipmentService.blocked(owner,String(payload.defenderPid||''),Number(payload.executionSequence)>0?`${owner.id}:${payload.attackId}:execution:${payload.executionSequence}`:`${owner.id}:${payload.attackId}:projectile:${payload.projectileKey}`);
 
       if(payload.outcome==='remove'){
         ProjectileImpactService.correctGuardPath(owner,payload.projectileKey,payload.impactPoint);
@@ -4526,7 +4547,7 @@ charRow.appendChild(card);
       status.className='status';
     }
     if(charStatus){
-      charStatus.textContent='선택 안 하면 현재 캐릭터 유지';
+      charStatus.textContent='미선택 시 현재 캐릭터 유지';
       charStatus.className='status';
     }
 this.betweenReadyPids=new Set();
@@ -4621,7 +4642,8 @@ this.betweenReadyPids=new Set();
       )||
       [];
 
-    const choiceOrder=[
+    const normalBetween=(payload.gameMode||RoomService.settings.gameMode)!=='augment';
+    const choiceOrder=normalBetween?[]:[
       ...loserPids
     ];
 
@@ -4634,6 +4656,7 @@ this.betweenReadyPids=new Set();
     }
 
     if(augmentTitle){
+      augmentTitle.style.display=normalBetween?'none':'';
       augmentTitle.textContent=
         loserPids.length
           ?'선택지'
@@ -4641,7 +4664,8 @@ this.betweenReadyPids=new Set();
     }
 
     if(augmentGrid){
-      augmentGrid.style.display='';
+      augmentGrid.classList.toggle('normal-match',normalBetween);
+      augmentGrid.style.display=normalBetween?'none':'';
       augmentGrid.replaceChildren();
 
       const createAugmentCard=(

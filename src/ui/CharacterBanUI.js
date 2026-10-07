@@ -59,7 +59,14 @@ const CharacterBanUI=Object.freeze({
     card?.querySelector(':scope > .character-ban-mark')?.remove();
   },
   showScreen(){
+    const opening=this.screen()?.classList.contains('hidden');
     RoomUI.showScreen('scr-character-ban');
+    if(opening){
+      const screen=this.screen();
+      if(screen)screen.scrollTop=0;
+      const grid=this.grid();
+      if(grid)grid.scrollTop=0;
+    }
     const select=document.getElementById('character-ban-sort-select');
     if(select)select.value=this.sortMode();
   },
@@ -526,7 +533,8 @@ const CharacterBanUI=Object.freeze({
 
         if(RoomService.submitCharacterBanProposal(ids)){
           this.selectedIds.clear();
-          this.sync();
+          if(!RoomService.characterBanProposal)this.returnToRoom();
+          else this.sync();
         }
       }
     );

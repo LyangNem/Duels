@@ -140,6 +140,9 @@ const PanelController = Object.freeze({
 
 const HelpTabs = Object.freeze({
   open(name) {
+    document.querySelectorAll('[data-help-dodge-cost]').forEach(el => {
+      el.textContent = String(GAME_DATA.dodge.cost);
+    });
     const safe = ['how','controls','status'].includes(name) ? name : 'how';
     document.querySelectorAll('[data-help-tab]').forEach(el => el.classList.toggle('active', el.dataset.helpTab === safe));
     document.querySelectorAll('[data-help-page]').forEach(el => el.classList.toggle('active', el.dataset.helpPage === safe));
@@ -1784,7 +1787,7 @@ function freezeCharacterData(value){
 
 const CHARACTER_RULES=freezeCharacterData({
   styles: {"1": "파워형", "2": "기동형", "3": "지속전투형", "4": "차징형", "5": "조건형", "6": "반격형", "7": "성장형", "8": "범위장악형", "9": "행동제약형"},
-  moveLabels: {"shubi":"보통", "ruvu":"보통", "miaruky":"느림", "mainmad":"빠름", "mehugu":"보통", "lian":"빠름", "tau":"빠름", "veleu":"매우 빠름", "elin":"느림", "nsonya":"매우 빠름", "maisil":"빠름", "erapabi":"빠름", "reika":"느림", "shairaz":"느림", "phase":"보통", "kan":"매우 빠름", "cherity":"보통", "konyeong":"빠름", "herjang":"보통", "hatsuhats":"보통", "prill":"보통", "dazbin":"빠름", "yui":"빠름", "peluna":"빠름", "sherina":"느림", "sya":"매우 빠름", "runef":"보통", "roon":"빠름", "intu":"빠름", "meramona":"보통", "tadta":"매우 느림", "nanamnang":"느림", "raise":"빠름", "levina":"매우 빠름", "ki":"빠름", "sor":"보통", "jerry":"느림", "ruli":"보통", "lete":"빠름", "clea":"빠름", "shello":"빠름", "tinya":"느림", "lime":"보통", "quri":"보통", "hapupu":"매우 빠름", "atsuteo":"보통", "nare":"빠름", "kines":"보통", "ezrail":"보통", "nyu":"매우 빠름", "gae":"느림", "cyien":"빠름", "kanon":"빠름", "deltroove":"빠름", "xianelli":"빠름", "ban":"빠름", "sherbet":"보통", "dira":"보통"},
+  moveLabels: {"geopin":"매우 빠름", "shubi":"보통", "ruvu":"보통", "miaruky":"느림", "mainmad":"빠름", "mehugu":"보통", "lian":"빠름", "tau":"빠름", "veleu":"매우 빠름", "elin":"느림", "nsonya":"매우 빠름", "maisil":"빠름", "erapabi":"빠름", "reika":"느림", "shairaz":"느림", "phase":"보통", "kan":"매우 빠름", "cherity":"보통", "konyeong":"빠름", "herjang":"보통", "hatsuhats":"보통", "prill":"보통", "dazbin":"빠름", "yui":"빠름", "peluna":"빠름", "sherina":"느림", "sya":"매우 빠름", "runef":"보통", "roon":"빠름", "intu":"빠름", "meramona":"보통", "tadta":"매우 느림", "nanamnang":"느림", "raise":"빠름", "levina":"매우 빠름", "ki":"빠름", "sor":"보통", "jerry":"느림", "ruli":"보통", "lete":"빠름", "clea":"빠름", "shello":"빠름", "tinya":"느림", "lime":"보통", "quri":"보통", "hapupu":"매우 빠름", "atsuteo":"보통", "nare":"빠름", "kines":"보통", "ezrail":"보통", "nyu":"매우 빠름", "gae":"느림", "cyien":"빠름", "kanon":"빠름", "deltroove":"빠름", "xianelli":"빠름", "ban":"빠름", "sherbet":"보통", "dira":"보통"},
   roles: {"1": "딜러", "2": "저격수", "3": "탱커", "4": "서포터", "5": "컨트롤러", "6": "암살자"},
   ranges: [
     {id: 1, maxInclusive: 150, tag: "초근거리"},
@@ -4619,7 +4622,7 @@ const CHARACTER_DATA=freezeCharacterData({
     title: "유령 친구",
     color: "#c8d8f0",
     classification: {style: 3, range: 0, role: 4},
-    stats: {maxHealth: 800, speed: 3.75, radius: 20, baseDamage: 100, difficulty: 4},
+    stats: {maxHealth: 1000, speed: 3.75, radius: 20, baseDamage: 100, difficulty: 4},
     desc: "유령 친구를 소환해 서포트하는 캐릭터",
     tooltipSkills: [
       {
@@ -4632,14 +4635,14 @@ const CHARACTER_DATA=freezeCharacterData({
       },
       {key: "RMB", name: "유령 친구", attack: "rmb", text: "수호 모드의 유령 소환"},
       {
-        key: "RMB/LMB",
+        key: "RMB SUMMONER",
         name: "밀쳐내기",
         attack: "spiritGuardBurst",
         costRef: {ability: "rmb", trigger: "trigger", module: "summon.toggle", property: "activeCommand.guardCost"},
         text: "수호 모드 유령이 가장 가까운 적을 공격 및 넉백 ({damage})"
       },
       {
-        key: "RMB/RMB",
+        key: "RMB SUMMONER",
         name: "탐사 돌진",
         attack: "spiritDash",
         costRef: {ability: "rmb", trigger: "trigger", module: "summon.toggle", property: "activeCommand.exploreDash.cost"},
@@ -4679,7 +4682,7 @@ const CHARACTER_DATA=freezeCharacterData({
       spirit: {
         id: "summon.elin.spirit",
         name: "유령",
-        maxHealth: 800,
+        maxHealth: 1000,
         respawnDelay: 7000,
         respawnHealth: 800,
         radius: 20,
@@ -6121,6 +6124,7 @@ const CHARACTER_DATA=freezeCharacterData({
     classification: {style: 7, range: 0, role: 1},
     stats: {maxHealth: 1300, speed: 3.75, radius: 20, baseDamage: 100, difficulty: 3},
     desc: "태양의 가호로 각성해 강화된 공격을 퍼붓는 캐릭터",
+    worldEffectModules: [{type:"effect.spawn",renderType:"swordSilhouette",conditions:[{type:"state.mode-is",stateKey:"reika-mode",value:"blessed",initial:"normal"}],style:"sun",rotationStateKey:"reika-sword-rotation",rotationMs:300,angle:-0.6,scale:1.25}],
     tooltipSkills: [
       {key: "ALWAYS", name: "가호 준비", attack: "gahoActivate", showCost: false, text: "시간이 지나거나 적을 타격해 게이지 충전"},
       {key: "LMB", name: "태양의 대검", attack: "lmb", text: "대검 휘두르기 ({damage})"},
@@ -6133,15 +6137,16 @@ const CHARACTER_DATA=freezeCharacterData({
         costText: "스테미나 0",
         text: "선딜레이 후 주변 폭발 및 화염. 레이카는 가호 상태로 전환 ({damage})"
       },
+      {key: "L-Shift", name: "반동제어불능!", attack: "counter", text: "전방으로 돌진하며 경로 상에 피해. 적에게 적중 시 정지  ({damage})"},
       {
-        key: "RMB/LMB",
+        key: "LMB PROTECTION",
         name: "검격의 화염",
         attack: "lmbBlessed",
         linkedAttack: "lmbWave",
         text: "대검 휘두르기 및 태양의 파동을 내보내 화염 부여 ({damage})"
       },
       {
-        key: "RMB/RMB",
+        key: "RMB PROTECTION",
         name: "공중 강하",
         attack: "gahoWeapon",
         linkedAttack: "gahoSlam",
@@ -6149,14 +6154,13 @@ const CHARACTER_DATA=freezeCharacterData({
         text: "잠시 공중에 떠올라 무적 상태에서 대검을 투척 후 해당 지점으로 강하 ({damageSequence})"
       },
       {
-        key: "RMB/L-Shift",
+        key: "L-Shift PROTECTION",
         name: "돌진 회전베기!",
         attack: "counterBlessed",
         linkedAttack: "counterBlessedExplosion",
         text: "전방으로 돌진하며 경로 상에 피해 및 화염. 대검을 한 바퀴 돌리며 주변 적 피해 및 화염. 적에게 적중 시 정지 ({damageSequence})"
       },
-      {key: "RMB/Space", name: "불길", text: "경로에 불길 생성. 밟을 시 화염"},
-      {key: "L-Shift", name: "반동제어불능!", attack: "counter", text: "전방으로 돌진하며 경로 상에 피해. 적에게 적중 시 정지  ({damage})"}
+      {key: "Space PROTECTION", name: "불길", text: "경로에 불길 생성. 밟을 시 화염"}
     ],
     triggers: [
       {
@@ -6289,7 +6293,8 @@ const CHARACTER_DATA=freezeCharacterData({
             clipToAttackArea: true,
             replaceAutoAreaEffect: true,
             scaleWithAttackRange: true
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -6327,7 +6332,8 @@ const CHARACTER_DATA=freezeCharacterData({
             clipToAttackArea: true,
             replaceAutoAreaEffect: true,
             scaleWithAttackRange: true
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -6419,7 +6425,8 @@ const CHARACTER_DATA=freezeCharacterData({
             distance: 180,
             speed: 12,
             oncePerExecution: true
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "선딜레이"]
       },
@@ -6465,7 +6472,8 @@ const CHARACTER_DATA=freezeCharacterData({
             stateKey: "reika-mode",
             value: "blessed",
             initial: "normal"
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "선딜레이"]
       },
@@ -6500,8 +6508,7 @@ const CHARACTER_DATA=freezeCharacterData({
             targetPointClearance: 4,
             targetPreview: {
               shape: "circle",
-              range: 90,
-              style: {strokeColor: "56,189,248", fillColor: "56,189,248", strokeAlpha: 0.65, fillAlpha: 0.08, dash: [6, 5]}
+              range: characterValue("attacks.gahoSlam.range")
             },
             damageOnTravel: false,
             collisionTargets: false
@@ -6542,7 +6549,8 @@ const CHARACTER_DATA=freezeCharacterData({
               crossHalfLength: 11,
               showLink: false
             }
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["스킬"]
       },
@@ -6636,7 +6644,8 @@ const CHARACTER_DATA=freezeCharacterData({
               pathPresentation: {color: "255,122,0", width: 44, duration: 200},
               stopAfterFirstContact: false
             }
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["반격"]
       },
@@ -6647,20 +6656,11 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 300,
         range: 300,
         presentation: {color: "56,189,248"},
-        previewStyle: {
-          strokeColor: "56,189,248",
-          strokeAlpha: 0.62,
-          fillColor: "56,189,248",
-          fillAlpha: 0.16,
-          lineWidth: 1.7,
-          dash: [7, 5]
-        },
         previewGeometry: {
           shape: "rect",
           range: characterValue("attacks.counterBlessed.range"),
           halfWidth: 44,
-          wallPolicy: "ignore",
-          color: "56,189,248"
+          wallPolicy: "ignore"
         },
         modules: [
           {
@@ -6714,7 +6714,8 @@ const CHARACTER_DATA=freezeCharacterData({
               pathPresentation: {color: "56,189,248", width: 44, duration: 200},
               stopAfterFirstContact: false
             }
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["반격"]
       },
@@ -6859,6 +6860,14 @@ const CHARACTER_DATA=freezeCharacterData({
                   ]
                 }
               ]
+            },
+            {
+              type: "preview.create",
+              shape: "attack-shape",
+              attackId: "attack.reika.gaho-weapon",
+              duration: 320,
+              requireExecuted: true,
+              requireAttackId: "attack.reika.gaho-weapon"
             },
             {
               type: "preview.create",
@@ -7458,7 +7467,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cost: 200,
         cd: 291.6666666667,
         range: 130,
-        progressScale: {stateKey: "kan-feast", damageRatio: {from: characterValue("attacks.lmb.damageRatio"), to: 4.5}},
+        progressScale: {rangeBasis: "initial",stateKey: "kan-feast", damageRatio: {from: characterValue("attacks.lmb.damageRatio"), to: 4.5}},
         modules: [
           {
             type: "delivery.area",
@@ -7547,7 +7556,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cost: 0,
         cd: 300,
         range: 104,
-        progressScale: {
+        progressScale: {rangeBasis: "initial",
           stateKey: "kan-feast",
           range: {from: characterValue("attacks.counter.range"), to: 364},
           damageRatio: {from: characterValue("attacks.counter.damageRatio"), to: 4},
@@ -8494,7 +8503,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "text": "현재 위치에 대포 설치"
     },
     {
-      "key": "RMB/RMB",
+      "key": "RMB SUMMONER",
       "name": "대포 명령",
       "attack": "cannonBurst",
       "costRef": {
@@ -9901,7 +9910,7 @@ const CHARACTER_DATA=freezeCharacterData({
         damageRatio: 1,
         cost: 200,
         cd: 400,
-        range: 120,
+        range: 144,
         modules: [
           {
             type: "delivery.area",
@@ -11107,7 +11116,7 @@ const CHARACTER_DATA=freezeCharacterData({
               type: "stealth.toggle",
               stateKey: "stealth:sya",
               maxDuration: 4000,
-              drainPerSecond: 150,
+              drainPerSecond: 100,
               speedModifier: 0.3,
               detectDelay: 400,
               detectRange: 80,
@@ -11782,18 +11791,12 @@ const CHARACTER_DATA=freezeCharacterData({
           {value: 11, color: "#a18a8a"},
           {value: 12, color: "#a18a8a"}
         ]
-      },
-      {
-        type: "gauge.segmented",
-        valueRef: {type: "mode", target: "self", stateKey: "intu-weapon", initial: "pistol"},
-        gap: 2,
-        height: 4,
-        activeAlpha: 0.95,
-        background: "rgba(10,18,22,0.92)",
-        stroke: "rgba(161,138,138,0.40)",
-        colorVariants: [{color: "#9bdcff", conditions: [{type: "state.exists", stateKey: "intu-sniper"}]}],
-        segments: [{value: "pistol", color: "#a18a8a"}, {value: "shotgun", color: "#a18a8a"}]
       }
+    ],
+    worldEffectModules: [
+      {type:"effect.spawn",renderType:"gunSilhouette",rotationStateKey:"intu-gun-rotation",rotationMs:300,style:"pistol",angle:-0.6,color:"#a18a8a",conditions:[{type:"state.absent",stateKey:"intu-sniper"},{type:"state.mode-is",stateKey:"intu-weapon",value:"pistol",initial:"pistol"}]},
+      {type:"effect.spawn",renderType:"gunSilhouette",rotationStateKey:"intu-gun-rotation",rotationMs:300,style:"shotgun",angle:-0.6,color:"#a18a8a",conditions:[{type:"state.absent",stateKey:"intu-sniper"},{type:"state.mode-is",stateKey:"intu-weapon",value:"shotgun",initial:"pistol"}]},
+      {type:"effect.spawn",renderType:"gunSilhouette",rotationStateKey:"intu-gun-rotation",rotationMs:300,style:"sniper",angle:-0.6,color:"#9bdcff",conditions:[{type:"state.exists",stateKey:"intu-sniper"}]}
     ],
     tooltipSkills: [
       {key: "LMB PISTOL", name: "권총 사격", attack: "pistol", text: "권총 발사. ({damage})"},
@@ -11855,7 +11858,8 @@ const CHARACTER_DATA=freezeCharacterData({
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -11891,7 +11895,8 @@ const CHARACTER_DATA=freezeCharacterData({
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -11926,7 +11931,8 @@ const CHARACTER_DATA=freezeCharacterData({
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "평타"]
       },
@@ -11962,7 +11968,8 @@ const CHARACTER_DATA=freezeCharacterData({
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "평타"]
       },
@@ -11997,7 +12004,8 @@ const CHARACTER_DATA=freezeCharacterData({
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "평타"]
       },
@@ -12033,7 +12041,8 @@ const CHARACTER_DATA=freezeCharacterData({
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "평타"]
       },
@@ -12077,7 +12086,8 @@ const CHARACTER_DATA=freezeCharacterData({
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -12117,7 +12127,8 @@ const CHARACTER_DATA=freezeCharacterData({
             data: {choice: "reload"},
             resolveDataKey: "choice",
             resolveAttackIds: {reload: "attack.intu.reload-complete"}
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"intu-gun-rotation",values:["a","b"]}
         ],
         tags: ["반격"]
       }
@@ -12161,6 +12172,7 @@ const CHARACTER_DATA=freezeCharacterData({
                 {attackId: "attack.intu.sniper", conditions: [{type: "state.exists", stateKey: "intu-sniper"}]},
                 {
                   attackId: "attack.intu.shotgun",
+                  rangeAvailableInitially: true,
                   conditions: [{type: "state.mode-is", stateKey: "intu-weapon", initial: "pistol", value: "shotgun"}]
                 }
               ]
@@ -12339,7 +12351,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 350,
         range: 550,
         modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 8},
+          {type: "delivery.projectile", speed: 32.2, radius: 12},
           {
             type: "projectile.presentation",
             kind: "projectile-style",
@@ -12370,7 +12382,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 350,
         range: 900,
         modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 8},
+          {type: "delivery.projectile", speed: 32.2, radius: 12},
           {
             type: "projectile.presentation",
             kind: "projectile-style",
@@ -12401,7 +12413,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 350,
         range: 900,
         modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 8},
+          {type: "delivery.projectile", speed: 32.2, radius: 12},
           {
             type: "projectile.presentation",
             kind: "projectile-style",
@@ -12436,7 +12448,7 @@ const CHARACTER_DATA=freezeCharacterData({
             type: "delivery.area",
             shape: "rect",
             range: characterValue("attacks.lmbStage4.range"),
-            halfWidth: 8,
+            halfWidth: 12,
             wallPolicy: "block",
             projectileClassification: "instant-laser"
           },
@@ -14299,6 +14311,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {
             type: "field.area",
             stateKey: "ki-forecast",
+            reactiveEquipmentEntry: false,
             anchorMode: "target-point",
             shape: "circle",
             range: 347,
@@ -15479,7 +15492,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "text": "조준 위치에 가장 가까운 대상을 수취인으로 확정하며 우편함 설치"
     },
     {
-      "key": "RMB/RMB",
+      "key": "RMB SUMMONER",
       "name": "수취인 변경",
       "attack": "rmbRetarget",
       "costText": "스테미나 0",
@@ -16847,20 +16860,20 @@ const CHARACTER_DATA=freezeCharacterData({
         text: "드래그로 마법진을 생성. 마법진의 생성 형태에 따라 추가 효과 적용 ({damage})"
       },
       {
-        key: "RMB INCLUDE",
+        key: "RMB INCLUDE", section: "CIRCLE",
         name: "",
         showCost: false,
         text: "큰 마법진이 작은 마법진을 완전히 포함하면 작은 마법진의 효과가 {v:circleFormation.damage.containMultiplier}배로 증폭. 일정 크기 이상은 포함 불가"
       },
-      {key: "RMB LINK", name: "", showCost: false, text: "겹치지 않고 서로 이어진 마법진이 효과를 공유"},
+      {key: "RMB LINK", section: "CIRCLE", name: "", showCost: false, text: "겹치지 않고 서로 이어진 마법진이 효과를 공유"},
       {
-        key: "RMB CROSS",
+        key: "RMB CROSS", section: "CIRCLE",
         name: "",
         showCost: false,
         text: "마법진이 교차되면 마법진의 피해가 {v:circleFormation.damage.crossMultiplier}배 증가하며 교차지점은 추가로 {v:circleFormation.damage.intersectionMultiplier}배 증가"
       },
       {
-        key: "RMB AMP",
+        key: "RMB AMP", section: "CIRCLE",
         name: "",
         showCost: false,
         text: "최소 크기 마법진만 증폭 마법진이 될 수 있음. 직ㆍ간접 연결된 마법진에 증폭 단계에 따라 {v:circleFormation.amplifier.duration|seconds}초 감속ㆍ속박ㆍ빙결"
@@ -16924,7 +16937,7 @@ const CHARACTER_DATA=freezeCharacterData({
       spellbook: {
         id: "attack.tinya.spellbook",
         damageRatio: 0,
-        cost: 800,
+        cost: 600,
         cd: 0,
         attackDelayGroup: "tinya-activation",
         attackDelay: 100,
@@ -17077,7 +17090,7 @@ const CHARACTER_DATA=freezeCharacterData({
       },
       {key: "RMB", name: "분열", attack: "split", text: "현재 잃은 체력만큼 최대 체력을 소모하여 어린 슬라임 소환. 사망 시 가장 강한 슬라임으로 부활"},
       {
-        key: "RMB/RMB",
+        key: "RMB SUMMONER",
         name: "뛰어오르기",
         attack: "jump",
         detailAttack: "jumpLand",
@@ -17646,6 +17659,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 900,
         range: 150,
         progressScale: {
+          rangeBasis: "initial",
           stateKey: "quri-cube-stage",
           valueRange: {from: 0, to: 4},
           range: {from: characterValue("attacks.lmb.range"), to: 300},
@@ -18396,7 +18410,7 @@ const CHARACTER_DATA=freezeCharacterData({
       rmb: {
         id: "attack.nare.rmb",
         damageRatio: 1.3333333333333333,
-        cost: 1200,
+        cost: 800,
         cd: 1200,
         range: 2200,
         presentation: {color: "#b8dcff"},
@@ -19396,6 +19410,7 @@ const CHARACTER_DATA=freezeCharacterData({
         tags: ["디버프", "이동속도"]
       }
     ],
+    worldEffectModules: [{type:"effect.spawn",renderType:"swordSilhouette",conditions:[{type:"state.absent",stateKey:"nyu-dark-sword"}],style:"dark",rotationStateKey:"nyu-sword-rotation",rotationMs:300,angle:-0.6,scale:1.75}],
     tooltipSkills: [
       {
         key: "ALWAYS",
@@ -19454,7 +19469,8 @@ const CHARACTER_DATA=freezeCharacterData({
             clipToAttackArea: true,
             replaceAutoAreaEffect: true,
             scaleWithAttackRange: true
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"nyu-sword-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -19544,7 +19560,8 @@ const CHARACTER_DATA=freezeCharacterData({
               showLink: false,
               returningAlpha: 0.72
             }
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"nyu-sword-rotation",values:["a","b"]}
         ],
         tags: ["스킬"]
       },
@@ -19638,7 +19655,8 @@ const CHARACTER_DATA=freezeCharacterData({
             distance: 84,
             speed: 10,
             oncePerExecution: true
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"nyu-sword-rotation",values:["a","b"]}
         ],
         tags: ["반격"]
       },
@@ -19804,9 +19822,9 @@ const CHARACTER_DATA=freezeCharacterData({
   "desc": "명령어로 전투 기능을 활성화하며 전투하는 캐릭터",
   "worldGaugeModules": [
     {
-      "type": "gauge.arc",
+      "type": "gauge.segmented",
       "valueRef": {
-        "type": "mode-match-count-ratio",
+        "type": "mode-match-count",
         "modes": [
           {
             "stateKey": "command:accelerate",
@@ -19851,8 +19869,45 @@ const CHARACTER_DATA=freezeCharacterData({
         ]
       },
       "color": "#aeb8c0",
-      "lineWidth": 3.5,
-      "maxChargeFlash": true
+      "valueMode": "count",
+      "height": 4,
+      "gap": 2,
+      "background": "rgba(10,18,22,0.92)",
+      "stroke": "rgba(174,184,192,0.4)",
+      "segments": [
+        {
+          "value": 1,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 2,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 3,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 4,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 5,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 6,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 7,
+          "color": "#aeb8c0"
+        },
+        {
+          "value": 8,
+          "color": "#aeb8c0"
+        }
+      ]
     }
   ],
   "tooltipSkills": [
@@ -20757,7 +20812,7 @@ const CHARACTER_DATA=freezeCharacterData({
     color: "#c94141",
     classification: {style: 5, range: 0, role: 1},
     stats: {maxHealth: 1300, speed: 4.25, radius: 20, baseDamage: 100, difficulty: 3},
-    desc: "회피와 이어지는 공격의 조합으로 빠르게 공격권을 주도하는 캐릭터",
+    desc: "제자리 회피 이후 빠른 연속 공격으로 적을 압박하는 캐릭터",
     dodgeFollowupState: {
       duration: 2000,
       movingStateKey: "kanon-dodge-moving",
@@ -20766,28 +20821,15 @@ const CHARACTER_DATA=freezeCharacterData({
     },
     worldGaugeModules: [
       {
-        type: "gauge.segmented",
+        type: "gauge.arc",
         visibility: "owner",
-        height: 4,
-        gap: 2,
-        valueMode: "value",
-        valueRef: {
-          type: "action-state-choice",
-          choices: [{stateKey: "kanon-dodge-moving", value: "moving"}, {stateKey: "kanon-dodge-stopped", value: "stopped"}]
-        },
-        segments: [{value: "moving", color: "#d94a4a"}, {value: "stopped", color: "#ff8a7a"}],
-        background: "rgba(10,18,22,.92)",
-        stroke: "rgba(255,255,255,.18)"
+        valueRef: {type: "timed-action-remaining", stateKey: "kanon-dodge-stopped"},
+        color: characterValue("color"),
+        completeColor: characterValue("color")
       }
     ],
     tooltipSkills: [
       {key: "LMB", name: "연타", attack: "lmb", text: "짧은 거리를 이동하며 전방을 타격. 적중 시 스테미나 회복하며 적을 넉백 ({damage})"},
-      {
-        key: "MOVING SPACE/LMB",
-        name: "반동 펀치",
-        attack: "lmbMoving",
-        text: "이동 회피 이후 사용 시 짧은 거리를 이동하며 전방을 타격. 적중 시 스테미나 회복 ({damage})"
-      },
       {
         key: "STOPPED SPACE/LMB",
         name: "끊어치기",
@@ -20796,12 +20838,6 @@ const CHARACTER_DATA=freezeCharacterData({
         text: "제자리 회피 이후 사용 시 짧은 거리를 이동하며 전방을 {hitCount}회 빠르게 타격. 적중 시 스테미나 회복 (타당 {damage})"
       },
       {key: "RMB", name: "발차기", attack: "rmb", text: "전방에 발차기하여 적중 시 {stunSeconds}초 기절 ({damage})"},
-      {
-        key: "MOVING SPACE/RMB",
-        name: "파고들기",
-        attack: "rmbMoving",
-        text: "이동 회피 이후 사용 시 발차기를 날려 적중 시 {stunSeconds}초 기절 ({damage})"
-      },
       {
         key: "STOPPED SPACE/RMB",
         name: "높이차기",
@@ -20835,56 +20871,6 @@ const CHARACTER_DATA=freezeCharacterData({
             replaceActive: true,
             collision: {passWalls: false, passEnemies: true},
             tags: ["이동기"]
-          },
-          {
-            type: "resource.restore",
-            when: "on-hit",
-            resource: "stamina",
-            recipient: "source",
-            amount: 100,
-            oncePerExecution: true
-          }
-        ],
-        tags: ["평타"]
-      },
-      lmbMoving: {
-        id: "attack.kanon.recoil",
-        damageRatio: 1,
-        cost: 0,
-        cd: 320,
-        range: 180,
-        effectsOnly: true,
-        modules: [
-          {type: "movement.cancel-dodge", when: "after-attack"},
-          {
-            type: "movement.move",
-            when: "after-attack",
-            direction: "attack",
-            distance: 45,
-            duration: 90,
-            replaceActive: true,
-            cancelDodgeState: true,
-            collision: {passWalls: false, passEnemies: true},
-            tags: ["이동기"]
-          }
-        ],
-        tags: ["평타"]
-      },
-      lmbMovingHit: {
-        id: "attack.kanon.recoil-hit",
-        damageRatio: 1,
-        cost: 0,
-        cd: 0,
-        range: 180,
-        modules: [
-          {
-            type: "delivery.area",
-            contactType: "melee",
-            shape: "rect",
-            range: characterValue("attacks.lmbMovingHit.range"),
-            halfWidth: 60,
-            wallPolicy: "block",
-            suppressHitImpactRing: true
           },
           {
             type: "resource.restore",
@@ -20994,35 +20980,7 @@ const CHARACTER_DATA=freezeCharacterData({
             speed: 10,
             oncePerExecution: true
           },
-          {type: "status.apply", when: "on-hit", target: "hit-target", status: "stun", duration: 250}
-        ],
-        tags: ["스킬"]
-      },
-      rmbMoving: {
-        id: "attack.kanon.dive-kick",
-        damageRatio: 2,
-        cost: 200,
-        cd: 1000,
-        range: 153.6,
-        modules: [
-          {type: "movement.cancel-dodge", when: "after-attack"},
-          {
-            type: "delivery.area",
-            contactType: "melee",
-            shape: "rect",
-            range: characterValue("attacks.rmbMoving.range"),
-            halfWidth: 44,
-            wallPolicy: "block"
-          },
-          {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "attack",
-            distance: 80,
-            speed: 11,
-            oncePerExecution: true
-          },
-          {type: "status.apply", when: "on-hit", target: "hit-target", status: "stun", duration: 500}
+          {type: "status.apply", when: "on-hit", target: "hit-target", status: "stun", duration: 600}
         ],
         tags: ["스킬"]
       },
@@ -21050,7 +21008,7 @@ const CHARACTER_DATA=freezeCharacterData({
             speed: 10,
             oncePerExecution: true
           },
-          {type: "status.apply", when: "on-hit", target: "hit-target", status: "stun", duration: 750}
+          {type: "status.apply", when: "on-hit", target: "hit-target", status: "stun", duration: 600}
         ],
         tags: ["스킬"]
       },
@@ -21091,16 +21049,8 @@ const CHARACTER_DATA=freezeCharacterData({
             {
               type: "action.attack",
               alternates: [
-                {attackId: "attack.kanon.recoil", stateKey: "kanon-dodge-moving", consume: true},
                 {attackId: "attack.kanon.cut", stateKey: "kanon-dodge-stopped", consume: true}
               ]
-            },
-            {type: "timing.delay", duration: 90, aimMode: "locked", requireAttackId: "attack.kanon.recoil"},
-            {
-              type: "action.trigger-attack",
-              attackId: "attack.kanon.recoil-hit",
-              requireAttackId: "attack.kanon.recoil",
-              explicitNetworkReplay: true
             },
             {type: "timing.delay", duration: 95, aimMode: "live-source", requireAttackId: "attack.kanon.cut"},
             {
@@ -21130,7 +21080,6 @@ const CHARACTER_DATA=freezeCharacterData({
             {
               type: "action.attack",
               alternates: [
-                {attackId: "attack.kanon.dive-kick", stateKey: "kanon-dodge-moving", consume: true},
                 {attackId: "attack.kanon.high-kick", stateKey: "kanon-dodge-stopped", consume: true}
               ]
             }
@@ -21846,7 +21795,9 @@ const CHARACTER_DATA=freezeCharacterData({
     "max": 800,
     "segmentSize": 100,
     "intactRegenPerSecond": 25,
-    "repairHits": 5
+    "repairHits": 5,
+    "rotationStateKey": "van-wrench-rotation",
+    "rotationMs": 300
   },
   "damageResourceLayers": [
     {
@@ -22014,6 +21965,15 @@ const CHARACTER_DATA=freezeCharacterData({
           "durationFrames": 14,
           "clipToAttackArea": true,
           "replaceAutoAreaEffect": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "van-wrench-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -22096,6 +22056,15 @@ const CHARACTER_DATA=freezeCharacterData({
             "crossHalfLength": 46,
             "showLink": false
           }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "van-wrench-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -22121,6 +22090,15 @@ const CHARACTER_DATA=freezeCharacterData({
             "$ref": "attacks.counter.halfWidth"
           },
           "wallPolicy": "block"
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "van-wrench-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -22553,13 +22531,13 @@ const CHARACTER_DATA=freezeCharacterData({
             type: "effect.spawn",
             when: "on-hit",
             renderType: "hitImpactRing",
-            position: "target",
+            position: "hit-target",
             r: 10,
-            maxR: 48,
+            maxR: 62,
             color: "#7aeeff",
             strokeAlpha: 0.95,
             lineWidth: 3,
-            duration: 180,
+            duration: 300,
             animation: true,
             oncePerExecution: true,
             conditions: [
@@ -22789,7 +22767,7 @@ const CHARACTER_DATA=freezeCharacterData({
       {key: "LMB", name: "이거나 먹어!", attack: "fryingPan", text: "프라이팬을 던져 적에게 피해. 적중 시 식재료 {v:cooking.fryingPanIngredientGain}개 획득. 식재료를 보유 중이면 프라이팬에 식재료를 얹어 날리며, 식재료는 아군의 최대 체력 {v:cooking.ingredientHealRatio|percent}% 회복. ({damage})"},
       {key: "LMB FOOD", name: "최상급 요리", attack: "meal", text: "음식에 들어간 식재료마다 최대 체력 {v:cooking.mealHealthRatioPerIngredient|percent}%와 최대 스테미나 {v:cooking.mealStaminaRatioPerIngredient|percent}% 회복. 아군을 향해 사용 시 해당 아군을 향해 음식 투척"},
       {key: "RMB", name: "휴대용 스토브", attack: "stove", text: "지정한 위치에 휴대용 스토브 설치. 식재료 최대 {v:cooking.stoveCapacity}개 투입 가능"},
-      {key: "RMB/RMB", name: "요리 완료", attack: "stove", showCost: false, text: "설치된 스토브를 회수해 투입된 식재료 수만큼의 음식을 조리해 획득"},
+      {key: "RMB SUMMONER", name: "요리 완료", attack: "stove", showCost: false, text: "설치된 스토브를 회수해 투입된 식재료 수만큼의 음식을 조리해 획득"},
       {key: "L-Shift", name: "주방 출입 금지", attack: "counter", text: "프라이팬을 휘둘러 주변 적에게 피해를 주고 식재료 {v:cooking.counterIngredientGain}개 획득 ({damage})"}
     ],
     summonSpecs: [
@@ -22964,28 +22942,28 @@ const CHARACTER_DATA=freezeCharacterData({
       "key": "ALWAYS",
       "name": "폭발 주의",
       "showCost": false,
-      "text": "폭약은 벽 또는 적에게 적중 시 제자리에 착탄. 착탄 {v:attacks.lmbExplosion.modules.0.delay|seconds}초 뒤 폭발하며 중심에 가까울수록 피해와 넉백 증가"
+      "text": "착탄 {v:attacks.lmbExplosion.modules.0.delay|seconds}초 뒤 폭발하며 중심에 가까울수록 피해와 넉백 증가"
     },
     {
       "key": "LMB",
       "name": "폭약 카트리지",
       "attack": "lmb",
       "linkedAttack": "lmbExplosion",
-      "text": "폭약 카트리지 투척 ({damage}/{linkedDamage})"
+      "text": "폭약 카트리지를 투척하며 적중하거나 사거리 끝에 착탄({damage}/{linkedDamage})"
     },
     {
       "key": "RMB",
       "name": "발파 폭약",
       "attack": "rmb",
       "linkedAttack": "rmbExplosion",
-      "text": "지정 지점에 폭약 투척. 폭발은 벽에 막히며 폭발이나 폭약이 닿은 벽 파괴 ({damage}/{linkedDamage})"
+      "text": "지정 지점에 폭약 투척. 폭발은 벽에 막히며 폭발이 닿은 벽 파괴 ({damage}/{linkedDamage})"
     },
     {
       "key": "L-Shift",
       "name": "폭약밭",
       "attack": "counter",
       "linkedAttack": "counterExplosion",
-      "text": "마우스 거리에 따라 최대 {v:attacks.counter.range}까지 주변 {v:attacks.counter.modules.3.count}방향으로 시계방향 순차 투척 ({damage}/{linkedDamage})"
+      "text": "주변 {v:attacks.counter.modules.3.count}방향으로 폭약 카트리지 투척 ({damage}/{linkedDamage})"
     }
   ],
   "attacks": {
@@ -23609,6 +23587,1043 @@ const CHARACTER_DATA=freezeCharacterData({
     }
   }
 },
+  geopin: {
+  "id": "geopin",
+  "name": "지오핀",
+  "englishName": "Geopin",
+  "title": "천재 발명가",
+  "color": "#e6ca3b",
+  "classification": {
+    "style": 6,
+    "range": 0,
+    "role": 1
+  },
+  "stats": {
+    "maxHealth": 1100,
+    "speed": 4.5,
+    "radius": 20,
+    "baseDamage": 100,
+    "difficulty": 4
+  },
+  "desc": "상대의 공격과 움직임을 분석해 상황에 맞는 발명품으로 대응하는 캐릭터",
+  "reactiveEquipment": {
+    "stateKey": "geopin-weapon",
+    "initial": "rubber",
+    "longDistance": 350,
+    "closeDistance": 350,
+    "approachWindow": 350,
+    "approachDelta": 100,
+    "approachNear": 350,
+    "restrictedStatuses": [
+      "stun",
+      "neutralize",
+      "freeze",
+      "bind",
+      "sleep"
+    ],
+    "items": [
+      {
+        "value": "recoil",
+        "name": "과반동 발사기",
+        "stateKey": "geopin-invent-jump",
+        "required": 3,
+        "trigger": {
+          "type": "trigger",
+          "event": "equipment.situation",
+          "conditions": [
+            {
+              "type": "situation.flag",
+              "flag": "field"
+            }
+          ]
+        }
+      },
+      {
+        "value": "wall",
+        "name": "충격 전달기",
+        "stateKey": "geopin-invent-wall",
+        "required": 3,
+        "trigger": {
+          "type": "trigger",
+          "event": "equipment.situation",
+          "conditions": [
+            {
+              "type": "situation.flag",
+              "flag": "behindWall"
+            }
+          ]
+        }
+      },
+      {
+        "value": "laser",
+        "name": "고회전 발사기",
+        "stateKey": "geopin-invent-laser",
+        "required": 3,
+        "trigger": {
+          "type": "trigger",
+          "event": "equipment.situation",
+          "conditions": [
+            {
+              "type": "situation.flag",
+              "flag": "blocked"
+            }
+          ]
+        }
+      },
+      {
+        "value": "chain",
+        "name": "전이 발사기",
+        "stateKey": "geopin-invent-chain",
+        "required": 3,
+        "trigger": {
+          "type": "trigger",
+          "event": "equipment.situation",
+          "conditions": [
+            {
+              "type": "situation.flag",
+              "flag": "summon"
+            }
+          ]
+        }
+      },
+      {
+        "value": "punch",
+        "name": "이중 충격기",
+        "stateKey": "geopin-invent-punch",
+        "required": 3,
+        "trigger": {
+          "type": "trigger",
+          "event": "equipment.situation",
+          "conditions": [
+            {
+              "type": "situation.flag",
+              "flag": "approach"
+            }
+          ]
+        }
+      },
+      {
+        "value": "jump",
+        "name": "충격 도약기",
+        "stateKey": "geopin-invent-recoil",
+        "required": 3,
+        "trigger": {
+          "type": "trigger",
+          "event": "equipment.situation",
+          "conditions": [
+            {
+              "type": "situation.flag",
+              "flag": "restricted"
+            }
+          ]
+        }
+      },
+      {
+        "value": "sniper",
+        "name": "정밀 발사기",
+        "stateKey": "geopin-invent-sniper",
+        "required": 3,
+        "trigger": {
+          "type": "trigger",
+          "event": "equipment.situation",
+          "conditions": [
+            {
+              "type": "situation.flag",
+              "flag": "far"
+            }
+          ]
+        }
+      },
+      {
+        "value": "bomb",
+        "name": "폭발형 발사기",
+        "stateKey": "geopin-invent-bomb",
+        "required": 3,
+        "trigger": {
+          "type": "trigger",
+          "event": "equipment.situation",
+          "conditions": [
+            {
+              "type": "situation.flag",
+              "flag": "close"
+            }
+          ]
+        }
+      }
+    ],
+    "inputSlot": "lmb",
+    "approachTargetKinds": [
+      "player",
+      "trainingBot",
+      "summon"
+    ],
+    "initialName": "고무탄 발사기",
+    "restrictedAttackTags": [
+      "stun",
+      "neutralize",
+      "freeze",
+      "bind",
+      "sleep"
+    ],
+    "distanceImpactTypes": [
+      "direct",
+      "projectile",
+      "area",
+      "effect-animation"
+    ],
+    "distanceExcludedAttackTags": [
+      "상태 피해",
+      "덫 발동",
+      "stun",
+      "neutralize",
+      "freeze",
+      "bind",
+      "slow",
+      "sleep",
+      "끌어오기"
+    ],
+    "approachSpeedRatio": 1.2,
+    "farExclusive": true,
+    "fieldTrigger": "damage"
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "gearCluster",
+      "radius": 50,
+      "teeth": 16,
+      "color": "#e6ca3b",
+      "idleAlpha": 0.2,
+      "useHoldMs": 350,
+      "useFadeMs": 500,
+      "rotationMs": 350,
+      "gears": [
+        {
+          "stateKey": "geopin-weapon",
+          "initial": "rubber",
+          "values": [
+            "rubber",
+            "jump",
+            "wall",
+            "laser",
+            "chain",
+            "punch",
+            "recoil",
+            "sniper",
+            "bomb"
+          ],
+          "x": 0,
+          "y": 0,
+          "turnRadians": 6.283185307179586
+        }
+      ],
+      "enemyAlpha": 1,
+      "allyAlpha": 1
+    }
+  ],
+  "worldGaugeModules": [
+    {
+      "type": "gauge.equipment-bank",
+      "visibility": "owner",
+      "radius": 11,
+      "x": 58,
+      "y": -30,
+      "gap": 29,
+      "color": "#e6ca3b",
+      "idleAlpha": 0.35,
+      "holdMs": 500,
+      "fadeMs": 500,
+      "columns": 3,
+      "activeColor": "#fff5a3"
+    },
+    {
+      "type": "range.equipment-thresholds",
+      "visibility": "owner",
+      "color": "#e6ca3b",
+      "alpha": 0.4,
+      "dash": [
+        6,
+        6
+      ],
+      "lineWidth": 1.5
+    }
+  ],
+  "tooltipSkills": [
+    {
+      "key": "ALWAYS",
+      "name": "발명",
+      "text": "각 조건이 3회 발생하면 발명품 제작. 이후 같은 조건 발생 시 자동 장착"
+    },
+    {
+      "key": "LMB",
+      "name": "발명품",
+      "attack": "lmb",
+      "text": "장착한 발명품으로 공격"
+    },
+    {
+      "key": "RMB",
+      "name": "다른 무기!",
+      "attack": "rmb",
+      "text": "이전 발명품으로 전환"
+    },
+    {
+      "key": "RMB HOLD",
+      "name": "애정 발명품",
+      "attack": "rmb",
+      "text": "벽에 튕겨 적을 향하는 기본 고무탄 발사기로 전환"
+    },
+    {
+      "key": "L-Shift",
+      "name": "위험 속 깨달음",
+      "attack": "counter",
+      "text": "마지막 조건의 발명품을 즉시 제작하고 주변에 피해 ({damage})"
+    },
+    {
+      "key": "WEAPON",
+      "name": "과반동 발사기",
+      "text": "지속 장판 피격 시 충전. 고무탄을 발사하며 뒤로 반동 이동 ({damage})",
+      "attack": "recoil",
+      "showCost": false
+    },
+    {
+      "key": "WEAPON",
+      "name": "충격 전달기",
+      "text": "벽 뒤 적에게 피격 시 충전. 벽에 맞힌 고무탄이 벽 너머를 공격 ({damage}/{linkedDamage})",
+      "attack": "wall",
+      "showCost": false,
+      "linkedAttack": "wallBurst"
+    },
+    {
+      "key": "WEAPON",
+      "name": "고회전 발사기",
+      "text": "공격이 방어에 막히면 충전. 고무탄 2발 연사 ({damage})",
+      "attack": "laser",
+      "showCost": false
+    },
+    {
+      "key": "WEAPON",
+      "name": "전이 발사기",
+      "text": "소환수에게 피격 시 충전. 적중 시 튕기는 고무탄 발사 ({damage})",
+      "attack": "chain",
+      "showCost": false
+    },
+    {
+      "key": "WEAPON",
+      "name": "이중 충격기",
+      "text": "적이 빠르게 접근하면 충전. 전방에 피해 및 강한 넉백. 빗나가면 끝에서 고무탄 발사 ({damage}/{linkedDamage})",
+      "attack": "punch",
+      "showCost": false,
+      "linkedAttack": "punchRubber"
+    },
+    {
+      "key": "WEAPON",
+      "name": "충격 도약기",
+      "text": "CC기로 이동을 제한당하면 충전. 주변에 피해를 주며 뒤로 점프 ({damage})",
+      "attack": "jump",
+      "showCost": false
+    },
+    {
+      "key": "WEAPON",
+      "name": "정밀 발사기",
+      "text": "다른 조건 없이 일정 거리 밖의 적에게 피격 시 충전. 빠르고 긴 사거리의 고무탄 발사 ({damage})",
+      "attack": "sniper",
+      "showCost": false
+    },
+    {
+      "key": "WEAPON",
+      "name": "폭발형 발사기",
+      "text": "다른 조건 없이 일정 거리 이내의 적에게 피격 시 충전. 적중 시 또는 사거리 끝에서 폭발 ({damage})",
+      "attack": "bomb",
+      "showCost": false,
+      "linkedAttack": "explosion"
+    }
+  ],
+  "attacks": {
+    "lmb": {
+      "id": "attack.geopin.lmb",
+      "damageRatio": 1.5,
+      "cost": 150,
+      "cd": 350,
+      "range": 650,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 32.643,
+          "radius": 15
+        },
+        {
+          "type": "projectile.redirect",
+          "on": [
+            "wall"
+          ],
+          "searchRadius": 0,
+          "maxWallRedirects": 0,
+          "wallSpeedMultiplier": 0.5
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "jump": {
+      "id": "attack.geopin.jump",
+      "damageRatio": 2.5,
+      "cost": 150,
+      "cd": 350,
+      "range": 110,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 110,
+          "wallPolicy": "block"
+        },
+        {
+          "type": "trajectory.arc",
+          "height": 55,
+          "screenLiftRatio": 0.55,
+          "apexScale": 1,
+          "apexAlpha": 1,
+          "apexStrokeAlpha": 1
+        },
+        {
+          "type": "movement.move",
+          "when": "after-attack",
+          "direction": "opposite-aim",
+          "distance": 220,
+          "duration": 200,
+          "replaceActive": true,
+          "blocksAction": true,
+          "collision": {
+            "passWalls": true,
+            "passEnemies": true
+          },
+          "resolveOverlapOnEnd": true,
+          "presentation": false,
+          "tags": [
+            "이동기"
+          ],
+          "buffs": [
+            {
+              "type": "evasionInvulnerable",
+              "value": 1,
+              "duration": "movement"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        "평타"
+      ],
+      "previewGeometry": {
+        "shape": "circle",
+        "range": 110,
+        "wallPolicy": "block"
+      }
+    },
+    "wall": {
+      "id": "attack.geopin.wall",
+      "damageRatio": 1.5,
+      "cost": 150,
+      "cd": 350,
+      "range": 650,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 30.0,
+          "radius": 15
+        },
+        {
+          "type": "projectile.wall-relay",
+          "attackId": "attack.geopin.wallBurst"
+        },
+        {
+          "type": "projectile.redirect",
+          "searchRadius": 0,
+          "on": [
+            "wall"
+          ],
+          "maxWallRedirects": 0,
+          "wallSpeedMultiplier": 0.5
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "wallBurst": {
+      "id": "attack.geopin.wallBurst",
+      "damageRatio": 2.5,
+      "cost": 0,
+      "cd": 0,
+      "range": 200,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "rect",
+          "range": 200,
+          "halfWidth": 45,
+          "wallPolicy": "ignore"
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "laser": {
+      "id": "attack.geopin.laser",
+      "damageRatio": 1.5,
+      "cost": 200,
+      "cd": 350,
+      "range": 650,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 32.643,
+          "radius": 15
+        },
+        {
+          "type": "delivery.delayed-projectile-volley",
+          "count": 2,
+          "delay": 0,
+          "interval": 100,
+          "aimMode": "locked"
+        },
+        {
+          "type": "projectile.redirect",
+          "on": [
+            "wall"
+          ],
+          "searchRadius": 0,
+          "maxWallRedirects": 0,
+          "wallSpeedMultiplier": 0.5
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "chain": {
+      "id": "attack.geopin.chain",
+      "damageRatio": 1.5,
+      "cost": 150,
+      "cd": 350,
+      "range": 850,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 28.07686607142857,
+          "radius": 15
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": true,
+          "walls": false
+        },
+        {
+          "type": "projectile.redirect",
+          "on": [
+            "wall",
+            "hit"
+          ],
+          "maxRedirects": 0,
+          "searchRadius": 0,
+          "maxWallRedirects": 0,
+          "rangeGrowthRatio": 0.4,
+          "rangeGrowthOn": [
+            "hit"
+          ],
+          "wallSpeedMultiplier": 0.5
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "punch": {
+      "id": "attack.geopin.punch",
+      "damageRatio": 2.5,
+      "cost": 150,
+      "cd": 350,
+      "range": 250,
+      "modules": [
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "progressRect",
+          "position": "source",
+          "range": 250,
+          "halfWidth": 50,
+          "growthSpeed": 13.464,
+          "travelSpeed": 12240,
+          "animation": true,
+          "clipToAttackArea": true,
+          "color": "#e6ca3b",
+          "strokeColor": "#e6ca3b",
+          "fillAlpha": 0.18,
+          "strokeAlpha": 0.9,
+          "lineWidth": 2.5,
+          "endCap": true,
+          "duration": 220,
+          "damage": {
+            "attackId": "attack.geopin.punch",
+            "hitMode": "progressive-rect",
+            "module": {
+              "type": "delivery.area",
+              "shape": "rect",
+              "range": 250,
+              "halfWidth": 50,
+              "wallPolicy": "block"
+            },
+            "missAttackId": "attack.geopin.punchRubber"
+          }
+        },
+        {
+          "type": "movement.knockback",
+          "target": "hit-target",
+          "direction": "attack",
+          "distance": 180,
+          "speed": 12,
+          "when": "on-hit"
+        }
+      ],
+      "tags": [
+        "평타"
+      ],
+      "previewGeometry": {
+        "shape": "rect",
+        "range": 250,
+        "halfWidth": 50,
+        "wallPolicy": "block"
+      }
+    },
+    "recoil": {
+      "id": "attack.geopin.recoil",
+      "damageRatio": 2.5,
+      "cost": 200,
+      "cd": 350,
+      "range": 650,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 32.643,
+          "radius": 15
+        },
+        {
+          "type": "movement.move",
+          "when": "after-attack",
+          "direction": "opposite-aim",
+          "distance": 200,
+          "duration": 140,
+          "motionMode": "knockback",
+          "collision": {
+            "passWalls": false,
+            "passEnemies": false
+          },
+          "presentation": false
+        },
+        {
+          "type": "projectile.redirect",
+          "searchRadius": 0,
+          "on": [
+            "wall"
+          ],
+          "maxWallRedirects": 0,
+          "wallSpeedMultiplier": 0.5
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "sniper": {
+      "id": "attack.geopin.sniper",
+      "damageRatio": 1.5,
+      "cost": 200,
+      "cd": 350,
+      "range": 850,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 51.83421428571428,
+          "radius": 15
+        },
+        {
+          "type": "projectile.redirect",
+          "searchRadius": 0,
+          "on": [
+            "wall"
+          ],
+          "maxWallRedirects": 0,
+          "wallSpeedMultiplier": 0.5
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "bomb": {
+      "id": "attack.geopin.bomb",
+      "damageRatio": 1.5,
+      "cost": 200,
+      "cd": 350,
+      "range": 250,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 27.5,
+          "radius": 15,
+          "collisionTargets": true
+        },
+        {
+          "type": "projectile.impact",
+          "attackIds": [
+            "attack.geopin.explosion"
+          ],
+          "shareHitTargets": true
+        },
+        {
+          "type": "projectile.redirect",
+          "searchRadius": 0,
+          "on": [
+            "wall"
+          ],
+          "maxWallRedirects": 0,
+          "wallSpeedMultiplier": 0.5
+        },
+        {
+          "type": "hit.once-per-execution"
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "explosion": {
+      "id": "attack.geopin.explosion",
+      "damageRatio": 1.5,
+      "cost": 0,
+      "cd": 0,
+      "range": 110,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 110,
+          "wallPolicy": "block"
+        },
+        {
+          "type": "hit.once-per-execution"
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "rmb": {
+      "id": "attack.geopin.rmb",
+      "damageRatio": 0.0,
+      "cost": 0,
+      "cd": 250,
+      "range": 0,
+      "modules": [],
+      "tags": [
+        "스킬"
+      ],
+      "effectsOnly": true
+    },
+    "counter": {
+      "id": "attack.geopin.counter",
+      "damageRatio": 2.5,
+      "cost": 0,
+      "cd": 350,
+      "range": 220,
+      "modules": [
+        {
+          "type": "equipment.discover",
+          "when": "after-attack"
+        },
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 220,
+          "wallPolicy": "block"
+        }
+      ],
+      "tags": [
+        "반격"
+      ]
+    },
+    "punchRubber": {
+      "id": "attack.geopin.punchRubber",
+      "damageRatio": 1.5,
+      "cost": 0,
+      "cd": 0,
+      "range": 400,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 32.643,
+          "radius": 15
+        },
+        {
+          "type": "projectile.redirect",
+          "on": [
+            "wall"
+          ],
+          "searchRadius": 0,
+          "maxWallRedirects": 0,
+          "wallSpeedMultiplier": 0.5
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    }
+  },
+  "abilities": {
+    "lmb": {
+      "id": "ability.geopin.lmb",
+      "input": "lmb",
+      "attackId": "attack.geopin.lmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "lmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack",
+            "alternates": [
+              {
+                "attackId": "attack.geopin.jump",
+                "conditions": [
+                  {
+                    "type": "state.mode-is",
+                    "stateKey": "geopin-weapon",
+                    "initial": "rubber",
+                    "value": "jump"
+                  }
+                ]
+              },
+              {
+                "attackId": "attack.geopin.wall",
+                "conditions": [
+                  {
+                    "type": "state.mode-is",
+                    "stateKey": "geopin-weapon",
+                    "initial": "rubber",
+                    "value": "wall"
+                  }
+                ]
+              },
+              {
+                "attackId": "attack.geopin.laser",
+                "conditions": [
+                  {
+                    "type": "state.mode-is",
+                    "stateKey": "geopin-weapon",
+                    "initial": "rubber",
+                    "value": "laser"
+                  }
+                ]
+              },
+              {
+                "attackId": "attack.geopin.chain",
+                "conditions": [
+                  {
+                    "type": "state.mode-is",
+                    "stateKey": "geopin-weapon",
+                    "initial": "rubber",
+                    "value": "chain"
+                  }
+                ]
+              },
+              {
+                "attackId": "attack.geopin.punch",
+                "conditions": [
+                  {
+                    "type": "state.mode-is",
+                    "stateKey": "geopin-weapon",
+                    "initial": "rubber",
+                    "value": "punch"
+                  }
+                ]
+              },
+              {
+                "attackId": "attack.geopin.recoil",
+                "conditions": [
+                  {
+                    "type": "state.mode-is",
+                    "stateKey": "geopin-weapon",
+                    "initial": "rubber",
+                    "value": "recoil"
+                  }
+                ]
+              },
+              {
+                "attackId": "attack.geopin.sniper",
+                "conditions": [
+                  {
+                    "type": "state.mode-is",
+                    "stateKey": "geopin-weapon",
+                    "initial": "rubber",
+                    "value": "sniper"
+                  }
+                ]
+              },
+              {
+                "attackId": "attack.geopin.bomb",
+                "conditions": [
+                  {
+                    "type": "state.mode-is",
+                    "stateKey": "geopin-weapon",
+                    "initial": "rubber",
+                    "value": "bomb"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "rmb": {
+      "id": "ability.geopin.rmb",
+      "input": "rmb",
+      "attackId": "attack.geopin.rmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          },
+          {
+            "type": "equipment.select",
+            "operation": "previous",
+            "requireExecuted": true
+          }
+        ]
+      },
+      "inputPolicy": {
+        "repeatWhileHeld": false,
+        "tapHoldSplit": true,
+        "holdThresholdMs": 200,
+        "holdGauge": true,
+        "holdGaugeTimerOnly": true,
+        "holdGaugeStateKey": "charge:geopin-rmb-mode",
+        "deferTapUntilRelease": true,
+        "holdGaugeRetainMs": 500,
+        "holdGaugeRequireAvailable": true,
+        "cancelUnavailableHold": true
+      },
+      "holdTrigger": {
+        "type": "trigger",
+        "event": "input.hold",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "state.mode-is",
+            "stateKey": "geopin-weapon",
+            "value": "rubber",
+            "initial": "rubber",
+            "invert": true
+          }
+        ],
+        "modules": [
+          {
+            "type": "equipment.select",
+            "value": "rubber"
+          }
+        ]
+      }
+    },
+    "counter": {
+      "id": "ability.geopin.counter",
+      "input": "counter",
+      "attackId": "attack.geopin.counter",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "counter"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "counter.ready"
+          }
+        ],
+        "modules": [
+          {
+            "type": "counter.execute",
+            "windup": 300,
+            "consumeState": "counter-ready",
+            "preview": {
+              "type": "preview.create",
+              "shape": "attack-shape"
+            },
+            "cc": {
+              "type": "movement.neutralize-knockback",
+              "target": "hit-target",
+              "direction": "away-from-source",
+              "distance": 100,
+              "speed": 12,
+              "oncePerExecution": true
+            }
+          }
+        ]
+      }
+    }
+  }
+},
 });
 /* ===== 캐릭터별 단일 원본: 끝 ===== */
 
@@ -23720,7 +24735,7 @@ const GAME_DATA=freezeCharacterData({
   world: {width: 2000, height: 1400},
   stamina: {max: 2000, regenDelay: 500, regenTime: 4000},
   healthRegen: {idle: 4500, tick: 1000, ratio: 0.1},
-  dodge: {cost: 400, dist: 140, speed: 17.95, dur: 130, justWindow: 80},
+  dodge: {cost: 300, dist: 119, speed: 17.95, dur: 130, justWindow: 80},
   counter: {window: 5000, delay: 300},
   cameraFeedback: {
     strongDamage: 600,
@@ -24787,7 +25802,6 @@ const CharacterCardDataService=Object.freeze({
       maxHealth:combat.maxHealth,
       moveLabel:combat.moveLabel,
       styleLabel:
-        combat.styleLabel||
         TagService.characterStyleLabel(combat),
       desc:combat.desc||'',
       combat
@@ -24914,197 +25928,72 @@ const CharacterSortService=Object.freeze({
       attack=>String(attack?.id||'')===String(attackId)
     )||null;
   },
-  stateWriteKeys(node,out=new Set()){
-    if(!node)return out;
-    if(Array.isArray(node)){
-      for(const item of node)this.stateWriteKeys(item,out);
-      return out;
+  initialSource(combat){
+    const source={character:combat,actionState:new Map(),alive:true,
+      maxHealth:combat.maxHealth||1,maxStamina:combat.maxStamina||1};
+    // Passive initialization uses the same progress store as actual gameplay.
+    for(const module of combat.passives||[]){
+      if(module.type!=='state.progress-rate')continue;
+      const mode=module.whenMode;
+      if(mode&&ModeStateService.current(source,mode.stateKey,mode.initial)!==mode.value)continue;
+      ProgressStateService.ensure(source,module);
     }
-    if(typeof node!=='object')return out;
-
-    const type=String(node.type||'');
-    const operation=String(node.operation||'');
-    const stateKey=String(node.stateKey||'');
-    const writesProgress=
-      type==='state.progress'&&
-      operation!=='reset'&&
-      operation!=='subtract';
-    const writesWindow=
-      type==='state.window'&&
-      operation!=='clear';
-    const writesMode=
-      type==='mode.set'||
-      type==='mode.toggle';
-
-    if(stateKey&&(writesProgress||writesWindow||writesMode)){
-      out.add(stateKey);
-    }
-
-    for(const value of Object.values(node)){
-      if(value&&typeof value==='object'){
-        this.stateWriteKeys(value,out);
-      }
-    }
-    return out;
+    return source;
   },
-  referencedAttackIds(node,out=new Set()){
-    if(!node)return out;
-    if(Array.isArray(node)){
-      for(const item of node)this.referencedAttackIds(item,out);
-      return out;
-    }
-    if(typeof node!=='object')return out;
-
-    if(typeof node.attackId==='string')out.add(node.attackId);
-    for(const attackId of node.attackIds||[]){
-      if(typeof attackId==='string')out.add(attackId);
-    }
-    for(const value of Object.values(node)){
-      if(value&&typeof value==='object'){
-        this.referencedAttackIds(value,out);
-      }
-    }
-    return out;
-  },
-  counterOnlyStateKeys(combat){
-    const counterIds=new Set();
-    const counterAbility=combat?.abilities?.counter;
-    if(counterAbility){
-      this.referencedAttackIds(counterAbility,counterIds);
-      if(counterAbility.attackId)counterIds.add(counterAbility.attackId);
-    }
-    for(const attack of Object.values(combat?.attacks||{})){
-      if(attack?.tags?.includes?.('반격'))counterIds.add(attack.id);
-    }
-
-    const counterWrites=this.stateWriteKeys(counterAbility,new Set());
-    const nonCounterWrites=new Set();
-
-    for(const attack of Object.values(combat?.attacks||{})){
-      const target=counterIds.has(attack?.id)
-        ?counterWrites
-        :nonCounterWrites;
-      this.stateWriteKeys(attack?.modules,target);
-    }
-    for(const [slot,ability] of Object.entries(combat?.abilities||{})){
-      if(slot==='counter')continue;
-      this.stateWriteKeys(ability?.trigger?.modules,nonCounterWrites);
-    }
-
-    return new Set(
-      [...counterWrites].filter(key=>!nonCounterWrites.has(key))
+  initialConditionsMatch(conditions,source){
+    return (conditions||[]).every(condition=>
+      !String(condition.type||'').startsWith('state.')||
+      TriggerConditionService.matches(condition,{source})
     );
   },
-  conditionRequiresCounterOnlyState(node,counterOnly){
-    if(!node||!counterOnly?.size)return false;
-    if(Array.isArray(node)){
-      return node.some(item=>
-        this.conditionRequiresCounterOnlyState(item,counterOnly)
-      );
-    }
-    if(typeof node!=='object')return false;
-
-    const type=String(node.type||'');
-    const positiveSingle=new Set([
-      'state.exists',
-      'state.progress-gte',
-      'state.progress-ratio-gte',
-      'state.mode-is'
-    ]);
-    if(
-      positiveSingle.has(type)&&
-      counterOnly.has(String(node.stateKey||''))
-    )return true;
-
-    if(type==='state.progress-sum-gte'){
-      const keys=(node.stateKeys||[]).map(String).filter(Boolean);
-      if(keys.length&&keys.every(key=>counterOnly.has(key)))return true;
-    }
-
-    for(const value of Object.values(node)){
-      if(
-        value&&typeof value==='object'&&
-        this.conditionRequiresCounterOnlyState(value,counterOnly)
-      )return true;
-    }
-    return false;
-  },
-  lmbAttackEntries(combat){
+  lmbAttackEntries(combat,source=this.initialSource(combat)){
     const ability=combat?.abilities?.lmb;
     if(!ability)return [];
-
     const entries=[];
-    const push=(attackId,conditions=null)=>{
-      if(!attackId)return;
-      entries.push({attackId:String(attackId),conditions});
-    };
-    const candidateConditions=candidate=>{
-      if(Array.isArray(candidate?.conditions))return candidate.conditions;
-      if(candidate?.stateKey){
-        return [candidate.phase
-          ?{type:'state.phase',stateKey:candidate.stateKey,phase:candidate.phase}
-          :{type:'state.exists',stateKey:candidate.stateKey}];
-      }
-      return null;
-    };
-    push(ability.attackId,null);
-
+    const push=id=>{if(id&&!entries.includes(id))entries.push(id);};
+    const candidateConditions=candidate=>Array.isArray(candidate.conditions)
+      ?candidate.conditions:candidate.stateKey
+        ?[{type:candidate.phase?'state.phase':'state.exists',stateKey:candidate.stateKey,phase:candidate.phase}]:[];
+    let inputIds=[ability.attackId];
+    for(const candidate of ability.inputAttackAlternates||[]){
+      const conditions=candidateConditions(candidate);
+      if(candidate.rangeAvailableInitially===true){inputIds.push(candidate.attackId);continue;}
+      if(!this.initialConditionsMatch(conditions,source))continue;
+      if(conditions.every(c=>String(c.type).startsWith('state.'))){inputIds=[candidate.attackId];break;}
+      inputIds.push(candidate.attackId);
+    }
     const visit=modules=>{
       for(const module of modules||[]){
-        if(module?.type==='action.attack'){
-          push(module.attackId||ability.attackId,module.conditions||null);
-          for(const alternate of module.alternates||[]){
-            push(alternate?.attackId,candidateConditions(alternate));
+        if(!this.initialConditionsMatch(module.conditions,source))continue;
+        if(module.requireAttackId&&!entries.includes(module.requireAttackId))continue;
+        if(module.type==='action.attack'){
+          let defaults=module.attackId?[module.attackId]:inputIds;
+          for(const candidate of [...(module.alternates||[]),...(module.alternateWhen?[module.alternateWhen]:[])]){
+            const conditions=candidateConditions(candidate);
+            if(candidate.rangeAvailableInitially===true){push(candidate.attackId);continue;}
+            if(!this.initialConditionsMatch(conditions,source))continue;
+            // Position/aim choices remain possible in the initial mode. A
+            // matching state-only alternative replaces the fallback attack.
+            if(conditions.length&&conditions.every(c=>String(c.type).startsWith('state.'))){defaults=[candidate.attackId];break;}
+            push(candidate.attackId);
           }
-          if(module.alternateWhen){
-            push(
-              module.alternateWhen.attackId,
-              candidateConditions(module.alternateWhen)
-            );
-          }
-        }
-        if(Array.isArray(module?.modules))visit(module.modules);
+          for(const id of defaults)push(id);
+        }else if(module.type==='action.trigger-attack')push(module.attackId||ability.attackId);
+        if(Array.isArray(module.modules))visit(module.modules);
       }
     };
-    visit(ability?.trigger?.modules);
-
-    const seen=new Set();
-    return entries.filter(entry=>{
-      const key=`${entry.attackId}|${JSON.stringify(entry.conditions||null)}`;
-      if(seen.has(key))return false;
-      seen.add(key);
-      return true;
-    });
+    visit(ability.trigger?.modules);
+    if(!entries.length)for(const id of inputIds)push(id);
+    return entries.map(attackId=>({attackId}));
   },
-  primaryAttacks(character){
+  primaryAttacks(character,source=null){
     const combat=character?.combat||character;
-    const attacks=combat?.attacks;
-    if(!attacks)return [];
-
-    const counterOnly=this.counterOnlyStateKeys(combat);
-    const direct=this.lmbAttackEntries(combat)
-      .filter(entry=>
-        !this.conditionRequiresCounterOnlyState(
-          entry.conditions,
-          counterOnly
-        )
-      )
+    if(!combat?.attacks)return [];
+    source=source||this.initialSource(combat);
+    return this.lmbAttackEntries(combat,source)
       .map(entry=>this.attackById(combat,entry.attackId))
-      .filter(attack=>
-        attack?.tags?.includes?.('평타')&&
-        !attack?.tags?.includes?.('반격')&&
-        !attack?.tags?.includes?.('스킬')&&
-        !attack?.tags?.includes?.('소환수')
-      );
-
-    if(direct.length)return [...new Set(direct)];
-
-    return Object.values(attacks).filter(attack=>
-      attack?.tags?.includes?.('평타')&&
-      !attack?.tags?.includes?.('반격')&&
-      !attack?.tags?.includes?.('스킬')&&
-      !attack?.tags?.includes?.('소환수')
-    );
+      .filter(attack=>attack?.tags?.includes?.('평타')&&
+        !attack.tags.includes('반격')&&!attack.tags.includes('스킬')&&!attack.tags.includes('소환수'));
   },
   rangeValue(value){
     const number=Number(value);
@@ -25113,130 +26002,112 @@ const CharacterSortService=Object.freeze({
       ?Math.max(0,number)
       :0;
   },
-  moduleMaxRange(modules){
-    let maximum=0;
-    for(const module of modules||[]){
-      if(
-        module?.type==='delivery.projectile'&&
-        module?.targetPoint===true&&
-        module?.targetPointClampToAttackRange===false
-      )return Infinity;
-
-      const type=String(module?.type||'');
-      if(
-        type==='delivery.projectile'||
-        type==='delivery.range-projectile'||
-        type==='delivery.hitscan'||
-        type==='delivery.area'
-      ){
-        maximum=Math.max(
-          maximum,
-          this.rangeValue(module?.range)
-        );
-      }
-    }
-    return maximum;
+  enemyRangeModule(module){
+    const relations=module?.targetRelations;
+    return !Array.isArray(relations)||!relations.length||relations.includes('enemy');
   },
-  impactExplosionRange(combat,modules){
-    let maximum=0;
-    for(const module of modules||[]){
-      if(module?.type!=='projectile.impact')continue;
-
-      const attackIds=[
-        ...(module.attackIds||[])
-      ];
-      for(const ids of Object.values(module.reasonAttackIds||{})){
-        for(const attackId of ids||[])attackIds.push(attackId);
+  geometryRange(module,attack){
+    const range=this.rangeValue(module.range??attack.range);
+    let center=this.rangeValue(module.centerDistance);
+    if(module.centerMode==='live-aim-point')center=this.rangeValue(module.centerMaxRange??attack.range);
+    if(Number(module.repeatCount)>1&&module.repeatCenterDistanceStart!==undefined){
+      center=Math.max(center,this.rangeValue(module.repeatCenterDistanceStart)+
+        (Number(module.repeatCount)-1)*this.rangeValue(module.repeatCenterDistanceStep));
+    }
+    return center+range*(module.shape==='rect'&&module.rectCenterMode==='center'?.5:1);
+  },
+  rangeVariants(attack,source=null){
+    if(source&&attack.progressScale?.rangeBasis==='initial'){
+      attack={...ProgressScaledAttackService.resolve(source,attack),progressScale:null};
+    }
+    const variants=[attack];
+    for(const scale of [attack.charge,attack.progressScale]){
+      if(!scale)continue;
+      for(const endpoint of ['from','to']){
+        const range=scale.range?.[endpoint]??attack.range;
+        const modules=(attack.modules||[]).map(module=>{
+          const copy={...module};
+          if(scale.range&&module.range===attack.range)copy.range=range;
+          for(const value of scale.moduleValues||[]){
+            if(value.type===module.type&&value[endpoint]!==undefined)copy[value.property]=value[endpoint];
+          }
+          return copy;
+        });
+        variants.push({...attack,range,modules,damageRatio:scale.damageRatio?.[endpoint]??attack.damageRatio});
       }
-
-      for(const attackId of attackIds){
-        const linked=this.attackById(combat,attackId);
-        if(!linked)continue;
-
-        let radius=0;
-        for(const linkedModule of linked.modules||[]){
-          if(linkedModule?.type!=='delivery.area')continue;
-          const relations=linkedModule?.targetRelations;
-          if(
-            Array.isArray(relations)&&
-            relations.length&&
-            !relations.includes('enemy')
-          )continue;
-          radius=Math.max(
-            radius,
-            this.rangeValue(linkedModule?.range)
-          );
+      if(scale.fullSpec)variants.push({...attack,...scale.fullSpec,charge:null,progressScale:null});
+    }
+    return variants;
+  },
+  attackMaxRange(attack,combat=null,visited=new Set(),source=null){
+    if(!attack||visited.has(attack))return 0;
+    const nextVisited=new Set(visited);nextVisited.add(attack);
+    let maximum=0;
+    const linkedRange=id=>this.attackMaxRange(this.attackById(combat,id),combat,nextVisited,source);
+    for(const variant of this.rangeVariants(attack,source)){
+      const modules=variant.modules||[];
+      const projectile=modules.find(m=>['delivery.projectile','delivery.range-projectile'].includes(m.type));
+      let travel=this.rangeValue(variant.range);
+      if(projectile?.targetPoint===true&&projectile.targetPointClampToAttackRange===false)travel=Infinity;
+      const damage=Number(variant.damageRatio)>0&&variant.effectsOnly!==true;
+      for(const module of modules){
+        if(!this.enemyRangeModule(module))continue;
+        const type=String(module.type||'');
+        if(type==='delivery.area'&&damage)maximum=Math.max(maximum,this.geometryRange(module,variant));
+        if(type==='delivery.hitscan'&&damage)maximum=Math.max(maximum,this.rangeValue(module.range??variant.range));
+        if(['delivery.projectile','delivery.range-projectile'].includes(type)&&damage&&module.damageOnTravel!==false){
+          maximum=Math.max(maximum,module.orbit
+            ?this.rangeValue(module.orbit.maxRadius)+this.rangeValue(module.radius):travel);
         }
-        maximum=Math.max(maximum,radius);
+        if(type==='formation.manifest'&&damage)maximum=Math.max(maximum,travel);
+        if(type==='effect.spawn'&&module.damage){
+          const effectDamage=module.damage;
+          if(effectDamage.module)maximum=Math.max(maximum,this.geometryRange(effectDamage.module,variant));
+          else if(effectDamage.requireMovementExecution===true||effectDamage.hitMode==='body-contact'){
+            const movement=modules.find(m=>m.type==='movement.move');
+            const distance=movement?this.rangeValue(movement.distance??(Number(movement.speed)||0)*(Number(movement.duration)||0)/1000):0;
+            maximum=Math.max(maximum,distance+this.rangeValue(effectDamage.contactRadius));
+          }else maximum=Math.max(maximum,this.rangeValue(module.range??variant.range));
+        }
+        if(type==='projectile.impact'&&projectile){
+          const ids=[...(module.attackIds||[])];
+          for(const values of Object.values(module.reasonAttackIds||{}))ids.push(...values);
+          for(const id of ids){const extent=linkedRange(id);if(extent>0)maximum=Math.max(maximum,travel+extent);}
+          const field=module.field;
+          if(field?.damageOnTrigger!==false&&field?.attackId&&Number(this.attackById(combat,field.attackId)?.damageRatio)>0&&this.enemyRangeModule(field)){
+            maximum=Math.max(maximum,field.anchorMode==='projectile-path'?travel:travel+this.geometryRange(field,variant));
+          }
+        }
+        if(type==='projectile.wall-relay'&&projectile){const extent=linkedRange(module.attackId);if(extent>0)maximum=Math.max(maximum,travel+extent);}
+        if(type==='state.window'){
+          for(const id of Object.values(module.resolveAttackIds||{}))maximum=Math.max(maximum,linkedRange(id));
+        }
+        if(type==='field.area'&&module.damageOnTrigger!==false&&module.attackId&&Number(this.attackById(combat,module.attackId)?.damageRatio)>0){
+          const origin=module.anchorMode==='attack-end'?travel:0;
+          maximum=Math.max(maximum,origin+this.geometryRange(module,variant));
+        }
+        if(type==='movement.move'&&module.damage){
+          maximum=Math.max(maximum,this.rangeValue(module.distance)+this.rangeValue(module.damage.contactRadius));
+        }
       }
     }
-    return maximum;
-  },
-  scaledMaxRange(scale){
-    if(!scale)return 0;
-
-    let maximum=Math.max(
-      this.rangeValue(scale?.range?.from),
-      this.rangeValue(scale?.range?.to)
-    );
-
-    for(const value of scale.moduleValues||[]){
-      if(String(value?.property||'')!=='range')continue;
-      maximum=Math.max(
-        maximum,
-        this.rangeValue(value?.from),
-        this.rangeValue(value?.to)
-      );
-    }
-
-    return maximum;
-  },
-  attackMaxRange(attack,combat=null){
-    if(!attack)return 0;
-
-    const travelRange=Math.max(
-      this.rangeValue(attack.range),
-      this.rangeValue(attack?.charge?.range?.from),
-      this.rangeValue(attack?.charge?.range?.to),
-      this.scaledMaxRange(attack.progressScale),
-      this.moduleMaxRange(attack.modules)
-    );
-    const impactRange=this.impactExplosionRange(
-      combat,
-      attack.modules
-    );
-    let maximum=
-      travelRange===Infinity
-        ?Infinity
-        :travelRange+impactRange;
-
-    const fullSpec=attack?.charge?.fullSpec;
-    if(fullSpec){
-      maximum=Math.max(
-        maximum,
-        this.attackMaxRange(fullSpec,combat)
-      );
-    }
-
     return maximum;
   },
   basicRange(character){
     const combat=character?.combat||character;
+    const source=this.initialSource(combat);
     let maximum=0;
-    for(const attack of this.primaryAttacks(character)){
+    for(const attack of this.primaryAttacks(character,source)){
       maximum=Math.max(
         maximum,
-        this.attackMaxRange(attack,combat)
+        this.attackMaxRange(attack,combat,new Set(),source)
       );
     }
     return maximum;
   },
   distanceTag(character){
-    const combat=character?.combat||character;
-    if(combat?.classification?.rangeLabel)return String(combat.classification.rangeLabel);
-    const rangeId=Number(combat?.classification?.range)||0;
-    if(rangeId)return CHARACTER_RULES.ranges.find(item=>item.id===rangeId)?.tag||'';
-    return GAME_DATA.ranges.find(item=>this.basicRange(character)<=item.maxInclusive)?.tag||'';
+    const range=this.basicRange(character);
+    return CHARACTER_RULES.ranges.find(item=>range<=item.maxInclusive)?.tag||'';
   },
   styleLabel(character){
     return [this.combatStyle(character),this.distanceTag(character),this.role(character)].filter(Boolean).join(' ');
@@ -28517,6 +29388,8 @@ const TagService=Object.freeze({
         if(module.homing)tags.add('유도');
         if(module.phase==='returning')tags.add('귀환');
       }
+      if(type==='projectile.redirect')tags.add('유도');
+      if(type==='projectile.wall-relay')tags.add('벽 관통');
       if(type==='delivery.hitscan'||type==='delivery.area'){
         tags.add('히트스캔');tags.add('범위 공격');
         this.addShapeTags(tags,String(module.shape||'rect'));
@@ -31741,6 +32614,12 @@ const CCService=Object.freeze({
       ?Infinity
       :Math.max(0,Number(duration)||0);
 
+    // Maintaining an active CC instance is not a new restriction event.
+    const refreshesRestriction=
+      (params.stackMode==='replace-source'||params.stackMode==='refresh-type')&&
+      list.some(item=>item.end>now&&item.sourceId===sourceId);
+    if(!refreshesRestriction&&entity.character?.reactiveEquipment&&finiteDuration>0&&EntitySimulationAuthorityService.isLocal(entity))ReactiveEquipmentService.restriction(entity,type,String(data?.sourceEntityId||sourceId||''),now);
+
     let storedParams=params;
 
     if(params.stackMode==='refresh-type'){
@@ -32284,6 +33163,7 @@ const CCService=Object.freeze({
     }
   }
 });
+
 
 const OnlineParticipantEntityService=Object.freeze({
   entity(pid){
@@ -35420,7 +36300,7 @@ const TriggerConditionService=Object.freeze({
           String(condition.initial||'')
         )===
         String(condition.value||'')
-      );
+      )!== (condition.invert===true);
     }
     if(condition.type==='aim.cardinal-is'){
       return CardinalDirectionService.resolve(
@@ -41962,6 +42842,8 @@ const EffectSpawnService=Object.freeze({
       }
     });
 
+    if(result.hit||result.blocked||result.durabilityBlocked){state.deliveryHadContact=true;}
+
     if(
       result.durabilityBlocked===true&&
       result.authoritative!==false&&
@@ -42129,6 +43011,18 @@ const EffectSpawnService=Object.freeze({
         };
         if(this.effectDamageTarget(effect,target,impactPoint))hitAny=true;
       },state.attack);
+      if(currentLength>=range&&damage.missAttackId&&!state.deliveryFollowupResolved){
+        state.deliveryFollowupResolved=true;
+        if(!state.deliveryHadContact&&source.alive&&EntitySimulationAuthorityService.isLocal(source)){
+          const followup=AbilityService.attackById(source.character,damage.missAttackId);
+          const radius=Math.max(0,Number(followup?.modules?.find(m=>m.type==='delivery.projectile')?.radius)||0);
+          const endpoint={x:cx+cos*range,y:cy+sin*range};
+          if(followup&&!WorldGeometryService.segmentBlocked(cx,cy,endpoint.x,endpoint.y,radius)){
+            const prepared=AugmentService.prepareAttack(source,followup,performance.now());
+            TriggeredAttackService.execute(source,{...prepared,modules:prepared.modules.map(m=>m.type==='delivery.projectile'?{...m,origin:{type:'point',...endpoint}}:m)},angle);
+          }
+        }
+      }
       return hitAny;
     }
 
@@ -43820,6 +44714,8 @@ const InstalledAreaFieldService=Object.freeze({
           execution:state.execution,
           impact:{
             type:'field-area',
+            fieldDuration:Math.max(0,Number.isFinite(Number(state.module?.duration))?Number(state.module.duration):0),
+            fieldPersistent:state.module?.duration==='infinite'||state.module?.duration===Infinity||state.endsAt===Infinity,
             shape:String(area?.module?.shape||state.module?.shape||'circle'),
             directionAngle:Number(area?.angle)||0,
             origin:area?.center
@@ -43904,6 +44800,7 @@ const InstalledAreaFieldService=Object.freeze({
         target,
         now
       )||triggered;
+
 
     if(triggered){
       this.markTriggered(
@@ -45603,7 +46500,7 @@ const InstalledAreaFieldService=Object.freeze({
         now
       );
 
-    if(!globalDue)return true;
+
 
     let removeField=false;
     let triggeredAny=false;
@@ -45674,6 +46571,7 @@ const InstalledAreaFieldService=Object.freeze({
           !state.enteredAt.has(targetKey);
 
         if(newlyEntered){
+          if(target.character?.reactiveEquipment)ReactiveEquipmentService.field(target,source,state,now);
           state.enteredAt.set(
             targetKey,
             now
@@ -45694,6 +46592,8 @@ const InstalledAreaFieldService=Object.freeze({
           }
         }
       }
+
+      if(!globalDue)continue;
 
       if(
         mode==='per-target'&&
@@ -45815,6 +46715,7 @@ const InstalledAreaFieldService=Object.freeze({
     }
   }
 });
+
 
 
 const GameplayEffectEventSyncService=Object.freeze({
@@ -49158,32 +50059,12 @@ const PlayerDisplayNameService=Object.freeze({
 });
 
 const RoomIdentityService=Object.freeze({
-  storageKey:'duels3.room.sessionIdentity.v1',
   deviceStorageKey:'duels3.room.deviceIdentity.v1',
-  key(){
-    let value='';
-    try{
-      value=String(
-        sessionStorage.getItem(this.storageKey)||
-        ''
-      );
-    }catch(_){}
-
-    if(value)return value;
-
-    value=
-      globalThis.crypto?.randomUUID?.()||
-      `room-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-
-    try{
-      sessionStorage.setItem(
-        this.storageKey,
-        value
-      );
-    }catch(_){}
-
-    return value;
-  },
+  // Page lifetime identity: duplicated tabs may inherit sessionStorage.
+  // Host migration and reconnects in this page reuse this immutable key.
+  sessionIdentity:globalThis.crypto?.randomUUID?.()||
+    `room-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
+  key(){return this.sessionIdentity;},
   deviceKey(){
     let value='';
     try{value=String(localStorage.getItem(this.deviceStorageKey)||'')}catch(_){}
@@ -49775,6 +50656,8 @@ const ROOM_GAMEPLAY_PACKET_TYPES=new Set([
   'duel-field-clear',
   'duel-field-resolved',
   'duel-projectile-impact-confirmed',
+  'duel-projectile-relay',
+  'duel-projectile-redirect',
   'duel-projectile-guard-resolved',
   'duel-attack-guard-resolved',
   'duel-counter-resolve',
@@ -49916,7 +50799,7 @@ const RoomConnectionService={
 const RoomService={
   maxChoiceCount:25,
   maxPlayers:4,peer:null,hostConnection:null,connections:new Map(),members:new Map(),localPid:null,code:'',isHost:false,serverMatchId:'',
-  settings:{winsRequired:5,characterCount:7,augmentCount:5},
+  settings:{winsRequired:5,characterCount:15,augmentCount:5,gameMode:'normal'},
   teamOrder:['red','blue','yellow','green'],matchMode:null,
   duelPhase:'room',activeMatchPids:new Set(),duelSelections:new Map(),characterReady:new Set(),startAugmentChoices:new Map(),startAugments:new Map(),matchAugments:new Map(),
   betweenReady:new Set(),betweenSelections:new Map(),
@@ -49936,10 +50819,28 @@ const RoomService={
   characterPreviewSelections:new Map(),
   augmentPreviewSelections:new Map(),
   localSessionKey:'',roomInstance:'',
+  roomSettingsStore(){
+    let data={};
+    try{data=JSON.parse(localStorage.getItem('duels-room-settings-v1')||'{}')||{}}catch(_){}
+    return data;
+  },
+  savedRoomSettings(mode=null){
+    const data=this.roomSettingsStore();
+    const gameMode=(mode||data.gameMode)==='augment'?'augment':'normal';
+    const saved=data.modes?.[gameMode]||{};
+    const bounded=(value,fallback,max,min=0)=>Number.isFinite(Number(value))?Math.max(min,Math.min(max,Math.floor(Number(value)))):fallback;
+    return {gameMode,winsRequired:bounded(saved.winsRequired,5,8,1),characterCount:bounded(saved.characterCount,gameMode==='normal'?15:7,25),augmentCount:bounded(saved.augmentCount,5,25)};
+  },
+  saveRoomSettings(){
+    const data=this.roomSettingsStore();
+    data.gameMode=this.settings.gameMode;
+    data.modes={...(data.modes||{}),[this.settings.gameMode]:{winsRequired:this.settings.winsRequired,characterCount:this.settings.characterCount,augmentCount:this.settings.augmentCount}};
+    try{localStorage.setItem('duels-room-settings-v1',JSON.stringify(data))}catch(_){}
+  },
   reset(){
     RoomConnectionService.dispose(this);this.roomInstance='';
     this.members.clear();this.localPid=null;this.code='';this.isHost=false;this.serverMatchId='';
-    this.settings={winsRequired:5,characterCount:7,augmentCount:5};
+    this.settings=this.savedRoomSettings();
     this.matchMode=null;this.duelPhase='room';this.activeMatchPids.clear();this.duelSelections.clear();this.characterReady.clear();
     this.startAugmentChoices.clear();this.startAugments.clear();this.matchAugments.clear();
     this.betweenReady.clear();this.betweenSelections.clear();this.bannedCharacters.clear();this.characterBanProposal=null;this._characterBanProposalSequence=0;this.characterBanNotice=null;this._characterBanNoticeSequence=0;this._lastCharacterBanNoticeId=0;this.roundScores.clear();this.resolvedRoundTokens.clear();CharacterRecordProgressionService.reset();this.characterPreviewSelections.clear();this.augmentPreviewSelections.clear();
@@ -50982,17 +51883,22 @@ const RoomService={
     this.duelPhase='start-augment';
     const choicesByPid={};
     for(const pid of this.matchPids()){
-      const choices=MatchChoiceService.augmentOptions(10);
+      const choices=this.settings.gameMode==='augment'?MatchChoiceService.augmentOptions(10):[];
       this.startAugmentChoices.set(pid,choices);
       choicesByPid[pid]=choices;
     }
     const packet={
       type:'duel-start-augment',
+      gameMode:this.settings.gameMode,
       choicesByPid,
       selections:this.selectionObject(),
     };
     this.sendToPeers(packet);
     OnlineDuelService.showStartAugment(packet);
+    if(this.settings.gameMode!=='augment'){
+      for(const pid of this.matchPids())this.startAugments.set(pid,null);
+      this.beginStartCountdown();
+    }
   },
   submitStartAugment(augmentId){
     if(!this.localPid)return false;
@@ -51006,6 +51912,7 @@ const RoomService={
       !this.activeMatchPids.has(pid)
     )return false;
 
+    if(this.settings.gameMode!=='augment'&&augmentId)return false;
     const choices=this.startAugmentChoices.get(pid)||[];
     // 기존 Duels처럼 '선택 없이 시작'도 유효하다.
     if(augmentId&&choices.length&&!choices.includes(augmentId))return false;
@@ -51344,7 +52251,7 @@ const RoomService={
           Number(this.settings.characterCount)||0
         )
       );
-    const augmentMode=true;
+    const augmentMode=this.settings.gameMode==='augment';
     const augCount=
       augmentMode
         ?Math.max(
@@ -51392,6 +52299,7 @@ const RoomService={
       augChoices:
         augChoicesByPid[losers[0]]||[],
       augChoicesByPid,
+      gameMode:this.settings.gameMode,
       choiceConfig:{
         characterCount:charCount,
         augmentCount:augCount
@@ -51431,7 +52339,7 @@ const RoomService={
     const between=this._betweenPacket||{};
     const currentCharacter=this.duelSelections.get(pid);
     const requestedCharacter=payload?.characterId||null;
-    const augmentMode=true;
+    const augmentMode=this.settings.gameMode==='augment';
     const requestedAugment=
       augmentMode
         ?payload?.augmentId||null
@@ -51651,6 +52559,7 @@ const RoomService={
         connection,
         {
           type:'duel-start-augment',
+          gameMode:this.settings.gameMode,
           spectatorActivation:true,
           selections:this.selectionObject(),
           choicesByPid
@@ -53231,11 +54140,18 @@ const RoomService={
   },
   setSettings(next){
     if(!this.isHost||this.duelPhase!=='room')return false;
+    const nextMode=(next.gameMode??this.settings.gameMode)==='augment'?'augment':'normal';
+    if(nextMode!==this.settings.gameMode){
+      this.saveRoomSettings();
+      this.settings=this.savedRoomSettings(nextMode);
+    }
     this.settings={
+      gameMode:nextMode,
       winsRequired:Math.max(1,Math.min(8,Number(next.winsRequired??next.total??this.settings.winsRequired)||this.settings.winsRequired)),
       characterCount:Math.max(0,Math.min(this.maxChoiceCount,Number(next.characterCount??this.settings.characterCount)||0)),
       augmentCount:Math.max(0,Math.min(this.maxChoiceCount,Number(next.augmentCount??this.settings.augmentCount)||0))
     };
+    this.saveRoomSettings();
     this.broadcast();
     return true;
   },
@@ -56309,6 +57225,8 @@ const OnlineDuelService={
     return true;
   },
   showStartAugment(payload){
+    const normalMode=(payload?.gameMode||RoomService.settings.gameMode)!=='augment';
+    document.getElementById('scr-start-aug')?.classList.toggle('normal-match',normalMode);
     document.querySelectorAll('#char-grid .char-card').forEach(card=>{
       card.classList.remove('selection-locked');
     });
@@ -56341,15 +57259,15 @@ const OnlineDuelService={
 
     const startTitle=document.getElementById('start-aug-title');
     const startSubtitle=document.getElementById('start-aug-subtitle');
-    if(startTitle)startTitle.style.display='';
-    if(startSubtitle)startSubtitle.style.display='';
+    if(startTitle){startTitle.style.display='';startTitle.textContent=normalMode?'게임 준비':'증강 선택';}
+    if(startSubtitle){startSubtitle.style.display='';startSubtitle.textContent=normalMode?'캐릭터를 확인하고 준비를 완료하세요':'게임 시작 전 증강을 하나 선택하세요';}
 
     const peerInfo=document.getElementById('start-aug-peer-info');
     const countdown=document.getElementById('start-aug-countdown');
     const button=document.getElementById('start-aug-confirm-btn');
     if(peerInfo){peerInfo.style.display='none';peerInfo.innerHTML=''}
     if(countdown){countdown.style.display='none';countdown.textContent=''}
-    if(button){button.style.display='';button.disabled=false;button.textContent='선택 완료'}
+    if(button){button.style.display='';button.disabled=false;button.textContent=normalMode?'준비 완료':'선택 완료'}
 
     const gridElement=document.getElementById('start-aug-grid');
     if(gridElement){
@@ -56446,9 +57364,10 @@ charRow.appendChild(card);
       }
     }
 
-    const options=payload?.choicesByPid?.[RoomService.localPid]||[];
+    const options=normalMode?[]:payload?.choicesByPid?.[RoomService.localPid]||[];
     const grid=document.getElementById('start-aug-grid');
     if(grid){
+      grid.style.display=normalMode?'none':'';
       grid.innerHTML='';
 
       for(const id of options){
@@ -56546,7 +57465,7 @@ charRow.appendChild(card);
       button.onclick=()=>{
         if(this.startAugmentReady)return;
 
-        if(!this.startAugmentSelected&&!this.startAugmentNoPickWarned){
+        if(!normalMode&&!this.startAugmentSelected&&!this.startAugmentNoPickWarned){
           this.startAugmentNoPickWarned=true;
           if(status){
             status.textContent='⚠ 증강을 선택하지 않았습니다. 계속하려면 다시 누르세요.';
@@ -56714,11 +57633,12 @@ charRow.appendChild(card);
       peerInfo.style.cssText=
         'display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:14px;margin-bottom:12px;';
 
-      const remotePids=
+      const remotePids=RoomService.settings.gameMode!=='augment'?[]:
         RoomService.matchPids().filter(
           pid=>pid!==RoomService.localPid
         );
 
+      if(RoomService.settings.gameMode!=='augment')peerInfo.style.display='none';
       for(const pid of remotePids){
         const result=
           document.createElement('div');
@@ -57507,12 +58427,14 @@ charRow.appendChild(card);
     projectileKey,
     stateKey,
     outcome,
-    impactPoint=null
+    impactPoint=null,
+    blockMetadata={}
   ){
     if(!this.active||this.roundResolving)return false;
 
     RoomService.sendGameplay({
       type:'duel-projectile-guard-resolved',
+      attackId:String(blockMetadata.attackId||''),executionSequence:Number(blockMetadata.executionSequence)||0,defenderPid:String(blockMetadata.defenderPid||''),
       roundToken:this.roundToken,
       sentAt:Date.now(),
       projectileOwnerPid:String(projectileOwnerPid||''),
@@ -57937,7 +58859,21 @@ charRow.appendChild(card);
       );
     }
 
+    if(payload.type==='duel-projectile-relay'){
+      const source=OnlineParticipantEntityService.entity(String(payload.ownerPid||''));
+      if(String(payload.ownerPid||'')!==pid||!(Number(payload.executionSequence)>0))return false;
+      const relay=(Object.values(source?.character?.attacks||{})).some(a=>(a.modules||[]).some(m=>m.type==='projectile.wall-relay'&&m.attackId===payload.attackId));
+      return relay&&ProjectileRedirectService.fireRelay(source,source&&AbilityService.attackById(source.character,String(payload.attackId||'')),payload.point,Number(payload.angle),String(payload.key||''),Number(payload.executionSequence));
+    }
+
+    if(payload.type==='duel-projectile-redirect'){
+      const owner=OnlineParticipantEntityService.entity(String(payload.projectileOwnerPid||''));
+      return ProjectileRedirectSyncService.receive(owner,payload);
+    }
+
     if(payload.type==='duel-attack-guard-resolved'){
+      const attacker=OnlineParticipantEntityService.entity(String(payload.attackerPid||''));
+      if(attacker?.character?.reactiveEquipment)ReactiveEquipmentService.blocked(attacker,String(payload.defenderPid||''),`${attacker.id}:${payload.attackId}:execution:${payload.executionSequence}`);
       return true;
     }
 
@@ -58170,6 +59106,7 @@ charRow.appendChild(card);
           ownerPid
         );
       if(!owner)return false;
+      if(owner.character?.reactiveEquipment)ReactiveEquipmentService.blocked(owner,String(payload.defenderPid||''),Number(payload.executionSequence)>0?`${owner.id}:${payload.attackId}:execution:${payload.executionSequence}`:`${owner.id}:${payload.attackId}:projectile:${payload.projectileKey}`);
 
       if(payload.outcome==='remove'){
         ProjectileImpactService.correctGuardPath(owner,payload.projectileKey,payload.impactPoint);
@@ -60423,7 +61360,7 @@ charRow.appendChild(card);
       status.className='status';
     }
     if(charStatus){
-      charStatus.textContent='선택 안 하면 현재 캐릭터 유지';
+      charStatus.textContent='미선택 시 현재 캐릭터 유지';
       charStatus.className='status';
     }
 this.betweenReadyPids=new Set();
@@ -60518,7 +61455,8 @@ this.betweenReadyPids=new Set();
       )||
       [];
 
-    const choiceOrder=[
+    const normalBetween=(payload.gameMode||RoomService.settings.gameMode)!=='augment';
+    const choiceOrder=normalBetween?[]:[
       ...loserPids
     ];
 
@@ -60531,6 +61469,7 @@ this.betweenReadyPids=new Set();
     }
 
     if(augmentTitle){
+      augmentTitle.style.display=normalBetween?'none':'';
       augmentTitle.textContent=
         loserPids.length
           ?'선택지'
@@ -60538,7 +61477,8 @@ this.betweenReadyPids=new Set();
     }
 
     if(augmentGrid){
-      augmentGrid.style.display='';
+      augmentGrid.classList.toggle('normal-match',normalBetween);
+      augmentGrid.style.display=normalBetween?'none':'';
       augmentGrid.replaceChildren();
 
       const createAugmentCard=(
@@ -61628,7 +62568,14 @@ const CharacterBanUI=Object.freeze({
     card?.querySelector(':scope > .character-ban-mark')?.remove();
   },
   showScreen(){
+    const opening=this.screen()?.classList.contains('hidden');
     RoomUI.showScreen('scr-character-ban');
+    if(opening){
+      const screen=this.screen();
+      if(screen)screen.scrollTop=0;
+      const grid=this.grid();
+      if(grid)grid.scrollTop=0;
+    }
     const select=document.getElementById('character-ban-sort-select');
     if(select)select.value=this.sortMode();
   },
@@ -62095,7 +63042,8 @@ const CharacterBanUI=Object.freeze({
 
         if(RoomService.submitCharacterBanProposal(ids)){
           this.selectedIds.clear();
-          this.sync();
+          if(!RoomService.characterBanProposal)this.returnToRoom();
+          else this.sync();
         }
       }
     );
@@ -62375,6 +63323,14 @@ const RoomUI=Object.freeze({
     }
     CharacterBanUI.sync();
 
+    const mode=RoomService.settings.gameMode||'normal';
+    const modeButton=document.getElementById('room-game-mode');
+    if(modeButton){
+      modeButton.textContent=mode==='augment'?'증강전':'일반전';
+      modeButton.disabled=!RoomService.isHost;
+    }
+    const augmentRow=document.getElementById('room-aug-choices-row');
+    if(augmentRow)augmentRow.hidden=mode!=='augment';
     const controls=[
       ['room-format-total','winsRequired'],
       ['room-char-choices','characterCount'],
@@ -62389,6 +63345,7 @@ const RoomUI=Object.freeze({
     }
   },
   init(){
+    document.getElementById('room-game-mode')?.addEventListener('click',()=>RoomService.setSettings({gameMode:RoomService.settings.gameMode==='augment'?'normal':'augment'}));
     CharacterBanUI.init();
     for(const id of ['room-char-choices','room-aug-choices']){
       const select=document.getElementById(id);
@@ -63637,9 +64594,9 @@ const JustDodgeService=Object.freeze({
   confirmProjectile(target,projectile,now=performance.now()){
     if(!this.canConfirm(target))return false;
     if(!this.overlapsProjectile(target,projectile,now))return false;
-    return this.confirm(target,now);
+    return this.confirm(target,now,{cause:{source:projectile.source,attack:projectile.attack,impact:{type:'projectile'}}});
   },
-  confirmArea(target,source,module,angle,containsPoint,now=performance.now()){
+  confirmArea(target,source,module,angle,containsPoint,now=performance.now(),cause={}){
     if(!this.canConfirm(target))return false;
     const check=target?.justCheck;
     if(!check||target.justDodgeConsumed||now>check.expiresAt)return false;
@@ -63652,12 +64609,12 @@ const JustDodgeService=Object.freeze({
       const x=check.prevX+(check.currX-check.prevX)*ratio;
       const y=check.prevY+(check.currY-check.prevY)*ratio;
       if(containsPoint(module,source,x,y,check.radius,angle)){
-        return this.confirm(target,now);
+        return this.confirm(target,now,{cause:{source,...cause,impact:cause.impact||{type:module?.type==='field.area'?'field-area':'area'}}});
       }
     }
     return false;
   },
-  confirmDamageAttempt(target,now=performance.now(),attack=null){
+  confirmDamageAttempt(target,now=performance.now(),attack=null,cause=null){
     if(!this.canConfirm(target))return false;
     if(
       !target||
@@ -63689,7 +64646,8 @@ const JustDodgeService=Object.freeze({
       now,
       {
         allowWindowFallback:true,
-        windowExtension:extension
+        windowExtension:extension,
+        cause
       }
     );
   },
@@ -63698,7 +64656,8 @@ const JustDodgeService=Object.freeze({
     now=performance.now(),
     {
       allowWindowFallback=false,
-      windowExtension=0
+      windowExtension=0,
+      cause=null
     }={}
   ){
     const check=target?.justCheck;
@@ -63762,12 +64721,16 @@ const JustDodgeService=Object.freeze({
       startedAt,
       {kind:'normal'}
     );
+    if(typeof ReactiveEquipmentService!=='undefined'){
+      ReactiveEquipmentService.justDodge(target,cause,now);
+    }
     GameEvents.emit(
       'just-dodge',
       {
         target,
         now,
-        startedAt
+        startedAt,
+        cause
       }
     );
 
@@ -64820,7 +65783,6 @@ const NetworkHitAuthorityService={
               :(attackDirection?null:target);
 
             if(
-              !moveTarget&&
               module.target?.type==='projectile'&&
               Number.isFinite(Number(payload.impactX))&&
               Number.isFinite(Number(payload.impactY))
@@ -65552,7 +66514,7 @@ const DamagePipeline=Object.freeze({
     amountOverride=null,
     targetPolicy=null
   }){
-    const relationAllowed=!!source&&!!target&&!!attack&&RelationService.canTarget(source,target,targetPolicy||{},attack);
+    const relationAllowed=!!source&&!!target&&!!attack&&RelationService.canTarget(source,target,{...(targetPolicy||{}),ignoreEvasionInvulnerable:true},attack);
     if(!relationAllowed){
       return {applied:false,amount:0};
     }
@@ -65601,7 +66563,8 @@ const DamagePipeline=Object.freeze({
       JustDodgeService.confirmDamageAttempt(
         target,
         now,
-        attack
+        attack,
+        {source,attack,execution,impact}
       )
     ){
       return {
@@ -65620,9 +66583,12 @@ const DamagePipeline=Object.freeze({
 
     if(
       target.invincibleUntil>now||
-      BuffService.live(target,'invulnerable',now).length>0
+      BuffService.live(target,'invulnerable',now).length>0||
+      (typeof ActionStateCombatPolicyService!=='undefined'&&targetPolicy?.ignoreEvasionInvulnerable!==true&&ActionStateCombatPolicyService.isEvasionUntargetable(target,now))
     ){
-      return {applied:false,amount:0,dodged:true};
+      const result={applied:false,hit:false,amount:0,dodged:true,source,target,attack,execution,impact,now};
+      GameEvents.emit('damage-avoided',result);
+      return result;
     }
 
     if(impact?.contactOnly===true){
@@ -66875,8 +67841,8 @@ const AreaAttackService=Object.freeze({
               centerDistance:
                 String(collisionModule.wallPolicy||'ignore')==='block'
                   ?WorldGeometryService.raycastDistance(
-                    Number(source.x)||0,
-                    Number(source.y)||0,
+                    Number(geometryOrigin.x)||0,
+                    Number(geometryOrigin.y)||0,
                     resolvedAngle,
                     Math.max(0,Number(collisionModule.centerDistance)||0),
                     2
@@ -66885,7 +67851,7 @@ const AreaAttackService=Object.freeze({
             }
             :HitScanGeometryService
               .effectiveModule(
-                source,
+                geometryOrigin,
                 spec,
                 collisionModule,
                 resolvedAngle
@@ -66905,6 +67871,7 @@ const AreaAttackService=Object.freeze({
 
     GameEvents.emit('area-attack-fired',{
       source,
+      geometryOrigin,
       attack:spec,
       angle:resolvedAngle,
       module:effectiveModule,
@@ -66984,7 +67951,8 @@ const AreaAttackService=Object.freeze({
             angleValue,
             areaGeometry
           ),
-          performance.now()
+          performance.now(),
+          {attack:spec}
         )
       ){
         continue;
@@ -68559,14 +69527,17 @@ const AttackModuleService=Object.freeze({
         }
 
         const angles=this.buildAngles(spec,angle);
+        const originPoint=projectile.origin?.type==='point'&&
+          Number.isFinite(Number(projectile.origin.x))&&Number.isFinite(Number(projectile.origin.y))
+            ?{x:Number(projectile.origin.x),y:Number(projectile.origin.y)}:source;
         for(let index=0;index<angles.length;index++){
           ProjectileService.spawn({
             source,
             attack:spec,
             volley,
-            x:source.x,
-            y:source.y,
-            origin:{x:source.x,y:source.y},
+            x:originPoint.x,
+            y:originPoint.y,
+            origin:{x:originPoint.x,y:originPoint.y},
             angle:angles[index],
             stateKey:projectile.stateKey,
             targetEntityId:
@@ -70486,6 +71457,10 @@ const AttackModuleService=Object.freeze({
         return;
       }
 
+      if(type==='equipment.discover'&&module.when==='after-attack'){
+        ReactiveEquipmentService.resolveCurrent(source,module,performance.now());
+        return;
+      }
       if(type==='mode.toggle'&&module.when==='after-attack'){
         ModeStateService.toggle(
           source,
@@ -70895,6 +71870,8 @@ const AttackModuleService=Object.freeze({
             }
           );
 
+        if(movementStarted!==false&&target.character?.reactiveEquipment)ReactiveEquipmentService.restriction(target,'pull',source.id,performance.now());
+
         if(
           movementStarted!==false&&
           module.oncePerExecution
@@ -71101,6 +72078,8 @@ const AttackModuleService=Object.freeze({
                 }
                 :{}
             );
+
+        if(movementStarted!==false&&target.character?.reactiveEquipment)ReactiveEquipmentService.restriction(target,'knockback',source.id,performance.now());
 
         if(
           movementStarted!==false&&
@@ -71312,7 +72291,7 @@ const AttackModuleService=Object.freeze({
         if(module.oncePerExecution&&AttackExecutionService.hasEffect(execution,key))return;
         const attackDirection=module.target==='attack-direction';
         const moveTarget=module.target?.type==='projectile'
-          ?ProjectileStateService.get(source,module.target.stateKey)
+          ?(deliveryModule?.projectile||ProjectileStateService.get(source,module.target.stateKey))
           :(module.target==='hit-target'?target:null);
         if(moveTarget||attackDirection){
           const dx=moveTarget?(Number(moveTarget.x)||0)-(Number(source.x)||0):0;
@@ -71323,7 +72302,7 @@ const AttackModuleService=Object.freeze({
           const moveAngle=attackDirection
             ?(Number(attackAngle)||0)
             :(distance>.001?Math.atan2(dy,dx):(Number(attackAngle)||0));
-          MovementAbilityService.start(
+          const started=MovementAbilityService.start(
             source,
             {...module,type:'movement.move',control:'fixed'},
             moveAngle,
@@ -71332,9 +72311,8 @@ const AttackModuleService=Object.freeze({
               angle:moveAngle
             }
           );
-          
+          if(started!==false&&module.oncePerExecution)AttackExecutionService.markEffect(execution,key);
         }
-        if(module.oncePerExecution)AttackExecutionService.markEffect(execution,key);
         return;
       }
 
@@ -72688,6 +73666,11 @@ const AttackPreviewAreaService=Object.freeze({
       pushArea(rawArea,0);
     }
 
+    // 명시적 미리보기 geometry는 이동 후속 범위와 함께 합성한다.
+    if(preparedAttack?.previewGeometry&&!(preparedAttack.modules||[]).some(module=>AttackModuleService.type(module)==='delivery.area')){
+      pushArea(preparedAttack.previewGeometry,0);
+    }
+
     /* projectile.impact가 후속 범위 공격을 실행하면 투사체의 예상 종점에 그 범위도 함께 표시한다. */
     const previewProjectile=
       AttackModuleService.module(preparedAttack,'delivery.projectile')||
@@ -72831,6 +73814,23 @@ const AttackPreviewAreaService=Object.freeze({
 });
 
 const AttackPreviewService=Object.freeze({
+  fromTargetPoint(config,point,until,reuse=null){
+    const preview=reuse&&typeof reuse==='object'?reuse:{};
+    const radius=Math.max(0,Number(config.range)||0);
+    const points=Array.isArray(preview.points)?preview.points:[];
+    for(let i=0;i<48;i++){
+      const theta=Math.PI*2*i/48;
+      const vertex=points[i]||(points[i]={x:0,y:0});
+      vertex.x=Number(point.x)+Math.cos(theta)*radius;
+      vertex.y=Number(point.y)+Math.sin(theta)*radius;
+    }
+    points.length=48;
+    if(Array.isArray(preview.parts))preview.parts.length=0;
+    delete preview.liveTracking;
+    Object.assign(preview,{type:String(config.shape||'circle'),x:Number(point.x),y:Number(point.y),
+      range:radius,points,style:config.style||null,until,projectile:false,progress:0});
+    return preview;
+  },
   delayedProjectileVolleyParts(source,attack,angle,options=null){
     if(!source||!attack?.previewProjectilePaths)return [];
 
@@ -72944,6 +73944,21 @@ const AttackPreviewService=Object.freeze({
         ProgressScaledAttackService.resolve(source,attack),
         performance.now()
       );
+    const targetProjectile=AttackModuleService.module(preparedAttack,'delivery.projectile');
+    if(targetProjectile?.targetPoint===true&&targetProjectile.targetPreview&&options?.targetPoint){
+      let point={x:Number(options.targetPoint.x),y:Number(options.targetPoint.y)};
+      if(Number.isFinite(point.x)&&Number.isFinite(point.y)){
+        const dx=point.x-source.x,dy=point.y-source.y,distance=Math.hypot(dx,dy);
+        const range=Math.max(0,Number(preparedAttack.range)||0);
+        if(targetProjectile.targetPointClampToAttackRange!==false&&range>0&&distance>range){
+          point.x=source.x+dx*range/distance;point.y=source.y+dy*range/distance;
+        }
+        if(String(targetProjectile.targetPointResolve||'nearest-open')==='nearest-open'){
+          point=WorldGeometryService.nearestOpenPoint(point.x,point.y,Math.max(1,Number(targetProjectile.targetPointClearance)||2))||point;
+        }
+        return this.fromTargetPoint(targetProjectile.targetPreview,point,until,preview);
+      }
+    }
     if(preparedAttack.previewProjectilePaths==='impact-only'){
       preview.parts=this.delayedProjectileVolleyParts(source,preparedAttack,angle,options);
       preview.type='circle';preview.range=0;preview.halfWidth=0;preview.halfAngle=0;
@@ -75487,6 +76502,9 @@ const EntityRingLayoutService=Object.freeze({
       return {visible:false,ratio:0,full:false};
     }
 
+    const pointerGauge=PointerHoldInputService?.holdGaugePresentationState?.(entity,now);
+    if(pointerGauge?.visible)return pointerGauge;
+
     const config=
       this.characterRingPresentation(entity)?.holdGauge;
     if(!config){
@@ -77292,7 +78310,7 @@ const ModeStateService=Object.freeze({
     const result=[];
     for(const state of entity?.actionState?.values?.()||[]){
       if(state?.kind!==this.KIND)continue;
-      result.push({stateKey:state.stateKey,value:state.value,
+      result.push({stateKey:state.stateKey,value:state.value,previousValue:String(state.previousValue||''),
         turns:Number(state.turns)||0,previousTurns:Number(state.previousTurns)||0,
         changedAgoMs:Math.max(0,now-Number(state.changedAt??now)),
         hasChanged:state.changedAt!==undefined});
@@ -77310,6 +78328,7 @@ const ModeStateService=Object.freeze({
       const turns=Number(snapshot.turns)||0;
       const changed=state.value!==snapshot.value||Number(state.turns||0)!==turns||state.changedAt===undefined;
       state.value=snapshot.value;
+      state.previousValue=String(snapshot.previousValue||'');
       state.turns=turns;
       state.previousTurns=Number(snapshot.previousTurns)||0;
       if(changed&&snapshot.hasChanged!==false)state.changedAt=now-Math.max(0,Number(snapshot.changedAgoMs)||0);
@@ -77319,6 +78338,193 @@ const ModeStateService=Object.freeze({
     }
     return true;
   }
+});
+/* 조건 사건→우선순위 누적→발견→자동 장착. 캐릭터 ID와 무기 이름을 모른다. */
+const ReactiveEquipmentService=Object.freeze({
+ config(e){return e?.character?.reactiveEquipment||null},
+ state(e){
+  if(!this.config(e)||!e.actionState)return null;
+  let s=e.actionState.get('reactive-equipment-observer');
+  if(!s){s={kind:'equipment-observer',pending:new Map(),blocked:new Map(),approaches:new Map(),currentCondition:'',currentAt:0};e.actionState.set('reactive-equipment-observer',s)}
+  return s;
+ },
+ signal(e,facts={},key='',now=performance.now()){
+  const config=this.config(e);if(!config||!e.alive||!EntitySimulationAuthorityService.isLocal(e))return false;
+  const observer=this.state(e);
+  let selected=null;
+  for(const item of config.items||[]){
+   if(TriggerModuleService.matches(item.trigger,'equipment.situation',{source:e,facts,now},(condition,context)=>{
+    if(condition.type==='situation.flag')return facts[condition.flag]===true;
+   })){selected=item;break}
+  }
+  if(!selected)return false;
+  const id=String(key||facts.sourceId||'situation');
+  if(now>=observer.currentAt){observer.currentCondition=selected.value;observer.currentAt=now;}
+  const previous=observer.pending.get(id);
+  if(!previous||(config.items.indexOf(selected)<config.items.indexOf(previous.item)))observer.pending.set(id,{item:selected,now});
+  return true;
+ },
+ select(e,value,now=performance.now()){
+  const config=this.config(e);if(!config||!e.actionState||(value!==config.initial&&!config.items.some(item=>item.value===value)))return false;
+  if(ModeStateService.current(e,config.stateKey,config.initial)===value)return false;
+  const state=ModeStateService.state(e,config.stateKey,true,config.initial);
+  state.previousValue=ModeStateService.current(e,config.stateKey,config.initial);
+  state.previousTurns=Number(state.turns)||0;state.turns=state.previousTurns+1;state.changedAt=now;
+  return ModeStateService.set(e,config.stateKey,value,config.initial);
+ },
+ discover(e,item,force=false,now=performance.now()){
+  const config=this.config(e);if(!config||!item)return false;
+  const state=ProgressStateService.ensure(e,{stateKey:item.stateKey,max:item.required,initial:0});
+  if(state.value<item.required){ProgressStateService.apply(e,{stateKey:item.stateKey,max:item.required,operation:force?'set':'add',...(force?{value:item.required}:{amount:1})});state.lastActivityAt=now}
+  state.lastActivityAt=now;
+  if(state.value>=item.required)this.select(e,item.value,now);
+  return true;
+ },
+ flush(e,now=performance.now()){
+  const s=this.state(e);if(!s)return false;
+  for(const entry of s.pending.values())this.discover(e,entry.item,false,entry.now);
+  s.pending.clear();return true;
+ },
+ behindWall(e,a){
+  if(WorldGeometryService.segmentBlocked(e.x,e.y,a.x,a.y,0))return true;
+  for(const wall of DynamicWallService.all())if(WorldGeometryService.segmentIntersectsRect(e.x,e.y,a.x,a.y,wall,0))return true;
+  return false;
+ },
+ justDodge(target,cause,now=performance.now()){
+  const attack=cause?.attack||cause?.execution?.attack||null;
+  const source=cause?.source||EntityService.items.get(cause?.execution?.sourceId)||null;
+  let impact=cause?.impact||null;
+  if(!impact?.type&&attack){
+   const modules=attack.modules||[];
+   const type=modules.some(m=>m.type==='delivery.projectile'||m.type==='delivery.range-projectile')?'projectile'
+    :modules.some(m=>m.type==='delivery.area')?'area'
+    :modules.some(m=>m.type==='effect.spawn'&&m.damage)?'effect-animation':null;
+   if(type)impact={...impact,type};
+  }
+  const changed=this.damage({...cause,source,attack,impact,target,now,dodged:true,justDodged:true});
+  if(changed)this.flush(target,now);
+  return changed;
+ },
+ damage(event){
+  const e=event?.target,a=event?.source,config=this.config(e);
+  if(event?.impact?.type==='field-area'){
+   if(config?.fieldTrigger!=='damage'||(!(event.amount>0)&&event.justDodged!==true)||!(Number(event.impact.fieldDuration)>0||event.impact.fieldPersistent===true)||!a||RelationService.relation(e,a)!=='enemy')return false;
+   return this.signal(e,{field:true,sourceId:a.id},a.id,event.now);
+  }
+  if(!config||!a||RelationService.relation(e,a)!=='enemy'||(!(event.amount>0)&&event.dodged!==true))return false;
+  const distance=Math.hypot(a.x-e.x,a.y-e.y);
+  const baseline=AbilityService.attackById(e.character,config.farAttackId);
+  const range=Number(baseline?.range)||config.longDistance;
+  const tags=event.attack?TagService.attackTags(event.attack):null;
+  const directDistance=(config.distanceImpactTypes||[]).includes(event.impact?.type)&&event.impact?.dot!==true&&
+   !(config.distanceExcludedAttackTags||[]).some(tag=>tags?.has(tag));
+  const restricted=event.dodged===true&&!!tags&&(config.restrictedAttackTags||[]).some(tag=>tags.has(tag));
+  return this.signal(e,{restricted,sourceId:a.id,behindWall:directDistance&&this.behindWall(e,a),summon:a.kind==='summon',far:directDistance&&(config.farExclusive===true?distance>range:distance>=range),close:directDistance&&distance<=config.closeDistance},a.id,event.now);
+ },
+ field(e,source,state,now){
+  if(this.config(e)?.fieldTrigger==='damage'||state?.rewardOnly===true||state?.module?.reactiveEquipmentEntry===false)return false;
+  if(!(Number(state?.duration)>0||Number(state?.module?.duration)>0||Number(state?.endsAt)>now)||RelationService.relation(e,source)!=='enemy')return false;
+  return this.signal(e,{field:true,sourceId:source?.id},source?.id,now);
+ },
+ restriction(e,type,sourceId,now){
+  const config=this.config(e);if(!config||!config.restrictedStatuses.includes(type))return false;
+  const source=EntityService.items.get(sourceId);
+  if(source&&RelationService.relation(e,source)!=='enemy')return false;
+  if(sourceId===e.id||String(sourceId).startsWith('system:'))return false;
+  return this.signal(e,{restricted:true,sourceId:source?.id||sourceId},source?.id||sourceId,now);
+ },
+ blocked(e,sourceId,key,now=performance.now()){
+  const state=this.state(e);if(!state)return false;
+  const defender=EntityService.items.get(sourceId);
+  if(defender&&RelationService.relation(e,defender)!=='enemy')return false;
+  const id=String(key);if(state.blocked.has(id))return false;
+  state.blocked.set(id,now);for(const [k,at] of state.blocked)if(now-at>5000)state.blocked.delete(k);
+  return this.signal(e,{blocked:true,sourceId},`block:${key}`,now);
+ },
+ update(e,now=performance.now()){
+  const config=this.config(e);if(!config||!e.alive||!EntitySimulationAuthorityService.isLocal(e))return;
+  const observer=this.state(e);
+  for(const other of EntityService.items.values()){
+   if(!other?.alive||!config.approachTargetKinds.includes(other.kind)||RelationService.relation(e,other)!=='enemy')continue;
+   const distance=Math.hypot(other.x-e.x,other.y-e.y);
+   let track=observer.approaches.get(other.id);
+   if(!track){
+    const capacity=Math.max(2,Math.ceil(config.approachWindow/16)+2);
+    track={samples:Array.from({length:capacity},()=>({at:0,distance:0,x:0,y:0})),head:0,count:0,lastAt:-Infinity,armed:true};
+    observer.approaches.set(other.id,track);
+   }
+   const pulled=e.forcedMotion?.kind==='pull';
+   const walkSpeed=Math.max(0,Number(other.speed)||Number(other.character?.speed)||0)*Math.max(0,CombatStatsService.current(other).speedMult)/GAME_DATA.frameMs;
+   const requiredSpeed=walkSpeed*Math.max(1,Number(config.approachSpeedRatio)||1);
+   if(track.armed&&distance<=config.approachNear){
+    for(let i=0;i<track.count;i++){
+     const sample=track.samples[(track.head-1-i+track.samples.length)%track.samples.length];
+     if(now-sample.at>config.approachWindow)break;
+     const enemyMove=Math.hypot(other.x-sample.x,other.y-sample.y);
+     const elapsed=now-sample.at;
+     const fastApproach=elapsed>0&&enemyMove/elapsed>requiredSpeed;
+     if(sample.distance-distance>=config.approachDelta&&((enemyMove>=config.approachDelta*.75&&fastApproach)||pulled)){
+      this.signal(e,{approach:true,sourceId:other.id},other.id,now);track.armed=false;break;
+     }
+    }
+   }
+   if(distance>config.approachNear+config.approachDelta)track.armed=true;
+   // Reuse a bounded rolling history: a dodge spanning a fixed window boundary
+   // must retain its pre-movement position; no allocation in the frame loop.
+   if(now-track.lastAt>=16){
+    const sample=track.samples[track.head];sample.at=now;sample.distance=distance;sample.x=other.x;sample.y=other.y;
+    track.head=(track.head+1)%track.samples.length;track.count=Math.min(track.samples.length,track.count+1);track.lastAt=now;
+   }
+  }
+  for(const [id] of observer.approaches)if(!EntityService.items.get(id)?.alive)observer.approaches.delete(id);
+  this.flush(e,now);
+ },
+ resolveCurrent(e,module,now=performance.now()){
+  if(!EntitySimulationAuthorityService.isLocal(e))return false;
+  this.flush(e,now);const config=this.config(e),observer=this.state(e);if(!config||!observer)return false;
+  const value=observer.currentCondition;
+  const item=config.items.find(item=>item.value===value);
+  if(item)return this.discover(e,item,true,now);
+  return this.select(e,config.initial,now);
+ }
+});
+/* 개별 누적 호 게이지 은행. 활성 무기와 최근 갱신만 강조하며 소유자 전용. */
+const EquipmentGaugePresentationService=Object.freeze({
+ thresholds(ctx,e,module){
+  if(e!==Training.player)return false;
+  const config=ReactiveEquipmentService.config(e);if(!config)return false;
+  const active=ModeStateService.current(e,config.stateKey,config.initial);
+  let ranges=e._equipmentThresholdRanges;
+  if(!ranges||ranges.active!==active){
+   const attack=AbilityService.attackById(e.character,config.farAttackId);
+   ranges=e._equipmentThresholdRanges={active,outer:Number(attack?.range)||config.longDistance};
+  }
+  ctx.save();ctx.globalAlpha=Number(module.alpha??.4);ctx.strokeStyle=module.color||e.color;ctx.lineWidth=Number(module.lineWidth)||1.5;ctx.setLineDash(module.dash||[]);
+  ctx.beginPath();ctx.arc(e.x,e.y,config.closeDistance,0,Math.PI*2);ctx.stroke();
+  if(ranges.outer!==config.closeDistance){ctx.beginPath();ctx.arc(e.x,e.y,ranges.outer,0,Math.PI*2);ctx.stroke();}ctx.restore();return true;
+ },
+ draw(ctx,e,module,now=performance.now()){
+  if(e!==Training.player)return false;
+  const config=ReactiveEquipmentService.config(e);if(!config)return false;
+  const active=ModeStateService.current(e,config.stateKey,config.initial);
+  const scale=(Number(e.radius)||20)/20;
+  const render=e._equipmentGaugeRender||(e._equipmentGaugeRender={anchor:{x:0,y:0,radius:7,color:e.color},track:{visibility:'all',color:'rgba(255,255,255,.3)',lineWidth:2,showEmpty:true},fill:{visibility:'all',lineWidth:3,showEmpty:true}});
+  ctx.save();ctx.translate(Number(e.x)||0,Number(e.y)||0);
+  for(let i=0;i<config.items.length;i++){
+   const item=config.items[i],state=ProgressStateService.state(e,item.stateKey);
+   const ratio=Math.max(0,Math.min(1,(Number(state?.value)||0)/item.required));
+   const elapsed=now-Number(state?.lastActivityAt??-Infinity);
+   const activity=Math.max(0,Math.min(1,1-(elapsed-Number(module.holdMs||500))/Number(module.fadeMs||500)));
+   ctx.globalAlpha=active===item.value?1:Number(module.idleAlpha??.35)+(1-Number(module.idleAlpha??.35))*activity;
+   const columns=Math.max(1,Number(module.columns)||1);
+   const x=(Number(module.x??38)+(i%columns)*Number(module.gap||18))*scale,y=(Number(module.y??-63)+Math.floor(i/columns)*Number(module.gap||18))*scale,r=Number(module.radius||7)*scale;
+   render.anchor.x=x;render.anchor.y=y;render.anchor.radius=r;render.track.radius=r;render.fill.radius=r;render.fill.color=active===item.value?(module.activeColor||module.color||e.color):(module.color||e.color);
+   ArcGaugePresentationService.render(ctx,render.anchor,1,render.track);
+   ArcGaugePresentationService.render(ctx,render.anchor,ratio,render.fill);
+
+  }
+  ctx.restore();return true;
+ }
 });
 
 
@@ -83078,7 +84284,7 @@ const RuntimeValueReferenceService=Object.freeze({
       return '';
     }
 
-    if(ref.type==='mode-match-count-ratio'){
+    if(ref.type==='mode-match-count-ratio'||ref.type==='mode-match-count'){
       const target=
         ref.target==='owner'
           ?(EntityService.owner(entity)||entity)
@@ -83095,7 +84301,7 @@ const RuntimeValueReferenceService=Object.freeze({
           )===String(mode?.value||'')
         )matched+=1;
       }
-      return Math.max(0,Math.min(1,matched/modes.length));
+      return ref.type==='mode-match-count'?matched:Math.max(0,Math.min(1,matched/modes.length));
     }
 
     if(ref.type==='mode'){
@@ -83593,6 +84799,13 @@ const WorldGaugeModuleService=Object.freeze({
         entity!==Training.player&&
         EntityService.owner(entity)!==Training.player
       )continue;
+
+      if(module?.type==='range.equipment-thresholds'){EquipmentGaugePresentationService.thresholds(ctx,entity,module);continue;}
+
+      if(module?.type==='gauge.equipment-bank'){
+        EquipmentGaugePresentationService.draw(ctx,entity,module);
+        continue;
+      }
 
       if(module?.type==='range.circle'){
 
@@ -89711,6 +90924,15 @@ const AbilityModuleService=Object.freeze({
       if(LimitedUseBuffService.grant(context.source,module,context.now))context.executed=true;
       next();
     },
+    'equipment.select'(context,next,module){
+      if(module.requireExecuted===true&&context.executed!==true){next();return;}
+      const config=ReactiveEquipmentService.config(context.source);
+      const value=module.operation==='previous'
+        ?ModeStateService.state(context.source,config?.stateKey)?.previousValue
+        :module.value;
+      if(ReactiveEquipmentService.select(context.source,String(value||''),context.now))context.executed=true;
+      next();
+    },
     'mode.set'(context,next,module){
       if(
         module.requireExecuted===true&&
@@ -90449,7 +91671,7 @@ const AbilityModuleService=Object.freeze({
             context.angle,
             until,
             context.source.attackPreview,
-            {includeDeliveryAreas:module.includeDeliveryAreas!==false}
+            {includeDeliveryAreas:module.includeDeliveryAreas!==false,targetPoint:context.targetPoint}
           );
       }
 
@@ -92619,16 +93841,25 @@ const CharacterDescriptionService=Object.freeze({
         const points=Math.max(0,Math.floor(recordPoints));
         const tier=CharacterRecordService.tier(points);
         return `<div style="margin:3px 0 5px;">`+
-          `<strong>[RECORD]</strong> ${tier.name} · ${points}</div>`;
+          `<strong class="duels-skill-key">[RECORD]</strong> ${tier.name} · ${points}</div>`;
       })()
       :'';
-    const skillsHtml=(character.tooltipSkills||[]).map(skill=>{
+    const groupedSkills=new Map();
+    const basicSkills=[];
+    for(const skill of character.tooltipSkills||[]){
+      const key=String(skill.key||'');
+      const group=String(skill.section||(key.startsWith('/')?'COMMAND':key.match(/(?:^|\s)(WEAPON|PROTECTION|SUMMONER)(?:$|\s)/)?.[1])||'');
+      if(!group){basicSkills.push(skill);continue;}
+      if(!groupedSkills.has(group))groupedSkills.set(group,[]);
+      groupedSkills.get(group).push(skill);
+    }
+    const renderSkill=skill=>{
       if(Array.isArray(skill.inlineStages)){
         const inline=
           skill.inlineStages
             .map(stage=>{
               const stageText=this.interpolate(character,stage);
-              return `<strong>[${stage.key}]</strong>`+
+              return `<strong class="duels-skill-key">[${stage.key}]</strong>`+
                 `${stageText?` ${stageText}`:''}`;
             })
             .join(' ');
@@ -92644,7 +93875,7 @@ const CharacterDescriptionService=Object.freeze({
           ).trim();
         if(!description)return '';
         const skillNameText=skill.name?` ${skill.name}`:'';
-        return `<strong>[${skill.key}]</strong>${skillNameText} — ${description}`;
+        return `<strong class="duels-skill-key">[${skill.key}]</strong>${skillNameText} — ${description}`;
       }
       const costText=
         !includeCosts||skill.showCost===false
@@ -92659,8 +93890,12 @@ const CharacterDescriptionService=Object.freeze({
           }`;
       const skillNameText=skill.name?` ${skill.name}`:'';
       const description=this.interpolate(character,skill);
-      return `<strong>[${skill.key}]</strong>${skillNameText}${description?` — ${description}`:''}${costText}`;
-    }).filter(Boolean).join('<br>');
+      return `<strong class="duels-skill-key">[${skill.key}]</strong>${skillNameText}${description?` — ${description}`:''}${costText}`;
+    };
+    const skillsHtml=basicSkills.map(renderSkill).filter(Boolean).join('<br>');
+    const extraSkillsHtml=[...groupedSkills.values()].map(skills=>
+      `<div style="margin-top:11px;">${skills.map(renderSkill).filter(Boolean).join('<br>')}</div>`
+    ).join('');
 
     const summonHtml=(character.summonSpecs||[])
       .map(summon=>{
@@ -92675,6 +93910,7 @@ const CharacterDescriptionService=Object.freeze({
               typeof stat==='string'
                 ?String(stat||'')
                 :String(stat?.key||'');
+            if(key==='MOVE SPEED'&&Number(spec.speed||0)===0)return '';
             const value=
               this.interpolateSummon(
                 character,
@@ -92686,13 +93922,13 @@ const CharacterDescriptionService=Object.freeze({
               value===''
             )
               ?''
-              :`<strong>[${key}]</strong> ${value}`;
+              :`<strong class="duels-skill-key">[${key}]</strong> ${value}`;
           })
           .filter(Boolean)
           .join('<br>');
 
         return `<div style="margin-top:11px;">`+
-          `<strong>[SUMMON] ${spec.name||'소환수'}</strong>`+
+          `<strong class="duels-skill-key">[SUMMON] ${spec.name||'소환수'}</strong>`+
           `${stats?`<br>${stats}`:''}`+
           `</div>`;
       })
@@ -92707,14 +93943,15 @@ const CharacterDescriptionService=Object.freeze({
 
     const baseStatsHtml=
       `<div style="margin:3px 0 5px;white-space:nowrap;">`+
-      `<strong>[HEALTH]</strong> ${character.maxHealth}`+
+      `<strong class="duels-skill-key">[HEALTH]</strong> ${character.maxHealth}`+
       `<span style="display:inline-block;width:18px;"></span>`+
-      `<strong>[MOVE SPEED]</strong> ${character.moveLabel||character.speed}</div>`;
+      `<strong class="duels-skill-key">[MOVE SPEED]</strong> ${character.moveLabel||character.speed}</div>`;
 
-    return titleHtml+`${CharacterDataService.interpolate(character,character.desc)}<br>`+
+    return titleHtml+`<span class="duels-character-summary">${CharacterDataService.interpolate(character,character.desc)}</span><br>`+
       baseStatsHtml+
       recordHtml+
       skillsHtml+
+      extraSkillsHtml+
       summonHtml;
   }
 });
@@ -93660,6 +94897,26 @@ const ProjectileCollisionShapeService=Object.freeze({
     }
 
     return false;
+  },
+  contactRatio(projectile,target){
+    if(projectile.orbitState||projectile.followSource===true)return 1;
+    if(this.shape(projectile)==='diamond'){
+      const probe=projectile._contactProbe||(projectile._contactProbe=Object.create(projectile));
+      let lo=0,hi=1;
+      for(let n=0;n<16;n++){
+        const t=(lo+hi)*.5;probe.x=projectile.prevX+(projectile.x-projectile.prevX)*t;probe.y=projectile.prevY+(projectile.y-projectile.prevY)*t;
+        if(this.sweptDiamondHitsTarget(probe,target))hi=t;else lo=t;
+      }
+      return hi;
+    }
+    const point=NetworkCollisionPositionService.point(target);
+    const dx=projectile.x-projectile.prevX,dy=projectile.y-projectile.prevY;
+    const rx=projectile.prevX-point.x,ry=projectile.prevY-point.y;
+    const radius=(Number(projectile.hitRadius)||this.radius(projectile))+(Number(target.radius)||0);
+    const a=dx*dx+dy*dy,c=rx*rx+ry*ry-radius*radius;
+    if(c<=0||a<=1e-12)return 0;
+    const b=rx*dx+ry*dy,disc=b*b-a*c;
+    return disc>=0?Math.max(0,Math.min(1,(-b-Math.sqrt(disc))/a)):1;
   },
   hitsTarget(projectile,target){
     if(projectile.wallReachableCollisionPoint&&projectile.orbitState&&
@@ -96428,6 +97685,7 @@ const AttackGuardService=Object.freeze({
       this.damageBlockGroupKey(context),
       now
     );
+    if(context.source?.character?.reactiveEquipment)ReactiveEquipmentService.blocked(context.source,guard.source.id,this.damageBlockGroupKey(context),now);
     this.broadcastBlockResolution(
       context
     );
@@ -96761,6 +98019,8 @@ const AttackGuardService=Object.freeze({
       now
     );
 
+    if(projectile.source?.character?.reactiveEquipment)ReactiveEquipmentService.blocked(projectile.source,guard.source.id,this.projectileBlockGroupKey(projectile),now);
+
     const changed=
       ProjectileStateService.beginReturn(
         projectile,
@@ -96769,7 +98029,7 @@ const AttackGuardService=Object.freeze({
 
     this.broadcastProjectileResolution(
       projectile,
-      'return'
+      'return',guard
     );
 
     return changed||
@@ -96777,6 +98037,7 @@ const AttackGuardService=Object.freeze({
   },
   remove(projectile,index,guard,now){
     this.parryFx(guard.source,projectile.x,projectile.y,now);
+    if(projectile.source?.character?.reactiveEquipment)ReactiveEquipmentService.blocked(projectile.source,guard.source.id,this.projectileBlockGroupKey(projectile),now);
     this.registerBlockOccurrence(
       guard,
       this.projectileBlockGroupKey(
@@ -96799,13 +98060,13 @@ const AttackGuardService=Object.freeze({
 
     this.broadcastProjectileResolution(
       projectile,
-      'remove'
+      'remove',guard
     );
     ProjectileService.finish(projectile,projectile.hadHit===true);
     ProjectileService.items.splice(index,1);
     return true;
   },
-  broadcastProjectileResolution(projectile,outcome){
+  broadcastProjectileResolution(projectile,outcome,guard=null){
     if(
       Training.sessionMode!=='online'||
       !OnlineDuelService.active
@@ -96831,7 +98092,8 @@ const AttackGuardService=Object.freeze({
       {
         x:Number(projectile?.x)||0,
         y:Number(projectile?.y)||0
-      }
+      },
+      {attackId:String(projectile?.attack?.id||''),executionSequence:Number(projectile?.volley?.execution?.sequence)||0,defenderPid:OnlineParticipantEntityService.pid(guard?.source)}
     );
   },
   resolveProjectile(projectile,index,guard,now){
@@ -98206,7 +99468,212 @@ const ProjectileTargetFilterService=Object.freeze({
     }
     return true;
   }
+});/* 공통 방향 전환/벽 전달 사건의 패킷 직렬화와 순서 보정. */
+const ProjectileRedirectSyncService=Object.freeze({
+ broadcast(p){
+  if(Training.sessionMode!=='online'||!OnlineDuelService.active)return;
+  RoomService.sendGameplay({type:'duel-projectile-redirect',roundToken:OnlineDuelService.roundToken,
+   projectileOwnerPid:OnlineParticipantEntityService.pid(p.source),projectileKey:p.networkKey,
+   revision:p.redirectRevision,x:p.x,y:p.y,angle:p.angle,vx:p.vx,vy:p.vy,travel:p.travel,
+   redirectCount:p.redirectCount||0,ended:p.redirectEnded===true,hitIds:Array.from(p.hitIds||[]),
+   maxTravelDistance:p.maxTravelDistance,rangeBounceBase:p.rangeBounceBase,rangeBounceCount:p.rangeBounceCount||0,
+   wallRedirectCount:p.wallRedirectCount||0,hitRedirectCount:p.hitRedirectCount||0,fadeResetTravel:p.fadeResetTravel||0});
+ },
+ receive(owner,snapshot){
+  if(!owner||!snapshot.projectileKey)return false;
+  for(const key of ['x','y','angle','vx','vy','travel','revision','redirectCount'])if(!Number.isFinite(Number(snapshot[key])))return false;
+  if(!(Number(snapshot.revision)>0))return false;
+  const pending=owner._redirectSnapshots||(owner._redirectSnapshots=new Map());
+  const previous=pending.get(snapshot.projectileKey);
+  if(previous&&Number(previous.revision)>=Number(snapshot.revision))return false;
+  pending.set(snapshot.projectileKey,{...snapshot,receivedAt:performance.now()});
+  for(const [key,value] of pending)if(performance.now()-value.receivedAt>1500)pending.delete(key);
+  while(pending.size>64)pending.delete(pending.keys().next().value);
+  const projectile=ProjectileService.findByNetworkKey(owner,String(snapshot.projectileKey));
+  return projectile?ProjectileRedirectService.apply(projectile,snapshot):true;
+ },
+ restore(p){
+  const snapshot=p.source?._redirectSnapshots?.get(p.networkKey);
+  if(snapshot&&performance.now()-snapshot.receivedAt<=1500)ProjectileRedirectService.apply(p,snapshot);
+ },
+ relay(event){
+  if(Training.sessionMode!=='online'||!OnlineDuelService.active)return;
+  RoomService.sendGameplay({type:'duel-projectile-relay',roundToken:OnlineDuelService.roundToken,ownerPid:OnlineParticipantEntityService.pid(event.source),attackId:event.attackId,point:event.point,angle:event.angle,key:event.key,executionSequence:event.executionSequence});
+ }
 });
+/* 벽 반사/적중 연쇄와 벽 반대편 AttackSpec 전달. 공통 투사체 권위 결과 복제. */
+const ProjectileRedirectService=Object.freeze({
+ module(p,type){return ProjectileModuleService.module(p?.attack,type)},
+ supports(config,event){return Array.isArray(config?.on)?config.on.includes(event):config?.on===event},
+ extendRange(p,config,event){
+  if(config.rangeGrowthOn&&!this.supports({on:config.rangeGrowthOn},event))return;
+  const count=Number(p.rangeBounceCount)||0;
+  const ratio=Math.max(0,Number(config.rangeGrowthRatio??config.rangeGrowthRatios?.[count])||0);
+  if(!(ratio>0))return;
+  const base=Number(p.rangeBounceBase)||Number(p.baseAttackRange)||Number(p.attack?.range)||0;
+  p.rangeBounceBase=base;p.rangeBounceCount=count+1;
+  p.maxTravelDistance=Math.max(Number(p.maxTravelDistance)||base,Number(p.travel)||0)+base*ratio;
+  p.fadeResetTravel=Number(p.travel)||0;
+ },
+ nearest(p,config,exclude=null){
+  let best=null,distance=config.searchRadius===0?Infinity:Math.max(0,Number(config.searchRadius)||600);
+  for(const e of EntityService.items.values()){
+   if(!e?.alive||e===exclude||p.hitIds?.has(e.id)||RelationService.relation(p.source,e)!=='enemy'||!ProjectileHomingTargetVisibilityService.canPerceive(p.source,e))continue;
+   const point=NetworkCollisionPositionService.point(e),d=Math.hypot(point.x-p.x,point.y-p.y);
+   const padding=ProjectileService.wallCollisionPadding(p);
+   const angle=Math.atan2(point.y-p.y,point.x-p.x);
+   const contactDistance=Math.max(0,d-(Number(e.radius)||0)-(Number(p.radius)||0));
+   if(d>=distance||WorldGeometryService.raycastDistance(p.x,p.y,angle,contactDistance,padding)<contactDistance-1e-6)continue;
+   best=e;distance=d;
+  }
+  return best;
+ },
+ aim(p,target,angle){
+  if(target){const point=NetworkCollisionPositionService.point(target);angle=Math.atan2(point.y-p.y,point.x-p.x)}
+  const speed=Math.hypot(p.vx,p.vy)||Number(p.baseSpeed)||24;
+  p.angle=angle;p.vx=Math.cos(angle)*speed;p.vy=Math.sin(angle)*speed;
+  p.prevX=p.x;p.prevY=p.y;
+  p.redirectRevision=(Number(p.redirectRevision)||0)+1;
+ },
+ broadcast(p){GameEvents.emit('projectile-redirected',{projectile:p});},
+ apply(p,snapshot){
+  if(!p||!(snapshot.revision>Number(p.networkRedirectRevision||0)))return false;
+  for(const k of ['x','y','angle','vx','vy','travel','revision','redirectCount'])if(!Number.isFinite(Number(snapshot[k])))return false;
+  for(const k of ['x','y','angle','vx','vy','travel','redirectCount'])p[k]=Number(snapshot[k]);
+  for(const k of ['maxTravelDistance','rangeBounceBase','rangeBounceCount','wallRedirectCount','hitRedirectCount','fadeResetTravel'])if(Number.isFinite(Number(snapshot[k])))p[k]=Number(snapshot[k]);
+  p.baseSpeed=Math.hypot(p.vx,p.vy);
+  p.prevX=p.x;p.prevY=p.y;p.redirectRevision=Number(snapshot.revision);p.networkRedirectRevision=Number(snapshot.revision);p.redirectEnded=snapshot.ended===true;
+  for(const id of snapshot.hitIds||[])p.hitIds.add(String(id));return true;
+ },
+ hit(p,target){
+  const config=this.module(p,'projectile.redirect');
+  if(!this.supports(config,'hit'))return false;
+  this.extendRange(p,config,'hit');
+  const limit=config.maxRedirects===0?Infinity:Number(config.maxRedirects||0);
+  const next=(Number(p.hitRedirectCount)||0)<limit?this.nearest(p,config,target):null;
+  if(!next){p.redirectEnded=true;p.redirectRevision=(Number(p.redirectRevision)||0)+1;this.broadcast(p);return false;}
+  p.hitRedirectCount=(Number(p.hitRedirectCount)||0)+1;p.redirectCount=(Number(p.redirectCount)||0)+1;this.aim(p,next,p.angle);this.broadcast(p);return true;
+ },
+  contact(p,boundary=false){
+  const pad=Number(p.radius)||0,epsilon=.01;
+  const dx=Math.cos(p.angle),dy=Math.sin(p.angle);
+  if(boundary){
+   const nx=p.x<=pad+epsilon&&dx<0?1:p.x>=WorldBoundsService.width()-pad-epsilon&&dx>0?-1:0;
+   const ny=p.y<=pad+epsilon&&dy<0?1:p.y>=WorldBoundsService.height()-pad-epsilon&&dy>0?-1:0;
+   return {nx,ny,wall:null};
+  }
+  let best=null,bestAt=Infinity;
+  const ex=p.x+dx*.1,ey=p.y+dy*.1;
+  for(const wall of DebugMapService.walls()){
+   const at=WorldGeometryService.segmentRectEntry(p.prevX,p.prevY,ex,ey,wall,pad);
+   if(at===null||at>bestAt+1e-6)continue;
+   const x=p.prevX+(ex-p.prevX)*at,y=p.prevY+(ey-p.prevY)*at;
+   const nx=Math.abs(x-(wall.x-pad))<epsilon&&dx>0?-1:Math.abs(x-(wall.x+wall.w+pad))<epsilon&&dx<0?1:0;
+   const ny=Math.abs(y-(wall.y-pad))<epsilon&&dy>0?-1:Math.abs(y-(wall.y+wall.h+pad))<epsilon&&dy<0?1:0;
+   if(!nx&&!ny)continue;
+   if(best&&Math.abs(at-bestAt)<1e-6){best.nx=best.nx||nx;best.ny=best.ny||ny;}
+   else{best={nx,ny,wall};bestAt=at;}
+  }
+  if(!best){
+   // A shot born within expanded wall padding has no entering face.
+   // Preserve the contacted block so relay delivery can still find its exit.
+   for(const wall of DebugMapService.walls()){
+    if(p.x<wall.x-pad||p.x>wall.x+wall.w+pad||p.y<wall.y-pad||p.y>wall.y+wall.h+pad)continue;
+    const horizontal=Math.abs(dx)>=Math.abs(dy);
+    best={nx:horizontal?-Math.sign(dx):0,ny:horizontal?0:-Math.sign(dy),wall};break;
+   }
+  }
+  return best;
+ },
+ clearContact(p,dx,dy){
+  const pad=Number(p.radius)||0,walls=DebugMapService.walls();
+  let total=0;
+  // Expanded adjacent blocks form a union. Clear every overlapping block,
+  // including bullets spawned inside the collision padding near a wall.
+  for(let step=0;step<=walls.length;step++){
+   let distance=0;
+   for(const wall of walls){
+    const left=wall.x-pad,right=wall.x+wall.w+pad,top=wall.y-pad,bottom=wall.y+wall.h+pad;
+    if(p.x<left||p.x>right||p.y<top||p.y>bottom)continue;
+    const tx=dx>1e-9?(right-p.x)/dx:dx<-1e-9?(left-p.x)/dx:Infinity;
+    const ty=dy>1e-9?(bottom-p.y)/dy:dy<-1e-9?(top-p.y)/dy:Infinity;
+    distance=Math.max(distance,Math.min(tx,ty)+2);
+   }
+   if(!(distance>0)||!Number.isFinite(distance))break;
+   p.x+=dx*distance;p.y+=dy*distance;total+=distance;
+  }
+  p.travel=(Number(p.travel)||0)+total;
+ },
+ wall(p,boundary){
+  const contact=this.contact(p,boundary);
+  const relay=this.module(p,'projectile.wall-relay');if(relay&&!boundary)this.relay(p,relay,contact);
+  const config=this.module(p,'projectile.redirect');
+  const limit=config?.maxWallRedirects===0?Infinity:Number(config?.maxWallRedirects??config?.maxRedirects??0);
+  if(!this.supports(config,'wall')||(Number(p.wallRedirectCount)||0)>=limit)return false;
+  const incoming=p.angle;
+  const nx=contact?.nx||0,ny=contact?.ny||0;
+  let angle=nx||ny?Math.atan2(ny?-p.vy:p.vy,nx?-p.vx:p.vx):incoming+Math.PI;
+  // A face-normal push clears adjacent block seams; backing along a grazing ray did not.
+  const length=Math.hypot(nx,ny)||1;
+  const pushX=nx||ny?nx/length:-Math.cos(incoming),pushY=nx||ny?ny/length:-Math.sin(incoming);
+  if(boundary){p.x+=pushX*2;p.y+=pushY*2;p.travel=(Number(p.travel)||0)+2;}
+  else this.clearContact(p,pushX,pushY);
+  const target=this.nearest(p,config);
+  if(target){const point=NetworkCollisionPositionService.point(target),candidate=Math.atan2(point.y-p.y,point.x-p.x);
+   if(WorldGeometryService.raycastDistance(p.x,p.y,candidate,2,Number(p.radius)||0)>=2-1e-6)angle=candidate;
+  }
+  p.wallRedirectCount=(Number(p.wallRedirectCount)||0)+1;p.redirectCount=(Number(p.redirectCount)||0)+1;this.extendRange(p,config,'wall');this.aim(p,null,angle);
+  const speedMultiplier=Math.max(0,Number(config.wallSpeedMultiplier??1));
+  if(Number.isFinite(speedMultiplier)){p.vx*=speedMultiplier;p.vy*=speedMultiplier;p.baseSpeed=Math.hypot(p.vx,p.vy);}
+  if(EntitySimulationAuthorityService.isLocal(p.source))this.broadcast(p);return true;
+ },
+ fireRelay(source,attack,point,angle,key,sequence=0){
+  if(!source||!attack||!key||!Number.isFinite(point?.x)||!Number.isFinite(point?.y)||!Number.isFinite(angle))return false;
+  if(!source._wallRelayKeys)source._wallRelayKeys=new Set();
+  if(source._wallRelayKeys.has(key))return false;
+  source._wallRelayKeys.add(key);if(source._wallRelayKeys.size>128)source._wallRelayKeys.delete(source._wallRelayKeys.values().next().value);
+  attack=AugmentService.prepareAttack(source,ProgressScaledAttackService.resolve(source,attack),performance.now());
+  const execution=sequence>0?AttackExecutionService.replica(source,attack,sequence,angle):AttackExecutionService.create(source,attack,angle);
+  source._wallRelaySequence=execution.sequence;
+  AttackExecutionService.setImpactOrigin(execution,{mode:'point',...point});
+  AttackExecutionService.setKoOrigin(execution,{mode:'point',...point});
+  const volley={execution,hits:0,total:1,resolved:0,finished:false};
+  const module=ProjectileModuleService.module(attack,'delivery.area');
+  AreaAttackService.execute(source,attack,angle,module,volley,{geometrySource:point});
+  return true;
+ },
+  relay(p,config,contact=this.contact(p,false)){
+  const bounce=Number(p.wallRedirectCount)||0;
+  if(p.relayAtBounce===bounce)return false;
+  if(!EntitySimulationAuthorityService.isLocal(p.source))return false;
+  const attack=AbilityService.attackById(p.source.character,String(config.attackId||''));if(!attack)return false;
+  const wall=contact?.wall;if(!wall)return false;
+  const dx=Math.cos(p.angle),dy=Math.sin(p.angle),epsilon=.05;
+  // Start inside the actual contacted block, not at radius/speed along an oblique ray.
+  const sx=Math.max(wall.x+epsilon,Math.min(wall.x+wall.w-epsilon,p.x-contact.nx*(Number(p.radius)||0)+dx*epsilon));
+  const sy=Math.max(wall.y+epsilon,Math.min(wall.y+wall.h-epsilon,p.y-contact.ny*(Number(p.radius)||0)+dy*epsilon));
+  const intervals=[];
+  for(const block of DebugMapService.walls()){
+   let enter=-Infinity,exit=Infinity;
+   for(const [origin,direction,lo,hi] of [[sx,dx,block.x,block.x+block.w],[sy,dy,block.y,block.y+block.h]]){
+    if(Math.abs(direction)<1e-9){if(origin<lo||origin>hi){exit=-1;break;}continue;}
+    const a=(lo-origin)/direction,b=(hi-origin)/direction;enter=Math.max(enter,Math.min(a,b));exit=Math.min(exit,Math.max(a,b));
+   }
+   if(exit>=Math.max(0,enter))intervals.push({enter,exit});
+  }
+  intervals.sort((a,b)=>a.enter-b.enter);
+  let distance=0;
+  for(const interval of intervals){if(interval.enter>distance+epsilon)break;distance=Math.max(distance,interval.exit);}
+  const x=sx+dx*(distance+2),y=sy+dy*(distance+2);
+  if(!distance||x<0||y<0||x>WorldBoundsService.width()||y>WorldBoundsService.height())return false;
+  p.relayAtBounce=bounce;
+  const key=`relay:${p.networkKey||p.volley?.execution?.sequence}:${attack.id}:${bounce}`;
+  this.fireRelay(p.source,attack,{x,y},p.angle,key);
+  GameEvents.emit('projectile-wall-relayed',{source:p.source,attackId:attack.id,point:{x,y},angle:p.angle,key,executionSequence:p.source._wallRelaySequence});
+  return true;
+ }
+});
+
 
 const ProjectileService={
   items:[],
@@ -98350,13 +99817,13 @@ const ProjectileService={
           0,
           Number(projectile.travel)||0
         )-(segmentDistance-clampedDistance);
-        projectile.prevX=projectile.x;
-        projectile.prevY=projectile.y;
       }
     }
 
     const action=projectile.behavior?.collision?.wall||'remove';
 
+
+    if((projectile.attack?.modules||[]).some(m=>m.type==='projectile.redirect'||m.type==='projectile.wall-relay')&&ProjectileRedirectService.wall(projectile,boundary))return true;
 
     AttackModuleService.onProjectileWallHit(projectile);
 
@@ -98846,6 +100313,7 @@ const ProjectileService={
       }
     }
 
+    if((projectile.attack?.modules||[]).some(m=>m.type==='projectile.redirect'))ProjectileRedirectSyncService.restore(projectile);
     return projectile;
   },
   findByNetworkKey(owner,networkKey){
@@ -99145,10 +100613,9 @@ const ProjectileService={
       :projectile.volley?.execution||null;
     let resolvedImpactOrigin=null;
     if(hitExecution){
-      const impactPoint={
-        x:Number(projectile.x)||0,
-        y:Number(projectile.y)||0
-      };
+      hitExecution.directionAngle=Number(projectile.angle)||0;
+      const targetPoint=NetworkCollisionPositionService.point(target);
+      const impactPoint={x:targetPoint.x-Math.cos(projectile.angle)*(Number(target.radius)||0),y:targetPoint.y-Math.sin(projectile.angle)*(Number(target.radius)||0)};
       const projectileOrigin={
         x:Number(projectile.origin?.x),
         y:Number(projectile.origin?.y)
@@ -99335,6 +100802,7 @@ const ProjectileService={
         );
       }
 
+      if((projectile.attack?.modules||[]).some(m=>m.type==='projectile.redirect'))ProjectileRedirectService.hit(projectile,target);
       return true;
     }
 
@@ -99495,6 +100963,437 @@ const ProjectileService={
     return true;
   },
 
+  contactOrder(projectile){
+    const ordered=projectile._contactTargets||(projectile._contactTargets=[]);
+    ordered.length=0;
+    for(const target of EntityService.items.values()){
+      if(!target?.alive)continue;
+      if(ProjectileCollisionShapeService.hitsTarget(projectile,target)||
+        (JustDodgeService.canConfirm(target)&&JustDodgeService.overlapsProjectile(target,projectile)))ordered.push(target);
+    }
+    const compare=projectile._contactCompare||(projectile._contactCompare=(a,b)=>ProjectileCollisionShapeService.contactRatio(projectile,a)-ProjectileCollisionShapeService.contactRatio(projectile,b));
+    ordered.sort(compare);
+    return ordered;
+  },
+  processTargets(projectile,index,now){
+    const returning=projectile.behavior?.returning;
+    const policy=projectile.behavior?.collisionPolicy||CollisionPolicyService.normalize({passWalls:projectile.behavior?.pierce?.walls===true,passEnemies:projectile.behavior?.pierce?.targets===true});
+    if(
+      projectile.behavior?.waypoint?.stopped!==true&&
+      (
+        projectile.damageOnTravel!==false||
+        projectile.projectile?.collisionTargets===true
+      )
+    ){
+      for(const target of this.contactOrder(projectile)){
+        const relation=
+          RelationService.relation(
+            projectile.source,
+            target
+          );
+        const configuredRelations=
+          Array.isArray(
+            projectile.targetRelations
+          )
+            ?projectile.targetRelations
+            :null;
+
+        if(!ProjectileTargetFilterService.allows(projectile,target))continue;
+
+        if(projectile.targetEntityOnly===true){
+          const designated=
+            EntityTargetReferenceService.resolve(
+              projectile.targetEntityId
+            );
+          if(designated!==target)continue;
+        }
+
+        if(configuredRelations){
+          if(
+            !target?.alive||
+            (
+              target.hidden&&
+              relation==='enemy'
+            )||
+            !configuredRelations.includes(
+              relation
+            )
+          )continue;
+
+          if(
+            relation!=='enemy'&&
+            projectile.friendlyRequiresResource
+          ){
+            const resource=
+              String(
+                projectile.friendlyRequiresResource
+              );
+            const maximum=
+              resource==='stamina'
+                ?Math.max(
+                  0,
+                  Number(target.maxStamina)||0
+                )
+                :resource==='health'
+                  ?Math.max(
+                    0,
+                    Number(target.maxHealth)||0
+                  )
+                  :1;
+            if(maximum<=0)continue;
+          }
+
+          if(
+            Array.isArray(
+              projectile.targetKinds
+            )&&
+            projectile.targetKinds.length&&
+            !projectile.targetKinds.includes(
+              String(target.kind||'')
+            )
+          )continue;
+        }else if(
+          !RelationService.canTarget(
+            projectile.source,
+            target,
+            {ignoreEvasionInvulnerable:true},
+            projectile.attack
+          )
+        )continue;
+
+        const overlapsTarget=
+          ProjectileCollisionShapeService.hitsTarget(
+            projectile,
+            target
+          );
+        const overlapsJustDodgePath=
+          relation==='enemy'&&
+          !overlapsTarget&&
+          Math.max(0,Number(projectile.rehitInterval)||0)<=0&&
+          JustDodgeService.canConfirm(target)&&
+          JustDodgeService.overlapsProjectile(
+            target,
+            projectile
+          );
+
+        // 저스트 회피는 프레임 끝의 정적 겹침보다 회피/투사체의 swept 경로를 먼저 인정한다.
+        // 큰·느린 투사체를 한 프레임에 완전히 통과해 반대편으로 빠져나가도 경로가 교차했다면
+        // 실제 접촉 시도와 동일하게 공통 confirmProjectile 경로를 통과한다.
+        if(!overlapsTarget&&!overlapsJustDodgePath)continue;
+        if(overlapsTarget&&relation==='enemy'&&typeof ActionStateCombatPolicyService!=='undefined'&&ActionStateCombatPolicyService.isEvasionUntargetable(target,now)){
+          const observed=projectile._avoidedTargets||(projectile._avoidedTargets=new Set());
+          if(!observed.has(target.id)){
+            observed.add(target.id);
+            GameEvents.emit('damage-avoided',{source:projectile.source,target,attack:projectile.attack,execution:projectile.volley?.execution,impact:{type:'projectile'},now,dodged:true,amount:0});
+          }
+          continue;
+        }
+
+
+        if(
+          overlapsTarget&&
+          projectile.applyHitEffects===true&&
+          (
+            relation!=='enemy'||
+            projectile.attack?.effectsOnly===true
+          )
+        ){
+          const execution=
+            projectile.volley?.execution||
+            AttackExecutionService.create(
+              projectile.source,
+              projectile.attack,
+              Number(projectile.angle)||0
+            );
+
+          AttackModuleService.onHit(
+            projectile.source,
+            target,
+            projectile.attack,
+            {
+              execution,
+              total:1,
+              resolved:0,
+              hits:0,
+              finished:false
+            },
+            Number(projectile.angle)||0,
+            {
+              type:'delivery.projectile',
+              phase:'support',
+              projectile
+            }
+          );
+          if(projectile.supportHitSound!==false){
+            SoundService.play('hit');
+          }
+
+          if(
+            projectile.supportHitEffect
+          ){
+            const supportEffect=
+              EffectSpawnService
+                .definitionSnapshot(
+                  projectile.supportHitEffect
+                );
+
+            EffectSpawnService.spawn(
+              {
+                ...supportEffect,
+                type:String(
+                  supportEffect.renderType||
+                  supportEffect.type||
+                  'areaCircle'
+                ),
+                x:Number(target.x)||0,
+                y:Number(target.y)||0,
+                sourceEntityId:
+                  String(
+                    projectile.source?.id||''
+                  ),
+                start:performance.now(),
+                dur:Math.max(
+                  GAME_DATA.frameMs,
+                  Number(
+                    supportEffect.duration
+                  )||
+                  Number(
+                    supportEffect.durationFrames
+                  )*
+                  GAME_DATA.frameMs||
+                  300
+                )
+              },
+              {source:projectile.source}
+            );
+          }
+
+          projectile.hitIds?.add(
+            target.id
+          );
+          projectile.hadHit=true;
+          this.finish(projectile,true);
+          this.items.splice(index,1);
+          return true;
+        }
+
+        const contactStatus=projectile.projectile?.contactStatus||null;
+        if(overlapsTarget&&contactStatus?.status&&COMBAT_STATUS_DEFS[String(contactStatus.status)]&&NetworkHitAuthorityService.targetAuthoritative(target)){
+          const relation=RelationService.relation(projectile.source,target);
+          const allowed=Array.isArray(contactStatus.targetRelations)?contactStatus.targetRelations:['enemy'];
+          if(allowed.includes(relation)){
+            CombatStatusApplicationService.apply({
+              source:projectile.source,target,type:String(contactStatus.status),duration:Math.max(0,Number(contactStatus.duration)||0),
+              sourceId:`projectile-contact:${String(projectile.networkKey||projectile.id||'projectile')}:${String(contactStatus.status)}`,
+              data:{...(contactStatus.data||{}),sourceEntityId:projectile.source?.id||null,stackMode:contactStatus.data?.stackMode||'replace-source'}
+            });
+          }
+        }
+
+        if(projectile.damageOnTravel===false){
+          if(
+            relation==='enemy'&&
+            JustDodgeService.confirmProjectile(
+              target,
+              projectile
+            )
+          ){
+            projectile.hadHit=false;
+            this.finish(projectile,false);
+            this.items.splice(index,1);
+            return true;
+          }
+
+          // swept 저회 후보였지만 현재 정적 충돌은 아니고 저회도 확정되지 않았다면
+          // 일반 착탄으로 오인하지 않는다.
+          if(!overlapsTarget)continue;
+
+          /*
+            충돌 전용 투사체의 target impact는 대상 권위 화면에서만 확정한다.
+            이전에는 공격자 화면의 보간된 원격 대상에 먼저 닿는 순간
+            projectile.impact를 즉시 실행해 루네프 화염구처럼 실제 방패/대상
+            도달 전에 폭발 FX가 생길 수 있었다.
+
+            비권위 화면에서는 투사체만 예측 소비하고 폭발은 만들지 않는다.
+            대상 권위 화면이 실제 충돌점을 확인한 뒤
+            duel-projectile-impact-confirmed로 동일 impact 좌표를 전파한다.
+          */
+          if(
+            Training.sessionMode==='online'&&
+            relation==='enemy'&&
+            !NetworkHitAuthorityService
+              .targetAuthoritative(target)
+          ){
+            projectile.hadHit=false;
+            this.finish(
+              projectile,
+              false
+            );
+            this.items.splice(
+              index,
+              1
+            );
+            return true;
+          }
+
+          const ratio=ProjectileCollisionShapeService.contactRatio(projectile,target);
+          const length=Math.hypot(projectile.x-projectile.prevX,projectile.y-projectile.prevY);
+          projectile.travel-=length*(1-ratio);
+          projectile.x=projectile.prevX+(projectile.x-projectile.prevX)*ratio;
+          projectile.y=projectile.prevY+(projectile.y-projectile.prevY)*ratio;
+          ProjectileImpactService.resolve(
+            projectile,
+            'target'
+          );
+
+          if(
+            Training.sessionMode==='online'&&
+            relation==='enemy'&&
+            NetworkHitAuthorityService
+              .targetAuthoritative(target)
+          ){
+            OnlineDuelService
+              .sendProjectileImpactConfirmed(
+                projectile,
+                'target'
+              );
+          }
+
+          projectile.hadHit=true;
+          this.finish(projectile,true);
+          this.items.splice(index,1);
+          return true;
+        }
+
+        const endX=projectile.x,endY=projectile.y,endTravel=projectile.travel;
+        const contact=overlapsTarget?ProjectileCollisionShapeService.contactRatio(projectile,target):1;
+        const segmentLength=Math.hypot(endX-projectile.prevX,endY-projectile.prevY);
+        projectile.x=projectile.prevX+(endX-projectile.prevX)*contact;
+        projectile.y=projectile.prevY+(endY-projectile.prevY)*contact;
+        projectile.travel=endTravel-segmentLength*(1-contact);
+        const revision=Number(projectile.redirectRevision)||0;
+        const hit=this.hitTarget(
+          projectile,
+          target,
+          'outbound',
+          overlapsTarget?'static':'swept-only'
+        );
+
+        if((Number(projectile.redirectRevision)||0)!==revision&&!projectile.redirectEnded)return false;
+        if(!hit||policy.passEnemies){projectile.x=endX;projectile.y=endY;projectile.travel=endTravel;}
+
+        if(projectile.redirectEnded===true){
+          this.finish(projectile,projectile.hadHit===true);
+          this.items.splice(index,1);
+          return true;
+        }
+
+        if(
+          hit&&
+          !policy.passEnemies
+        ){
+          const dodgedContact=
+            String(
+              projectile.dodgedContactTargetId||
+              ''
+            )===
+            String(target.id||'')&&
+            now-
+              Math.max(
+                0,
+                Number(projectile.dodgedContactAt)||0
+              )<
+              Math.max(
+                50,
+                GAME_DATA.frameMs*3
+              );
+
+          if(dodgedContact){
+            projectile.dodgedContactTargetId='';
+            projectile.dodgedContactAt=0;
+
+            /*
+              회피 성공은 "접촉 소비"이지만 "적중 impact"는 아니다.
+              비관통 투사체만 제거하고 폭발/장판/후속 공격은 만들지 않는다.
+            */
+            this.finish(
+              projectile,
+              false
+            );
+            this.items.splice(index,1);
+            return true;
+          }
+
+          const targetArrival=
+            TargetPointProjectileService.arrival(
+              projectile
+            );
+          if(
+            targetArrival?.linger?.atTarget===true&&
+            projectile.predictedContactConsumeOnly!==true
+          ){
+            projectile.predictedContactConsumeOnly=false;
+            ProjectileImpactService.resolve(
+              projectile,
+              'target'
+            );
+            if(
+              TargetPointProjectileService.beginLinger(
+                projectile,
+                now,
+                'target'
+              )
+            ){
+              if(
+                Training.sessionMode==='online'&&
+                relation==='enemy'&&
+                NetworkHitAuthorityService.targetAuthoritative(target)
+              ){
+                OnlineDuelService.sendProjectileImpactConfirmed(
+                  projectile,
+                  'target'
+                );
+              }
+              return false;
+            }
+          }
+
+          if(
+            projectile.predictedContactConsumeOnly===true
+          ){
+            projectile.predictedContactConsumeOnly=false;
+            this.finish(
+              projectile,
+              false
+            );
+            this.items.splice(index,1);
+            return true;
+          }
+
+          if(
+            returning?.returnOnMiss===true&&
+            projectile.hadHit!==true
+          ){
+            ProjectileStateService.beginReturn(projectile,{manual:false});
+            return true;
+          }
+          ProjectileImpactService.resolve(projectile,'target');
+          if(projectile.behavior?.impact&&Training.sessionMode==='online'&&
+            relation==='enemy'&&NetworkHitAuthorityService.targetAuthoritative(target)){
+            OnlineDuelService.sendProjectileImpactConfirmed(projectile,'target');
+          }
+          this.finish(
+            projectile,
+            projectile.hadHit===true
+          );
+          this.items.splice(index,1);
+          return true;
+        }
+      }
+    }
+
+    return null;
+  },
   updateOutbound(projectile,index,frameScale,now){
     if(projectile.stationaryArrival){
       return this.updateStationary(
@@ -100931,41 +102830,12 @@ const ProjectileService={
       EntitySimulationAuthorityService
         .isLocal(projectile.source)
     ){
-      const preview=
-        projectile.targetPreview;
-      const px=
-        Number(projectile.targetPoint.x)||0;
-      const py=
-        Number(projectile.targetPoint.y)||0;
-      const radius=
-        Math.max(
-          0,
-          Number(preview.range)||0
-        );
-      const points=preview.pointsScratch||(preview.pointsScratch=[]);
-      const segments=48;
-
-      for(let index=0;index<segments;index++){
-        const theta=Math.PI*2*index/segments;
-        let point=points[index];
-        if(!point){
-          point={x:0,y:0};
-          points[index]=point;
-        }
-        point.x=px+Math.cos(theta)*radius;
-        point.y=py+Math.sin(theta)*radius;
-      }
-      points.length=segments;
-
-      const attackPreview=projectile.source.attackPreview||{};
-      attackPreview.type=String(preview.shape||'circle');
-      attackPreview.x=px;
-      attackPreview.y=py;
-      attackPreview.range=radius;
-      attackPreview.points=points;
-      attackPreview.style=preview.style||{};
-      attackPreview.until=now+Math.max(GAME_DATA.frameMs*2,90);
-      projectile.source.attackPreview=attackPreview;
+      projectile.source.attackPreview=AttackPreviewService.fromTargetPoint(
+        projectile.targetPreview,
+        projectile.targetPoint,
+        now+Math.max(GAME_DATA.frameMs*2,90),
+        projectile.source.attackPreview
+      );
     }
 
     if(
@@ -101655,7 +103525,40 @@ const ProjectileService={
     // 원격 검은 표시와 피격 판정 모두 같은 프레임의 권위 궤도를 사용한다.
     RemoteProjectileHomingPresentationBufferService.syncCollision(projectile,now);
 
+    let targetsProcessed=false;
+    if(!orbitActive&&projectile.followSource!==true){
+      const sx=projectile.prevX,sy=projectile.prevY;
+      const dx=projectile.x-sx,dy=projectile.y-sy,length=Math.hypot(dx,dy);
+      if(length>1e-8){
+        const angle=Math.atan2(dy,dx);
+        const distance=passWallsInFlight
+          ?WorldGeometryService.boundaryRayDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile))
+          :WorldGeometryService.raycastDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile));
+        const allowed=Math.min(length,distance);
+        const ex=projectile.x,ey=projectile.y,travel=projectile.travel;
+        projectile.x=sx+dx*allowed/length;projectile.y=sy+dy*allowed/length;
+        projectile.travel=travel-(length-allowed);
+        const result=this.processTargets(projectile,index,now);
+        if(result!==null)return result;
+        // Ordinary flying shots resolve the earliest wall even when one fast step also crosses the map edge.
+        if(allowed<length-1e-6&&!returning&&!TargetPointProjectileService.arrival(projectile)&&!projectile.behavior?.waypoint){
+          const boundaryDistance=WorldGeometryService.boundaryRayDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile));
+          const boundary=boundaryDistance<=allowed+1e-6;
+          this.handleWallCollision(projectile,index,{forceBlock:boundary,boundary});
+          return false;
+        }
+        // Restore intended endpoint only after targets on the reachable segment were checked.
+        projectile.x=ex;projectile.y=ey;projectile.travel=travel;targetsProcessed=true;
+      }
+    }
+
     if(!this.insideBounds(projectile)){
+      const dx=projectile.x-projectile.prevX,dy=projectile.y-projectile.prevY,length=Math.hypot(dx,dy);
+      if(length>1e-8){
+        const distance=WorldGeometryService.boundaryRayDistance(projectile.prevX,projectile.prevY,Math.atan2(dy,dx),length,this.wallCollisionPadding(projectile));
+        projectile.x=projectile.prevX+dx*distance/length;projectile.y=projectile.prevY+dy*distance/length;
+        projectile.travel-=length-distance;
+      }
       this.clampToBounds(projectile);
 
       const boundaryArrival=
@@ -101728,7 +103631,7 @@ const ProjectileService={
     const movedDy=
       Number(projectile.y)-Number(projectile.prevY);
     const movedDistance=Math.hypot(movedDx,movedDy);
-    const sweptWallDistance=
+    const sweptWallDistance=targetsProcessed?movedDistance:
       movedDistance>.0001&&!passWallsInFlight
         ?WorldGeometryService.raycastDistance(
           Number(projectile.prevX)||0,
@@ -101786,388 +103689,9 @@ const ProjectileService={
       projectile.wallReachableCollisionPoint={x:visual.x,y:visual.y};
     }
 
-    if(
-      projectile.behavior?.waypoint?.stopped!==true&&
-      (
-        projectile.damageOnTravel!==false||
-        projectile.projectile?.collisionTargets===true
-      )
-    ){
-      for(const target of EntityService.items.values()){
-        const relation=
-          RelationService.relation(
-            projectile.source,
-            target
-          );
-        const configuredRelations=
-          Array.isArray(
-            projectile.targetRelations
-          )
-            ?projectile.targetRelations
-            :null;
-
-        if(!ProjectileTargetFilterService.allows(projectile,target))continue;
-
-        if(projectile.targetEntityOnly===true){
-          const designated=
-            EntityTargetReferenceService.resolve(
-              projectile.targetEntityId
-            );
-          if(designated!==target)continue;
-        }
-
-        if(configuredRelations){
-          if(
-            !target?.alive||
-            (
-              target.hidden&&
-              relation==='enemy'
-            )||
-            !configuredRelations.includes(
-              relation
-            )
-          )continue;
-
-          if(
-            relation!=='enemy'&&
-            projectile.friendlyRequiresResource
-          ){
-            const resource=
-              String(
-                projectile.friendlyRequiresResource
-              );
-            const maximum=
-              resource==='stamina'
-                ?Math.max(
-                  0,
-                  Number(target.maxStamina)||0
-                )
-                :resource==='health'
-                  ?Math.max(
-                    0,
-                    Number(target.maxHealth)||0
-                  )
-                  :1;
-            if(maximum<=0)continue;
-          }
-
-          if(
-            Array.isArray(
-              projectile.targetKinds
-            )&&
-            projectile.targetKinds.length&&
-            !projectile.targetKinds.includes(
-              String(target.kind||'')
-            )
-          )continue;
-        }else if(
-          !RelationService.canTarget(
-            projectile.source,
-            target,
-            {},
-            projectile.attack
-          )
-        )continue;
-
-        const overlapsTarget=
-          ProjectileCollisionShapeService.hitsTarget(
-            projectile,
-            target
-          );
-        const overlapsJustDodgePath=
-          relation==='enemy'&&
-          !overlapsTarget&&
-          Math.max(0,Number(projectile.rehitInterval)||0)<=0&&
-          JustDodgeService.canConfirm(target)&&
-          JustDodgeService.overlapsProjectile(
-            target,
-            projectile
-          );
-
-        // 저스트 회피는 프레임 끝의 정적 겹침보다 회피/투사체의 swept 경로를 먼저 인정한다.
-        // 큰·느린 투사체를 한 프레임에 완전히 통과해 반대편으로 빠져나가도 경로가 교차했다면
-        // 실제 접촉 시도와 동일하게 공통 confirmProjectile 경로를 통과한다.
-        if(!overlapsTarget&&!overlapsJustDodgePath)continue;
-
-        if(
-          overlapsTarget&&
-          projectile.applyHitEffects===true&&
-          (
-            relation!=='enemy'||
-            projectile.attack?.effectsOnly===true
-          )
-        ){
-          const execution=
-            projectile.volley?.execution||
-            AttackExecutionService.create(
-              projectile.source,
-              projectile.attack,
-              Number(projectile.angle)||0
-            );
-
-          AttackModuleService.onHit(
-            projectile.source,
-            target,
-            projectile.attack,
-            {
-              execution,
-              total:1,
-              resolved:0,
-              hits:0,
-              finished:false
-            },
-            Number(projectile.angle)||0,
-            {
-              type:'delivery.projectile',
-              phase:'support',
-              projectile
-            }
-          );
-          if(projectile.supportHitSound!==false){
-            SoundService.play('hit');
-          }
-
-          if(
-            projectile.supportHitEffect
-          ){
-            const supportEffect=
-              EffectSpawnService
-                .definitionSnapshot(
-                  projectile.supportHitEffect
-                );
-
-            EffectSpawnService.spawn(
-              {
-                ...supportEffect,
-                type:String(
-                  supportEffect.renderType||
-                  supportEffect.type||
-                  'areaCircle'
-                ),
-                x:Number(target.x)||0,
-                y:Number(target.y)||0,
-                sourceEntityId:
-                  String(
-                    projectile.source?.id||''
-                  ),
-                start:performance.now(),
-                dur:Math.max(
-                  GAME_DATA.frameMs,
-                  Number(
-                    supportEffect.duration
-                  )||
-                  Number(
-                    supportEffect.durationFrames
-                  )*
-                  GAME_DATA.frameMs||
-                  300
-                )
-              },
-              {source:projectile.source}
-            );
-          }
-
-          projectile.hitIds?.add(
-            target.id
-          );
-          projectile.hadHit=true;
-          this.finish(projectile,true);
-          this.items.splice(index,1);
-          return true;
-        }
-
-        const contactStatus=projectile.projectile?.contactStatus||null;
-        if(overlapsTarget&&contactStatus?.status&&COMBAT_STATUS_DEFS[String(contactStatus.status)]&&NetworkHitAuthorityService.targetAuthoritative(target)){
-          const relation=RelationService.relation(projectile.source,target);
-          const allowed=Array.isArray(contactStatus.targetRelations)?contactStatus.targetRelations:['enemy'];
-          if(allowed.includes(relation)){
-            CombatStatusApplicationService.apply({
-              source:projectile.source,target,type:String(contactStatus.status),duration:Math.max(0,Number(contactStatus.duration)||0),
-              sourceId:`projectile-contact:${String(projectile.networkKey||projectile.id||'projectile')}:${String(contactStatus.status)}`,
-              data:{...(contactStatus.data||{}),sourceEntityId:projectile.source?.id||null,stackMode:contactStatus.data?.stackMode||'replace-source'}
-            });
-          }
-        }
-
-        if(projectile.damageOnTravel===false){
-          if(
-            relation==='enemy'&&
-            JustDodgeService.confirmProjectile(
-              target,
-              projectile
-            )
-          ){
-            projectile.hadHit=false;
-            this.finish(projectile,false);
-            this.items.splice(index,1);
-            return true;
-          }
-
-          // swept 저회 후보였지만 현재 정적 충돌은 아니고 저회도 확정되지 않았다면
-          // 일반 착탄으로 오인하지 않는다.
-          if(!overlapsTarget)continue;
-
-          /*
-            충돌 전용 투사체의 target impact는 대상 권위 화면에서만 확정한다.
-            이전에는 공격자 화면의 보간된 원격 대상에 먼저 닿는 순간
-            projectile.impact를 즉시 실행해 루네프 화염구처럼 실제 방패/대상
-            도달 전에 폭발 FX가 생길 수 있었다.
-
-            비권위 화면에서는 투사체만 예측 소비하고 폭발은 만들지 않는다.
-            대상 권위 화면이 실제 충돌점을 확인한 뒤
-            duel-projectile-impact-confirmed로 동일 impact 좌표를 전파한다.
-          */
-          if(
-            Training.sessionMode==='online'&&
-            relation==='enemy'&&
-            !NetworkHitAuthorityService
-              .targetAuthoritative(target)
-          ){
-            projectile.hadHit=false;
-            this.finish(
-              projectile,
-              false
-            );
-            this.items.splice(
-              index,
-              1
-            );
-            return true;
-          }
-
-          ProjectileImpactService.resolve(
-            projectile,
-            'target'
-          );
-
-          if(
-            Training.sessionMode==='online'&&
-            relation==='enemy'&&
-            NetworkHitAuthorityService
-              .targetAuthoritative(target)
-          ){
-            OnlineDuelService
-              .sendProjectileImpactConfirmed(
-                projectile,
-                'target'
-              );
-          }
-
-          projectile.hadHit=true;
-          this.finish(projectile,true);
-          this.items.splice(index,1);
-          return true;
-        }
-
-        const hit=this.hitTarget(
-          projectile,
-          target,
-          'outbound',
-          overlapsTarget?'static':'swept-only'
-        );
-
-        if(
-          hit&&
-          !policy.passEnemies
-        ){
-          const dodgedContact=
-            String(
-              projectile.dodgedContactTargetId||
-              ''
-            )===
-            String(target.id||'')&&
-            now-
-              Math.max(
-                0,
-                Number(projectile.dodgedContactAt)||0
-              )<
-              Math.max(
-                50,
-                GAME_DATA.frameMs*3
-              );
-
-          if(dodgedContact){
-            projectile.dodgedContactTargetId='';
-            projectile.dodgedContactAt=0;
-
-            /*
-              회피 성공은 "접촉 소비"이지만 "적중 impact"는 아니다.
-              비관통 투사체만 제거하고 폭발/장판/후속 공격은 만들지 않는다.
-            */
-            this.finish(
-              projectile,
-              false
-            );
-            this.items.splice(index,1);
-            return true;
-          }
-
-          const targetArrival=
-            TargetPointProjectileService.arrival(
-              projectile
-            );
-          if(
-            targetArrival?.linger?.atTarget===true&&
-            projectile.predictedContactConsumeOnly!==true
-          ){
-            projectile.predictedContactConsumeOnly=false;
-            ProjectileImpactService.resolve(
-              projectile,
-              'target'
-            );
-            if(
-              TargetPointProjectileService.beginLinger(
-                projectile,
-                now,
-                'target'
-              )
-            ){
-              if(
-                Training.sessionMode==='online'&&
-                relation==='enemy'&&
-                NetworkHitAuthorityService.targetAuthoritative(target)
-              ){
-                OnlineDuelService.sendProjectileImpactConfirmed(
-                  projectile,
-                  'target'
-                );
-              }
-              return false;
-            }
-          }
-
-          if(
-            projectile.predictedContactConsumeOnly===true
-          ){
-            projectile.predictedContactConsumeOnly=false;
-            this.finish(
-              projectile,
-              false
-            );
-            this.items.splice(index,1);
-            return true;
-          }
-
-          if(
-            returning?.returnOnMiss===true&&
-            projectile.hadHit!==true
-          ){
-            ProjectileStateService.beginReturn(projectile,{manual:false});
-            return true;
-          }
-          ProjectileImpactService.resolve(projectile,'target');
-          if(projectile.behavior?.impact&&Training.sessionMode==='online'&&
-            relation==='enemy'&&NetworkHitAuthorityService.targetAuthoritative(target)){
-            OnlineDuelService.sendProjectileImpactConfirmed(projectile,'target');
-          }
-          this.finish(
-            projectile,
-            projectile.hadHit===true
-          );
-          this.items.splice(index,1);
-          return true;
-        }
-      }
+    if(!targetsProcessed){
+      const result=this.processTargets(projectile,index,now);
+      if(result!==null)return result;
     }
 
     if(
@@ -102312,6 +103836,7 @@ const ProjectileService={
       return false;
     }
 
+
     if(expired){
       if(projectile.behavior?.impact?.snapToRangeEnd===true&&Number.isFinite(expiryDistance)){
         TargetPointProjectileService.snapToRangeEnd(projectile,expiryDistance);
@@ -102436,6 +103961,8 @@ const ProjectileService={
       if(index>=this.items.length)continue;
       const projectile=this.items[index];
       if(!projectile)continue;
+
+      if(projectile.redirectEnded===true){this.finish(projectile,projectile.hadHit===true);this.items.splice(index,1);continue;}
 
       if(ScriptedProjectileMotionService.update(projectile,frameScale,now)){
         if(this.items.includes(projectile))ProjectileImpactService.updatePath(projectile);
@@ -108112,6 +109639,7 @@ const PointerHoldInputService=Object.freeze({
     }
 
     current.held=true;
+    current.gaugeRetainUntil=0;
     current.pressedAt=performance.now();
     current.holdConsumed=false;
     current.wheelConsumed=false;
@@ -108210,7 +109738,13 @@ const PointerHoldInputService=Object.freeze({
       ability?.inputPolicy?.tapHoldSplit===true&&
       !!ability?.holdTrigger;
     const deferredTap=ability?.inputPolicy?.deferTapUntilRelease===true;
-    const holdConsumed=current.holdConsumed===true;
+    const elapsed=performance.now()-Number(current.pressedAt);
+    const holdConsumed=current.holdConsumed===true||(
+      wasHeld&&tapHoldSplit&&
+      ability?.inputPolicy?.holdTriggerWhilePressed!==true&&
+      performance.now()-Number(current.pressedAt)>=Math.max(1,Number(ability.inputPolicy.holdThresholdMs)||300)&&
+      this.holdAvailable(source,ability)
+    );
     const wheelConsumed=current.wheelConsumed===true;
     const holdRepeatTicks=Number(current.holdRepeatTicks)||0;
     this.clearHoldRepeatProgress(current);
@@ -108245,6 +109779,7 @@ const PointerHoldInputService=Object.freeze({
       triggerRelease
     ){
       let result=false;
+      if(ability.inputPolicy?.cancelUnavailableHold===true&&elapsed>=Number(ability.inputPolicy.holdThresholdMs)&&!holdConsumed){this.clearHoldGauge(source,ability);return false;}
 
       if(holdConsumed){
         result=
@@ -108256,6 +109791,7 @@ const PointerHoldInputService=Object.freeze({
           Training.use(slot)===true;
       }
 
+      if(result&&holdConsumed)current.gaugeRetainUntil=performance.now()+Math.max(0,Number(ability.inputPolicy.holdGaugeRetainMs)||0);
       this.clearHoldGauge(
         source,
         ability
@@ -108297,27 +109833,23 @@ const PointerHoldInputService=Object.freeze({
       Number(source.abilityPending.get(ability.id))||0
     );
   },
-  drawHoldGauge(
-    ctx,
-    source,
-    now=performance.now()
-  ){
-    if(!ctx||!source)return false;
-
+  holdGaugePresentationState(source,now=performance.now()){
+    if(!source)return {visible:false,ratio:0,full:false};
     const current=this.state.rmb;
     const ability=
       source.character?.abilities?.rmb;
 
+    const retained=now<Number(current?.gaugeRetainUntil||0);
     if(
-      !current?.held||
+      (!current?.held&&!retained)||
       current.blockedUntilRelease||
       ability?.inputPolicy?.tapHoldSplit!==true||
       ability.inputPolicy?.holdGauge!==true
-    )return false;
+    )return {visible:false,ratio:0,full:false};
     if(
-      ability.inputPolicy?.holdGaugeRequireAvailable===true&&
+      !retained&&ability.inputPolicy?.holdGaugeRequireAvailable===true&&
       !this.holdAvailable(source,ability)
-    )return false;
+    )return {visible:false,ratio:0,full:false};
 
     const duration=Math.max(
       1,
@@ -108325,7 +109857,7 @@ const PointerHoldInputService=Object.freeze({
         ability.inputPolicy.holdThresholdMs
       )||1
     );
-    const progress=Math.max(
+    const progress=retained?1:Math.max(
       0,
       Math.min(
         1,
@@ -108338,6 +109870,15 @@ const PointerHoldInputService=Object.freeze({
         )/duration
       )
     );
+
+
+    return {visible:progress>0,ratio:progress,full:progress>=1};
+  },
+  drawHoldGauge(ctx,source,now=performance.now()){
+    if(!ctx||!source)return false;
+    const state=this.holdGaugePresentationState(source,now);
+    if(!state.visible)return false;
+    const progress=state.ratio;
 
     return ArcGaugePresentationService.render(
       ctx,
@@ -114063,35 +115604,29 @@ const WrenchShapeRenderService=Object.freeze({
     ctx.lineCap='round';
     ctx.lineJoin='round';
 
-    // 하나로 이어진 열린 육각 턱·두꺼운 목·납작한 손잡이 실루엣.
+    // 양쪽 열린 턱과 각진 어깨를 가진 오프셋 스패너.
     ctx.beginPath();
-    ctx.moveTo(-radius*.93,-radius*.19);
-    ctx.lineTo(radius*.34,-radius*.19);
-    ctx.lineTo(radius*.5,-radius*.44);
-    ctx.lineTo(radius*.84,-radius*.59);
-    ctx.lineTo(radius*1.14,-radius*.4);
-    ctx.lineTo(radius*.84,-radius*.3);
-    ctx.lineTo(radius*.7,-radius*.14);
-    ctx.lineTo(radius*.7,radius*.14);
-    ctx.lineTo(radius*.84,radius*.3);
-    ctx.lineTo(radius*1.14,radius*.4);
-    ctx.lineTo(radius*.84,radius*.59);
-    ctx.lineTo(radius*.5,radius*.44);
-    ctx.lineTo(radius*.34,radius*.19);
-    ctx.lineTo(-radius*.93,radius*.19);
-    ctx.arc(-radius*.93,0,radius*.19,Math.PI/2,Math.PI*1.5);
-    ctx.closePath();
-    ctx.fillStyle=`rgba(${bodyRgb},.96)`;ctx.fill();
-    ctx.shadowBlur=0;
-    ctx.strokeStyle=`rgba(${strokeRgb},.9)`;ctx.lineWidth=strokeWidth;ctx.stroke();
-    // 볼트용 끝 구멍과 손잡이의 홈은 모든 크기에서 같은 비율을 사용한다.
-    ctx.beginPath();ctx.arc(-radius*.91,0,radius*.085,0,Math.PI*2);
-    ctx.fillStyle='rgba(12,16,14,.9)';ctx.fill();
-    ctx.strokeStyle=`rgba(${strokeRgb},.55)`;ctx.lineWidth=Math.max(.6,strokeWidth*.5);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(-radius*.64,0);ctx.lineTo(radius*.22,0);
-    ctx.strokeStyle='rgba(12,16,14,.65)';ctx.lineWidth=radius*.09;ctx.stroke();
-    ctx.beginPath();ctx.moveTo(-radius*.58,-radius*.1);ctx.lineTo(radius*.17,-radius*.1);
-    ctx.strokeStyle=`rgba(${strokeRgb},.45)`;ctx.lineWidth=Math.max(.6,strokeWidth*.6);ctx.stroke();
+    ctx.moveTo(-radius*1.12,-radius*.43);
+    ctx.lineTo(-radius*.76,-radius*.43);ctx.lineTo(-radius*.57,-radius*.22);
+    ctx.lineTo(radius*.57,-radius*.22);ctx.lineTo(radius*.76,-radius*.43);
+    ctx.lineTo(radius*1.12,-radius*.43);ctx.lineTo(radius*1.23,-radius*.22);
+    ctx.lineTo(radius*.86,-radius*.22);ctx.lineTo(radius*.74,0);
+    ctx.lineTo(radius*.86,radius*.22);ctx.lineTo(radius*1.23,radius*.22);
+    ctx.lineTo(radius*1.12,radius*.43);ctx.lineTo(radius*.76,radius*.43);
+    ctx.lineTo(radius*.57,radius*.22);ctx.lineTo(-radius*.57,radius*.22);
+    ctx.lineTo(-radius*.76,radius*.43);ctx.lineTo(-radius*1.12,radius*.43);
+    ctx.lineTo(-radius*1.23,radius*.22);ctx.lineTo(-radius*.86,radius*.22);
+    ctx.lineTo(-radius*.74,0);ctx.lineTo(-radius*.86,-radius*.22);
+    ctx.lineTo(-radius*1.23,-radius*.22);ctx.closePath();
+    ctx.fillStyle=`rgba(${bodyRgb},.96)`;ctx.fill();ctx.shadowBlur=0;
+    ctx.strokeStyle=`rgba(${strokeRgb},.95)`;ctx.lineWidth=strokeWidth;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-radius*.5,-radius*.08);
+    ctx.lineTo(radius*.5,-radius*.08);ctx.lineTo(radius*.5,radius*.08);
+    ctx.lineTo(-radius*.5,radius*.08);ctx.closePath();
+    ctx.fillStyle='rgba(12,16,14,.55)';ctx.fill();
+    ctx.strokeStyle=`rgba(${strokeRgb},.55)`;ctx.lineWidth=Math.max(.7,strokeWidth*.45);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-radius*.45,-radius*.14);ctx.lineTo(radius*.45,-radius*.14);
+    ctx.strokeStyle=`rgba(${strokeRgb},.85)`;ctx.lineWidth=Math.max(.8,strokeWidth*.55);ctx.stroke();
 
     ctx.restore();
     return true;
@@ -114115,7 +115650,7 @@ const VanWrenchDurabilityPresentationService=Object.freeze({
       Number(entity.character?.wrenchDurability?.max)||0
     );
   },
-  drawBehind(ctx,entity,alpha=1){
+  drawBehind(ctx,entity,alpha=1,now=performance.now()){
     if(!ctx||!entity||this.value(entity)<=0)return false;
 
     const radius=Math.max(12,Number(entity.radius)||20);
@@ -114128,7 +115663,7 @@ const VanWrenchDurabilityPresentationService=Object.freeze({
     return WrenchShapeRenderService.draw(ctx,{
       x:0,
       y:0,
-      angle:-Math.PI*.75,
+      angle:-Math.PI*.75+ModeGearPresentationService.rotation(entity,{stateKey:entity.character.wrenchDurability.rotationStateKey,turnRadians:Math.PI*2},Number(entity.character.wrenchDurability.rotationMs)||300,now),
       radius:radius*2.73,
       alpha:Math.max(0,Math.min(1,Number(alpha)||0)),
       bodyRgb:darkRgb,
@@ -114139,31 +115674,140 @@ const VanWrenchDurabilityPresentationService=Object.freeze({
   }
 });/* 모드별 기어 자체 회전·사용 밝기. 기존 effect.spawn/ModeState 시간축을 공유한다. */
 const ModeGearPresentationService=Object.freeze({
+  weaponImages:new WeakMap(),
+  presentWeaponTransition(entity,configs,alpha,now){
+    const visible=configs.filter(config=>
+      ['swordSilhouette','gunSilhouette'].includes(config?.renderType)&&
+      TriggerModuleService.matches({type:'trigger',event:'presentation.draw',conditions:config.conditions||[]},'presentation.draw',{source:entity,now})
+    );
+    const signature=visible.map(config=>`${config.renderType}:${config.style||''}`).join('|');
+    const previous=this.weaponImages.get(entity);
+    this.weaponImages.set(entity,{character:entity.character,signature});
+    if(!previous||previous.character!==entity.character||previous.signature===signature||alpha<=0)return false;
+    if(typeof StealthPresentationService!=='undefined'&&StealthPresentationService.active(entity,now))return false;
+    const color=visible[0]?.color||entity.character?.color||'#ffffff';
+    return DamageResourceLayerService.spawnTransitionEffect(entity,{
+      type:'areaCircle',radiusMultiplier:2.8,minRadius:40,color,
+      strokeColor:ColorService.rgbString(color,'255,255,255'),
+      fillAlpha:.04,strokeAlpha:.72,lineWidth:2,
+      pulse:true,pulseStrokeMin:.5,pulseStrokeMax:.8,pulseSpeed:.02,
+      fadeOut:true,duration:240
+    },now);
+  },
   rotation(entity,gear,duration,now){
     const state=ModeStateService.state(entity,gear.stateKey);
     const current=Number(state?.turns)||0,previous=Number(state?.previousTurns)||0;
     const progress=state?Math.max(0,Math.min(1,(now-Number(state.changedAt??now))/duration)):1;
-    return (previous+(current-previous)*EffectSpawnService.ease(progress,'ease-out'))*Math.PI*2/3;
+    return (previous+(current-previous)*EffectSpawnService.ease(progress,'ease-out'))*(Number(gear.turnRadians)||Math.PI*2/3);
   },
   gearPath(ctx,radius,teeth,angle){
     ctx.beginPath();
     for(let tooth=0;tooth<teeth;tooth++){
       for(let part=0;part<4;part++){
         const theta=angle+(tooth+(part===0?0:part===1?.2:part===2?.55:.75))/teeth*Math.PI*2;
-        const r=radius*((part===0||part===3) ? .81 : 1);
+        const r=radius*((part===0||part===3) ? .87 : 1);
         const x=Math.cos(theta)*r,y=Math.sin(theta)*r;
         if(tooth===0&&part===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
       }
     }
     ctx.closePath();
   },
+  drawSword(ctx,entity,config,alpha,now=performance.now()){
+    const size=Math.max(12,Number(entity.radius)||20)*(Number(config.scale)||1);
+    const rgb=ColorService.rgbString(entity.character?.color,'255,160,65');
+    const spin=config.rotationStateKey?this.rotation(entity,{stateKey:config.rotationStateKey,turnRadians:Math.PI*2},Number(config.rotationMs)||300,now):0;
+    ctx.save();ctx.rotate((Number(config.angle)||0)+spin);ctx.globalAlpha=alpha*.8;
+    const dark=config.style==='dark';
+    const blade=dark
+      ?[[0,-3.1],[.5,-2.35],[.35,-1.45],[.53,-1.1],[.32,-.92],[.34,.6],[-.34,.6],[-.32,-.92],[-.53,-1.1],[-.35,-1.45],[-.5,-2.35]]
+      :[[0,-2.95],[.48,-2.55],[.48,.65],[-.48,.65],[-.48,-2.55]];
+    ctx.beginPath();blade.forEach(([x,y],i)=>i?ctx.lineTo(x*size,y*size):ctx.moveTo(x*size,y*size));ctx.closePath();
+    ctx.fillStyle=dark?'#292035':'#9c6e2a';ctx.fill();
+    ctx.strokeStyle=dark?`rgba(${rgb},.95)`:'#ffe6a1';ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,-size*(dark?2.8:2.65));
+    if(dark){ctx.lineTo(-size*.13,-size*1.7);ctx.lineTo(size*.12,-size*1.05);}
+    ctx.lineTo(0,size*.48);ctx.strokeStyle=dark?'#dc83e8':'#fff2c7';ctx.lineWidth=dark?1.7:3;ctx.stroke();
+    const guard=dark
+      ?[[-.94,.25],[-.6,.8],[0,.65],[.6,.8],[.94,.25],[.5,.46],[0,.42],[-.5,.46]]
+      :[[-1,.5],[-.82,.82],[-.3,.78],[0,.9],[.3,.78],[.82,.82],[1,.5],[.42,.55],[0,.35],[-.42,.55]];
+    ctx.beginPath();guard.forEach(([x,y],i)=>i?ctx.lineTo(x*size,y*size):ctx.moveTo(x*size,y*size));ctx.closePath();
+    ctx.fillStyle=dark?'#493057':'#dba94b';ctx.fill();ctx.strokeStyle=dark?`rgb(${rgb})`:'#ffe6a1';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,size*.8);ctx.lineTo(0,size*1.5);ctx.strokeStyle=dark?'#171322':'#594126';ctx.lineWidth=size*.23;ctx.stroke();
+    if(!dark){
+      ctx.beginPath();ctx.arc(0,size*.6,size*.24,0,Math.PI*2);ctx.fillStyle='#fff0a3';ctx.fill();
+      ctx.beginPath();
+      for(let i=0;i<8;i++){const angle=i*Math.PI/4;ctx.moveTo(Math.cos(angle)*size*.29,size*.6+Math.sin(angle)*size*.29);ctx.lineTo(Math.cos(angle)*size*.4,size*.6+Math.sin(angle)*size*.4);}
+      ctx.strokeStyle='#ffdb75';ctx.lineWidth=1.4;ctx.stroke();
+    }
+    ctx.beginPath();ctx.moveTo(0,size*1.42);ctx.lineTo(size*.2,size*1.65);ctx.lineTo(0,size*1.85);ctx.lineTo(-size*.2,size*1.65);ctx.closePath();
+    ctx.fillStyle=dark?'#b36dc9':'#ffe19a';ctx.fill();
+    ctx.restore();return true;
+  },
+  drawGun(ctx,entity,config,alpha,now=performance.now()){
+    const size=Math.max(12,Number(entity.radius)||20)*1.5;
+    const sniper=config.style==='sniper',pistol=config.style==='pistol';
+    const accent=config.color||entity.character?.color||'#a18a8a';
+    const spin=config.rotationStateKey?this.rotation(entity,{stateKey:config.rotationStateKey,turnRadians:-Math.PI*2},Number(config.rotationMs)||300,now):0;
+    ctx.save();ctx.rotate((Number(config.angle)||0)+spin);ctx.translate(0,-size*.4);ctx.globalAlpha=alpha*.9;
+    ctx.lineJoin='round';
+    const polygon=(points,fill,stroke=accent,width=1.6)=>{
+      ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x*size,y*size):ctx.moveTo(x*size,y*size));ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke();
+    };
+    const line=(points,color,width)=>{
+      ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x*size,y*size):ctx.moveTo(x*size,y*size));ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();
+    };
+    const steel=sniper?'#547c98':'#66616b',edge=sniper?'#c7efff':'#d5c9ce',grip='#292b35';
+    if(pistol){
+      polygon([[-1.55,-.52],[1.15,-.52],[1.37,-.32],[1.37,.03],[-1.55,.03]],steel);
+      polygon([[-1.3,.03],[.91,.03],[.76,.23],[-.38,.23],[-.61,1.27],[-1.27,1.27],[-1.04,.2]],grip);
+      polygon([[-.46,.22],[.34,.22],[.22,.64],[-.54,.64]],grip);
+      line([[-.28,.32],[.12,.32],[.05,.51],[-.31,.51]],edge,1.2);
+      line([[-1.32,-.37],[.96,-.37]],edge,1.5);
+      for(let i=0;i<3;i++)line([[-1.16+i*.17,-.28],[-1.1+i*.17,-.07]],accent,1.4);
+      line([[-1.08,1.12],[-.7,1.12]],accent,2);
+    }else{
+      const length=sniper?3.1:2.65;
+      polygon([[.55,-.24],[length,-.24],[length,-.05],[.55,-.05]],steel);
+      polygon([[length-.13,-.29],[length+.12,-.29],[length+.12,.02],[length-.13,.02]],grip);
+      polygon([[-1.15,-.39],[.75,-.39],[.89,-.2],[.71,.3],[-.93,.3],[-1.15,.09]],steel);
+      polygon([[-1.15,-.21],[-1.42,-.21],[-2.15,-.38],[-2.58,-.38],[-2.58,.56],[-2.12,.56],[-1.55,.17],[-1.1,.14]],grip);
+      line([[-2.4,-.23],[-2.4,.39]],accent,3);
+      polygon([[-.72,.3],[-.26,.3],[-.49,1.02],[-.99,1.02]],grip);
+      polygon([[-.25,.3],[.34,.3],[.2,.64],[-.34,.64]],grip);
+      line([[-.13,.4],[.2,.4],[.12,.54],[-.19,.54]],edge,1.1);
+      line([[-.95,-.24],[.59,-.24]],edge,1.7);
+      if(sniper){
+        polygon([[.1,.3],[.55,.3],[.45,.85],[-.02,.85]],'#36516b');
+        line([[-.55,-.42],[-.55,-.62],[.25,-.62],[.25,-.42]],accent,2);
+        polygon([[-1.03,-.85],[.69,-.85],[.69,-.56],[-1.03,-.56]],'#3a607a');
+        polygon([[-1.16,-.96],[-.85,-.96],[-.85,-.46],[-1.16,-.46]],steel);
+        polygon([[.5,-1],[.94,-1],[.94,-.42],[.5,-.42]],steel);
+        line([[.78,-.87],[.78,-.55]],'#d4f7ff',3);
+      }else{
+        polygon([[.8,-.12],[1.95,-.12],[1.95,.4],[.8,.4]],'#59525e');
+        for(let i=0;i<5;i++)line([[.97+i*.17,0],[.97+i*.17,.26]],accent,1.5);
+        line([[.78,.18],[2.25,.18]],accent,3);
+      }
+    }
+    ctx.restore();return true;
+  },
   drawBehind(ctx,entity,alpha=1,now=performance.now()){
     if(!ctx||!entity?.alive||entity.hidden)return false;
     const configs=entity.character?.worldEffectModules||[];
+    this.presentWeaponTransition(entity,configs,alpha,now);
     let drawn=false;
     for(let index=0;index<configs.length;index++){
       const config=configs[index];
-      if(config?.type!=='effect.spawn'||config.renderType!=='gearCluster')continue;
+      if(config?.type!=='effect.spawn')continue;
+      if(config.renderType==='gunSilhouette'){
+        if(TriggerModuleService.matches({type:'trigger',event:'presentation.draw',conditions:config.conditions||[]},'presentation.draw',{source:entity,now}))drawn=this.drawGun(ctx,entity,config,alpha,now)||drawn;
+        continue;
+      }
+      if(config.renderType==='swordSilhouette'){
+        if(TriggerModuleService.matches({type:'trigger',event:'presentation.draw',conditions:config.conditions||[]},'presentation.draw',{source:entity,now}))drawn=this.drawSword(ctx,entity,config,alpha,now)||drawn;
+        continue;
+      }
+      if(config.renderType!=='gearCluster')continue;
       const key=`entity-decoration:${entity.id}:${index}`;
       let effect=EffectSpawnService.getByKey(key);
       if(!effect){
@@ -114187,8 +115831,6 @@ const ModeGearPresentationService=Object.freeze({
 
       for(let gearIndex=0;gearIndex<gears.length;gearIndex++){
         const gear=gears[gearIndex];
-        const value=ModeStateService.current(entity,gear.stateKey,gear.initial);
-        const selected=Math.max(0,(gear.values||[]).indexOf(value));
         const state=ModeStateService.state(entity,gear.stateKey);
         const usedAt=Number(state?.changedAt??-Infinity);
         const elapsed=now-usedAt;
@@ -114205,13 +115847,13 @@ const ModeGearPresentationService=Object.freeze({
         ctx.strokeStyle=`rgb(${rgb})`;
         ctx.lineWidth=2*scale;
         ctx.fill();ctx.stroke();
-        // 얇은 이중 림·세 살·육각 축. 글자 없이 밝은 표시점으로 상태를 표시한다.
+        // 촘촘한 톱니·이중 림·여섯 살·회전 볼트·육각 축의 기계식 플레이트.
         ctx.beginPath();ctx.arc(0,0,radius*.73,0,Math.PI*2);
         ctx.fillStyle='rgba(18,24,25,.96)';ctx.fill();
         ctx.strokeStyle=`rgba(${rgb},.65)`;ctx.lineWidth=1.2*scale;ctx.stroke();
         const rotor=drive;
-        for(let spoke=0;spoke<3;spoke++){
-          const theta=rotor-Math.PI/2+spoke*Math.PI*2/3;
+        for(let spoke=0;spoke<6;spoke++){
+          const theta=rotor-Math.PI/2+spoke*Math.PI/3;
           ctx.beginPath();
           ctx.moveTo(Math.cos(theta-.22)*radius*.2,Math.sin(theta-.22)*radius*.2);
           ctx.lineTo(Math.cos(theta-.1)*radius*.64,Math.sin(theta-.1)*radius*.64);
@@ -114220,10 +115862,11 @@ const ModeGearPresentationService=Object.freeze({
           ctx.closePath();ctx.fillStyle=`rgba(${rgb},.42)`;ctx.fill();
           ctx.strokeStyle=`rgba(${rgb},.85)`;ctx.lineWidth=scale;ctx.stroke();
         }
-        for(let pin=0;pin<3;pin++){
-          const theta=-Math.PI/2+pin*Math.PI*2/3;
+        for(let pin=0;pin<6;pin++){
+          const theta=drive-Math.PI/2+pin*Math.PI/3;
           ctx.beginPath();ctx.arc(Math.cos(theta)*radius*.58,Math.sin(theta)*radius*.58,3*scale,0,Math.PI*2);
-          ctx.fillStyle=pin===selected?'#fff7c2':`rgba(${rgb},.2)`;ctx.fill();
+          ctx.fillStyle=`rgba(${rgb},.85)`;ctx.fill();
+          ctx.strokeStyle=`rgba(${dark},.95)`;ctx.lineWidth=scale;ctx.stroke();
         }
         ctx.beginPath();
         for(let corner=0;corner<6;corner++){
@@ -115604,7 +117247,8 @@ const CameraAimOffsetService=Object.freeze({
       y:dy/length*maxDistance*strength
     };
   }
-});
+});const TRAINING_DEFAULT_SETTINGS=Object.freeze({dummyHp:'killable',botHp:'killable',infiniteHp:false,infiniteStam:false,hasMelee:false,hasRanged:false,meleeDamage:100,rangedDamage:100,meleeAttackSpeed:100,rangedAttackSpeed:100,showCooldown:true,showDps:true});
+
 
 const Training={
   active:false,sessionMode:'training',onlineConfig:null,selectedCharacterId:null,characterSortMode:CharacterSortService.loadMode(),player:null,remotePlayer:null,remotePlayers:new Map(),dummy:null,dummies:[],dummySequence:0,bots:[],cameraState:{x:0,y:0},cameraFollowState:{x:0,y:0,initialized:false,lastAt:0},mouseWorldState:{x:0,y:0},aimAngleState:{frame:-1,mouseX:NaN,mouseY:NaN,playerX:NaN,playerY:NaN,value:0},canvas:null,ctx:null,hudRefs:null,hudRenderState:{},playerRespawnAt:0,respawning:false,spectating:false,lastDeathSourcePid:null,spectator:{
@@ -115621,7 +117265,7 @@ const Training={
     dashY:0,
     dashRemaining:0,
     dashDuration:170
-  },koFreezeUntil:0,koFlashUntil:0,screenHitFlashUntil:0,keys:new Set(),mouse:{x:0,y:0},fx:[],stats:{totalDmg:0,comboHits:0,lastHit:0,dpsTimes:new Float64Array(256),dpsValues:new Float64Array(256),dpsHead:0,dpsCount:0,comboExecutions:new WeakSet()},settings:{dummyHp:'killable',botHp:'killable',infiniteHp:false,infiniteStam:false,hasMelee:false,hasRanged:false,meleeDamage:100,rangedDamage:100,meleeAttackSpeed:100,rangedAttackSpeed:100,showCooldown:true,showDps:true},lastFrame:0,raf:0,loopFrame:null,
+  },koFreezeUntil:0,koFlashUntil:0,screenHitFlashUntil:0,keys:new Set(),mouse:{x:0,y:0},fx:[],stats:{totalDmg:0,comboHits:0,lastHit:0,dpsTimes:new Float64Array(256),dpsValues:new Float64Array(256),dpsHead:0,dpsCount:0,comboExecutions:new WeakSet()},settings:{...TRAINING_DEFAULT_SETTINGS},lastFrame:0,raf:0,loopFrame:null,
   clampSpectatorPoint(x,y){
     const halfW=GAME_DATA.canvas.width/2;
     const halfH=GAME_DATA.canvas.height/2;
@@ -116450,7 +118094,18 @@ const Training={
   },
   reset(){
     if(!this.active)return false;
+    if(this.sessionMode==='training'){
+      this.closePanels();
+      CharacterCommandInputService.close();
+      CharacterCommandInputService.clearResult();
+      this.settings={...TRAINING_DEFAULT_SETTINGS};
+      DebugMapService.set('training-tilemap');
+      CameraFovService.reset();
+      this.cameraFollowState.initialized=false;
+      this.hudRefs=null;
+    }
     this.setupSession();
+    if(this.sessionMode==='training')this.buildHud();
     return true;
   },
   setupOnlineSession(){
@@ -117479,6 +119134,7 @@ const Training={
       CCService.update(entity,now);
       ShieldService.update(entity,now);
 
+      if(entity.character?.reactiveEquipment)ReactiveEquipmentService.update(entity,now);
       ProgressStateService.updateIdleRepair(entity,now);
 
       if(entity!==this.player)ChargedAttackService.update(entity,now);
@@ -118891,7 +120547,7 @@ const Training={
           );
         }
 
-        if(style.showLink!==false){
+        if(style.showLink!==false&&EntityService.owner(b.source)===this.player){
           ctx.beginPath();
           ctx.moveTo(b.source.x,b.source.y);
           ctx.lineTo(visual.x,visual.y);
@@ -124044,6 +125700,7 @@ GameEvents.on('entity-defeated',event=>{
         center,
         polygon
       }=event;
+      const geometrySource=event.geometryOrigin||source;
       const effectColor=AttackPresentationColorService.resolve(
         source,
         event.attack,
@@ -124074,7 +125731,7 @@ GameEvents.on('entity-defeated',event=>{
       });
       const wallCutSegments=
         AreaWallCutPresentationService.segments(
-          source,
+          geometrySource,
           event.attack,
           module,
           angle,
@@ -124128,8 +125785,8 @@ GameEvents.on('entity-defeated',event=>{
       if(module.shape==='sector'){
         spawnAreaEffect({
           type:'botSwing',
-          x:source.x,
-          y:source.y,
+          x:geometrySource.x,
+          y:geometrySource.y,
           angle,
           range:module.range,
           halfAngle:module.halfAngle,
@@ -124152,8 +125809,8 @@ GameEvents.on('entity-defeated',event=>{
         const renderType=String(module.renderType||'areaCircle');
         spawnAreaEffect({
           type:renderType,
-          x:center?.x??source.x,
-          y:center?.y??source.y,
+          x:center?.x??geometrySource.x,
+          y:center?.y??geometrySource.y,
           angle,
           range:module.range,
           r:renderType==='annularDoubleSweep'?module.range:0,
@@ -124212,8 +125869,8 @@ GameEvents.on('entity-defeated',event=>{
       }else if(module.shape==='tapered-rect'){
         spawnAreaEffect({
           type:'taperedArea',
-          x:source.x,
-          y:source.y,
+          x:geometrySource.x,
+          y:geometrySource.y,
           angle,
           range:module.range,
           startHalfWidth:
@@ -124241,18 +125898,10 @@ GameEvents.on('entity-defeated',event=>{
           color:effectColor
         },source);
       }else{
-        const perpendicularOffset=
-          Number(module.perpendicularOffset)||0;
         spawnAreaEffect({
           type:'botDrill',
-          x:
-            (Number(source.x)||0)-
-            Math.sin(Number(angle)||0)*
-            perpendicularOffset,
-          y:
-            (Number(source.y)||0)+
-            Math.cos(Number(angle)||0)*
-            perpendicularOffset,
+          x:Number(geometrySource.x)||0,
+          y:Number(geometrySource.y)||0,
           angle,
           len:module.range,
           width:module.halfWidth,
@@ -128863,6 +130512,15 @@ const OnlineDebugControlSyncService={
         if(!CommandFeatureService.isCharacter(target))return false;
         return CommandFeatureService.runRepair(target);
 
+      case 'equipment-equip':{
+        const config=ReactiveEquipmentService.config(target);if(!config)return false;
+        const value=String(data.value||'');
+        const item=config.items.find(entry=>entry.value===value);
+        if(item)return ReactiveEquipmentService.discover(target,item,true,performance.now());
+        if(value===config.initial){ReactiveEquipmentService.select(target,value);return true;}
+        return false;
+      }
+
       case 'gauge-set':
         return DebugGaugeControlService.set(
           target,
@@ -129774,6 +131432,19 @@ const DebugPanel={
         })
       );
       section.appendChild(stamina.row);
+
+      const equipment=target.character?.reactiveEquipment;
+      if(equipment){
+        const weapons=this.row('발명품 활성화','선택한 무기를 완성하고 즉시 장착');
+        const current=ModeStateService.current(target,equipment.stateKey,equipment.initial);
+        for(const entry of [{value:equipment.initial,name:equipment.initialName||equipment.initial},...equipment.items]){
+          weapons.controls.appendChild(this.button(entry.name,()=>{
+            OnlineDebugControlSyncService.perform('equipment-equip',target,{value:entry.value});
+            this.render();
+          },current===entry.value?'active':''));
+        }
+        section.appendChild(weapons.row);
+      }
 
       const gaugeEntries=
         DebugGaugeControlService.entries(
@@ -131884,3 +133555,7 @@ function bootstrap() {
 }
 
 document.addEventListener('DOMContentLoaded', bootstrap, {once:true});
+GameEvents.on('damage-applied',event=>ReactiveEquipmentService.damage(event));
+GameEvents.on('projectile-redirected',event=>ProjectileRedirectSyncService.broadcast(event.projectile));
+GameEvents.on('projectile-wall-relayed',event=>ProjectileRedirectSyncService.relay(event));
+GameEvents.on('damage-avoided',event=>ReactiveEquipmentService.damage(event));

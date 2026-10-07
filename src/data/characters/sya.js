@@ -218,7 +218,7 @@
               type: "stealth.toggle",
               stateKey: "stealth:sya",
               maxDuration: 4000,
-              drainPerSecond: 150,
+              drainPerSecond: 100,
               speedModifier: 0.3,
               detectDelay: 400,
               detectRange: 80,

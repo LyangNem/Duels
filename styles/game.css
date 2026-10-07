@@ -3397,7 +3397,11 @@ input[type="checkbox"][aria-hidden="true"]{display:none!important}
 
 /* 방 설정 - 설정 메뉴와 동일한 행 디자인 */
 .room-format-box{
-  width:min(470px,90vw)!important;
+  width:min(760px,94vw)!important;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px 10px;
+  flex:0 0 auto;
   margin:8px 0 12px!important;
   padding:0!important;
   border:0!important;
@@ -3406,12 +3410,14 @@ input[type="checkbox"][aria-hidden="true"]{display:none!important}
 }
 .room-format-box .room-setting-row{
   min-height:52px!important;
-  margin-top:6px!important;
+  margin-top:0!important;
+  min-width:0;
+  box-sizing:border-box;
   padding:8px 11px 8px 13px!important;
   display:flex!important;
   align-items:center!important;
   justify-content:space-between!important;
-  gap:22px!important;
+  gap:8px!important;
   border:1px solid #172b3a!important;
   border-left:2px solid #294d67!important;
   border-radius:2px!important;
@@ -5634,3 +5640,21 @@ html[data-character-card-illustrations="false"] #scr-start-aug .start-aug-char-c
 }
 
 
+
+/* 설명 앞 입력/분류 표기는 밝게 구분한다. */
+.duels-skill-key, .duels-character-summary { color: #bdeaff; }
+
+
+#scr-start-aug.normal-match #start-aug-grid, #between-aug-grid.normal-match { display:none!important; }
+
+/* 방 설정의 버튼과 금지 항목도 두 열 안에서 높이를 확보한다. */
+.room-format-box .duels-display-cycle-button {
+  min-width:118px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  flex:0 0 auto;
+}
+.room-format-box .room-setting-row[hidden] { display:none!important; }
+#room-game-mode:disabled { opacity:.5; cursor:default; }

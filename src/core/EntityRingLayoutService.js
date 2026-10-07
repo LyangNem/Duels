@@ -130,6 +130,9 @@ const EntityRingLayoutService=Object.freeze({
       return {visible:false,ratio:0,full:false};
     }
 
+    const pointerGauge=PointerHoldInputService?.holdGaugePresentationState?.(entity,now);
+    if(pointerGauge?.visible)return pointerGauge;
+
     const config=
       this.characterRingPresentation(entity)?.holdGauge;
     if(!config){

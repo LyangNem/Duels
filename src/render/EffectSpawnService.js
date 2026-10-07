@@ -404,6 +404,8 @@ const EffectSpawnService=Object.freeze({
       }
     });
 
+    if(result.hit||result.blocked||result.durabilityBlocked){state.deliveryHadContact=true;}
+
     if(
       result.durabilityBlocked===true&&
       result.authoritative!==false&&
@@ -571,6 +573,18 @@ const EffectSpawnService=Object.freeze({
         };
         if(this.effectDamageTarget(effect,target,impactPoint))hitAny=true;
       },state.attack);
+      if(currentLength>=range&&damage.missAttackId&&!state.deliveryFollowupResolved){
+        state.deliveryFollowupResolved=true;
+        if(!state.deliveryHadContact&&source.alive&&EntitySimulationAuthorityService.isLocal(source)){
+          const followup=AbilityService.attackById(source.character,damage.missAttackId);
+          const radius=Math.max(0,Number(followup?.modules?.find(m=>m.type==='delivery.projectile')?.radius)||0);
+          const endpoint={x:cx+cos*range,y:cy+sin*range};
+          if(followup&&!WorldGeometryService.segmentBlocked(cx,cy,endpoint.x,endpoint.y,radius)){
+            const prepared=AugmentService.prepareAttack(source,followup,performance.now());
+            TriggeredAttackService.execute(source,{...prepared,modules:prepared.modules.map(m=>m.type==='delivery.projectile'?{...m,origin:{type:'point',...endpoint}}:m)},angle);
+          }
+        }
+      }
       return hitAny;
     }
 

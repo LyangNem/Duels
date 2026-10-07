@@ -31,7 +31,7 @@
       "text": "조준 위치에 가장 가까운 대상을 수취인으로 확정하며 우편함 설치"
     },
     {
-      "key": "RMB/RMB",
+      "key": "RMB SUMMONER",
       "name": "수취인 변경",
       "attack": "rmbRetarget",
       "costText": "스테미나 0",

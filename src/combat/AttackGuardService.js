@@ -406,6 +406,7 @@ const AttackGuardService=Object.freeze({
       this.damageBlockGroupKey(context),
       now
     );
+    if(context.source?.character?.reactiveEquipment)ReactiveEquipmentService.blocked(context.source,guard.source.id,this.damageBlockGroupKey(context),now);
     this.broadcastBlockResolution(
       context
     );
@@ -739,6 +740,8 @@ const AttackGuardService=Object.freeze({
       now
     );
 
+    if(projectile.source?.character?.reactiveEquipment)ReactiveEquipmentService.blocked(projectile.source,guard.source.id,this.projectileBlockGroupKey(projectile),now);
+
     const changed=
       ProjectileStateService.beginReturn(
         projectile,
@@ -747,7 +750,7 @@ const AttackGuardService=Object.freeze({
 
     this.broadcastProjectileResolution(
       projectile,
-      'return'
+      'return',guard
     );
 
     return changed||
@@ -755,6 +758,7 @@ const AttackGuardService=Object.freeze({
   },
   remove(projectile,index,guard,now){
     this.parryFx(guard.source,projectile.x,projectile.y,now);
+    if(projectile.source?.character?.reactiveEquipment)ReactiveEquipmentService.blocked(projectile.source,guard.source.id,this.projectileBlockGroupKey(projectile),now);
     this.registerBlockOccurrence(
       guard,
       this.projectileBlockGroupKey(
@@ -777,13 +781,13 @@ const AttackGuardService=Object.freeze({
 
     this.broadcastProjectileResolution(
       projectile,
-      'remove'
+      'remove',guard
     );
     ProjectileService.finish(projectile,projectile.hadHit===true);
     ProjectileService.items.splice(index,1);
     return true;
   },
-  broadcastProjectileResolution(projectile,outcome){
+  broadcastProjectileResolution(projectile,outcome,guard=null){
     if(
       Training.sessionMode!=='online'||
       !OnlineDuelService.active
@@ -809,7 +813,8 @@ const AttackGuardService=Object.freeze({
       {
         x:Number(projectile?.x)||0,
         y:Number(projectile?.y)||0
-      }
+      },
+      {attackId:String(projectile?.attack?.id||''),executionSequence:Number(projectile?.volley?.execution?.sequence)||0,defenderPid:OnlineParticipantEntityService.pid(guard?.source)}
     );
   },
   resolveProjectile(projectile,index,guard,now){

@@ -968,14 +968,17 @@ const AttackModuleService=Object.freeze({
         }
 
         const angles=this.buildAngles(spec,angle);
+        const originPoint=projectile.origin?.type==='point'&&
+          Number.isFinite(Number(projectile.origin.x))&&Number.isFinite(Number(projectile.origin.y))
+            ?{x:Number(projectile.origin.x),y:Number(projectile.origin.y)}:source;
         for(let index=0;index<angles.length;index++){
           ProjectileService.spawn({
             source,
             attack:spec,
             volley,
-            x:source.x,
-            y:source.y,
-            origin:{x:source.x,y:source.y},
+            x:originPoint.x,
+            y:originPoint.y,
+            origin:{x:originPoint.x,y:originPoint.y},
             angle:angles[index],
             stateKey:projectile.stateKey,
             targetEntityId:
@@ -2895,6 +2898,10 @@ const AttackModuleService=Object.freeze({
         return;
       }
 
+      if(type==='equipment.discover'&&module.when==='after-attack'){
+        ReactiveEquipmentService.resolveCurrent(source,module,performance.now());
+        return;
+      }
       if(type==='mode.toggle'&&module.when==='after-attack'){
         ModeStateService.toggle(
           source,
@@ -3304,6 +3311,8 @@ const AttackModuleService=Object.freeze({
             }
           );
 
+        if(movementStarted!==false&&target.character?.reactiveEquipment)ReactiveEquipmentService.restriction(target,'pull',source.id,performance.now());
+
         if(
           movementStarted!==false&&
           module.oncePerExecution
@@ -3510,6 +3519,8 @@ const AttackModuleService=Object.freeze({
                 }
                 :{}
             );
+
+        if(movementStarted!==false&&target.character?.reactiveEquipment)ReactiveEquipmentService.restriction(target,'knockback',source.id,performance.now());
 
         if(
           movementStarted!==false&&
@@ -3721,7 +3732,7 @@ const AttackModuleService=Object.freeze({
         if(module.oncePerExecution&&AttackExecutionService.hasEffect(execution,key))return;
         const attackDirection=module.target==='attack-direction';
         const moveTarget=module.target?.type==='projectile'
-          ?ProjectileStateService.get(source,module.target.stateKey)
+          ?(deliveryModule?.projectile||ProjectileStateService.get(source,module.target.stateKey))
           :(module.target==='hit-target'?target:null);
         if(moveTarget||attackDirection){
           const dx=moveTarget?(Number(moveTarget.x)||0)-(Number(source.x)||0):0;
@@ -3732,7 +3743,7 @@ const AttackModuleService=Object.freeze({
           const moveAngle=attackDirection
             ?(Number(attackAngle)||0)
             :(distance>.001?Math.atan2(dy,dx):(Number(attackAngle)||0));
-          MovementAbilityService.start(
+          const started=MovementAbilityService.start(
             source,
             {...module,type:'movement.move',control:'fixed'},
             moveAngle,
@@ -3741,9 +3752,8 @@ const AttackModuleService=Object.freeze({
               angle:moveAngle
             }
           );
-          
+          if(started!==false&&module.oncePerExecution)AttackExecutionService.markEffect(execution,key);
         }
-        if(module.oncePerExecution)AttackExecutionService.markEffect(execution,key);
         return;
       }
 

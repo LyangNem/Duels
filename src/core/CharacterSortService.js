@@ -57,197 +57,72 @@ const CharacterSortService=Object.freeze({
       attack=>String(attack?.id||'')===String(attackId)
     )||null;
   },
-  stateWriteKeys(node,out=new Set()){
-    if(!node)return out;
-    if(Array.isArray(node)){
-      for(const item of node)this.stateWriteKeys(item,out);
-      return out;
+  initialSource(combat){
+    const source={character:combat,actionState:new Map(),alive:true,
+      maxHealth:combat.maxHealth||1,maxStamina:combat.maxStamina||1};
+    // Passive initialization uses the same progress store as actual gameplay.
+    for(const module of combat.passives||[]){
+      if(module.type!=='state.progress-rate')continue;
+      const mode=module.whenMode;
+      if(mode&&ModeStateService.current(source,mode.stateKey,mode.initial)!==mode.value)continue;
+      ProgressStateService.ensure(source,module);
     }
-    if(typeof node!=='object')return out;
-
-    const type=String(node.type||'');
-    const operation=String(node.operation||'');
-    const stateKey=String(node.stateKey||'');
-    const writesProgress=
-      type==='state.progress'&&
-      operation!=='reset'&&
-      operation!=='subtract';
-    const writesWindow=
-      type==='state.window'&&
-      operation!=='clear';
-    const writesMode=
-      type==='mode.set'||
-      type==='mode.toggle';
-
-    if(stateKey&&(writesProgress||writesWindow||writesMode)){
-      out.add(stateKey);
-    }
-
-    for(const value of Object.values(node)){
-      if(value&&typeof value==='object'){
-        this.stateWriteKeys(value,out);
-      }
-    }
-    return out;
+    return source;
   },
-  referencedAttackIds(node,out=new Set()){
-    if(!node)return out;
-    if(Array.isArray(node)){
-      for(const item of node)this.referencedAttackIds(item,out);
-      return out;
-    }
-    if(typeof node!=='object')return out;
-
-    if(typeof node.attackId==='string')out.add(node.attackId);
-    for(const attackId of node.attackIds||[]){
-      if(typeof attackId==='string')out.add(attackId);
-    }
-    for(const value of Object.values(node)){
-      if(value&&typeof value==='object'){
-        this.referencedAttackIds(value,out);
-      }
-    }
-    return out;
-  },
-  counterOnlyStateKeys(combat){
-    const counterIds=new Set();
-    const counterAbility=combat?.abilities?.counter;
-    if(counterAbility){
-      this.referencedAttackIds(counterAbility,counterIds);
-      if(counterAbility.attackId)counterIds.add(counterAbility.attackId);
-    }
-    for(const attack of Object.values(combat?.attacks||{})){
-      if(attack?.tags?.includes?.('반격'))counterIds.add(attack.id);
-    }
-
-    const counterWrites=this.stateWriteKeys(counterAbility,new Set());
-    const nonCounterWrites=new Set();
-
-    for(const attack of Object.values(combat?.attacks||{})){
-      const target=counterIds.has(attack?.id)
-        ?counterWrites
-        :nonCounterWrites;
-      this.stateWriteKeys(attack?.modules,target);
-    }
-    for(const [slot,ability] of Object.entries(combat?.abilities||{})){
-      if(slot==='counter')continue;
-      this.stateWriteKeys(ability?.trigger?.modules,nonCounterWrites);
-    }
-
-    return new Set(
-      [...counterWrites].filter(key=>!nonCounterWrites.has(key))
+  initialConditionsMatch(conditions,source){
+    return (conditions||[]).every(condition=>
+      !String(condition.type||'').startsWith('state.')||
+      TriggerConditionService.matches(condition,{source})
     );
   },
-  conditionRequiresCounterOnlyState(node,counterOnly){
-    if(!node||!counterOnly?.size)return false;
-    if(Array.isArray(node)){
-      return node.some(item=>
-        this.conditionRequiresCounterOnlyState(item,counterOnly)
-      );
-    }
-    if(typeof node!=='object')return false;
-
-    const type=String(node.type||'');
-    const positiveSingle=new Set([
-      'state.exists',
-      'state.progress-gte',
-      'state.progress-ratio-gte',
-      'state.mode-is'
-    ]);
-    if(
-      positiveSingle.has(type)&&
-      counterOnly.has(String(node.stateKey||''))
-    )return true;
-
-    if(type==='state.progress-sum-gte'){
-      const keys=(node.stateKeys||[]).map(String).filter(Boolean);
-      if(keys.length&&keys.every(key=>counterOnly.has(key)))return true;
-    }
-
-    for(const value of Object.values(node)){
-      if(
-        value&&typeof value==='object'&&
-        this.conditionRequiresCounterOnlyState(value,counterOnly)
-      )return true;
-    }
-    return false;
-  },
-  lmbAttackEntries(combat){
+  lmbAttackEntries(combat,source=this.initialSource(combat)){
     const ability=combat?.abilities?.lmb;
     if(!ability)return [];
-
     const entries=[];
-    const push=(attackId,conditions=null)=>{
-      if(!attackId)return;
-      entries.push({attackId:String(attackId),conditions});
-    };
-    const candidateConditions=candidate=>{
-      if(Array.isArray(candidate?.conditions))return candidate.conditions;
-      if(candidate?.stateKey){
-        return [candidate.phase
-          ?{type:'state.phase',stateKey:candidate.stateKey,phase:candidate.phase}
-          :{type:'state.exists',stateKey:candidate.stateKey}];
-      }
-      return null;
-    };
-    push(ability.attackId,null);
-
+    const push=id=>{if(id&&!entries.includes(id))entries.push(id);};
+    const candidateConditions=candidate=>Array.isArray(candidate.conditions)
+      ?candidate.conditions:candidate.stateKey
+        ?[{type:candidate.phase?'state.phase':'state.exists',stateKey:candidate.stateKey,phase:candidate.phase}]:[];
+    let inputIds=[ability.attackId];
+    for(const candidate of ability.inputAttackAlternates||[]){
+      const conditions=candidateConditions(candidate);
+      if(candidate.rangeAvailableInitially===true){inputIds.push(candidate.attackId);continue;}
+      if(!this.initialConditionsMatch(conditions,source))continue;
+      if(conditions.every(c=>String(c.type).startsWith('state.'))){inputIds=[candidate.attackId];break;}
+      inputIds.push(candidate.attackId);
+    }
     const visit=modules=>{
       for(const module of modules||[]){
-        if(module?.type==='action.attack'){
-          push(module.attackId||ability.attackId,module.conditions||null);
-          for(const alternate of module.alternates||[]){
-            push(alternate?.attackId,candidateConditions(alternate));
+        if(!this.initialConditionsMatch(module.conditions,source))continue;
+        if(module.requireAttackId&&!entries.includes(module.requireAttackId))continue;
+        if(module.type==='action.attack'){
+          let defaults=module.attackId?[module.attackId]:inputIds;
+          for(const candidate of [...(module.alternates||[]),...(module.alternateWhen?[module.alternateWhen]:[])]){
+            const conditions=candidateConditions(candidate);
+            if(candidate.rangeAvailableInitially===true){push(candidate.attackId);continue;}
+            if(!this.initialConditionsMatch(conditions,source))continue;
+            // Position/aim choices remain possible in the initial mode. A
+            // matching state-only alternative replaces the fallback attack.
+            if(conditions.length&&conditions.every(c=>String(c.type).startsWith('state.'))){defaults=[candidate.attackId];break;}
+            push(candidate.attackId);
           }
-          if(module.alternateWhen){
-            push(
-              module.alternateWhen.attackId,
-              candidateConditions(module.alternateWhen)
-            );
-          }
-        }
-        if(Array.isArray(module?.modules))visit(module.modules);
+          for(const id of defaults)push(id);
+        }else if(module.type==='action.trigger-attack')push(module.attackId||ability.attackId);
+        if(Array.isArray(module.modules))visit(module.modules);
       }
     };
-    visit(ability?.trigger?.modules);
-
-    const seen=new Set();
-    return entries.filter(entry=>{
-      const key=`${entry.attackId}|${JSON.stringify(entry.conditions||null)}`;
-      if(seen.has(key))return false;
-      seen.add(key);
-      return true;
-    });
+    visit(ability.trigger?.modules);
+    if(!entries.length)for(const id of inputIds)push(id);
+    return entries.map(attackId=>({attackId}));
   },
-  primaryAttacks(character){
+  primaryAttacks(character,source=null){
     const combat=character?.combat||character;
-    const attacks=combat?.attacks;
-    if(!attacks)return [];
-
-    const counterOnly=this.counterOnlyStateKeys(combat);
-    const direct=this.lmbAttackEntries(combat)
-      .filter(entry=>
-        !this.conditionRequiresCounterOnlyState(
-          entry.conditions,
-          counterOnly
-        )
-      )
+    if(!combat?.attacks)return [];
+    source=source||this.initialSource(combat);
+    return this.lmbAttackEntries(combat,source)
       .map(entry=>this.attackById(combat,entry.attackId))
-      .filter(attack=>
-        attack?.tags?.includes?.('평타')&&
-        !attack?.tags?.includes?.('반격')&&
-        !attack?.tags?.includes?.('스킬')&&
-        !attack?.tags?.includes?.('소환수')
-      );
-
-    if(direct.length)return [...new Set(direct)];
-
-    return Object.values(attacks).filter(attack=>
-      attack?.tags?.includes?.('평타')&&
-      !attack?.tags?.includes?.('반격')&&
-      !attack?.tags?.includes?.('스킬')&&
-      !attack?.tags?.includes?.('소환수')
-    );
+      .filter(attack=>attack?.tags?.includes?.('평타')&&
+        !attack.tags.includes('반격')&&!attack.tags.includes('스킬')&&!attack.tags.includes('소환수'));
   },
   rangeValue(value){
     const number=Number(value);
@@ -256,130 +131,112 @@ const CharacterSortService=Object.freeze({
       ?Math.max(0,number)
       :0;
   },
-  moduleMaxRange(modules){
-    let maximum=0;
-    for(const module of modules||[]){
-      if(
-        module?.type==='delivery.projectile'&&
-        module?.targetPoint===true&&
-        module?.targetPointClampToAttackRange===false
-      )return Infinity;
-
-      const type=String(module?.type||'');
-      if(
-        type==='delivery.projectile'||
-        type==='delivery.range-projectile'||
-        type==='delivery.hitscan'||
-        type==='delivery.area'
-      ){
-        maximum=Math.max(
-          maximum,
-          this.rangeValue(module?.range)
-        );
-      }
-    }
-    return maximum;
+  enemyRangeModule(module){
+    const relations=module?.targetRelations;
+    return !Array.isArray(relations)||!relations.length||relations.includes('enemy');
   },
-  impactExplosionRange(combat,modules){
-    let maximum=0;
-    for(const module of modules||[]){
-      if(module?.type!=='projectile.impact')continue;
-
-      const attackIds=[
-        ...(module.attackIds||[])
-      ];
-      for(const ids of Object.values(module.reasonAttackIds||{})){
-        for(const attackId of ids||[])attackIds.push(attackId);
+  geometryRange(module,attack){
+    const range=this.rangeValue(module.range??attack.range);
+    let center=this.rangeValue(module.centerDistance);
+    if(module.centerMode==='live-aim-point')center=this.rangeValue(module.centerMaxRange??attack.range);
+    if(Number(module.repeatCount)>1&&module.repeatCenterDistanceStart!==undefined){
+      center=Math.max(center,this.rangeValue(module.repeatCenterDistanceStart)+
+        (Number(module.repeatCount)-1)*this.rangeValue(module.repeatCenterDistanceStep));
+    }
+    return center+range*(module.shape==='rect'&&module.rectCenterMode==='center'?.5:1);
+  },
+  rangeVariants(attack,source=null){
+    if(source&&attack.progressScale?.rangeBasis==='initial'){
+      attack={...ProgressScaledAttackService.resolve(source,attack),progressScale:null};
+    }
+    const variants=[attack];
+    for(const scale of [attack.charge,attack.progressScale]){
+      if(!scale)continue;
+      for(const endpoint of ['from','to']){
+        const range=scale.range?.[endpoint]??attack.range;
+        const modules=(attack.modules||[]).map(module=>{
+          const copy={...module};
+          if(scale.range&&module.range===attack.range)copy.range=range;
+          for(const value of scale.moduleValues||[]){
+            if(value.type===module.type&&value[endpoint]!==undefined)copy[value.property]=value[endpoint];
+          }
+          return copy;
+        });
+        variants.push({...attack,range,modules,damageRatio:scale.damageRatio?.[endpoint]??attack.damageRatio});
       }
-
-      for(const attackId of attackIds){
-        const linked=this.attackById(combat,attackId);
-        if(!linked)continue;
-
-        let radius=0;
-        for(const linkedModule of linked.modules||[]){
-          if(linkedModule?.type!=='delivery.area')continue;
-          const relations=linkedModule?.targetRelations;
-          if(
-            Array.isArray(relations)&&
-            relations.length&&
-            !relations.includes('enemy')
-          )continue;
-          radius=Math.max(
-            radius,
-            this.rangeValue(linkedModule?.range)
-          );
+      if(scale.fullSpec)variants.push({...attack,...scale.fullSpec,charge:null,progressScale:null});
+    }
+    return variants;
+  },
+  attackMaxRange(attack,combat=null,visited=new Set(),source=null){
+    if(!attack||visited.has(attack))return 0;
+    const nextVisited=new Set(visited);nextVisited.add(attack);
+    let maximum=0;
+    const linkedRange=id=>this.attackMaxRange(this.attackById(combat,id),combat,nextVisited,source);
+    for(const variant of this.rangeVariants(attack,source)){
+      const modules=variant.modules||[];
+      const projectile=modules.find(m=>['delivery.projectile','delivery.range-projectile'].includes(m.type));
+      let travel=this.rangeValue(variant.range);
+      if(projectile?.targetPoint===true&&projectile.targetPointClampToAttackRange===false)travel=Infinity;
+      const damage=Number(variant.damageRatio)>0&&variant.effectsOnly!==true;
+      for(const module of modules){
+        if(!this.enemyRangeModule(module))continue;
+        const type=String(module.type||'');
+        if(type==='delivery.area'&&damage)maximum=Math.max(maximum,this.geometryRange(module,variant));
+        if(type==='delivery.hitscan'&&damage)maximum=Math.max(maximum,this.rangeValue(module.range??variant.range));
+        if(['delivery.projectile','delivery.range-projectile'].includes(type)&&damage&&module.damageOnTravel!==false){
+          maximum=Math.max(maximum,module.orbit
+            ?this.rangeValue(module.orbit.maxRadius)+this.rangeValue(module.radius):travel);
         }
-        maximum=Math.max(maximum,radius);
+        if(type==='formation.manifest'&&damage)maximum=Math.max(maximum,travel);
+        if(type==='effect.spawn'&&module.damage){
+          const effectDamage=module.damage;
+          if(effectDamage.module)maximum=Math.max(maximum,this.geometryRange(effectDamage.module,variant));
+          else if(effectDamage.requireMovementExecution===true||effectDamage.hitMode==='body-contact'){
+            const movement=modules.find(m=>m.type==='movement.move');
+            const distance=movement?this.rangeValue(movement.distance??(Number(movement.speed)||0)*(Number(movement.duration)||0)/1000):0;
+            maximum=Math.max(maximum,distance+this.rangeValue(effectDamage.contactRadius));
+          }else maximum=Math.max(maximum,this.rangeValue(module.range??variant.range));
+        }
+        if(type==='projectile.impact'&&projectile){
+          const ids=[...(module.attackIds||[])];
+          for(const values of Object.values(module.reasonAttackIds||{}))ids.push(...values);
+          for(const id of ids){const extent=linkedRange(id);if(extent>0)maximum=Math.max(maximum,travel+extent);}
+          const field=module.field;
+          if(field?.damageOnTrigger!==false&&field?.attackId&&Number(this.attackById(combat,field.attackId)?.damageRatio)>0&&this.enemyRangeModule(field)){
+            maximum=Math.max(maximum,field.anchorMode==='projectile-path'?travel:travel+this.geometryRange(field,variant));
+          }
+        }
+        if(type==='projectile.wall-relay'&&projectile){const extent=linkedRange(module.attackId);if(extent>0)maximum=Math.max(maximum,travel+extent);}
+        if(type==='state.window'){
+          for(const id of Object.values(module.resolveAttackIds||{}))maximum=Math.max(maximum,linkedRange(id));
+        }
+        if(type==='field.area'&&module.damageOnTrigger!==false&&module.attackId&&Number(this.attackById(combat,module.attackId)?.damageRatio)>0){
+          const origin=module.anchorMode==='attack-end'?travel:0;
+          maximum=Math.max(maximum,origin+this.geometryRange(module,variant));
+        }
+        if(type==='movement.move'&&module.damage){
+          maximum=Math.max(maximum,this.rangeValue(module.distance)+this.rangeValue(module.damage.contactRadius));
+        }
       }
     }
-    return maximum;
-  },
-  scaledMaxRange(scale){
-    if(!scale)return 0;
-
-    let maximum=Math.max(
-      this.rangeValue(scale?.range?.from),
-      this.rangeValue(scale?.range?.to)
-    );
-
-    for(const value of scale.moduleValues||[]){
-      if(String(value?.property||'')!=='range')continue;
-      maximum=Math.max(
-        maximum,
-        this.rangeValue(value?.from),
-        this.rangeValue(value?.to)
-      );
-    }
-
-    return maximum;
-  },
-  attackMaxRange(attack,combat=null){
-    if(!attack)return 0;
-
-    const travelRange=Math.max(
-      this.rangeValue(attack.range),
-      this.rangeValue(attack?.charge?.range?.from),
-      this.rangeValue(attack?.charge?.range?.to),
-      this.scaledMaxRange(attack.progressScale),
-      this.moduleMaxRange(attack.modules)
-    );
-    const impactRange=this.impactExplosionRange(
-      combat,
-      attack.modules
-    );
-    let maximum=
-      travelRange===Infinity
-        ?Infinity
-        :travelRange+impactRange;
-
-    const fullSpec=attack?.charge?.fullSpec;
-    if(fullSpec){
-      maximum=Math.max(
-        maximum,
-        this.attackMaxRange(fullSpec,combat)
-      );
-    }
-
     return maximum;
   },
   basicRange(character){
     const combat=character?.combat||character;
+    const source=this.initialSource(combat);
     let maximum=0;
-    for(const attack of this.primaryAttacks(character)){
+    for(const attack of this.primaryAttacks(character,source)){
       maximum=Math.max(
         maximum,
-        this.attackMaxRange(attack,combat)
+        this.attackMaxRange(attack,combat,new Set(),source)
       );
     }
     return maximum;
   },
   distanceTag(character){
-    const combat=character?.combat||character;
-    if(combat?.classification?.rangeLabel)return String(combat.classification.rangeLabel);
-    const rangeId=Number(combat?.classification?.range)||0;
-    if(rangeId)return CHARACTER_RULES.ranges.find(item=>item.id===rangeId)?.tag||'';
-    return GAME_DATA.ranges.find(item=>this.basicRange(character)<=item.maxInclusive)?.tag||'';
+    const range=this.basicRange(character);
+    return CHARACTER_RULES.ranges.find(item=>range<=item.maxInclusive)?.tag||'';
   },
   styleLabel(character){
     return [this.combatStyle(character),this.distanceTag(character),this.role(character)].filter(Boolean).join(' ');

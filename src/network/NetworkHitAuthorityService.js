@@ -740,7 +740,6 @@ const NetworkHitAuthorityService={
               :(attackDirection?null:target);
 
             if(
-              !moveTarget&&
               module.target?.type==='projectile'&&
               Number.isFinite(Number(payload.impactX))&&
               Number.isFinite(Number(payload.impactY))

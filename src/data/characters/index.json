@@ -236,6 +236,10 @@
     {
       "before": ",\n  // 테르디온: 순수 데이터·공통 투사체/착탄/범위/지형 모듈 조합\n  terdion: ",
       "path": "src/data/characters/terdion.js"
+    },
+    {
+      "before": ",\n  geopin: ",
+      "path": "src/data/characters/geopin.js"
     }
   ],
   "suffix": ",\n});"

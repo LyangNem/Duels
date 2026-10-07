@@ -28,7 +28,7 @@ load('src/projectiles/ProjectileImpactService.js','ProjectileImpactService');loa
 const source={id:'s',alive:true,teamId:'a',character:ch,baseDamage:100,x:0,y:0,attackSequence:0,actionState:new Map()};
 function target(x=1000,y=0){return{id:'t',alive:true,teamId:'b',health:5000,maxHealth:5000,x,y,radius:20}}
 function damage(attack,t,origin={x:1000,y:0}){const execution=c.AttackExecutionService.create(source,attack,0);return c.DamagePipeline.apply({source,target:t,attack,execution,impact:{origin,directionAngle:0,execution}})}
-test('59명 공통 컴파일·체력/이속/칭호·색상 중복 없음',()=>{assert.equal(ch.maxHealth,1500);assert.equal(ch.speed,4);assert.equal(ch.moveLabel,'보통');assert.equal(ch.title,'노련한 발파원');for(const d of Object.values(c.CHARACTER_DATA))if(d.id!=='terdion')assert.notEqual(String(d.color).toLowerCase(),ch.color);assert.equal(Object.keys(c.CHARACTER_DATA).length,59)});
+test('60명 공통 컴파일·체력/이속/칭호·색상 중복 없음',()=>{assert.equal(ch.maxHealth,1500);assert.equal(ch.speed,4);assert.equal(ch.moveLabel,'보통');assert.equal(ch.title,'노련한 발파원');for(const d of Object.values(c.CHARACTER_DATA))if(d.id!=='terdion')assert.notEqual(String(d.color).toLowerCase(),ch.color);assert.equal(Object.keys(c.CHARACTER_DATA).length,60)});
 test('공통 피해 파이프라인: 직격과 착탄 중심의 3단계 피해 감쇠',()=>{assert.equal(damage(ch.attacks.lmb,target()).amount,150);assert.equal(damage(ch.attacks.rmb,target()).amount,200);for(const [key,values]of [['lmbExplosion',[300,200,100]],['rmbExplosion',[600,400,200]],['counterExplosion',[300,200,100]]]){const a=ch.attacks[key];for(let i=0;i<3;i++)assert.ok(Math.abs(damage(a,target(1000+a.range*i/2)).amount-values[i])<1e-9)}});
 test('반 내구도 타격은 체력 피해로 집계·레이카 충전·온라인 확정량 일치',()=>{
  const h=vm.createContext({...c});

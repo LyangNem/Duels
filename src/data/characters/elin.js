@@ -4,7 +4,7 @@
     title: "유령 친구",
     color: "#c8d8f0",
     classification: {style: 3, range: 0, role: 4},
-    stats: {maxHealth: 800, speed: 3.75, radius: 20, baseDamage: 100, difficulty: 4},
+    stats: {maxHealth: 1000, speed: 3.75, radius: 20, baseDamage: 100, difficulty: 4},
     desc: "유령 친구를 소환해 서포트하는 캐릭터",
     tooltipSkills: [
       {
@@ -17,14 +17,14 @@
       },
       {key: "RMB", name: "유령 친구", attack: "rmb", text: "수호 모드의 유령 소환"},
       {
-        key: "RMB/LMB",
+        key: "RMB SUMMONER",
         name: "밀쳐내기",
         attack: "spiritGuardBurst",
         costRef: {ability: "rmb", trigger: "trigger", module: "summon.toggle", property: "activeCommand.guardCost"},
         text: "수호 모드 유령이 가장 가까운 적을 공격 및 넉백 ({damage})"
       },
       {
-        key: "RMB/RMB",
+        key: "RMB SUMMONER",
         name: "탐사 돌진",
         attack: "spiritDash",
         costRef: {ability: "rmb", trigger: "trigger", module: "summon.toggle", property: "activeCommand.exploreDash.cost"},
@@ -64,7 +64,7 @@
       spirit: {
         id: "summon.elin.spirit",
         name: "유령",
-        maxHealth: 800,
+        maxHealth: 1000,
         respawnDelay: 7000,
         respawnHealth: 800,
         radius: 20,

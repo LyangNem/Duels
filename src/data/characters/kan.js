@@ -24,7 +24,7 @@
         cost: 200,
         cd: 291.6666666667,
         range: 130,
-        progressScale: {stateKey: "kan-feast", damageRatio: {from: characterValue("attacks.lmb.damageRatio"), to: 4.5}},
+        progressScale: {rangeBasis: "initial",stateKey: "kan-feast", damageRatio: {from: characterValue("attacks.lmb.damageRatio"), to: 4.5}},
         modules: [
           {
             type: "delivery.area",
@@ -113,7 +113,7 @@
         cost: 0,
         cd: 300,
         range: 104,
-        progressScale: {
+        progressScale: {rangeBasis: "initial",
           stateKey: "kan-feast",
           range: {from: characterValue("attacks.counter.range"), to: 364},
           damageRatio: {from: characterValue("attacks.counter.damageRatio"), to: 4},

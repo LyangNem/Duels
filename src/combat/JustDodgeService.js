@@ -86,9 +86,9 @@ const JustDodgeService=Object.freeze({
   confirmProjectile(target,projectile,now=performance.now()){
     if(!this.canConfirm(target))return false;
     if(!this.overlapsProjectile(target,projectile,now))return false;
-    return this.confirm(target,now);
+    return this.confirm(target,now,{cause:{source:projectile.source,attack:projectile.attack,impact:{type:'projectile'}}});
   },
-  confirmArea(target,source,module,angle,containsPoint,now=performance.now()){
+  confirmArea(target,source,module,angle,containsPoint,now=performance.now(),cause={}){
     if(!this.canConfirm(target))return false;
     const check=target?.justCheck;
     if(!check||target.justDodgeConsumed||now>check.expiresAt)return false;
@@ -101,12 +101,12 @@ const JustDodgeService=Object.freeze({
       const x=check.prevX+(check.currX-check.prevX)*ratio;
       const y=check.prevY+(check.currY-check.prevY)*ratio;
       if(containsPoint(module,source,x,y,check.radius,angle)){
-        return this.confirm(target,now);
+        return this.confirm(target,now,{cause:{source,...cause,impact:cause.impact||{type:module?.type==='field.area'?'field-area':'area'}}});
       }
     }
     return false;
   },
-  confirmDamageAttempt(target,now=performance.now(),attack=null){
+  confirmDamageAttempt(target,now=performance.now(),attack=null,cause=null){
     if(!this.canConfirm(target))return false;
     if(
       !target||
@@ -138,7 +138,8 @@ const JustDodgeService=Object.freeze({
       now,
       {
         allowWindowFallback:true,
-        windowExtension:extension
+        windowExtension:extension,
+        cause
       }
     );
   },
@@ -147,7 +148,8 @@ const JustDodgeService=Object.freeze({
     now=performance.now(),
     {
       allowWindowFallback=false,
-      windowExtension=0
+      windowExtension=0,
+      cause=null
     }={}
   ){
     const check=target?.justCheck;
@@ -211,12 +213,16 @@ const JustDodgeService=Object.freeze({
       startedAt,
       {kind:'normal'}
     );
+    if(typeof ReactiveEquipmentService!=='undefined'){
+      ReactiveEquipmentService.justDodge(target,cause,now);
+    }
     GameEvents.emit(
       'just-dodge',
       {
         target,
         now,
-        startedAt
+        startedAt,
+        cause
       }
     );
 

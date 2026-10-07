@@ -56,7 +56,7 @@
       rmb: {
         id: "attack.nare.rmb",
         damageRatio: 1.3333333333333333,
-        cost: 1200,
+        cost: 800,
         cd: 1200,
         range: 2200,
         presentation: {color: "#b8dcff"},

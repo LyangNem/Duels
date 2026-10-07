@@ -92,7 +92,7 @@ const ModeStateService=Object.freeze({
     const result=[];
     for(const state of entity?.actionState?.values?.()||[]){
       if(state?.kind!==this.KIND)continue;
-      result.push({stateKey:state.stateKey,value:state.value,
+      result.push({stateKey:state.stateKey,value:state.value,previousValue:String(state.previousValue||''),
         turns:Number(state.turns)||0,previousTurns:Number(state.previousTurns)||0,
         changedAgoMs:Math.max(0,now-Number(state.changedAt??now)),
         hasChanged:state.changedAt!==undefined});
@@ -110,6 +110,7 @@ const ModeStateService=Object.freeze({
       const turns=Number(snapshot.turns)||0;
       const changed=state.value!==snapshot.value||Number(state.turns||0)!==turns||state.changedAt===undefined;
       state.value=snapshot.value;
+      state.previousValue=String(snapshot.previousValue||'');
       state.turns=turns;
       state.previousTurns=Number(snapshot.previousTurns)||0;
       if(changed&&snapshot.hasChanged!==false)state.changedAt=now-Math.max(0,Number(snapshot.changedAgoMs)||0);

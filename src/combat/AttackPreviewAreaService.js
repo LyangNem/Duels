@@ -318,6 +318,11 @@ const AttackPreviewAreaService=Object.freeze({
       pushArea(rawArea,0);
     }
 
+    // 명시적 미리보기 geometry는 이동 후속 범위와 함께 합성한다.
+    if(preparedAttack?.previewGeometry&&!(preparedAttack.modules||[]).some(module=>AttackModuleService.type(module)==='delivery.area')){
+      pushArea(preparedAttack.previewGeometry,0);
+    }
+
     /* projectile.impact가 후속 범위 공격을 실행하면 투사체의 예상 종점에 그 범위도 함께 표시한다. */
     const previewProjectile=
       AttackModuleService.module(preparedAttack,'delivery.projectile')||

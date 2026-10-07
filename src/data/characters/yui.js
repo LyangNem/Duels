@@ -26,7 +26,7 @@
         damageRatio: 1,
         cost: 200,
         cd: 400,
-        range: 120,
+        range: 144,
         modules: [
           {
             type: "delivery.area",

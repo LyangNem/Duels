@@ -6,6 +6,7 @@
     classification: {style: 7, range: 0, role: 1},
     stats: {maxHealth: 1300, speed: 3.75, radius: 20, baseDamage: 100, difficulty: 3},
     desc: "태양의 가호로 각성해 강화된 공격을 퍼붓는 캐릭터",
+    worldEffectModules: [{type:"effect.spawn",renderType:"swordSilhouette",conditions:[{type:"state.mode-is",stateKey:"reika-mode",value:"blessed",initial:"normal"}],style:"sun",rotationStateKey:"reika-sword-rotation",rotationMs:300,angle:-0.6,scale:1.25}],
     tooltipSkills: [
       {key: "ALWAYS", name: "가호 준비", attack: "gahoActivate", showCost: false, text: "시간이 지나거나 적을 타격해 게이지 충전"},
       {key: "LMB", name: "태양의 대검", attack: "lmb", text: "대검 휘두르기 ({damage})"},
@@ -18,15 +19,16 @@
         costText: "스테미나 0",
         text: "선딜레이 후 주변 폭발 및 화염. 레이카는 가호 상태로 전환 ({damage})"
       },
+      {key: "L-Shift", name: "반동제어불능!", attack: "counter", text: "전방으로 돌진하며 경로 상에 피해. 적에게 적중 시 정지  ({damage})"},
       {
-        key: "RMB/LMB",
+        key: "LMB PROTECTION",
         name: "검격의 화염",
         attack: "lmbBlessed",
         linkedAttack: "lmbWave",
         text: "대검 휘두르기 및 태양의 파동을 내보내 화염 부여 ({damage})"
       },
       {
-        key: "RMB/RMB",
+        key: "RMB PROTECTION",
         name: "공중 강하",
         attack: "gahoWeapon",
         linkedAttack: "gahoSlam",
@@ -34,14 +36,13 @@
         text: "잠시 공중에 떠올라 무적 상태에서 대검을 투척 후 해당 지점으로 강하 ({damageSequence})"
       },
       {
-        key: "RMB/L-Shift",
+        key: "L-Shift PROTECTION",
         name: "돌진 회전베기!",
         attack: "counterBlessed",
         linkedAttack: "counterBlessedExplosion",
         text: "전방으로 돌진하며 경로 상에 피해 및 화염. 대검을 한 바퀴 돌리며 주변 적 피해 및 화염. 적에게 적중 시 정지 ({damageSequence})"
       },
-      {key: "RMB/Space", name: "불길", text: "경로에 불길 생성. 밟을 시 화염"},
-      {key: "L-Shift", name: "반동제어불능!", attack: "counter", text: "전방으로 돌진하며 경로 상에 피해. 적에게 적중 시 정지  ({damage})"}
+      {key: "Space PROTECTION", name: "불길", text: "경로에 불길 생성. 밟을 시 화염"}
     ],
     triggers: [
       {
@@ -174,7 +175,8 @@
             clipToAttackArea: true,
             replaceAutoAreaEffect: true,
             scaleWithAttackRange: true
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -212,7 +214,8 @@
             clipToAttackArea: true,
             replaceAutoAreaEffect: true,
             scaleWithAttackRange: true
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -304,7 +307,8 @@
             distance: 180,
             speed: 12,
             oncePerExecution: true
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "선딜레이"]
       },
@@ -350,7 +354,8 @@
             stateKey: "reika-mode",
             value: "blessed",
             initial: "normal"
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["스킬", "선딜레이"]
       },
@@ -385,8 +390,7 @@
             targetPointClearance: 4,
             targetPreview: {
               shape: "circle",
-              range: 90,
-              style: {strokeColor: "56,189,248", fillColor: "56,189,248", strokeAlpha: 0.65, fillAlpha: 0.08, dash: [6, 5]}
+              range: characterValue("attacks.gahoSlam.range")
             },
             damageOnTravel: false,
             collisionTargets: false
@@ -427,7 +431,8 @@
               crossHalfLength: 11,
               showLink: false
             }
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["스킬"]
       },
@@ -521,7 +526,8 @@
               pathPresentation: {color: "255,122,0", width: 44, duration: 200},
               stopAfterFirstContact: false
             }
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["반격"]
       },
@@ -532,20 +538,11 @@
         cd: 300,
         range: 300,
         presentation: {color: "56,189,248"},
-        previewStyle: {
-          strokeColor: "56,189,248",
-          strokeAlpha: 0.62,
-          fillColor: "56,189,248",
-          fillAlpha: 0.16,
-          lineWidth: 1.7,
-          dash: [7, 5]
-        },
         previewGeometry: {
           shape: "rect",
           range: characterValue("attacks.counterBlessed.range"),
           halfWidth: 44,
-          wallPolicy: "ignore",
-          color: "56,189,248"
+          wallPolicy: "ignore"
         },
         modules: [
           {
@@ -599,7 +596,8 @@
               pathPresentation: {color: "56,189,248", width: 44, duration: 200},
               stopAfterFirstContact: false
             }
-          }
+          },
+          {type:"mode.toggle",when:"after-attack",stateKey:"reika-sword-rotation",values:["a","b"]}
         ],
         tags: ["반격"]
       },
@@ -744,6 +742,14 @@
                   ]
                 }
               ]
+            },
+            {
+              type: "preview.create",
+              shape: "attack-shape",
+              attackId: "attack.reika.gaho-weapon",
+              duration: 320,
+              requireExecuted: true,
+              requireAttackId: "attack.reika.gaho-weapon"
             },
             {
               type: "preview.create",

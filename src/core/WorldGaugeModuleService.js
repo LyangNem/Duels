@@ -166,6 +166,13 @@ const WorldGaugeModuleService=Object.freeze({
         EntityService.owner(entity)!==Training.player
       )continue;
 
+      if(module?.type==='range.equipment-thresholds'){EquipmentGaugePresentationService.thresholds(ctx,entity,module);continue;}
+
+      if(module?.type==='gauge.equipment-bank'){
+        EquipmentGaugePresentationService.draw(ctx,entity,module);
+        continue;
+      }
+
       if(module?.type==='range.circle'){
 
         if(

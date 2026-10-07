@@ -15,8 +15,8 @@ c.GAME_DATA={characters:chars,ranges:c.CHARACTER_RULES.ranges,frameMs:1000/60,co
 load('src/data/AUGMENTS.js','AUGMENTS');
 c.AbilityService={attackById:(ch,id)=>Object.values(ch.attacks||{}).find(a=>a.id===id)};
 function walk(v,fn){assert.notEqual(typeof v,'function');if(!v||typeof v!=='object')return;fn(v);for(const x of Object.values(v))walk(x,fn)}
-test('59명 함수 없는 데이터·동결·Trigger·반격 및 공격 참조 검사',()=>{
- assert.equal(Object.keys(chars).length,59);
+test('60명 함수 없는 데이터·동결·Trigger·반격 및 공격 참조 검사',()=>{
+ assert.equal(Object.keys(chars).length,60);
  for(const ch of Object.values(chars)){
   assert.ok(Object.isFrozen(ch));const attacks=Object.values(ch.attacks||{});const ids=new Set(attacks.map(a=>a.id));assert.equal(ids.size,attacks.length,ch.name);
   walk(ch,m=>{if(m.type==='counter.execute'){assert.ok(c.CounterModuleService.validate(m),ch.name);assert.equal(m.allowNoCc,undefined);if(m.ccRefAttackId)assert.ok(c.CounterModuleService.referencedCc({character:ch},m),ch.name)}if(m.type==='attack.execute')assert.ok(ids.has(m.attackId),ch.name+':'+m.attackId)});
@@ -211,4 +211,40 @@ test('티냐 반격 설명/미리보기/실제 마지막 발동 마법진 일치
  assert.ok(ch.tooltipSkills.find(x=>x.key==='L-Shift').text.includes('마지막으로 발동한'));
  assert.equal(service.resolveModuleCircles(e,{source:'pending'},{}).length,1);assert.equal(state.pendingManifest,null);
 });
+load('src/combat/DodgeFollowupStateService.js','DodgeFollowupStateService');
+test('카논 이동 회피 공격 제거·제자리 회피 보정/기본 공격 유지',()=>{
+ const ch=chars.kanon;assert.deepEqual(Object.keys(ch.attacks).sort(),['counter','lmb','lmbStopped','lmbStoppedSecond','rmb','rmbStopped'].sort());
+ assert.equal(ch.dodgeFollowupState.movingStateKey,'kanon-dodge-moving');assert.ok(ch.dodgeFollowupState.stoppedStateKey);
+ assert.equal(ch.tooltipSkills.some(x=>x.key.includes('MOVING')),false);
+ for(const slot of ['lmb','rmb'])assert.equal(ch.abilities[slot].trigger.modules[0].alternates.some(x=>x.stateKey==='kanon-dodge-moving'),false);
+ assert.equal(JSON.stringify(ch).includes('recoil'),false);assert.equal(JSON.stringify(ch).includes('dive-kick'),false);
+ for(const slot of ['lmb','rmb'])assert.equal(ch.abilities[slot].trigger.modules[0].alternates.length,1);
+ const e={character:ch,actionState:new Map()};c.TimedActionStateService={open(e,m){e.actionState.set(m.stateKey,m)}};
+ assert.equal(c.DodgeFollowupStateService.begin(e,{x:1,y:0},1000),true);assert.ok(e.actionState.has('kanon-dodge-moving'));
+ assert.equal(c.DodgeFollowupStateService.begin(e,{x:0,y:0},1000),true);assert.ok(e.actionState.has('kanon-dodge-stopped'));
+ assert.equal(ch.attacks.lmb.damageRatio,1);assert.equal(ch.attacks.rmb.damageRatio,2);assert.equal(ch.attacks.counter.damageRatio,3);
+});
+load('src/core/TimedActionStateService.js','TimedActionStateService');
+load('src/core/RuntimeValueReferenceService.js','RuntimeValueReferenceService');
+c.RuntimeValueReferenceProviders=new Map();
+test('카논 제자리 회피 보정:회피 중 키 해제·경계·소비 후 재생성 방지·호 수명',()=>{
+ const ch=chars.kanon,service=c.DodgeFollowupStateService;
+ const moving=ch.dodgeFollowupState.movingStateKey,stopped=ch.dodgeFollowupState.stoppedStateKey;
+ const make=()=>({character:ch,actionState:new Map(),dodgeUntil:1130,forcedMotion:{kind:'dodge'}});
+ const e=make();service.begin(e,{x:1,y:0},1000);
+ assert.equal(service.observeMovement(e,{x:1,y:0},1050),false);
+ assert.equal(service.observeMovement(e,{x:0,y:0},1050),true);
+ assert.equal(e.actionState.has(moving),false);assert.equal(e.actionState.get(stopped).expiresAt,3050);
+ assert.equal(service.observeMovement(e,{x:0,y:0},1060),false);assert.equal(e.actionState.get(stopped).expiresAt,3050);
+ c.performance.now=()=>2050;assert.equal(c.RuntimeValueReferenceService.resolve(e,ch.worldGaugeModules[0].valueRef),.5);
+ c.TimedActionStateService.consume(e,stopped,2050);assert.equal(service.observeMovement(e,{x:0,y:0},1060),false);
+ for(const time of [1130,1131]){const x=make();service.begin(x,{x:1,y:0},1000);assert.equal(service.observeMovement(x,{x:0,y:0},time),false);assert.equal(x.actionState.has(stopped),false)}
+ const x=make();service.begin(x,{x:1,y:0},1000);x.forcedMotion=null;assert.equal(service.observeMovement(x,{x:0,y:0},1050),false);
+ const direct=make();service.begin(direct,{x:0,y:0},1000);assert.ok(direct.actionState.has(stopped));service.begin(direct,{x:1,y:0},1010);assert.equal(direct.actionState.has(stopped),false);service.clear(direct);assert.equal(direct.actionState.size,0);
+ const legacy={...make(),character:{id:'generic',dodgeFollowupState:{...ch.dodgeFollowupState,movingStateKey:''}}};assert.equal(service.begin(legacy,{x:1,y:0},1000),false);
+ assert.equal(ch.worldGaugeModules[0].type,'gauge.arc');assert.equal(ch.worldGaugeModules[0].color,ch.color);assert.equal(ch.worldGaugeModules[0].completeColor,ch.color);
+ for(const slot of ['rmb','rmbStopped'])assert.equal(ch.attacks[slot].modules.find(x=>x.status==='stun').duration,600);
+ c.performance.now=()=>1000;
+});
+test('발명 무기의 유도/벽 관통/일반 투사체/점프는 공통 태그 자동 파생',()=>{c.GAME_DATA.ranges=c.CHARACTER_RULES.ranges;for(const key of ['lmb','chain'])assert.ok(c.TagService.attackTags(chars.geopin.attacks[key]).has('유도'));assert.ok(c.TagService.attackTags(chars.geopin.attacks.wall).has('벽 관통'));assert.ok(c.TagService.attackTags(chars.geopin.attacks.laser).has('일반 투사체'));assert.ok(!c.TagService.attackTags(chars.geopin.attacks.laser).has('레이저 투사체'));assert.ok(c.TagService.attackTags(chars.geopin.attacks.jump).has('이동기'));});
 console.log(`PASS ${passed} structure/regression groups / ${Object.keys(chars).length} characters`);
