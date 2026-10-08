@@ -1,3 +1,11 @@
+## 화살비 장판 중심 넉백 — 3.0.0-character.175
+
+실제 장판 state.execution=null인 경우 중심좌표가 전달되지 않아 기본0rad 오른쪽넉백이 되던 원인 수정. 실행정보가 없으면 공용 AttackExecutionService.create로 생성 후 실제장판 중심 전달.
+
+InstalledAreaFieldService.fieldTrigger에서 실제 area.center를 point impactOrigin으로 전달. away-from-impact 공용효과가 장판중심을 읽음. 생성타격의 기존 착탄중심 유지.
+
+실제와 동일한 execution=null·시로이동후 상하좌우4방향 넉백 회귀 및 시로·무기 회귀 및 build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
+
 ## 화살비 장판 중심 넉백 — 3.0.0-character.174
 
 시로 화살비 지속타격 넉백이 시로 위치를 기준으로 계산되던 문제 수정. 공용 장판 타격 실행의 impactOrigin을 실제 장판중심으로 설정하여 이동후에도 중심 반대방향으로 넉백.
