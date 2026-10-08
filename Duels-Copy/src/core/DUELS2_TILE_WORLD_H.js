@@ -1,2 +1,0 @@
-
-const DUELS2_TILE_WORLD_H = GAME_DATA.world.height / DUELS2_TILE_ROWS;

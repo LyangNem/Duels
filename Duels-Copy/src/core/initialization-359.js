@@ -1,3 +1,0 @@
-
-
-TrainingPresentationBindings.init();
