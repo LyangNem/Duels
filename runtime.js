@@ -31591,7 +31591,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "key": "LMB HOLD",
       "name": "다중 사격",
       "attack": "lmb",
-      "text": "최대 2단계 차징 후 화살을 2~3발 산탄 발사하여 {burnSeconds}초 화염 (탄당 {damage})",
+      "text": "최대 2단계 차징 후 화살을 2/3발 산탄 발사하여 {burnSeconds}초 화염 (탄당 {damage})",
       "costText": "스테미나 {v:attacks.lmb.charge.costStages.1.cost}/{v:attacks.lmb.charge.costStages.2.cost}"
     },
     {
@@ -31606,7 +31606,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "name": "토끼뜀",
       "attack": "counter",
       "linkedAttack": "rainTick",
-      "text": "조준 반대 방향으로 점프하며 최고점에서 시작 지점에 화살 발사. 화살비 생성 시 범위 내 적에게 피해·화염·무력화 넉백. 이후 벽을 관통하는 화살비 타격마다 무력화 넉백 및 {burnSeconds}초 화염 ({linkedDamage})"
+      "text": "조준 반대 방향으로 점프하며 점프 시작 지점에 화살비 구역 생성. 범위 내 적에게 피해 및 화염 ({linkedDamage})"
     }
   ],
   "attacks": {
@@ -32376,13 +32376,13 @@ const CHARACTER_DATA=freezeCharacterData({
     "role": 6
   },
   "stats": {
-    "maxHealth": 1300,
+    "maxHealth": 1200,
     "speed": 3.75,
     "radius": 20,
     "baseDamage": 200,
-    "difficulty": 3
+    "difficulty": 4
   },
-  "desc": "출혈된 적을 추격하며 작살과 선체로 압박하는 캐릭터",
+  "desc": "출혈된 적을 연속타격하며 압도적인 스테미나로 전투하는 캐릭터",
   "tooltipSkills": [
     {
       "key": "ALWAYS",
@@ -32406,7 +32406,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "key": "L-Shift",
       "name": "출항이다!",
       "attack": "counter",
-      "text": "맵 끝까지 적과 벽을 관통하는 선체. 범위 내 적에게 {v:attacks.counter.modules.0.rehitInterval|seconds}초마다 피해 및 무력화 넉백 ({damage})"
+      "text": "적과 벽을 관통하는 선체. 범위 내 적에게 피해 ({damage})"
     }
   ],
   "attacks": {

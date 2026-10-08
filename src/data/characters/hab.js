@@ -10,13 +10,13 @@
     "role": 6
   },
   "stats": {
-    "maxHealth": 1300,
+    "maxHealth": 1200,
     "speed": 3.75,
     "radius": 20,
     "baseDamage": 200,
-    "difficulty": 3
+    "difficulty": 4
   },
-  "desc": "출혈된 적을 추격하며 작살과 선체로 압박하는 캐릭터",
+  "desc": "출혈된 적을 연속타격하며 압도적인 스테미나로 전투하는 캐릭터",
   "tooltipSkills": [
     {
       "key": "ALWAYS",
@@ -40,7 +40,7 @@
       "key": "L-Shift",
       "name": "출항이다!",
       "attack": "counter",
-      "text": "맵 끝까지 적과 벽을 관통하는 선체. 범위 내 적에게 {v:attacks.counter.modules.0.rehitInterval|seconds}초마다 피해 및 무력화 넉백 ({damage})"
+      "text": "적과 벽을 관통하는 선체. 범위 내 적에게 피해 ({damage})"
     }
   ],
   "attacks": {

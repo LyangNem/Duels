@@ -97,7 +97,7 @@ test('온라인 최고점 후속 패킷은 원점/출발 목표/높이의 동일
  c.Training.sessionMode='training';c.OnlineDuelService.active=false;
 });
 test('스킬 설명 수치 참조는 실제 피해/화염 시간으로 완전히 치환',()=>{
- for(const skill of ch.tooltipSkills){const text=c.CharacterDescriptionService.interpolate(ch,skill);assert.ok(!text.includes('{'),text);assert.ok(text.includes('4초'),text)}
+ for(const skill of ch.tooltipSkills){const text=c.CharacterDescriptionService.interpolate(ch,skill);assert.ok(!text.includes('{'),text);if(skill.key!=='L-Shift')assert.ok(text.includes('4초'),text)}
  assert.ok(c.CharacterDescriptionService.interpolate(ch,ch.tooltipSkills[0]).includes('(100)'));
  assert.ok(c.CharacterDescriptionService.interpolate(ch,ch.tooltipSkills[2]).includes('(200)'));
  assert.ok(c.CharacterDescriptionService.interpolate(ch,ch.tooltipSkills[3]).includes('(100)'));

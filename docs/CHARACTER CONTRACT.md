@@ -315,3 +315,8 @@ WEAPON_IMAGE_DEFS forge-hammer-mirrored 순수형상과 기존parts 변환 사�
 ## 하푸푸 넉백 증가율 조정 — 3.0.0-character.172
 
 하푸푸 순수데이터 movement.knockback.distance만 수정. 기존 공용전투모듈 사용.
+
+
+## 헤브·시로 능력치 및 설명 — 3.0.0-character.173
+
+캐릭터 순수데이터 및 헤브 체력 회귀기대값 변경. tooltip 값참조 유지.

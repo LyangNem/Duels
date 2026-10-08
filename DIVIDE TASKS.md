@@ -1,6 +1,6 @@
 # DIVIDE TASKS
 
-버전: 3.0.0-character.172
+버전: 3.0.0-character.173
 
 역할 변경 시 project.json의 role/symbols도 수정하고 `python tools/project.py docs`로 이 문서를 갱신한다. 해시 검사는 역할 의미의 정확성을 대신하지 않는다. runtime.js는 생성 결과이며 직접 편집하지 않는다.
 
@@ -9,11 +9,11 @@
 | `AGENTS.md` | AI 작업자에게 README 정독·문서 갱신 의무 안내 |  | e22055c0c72b7010c9e6eef168ac2f49e01a5411385ce87b4370aba513f29590 |
 | `DIVIDE TASKS.md` | 전체 파일 역할·심볼·해시 목록 |  | 자기 참조 제외 |
 | `Duels.html` | Duels 진입 화면·DOM·리소스 연결·방 모드/금지/도움말 UI·회피 비용 및 체력 구분선 간격 참조 표시 영역 |  | a29b958ca694261b34752692a43ecb8557d7d41035e0e2fc340a2f05c4e3af35 |
-| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | e06516b1f7d4ddfaa3b4a081b025c233b40e64e6694866894caba7767d590e09 |
-| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | bd49c5fed4d833a7943976376cbd1079029a9fbe5a8ab88b7ba3bb05b72a2e9b |
+| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | 190215969ae1180b51665b757ef303d7ef0db8b0e87509d2c0a538cff0894570 |
+| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | 7a72902960c2c7ba033cdc07d68862d4f5441d05ba411627303fc227d348d3e0 |
 | `START.bat` | Windows 로컬 서버 실행 |  | d383b503b5d39e16324de2f7031e5cd69175f3b54bfbf477097ee758f094c849 |
 | `START.sh` | Linux/macOS 로컬 서버 실행 |  | 14be4f1c3b060556e2df88e1811eabe8d8ceeb8011f4c0c498399a9675e94bfa |
-| `docs/CHARACTER CONTRACT.md` | 공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약 |  | 34f1321a2716f89954751b6778d3736d102be21ad54cfbdd4fcd934958c6c82f |
+| `docs/CHARACTER CONTRACT.md` | 공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약 |  | 357c45aedcf7176e5c6c11d9f097fb80d4497f931931cd3aaa6d6d74e09e5f67 |
 | `docs/GAE REMAKE.md` | 가에 리메이크 및 반 후속 재생25/적중5회복구 기록 |  | b907c326e786c251ff6e1623775b185f4eda33f300b5a4a46714eb8e2bf1acc2 |
 | `docs/GEOPIN.md` | 지오핀 최신 수치/모듈·소환수 포함 급접근350ms/100/350·회피 관측/재감지450·검수 계약·후면6톱니 기어 외형 기록·모따기 기어 외형 보정 기록·기어 전면 재설계 기록·6살 원형 축 디자인 기록·기어 리디자인 롤백 기록·기존 기어 세부 보정 기록·16톱니 복구 기록; character.100 발명 슬롯 및 새 무기 계약 |  | 9a744cda2be04efe7f9e2eefe2568f4a4ed27f41d5d7e84ff261fa10db948f78 |
 | `docs/HAB.md` | 헤브 최신121 실제 무기투사체 스타일·기존출혈/항시/선체/작살·회귀검수 |  | 0cc4e8ccce5f57439412910c698484113431798bdc6bd0515e212cec20e22ce3 |
@@ -24,9 +24,9 @@
 | `docs/STRUCTURE AUDIT.md` | 구조 검수 범위·발견/수정·58명 결과·우선 플레이 테스트와 검증 한계 |  | f98c1c01ed30000c6c84692a55a0d0af39403f71a8a5d49cbb33736d74013935 |
 | `docs/TERDION.md` | 테르디온 현재 단발/직격200/착탄 직격 및 모듈 책임·수치·검증·실기기 확인 안내·반격 반경14·평타 탄속20.8·평타/반격 직격150·반격350·반격 마우스 거리 조절 |  | 7764cc3d9596f0cacc052c40de03eb4758cc6fcc75f0e8fb8e6f7b561180abee |
 | `docs/VERIFICATION.md` | split.2 검수 발견 오류·수정·통과 검사·실행 한계와 재현 방법 기록 |  | ae9d7cc0de36c42ea51f7ed040a8fc4ef8a53b31cb750f2bf010dc482d7038e9 |
-| `docs/WEAPON IMAGE GUIDE.md` | 무기172 하푸푸 넉백 증가율 조정·공용형상 검수계약 |  | 29dd3936dfc195804bd5a4d25a5a5e2fd119b339f981d3605132b277f28e95b5 |
-| `docs/WEAPON UPDATES.md` | 무기172 하푸푸 넉백 증가율 조정·공용형상 검수계약 |  | 899c0f1f5c7de010b35b370da0dfb3ea3ab048dc18c90ec423ecdf844085a40b |
-| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | 9887ab08aefb03edc0e3d4b698fb4f4ef5688976e231a1b852545476550ffdcb |
+| `docs/WEAPON IMAGE GUIDE.md` | 무기173 헤브·시로 능력치 및 설명·공용형상 검수계약 |  | c38c5b65490a53fd1819641696bd302d08419b2294a79deca90149e034ca22c4 |
+| `docs/WEAPON UPDATES.md` | 무기173 헤브·시로 능력치 및 설명·공용형상 검수계약 |  | 7f45cde67c2bc611ebbccd2c1923a92492561edc144221c99b44b8ce2558a89f |
+| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | f5283b8410d8a78005a1a959c8ac20a1a072b13f18e44a015fc4f42e75dbfbed |
 | `src/abilities/AbilityAttackExecutionService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: AbilityAttackExecutionService. | AbilityAttackExecutionService, execute | 6aa6f2993ec47e9ca212f2f318d8a66ae4266eaf68021cb10d1cc7710d0ce019 |
 | `src/abilities/AbilityModuleService.js` | 공용 능력모듈·공식 실제 오입력 inputErrorMotion·회피차단/자연회복 보존 | AbilityModuleService | cedfb168fb888fbc6cd1df961ddec16b7cb39c407cf4f03ad98e18b98e6c125c |
 | `src/abilities/AbilityService.js` | 공통 Trigger/능력 실행·선택 무기 해석·행동 결과의 모드 snapshot/입력 방향 | AbilityService, attackById, damageRatio, eventAttack, resolvedInputAttack, trigger, canActivate, activate | 6b265ec62f13153df17abc8966a5ab4ae8cebe388e97f99d669e19da01bacdeb |
@@ -338,7 +338,7 @@
 | `src/data/characters/ezrail.js` | ezrail 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | ezrail | 9e2a88aff5995b77dea72008fb15ef1bafe8c1c56071c8f1f0c74520424b0535 |
 | `src/data/characters/gae.js` | 가에 데이터:500ms 선딜·미리보기·고정 주황 ELECTRIC·설명 정렬; FIX 잃은체력25% 회복 데이터·활성 명령8칸 게이지 구성 | gae | 251c54554ca1c0bd0c9639ec735f92ac870ce6909599565ff0dc60c6799445fd |
 | `src/data/characters/geopin.js` | geopin 순수 캐릭터 모듈 데이터·공용 weaponImage 형상/상태/모션 설정 | geopin | 59dea3315fa5d8b0eb12b1f67858b789053f6ff21f2d7c39dc37a5826c9f3cb1 |
-| `src/data/characters/hab.js` | 헤브25/35투사체·550사거리·400ms연사·50%회복 | hab | 5dc631656fa04d74d93ec7c7107433179bf5e8c5babf41d073a0bd2bf338aac4 |
+| `src/data/characters/hab.js` | 헤브 전투데이터·체력1200/난이도4·사용자설명 | hab | 222753e8560ea4e3915f03ea1a0d452ba7c8e2e4b1943e3e63fe49ce9ae3f6a7 |
 | `src/data/characters/hapupu.js` | 하푸푸 데이터·평타넉백47.25/표식/반격 | hapupu | a36a7ca7db732e9ed3e992451b92ad5d4240d44d6814f36a26843d8e0e80798c |
 | `src/data/characters/hatsuhats.js` | 하츠하츠 드래그 전투 데이터·붓 이미지·실제 평타/반격/스킬 시계회전·기본 이동선 제외 | hatsuhats | 1fd690d869e734750848322048b2c2d10ed9c49bbfd2239b900b799bc12a311c |
 | `src/data/characters/herjang.js` | herjang 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. 분할 전 원본의 이동 선 미표시를 presentation:false로 보존.·RMB SUMMONER 명령 표기 | herjang | 6ca9072c28a98f940c3321a7649f812ff3bce0ea401bd07c40fa49cd50994386 |
@@ -378,7 +378,7 @@
 | `src/data/characters/sherbet.js` | 샤베트 순수모듈·빙결공격 피격링제외·40%평상시 눈결정/고정표본잔향·기존전투 | sherbet | 98657802c9cad0ff23a5e2c7a3cbb614761b0b963ffa984b53b8e839274047a1 |
 | `src/data/characters/sherina.js` | 셰리나 음파잔향·반격잔향틱 무력화넉백 | sherina | 34ca9463edd60e9c1c08c101086a5ddcd3537b1fb944d1ffc37e16ae3daba19b |
 | `src/data/characters/shubi.js` | 슈비 전자샷건·평타 짧은반동/스킬반격 완전회전 별도모드 | shubi | 52a78e1f533653231c3114a2b0032dfbd3e9653df760020b710225b0c064f7f5 |
-| `src/data/characters/siro.js` | 시로600비용·넉백100·300ms높이60점프·화염초당30 | siro | 11cdb1220a270a4d3ac4bafb23e7447536504cb4e5ae41809c4220c0baf650e5 |
+| `src/data/characters/siro.js` | 시로 전투데이터·사용자설명/다중사격2·3발/토끼뜀 | siro | ae326e420e7f529e2d80ad876a7dedf96e2354c35aeff7b50c94cbe04a551035 |
 | `src/data/characters/sor.js` | sor 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | sor | a61874e115f2351c0cd3725432020205ff64f824b13a8f51564f7526491730bb |
 | `src/data/characters/sya.js` | 스야 순수모듈·은신/빙결·좌우반전낫/시계회전·실제전달모션 | sya | 53cfa7df28a19ff9f307493438fa9f604ac8819b85d0ef0dd6d517cabf072ae1 |
 | `src/data/characters/tadta.js` | 타다타 데이터·스킬 투척440/스테미나500·장판180 유지 | tadta | 1ee9455bf980c1dd9cff32ce4ea62654c3e487270173c3d38f99a01d684d720e |
@@ -545,10 +545,10 @@
 | `tools/test-gameplay-fixes.cjs` | 실제 서비스 실행 회귀 15개: 사망 관전·방어 경로·선택 상한·불규칙 잔향 수신 보간·종료/축소·독립성·모드 초기값/선택지/증강 제출 차단 회귀·단독 금지 실제 버튼 확정/복귀 회귀·모드별 전환/재실행 저장 복원·자동카운트다운 회귀·금지창 재개방 스크롤/즉시 지정점 미리보기 회귀 |  | aa65459aaf8a4061c9b93ddac11ac4bba171d50e551dec060989d57034d95624 |
 | `tools/test-geopin.cjs` | 지오핀 조건장비·장판생성광역피해/저회/직격제외 회귀 |  | 99effdf616c7dde584d8273da553ef570c373edc5f3d239f7e4b0952fd5bed65 |
 | `tools/test-hab-projectile.cjs` | 헤브 실제 ProjectileService 맵 경계/사거리 무시·대상별1초 재타격 회귀 |  | ea40dadd451bff5ef5879022f7b5cc56c6ce1175822487cd155d47752c6ac273 |
-| `tools/test-hab.cjs` | 헤브 최신 공격/회복 실실행 회귀 |  | b30927677199d2cbaaba942c9792d37557830cc910f23b64be41a9d30255c5d5 |
+| `tools/test-hab.cjs` | 헤브1200체력·공격/회복 실실행 회귀 |  | efebc21fcc1c30e016a54e0730ad06ea589201f79ffe2a745247c2ff86bbd554 |
 | `tools/test-movement-contact.cjs` | 라임 평타/레이카 일반·가호 반격 실제 EffectSpec 원격 접촉19개 회귀·같은 방향 이동/정지/중복/범위 밖/최신 좌표 검증 |  | a67ded1f59a08e65948b3026548037395877ae04ce9a2982b428d4dec204ff4c |
 | `tools/test-room-connection.cjs` | 모의 Peer 방 연결19그룹·복제 탭 identity/같은 기기 계정 독립 승인·이탈/승계/순서·충격 전달/반사 실제 Room 호스트 중계/클라이언트 수신 검사·모드 탭 DOM 질의 mock |  | 745eeb52667be46de3ce3070b8321556f1eb94d0bf0ae1cef740950aecf9e88f |
-| `tools/test-siro.cjs` | 시로 비용/점프/화염 회귀 |  | 00569a5cf7a4c993ae0e5d952ea313181fd35739f07f1a3a2a441850ac2f8b71 |
+| `tools/test-siro.cjs` | 시로 비용/점프/화염 회귀 |  | 763ecddb98aa26521dd2cb0a64cbf09b35e0038b8add636ece40735a4b47835a |
 | `tools/test-structure.cjs` | 구조22 회귀·카논 제자리회피 상태 보정·표시 격리 |  | fc8619125ace9e6754d303ce0c756fa527cf46a5ae4d113bce1dc72fe2345789 |
 | `tools/test-terdion.cjs` | 테르디온 전투·착탄·반격·공통62명 컴파일 회귀 | test, load, carrier, damage, loadCancellation | aaa18584cc6bcefe1edbf9345a3c70392db546f7aa6d1e020e0d642350c43d06 |
 | `tools/test-weapon-updates.cjs` | 공용무기·헤브 실제투사체 최신수치 회귀 | test, entity, gun, fire, selected, canvasStub | 15f8439a79279a9ca4f4c71272977a07c29ea4da6c1490e3b6ce88f08e5e3cbb |

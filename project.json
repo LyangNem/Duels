@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-character.172",
+  "version": "3.0.0-character.173",
   "source": "3.1717 (65).html",
   "original_script_sha256": "6fd12004e89d39fffe6a916d711147f63a7039b1a1cc995f7cc8532751f0ed8e",
   "load_order": [
@@ -6926,7 +6926,7 @@
     },
     {
       "path": "src/data/characters/siro.js",
-      "role": "시로600비용·넉백100·300ms높이60점프·화염초당30",
+      "role": "시로 전투데이터·사용자설명/다중사격2·3발/토끼뜀",
       "symbols": [
         "siro"
       ]
@@ -6943,7 +6943,7 @@
     },
     {
       "path": "src/data/characters/hab.js",
-      "role": "헤브25/35투사체·550사거리·400ms연사·50%회복",
+      "role": "헤브 전투데이터·체력1200/난이도4·사용자설명",
       "symbols": [
         "hab"
       ]
@@ -6955,7 +6955,7 @@
     },
     {
       "path": "tools/test-hab.cjs",
-      "role": "헤브 최신 공격/회복 실실행 회귀",
+      "role": "헤브1200체력·공격/회복 실실행 회귀",
       "symbols": []
     },
     {
@@ -6977,7 +6977,7 @@
     },
     {
       "path": "docs/WEAPON UPDATES.md",
-      "role": "무기172 하푸푸 넉백 증가율 조정·공용형상 검수계약",
+      "role": "무기173 헤브·시로 능력치 및 설명·공용형상 검수계약",
       "symbols": []
     },
     {
@@ -6990,7 +6990,7 @@
     {
       "path": "docs/WEAPON IMAGE GUIDE.md",
       "symbols": [],
-      "role": "무기172 하푸푸 넉백 증가율 조정·공용형상 검수계약"
+      "role": "무기173 헤브·시로 능력치 및 설명·공용형상 검수계약"
     },
     {
       "path": "tools/test-cyien.cjs",
@@ -7063,7 +7063,7 @@
   "baseline_rules_sha256": "eaaf531ff3eedf5244ec6829d0fe12d1932bab4c252c79b68ecf839e27ea6bac",
   "old_rule_16": "16. Duels 3.0은 반드시 단일 HTML 파일로 유지한다.\n- 외부 JS/CSS 파일로 게임 코드를 분리하지 않는다.\n- 단일 파일 내부에서도 시스템별 영역과 책임을 명확하게 구획한다.\n- 단일 파일 조건은 모듈화 금지를 의미하지 않는다.",
   "new_rule_16": "16. DUELS 3.0은 역할별 여러 소스 파일로 개발한다.\n- 캐릭터는 캐릭터별 데이터 원본, 실행 기능은 공통 서비스 단위로 분리한다.\n- 실행 순서와 공유 문맥을 유지하는 조립은 허용한다. 생성 결과를 직접 수정하지 않는다.\n- 배포 파일명은 Duels.zip, 진입 HTML은 Duels.html로 고정한다.",
-  "current_script_sha256": "9fbceb9070560461a3bce63ba159efc1f063c9ab35301d186ea40b2b848e663f",
+  "current_script_sha256": "004c6de00b23024db1f772e49c6276c642a24bc25448a4b7eb3a350806cd0b90",
   "baseline_layout_sha256": "91b3fa54ece362a30852be9cdb5fccd051c0afda78cc6e891b240eab54747aac",
   "current_resource_sha256": {
     "styles/game.css": "6ea2aa04d77de61e961dea89d7bb0160e5d8f3806d516d68d6ff24b60b0c5f47",

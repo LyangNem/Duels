@@ -1412,3 +1412,12 @@ character.59 뉴/레이카 검 리디자인과 함께 제공. 대상: geopin.js/
 - 파일: characters/levina; README/PATCH LOG/project/DIVIDE TASKS/runtime; 무기/캐릭터 계약 문서.
 - 검증: build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
 - 실플레이 권장: 레비나 삼지창 축소·투척중숨김·복원.
+
+
+## 3.0.0-character.173 — 2026-10-08 KST
+
+- 요청/결과: 사용자 제공 헤브·시로 stats/desc/tooltipSkills 반영. 헤브체력1200/난이도4·한줄설명 및 반격설명 교체. 시로 다중사격2/3발·토끼뜀 설명 교체. 전투모듈 유지.
+- 구조: 캐릭터 순수데이터 및 헤브 체력 회귀기대값 변경. tooltip 값참조 유지.
+- 파일: characters/levina; README/PATCH LOG/project/DIVIDE TASKS/runtime; 무기/캐릭터 계약 문서.
+- 검증: 헤브·시로 회귀 및 build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
+- 실플레이 권장: 레비나 삼지창 축소·투척중숨김·복원.
