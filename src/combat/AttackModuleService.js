@@ -3762,9 +3762,13 @@ const AttackModuleService=Object.freeze({
         const moveTarget=module.target?.type==='projectile'
           ?(deliveryModule?.projectile||ProjectileStateService.get(source,module.target.stateKey))
           :(module.target==='hit-target'?target:null);
-        if(moveTarget||attackDirection){
-          const dx=moveTarget?(Number(moveTarget.x)||0)-(Number(source.x)||0):0;
-          const dy=moveTarget?(Number(moveTarget.y)||0)-(Number(source.y)||0):0;
+        const confirmedPoint=execution?.projectileImpactPoint;
+        const resolvedMoveTarget=moveTarget||(module.target?.type==='projectile'&&
+          Number.isFinite(Number(confirmedPoint?.x))&&Number.isFinite(Number(confirmedPoint?.y))
+          ?{x:Number(confirmedPoint.x),y:Number(confirmedPoint.y)}:null);
+        if(resolvedMoveTarget||attackDirection){
+          const dx=resolvedMoveTarget?(Number(resolvedMoveTarget.x)||0)-(Number(source.x)||0):0;
+          const dy=resolvedMoveTarget?(Number(resolvedMoveTarget.y)||0)-(Number(source.y)||0):0;
           const distance=attackDirection
             ?Math.max(0,Number(module.distance)||0)
             :Math.hypot(dx,dy);

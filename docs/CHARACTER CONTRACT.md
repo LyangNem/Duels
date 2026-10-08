@@ -330,3 +330,33 @@ InstalledAreaFieldService.fieldTrigger에서 실제 area.center를 point impactO
 ## 화살비 장판 중심 넉백 — 3.0.0-character.175
 
 InstalledAreaFieldService.fieldTrigger에서 실제 area.center를 point impactOrigin으로 전달. away-from-impact 공용효과가 장판중심을 읽음. 생성타격의 기존 착탄중심 유지.
+
+
+## 지오핀 시작보유 리메이크 — 3.0.0-character.176
+
+ReactiveEquipmentService 선택적 initialOwned는 스택 생성없이 즉시선택. 기본자료는 기존경로 유지. 기존 공용모드/무기이미지/튕김모듈 조합·기존 우클릭 이전/홀드기본/반격 마지막조건 유지.
+
+
+## 화살비 장판 중심 넉백 — 3.0.0-character.177
+
+지오핀 initialOwned 공용선택옵션 유지·기존스택 생성없음·UI보유상태완충표시. 헤브 범위탄환 기존 hitIds로 적별1회·관통/맵끝비행 유지.
+
+
+## 화살비 장판 중심 넉백 — 3.0.0-character.178
+
+character175의 geopin/ReactiveEquipmentService/EquipmentGaugePresentationService 원문복구. initialOwned 즉시장착옵션 제거.
+
+
+## 화살비 장판 중심 넉백 — 3.0.0-character.179
+
+캐릭터순수데이터 damageRatio .4/.8/.4만 변경·화염틱/스테미나/모션 유지.
+
+
+## 화살비 장판 중심 넉백 — 3.0.0-character.180
+
+공용 AttackModuleService 투사체대상이 없을때 execution.projectileImpactPoint fallback. NetworkHitAuthorityService 기존 impactX/Y 복원 경로·이동시작 성공후만 markEffect. 타우 전용분기/새패킷없음.
+
+
+## 화살비 장판 중심 넉백 — 3.0.0-character.181
+
+헤브 순수캐릭터 데이터 변경·공용모듈 조합 유지.

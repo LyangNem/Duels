@@ -777,7 +777,7 @@ const NetworkHitAuthorityService={
               )
               :(distance>.001?Math.atan2(dy,dx):0);
 
-            MovementAbilityService.start(
+            const movementStarted=MovementAbilityService.start(
               sourceEntity,
               {...module,type:'movement.move',control:'fixed'},
               angle,
@@ -787,7 +787,7 @@ const NetworkHitAuthorityService={
               }
             );
 
-            if(module.oncePerExecution){
+            if(movementStarted!==false&&module.oncePerExecution){
               AttackExecutionService.markEffect(execution,sourceMoveKey);
             }
 

@@ -1,3 +1,51 @@
+## 화살비 장판 중심 넉백 — 3.0.0-character.181
+
+헤브 스킬 넉백 모듈제거·설명 넉백문구제거. 평타스테미나300→250/스킬600→500. 피해·출혈·관통·탄속/크기 유지.
+
+헤브 순수캐릭터 데이터 변경·공용모듈 조합 유지.
+
+헤브 실제발사/출혈/회복 회귀 및 build/docs/check/verify/runtime구문/ZIP무결성 통과.
+
+## 화살비 장판 중심 넉백 — 3.0.0-character.180
+
+타우 스킬 적중후 투사체 참조가 정리된 경우 실제적중좌표로 이동대상 복원. 온라인 적중확인 이동시 시작실패에도 실행소비를 기록하던 문제 수정·성공한경우만 기록.
+
+공용 AttackModuleService 투사체대상이 없을때 execution.projectileImpactPoint fallback. NetworkHitAuthorityService 기존 impactX/Y 복원 경로·이동시작 성공후만 markEffect. 타우 전용분기/새패킷없음.
+
+타우 투사체제거후 실제 movement 상태생성·적중점거리 회귀 및 이동접촉/build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 미검증.
+
+## 화살비 장판 중심 넉백 — 3.0.0-character.179
+
+시로 평타 발당60→80/스킬180→160/반격 화살비60→80. 생성타격은 rainTick 참조로 동일80. 차징평타/설명 공용참조 유지.
+
+캐릭터순수데이터 damageRatio .4/.8/.4만 변경·화염틱/스테미나/모션 유지.
+
+시로 실제차징/착탄/화살비/설명 회귀 및 build/docs/check/verify/runtime구문/ZIP무결성 통과.
+
+## 화살비 장판 중심 넉백 — 3.0.0-character.178
+
+지오핀 발명스택 복구. 각8조건3회발생 제작·이후자동장착·기존우측스택UI 진행표시 복원. 시로/헤브 최근수치 유지.
+
+character175의 geopin/ReactiveEquipmentService/EquipmentGaugePresentationService 원문복구. initialOwned 즉시장착옵션 제거.
+
+기존 지오핀 회귀 및 build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
+
+## 화살비 장판 중심 넉백 — 3.0.0-character.177
+
+지오핀 character175의8무기/8조건/기어/오른쪽UI/전이전용효과 복구·발명스택만제거하여 첫조건 즉시장착. 시로 평타60/스킬180/화살비60. 헤브 평타300·스킬600스테미나/반경15·20·반격재타격간격제거(적별1회).
+
+지오핀 initialOwned 공용선택옵션 유지·기존스택 생성없음·UI보유상태완충표시. 헤브 범위탄환 기존 hitIds로 적별1회·관통/맵끝비행 유지.
+
+지오핀복구/시로/헤브 실제투사체 회귀 및 build/docs/check/verify/runtime구문/ZIP무결성 검사. 실제온라인 미검증.
+
+## 지오핀 시작보유 리메이크 — 3.0.0-character.176
+
+지오핀 발명스택 폐기·모든무기 시작보유. 장판/방어차단/이동제한/급접근/소환수 조건 및 과반동/고회전/충격도약/전이/폭발형 제거. 남은 벽뒤 충격전달·근거리 이중충격·원거리 정밀 즉시장착. 전이고무탄 효과를 남은4탄종에 적용. 오른쪽게이지/후면기어를 장착별4총이미지로 교체·총열위 손잡이.
+
+ReactiveEquipmentService 선택적 initialOwned는 스택 생성없이 즉시선택. 기본자료는 기존경로 유지. 기존 공용모드/무기이미지/튕김모듈 조합·기존 우클릭 이전/홀드기본/반격 마지막조건 유지.
+
+새 리메이크5그룹·구조 회귀/build/docs/check/verify/runtime구문/ZIP무결성 통과. 기존8스택전용 test-geopin은 과거계약으로 현재리메이크검수에서 제외. 실제온라인 시각검증 미실시.
+
 ## 화살비 장판 중심 넉백 — 3.0.0-character.175
 
 실제 장판 state.execution=null인 경우 중심좌표가 전달되지 않아 기본0rad 오른쪽넉백이 되던 원인 수정. 실행정보가 없으면 공용 AttackExecutionService.create로 생성 후 실제장판 중심 전달.

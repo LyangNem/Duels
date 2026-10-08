@@ -31612,7 +31612,7 @@ const CHARACTER_DATA=freezeCharacterData({
   "attacks": {
     "lmb": {
       "id": "attack.siro.lmb",
-      "damageRatio": 0.5,
+      "damageRatio": 0.4,
       "cost": 150,
       "cd": 600,
       "range": 1200,
@@ -31895,7 +31895,7 @@ const CHARACTER_DATA=freezeCharacterData({
     },
     "rmbExplosion": {
       "id": "attack.siro.rmbExplosion",
-      "damageRatio": 1,
+      "damageRatio": 0.8,
       "cost": 0,
       "cd": 0,
       "range": 140,
@@ -32105,7 +32105,7 @@ const CHARACTER_DATA=freezeCharacterData({
     },
     "rainTick": {
       "id": "attack.siro.rainTick",
-      "damageRatio": 0.5,
+      "damageRatio": 0.4,
       "cost": 0,
       "cd": 0,
       "range": 150,
@@ -32400,7 +32400,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "key": "RMB",
       "name": "녀석을 노려!",
       "attack": "rmb",
-      "text": "추진 작살을 투척. 적과 벽을 관통하여 넉백 및 출혈 ({damage})"
+      "text": "추진 작살을 투척. 적과 벽을 관통하여 출혈 ({damage})"
     },
     {
       "key": "L-Shift",
@@ -32413,14 +32413,14 @@ const CHARACTER_DATA=freezeCharacterData({
     "lmb": {
       "id": "attack.hab.lmb",
       "damageRatio": 0.5,
-      "cost": 150,
+      "cost": 250,
       "cd": 400,
       "range": 550,
       "modules": [
         {
           "type": "delivery.projectile",
           "speed": 30.0,
-          "radius": 25
+          "radius": 15
         },
         {
           "type": "projectile.presentation",
@@ -32465,14 +32465,14 @@ const CHARACTER_DATA=freezeCharacterData({
     "rmb": {
       "id": "attack.hab.rmb",
       "damageRatio": 1,
-      "cost": 400,
+      "cost": 500,
       "cd": 400,
       "range": 550,
       "modules": [
         {
           "type": "delivery.projectile",
           "speed": 37.5,
-          "radius": 35
+          "radius": 20
         },
         {
           "type": "projectile.presentation",
@@ -32492,14 +32492,6 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "projectile.pierce",
           "targets": true,
           "walls": true
-        },
-        {
-          "type": "movement.knockback",
-          "target": "hit-target",
-          "direction": "attack",
-          "distance": 100,
-          "speed": 14,
-          "oncePerExecution": true
         },
         {
           "type": "status.apply",
@@ -32538,8 +32530,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "delivery.range-projectile",
           "speed": 12,
           "radius": 300,
-          "expireAtRange": false,
-          "rehitInterval": 1000
+          "expireAtRange": false
         },
         {
           "type": "projectile.pierce",
@@ -74057,7 +74048,7 @@ const NetworkHitAuthorityService={
               )
               :(distance>.001?Math.atan2(dy,dx):0);
 
-            MovementAbilityService.start(
+            const movementStarted=MovementAbilityService.start(
               sourceEntity,
               {...module,type:'movement.move',control:'fixed'},
               angle,
@@ -74067,7 +74058,7 @@ const NetworkHitAuthorityService={
               }
             );
 
-            if(module.oncePerExecution){
+            if(movementStarted!==false&&module.oncePerExecution){
               AttackExecutionService.markEffect(execution,sourceMoveKey);
             }
 
@@ -80568,9 +80559,13 @@ const AttackModuleService=Object.freeze({
         const moveTarget=module.target?.type==='projectile'
           ?(deliveryModule?.projectile||ProjectileStateService.get(source,module.target.stateKey))
           :(module.target==='hit-target'?target:null);
-        if(moveTarget||attackDirection){
-          const dx=moveTarget?(Number(moveTarget.x)||0)-(Number(source.x)||0):0;
-          const dy=moveTarget?(Number(moveTarget.y)||0)-(Number(source.y)||0):0;
+        const confirmedPoint=execution?.projectileImpactPoint;
+        const resolvedMoveTarget=moveTarget||(module.target?.type==='projectile'&&
+          Number.isFinite(Number(confirmedPoint?.x))&&Number.isFinite(Number(confirmedPoint?.y))
+          ?{x:Number(confirmedPoint.x),y:Number(confirmedPoint.y)}:null);
+        if(resolvedMoveTarget||attackDirection){
+          const dx=resolvedMoveTarget?(Number(resolvedMoveTarget.x)||0)-(Number(source.x)||0):0;
+          const dy=resolvedMoveTarget?(Number(resolvedMoveTarget.y)||0)-(Number(source.y)||0):0;
           const distance=attackDirection
             ?Math.max(0,Number(module.distance)||0)
             :Math.hypot(dx,dy);

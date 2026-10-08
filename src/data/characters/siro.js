@@ -50,7 +50,7 @@
   "attacks": {
     "lmb": {
       "id": "attack.siro.lmb",
-      "damageRatio": 0.5,
+      "damageRatio": 0.4,
       "cost": 150,
       "cd": 600,
       "range": 1200,
@@ -333,7 +333,7 @@
     },
     "rmbExplosion": {
       "id": "attack.siro.rmbExplosion",
-      "damageRatio": 1,
+      "damageRatio": 0.8,
       "cost": 0,
       "cd": 0,
       "range": 140,
@@ -543,7 +543,7 @@
     },
     "rainTick": {
       "id": "attack.siro.rainTick",
-      "damageRatio": 0.5,
+      "damageRatio": 0.4,
       "cost": 0,
       "cd": 0,
       "range": 150,

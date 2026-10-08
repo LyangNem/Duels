@@ -34,7 +34,7 @@
       "key": "RMB",
       "name": "녀석을 노려!",
       "attack": "rmb",
-      "text": "추진 작살을 투척. 적과 벽을 관통하여 넉백 및 출혈 ({damage})"
+      "text": "추진 작살을 투척. 적과 벽을 관통하여 출혈 ({damage})"
     },
     {
       "key": "L-Shift",
@@ -47,14 +47,14 @@
     "lmb": {
       "id": "attack.hab.lmb",
       "damageRatio": 0.5,
-      "cost": 150,
+      "cost": 250,
       "cd": 400,
       "range": 550,
       "modules": [
         {
           "type": "delivery.projectile",
           "speed": 30.0,
-          "radius": 25
+          "radius": 15
         },
         {
           "type": "projectile.presentation",
@@ -99,14 +99,14 @@
     "rmb": {
       "id": "attack.hab.rmb",
       "damageRatio": 1,
-      "cost": 400,
+      "cost": 500,
       "cd": 400,
       "range": 550,
       "modules": [
         {
           "type": "delivery.projectile",
           "speed": 37.5,
-          "radius": 35
+          "radius": 20
         },
         {
           "type": "projectile.presentation",
@@ -126,14 +126,6 @@
           "type": "projectile.pierce",
           "targets": true,
           "walls": true
-        },
-        {
-          "type": "movement.knockback",
-          "target": "hit-target",
-          "direction": "attack",
-          "distance": 100,
-          "speed": 14,
-          "oncePerExecution": true
         },
         {
           "type": "status.apply",
@@ -172,8 +164,7 @@
           "type": "delivery.range-projectile",
           "speed": 12,
           "radius": 300,
-          "expireAtRange": false,
-          "rehitInterval": 1000
+          "expireAtRange": false
         },
         {
           "type": "projectile.pierce",

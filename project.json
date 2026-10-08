@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-character.175",
+  "version": "3.0.0-character.181",
   "source": "3.1717 (65).html",
   "original_script_sha256": "6fd12004e89d39fffe6a916d711147f63a7039b1a1cc995f7cc8532751f0ed8e",
   "load_order": [
@@ -3771,7 +3771,7 @@
     },
     {
       "path": "src/network/NetworkHitAuthorityService.js",
-      "role": "피격자 권위 확정·공격자 효과 반영·중복 방지; 공통 회복 예약 및 이동 실행 연결·확정 투사체 이동은 확정 적중 좌표 우선; 피격 순간 활성 상태 목록을 확정 피해 context로 전달하여 상태 조건 회복 동기화",
+      "role": "공용적중확인·이동시작성공시에만 중복방지소비",
       "symbols": [
         "NetworkHitAuthorityService",
         "sequence",
@@ -3982,7 +3982,7 @@
     },
     {
       "path": "src/combat/AttackModuleService.js",
-      "role": "공용공격 전달/효과·원격 cooking.meal-commit 시각구성 연결",
+      "role": "공용공격효과·투사체제거후 실제적중점 이동복원",
       "symbols": [
         "AttackModuleService",
         "progressConditionsMatch",
@@ -6754,7 +6754,7 @@
     },
     {
       "path": "tools/test-structure.cjs",
-      "role": "구조22 회귀·카논 제자리회피 상태 보정·표시 격리",
+      "role": "공용구조 및 남은 지오핀무기 태그 회귀",
       "symbols": []
     },
     {
@@ -6855,7 +6855,7 @@
     },
     {
       "path": "src/core/ReactiveEquipmentService.js",
-      "role": "공용조건장비·지속피해장판 생성광역피해/저회 인식·직격/비피해장판 제외",
+      "role": "공용조건관측·3스택발명·자동장착",
       "symbols": [
         "ReactiveEquipmentService",
         "update",
@@ -6885,7 +6885,7 @@
     },
     {
       "path": "src/render/EquipmentGaugePresentationService.js",
-      "role": "개인8호3/3/2/활성색 및 기본 AttackSpec 기준 거리 점선·동일 반경 기준 원 중복 제외",
+      "role": "공용장비은행·발명스택 진행/활성무기표시",
       "symbols": [
         "EquipmentGaugePresentationService"
       ]
@@ -6897,14 +6897,14 @@
     },
     {
       "path": "src/data/characters/geopin.js",
-      "role": "geopin 순수 캐릭터 모듈 데이터·공용 weaponImage 형상/상태/모션 설정",
+      "role": "지오핀8조건·3스택발명/자동장착 데이터",
       "symbols": [
         "geopin"
       ]
     },
     {
       "path": "tools/test-geopin.cjs",
-      "role": "지오핀 조건장비·장판생성광역피해/저회/직격제외 회귀",
+      "role": "과거8종 발명스택 계약 회귀·리메이크이전 기록",
       "symbols": []
     },
     {
@@ -6926,14 +6926,14 @@
     },
     {
       "path": "src/data/characters/siro.js",
-      "role": "시로 전투데이터·사용자설명/다중사격2·3발/토끼뜀",
+      "role": "시로 전투데이터·평타80/스킬160/반격80",
       "symbols": [
         "siro"
       ]
     },
     {
       "path": "tools/test-siro.cjs",
-      "role": "시로 비용/점프/화염 회귀",
+      "role": "시로 실제공격피해80·160·80 및 기존동작 회귀",
       "symbols": []
     },
     {
@@ -6943,7 +6943,7 @@
     },
     {
       "path": "src/data/characters/hab.js",
-      "role": "헤브 전투데이터·체력1200/난이도4·사용자설명",
+      "role": "헤브 전투데이터·평타250/스킬500비용·스킬넉백없음",
       "symbols": [
         "hab"
       ]
@@ -6955,7 +6955,7 @@
     },
     {
       "path": "tools/test-hab.cjs",
-      "role": "헤브1200체력·공격/회복 실실행 회귀",
+      "role": "헤브 실제공격·넉백제거/비용250·500 회귀",
       "symbols": []
     },
     {
@@ -6977,12 +6977,12 @@
     },
     {
       "path": "docs/WEAPON UPDATES.md",
-      "role": "무기175 화살비 장판 중심 넉백·공용형상 검수계약",
+      "role": "무기181 화살비 장판 중심 넉백·공용형상 검수계약",
       "symbols": []
     },
     {
       "path": "src/data/WEAPON_IMAGE_DEFS.js",
-      "role": "공용순수형상·대장장이망치 및 parts좌우반전형상",
+      "role": "공용무기형상·지오핀총열위그립4총형상",
       "symbols": [
         "WEAPON_IMAGE_DEFS"
       ]
@@ -6990,7 +6990,7 @@
     {
       "path": "docs/WEAPON IMAGE GUIDE.md",
       "symbols": [],
-      "role": "무기175 화살비 장판 중심 넉백·공용형상 검수계약"
+      "role": "무기181 화살비 장판 중심 넉백·공용형상 검수계약"
     },
     {
       "path": "tools/test-cyien.cjs",
@@ -7001,6 +7001,11 @@
         "value",
         "ready"
       ]
+    },
+    {
+      "path": "tools/test-tau-hit-move.cjs",
+      "role": "타우 투사체제거후 실제적중점 이동 회귀",
+      "symbols": []
     }
   ],
   "baseline_resources": [
@@ -7063,7 +7068,7 @@
   "baseline_rules_sha256": "eaaf531ff3eedf5244ec6829d0fe12d1932bab4c252c79b68ecf839e27ea6bac",
   "old_rule_16": "16. Duels 3.0은 반드시 단일 HTML 파일로 유지한다.\n- 외부 JS/CSS 파일로 게임 코드를 분리하지 않는다.\n- 단일 파일 내부에서도 시스템별 영역과 책임을 명확하게 구획한다.\n- 단일 파일 조건은 모듈화 금지를 의미하지 않는다.",
   "new_rule_16": "16. DUELS 3.0은 역할별 여러 소스 파일로 개발한다.\n- 캐릭터는 캐릭터별 데이터 원본, 실행 기능은 공통 서비스 단위로 분리한다.\n- 실행 순서와 공유 문맥을 유지하는 조립은 허용한다. 생성 결과를 직접 수정하지 않는다.\n- 배포 파일명은 Duels.zip, 진입 HTML은 Duels.html로 고정한다.",
-  "current_script_sha256": "6d17e591314a63a1255b4a809df400fae5223b56be48bf1b9474b0a2ae190449",
+  "current_script_sha256": "0869959d90cd641ee9a32dac9020a75949da3bd8943a59dadd3fa3535274275d",
   "baseline_layout_sha256": "91b3fa54ece362a30852be9cdb5fccd051c0afda78cc6e891b240eab54747aac",
   "current_resource_sha256": {
     "styles/game.css": "6ea2aa04d77de61e961dea89d7bb0160e5d8f3806d516d68d6ff24b60b0c5f47",

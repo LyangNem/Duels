@@ -42,7 +42,7 @@ test('차징 해제 비용·400/800ms 경계·홀드 중 미소모·1/2/3발 산
   assert.equal(e.stamina,1000);clock+=ms;c.ChargedAttackService.update(e,clock);assert.equal(e.stamina,1000);
   assert.equal(c.ChargedAttackService.release({source:e,attack:ch.attacks.lmb,angle:0,now:clock},{}),true);
   assert.equal(e.stamina,1000-cost);assert.equal(shots.length,count);assert.equal(e.actionState.has('charge:primary'),false);
-  for(const shot of shots){assert.equal(shot.attack.range,1200);assert.equal(shot.attack.damageRatio*ch.baseDamage,100)}
+  for(const shot of shots){assert.equal(shot.attack.range,1200);assert.equal(shot.attack.damageRatio*ch.baseDamage,80)}
   const half=count===1?0:count===2?.04:.08;assert.equal(shots[0].angle,half===0?0:-half);assert.equal(shots.at(-1).angle,half);
  }
 });
@@ -64,7 +64,7 @@ test('공통 차징 확장은 기존 체리티 사거리/피해/탄속/관통을
 test('백드래프트: 충돌 전용 본체·실제 착탄 중심 폭발 1회·넉백/화염 연결',()=>{
  const e=entity(),p=carrier(e,ch.attacks.rmb);p.x=920;p.y=650;
  assert.equal(c.AttackModuleService.projectile(ch.attacks.rmb).damageOnTravel,false);
- assert.equal(c.ProjectileImpactService.resolve(p,'target'),true);assert.equal(areas.length,1);assert.equal(areas[0].options.geometrySource.x,920);assert.equal(areas[0].options.geometrySource.y,650);assert.equal(areas[0].a.damageRatio*ch.baseDamage,200);assert.equal(areas[0].m.wallPolicy,'block');
+ assert.equal(c.ProjectileImpactService.resolve(p,'target'),true);assert.equal(areas.length,1);assert.equal(areas[0].options.geometrySource.x,920);assert.equal(areas[0].options.geometrySource.y,650);assert.equal(areas[0].a.damageRatio*ch.baseDamage,160);assert.equal(areas[0].m.wallPolicy,'block');
  assert.equal(c.ProjectileImpactService.resolve(p,'target'),false);assert.equal(areas.length,1);
  const target=entity({id:'enemy',teamId:'B'});c.AttackModuleService.onHit(e,target,ch.attacks.rmbExplosion,areas[0].v,0,{shape:'circle',center:{x:920,y:650}});assert.equal(burns.length,1);assert.equal(burns[0].duration,4000);
 });
@@ -87,7 +87,7 @@ test('원격 미러·최고점 이전 취소·사망은 추가 화살을 생성�
  for(const mode of ['remote','cancel','dead']){shots=[];const e=entity();c.AttackModuleService.afterAttack(e,ch.attacks.counter,0,c.AttackExecutionService.create(e,ch.attacks.counter,0));if(mode==='remote')e.local=false;if(mode==='cancel')c.MovementAbilityService.clear(e);if(mode==='dead')e.alive=false;clock=1350;c.MovementAbilityService.update(e,clock,350);assert.equal(shots.length,0,mode);clock=1000;}
 });
 test('화살 착탄에만 3초 장판 1개·온라인 원격 착탄은 중복 생성 금지',()=>{
- const e=entity(),p=carrier(e);assert.equal(c.TargetPointProjectileService.arrived(p),true);assert.equal(fields.length,1);const f=fields[0];assert.equal(f.p.x,400);assert.equal(f.p.y,500);assert.equal(f.m.duration,3000);assert.equal(f.m.interval,500);assert.equal(f.o.attack.id,ch.attacks.rainTick.id);assert.equal(f.o.attack.damageRatio*ch.baseDamage,100);assert.equal(f.m.wallPolicy,'ignore');assert.equal(c.TargetPointProjectileService.arrived(p),false);assert.equal(fields.length,1);
+ const e=entity(),p=carrier(e);assert.equal(c.TargetPointProjectileService.arrived(p),true);assert.equal(fields.length,1);const f=fields[0];assert.equal(f.p.x,400);assert.equal(f.p.y,500);assert.equal(f.m.duration,3000);assert.equal(f.m.interval,500);assert.equal(f.o.attack.id,ch.attacks.rainTick.id);assert.equal(f.o.attack.damageRatio*ch.baseDamage,80);assert.equal(f.m.wallPolicy,'ignore');assert.equal(c.TargetPointProjectileService.arrived(p),false);assert.equal(fields.length,1);
  c.Training.sessionMode='online';e.local=false;assert.equal(c.ProjectileImpactService.resolve(carrier(e),'arrival'),true);assert.equal(fields.length,1);c.Training.sessionMode='training';
 });
 test('온라인 최고점 후속 패킷은 원점/출발 목표/높이의 동일 스냅샷 사용',()=>{
@@ -98,9 +98,9 @@ test('온라인 최고점 후속 패킷은 원점/출발 목표/높이의 동일
 });
 test('스킬 설명 수치 참조는 실제 피해/화염 시간으로 완전히 치환',()=>{
  for(const skill of ch.tooltipSkills){const text=c.CharacterDescriptionService.interpolate(ch,skill);assert.ok(!text.includes('{'),text);if(skill.key!=='L-Shift')assert.ok(text.includes('4초'),text)}
- assert.ok(c.CharacterDescriptionService.interpolate(ch,ch.tooltipSkills[0]).includes('(100)'));
- assert.ok(c.CharacterDescriptionService.interpolate(ch,ch.tooltipSkills[2]).includes('(200)'));
- assert.ok(c.CharacterDescriptionService.interpolate(ch,ch.tooltipSkills[3]).includes('(100)'));
+ assert.ok(c.CharacterDescriptionService.interpolate(ch,ch.tooltipSkills[0]).includes('(80)'));
+ assert.ok(c.CharacterDescriptionService.interpolate(ch,ch.tooltipSkills[2]).includes('(160)'));
+ assert.ok(c.CharacterDescriptionService.interpolate(ch,ch.tooltipSkills[3]).includes('(80)'));
 });
 test('공통 궤적: 최고점 화살의 높이가 착탄까지 감소·기존 점프 유지',()=>{
  const arc={type:'trajectory.arc',height:0,startHeight:70,screenLiftRatio:0.55};assert.equal(c.ArcTrajectoryService.sample(0,arc).offsetY,-38.5);assert.equal(c.ArcTrajectoryService.sample(0.5,arc).offsetY,-19.25);assert.ok(Math.abs(c.ArcTrajectoryService.sample(1,arc).offsetY)<1e-10);
@@ -184,7 +184,7 @@ console.log(`PASS ${passed} Siro regression groups`);
 
 test('시로 백드래프트 발사와 동시 후방240 낮은점프180ms·사거리1200',()=>{const e=entity(),a=ch.attacks.rmb;shots=[];assert.equal(c.TriggeredAttackService.execute(e,a,0),true);assert.equal(shots.length,1);assert.equal(shots[0].x,400);const state=e.actionState.get('movement:siro-backdraft');assert.ok(state);assert.equal(state.distance,240);assert.equal(state.duration,300);assert.equal(state.trajectory.height,60);clock+=150;c.MovementAbilityService.update(e,clock,1);assert.ok(e.x<400);clock+=150;c.MovementAbilityService.update(e,clock,1);assert.ok(Math.abs(e.x-160)<1e-8);assert.equal(e.actionState.has('movement:siro-backdraft'),false);assert.equal(ch.attacks.lmb.range,1200);assert.equal(a.range,1200);});
 
-test('화살비 생성 피해는 적전용100/화염·무력화넉백·최초틱 없음',()=>{const e=entity({local:false}),p=carrier(e);c.Training.sessionMode='online';areas=[];assert.equal(c.TargetPointProjectileService.arrived(p),true);assert.equal(areas.length,1);const {a,m}=areas[0];assert.equal(a.id,ch.attacks.rainArrival.id);assert.equal(a.damageRatio*ch.baseDamage,100);assert.equal(m.targetKinds,undefined);assert.equal(m.wallPolicy,'ignore');assert.ok(a.modules.some(m=>m.type==='status.apply'&&m.status==='burn'));assert.ok(a.modules.some(m=>m.type==='movement.neutralize-knockback'));assert.equal(ch.attacks.counterArrow.modules[2].field.triggerOnEnter,false);const jump=ch.attacks.rmb.modules.find(m=>m.type==='movement.move');assert.equal(jump.collision.passWalls,true);assert.equal(jump.buffs[0].type,'evasionInvulnerable');c.Training.sessionMode='training';});
+test('화살비 생성 피해는 적전용100/화염·무력화넉백·최초틱 없음',()=>{const e=entity({local:false}),p=carrier(e);c.Training.sessionMode='online';areas=[];assert.equal(c.TargetPointProjectileService.arrived(p),true);assert.equal(areas.length,1);const {a,m}=areas[0];assert.equal(a.id,ch.attacks.rainArrival.id);assert.equal(a.damageRatio*ch.baseDamage,80);assert.equal(m.targetKinds,undefined);assert.equal(m.wallPolicy,'ignore');assert.ok(a.modules.some(m=>m.type==='status.apply'&&m.status==='burn'));assert.ok(a.modules.some(m=>m.type==='movement.neutralize-knockback'));assert.equal(ch.attacks.counterArrow.modules[2].field.triggerOnEnter,false);const jump=ch.attacks.rmb.modules.find(m=>m.type==='movement.move');assert.equal(jump.collision.passWalls,true);assert.equal(jump.buffs[0].type,'evasionInvulnerable');c.Training.sessionMode='training';});
 
 test('화살비 생성과 지속틱 동일 넉백·범위 대상 더미/봇/소환수 제외없음',()=>{const arrival=ch.attacks.rainArrival,tick=ch.attacks.rainTick;const a=arrival.modules.find(m=>m.type==='delivery.area');assert.equal(a.targetKinds,undefined);assert.deepEqual(Array.from(a.targetRelations),['enemy']);const kb=tick.modules.find(m=>m.type==='movement.neutralize-knockback');assert.equal(kb.type,arrival.modules.find(m=>m.type==='movement.neutralize-knockback').type);assert.equal(kb.distance,84);assert.equal(kb.oncePerExecution,false);assert.equal(tick.damageRatio,arrival.damageRatio);assert.equal(ch.attacks.counterArrow.modules[2].field.triggerOnEnter,false);});
 

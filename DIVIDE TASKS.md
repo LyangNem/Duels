@@ -1,6 +1,6 @@
 # DIVIDE TASKS
 
-버전: 3.0.0-character.175
+버전: 3.0.0-character.181
 
 역할 변경 시 project.json의 role/symbols도 수정하고 `python tools/project.py docs`로 이 문서를 갱신한다. 해시 검사는 역할 의미의 정확성을 대신하지 않는다. runtime.js는 생성 결과이며 직접 편집하지 않는다.
 
@@ -9,11 +9,11 @@
 | `AGENTS.md` | AI 작업자에게 README 정독·문서 갱신 의무 안내 |  | e22055c0c72b7010c9e6eef168ac2f49e01a5411385ce87b4370aba513f29590 |
 | `DIVIDE TASKS.md` | 전체 파일 역할·심볼·해시 목록 |  | 자기 참조 제외 |
 | `Duels.html` | Duels 진입 화면·DOM·리소스 연결·방 모드/금지/도움말 UI·회피 비용 및 체력 구분선 간격 참조 표시 영역 |  | a29b958ca694261b34752692a43ecb8557d7d41035e0e2fc340a2f05c4e3af35 |
-| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | d9c7c188474d2c7aa3376a547cb3dfeb368496d6fedb6aa3110edadf537d5977 |
-| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | 55cddf3eabadbb43ec7c7195b683b68aef1c9a244c21647f057f08cfb0ea9854 |
+| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | 13364ee3c3a0eee604b2b91d92469f572940dbbeb3c44613ecce3b06f96721c2 |
+| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | eb82e225b0054606067197562b2c24fca860a1eb33de756e39c27f5889574b53 |
 | `START.bat` | Windows 로컬 서버 실행 |  | d383b503b5d39e16324de2f7031e5cd69175f3b54bfbf477097ee758f094c849 |
 | `START.sh` | Linux/macOS 로컬 서버 실행 |  | 14be4f1c3b060556e2df88e1811eabe8d8ceeb8011f4c0c498399a9675e94bfa |
-| `docs/CHARACTER CONTRACT.md` | 공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약 |  | 9ce140f8f39ba59165b72671438d2c03410bdf56555f83a5a6b01d0b52a7b81f |
+| `docs/CHARACTER CONTRACT.md` | 공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약 |  | 7437b795d5248f273cf65e64019e772528c2fc0b1e979a4117da8d502fe5684b |
 | `docs/GAE REMAKE.md` | 가에 리메이크 및 반 후속 재생25/적중5회복구 기록 |  | b907c326e786c251ff6e1623775b185f4eda33f300b5a4a46714eb8e2bf1acc2 |
 | `docs/GEOPIN.md` | 지오핀 최신 수치/모듈·소환수 포함 급접근350ms/100/350·회피 관측/재감지450·검수 계약·후면6톱니 기어 외형 기록·모따기 기어 외형 보정 기록·기어 전면 재설계 기록·6살 원형 축 디자인 기록·기어 리디자인 롤백 기록·기존 기어 세부 보정 기록·16톱니 복구 기록; character.100 발명 슬롯 및 새 무기 계약 |  | 9a744cda2be04efe7f9e2eefe2568f4a4ed27f41d5d7e84ff261fa10db948f78 |
 | `docs/HAB.md` | 헤브 최신121 실제 무기투사체 스타일·기존출혈/항시/선체/작살·회귀검수 |  | 0cc4e8ccce5f57439412910c698484113431798bdc6bd0515e212cec20e22ce3 |
@@ -24,9 +24,9 @@
 | `docs/STRUCTURE AUDIT.md` | 구조 검수 범위·발견/수정·58명 결과·우선 플레이 테스트와 검증 한계 |  | f98c1c01ed30000c6c84692a55a0d0af39403f71a8a5d49cbb33736d74013935 |
 | `docs/TERDION.md` | 테르디온 현재 단발/직격200/착탄 직격 및 모듈 책임·수치·검증·실기기 확인 안내·반격 반경14·평타 탄속20.8·평타/반격 직격150·반격350·반격 마우스 거리 조절 |  | 7764cc3d9596f0cacc052c40de03eb4758cc6fcc75f0e8fb8e6f7b561180abee |
 | `docs/VERIFICATION.md` | split.2 검수 발견 오류·수정·통과 검사·실행 한계와 재현 방법 기록 |  | ae9d7cc0de36c42ea51f7ed040a8fc4ef8a53b31cb750f2bf010dc482d7038e9 |
-| `docs/WEAPON IMAGE GUIDE.md` | 무기175 화살비 장판 중심 넉백·공용형상 검수계약 |  | 4730d90ae674ece5c5f06c4b42cbebb00d49928aa2b66b1cdc6367ca3e14b1ed |
-| `docs/WEAPON UPDATES.md` | 무기175 화살비 장판 중심 넉백·공용형상 검수계약 |  | 4daefb7e24da36acce639f04ebb86cdd6aca76b6de4c47e904be53543a081a0d |
-| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | 413c78f57d69ea18ba1657f5893a18fd73e09d15f7ee5334393196b06dd285a9 |
+| `docs/WEAPON IMAGE GUIDE.md` | 무기181 화살비 장판 중심 넉백·공용형상 검수계약 |  | a90e1e0ed7172c96248df423fc9da2dce2b6f0869719087e1b0472e0cf2483c8 |
+| `docs/WEAPON UPDATES.md` | 무기181 화살비 장판 중심 넉백·공용형상 검수계약 |  | 1ffb9e450ba47736f47d6371576decf4ccabdc1893eb272e6434763cc25b2629 |
+| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | 6f6ebb3ae24ec4a55d9712c9107bddbb86666983533c2a60acbe2ee67b5c03e9 |
 | `src/abilities/AbilityAttackExecutionService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: AbilityAttackExecutionService. | AbilityAttackExecutionService, execute | 6aa6f2993ec47e9ca212f2f318d8a66ae4266eaf68021cb10d1cc7710d0ce019 |
 | `src/abilities/AbilityModuleService.js` | 공용 능력모듈·공식 실제 오입력 inputErrorMotion·회피차단/자연회복 보존 | AbilityModuleService | cedfb168fb888fbc6cd1df961ddec16b7cb39c407cf4f03ad98e18b98e6c125c |
 | `src/abilities/AbilityService.js` | 공통 Trigger/능력 실행·선택 무기 해석·행동 결과의 모드 snapshot/입력 방향 | AbilityService, attackById, damageRatio, eventAttack, resolvedInputAttack, trigger, canActivate, activate | 6b265ec62f13153df17abc8966a5ab4ae8cebe388e97f99d669e19da01bacdeb |
@@ -68,7 +68,7 @@
 | `src/combat/AttackFeatureTransformService.js` | 공통 레이저/색 변환 및 모드에 따른 모듈 조합·발사 시 상태 고정·정확한 연사 배율 | AttackFeatureTransformService, path, active, modularLaser, pulseTint, prepare, modeModules | 7d56507b678d39336300b82143e502425cc9112bb633e74d57b89f846aae697e |
 | `src/combat/AttackGuardService.js` | 공용 공격방어·그룹당 성공 onBlock.modes 연결·기존 방어연장/반응 | AttackGuardService, active, key, area, activate, hostile, containsPoint, contactPoint, overlaps, normalizeAngle, angleDistance, isHitscan, hitscanIncomingAngle, blocksHitscanDirection, isProjectileAttack, blocksDirectAttackDirection, incomingPoint, blockingGuard, broadcastBlockResolution, blockDamage, extendOnBlock, visualPatch, replacementEffectKey, blockFeedback, resolveBlockFeedback, parryFx, projectileBlockGroupKey, damageBlockGroupKey, registerBlockOccurrence, isReturnAttack, forceReturn, remove, broadcastProjectileResolution, resolveProjectile, sweep, intercept, clearSource | 3305cd295e75e1f499265f82a40e1824417f30b22f607f92d889eb3fc1080ae2 |
 | `src/combat/AttackHitTriggerService.js` | 공격·피해·상태·자원。 담당 선언/초기화: AttackHitTriggerService. | AttackHitTriggerService, trigger, damage | b790314498a6fd78345fa9a3963478d7bf9a38f6267ed7ad2a1ef20098289ee9 |
-| `src/combat/AttackModuleService.js` | 공용공격 전달/효과·원격 cooking.meal-commit 시각구성 연결 | AttackModuleService, progressConditionsMatch, applyHitProgress, type, module, hasModule, rangeBandModule, hitConditionMatches, pelletCount, deliveryCount, spread, projectile, forEachModule, buildAngles, deliver, spawnAttackEffect, onDeliveryResolved, afterAttack, onProjectileWallHit, applySourceOnHitModifier, applyTargetOnHitModifier, applyFriendlySourceOnHitModifiers, onHit, volleyTravelRange, statusPresentation, onDelivery, onProjectileShot | 3c5c34441caff02bc051f28fd10b3e71791107bd1a32ec814067935c87c840e1 |
+| `src/combat/AttackModuleService.js` | 공용공격효과·투사체제거후 실제적중점 이동복원 | AttackModuleService, progressConditionsMatch, applyHitProgress, type, module, hasModule, rangeBandModule, hitConditionMatches, pelletCount, deliveryCount, spread, projectile, forEachModule, buildAngles, deliver, spawnAttackEffect, onDeliveryResolved, afterAttack, onProjectileWallHit, applySourceOnHitModifier, applyTargetOnHitModifier, applyFriendlySourceOnHitModifiers, onHit, volleyTravelRange, statusPresentation, onDelivery, onProjectileShot | 0f58f7ee55e93375aa56f9ab0b1598a92f52a274933a3665826edefe259ab481 |
 | `src/combat/AttackPreviewAreaService.js` | 공격·피해·상태·자원。 담당 선언/초기화: AttackPreviewAreaService.·명시 이동경로 geometry와 후속 범위 합성 | AttackPreviewAreaService, parts | 1c6e7ee5ba1d9fd2749ec821edafa1d5b7fc139d352e2a1ed7650a9df6d25a14 |
 | `src/combat/AttackPreviewService.js` | 공통 공격 미리보기 생성/갱신. 데이터 기반 상시 조준, 단발/다중 탄 경로·첫 적 및 종료 후속 원 표시·지정점 투사체 targetPreview 즉시 생성·fromTargetPoint 공통 원 범위/점 배열 재사용 | AttackPreviewService, delayedProjectileVolleyParts, fromAttack, updateLive, updateAim, fromTargetPoint | 2fb483ea57be882f8c575d912ba8a20b6c977425aafce8b61601c1d67a15747a |
 | `src/combat/AttackQueryService.js` | 공격·피해·상태·자원。 담당 선언/초기화: AttackQueryService. | AttackQueryService, rangeRank, matchesTags, matchesSelector, minimumCost | 253cf657f62ae81516906ed1a09192fd7708939659adaf752e1764bf1e076e9d |
@@ -190,7 +190,7 @@
 | `src/core/RENDER_NEUTRAL_MOTION.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: RENDER_NEUTRAL_MOTION. | RENDER_NEUTRAL_MOTION, scaleX, scaleY, rotation, offsetX, offsetY | 1d485ac5db48dc3539031453f3396097b199f7cc6f0ce494208ade791df12fc1 |
 | `src/core/ROOM_CHAT_PACKET_TYPES.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: ROOM_CHAT_PACKET_TYPES. | ROOM_CHAT_PACKET_TYPES | 89cb47b4464b0673f01f8452524eabb4712b420ccaf930d89c12a78fbd8a7500 |
 | `src/core/ROOM_GAMEPLAY_PACKET_TYPES.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: ROOM_GAMEPLAY_PACKET_TYPES.·충격 전달/투사체 반사 패킷 허용 | ROOM_GAMEPLAY_PACKET_TYPES | 2d72348992f1ede1ba2e06f4d2fcacdb5d4829a6e52faa0b5c7eb44f7ff8b0a2 |
-| `src/core/ReactiveEquipmentService.js` | 공용조건장비·지속피해장판 생성광역피해/저회 인식·직격/비피해장판 제외 | ReactiveEquipmentService, update, state, signal, discover, flush, resolveCurrent, behindWall, justDodge | d5899b60b1b6ff97a7d0f72913b22069493551f745a6fd147ea813b05d7b7843 |
+| `src/core/ReactiveEquipmentService.js` | 공용조건관측·3스택발명·자동장착 | ReactiveEquipmentService, update, state, signal, discover, flush, resolveCurrent, behindWall, justDodge | d5899b60b1b6ff97a7d0f72913b22069493551f745a6fd147ea813b05d7b7843 |
 | `src/core/RelationService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: RelationService. | RelationService, relation, canTarget | e54760d020808d95f49ea29d5ece6d187d31d004dd7ff96a0e4b90272722a1bd |
 | `src/core/ResourceValueService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: ResourceValueService. | ResourceValueService, round, normalizeHealth, normalizeStamina | ef8255228e148a0434ea1781dff22e03a4269eaef52c035736b8dbaade8c5a3a |
 | `src/core/RoomIdentityService.js` | 페이지 수명별 접속 세션·복제 탭 독립 참가·같은 페이지 재연결 유지·영속 기기/계정 식별 분리 | RoomIdentityService, deviceStorageKey, sessionIdentity, key, deviceKey, profileKey | dcdc23e19ae702e458a0dbf5c01f78fcdc22f66d08dda2b2a3f9982b407e0e1f |
@@ -321,7 +321,7 @@
 | `src/data/GAME_DATA.js` | 공식 데이터·데이터 해석。 담당 선언/초기화: GAME_DATA.·공통 Space 회피거리119/비용300 원본 | GAME_DATA, frameMs, canvas, world, stamina, healthRegen, dodge, counter, cameraFeedback, cameraFollow, ranges, characterRoleTags, trainingBots, characterDifficulties, characters | bd12f0d90ab17a6cc5489decb10d86653d444fee5ebcdab2fbfcf116a9b19d7f |
 | `src/data/OFFICIAL_DUELS_MAP_DATA.js` | 공식 데이터·데이터 해석。 담당 선언/초기화: OFFICIAL_DUELS_MAP_DATA. | OFFICIAL_DUELS_MAP_DATA, entries | 1474110e97de6c2d69b12ce0119fecf29f77679be573d6da6309552521cdd6d4 |
 | `src/data/STATUS_EFFECT_RULES.js` | 공식 데이터·데이터 해석。 담당 선언/초기화: STATUS_EFFECT_RULES. | STATUS_EFFECT_RULES, freeze, burn, bleed, zap, slow | fb26a66ca5ecb8980a72ffd9639e9081f2363ba6e371fce5d05fe500538b8a96 |
-| `src/data/WEAPON_IMAGE_DEFS.js` | 공용순수형상·대장장이망치 및 parts좌우반전형상 | WEAPON_IMAGE_DEFS | de0a7519895a5928c253f582e4db403b2dff452a0094ea83458be5aaa79e6958 |
+| `src/data/WEAPON_IMAGE_DEFS.js` | 공용무기형상·지오핀총열위그립4총형상 | WEAPON_IMAGE_DEFS | de0a7519895a5928c253f582e4db403b2dff452a0094ea83458be5aaa79e6958 |
 | `src/data/characterCount.js` | 공식 데이터·데이터 해석。 담당 선언/초기화: characterCount. | characterCount | 80874133655a6145cc1ae8ec8d9ca9b2518b9529733f8c2a60a33773c6cf8758 |
 | `src/data/characterProduct.js` | 공식 데이터·데이터 해석。 담당 선언/초기화: characterProduct. | characterProduct | 6292958ed2a5329f03193c57d42b077d1cbf62de2e62deac32ee3a9a5fb6fb5a |
 | `src/data/characterSum.js` | 공식 데이터·데이터 해석。 담당 선언/초기화: characterSum. | characterSum | 4bad6f9a4682fef22b31db93d1456726367dfb4aa1fef7eebf64a848c93bbce6 |
@@ -337,8 +337,8 @@
 | `src/data/characters/erapabi.js` | erapabi 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | erapabi | c82afe55cdb1c93761efdec55b7df3089157584d54a81fb4717261dcac65b8f0 |
 | `src/data/characters/ezrail.js` | ezrail 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | ezrail | 9e2a88aff5995b77dea72008fb15ef1bafe8c1c56071c8f1f0c74520424b0535 |
 | `src/data/characters/gae.js` | 가에 데이터:500ms 선딜·미리보기·고정 주황 ELECTRIC·설명 정렬; FIX 잃은체력25% 회복 데이터·활성 명령8칸 게이지 구성 | gae | 251c54554ca1c0bd0c9639ec735f92ac870ce6909599565ff0dc60c6799445fd |
-| `src/data/characters/geopin.js` | geopin 순수 캐릭터 모듈 데이터·공용 weaponImage 형상/상태/모션 설정 | geopin | 59dea3315fa5d8b0eb12b1f67858b789053f6ff21f2d7c39dc37a5826c9f3cb1 |
-| `src/data/characters/hab.js` | 헤브 전투데이터·체력1200/난이도4·사용자설명 | hab | 222753e8560ea4e3915f03ea1a0d452ba7c8e2e4b1943e3e63fe49ce9ae3f6a7 |
+| `src/data/characters/geopin.js` | 지오핀8조건·3스택발명/자동장착 데이터 | geopin | 59dea3315fa5d8b0eb12b1f67858b789053f6ff21f2d7c39dc37a5826c9f3cb1 |
+| `src/data/characters/hab.js` | 헤브 전투데이터·평타250/스킬500비용·스킬넉백없음 | hab | 78f7844e2ed79c560f9ab5e6b07b29d827e484505e9529517809a543a2239b1a |
 | `src/data/characters/hapupu.js` | 하푸푸 데이터·평타넉백47.25/표식/반격 | hapupu | a36a7ca7db732e9ed3e992451b92ad5d4240d44d6814f36a26843d8e0e80798c |
 | `src/data/characters/hatsuhats.js` | 하츠하츠 드래그 전투 데이터·붓 이미지·실제 평타/반격/스킬 시계회전·기본 이동선 제외 | hatsuhats | 1fd690d869e734750848322048b2c2d10ed9c49bbfd2239b900b799bc12a311c |
 | `src/data/characters/herjang.js` | herjang 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. 분할 전 원본의 이동 선 미표시를 presentation:false로 보존.·RMB SUMMONER 명령 표기 | herjang | 6ca9072c28a98f940c3321a7649f812ff3bce0ea401bd07c40fa49cd50994386 |
@@ -378,7 +378,7 @@
 | `src/data/characters/sherbet.js` | 샤베트 순수모듈·빙결공격 피격링제외·40%평상시 눈결정/고정표본잔향·기존전투 | sherbet | 98657802c9cad0ff23a5e2c7a3cbb614761b0b963ffa984b53b8e839274047a1 |
 | `src/data/characters/sherina.js` | 셰리나 음파잔향·반격잔향틱 무력화넉백 | sherina | 34ca9463edd60e9c1c08c101086a5ddcd3537b1fb944d1ffc37e16ae3daba19b |
 | `src/data/characters/shubi.js` | 슈비 전자샷건·평타 짧은반동/스킬반격 완전회전 별도모드 | shubi | 52a78e1f533653231c3114a2b0032dfbd3e9653df760020b710225b0c064f7f5 |
-| `src/data/characters/siro.js` | 시로 전투데이터·사용자설명/다중사격2·3발/토끼뜀 | siro | ae326e420e7f529e2d80ad876a7dedf96e2354c35aeff7b50c94cbe04a551035 |
+| `src/data/characters/siro.js` | 시로 전투데이터·평타80/스킬160/반격80 | siro | 9ea1cc1d9bf471ecaff95f826d1b36a953e8339a92a67bba23aba05257b21e69 |
 | `src/data/characters/sor.js` | sor 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | sor | a61874e115f2351c0cd3725432020205ff64f824b13a8f51564f7526491730bb |
 | `src/data/characters/sya.js` | 스야 순수모듈·은신/빙결·좌우반전낫/시계회전·실제전달모션 | sya | 53cfa7df28a19ff9f307493438fa9f604ac8819b85d0ef0dd6d517cabf072ae1 |
 | `src/data/characters/tadta.js` | 타다타 데이터·스킬 투척440/스테미나500·장판180 유지 | tadta | 1ee9455bf980c1dd9cff32ce4ea62654c3e487270173c3d38f99a01d684d720e |
@@ -412,7 +412,7 @@
 | `src/network/MatchSelectionLayoutService.js` | 방·온라인 권위·동기화。 담당 선언/초기화: MatchSelectionLayoutService. | MatchSelectionLayoutService, columns, availableWidth, apply, applyHorizontalRow, refresh | 7f5f16703a944cf6ebceaeb7cf158819538c1f3be04021f594d3fb0d7c01270c |
 | `src/network/NetworkCollisionPositionService.js` | 방·온라인 권위·동기화。 담당 선언/초기화: NetworkCollisionPositionService. | NetworkCollisionPositionService, zeroPoint, points, point | 4b9f172e68e04a682d41b4d3878273ae899faf67b48d7639b8198fb16e1e76bc |
 | `src/network/NetworkCombatSnapshotService.js` | 방·온라인 권위·동기화。 담당 선언/초기화: NetworkCombatSnapshotService. | NetworkCombatSnapshotService, serializeTimedMap, serialize, restoreTimedMap, apply | 29d8cf9d5c6026e3daeac4ed1d1fa1baf97f53bf22d1b56a16aa96e799b1abde |
-| `src/network/NetworkHitAuthorityService.js` | 피격자 권위 확정·공격자 효과 반영·중복 방지; 공통 회복 예약 및 이동 실행 연결·확정 투사체 이동은 확정 적중 좌표 우선; 피격 순간 활성 상태 목록을 확정 피해 context로 전달하여 상태 조건 회복 동기화 | NetworkHitAuthorityService, sequence, confirmations, targetAuthoritative, isOnline, targetAuthorityPid, rememberDamageSource, recordPredictedDodgeDamage, prediction, confirmationKey, notify, receive, reset | 86b78f7ebbd1200e2a91f84b296e0202ae5ed127d4d75bdbc22a3358434b57f3 |
+| `src/network/NetworkHitAuthorityService.js` | 공용적중확인·이동시작성공시에만 중복방지소비 | NetworkHitAuthorityService, sequence, confirmations, targetAuthoritative, isOnline, targetAuthorityPid, rememberDamageSource, recordPredictedDodgeDamage, prediction, confirmationKey, notify, receive, reset | 9e6dd4c7da973771796607c6076cdf14bdfcf982399ccfa47b4d9a74a16f9b31 |
 | `src/network/NetworkPayloadCodec.js` | 방·온라인 권위·동기화。 담당 선언/초기화: NetworkPayloadCodec. | NetworkPayloadCodec, TYPE_KEY, encode, decode, transport, sendEncoded, send | 66103ac66435961a4ef2a643ba5bb55e74406c750c4bb3bc2242499cb8a40f94 |
 | `src/network/NetworkTimeValueService.js` | 방·온라인 권위·동기화。 담당 선언/초기화: NetworkTimeValueService. | NetworkTimeValueService, serializeDeadline, restoreDeadline, finite | df22d23177e41ea5fae7df27314eb02d0705dcdb4e3b03a7e1de0f1b1f39e31f |
 | `src/network/OnlineAugmentInventorySyncService.js` | 방·온라인 권위·동기화。 담당 선언/초기화: OnlineAugmentInventorySyncService. | OnlineAugmentInventorySyncService, sequence, received, send, receive, reset | dd39cc75a4bdc19995f9e0cc3a40da70c96cac64f5065c2e1951445741780d4e |
@@ -464,7 +464,7 @@
 | `src/render/EffectSpawnService.js` | 공용 효과 생성/복제·무기잔향 imageColor/imageConfig/알파/원래 생성좌표 전달 | EffectSpawnService, shouldPresentAttack, keyed, presets, resolve, networkClone, definitionSnapshot, resolvedSnapshot, presentationSnapshot, restorePresentationSnapshot, removeKey, getByKey, clearAll, compact, spawn, presentationRange, initAnimation, ease, normalizeAnglePositive, effectDamageTarget, applyProgressiveDamage, applyAnimationDamage, registerMovementDamage, appendMovementPathPresentation, appendRemoteMovementTimelinePresentation, applyMovementTrackedDamage, update | 6f736acb105250bf0fa037bb26278a4763c535b4ea09cb373305e4f6c8b53a25 |
 | `src/render/EntitySquashPresentationService.js` | 월드 시각 표현·이펙트·게이지。 담당 선언/초기화: EntitySquashPresentationService. | EntitySquashPresentationService, impactStates, wallStates, neutral, key, impact, wallContact, sample, reset | ace1a7ff3db62e29cc3607eec8a16f492633760c8c06ef30308291004c39cb79 |
 | `src/render/EnvelopeIconPresentationService.js` | 월드 시각 표현·이펙트·게이지。 담당 선언/초기화: EnvelopeIconPresentationService. | EnvelopeIconPresentationService, draw | 78e48739b2a8cc7e148b1e283068ebf72d4b3238238250ce59463abde270b73a |
-| `src/render/EquipmentGaugePresentationService.js` | 개인8호3/3/2/활성색 및 기본 AttackSpec 기준 거리 점선·동일 반경 기준 원 중복 제외 | EquipmentGaugePresentationService | 43f14a799f6ec08fcc4996c5777f846687558d3fc5c20e7bea221326e4b654a8 |
+| `src/render/EquipmentGaugePresentationService.js` | 공용장비은행·발명스택 진행/활성무기표시 | EquipmentGaugePresentationService | 43f14a799f6ec08fcc4996c5777f846687558d3fc5c20e7bea221326e4b654a8 |
 | `src/render/GameplayEffectEventSyncService.js` | 월드 시각 표현·이펙트·게이지。 담당 선언/초기화: GameplayEffectEventSyncService. | GameplayEffectEventSyncService, handlers, register, send, apply | aecaea461d9a7e9bdc241572904716ecc2e431b0d60b71b3edf304b20452baa9 |
 | `src/render/HealthBarPresentationService.js` | 월드 시각 표현·이펙트·게이지。 담당 선언/초기화: HealthBarPresentationService. | HealthBarPresentationService, sync | 3e10dd1923d887ed84e403389911e5fef4084a9b4a8e576c4b2e338c22bc07db |
 | `src/render/KoBeamPresentationService.js` | 월드 시각 표현·이펙트·게이지。 담당 선언/초기화: KoBeamPresentationService. | KoBeamPresentationService, draw | 740ac27a42729702bf9960c97aff0f7627118e571bb842cd2e8b3fb9ade583fb |
@@ -543,13 +543,14 @@
 | `tools/test-cyien.cjs` | 사이엔 실제 모든 공격 처치/절격 준비·제외 대상·로컬/원격 확정 및 snapshot·설명5회귀 | test, entity, value, ready | dac1477e3d4b138a00cc12050ffa4e5d96c166236614764c82d3b23dadbf0a4d |
 | `tools/test-gae.cjs` | 가에9개 실행 회귀 및 반 재생25 검증 | load, test | 793e25be64e18b70f400f6137bc75d231fb3e451bcf82c8badf3a831b27b5864 |
 | `tools/test-gameplay-fixes.cjs` | 실제 서비스 실행 회귀 15개: 사망 관전·방어 경로·선택 상한·불규칙 잔향 수신 보간·종료/축소·독립성·모드 초기값/선택지/증강 제출 차단 회귀·단독 금지 실제 버튼 확정/복귀 회귀·모드별 전환/재실행 저장 복원·자동카운트다운 회귀·금지창 재개방 스크롤/즉시 지정점 미리보기 회귀 |  | aa65459aaf8a4061c9b93ddac11ac4bba171d50e551dec060989d57034d95624 |
-| `tools/test-geopin.cjs` | 지오핀 조건장비·장판생성광역피해/저회/직격제외 회귀 |  | 99effdf616c7dde584d8273da553ef570c373edc5f3d239f7e4b0952fd5bed65 |
-| `tools/test-hab-projectile.cjs` | 헤브 실제 ProjectileService 맵 경계/사거리 무시·대상별1초 재타격 회귀 |  | ea40dadd451bff5ef5879022f7b5cc56c6ce1175822487cd155d47752c6ac273 |
-| `tools/test-hab.cjs` | 헤브1200체력·공격/회복 실실행 회귀 |  | efebc21fcc1c30e016a54e0730ad06ea589201f79ffe2a745247c2ff86bbd554 |
+| `tools/test-geopin.cjs` | 과거8종 발명스택 계약 회귀·리메이크이전 기록 |  | 99effdf616c7dde584d8273da553ef570c373edc5f3d239f7e4b0952fd5bed65 |
+| `tools/test-hab-projectile.cjs` | 헤브 실제 ProjectileService 맵 경계/사거리 무시·대상별1초 재타격 회귀 |  | 1ab472196b2883e4af9eaaaa91fe0774d56949d9040291fcae295c959e3e792c |
+| `tools/test-hab.cjs` | 헤브 실제공격·넉백제거/비용250·500 회귀 |  | d9e670ddcf67434420d6a2acce9d64d486d6bce5a9af8a60d7030fb9fcbebb14 |
 | `tools/test-movement-contact.cjs` | 라임 평타/레이카 일반·가호 반격 실제 EffectSpec 원격 접촉19개 회귀·같은 방향 이동/정지/중복/범위 밖/최신 좌표 검증 |  | a67ded1f59a08e65948b3026548037395877ae04ce9a2982b428d4dec204ff4c |
 | `tools/test-room-connection.cjs` | 모의 Peer 방 연결19그룹·복제 탭 identity/같은 기기 계정 독립 승인·이탈/승계/순서·충격 전달/반사 실제 Room 호스트 중계/클라이언트 수신 검사·모드 탭 DOM 질의 mock |  | 745eeb52667be46de3ce3070b8321556f1eb94d0bf0ae1cef740950aecf9e88f |
-| `tools/test-siro.cjs` | 시로 비용/점프/화염 회귀 |  | b2bfd2a5ba2882ca0e31589af96f1a56dcc1eccf0645afce106d412dbe65408a |
-| `tools/test-structure.cjs` | 구조22 회귀·카논 제자리회피 상태 보정·표시 격리 |  | fc8619125ace9e6754d303ce0c756fa527cf46a5ae4d113bce1dc72fe2345789 |
+| `tools/test-siro.cjs` | 시로 실제공격피해80·160·80 및 기존동작 회귀 |  | 3adbb03cbeee952070bc2558cf92af12aeff7cd0760f707b4ed3b93b9afcb0c8 |
+| `tools/test-structure.cjs` | 공용구조 및 남은 지오핀무기 태그 회귀 |  | fc8619125ace9e6754d303ce0c756fa527cf46a5ae4d113bce1dc72fe2345789 |
+| `tools/test-tau-hit-move.cjs` | 타우 투사체제거후 실제적중점 이동 회귀 |  | 3176808f9030043aa3d40c57eb43db41613f9aaa6f9154cfc3cb00e42caac299 |
 | `tools/test-terdion.cjs` | 테르디온 전투·착탄·반격·공통62명 컴파일 회귀 | test, load, carrier, damage, loadCancellation | aaa18584cc6bcefe1edbf9345a3c70392db546f7aa6d1e020e0d642350c43d06 |
 | `tools/test-weapon-updates.cjs` | 공용무기·헤브 실제투사체 최신수치 회귀 | test, entity, gun, fire, selected, canvasStub | 15f8439a79279a9ca4f4c71272977a07c29ea4da6c1490e3b6ce88f08e5e3cbb |
 | `tools/verify.py` | 분할/배포/규칙 검사 및 메타데이터의 명시 캐릭터62명 등록 수·중복·누락 검증 | Document, document_hash, verify | 3fc34310268471a52bd911bd713601026254d50f2edcddc1a97a5ab6d0c6996f |
