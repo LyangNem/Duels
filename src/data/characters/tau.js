@@ -75,6 +75,15 @@
             "lineWidth": 3,
             "maxChargeFlash": true
           }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "tau-weapon-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -130,6 +139,15 @@
           "when": "on-hit",
           "operation": "reset",
           "oncePerExecution": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "tau-weapon-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -233,6 +251,15 @@
             "passEnemies": true
           },
           "presentation": false
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "tau-weapon-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -344,6 +371,15 @@
             "lineWidth": 3,
             "maxChargeFlash": true
           }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "tau-weapon-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -476,5 +512,61 @@
         ]
       }
     }
-  }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "chain-scythe-left",
+      "color": "#00ffff",
+      "scale": 1.85,
+      "angle": -0.52,
+      "x": -5.5,
+      "y": -3.5,
+      "rotationStateKey": "tau-weapon-rotation",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "activityColors": [
+        {
+          "conditions": [
+            {
+              "type": "state.progress-gte",
+              "stateKey": "spark-scythe",
+              "value": {
+                "$ref": "attacks.lmb.modules.1.max"
+              }
+            }
+          ],
+          "color": "#ffe13c"
+        }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "chain-scythe-left",
+      "color": "#00ffff",
+      "scale": 1.85,
+      "angle": -0.52,
+      "x": 5.5,
+      "y": 3.5,
+      "rotationStateKey": "tau-weapon-rotation",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "activityColors": [
+        {
+          "conditions": [
+            {
+              "type": "state.progress-gte",
+              "stateKey": "spark-scythe",
+              "value": {
+                "$ref": "attacks.lmb.modules.1.max"
+              }
+            }
+          ],
+          "color": "#ffe13c"
+        }
+      ]
+    }
+  ]
 }

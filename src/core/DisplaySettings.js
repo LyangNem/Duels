@@ -245,6 +245,8 @@ const DisplaySettings={
       naturalRegenTimer.checked=
         this.state.naturalRegenTimer;
     }
+    const segmentStep=document.getElementById('duels-setting-health-segment-step');
+    if(segmentStep)segmentStep.textContent=String(WorldHealthBarSegmentPresentationService.step);
     if(healthBarSegments){
       healthBarSegments.checked=
         this.state.healthBarSegments;

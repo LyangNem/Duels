@@ -296,7 +296,7 @@
         damageRatio: 2,
         cost: 0,
         cd: 500,
-        range: 450,
+        range: 270,
         presentation: {color: "#b80d0d"},
         modules: [
           {
@@ -315,7 +315,7 @@
               hitMode: "expanding-ring",
               suppressHitImpactRing: true,
               oncePerExecution: true,
-              module: {type: "delivery.area", shape: "circle", range: 450, wallPolicy: "ignore"}
+              module: {type: "delivery.area", shape: "circle", range: characterValue("attacks.counter.range"), wallPolicy: "ignore"}
             }
           },
           {

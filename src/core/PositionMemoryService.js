@@ -39,7 +39,7 @@ const PositionMemoryService=Object.freeze({
       createdAt:now,
       expiry:now+Math.max(0,Number(config.window)||0)
     });
-    const maxCount=Math.max(1,Math.floor(Number(config.maxCount)||1));
+    const maxCount=config.maxCount===null?Infinity:Math.max(1,Math.floor(Number(config.maxCount)||1));
     while(list.length>maxCount)list.shift();
     return true;
   },

@@ -326,6 +326,10 @@ const ProgressStateService=Object.freeze({
     const state=this.ensure(entity,module);
     if(!state)return false;
     const now=performance.now();
+    // Stacking counters grow a finite capacity; snapshots remain JSON-safe.
+    if(module.growMax===true&&operation==='add'){
+      state.max=Math.max(state.max,state.value+Math.max(0,Number(module.amount)||0));
+    }
     if(operation==='set-max'){
       state.value=state.max;
     }else if(operation==='set'){

@@ -39,7 +39,8 @@ const ResourceRestoreEffectService=Object.freeze({
       return HealthService.restore(recipient,amount,source||recipient,{
         notify:module.notify!==false&&module.presentation!=='none',
         presentation:String(module.presentation||presentationDefault||'default'),
-        applyHealingModifier:module.applyHealingModifier!==false
+        applyHealingModifier:module.applyHealingModifier!==false,
+        onRestoredEffects:module.onRestoredEffects
       });
     }
     if(resource==='stamina')return StaminaService.restore(recipient,amount,now);

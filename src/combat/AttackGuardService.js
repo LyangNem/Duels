@@ -643,6 +643,8 @@ const AttackGuardService=Object.freeze({
         ?guard.spec.onBlock
         :null;
 
+    for(const mode of onBlock?.modes||[])ModeStateService.toggle(guard.source,mode);
+
     if(onBlock?.refreshGuardDuration===true){
       guard.expiresAt=
         now+

@@ -67,6 +67,15 @@
           "type": "delivery.projectile",
           "speed": 32.2,
           "radius": 15
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "ruvu-hammer-motion",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -203,6 +212,15 @@
             "$ref": "attacks.counter.range"
           },
           "halfWidth": 45
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "ruvu-hammer-motion",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -384,5 +402,34 @@
         ]
       }
     }
-  }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "workshop-hammer",
+      "scale": 2,
+      "y": 0,
+      "angle": -0.53,
+      "conditions": [
+        {
+          "type": "projectile.absent",
+          "stateKey": "primary-weapon"
+        }
+      ],
+      "x": 0,
+      "rotationStateKey": "ruvu-hammer-motion",
+      "rotationMs": 400,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "workshop-nail",
+      "scale": 2,
+      "y": 0,
+      "angle": 0.55,
+      "x": 0
+    }
+  ]
 }

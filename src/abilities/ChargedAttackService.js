@@ -101,12 +101,19 @@ const ChargedAttackService=Object.freeze({
       maxProgress>0
         ?resolvedProgress/maxProgress
         :0;
-    const full=
+    let full=
       resolvedProgress>=1&&
       charge.fullSpec&&
       typeof charge.fullSpec==='object'
         ?charge.fullSpec
         :null;
+    let stageThreshold=-Infinity;
+    for(const stage of charge.stages||EMPTY_RUNTIME_ITEMS){
+      const threshold=Number(stage.progress);
+      if(Number.isFinite(threshold)&&threshold<=resolvedProgress&&threshold>=stageThreshold&&stage.spec){
+        stageThreshold=threshold;full=stage.spec;
+      }
+    }
 
     const range=full&&Number.isFinite(Number(full.range))
       ?Number(full.range)
@@ -132,6 +139,11 @@ const ChargedAttackService=Object.freeze({
       ?[...full.modules]
       :(attack?.modules||[]).map(module=>{
         const type=AttackModuleService.type(module);
+        if(type==='pattern.scatter'&&(charge.pelletCount||charge.spread)){
+          const count=this.lerp(charge.pelletCount,normalizedProgress,Number(module.count)||1);
+          const spread=this.lerp(charge.spread,normalizedProgress,Number(module.spread)||0);
+          return {...module,count:Math.max(1,Math.floor(count)),spread:Math.max(0,spread)};
+        }
         if(type==='delivery.area')return {...module,range};
         if((type==='delivery.projectile'||type==='delivery.range-projectile')&&Number.isFinite(projectileSpeed)){
           return {...module,speed:projectileSpeed};
@@ -154,6 +166,17 @@ const ChargedAttackService=Object.freeze({
       cost:0,
       modules
     };
+  },
+  stageCost(charge,progress){
+    if(!Array.isArray(charge?.costStages)||!charge.costStages.length)return null;
+    let cost=null,threshold=-Infinity;
+    for(const stage of charge.costStages){
+      const at=Number(stage.progress),value=Number(stage.cost);
+      if(Number.isFinite(at)&&Number.isFinite(value)&&at<=progress&&at>=threshold){
+        threshold=at;cost=Math.max(0,value);
+      }
+    }
+    return cost;
   },
   syncPreview(entity,state,attack,angle,now=performance.now()){
     if(
@@ -451,23 +474,23 @@ const ChargedAttackService=Object.freeze({
       const availableBudget=Math.max(0,Number(state.drained)||0)+StaminaService.nominalBudget(source,now);
       const normalizedProgress=maxProgress>0?resolvedProgress/maxProgress:0;
       const configuredFullCost=Number(attack.charge.fullCost);
-      const hasDiscreteFullCost=Number.isFinite(configuredFullCost);
+      const stageCost=this.stageCost(attack.charge,resolvedProgress);
+      const hasDiscreteCost=stageCost!==null||Number.isFinite(configuredFullCost);
       const fullCost=
-        hasDiscreteFullCost
+        Number.isFinite(configuredFullCost)
           ?Math.max(minCost,configuredFullCost*costMultiplier)
           :maxCost;
       const requestedCost=
-        hasDiscreteFullCost
-          ?(resolvedProgress>=1?fullCost:minCost)
+        hasDiscreteCost
+          ?(stageCost!==null?stageCost*costMultiplier:(resolvedProgress>=1?fullCost:minCost))
           :minCost+(maxCost-minCost)*normalizedProgress;
 
-      // fullCost가 있으면 최대 차징 순간에만 별도 비용으로 전환한다.
-      // 최대차징 전용 비용이 부족하면 하위 공격으로 자동 강등하지 않고
+      // costStages는 단계별 발사 비용, fullCost는 기존 단일 최대 차징 비용이다.
+      // 선택된 단계 비용이 부족하면 하위 공격으로 자동 강등하지 않고
       // 해당 릴리스를 실패 처리한다. 기존 연속 비용형 차징만 종전처럼
       // 현재 예산에 맞춰 진행률을 낮춘다.
       if(
-        hasDiscreteFullCost&&
-        resolvedProgress>=1&&
+        hasDiscreteCost&&
         requestedCost>availableBudget+1e-6
       ){
         source.actionState.delete(stateKey);
@@ -484,7 +507,7 @@ const ChargedAttackService=Object.freeze({
         return false;
       }
       if(
-        !hasDiscreteFullCost&&
+        !hasDiscreteCost&&
         requestedCost>availableBudget+1e-6&&
         maxCost>minCost
       ){
@@ -498,8 +521,8 @@ const ChargedAttackService=Object.freeze({
       }
 
       const resolvedCost=
-        hasDiscreteFullCost
-          ?(resolvedProgress>=1?fullCost:minCost)
+        hasDiscreteCost
+          ?(stageCost!==null?stageCost*costMultiplier:(resolvedProgress>=1?fullCost:minCost))
           :minCost+(maxCost-minCost)*(maxProgress>0?resolvedProgress/maxProgress:0);
       const remaining=Math.max(0,resolvedCost-state.drained);
       if(remaining>0){
@@ -633,6 +656,18 @@ const ChargedAttackService=Object.freeze({
     }
     return false;
   },
+  flashReady(attack,rawProgress){
+    if(!attack?.charge?.gauge)return false;
+    const gauge=attack.charge.gauge===true?{}:attack.charge.gauge;
+    if(gauge.maxChargeFlash===false)return false;
+    const layers=Math.max(1,Math.floor(Number(gauge.layers)||1));
+    const threshold=gauge.flashAfterFirstLayer===true&&layers>1?this.maxProgress(attack)/layers:this.maxProgress(attack);
+    return rawProgress>=threshold;
+  },
+  hasChargeFlash(entity,now=performance.now()){
+    for(const state of this.states(entity)){const attack=this.attack(entity,state);if(attack?.charge?.gauge&&this.flashReady(attack,this.progress(state,attack,now)))return true;}
+    return false;
+  },
   draw(ctx,entity,now=performance.now()){
     for(const state of this.states(entity)){
       const attack=this.attack(entity,state);
@@ -655,7 +690,7 @@ const ChargedAttackService=Object.freeze({
         ArcGaugePresentationService.render(ctx,entity,progress,{
           ...baseOptions,
           completeAccent:progress>=1,
-          maxChargeFlash:progress>=1
+          maxChargeFlash:this.flashReady(attack,rawProgress)
         });
         return true;
       }
@@ -671,12 +706,12 @@ const ChargedAttackService=Object.freeze({
           showEmpty:false
         });
       }
-      if(progress>=1&&gaugeStyle.maxChargeFlash!==false){
+      if(this.flashReady(attack,rawProgress)){
         ArcGaugePresentationService.render(ctx,entity,1,{
           ...baseOptions,
           hideArcAtComplete:true,
           maxChargeFlash:true,
-          completePulseColor:gaugeStyle.overflowColor||entity.color
+          completePulseColor:progress>=1?(gaugeStyle.overflowColor||entity.color):entity.color
         });
       }
       return true;

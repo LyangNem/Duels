@@ -7,6 +7,11 @@
     classification: {style: 1, range: 0, role: 6},
     stats: {maxHealth: 900, speed: 4.5, radius: 20, baseDamage: 250, difficulty: 4},
     desc: "은신으로 기습해 빠르게 쏟아붓고 빠져나오는 캐릭터",
+    worldEffectModules: [{
+      type: "effect.spawn", renderType: "weaponImage", style: "frost-scythe",
+      color: "#8bbcff", scale: 1.65, angle: 0.25,
+      rotationStateKey: "sya-weapon-rotation", rotationMs: 350, rotationRadians: 6.283185307179586
+    }],
     worldGaugeModules: [
       {
         type: "gauge.segmented",
@@ -89,7 +94,8 @@
             replaceAutoAreaEffect: true,
             drawsClippedOutline: true,
             scaleWithAttackRange: true
-          }
+          },
+          {type: "mode.toggle", when: "on-delivery", stateKey: "sya-weapon-rotation", values: ["a", "b"]}
         ],
         tags: ["평타"]
       },
@@ -183,7 +189,8 @@
             replaceAutoAreaEffect: true,
             drawsClippedOutline: true,
             scaleWithAttackRange: true
-          }
+          },
+          {type: "mode.toggle", when: "on-delivery", stateKey: "sya-weapon-rotation", values: ["a", "b"]}
         ],
         tags: ["반격"]
       }

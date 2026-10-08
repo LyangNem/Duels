@@ -2,6 +2,10 @@
 
 const MovementAbilityService=Object.freeze({
   KIND:'movement-ability-state',
+  progressAttackTrigger:{
+    type:'trigger',event:'time.update',
+    conditions:[{type:'entity.alive'},{type:'context.truthy',key:'movementProgressReached'}]
+  },
 
   resolveKinematics(spec={},runtimeDistance=null){
     const hasRuntimeDistance=
@@ -585,6 +589,13 @@ const MovementAbilityService=Object.freeze({
         Array.isArray(module.onEndAttackIds)
           ?module.onEndAttackIds.map(String)
           :[],
+      progressAttacks:Array.isArray(module.progressAttacks)
+        ?module.progressAttacks.map(item=>({
+          ...item,
+          progress:Math.max(0,Math.min(1,Number(item.progress)||0)),
+          resolved:false
+        }))
+        :null,
       onEndShareHitTargets:module.onEndShareHitTargets===true,
       executionSequence:
         Math.max(
@@ -1114,6 +1125,36 @@ const MovementAbilityService=Object.freeze({
     return applied;
   },
 
+  applyProgressAttacks(entity,state,now){
+    if(!state.progressAttacks?.length||!entity.alive||
+       !EntitySimulationAuthorityService.isLocal(entity))return false;
+    const progress=state.distance>0?Math.min(1,state.traveled/state.distance):0;
+    let fired=false;
+    for(const item of state.progressAttacks){
+      if(item.resolved||progress<item.progress)continue;
+      if(!TriggerModuleService.matches(this.progressAttackTrigger,'time.update',{
+        source:entity,now,movementProgressReached:progress>=item.progress
+      }))continue;
+      item.resolved=true;
+      const base=AbilityService.attackById(entity.character,String(item.attackId||''));
+      if(!base)continue;
+      let attack=AugmentService.prepareAttack(entity,
+        ProgressScaledAttackService.resolve(entity,base),now);
+      if(item.captureTrajectoryHeight===true){
+        const lift=ArcTrajectoryService.sample(progress,state.trajectory).lift;
+        attack={...attack,modules:(attack.modules||[]).map(module=>
+          module.type==='trajectory.arc'?{...module,startHeight:lift}:module)};
+      }
+      const targetPoint=item.targetPoint==='start'
+        ?{x:state.startX,y:state.startY}:null;
+      const angle=targetPoint
+        ?Math.atan2(targetPoint.y-entity.y,targetPoint.x-entity.x)
+        :Number(state.angle)||0;
+      fired=TriggeredAttackService.execute(entity,attack,angle,{targetPoint})||fired;
+    }
+    return fired;
+  },
+
   update(entity,now,dt,movement=null){
     if(!entity?.actionState)return false;
 
@@ -1232,6 +1273,7 @@ const MovementAbilityService=Object.freeze({
       }
 
       state.traveled+=moved;
+      this.applyProgressAttacks(entity,state,now);
 
       if(blocked){
         this.finish(entity,state,now);
@@ -1250,33 +1292,30 @@ const MovementAbilityService=Object.freeze({
       return true;
     }
 
-    const travel=this.travelWithEnemyOvershoot(
-      entity,
-      state,
-      angle,
-      requested
-    );
-    const allowed=travel.allowed;
-
-    entity.x+=Math.cos(angle)*allowed;
-    entity.y+=Math.sin(angle)*allowed;
-    state.traveled+=allowed;
-
-    this.applyPathDamage(
-      entity,
-      state,
-      frameStartX,
-      frameStartY,
-      Number(entity.x)||0,
-      Number(entity.y)||0
-    );
-
-    const blocked=
-      travel.enemyCollision===true||
-      allowed+1e-6<requested;
-    if(blocked){
-      this.finish(entity,state,now);
-      return true;
+    // 진행도 공격이 있으면 프레임 이동을 해당 지점에서 나눈다.
+    // 긴 프레임에서도 최고점/중간 발사의 원점과 궤적 높이를 정확히 유지한다.
+    let remainingRequested=requested;
+    while(remainingRequested>1e-6){
+      let step=remainingRequested;
+      for(const item of state.progressAttacks||EMPTY_RUNTIME_ITEMS){
+        if(item.resolved)continue;
+        const until=state.distance*item.progress-state.traveled;
+        if(until>1e-6)step=Math.min(step,until);
+      }
+      const fromX=Number(entity.x)||0;
+      const fromY=Number(entity.y)||0;
+      const travel=this.travelWithEnemyOvershoot(entity,state,angle,step);
+      const allowed=travel.allowed;
+      entity.x+=Math.cos(angle)*allowed;
+      entity.y+=Math.sin(angle)*allowed;
+      state.traveled+=allowed;
+      this.applyPathDamage(entity,state,fromX,fromY,Number(entity.x)||0,Number(entity.y)||0);
+      this.applyProgressAttacks(entity,state,now);
+      if(travel.enemyCollision===true||allowed+1e-6<step){
+        this.finish(entity,state,now);
+        return true;
+      }
+      remainingRequested-=step;
     }
 
     if(state.traveled>=state.distance-1e-6){

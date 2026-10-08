@@ -12,6 +12,10 @@ const SegmentedGaugePresentationService=Object.freeze({
     valueMode='value',
     segmentDuration=5000,
     segments=[],
+    highlightCount=0,
+    highlightColor='',
+    highlightFrom='left',
+    colorOverride='',
     activeAlpha=.95,
     background='rgba(10,18,22,0.92)',
     stroke='rgba(205,238,244,0.34)'
@@ -92,7 +96,11 @@ const SegmentedGaugePresentationService=Object.freeze({
           )
         );
         ctx.fillStyle=String(
-          segment.color||
+          (highlightColor&&(highlightFrom==='right'
+            ?index>=Math.max(0,Math.floor(Number(value)||0))-Math.max(0,Math.floor(Number(highlightCount)||0))
+            :index<Math.max(0,Math.floor(Number(highlightCount)||0)))
+            ?highlightColor
+            :(colorOverride||segment.color))||
           '#92cbd6'
         );
         ctx.fillRect(

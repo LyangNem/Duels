@@ -200,36 +200,15 @@
   "worldEffectModules": [
     {
       "type": "effect.spawn",
-      "renderType": "gearCluster",
-      "radius": 50,
-      "teeth": 16,
+      "renderType": "weaponImage",
+      "style": "gear",
       "color": "#e6ca3b",
+      "scale": 2.5,
+      "rotationStateKey": "geopin-weapon",
+      "rotationMs": 350,
       "idleAlpha": 0.2,
       "useHoldMs": 350,
-      "useFadeMs": 500,
-      "rotationMs": 350,
-      "gears": [
-        {
-          "stateKey": "geopin-weapon",
-          "initial": "rubber",
-          "values": [
-            "rubber",
-            "jump",
-            "wall",
-            "laser",
-            "chain",
-            "punch",
-            "recoil",
-            "sniper",
-            "bomb"
-          ],
-          "x": 0,
-          "y": 0,
-          "turnRadians": 6.283185307179586
-        }
-      ],
-      "enemyAlpha": 1,
-      "allyAlpha": 1
+      "useFadeMs": 500
     }
   ],
   "worldGaugeModules": [

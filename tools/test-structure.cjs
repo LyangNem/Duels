@@ -15,8 +15,8 @@ c.GAME_DATA={characters:chars,ranges:c.CHARACTER_RULES.ranges,frameMs:1000/60,co
 load('src/data/AUGMENTS.js','AUGMENTS');
 c.AbilityService={attackById:(ch,id)=>Object.values(ch.attacks||{}).find(a=>a.id===id)};
 function walk(v,fn){assert.notEqual(typeof v,'function');if(!v||typeof v!=='object')return;fn(v);for(const x of Object.values(v))walk(x,fn)}
-test('60명 함수 없는 데이터·동결·Trigger·반격 및 공격 참조 검사',()=>{
- assert.equal(Object.keys(chars).length,60);
+test('62명 함수 없는 데이터·동결·Trigger·반격 및 공격 참조 검사',()=>{
+ assert.equal(Object.keys(chars).length,62);
  for(const ch of Object.values(chars)){
   assert.ok(Object.isFrozen(ch));const attacks=Object.values(ch.attacks||{});const ids=new Set(attacks.map(a=>a.id));assert.equal(ids.size,attacks.length,ch.name);
   walk(ch,m=>{if(m.type==='counter.execute'){assert.ok(c.CounterModuleService.validate(m),ch.name);assert.equal(m.allowNoCc,undefined);if(m.ccRefAttackId)assert.ok(c.CounterModuleService.referencedCc({character:ch},m),ch.name)}if(m.type==='attack.execute')assert.ok(ids.has(m.attackId),ch.name+':'+m.attackId)});
@@ -211,6 +211,7 @@ test('티냐 반격 설명/미리보기/실제 마지막 발동 마법진 일치
  assert.ok(ch.tooltipSkills.find(x=>x.key==='L-Shift').text.includes('마지막으로 발동한'));
  assert.equal(service.resolveModuleCircles(e,{source:'pending'},{}).length,1);assert.equal(state.pendingManifest,null);
 });
+c.EffectSpawnService={...c.EffectSpawnService,shouldPresentAttack:()=>false};
 load('src/combat/DodgeFollowupStateService.js','DodgeFollowupStateService');
 test('카논 이동 회피 공격 제거·제자리 회피 보정/기본 공격 유지',()=>{
  const ch=chars.kanon;assert.deepEqual(Object.keys(ch.attacks).sort(),['counter','lmb','lmbStopped','lmbStoppedSecond','rmb','rmbStopped'].sort());

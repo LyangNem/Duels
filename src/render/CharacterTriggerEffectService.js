@@ -78,6 +78,16 @@ const CharacterTriggerEffectService=Object.freeze({
           continue;
         }
 
+        if(module.type==='effect.spawn'){
+          if(!shared.attack||!shared.target)continue;
+          AttackModuleService.spawnAttackEffect(
+            entity,shared.attack,
+            Number(shared.execution?.directionAngle)||0,
+            shared.execution||null,module,shared.target
+          );
+          continue;
+        }
+
         if(module.type==='resource.restore'){
           const recipient=
             module.recipient==='target'

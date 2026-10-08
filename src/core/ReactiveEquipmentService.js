@@ -64,8 +64,31 @@ const ReactiveEquipmentService=Object.freeze({
   if(changed)this.flush(target,now);
   return changed;
  },
+ creationField(event){
+  // Only area hits paired with a lasting damaging field count as its creation burst.
+  if(event?.impact?.type!=='area'||!event.attack)return null;
+  const lasting=field=>field?.type==='field.area'&&field.damageOnTrigger!==false&&Number(field.interval)>0&&(Number(field.duration)>0||field.duration==='infinite');
+  const fields=value=>{
+   if(!value||typeof value!=='object')return [];
+   if(lasting(value))return [value];
+   return Object.values(value).flatMap(fields);
+  };
+  const own=fields(event.attack.modules);if(own.length)return own[0];
+  for(const parent of Object.values(event.source?.character?.attacks||{})){
+   for(const module of parent.modules||[]){
+    if(module.type!=='projectile.impact'||!lasting(module.field))continue;
+    const reason=event.execution?.projectileImpactReason;
+    if(reason&&module.field.reasons?.length&&!module.field.reasons.includes(reason))continue;
+    const ids=[...(module.attackIds||[]),...(reason?module.reasonAttackIds?.[reason]||[]:[])];
+    if(ids.includes(event.attack.id))return module.field;
+   }
+  }
+  return null;
+ },
  damage(event){
   const e=event?.target,a=event?.source,config=this.config(e);
+  const creationField=this.creationField(event);
+  if(creationField&&config?.fieldTrigger==='damage'&&(event.amount>0||event.justDodged===true)&&a&&RelationService.relation(e,a)==='enemy')return this.signal(e,{field:true,sourceId:a.id},a.id,event.now);
   if(event?.impact?.type==='field-area'){
    if(config?.fieldTrigger!=='damage'||(!(event.amount>0)&&event.justDodged!==true)||!(Number(event.impact.fieldDuration)>0||event.impact.fieldPersistent===true)||!a||RelationService.relation(e,a)!=='enemy')return false;
    return this.signal(e,{field:true,sourceId:a.id},a.id,event.now);

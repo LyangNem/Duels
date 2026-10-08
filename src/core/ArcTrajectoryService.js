@@ -25,9 +25,16 @@ const ArcTrajectoryService=Object.freeze({
       return result;
     }
 
-    const apex=Math.sin(p*Math.PI);
+    // 선택형 최고점 체류 비율. 기본값 0은 기존 sin 궤적을 그대로 유지한다.
+    const hold=Math.max(0,Math.min(.8,Number(module.apexHold)||0));
+    const ascentEnd=(1-hold)/2;
+    const descentStart=1-ascentEnd;
+    const arcProgress=p<ascentEnd?p/ascentEnd/2
+      :p>descentStart ? .5+(p-descentStart)/ascentEnd/2 : .5;
+    const apex=Math.sin(arcProgress*Math.PI);
     const height=Math.max(0,Number(module.height)||0);
-    const lift=height*apex;
+    const startHeight=Math.max(0,Number(module.startHeight)||0);
+    const lift=height*apex+startHeight*(1-p);
     const screenLiftRatio=Math.max(
       0,
       Number(module.screenLiftRatio)||1

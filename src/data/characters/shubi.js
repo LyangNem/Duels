@@ -53,6 +53,15 @@
           "type": "delivery.projectile",
           "speed": 24,
           "radius": 8
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "shubi-lmb-motion",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -87,6 +96,15 @@
             "passEnemies": true
           },
           "presentation": false
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "shubi-shotgun-motion",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -121,6 +139,15 @@
             "passEnemies": true
           },
           "presentation": false
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "shubi-shotgun-motion",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -237,5 +264,25 @@
         ]
       }
     }
-  }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "electronic-shotgun",
+      "color": "#ff4500",
+      "scale": 2,
+      "angle": -0.48,
+      "motionStateKey": "shubi-lmb-motion",
+      "motionMs": 420,
+      "motion": {
+        "rotation": -0.48,
+        "travelX": -0.3,
+        "travelY": 0.12
+      },
+      "rotationStateKey": "shubi-shotgun-motion",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    }
+  ]
 }

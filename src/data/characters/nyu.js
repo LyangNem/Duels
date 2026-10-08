@@ -29,7 +29,7 @@
         tags: ["디버프", "이동속도"]
       }
     ],
-    worldEffectModules: [{type:"effect.spawn",renderType:"swordSilhouette",conditions:[{type:"state.absent",stateKey:"nyu-dark-sword"}],style:"dark",rotationStateKey:"nyu-sword-rotation",rotationMs:300,angle:-0.6,scale:1.75}],
+    worldEffectModules: [{type:"effect.spawn",renderType:"weaponImage",conditions:[{type:"state.absent",stateKey:"nyu-dark-sword"}],style:"dark",rotationStateKey:"nyu-sword-rotation",rotationMs:300,angle:-0.6,scale:1.75}],
     tooltipSkills: [
       {
         key: "ALWAYS",
@@ -89,7 +89,7 @@
             replaceAutoAreaEffect: true,
             scaleWithAttackRange: true
           },
-          {type:"mode.toggle",when:"after-attack",stateKey:"nyu-sword-rotation",values:["a","b"]}
+          {type:"mode.toggle",when:"on-delivery",stateKey:"nyu-sword-rotation",values:["a","b"]}
         ],
         tags: ["평타"]
       },
@@ -180,7 +180,7 @@
               returningAlpha: 0.72
             }
           },
-          {type:"mode.toggle",when:"after-attack",stateKey:"nyu-sword-rotation",values:["a","b"]}
+          {type:"mode.toggle",when:"on-delivery",stateKey:"nyu-sword-rotation",values:["a","b"]}
         ],
         tags: ["스킬"]
       },
@@ -275,7 +275,7 @@
             speed: 10,
             oncePerExecution: true
           },
-          {type:"mode.toggle",when:"after-attack",stateKey:"nyu-sword-rotation",values:["a","b"]}
+          {type:"mode.toggle",when:"on-delivery",stateKey:"nyu-sword-rotation",values:["a","b"]}
         ],
         tags: ["반격"]
       },

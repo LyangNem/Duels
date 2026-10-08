@@ -164,6 +164,7 @@ const SimulationScheduleService={
 
             ProjectileService.spawn({
               source:item.source,
+              perpendicularOffset,
               attack:item.attack,
               volley:item.volley,
               x:spawnX,

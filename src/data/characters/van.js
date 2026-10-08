@@ -195,7 +195,7 @@
         },
         {
           "type": "mode.toggle",
-          "when": "after-attack",
+          "when": "on-delivery",
           "stateKey": "van-wrench-rotation",
           "values": [
             "a",
@@ -232,6 +232,15 @@
           "type": "projectile.pierce",
           "targets": false,
           "walls": false
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "van-wrench-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
@@ -286,7 +295,7 @@
         },
         {
           "type": "mode.toggle",
-          "when": "after-attack",
+          "when": "on-delivery",
           "stateKey": "van-wrench-rotation",
           "values": [
             "a",
@@ -320,7 +329,7 @@
         },
         {
           "type": "mode.toggle",
-          "when": "after-attack",
+          "when": "on-delivery",
           "stateKey": "van-wrench-rotation",
           "values": [
             "a",
@@ -492,6 +501,47 @@
             "$ref": "wrenchDurability.repairHits"
           },
           "amount": 1
+        }
+      ]
+    }
+  ],
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "wrench",
+      "color": "#9fcf55",
+      "scale": 2.73,
+      "angle": -2.356194490192345,
+      "rotationStateKey": "van-wrench-rotation",
+      "rotationMs": 300,
+      "conditions": [
+        {
+          "type": "state.progress-gte",
+          "stateKey": "van-wrench-durability",
+          "value": 1,
+          "initial": {
+            "$ref": "wrenchDurability.max"
+          }
+        }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "small-wrench",
+      "color": "#9fcf55",
+      "scale": 2,
+      "angle": -2.356194490192345,
+      "rotationStateKey": "van-wrench-rotation",
+      "rotationMs": 300,
+      "conditions": [
+        {
+          "type": "state.progress-empty",
+          "stateKey": "van-wrench-durability",
+          "initial": {
+            "$ref": "wrenchDurability.max"
+          }
         }
       ]
     }

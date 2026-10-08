@@ -156,7 +156,7 @@
           "direction": "away-from-impact",
           "distance": 26,
           "speed": 10,
-          "oncePerExecution": true
+          "oncePerExecution": false
         },
         {
           "type": "projectile.presentation",
@@ -250,7 +250,7 @@
           "direction": "away-from-impact",
           "distance": 26,
           "speed": 10,
-          "oncePerExecution": true
+          "oncePerExecution": false
         },
         {
           "type": "projectile.presentation",
@@ -346,7 +346,7 @@
           "direction": "away-from-impact",
           "distance": 26,
           "speed": 10,
-          "oncePerExecution": true
+          "oncePerExecution": false
         },
         {
           "type": "projectile.presentation",
@@ -641,5 +641,20 @@
         ]
       }
     }
-  }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "demon-trident",
+      "scale": 1.58175,
+      "angle": -0.6,
+      "conditions": [
+        {
+          "type": "projectile.absent",
+          "stateKey": "levina-spear"
+        }
+      ]
+    }
+  ]
 }

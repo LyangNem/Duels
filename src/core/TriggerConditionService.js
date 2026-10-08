@@ -159,6 +159,10 @@ const TriggerConditionService=Object.freeze({
     if(condition.type==='context.exists'){
       return context[condition.key]!==null&&context[condition.key]!==undefined;
     }
+    if(condition.type==='target.kind-not-in'){
+      return !!context.target&&Array.isArray(condition.kinds)&&
+        !condition.kinds.includes(String(context.target.kind||''));
+    }
     if(condition.type==='target.wall'){
       const point=context.targetPoint;
       if(!point)return false;
@@ -186,6 +190,10 @@ const TriggerConditionService=Object.freeze({
       const target=context.target||null;
       if(!target)return false;
       const status=String(condition.status||'');
+      // Confirmed hit context carries the victim authority's status snapshot.
+      if(Array.isArray(context.targetStatusTypes)){
+        return context.targetStatusTypes.includes(status);
+      }
       if(CCService.has(target,status,now))return true;
       return AttackExecutionService.hasEffect(
         context.execution,
@@ -244,7 +252,8 @@ const TriggerConditionService=Object.freeze({
         state=>
           state?.phase!=='afterlife'&&
           state?.rewardOnly!==true&&
-          now<Number(state?.endsAt||Infinity)
+          now<Number(state?.endsAt||Infinity)&&
+          (condition.activeOnly!==true||!Number.isFinite(Number(state.module?.activeDuration))||now<Number(state.startedAt||0)+Math.max(0,Number(state.module.activeDuration)||0))
       );
       return condition.negate===true?!found:found;
     }
@@ -553,6 +562,11 @@ const TriggerConditionService=Object.freeze({
       )return false;
       return !!value&&value.behavior?.returning?.phase===condition.phase;
     }
+    if(condition.type==='projectile.exists'||condition.type==='projectile.absent'){
+      const key=String(condition.stateKey||'');
+      const exists=!!ProjectileStateService.get(source,key)||!!source?._remoteProjectileStateKeys?.get(key);
+      return condition.type==='projectile.exists'?exists:!exists;
+    }
     if(condition.type==='projectile.attack-id-is'){
       const projectile=ProjectileStateService.get(
         source,
@@ -646,14 +660,12 @@ const TriggerConditionService=Object.freeze({
       return current<Math.max(0,Number(condition.value)||0);
     }
     if(condition.type==='state.mode-is'){
-      return (
-        ModeStateService.current(
-          source,
-          String(condition.stateKey||''),
-          String(condition.initial||'')
-        )===
-        String(condition.value||'')
-      )!== (condition.invert===true);
+      let value=ModeStateService.current(source,String(condition.stateKey||''),String(condition.initial||''));
+      if(Number(condition.expiresAfterMs)>0){
+        const at=ModeStateService.state(source,String(condition.ageStateKey||condition.stateKey||''))?.changedAt;
+        if(at===undefined||Number(context.now??performance.now())-at>=Number(condition.expiresAfterMs))value=String(condition.expiredValue||condition.initial||'');
+      }
+      return (value===String(condition.value||''))!==(condition.invert===true);
     }
     if(condition.type==='aim.cardinal-is'){
       return CardinalDirectionService.resolve(

@@ -206,6 +206,10 @@ const NetworkHitAuthorityService={
         result.prevented===true,
       durabilityBlocked:
         result.durabilityBlocked===true,
+      targetStatusTypes:
+        Array.from(result.target.statuses?.keys()||[]).filter(
+          type=>CCService.has(result.target,type,result.now||performance.now())
+        ),
       impactType:String(
         result.impact?.type||''
       ),
@@ -527,6 +531,9 @@ const NetworkHitAuthorityService={
           execution,
           impact,
           amount:confirmedAmount,
+          targetStatusTypes:Array.isArray(payload.targetStatusTypes)
+            ?payload.targetStatusTypes.filter(type=>typeof type==='string')
+            :undefined,
           healthDamage:confirmedAmount,
           executionHealthDamage:confirmedAmount,
           prevented:payload.prevented===true,

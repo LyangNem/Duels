@@ -49,7 +49,8 @@ const HitContactFeedbackService=Object.freeze({
 
     if(
       !CCService.isDotImpact(impact)&&
-      impact?.suppressHitImpactRing!==true
+      impact?.suppressHitImpactRing!==true&&
+      attack?.presentation?.suppressHitImpactRing!==true
     ){
       EffectSpawnService.spawn({
         type:'hitImpactRing',

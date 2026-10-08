@@ -144,7 +144,8 @@ const CookingService=Object.freeze({
     const explicitCount=Math.max(0,Math.floor(Number(execution?.cookingMealCount)||0));
     const count=explicitCount>0?explicitCount:Math.max(0,Math.floor(Number(state.mealCount)||0));
     if(count<=0)return false;
-    state.thrownMealCount=count;state.mealCount=0;
+    const local=EntitySimulationAuthorityService.isLocal(entity);
+    if(local){state.thrownMealCount=count;state.mealCount=0;}
     const projectile=ProjectileService.items.slice().reverse().find(p=>p?.source===entity&&p?.volley?.execution===execution&&String(p?.attack?.id||'')==='attack.dira.meal');
     if(projectile){
       const radius=this.mealProjectileRadius(entity,count);
@@ -173,7 +174,7 @@ const CookingService=Object.freeze({
         projectile.prevX=projectile.x;projectile.prevY=projectile.y;
       }
     }
-    this.syncReady(entity);entity.combatSnapshotDirty=true;return true;
+    if(local){this.syncReady(entity);entity.combatSnapshotDirty=true;}return true;
   },
   update(entity){if(!this.config(entity))return false;this.state(entity,true);return this.syncReady(entity);},
   serialize(entity){const state=this.state(entity,false);if(!state)return null;return {ingredients:Math.max(0,Math.floor(Number(state.ingredients)||0)),stoveInputs:Math.max(0,Math.floor(Number(state.stoveInputs)||0)),mealCount:Math.max(0,Math.floor(Number(state.mealCount)||0)),thrownMealCount:Math.max(0,Math.floor(Number(state.thrownMealCount)||0)),incomingMealCount:Math.max(0,Math.floor(Number(state.incomingMealCount)||0))};},

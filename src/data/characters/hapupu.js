@@ -49,7 +49,7 @@
             type: "movement.knockback",
             target: "hit-target",
             direction: "away-from-source",
-            distance: 35,
+            distance: 47.25,
             speed: 10,
             oncePerExecution: false
           },

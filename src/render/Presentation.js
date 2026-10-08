@@ -159,6 +159,9 @@ const Presentation=Object.freeze({
         x:Number(entity?.x)||0,
         y:Number(entity?.y)||0
       };
+    if(options.replacement!==true&&(entity?.alive===false||options.confirmed===true)&&typeof ModeGearPresentationService!=='undefined'){
+      ModeGearPresentationService.presentDeath(entity,options.targetPoint||targetPoint,now);
+    }
     const origin=
       koOrigin||
       ImpactDirectionService.entityCenter(source)||

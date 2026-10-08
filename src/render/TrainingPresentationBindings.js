@@ -89,7 +89,8 @@ GameEvents.on('entity-defeated',event=>{
 
       const hitRing=
         !CCService.isDotImpact(event.impact)&&
-        event.impact?.suppressHitImpactRing!==true
+        event.impact?.suppressHitImpactRing!==true&&
+        event.attack?.presentation?.suppressHitImpactRing!==true
           ?EffectSpawnService.spawn({
           type:'hitImpactRing',
           x:Number(target.x)||0,

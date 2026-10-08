@@ -270,11 +270,6 @@ const TrainingWorldDrawService=Object.freeze({
       ctx.save();
       ctx.translate(bodyX,bodyY);
       ModeGearPresentationService.drawBehind(ctx,e,bodyAlpha,now);
-      VanWrenchDurabilityPresentationService.drawBehind(
-        ctx,
-        e,
-        bodyAlpha
-      );
       ctx.restore();
 
       ctx.save();

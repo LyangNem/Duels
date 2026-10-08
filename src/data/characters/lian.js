@@ -19,7 +19,7 @@
   "dodgeMemory": {
     "stateKey": "backup",
     "window": 6000,
-    "maxCount": 3
+    "maxCount": null
   },
   "dodgeStateWindows": [
     {
@@ -30,6 +30,28 @@
         "slot": "lmb",
         "alternateAttackId": "attack.lian.shield-dash"
       }
+    }
+  ],
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "simple-shield",
+      "scale": 1.9,
+      "y": 0,
+      "rotationStateKey": "lian-shield-rotation",
+      "rotationMs": 430,
+      "rotationRadians": 6.283185307179586,
+      "activityColors": [
+        {
+          "stateKey": "lian-shield-block",
+          "duration": 250,
+          "fadeMs": 220,
+          "color": "#8ed9ff"
+        }
+      ],
+      "x": 0,
+      "alpha": 1
     }
   ],
   "worldGaugeModules": [
@@ -55,7 +77,7 @@
       "key": "RMB",
       "name": "돌진 백업",
       "attack": "rmb",
-      "text": "최근 {memoryCount}회의 회피 직전 위치를 {memorySeconds}초간 기억 · 가장 최근 위치로 귀환"
+      "text": "회피 직전 위치를 {memorySeconds}초간 기억 · 가장 최근 위치로 귀환"
     },
     {
       "key": "L-Shift",
@@ -118,7 +140,55 @@
             "effectStateKey": "lian-lmb-shield",
             "duration": 180,
             "color": "0,220,255"
+          },
+          "onBlock": {
+            "modes": [
+              {
+                "type": "mode.toggle",
+                "stateKey": "lian-shield-block",
+                "values": [
+                  "a",
+                  "b"
+                ]
+              },
+              {
+                "type": "mode.toggle",
+                "stateKey": "lian-shield-motion",
+                "values": [
+                  "a",
+                  "b"
+                ]
+              }
+            ]
           }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "lian-shield-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "lian-shield-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "lian-shield-rotation",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -210,6 +280,16 @@
           "distance": 104,
           "speed": 10,
           "oncePerExecution": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "lian-shield-rotation",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -242,11 +322,31 @@
           "renderType": "backup",
           "durationFrames": 12,
           "color": "255,119,0"
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "lian-shield-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "mode.toggle",
+          "stateKey": "lian-shield-rotation",
+          "when": "after-attack",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": -1
         }
       ],
       "tags": [
         "스킬"
-      ]
+      ],
+      "attackDelay": 300
     },
     "counter": {
       "id": "attack.lian.counter",
@@ -278,6 +378,25 @@
           "color": "255,119,0",
           "replaceAutoAreaEffect": true,
           "scaleWithAttackRange": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "lian-shield-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "lian-shield-rotation",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [

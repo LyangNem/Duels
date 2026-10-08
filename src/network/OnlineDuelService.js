@@ -2580,6 +2580,7 @@ charRow.appendChild(card);
 
         ProjectileService.spawn({
           source:remote,
+          perpendicularOffset:offset,
           attack,
           volley,
           x:spawnX,

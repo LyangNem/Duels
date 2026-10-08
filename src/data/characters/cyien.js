@@ -10,7 +10,6 @@
     desc: "{v:descriptionValues.comboHits}번의 평타를 모두 적중시키며 채운 스킬로 한방에 적을 처형하는 캐릭터",
     tagPersistentActionStateKeys: ["cyien-gyeok"],
     killRewardProgress: {
-      attackIds: ["attack.cyien.rmb-charged"],
       excludeTargetKinds: ["summon"],
       stateKey: "cyien-gyeok",
       operation: "set-max",
@@ -30,7 +29,7 @@
       }
     ],
     tooltipSkills: [
-      {key: "ALWAYS", name: "격의 차이", attack: "rmbCharged", showCost: false, text: "격 최대치 도달 시 절격 활성화"},
+      {key: "ALWAYS", name: "격의 차이", attack: "rmbCharged", showCost: false, text: "적 처치 또는 격 최대치 시 절격 활성화"},
       {
         key: "LMB",
         name: "양손 단검",
@@ -44,7 +43,7 @@
         key: "RMB CHARGED",
         name: "절격",
         attack: "rmbCharged",
-        text: "전방으로 이동하며 이동 경로의 적 공격. 적중 시 격 {progressAmount} 충전 및 처치 시 최대 충전. 체력 {targetHealthThresholdPercent}% 미만인 적에게 피해 +{targetHealthDamageIncreasePercent}% ({damage})"
+        text: "전방으로 이동하며 이동 경로의 적 공격. 적중 시 격 {progressAmount} 충전. 체력 {targetHealthThresholdPercent}% 미만인 적에게 피해 +{targetHealthDamageIncreasePercent}% ({damage})"
       },
       {
         key: "L-Shift",

@@ -442,7 +442,7 @@ const EntityRingLayoutService=Object.freeze({
 
     if(
       canViewPrivate&&
-      ChargedAttackService.isFull(
+      ChargedAttackService.hasChargeFlash(
         entity,
         now
       )

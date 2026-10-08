@@ -89,6 +89,8 @@ const AbilityModuleService=Object.freeze({
             context.source,
             module
           );
+        if(formulaConfig.inputMotion)ModeStateService.toggle(context.source,formulaConfig.inputMotion);
+        if(result.wrong===true&&formulaConfig.inputErrorMotion)ModeStateService.toggle(context.source,formulaConfig.inputErrorMotion);
         context.resolvedAttackId=
           `formula:${String(
             formulaConfig.stateKey||'sequence'
@@ -2280,7 +2282,8 @@ const AbilityModuleService=Object.freeze({
         !AttackService.previewReady(
           context.source,
           resolvedPreviewAttack,
-          performance.now()
+          performance.now(),
+          module.requireResource===true
         )
       ){
         context.handled=true;

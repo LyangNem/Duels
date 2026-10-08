@@ -444,9 +444,8 @@ const WorldGaugeModuleService=Object.freeze({
               :[]
           );
 
-      const resolvedSegments=colorVariant?.color
-        ?baseSegments.map(segment=>({...segment,color:String(colorVariant.color)}))
-        :baseSegments;
+      // Color overrides are renderer inputs; do not clone every segment each frame.
+      const resolvedSegments=baseSegments;
       const gaugeY=y+usedHeight;
       const drawn=
         SegmentedGaugePresentationService.draw(
@@ -460,7 +459,9 @@ const WorldGaugeModuleService=Object.freeze({
               entity,
               module.valueRef
             ),
-            segments:resolvedSegments
+            segments:resolvedSegments,
+            colorOverride:colorVariant?.color||'',
+            highlightCount:module.highlightCountRef?this.value(entity,module.highlightCountRef):0
           }
         );
 

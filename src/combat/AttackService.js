@@ -29,7 +29,7 @@ const AttackService=Object.freeze({
       this.delayReady(source,spec,now)
     );
   },
-  previewReady(source,baseSpec,now=performance.now()){
+  previewReady(source,baseSpec,now=performance.now(),requireResource=false){
     if(!source||!baseSpec)return false;
     const resolved=
       ProgressScaledAttackService.resolve(
@@ -42,6 +42,7 @@ const AttackService=Object.freeze({
         resolved,
         now
       );
+    if(requireResource&&!StaminaService.canSpend(source,prepared.cost,now))return false;
     return this.cooldownReady(
       source,
       prepared,

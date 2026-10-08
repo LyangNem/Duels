@@ -267,6 +267,7 @@ const AreaAttackService=Object.freeze({
       geometrySource=null
     }={}
   ){
+    AttackModuleService.onDelivery(source,spec,angle,volley?.execution||null);
     const resolvedModule=module;
     const networkGeometryOrigin=
       !EntitySimulationAuthorityService.isLocal(source)&&

@@ -240,6 +240,14 @@
     {
       "before": ",\n  geopin: ",
       "path": "src/data/characters/geopin.js"
+    },
+    {
+      "before": ",\n  siro: ",
+      "path": "src/data/characters/siro.js"
+    },
+    {
+      "before": ",\n  hab: ",
+      "path": "src/data/characters/hab.js"
     }
   ],
   "suffix": ",\n});"

@@ -3449,7 +3449,7 @@ const Training={
     }
 
     for(const f of this.fx){
-      if(f?.type==='recordDodgeTrail'||f?.type==='dmgNum'||f?.type==='gearCluster')continue;
+      if(f?.type==='recordDodgeTrail'||f?.type==='dmgNum'||f?.type==='gearCluster'||f?.type==='weaponImageEcho'||f?.type==='weaponImagePulse')continue;
       const progress=Math.max(0,Math.min(1,(now-f.start)/Math.max(1,f.dur)));
       if(
         f.visible===false||
@@ -6255,6 +6255,7 @@ const Training={
       );
     }
 
+    ModeGearPresentationService.drawDeathRemnants(ctx,now);
     for(const e of EntityService.items.values()){
       if(!e.alive||e.hidden)continue;
       if(e.kind==='trainingBot'){

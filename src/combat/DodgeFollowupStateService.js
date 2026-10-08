@@ -17,6 +17,16 @@ const DodgeFollowupStateService=Object.freeze({
     if(stoppedKey)entity.actionState.delete(stoppedKey);
     return true;
   },
+  presentStopped(entity,config,now){
+    if(!config?.stoppedEffects?.length||!EffectSpawnService.shouldPresentAttack(entity))return false;
+    let shown=false;
+    for(const spec of config.stoppedEffects){
+      const effect=EffectSpawnService.spawn({...spec,x:entity.x,y:entity.y,start:now,targetEntityId:entity.id},{source:entity});
+      if(!effect)continue;shown=true;
+      OnlinePresentationSyncService.send('effect-spawn',entity,{effect:EffectSpawnService.presentationSnapshot(effect,now)});
+    }
+    return shown;
+  },
   begin(
     entity,
     movement=null,
@@ -57,6 +67,7 @@ const DodgeFollowupStateService=Object.freeze({
       },
       now
     );
+    if(!moving)this.presentStopped(entity,config,now);
     return true;
   },
   observeMovement(entity,movement=null,now=performance.now()){
@@ -84,6 +95,7 @@ const DodgeFollowupStateService=Object.freeze({
       },
       now
     );
+    this.presentStopped(entity,config,now);
     return true;
   },
   cancelDodge(entity){

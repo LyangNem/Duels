@@ -22,10 +22,10 @@ load('src/combat/AttackExecutionService.js','AttackExecutionService');load('src/
 load('src/projectiles/ProjectileHomingTargetVisibilityService.js','ProjectileHomingTargetVisibilityService');
 load('src/projectiles/ProjectileModuleService.js','ProjectileModuleService');load('src/projectiles/ProjectileRedirectService.js','ProjectileRedirectService');load('src/projectiles/ProjectileService.js','ProjectileService');
 load('src/network/ProjectileRedirectSyncService.js','ProjectileRedirectSyncService');load('src/combat/AttackGuardService.js','AttackGuardService');
-c.ColorService={rgbString:()=> '230,202,59'};load('src/render/ArcGaugePresentationService.js','ArcGaugePresentationService');
-load('src/render/ModeGearPresentationService.js','ModeGearPresentationService');load('src/render/EquipmentGaugePresentationService.js','EquipmentGaugePresentationService');
+load('src/core/ColorService.js','ColorService');load('src/render/ArcGaugePresentationService.js','ArcGaugePresentationService');
+load('src/core/RuntimeValueReferenceProviders.js','RuntimeValueReferenceProviders');load('src/core/RuntimeValueReferenceService.js','RuntimeValueReferenceService');load('src/data/WEAPON_IMAGE_DEFS.js','WEAPON_IMAGE_DEFS');load('src/render/ModeGearPresentationService.js','ModeGearPresentationService');load('src/render/EquipmentGaugePresentationService.js','EquipmentGaugePresentationService');
 c.EntityTargetReferenceService={resolve:id=>items.get(id),encode:e=>e?.id};
-c.JustDodgeService={confirmProjectile:()=>false};c.AttackHitTriggerService={damage:ctx=>{damage.push(ctx);return{hit:true,authoritative:true,amount:ch.baseDamage*ctx.attack.damageRatio}}};c.AttackModuleService={onDeliveryResolved(){},onHit(){},module:(a,t)=>(a.modules||[]).find(m=>m.type===t)};
+c.JustDodgeService={confirmProjectile:()=>false};c.AttackHitTriggerService={damage:ctx=>{damage.push(ctx);return{hit:true,authoritative:true,amount:ch.baseDamage*ctx.attack.damageRatio}}};c.AttackModuleService={onDelivery(){},onDeliveryResolved(){},onHit(){},module:(a,t)=>(a.modules||[]).find(m=>m.type===t)};
 const r=c.ReactiveEquipmentService;
 function entity(id='p',extra={}){const e={id,kind:'player',alive:true,local:true,teamId:'a',character:ch,actionState:new Map(),statuses:new Map(),attackSequence:0,speed:4.5,x:100,y:500,radius:20,...extra};items.set(id,e);return e}
 function reset(){items.clear();return entity()}
@@ -100,10 +100,10 @@ test('현재 모드가 실제 평타 대체 AttackSpec 선택·RMB 실패 시 �
  let next=0;r.select(e,'laser',clock);c.AbilityModuleService.handlers['equipment.select']({source:e,executed:false,now:clock},()=>next++,{value:'rubber',requireExecuted:true});assert.equal(mode(e),'laser');c.AbilityModuleService.handlers['equipment.select']({source:e,executed:true,now:clock},()=>next++,{value:'rubber',requireExecuted:true});assert.equal(mode(e),'rubber');assert.equal(next,2);
 });
 test('기어 한바퀴350ms·같은 무기는 재회전 없음·원격 snapshot 재수신 재시작 없음',()=>{
- const e=reset(),gear=ch.worldEffectModules[0].gears[0];r.select(e,'laser',1000);assert.equal(c.ModeGearPresentationService.rotation(e,gear,350,1000),0);assert.equal(c.ModeGearPresentationService.rotation(e,gear,350,1175),Math.PI);assert.equal(c.ModeGearPresentationService.rotation(e,gear,350,1350),Math.PI*2);assert.equal(r.select(e,'laser',1400),false);
+ const e=reset(),gear={stateKey:ch.worldEffectModules[0].rotationStateKey,turnRadians:Math.PI*2};r.select(e,'laser',1000);assert.equal(c.ModeGearPresentationService.rotation(e,gear,350,1000),0);assert.equal(c.ModeGearPresentationService.rotation(e,gear,350,1175),Math.PI);assert.equal(c.ModeGearPresentationService.rotation(e,gear,350,1350),Math.PI*2);assert.equal(r.select(e,'laser',1400),false);
  const remote=entity('remote',{local:false});c.ModeStateService.applyRemote(remote,c.ModeStateService.serialize(e,1175),2000);assert.equal(c.ModeGearPresentationService.rotation(remote,gear,350,2000),Math.PI);c.ModeStateService.applyRemote(remote,c.ModeStateService.serialize(e,1200),2025);assert.equal(c.ModeStateService.state(remote,ch.reactiveEquipment.stateKey).changedAt,1825);
 });
-function canvas(){const strokes=[];return{strokes,globalAlpha:1,save(){},restore(){},translate(){},beginPath(){},arc(){},stroke(){strokes.push(this.globalAlpha)},fill(){}}}
+function canvas(){const strokes=[];return{strokes,globalAlpha:1,save(){},restore(){},translate(){},rotate(){},moveTo(){},lineTo(){},bezierCurveTo(){},closePath(){},beginPath(){},arc(){},stroke(){strokes.push(this.globalAlpha)},fill(){}}}
 test('자신만8호·갱신 후 불투명→반투명·활성 호 항상 불투명',()=>{
  const e=reset(),ctx=canvas();c.Training.player=e;const module=ch.worldGaugeModules[0];assert.equal(c.EquipmentGaugePresentationService.draw(ctx,e,module,1000),true);assert.equal(ctx.strokes.length,16);assert.equal(ctx.strokes[0],.35);
  signal(e,'summon');ctx.strokes.length=0;c.EquipmentGaugePresentationService.draw(ctx,e,module,1100);assert.equal(ctx.strokes[6],1);ctx.strokes.length=0;c.EquipmentGaugePresentationService.draw(ctx,e,module,2500);assert.equal(ctx.strokes[6],.35);
@@ -133,7 +133,7 @@ test('무기별 공통 모듈: 낮은 점프·반동·사거리끝 폭발·반�
 test('모든 고무탄 벽 반사·기본 사거리500·전체 투사체 확대',()=>{
  assert.equal(ch.attacks.lmb.range,650);
  for(const key of ['lmb','wall','chain','recoil','sniper','bomb']){const a=ch.attacks[key],m=a.modules.find(m=>m.type==='projectile.redirect');assert.ok(c.ProjectileRedirectService.supports(m,'wall'));assert.equal(m.maxWallRedirects,0);assert.equal(a.modules.find(m=>m.type==='delivery.projectile').radius,15)}
- assert.equal(ch.attacks.laser.modules[0].type,'delivery.projectile');assert.equal(ch.worldEffectModules[0].radius,50);
+ assert.equal(ch.attacks.laser.modules[0].type,'delivery.projectile');assert.equal(ch.worldEffectModules[0].scale,2.5);
 });
 test('벽 반사 사거리는반복되어도500 고정',()=>{
  const e=reset(),p=projectile(e);for(const expected of [650,650,650,650,650,650]){assert.equal(c.ProjectileRedirectService.wall(p,true),true);assert.equal(p.maxTravelDistance,expected)}assert.equal(p.rangeBounceCount,undefined);assert.equal(p.rangeBounceBase,undefined);
@@ -401,7 +401,7 @@ test('근거리/원거리: 직접 공격만 누적·트랩/상태DOT/CC/출처�
 test('직접 공격 무적/저회도 거리 게이지·CC는 과반동 조건 유지·기어50/평소0.2',()=>{
  const e=reset(),a=enemy('direct-source',{x:750});r.damage({impact:{type:'direct'},source:a,target:e,dodged:true,attack:{tags:['평타']},impact:{type:'projectile'},now:clock});r.flush(e);assert.equal(progress(e,6),1);
  r.damage({impact:{type:'direct'},source:a,target:e,dodged:true,attack:{tags:['stun']},impact:{type:'area'},now:clock+16});r.flush(e);assert.equal(progress(e,6),1);assert.equal(progress(e,5),1);
- assert.equal(ch.worldEffectModules[0].radius,50);assert.equal(ch.worldEffectModules[0].idleAlpha,.2);assert.equal(ch.worldGaugeModules[0].idleAlpha,.35);
+ assert.equal(ch.worldEffectModules[0].scale,2.5);assert.equal(ch.worldEffectModules[0].idleAlpha,.2);assert.equal(ch.worldGaugeModules[0].idleAlpha,.35);
 });
 test('과반동: 순수 넉백/넉백 저회는 누적·자동장착·마지막 조건 변경 없음',()=>{
  const e=reset(),a=enemy('knockback-source',{x:300});
@@ -515,14 +515,14 @@ test('벽 반사마다 속력50%·복제 속력 유지·200공격150/전달250',
  for(const key of ['wall','chain','sniper','bomb','explosion'])assert.equal(ch.attacks[key].damageRatio,1.5);
  assert.equal(ch.attacks.wallBurst.damageRatio,2.5);
 });
-test('반 스패너 공격1회당 공통 모드 한바퀴·원격 동일 회전·파괴 숨김',()=>{
+test('반 스패너 공격1회당 공통 모드 한바퀴·원격 동일 회전·파괴 시 작은 스패너',()=>{
  c.CHARACTER_DATA.van=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/van.js'),'utf8')+')',c);const van=c.CharacterDataService.compile('van');
  const e=reset();e.character=van;
  const config=van.wrenchDurability,gear={stateKey:config.rotationStateKey,turnRadians:Math.PI*2};
- for(const key of ['lmb','rmb','counter'])assert.ok(van.attacks[key].modules.some(m=>m.type==='mode.toggle'&&m.when==='after-attack'));
+ for(const key of ['lmb','rmb','counter'])assert.ok(van.attacks[key].modules.some(m=>m.type==='mode.toggle'&&m.when==='on-delivery'));
  c.ModeStateService.toggle(e,van.attacks.lmb.modules.at(-1));assert.equal(c.ModeGearPresentationService.rotation(e,gear,300,clock+300),Math.PI*2);
  const remote=entity('remote',{character:van,local:false});c.ModeStateService.applyRemote(remote,c.ModeStateService.serialize(e,clock+150),clock+150);assert.equal(c.ModeGearPresentationService.rotation(remote,gear,300,clock+300),Math.PI*2);
- load('src/render/VanWrenchDurabilityPresentationService.js','VanWrenchDurabilityPresentationService');e.actionState.set(config.stateKey,{kind:'progress-state',stateKey:config.stateKey,value:0,max:800});assert.equal(c.VanWrenchDurabilityPresentationService.drawBehind(canvas(),e),false);
+ load('src/render/VanWrenchDurabilityPresentationService.js','VanWrenchDurabilityPresentationService');e.actionState.set(config.stateKey,{kind:'progress-state',stateKey:config.stateKey,value:0,max:800});assert.equal(c.ModeGearPresentationService.drawBehind(canvas(),e),true);assert.equal(van.worldEffectModules.filter(cfg=>c.ModeGearPresentationService.matches(e,cfg.conditions,clock))[0].style,'small-wrench');
 });
 test('키 예고 지역/스킬좌클·우클 보상 잔류는 장판 발명 제외',()=>{
  c.CHARACTER_DATA.ki=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/ki.js'),'utf8')+')',c);const ki=c.CharacterDataService.compile('ki');
@@ -546,13 +546,13 @@ test('뉴 실제 마검 infinite 장판은 피해3회 제작·무적/저회 제�
  for(const dodged of [false,true]){r.damage({source:a,target:e,amount:0,dodged,impact,now:clock});r.flush(e);assert.equal(progress(e,0),0)}
  for(let n=1;n<=3;n++){clock+=1000;r.damage({source:a,target:e,amount:150,attack:Object.values(nyu.attacks).find(a=>a.id===module.attackId),impact,now:clock});r.flush(e);assert.equal(progress(e,0),n)}assert.equal(mode(e),'recoil');
 });
-test('레이카 가호/뉴 마검 보유 뒤 검 표시 조건·공통 검 렌더',()=>{
+test('레이카 평상시/가호·뉴 마검 보유 검 표시 조건·공통 검 렌더',()=>{
  for(const id of ['reika','nyu'])c.CHARACTER_DATA[id]=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/'+id+'.js'),'utf8')+')',c);
  const reika=c.CharacterDataService.compile('reika'),nyu=c.CharacterDataService.compile('nyu');
  const e=reset();e.character=reika;const rc=reika.worldEffectModules[0].conditions[0];
- assert.equal(c.TriggerConditionService.matches(rc,{source:e}),false);c.ModeStateService.set(e,'reika-mode','blessed');assert.equal(c.TriggerConditionService.matches(rc,{source:e}),true);
+ assert.equal(c.TriggerConditionService.matches(rc,{source:e}),true);c.ModeStateService.set(e,'reika-mode','blessed');assert.equal(c.TriggerConditionService.matches(rc,{source:e}),false);assert.equal(c.TriggerConditionService.matches(reika.worldEffectModules[1].conditions[0],{source:e}),true);
  e.character=nyu;const nc=nyu.worldEffectModules[0].conditions[0];assert.equal(c.TriggerConditionService.matches(nc,{source:e}),true);e.actionState.set('nyu-dark-sword',{kind:'projectile'});assert.equal(c.TriggerConditionService.matches(nc,{source:e}),false);
- const ctx=canvas();ctx.rotate=()=>{};ctx.closePath=()=>{};ctx.moveTo=()=>{};ctx.lineTo=()=>{};assert.equal(c.ModeGearPresentationService.drawSword(ctx,e,nyu.worldEffectModules[0],1),true);
+ const ctx=canvas();ctx.rotate=()=>{};ctx.closePath=()=>{};ctx.moveTo=()=>{};ctx.lineTo=()=>{};assert.equal(c.ModeGearPresentationService.drawImage(ctx,e,nyu.worldEffectModules[0],1),true);
 });
 test('레이카 가호 실제 ability 미리보기 즉시 생성·공통 색 / 뉴 마검 확대',()=>{
  const reika=c.CharacterDataService.compile('reika'),nyu=c.CharacterDataService.compile('nyu');
@@ -627,3 +627,5 @@ test('저회 확정은 다음 프레임/event listener 없이 즉시 누적·누
  const field=reset();assert.equal(r.justDodge(field,{source:a,attack,impact:{type:'field-area',fieldDuration:2000}},clock),true);assert.equal(progress(field,0),1);assert.equal(progress(field,6),0);
 });
 console.log(`PASS ${passed} Geopin regression groups`);
+
+test('지속피해 장판 생성 광역피해·저회는 장판조건/비피해장판과 탄환직격 제외',()=>{for(const linked of [false,true]){const e=reset(),a=enemy(),burst={id:'burst',modules:[]},field={type:'field.area',duration:3000,interval:500,damageOnTrigger:true};if(linked)a.character={attacks:{carrier:{modules:[{type:'projectile.impact',attackIds:['burst'],field}]}}};else burst.modules=[{type:'delivery.area'},field];assert.equal(r.damage({source:a,target:e,attack:burst,amount:100,impact:{type:'area'},now:clock}),true);r.flush(e);assert.equal(progress(e,0),1);assert.equal(progress(e,6),0);assert.equal(r.justDodge(e,{source:a,attack:burst,impact:{type:'area'}},clock+500),true);assert.equal(progress(e,0),2);const p=reset();r.damage({source:a,target:p,attack:burst,amount:100,impact:{type:'projectile'},now:clock});r.flush(p);assert.equal(progress(p,0),0);field.damageOnTrigger=false;const q=reset();r.damage({source:a,target:q,attack:burst,amount:100,impact:{type:'area'},now:clock});r.flush(q);assert.equal(progress(q,0),0);}});

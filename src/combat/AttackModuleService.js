@@ -44,7 +44,7 @@ const AttackModuleService=Object.freeze({
     if(full&&onFull&&typeof onFull==='object'){
       const status=String(onFull.status||'');
       if(status){
-        CombatStatusApplicationService.apply({
+        const applied=CombatStatusApplicationService.apply({
           source,
           target:recipient,
           type:status,
@@ -52,12 +52,17 @@ const AttackModuleService=Object.freeze({
           sourceId:String(onFull.sourceId||`${source.id}:progress-full:${String(module.stateKey||status)}`),
           data:{sourceEntityId:source.id,stackMode:String(onFull.stackMode||'replace-source'),presentationAppliedAt:performance.now()}
         });
+        if(applied)this.statusPresentation(source,recipient,context.attack,context.execution,Number(context.execution?.directionAngle)||0,onFull.onAppliedEffects);
       }
       if(onFull.reset===true){
         ProgressStateService.apply(recipient,{type:'state.progress',stateKey:module.stateKey,operation:'reset'});
       }
     }
     return true;
+  },
+  statusPresentation(source,target,spec,execution,angle,effects){
+    if(!spec)return;
+    for(const effect of effects||EMPTY_RUNTIME_ITEMS){if(effect?.type==='effect.spawn')this.spawnAttackEffect(source,spec,angle,execution,effect,target);}
   },
   type(module){
     return typeof module==='string'?module:module?.type;
@@ -1414,7 +1419,10 @@ const AttackModuleService=Object.freeze({
     }
   },
   spawnAttackEffect(source,spec,angle,execution,module,hitTarget=null){
-    if(!EffectSpawnService.shouldPresentAttack(source,execution||{}))return null;
+    const presentationSource=module.presentationAuthority==='target'?hitTarget:source;
+    if(module.presentationAuthority==='target'){
+      if(!presentationSource||!EntitySimulationAuthorityService.isLocal(presentationSource))return null;
+    }else if(!EffectSpawnService.shouldPresentAttack(source,execution||{}))return null;
 
     const now=performance.now();
     const targetPoint=execution?.targetPoint||null;
@@ -2013,10 +2021,10 @@ const AttackModuleService=Object.freeze({
       {source}
     );
 
-    if(instance&&OnlinePresentationSyncService?.shouldSend?.(source)){
+    if(instance&&OnlinePresentationSyncService?.shouldSend?.(presentationSource)){
       OnlinePresentationSyncService.send(
         'effect-spawn',
-        source,
+        presentationSource,
         {effect:EffectSpawnService.presentationSnapshot(instance,now)}
       );
     }
@@ -2059,6 +2067,26 @@ const AttackModuleService=Object.freeze({
         ProgressStateService.apply(source,module);
         changed=true;
       }
+    });
+    return changed;
+  },
+  onProjectileShot(source,spec,perpendicularOffset){
+    const side=Math.sign(Number(perpendicularOffset)||0);
+    for(const module of spec?.modules||EMPTY_RUNTIME_ITEMS){
+      if(module.type==='mode.toggle'&&module.when==='on-projectile-shot'&&Number(module.perpendicularSide)===side)ModeStateService.toggle(source,module);
+    }
+  },
+  onDelivery(source,spec,angle,execution){
+    if(!source?.alive||!spec)return false;
+    let changed=false;
+    this.forEachModule(spec,execution,(module,key='')=>{
+      const modeType=this.type(module);
+      if(!['mode.toggle','mode.set'].includes(modeType)||module.when!=='on-delivery')return;
+      const effectKey=`delivery-mode:${key}`;
+      if(module.everyDelivery!==true&&execution&&AttackExecutionService.hasEffect(execution,effectKey))return;
+      if(!TriggerModuleService.matches({type:'trigger',event:'attack.delivery',conditions:module.conditions||EMPTY_RUNTIME_ITEMS},'attack.delivery',{source,attack:spec,execution,angle,now:performance.now()}))return;
+      if(execution)AttackExecutionService.markEffect(execution,effectKey);
+      if(modeType==='mode.set')ModeStateService.set(source,String(module.stateKey||''),String(module.value||''),String(module.initial||''));else ModeStateService.toggle(source,module);changed=true;
     });
     return changed;
   },
@@ -2132,7 +2160,7 @@ const AttackModuleService=Object.freeze({
 
       if(type==='cooking.consume-ingredient'&&(!module.when||module.when==='after-attack')){if(EntitySimulationAuthorityService.isLocal(source))CookingService.consumeIngredient(source,Math.max(1,Number(module.amount)||1));return;}
 
-      if(type==='cooking.meal-commit'&&(!module.when||module.when==='after-attack')){if(EntitySimulationAuthorityService.isLocal(source))CookingService.commitMealThrow(source,execution);return;}
+      if(type==='cooking.meal-commit'&&(!module.when||module.when==='after-attack')){CookingService.commitMealThrow(source,execution);return;}
 
 
       if(
@@ -3594,7 +3622,7 @@ const AttackModuleService=Object.freeze({
       if(
         type==='effect.spawn'&&
         module.when==='on-hit'&&
-        sourceOnHitMayResolveLocally
+        (module.presentationAuthority==='target'?EntitySimulationAuthorityService.isLocal(target):sourceOnHitMayResolveLocally)
       ){
         const key=
           `effect-on-hit:${String(module.stateKey||module.renderType||module.type||'effect')}`;
@@ -3921,6 +3949,7 @@ const AttackModuleService=Object.freeze({
               execution,
               `status-applied:${module.status}:${target.id}`
             );
+            this.statusPresentation(source,target,spec,execution,attackAngle,module.onAppliedEffects);
           }
           return applied;
         };

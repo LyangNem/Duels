@@ -117,6 +117,7 @@ const HealthService=Object.freeze({
 
 
     if(defeated){
+      if(typeof ModeGearPresentationService!=='undefined')ModeGearPresentationService.captureDeath(entity,now);
       entity.alive=false;
       entity.hidden=true;
       entity.respawnAt=
@@ -185,6 +186,14 @@ const HealthService=Object.freeze({
     }
 
     const restored=entity.health-before;
+    if(restored>0){
+      if(Array.isArray(options.onRestoredEffects))for(const effect of options.onRestoredEffects){
+        if(effect?.type==='effect.spawn')AttackModuleService.spawnAttackEffect(source||entity,{modules:[]},0,null,{...effect,presentationAuthority:'target'},entity);
+      }
+      if(Array.isArray(entity.summonSpec?.onHealedEffects))for(const effect of entity.summonSpec.onHealedEffects){
+        if(effect?.type==='effect.spawn')AttackModuleService.spawnAttackEffect(entity,{modules:[]},0,null,{...effect,presentationAuthority:'target'},entity);
+      }
+    }
     if(
       restored>0&&
       options.notify!==false

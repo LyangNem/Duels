@@ -135,6 +135,7 @@ const EffectSpawnService=Object.freeze({
   clearAll(){
     Training.fx.length=0;
     this.keyed.clear();
+    if(typeof ModeGearPresentationService!=='undefined')ModeGearPresentationService.clearDeathRemnants();
     return true;
   },
   compact(now=performance.now()){
@@ -262,6 +263,8 @@ const EffectSpawnService=Object.freeze({
           ?Number(sourceEntity?.y)||Number(r.y)||0
           :undefined
     };
+    if(effect.type==='weaponImageEcho'&&typeof ModeGearPresentationService!=='undefined'){const ownerId=effect.targetEntityId||sourceEntityId;const owner=EntityService.items.get(String(ownerId))||(context.source?.id===ownerId?context.source:null);ModeGearPresentationService.echo(owner,effect.start,effect.dur,Number(effect.expansion)||.55,effect.imageAlpha??null,effect.imageConfig??null,{x:effect.x,y:effect.y},effect.imageColor??null);}
+    if(effect.type==='weaponImagePulse'&&typeof ModeGearPresentationService!=='undefined')ModeGearPresentationService.react(effect.targetEntityId||sourceEntityId,effect.start,effect.dur,Number(effect.strength)||.16);
     this.initAnimation(effect,context);
     this.registerMovementDamage(effect);
     Training.fx.push(effect);

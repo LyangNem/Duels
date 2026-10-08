@@ -567,6 +567,9 @@ const ProjectileService={
     }
 
     this.items.push(projectile);
+    AttackModuleService.onDelivery(projectile.source,projectile.attack,projectile.angle,projectile.volley?.execution||null);
+
+    AttackModuleService.onProjectileShot(projectile.source,projectile.attack,data.perpendicularOffset);
 
     GameEvents.emit('projectile-fired',{
       source:projectile.source,
