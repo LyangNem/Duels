@@ -320,3 +320,8 @@ WEAPON_IMAGE_DEFS forge-hammer-mirrored 순수형상과 기존parts 변환 사�
 ## 헤브·시로 능력치 및 설명 — 3.0.0-character.173
 
 캐릭터 순수데이터 및 헤브 체력 회귀기대값 변경. tooltip 값참조 유지.
+
+
+## 화살비 장판 중심 넉백 — 3.0.0-character.174
+
+InstalledAreaFieldService.fieldTrigger에서 실제 area.center를 point impactOrigin으로 전달. away-from-impact 공용효과가 장판중심을 읽음. 생성타격의 기존 착탄중심 유지.

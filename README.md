@@ -1,5 +1,13 @@
 # DUELS 3.0 README — 작업 전 반드시 전체 정독
 
+## 화살비 장판 중심 넉백 — 3.0.0-character.174
+
+시로 화살비 지속타격 넉백이 시로 위치를 기준으로 계산되던 문제 수정. 공용 장판 타격 실행의 impactOrigin을 실제 장판중심으로 설정하여 이동후에도 중심 반대방향으로 넉백.
+
+InstalledAreaFieldService.fieldTrigger에서 실제 area.center를 point impactOrigin으로 전달. away-from-impact 공용효과가 장판중심을 읽음. 생성타격의 기존 착탄중심 유지.
+
+시로·무기 회귀 및 build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
+
 ## 헤브·시로 능력치 및 설명 — 3.0.0-character.173
 
 사용자 제공 헤브·시로 stats/desc/tooltipSkills 반영. 헤브체력1200/난이도4·한줄설명 및 반격설명 교체. 시로 다중사격2/3발·토끼뜀 설명 교체. 전투모듈 유지.

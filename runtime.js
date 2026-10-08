@@ -52895,6 +52895,11 @@ const InstalledAreaFieldService=Object.freeze({
         };
       }
 
+      // Field hit effects use the current field centre, even after its owner moves.
+      if(state.execution&&area?.center){
+        state.execution.impactOrigin={mode:'point',x:Number(area.center.x)||0,y:Number(area.center.y)||0};
+      }
+
       const result=
         AttackHitTriggerService.damage({
           source,

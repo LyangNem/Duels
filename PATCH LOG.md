@@ -1421,3 +1421,12 @@ character.59 뉴/레이카 검 리디자인과 함께 제공. 대상: geopin.js/
 - 파일: characters/levina; README/PATCH LOG/project/DIVIDE TASKS/runtime; 무기/캐릭터 계약 문서.
 - 검증: 헤브·시로 회귀 및 build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
 - 실플레이 권장: 레비나 삼지창 축소·투척중숨김·복원.
+
+
+## 3.0.0-character.174 — 2026-10-08 KST
+
+- 요청/결과: 시로 화살비 지속타격 넉백이 시로 위치를 기준으로 계산되던 문제 수정. 공용 장판 타격 실행의 impactOrigin을 실제 장판중심으로 설정하여 이동후에도 중심 반대방향으로 넉백.
+- 구조: InstalledAreaFieldService.fieldTrigger에서 실제 area.center를 point impactOrigin으로 전달. away-from-impact 공용효과가 장판중심을 읽음. 생성타격의 기존 착탄중심 유지.
+- 파일: characters/levina; README/PATCH LOG/project/DIVIDE TASKS/runtime; 무기/캐릭터 계약 문서.
+- 검증: 시로·무기 회귀 및 build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
+- 실플레이 권장: 레비나 삼지창 축소·투척중숨김·복원.
