@@ -5,7 +5,7 @@
     title: "마법 소녀",
     color: "#ff21da",
     classification: {style: 7, range: 0, role: 1},
-    stats: {maxHealth: 1200, speed: 4, radius: 20, baseDamage: 200, difficulty: 3},
+    stats: {maxHealth: 1000, speed: 4, radius: 20, baseDamage: 150, difficulty: 3},
     desc: "정의를 수호하며 단계적으로 성장하는 마법소녀 캐릭터",
     tagPersistentActionStateKeys: ["meramona-stage", "meramona-hit-stack"],
     worldGaugeModules: [
@@ -51,7 +51,7 @@
         key: "L-Shift",
         name: "지지않아!",
         attack: "counter",
-        text: "정의의 에너지 방출. 적중 수만큼 {progressDecaySeconds}초간 임시 단계 상승 ({damage})"
+        text: "정의의 에너지 방출. 적중 여부와 관계없이 {progressDecaySeconds}초간 임시 단계 1단계 상승 ({damage})"
       }
     ],
     attacks: {
@@ -79,7 +79,7 @@
             stateKey: "meramona-hit-stack",
             operation: "add",
             amount: 1,
-            max: 3,
+            max: 2,
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
           }
@@ -276,7 +276,7 @@
           },
           {
             type: "state.progress",
-            when: "on-hit",
+            when: "after-attack",
             stateKey: "meramona-temp-stage",
             operation: "add",
             amount: 1,
@@ -446,6 +446,12 @@
               windup: 300,
               consumeState: "counter-ready",
               preview: {type: "preview.create", shape: "attack-shape"},
+              onFinishModules: [
+                {type: "modifier.set", stat: "speed", value: 0.25, duration: 4000, sourceId: "meramona:stage-speed",
+                  conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 2}]},
+                {type: "modifier.set", stat: "attackRate", value: 0.5, duration: 4000, sourceId: "meramona:stage-attack-rate",
+                  conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 3}]}
+              ],
               cc: {
                 type: "movement.neutralize-knockback",
                 target: "hit-target",

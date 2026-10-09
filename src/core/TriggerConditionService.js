@@ -604,16 +604,10 @@ const TriggerConditionService=Object.freeze({
         }
       )>=1;
     }
-    if(condition.type==='state.progress-ratio-gte'){
-      return RuntimeValueReferenceService.resolve(
-        source,
-        {
-          type:'progress',
-          stateKey:String(condition.stateKey||''),
-          mode:'ratio',
-          initial:Number(condition.initial)||0
-        }
-      )>=Math.max(0,Number(condition.value)||0);
+    if(condition.type==='state.progress-ratio-gte'||condition.type==='state.progress-ratio-lt'){
+      const ratio=RuntimeValueReferenceService.resolve(source,{type:'progress',stateKey:String(condition.stateKey||''),mode:'ratio',initial:Number(condition.initial)||0});
+      const threshold=Math.max(0,Number(condition.value)||0);
+      return condition.type==='state.progress-ratio-lt'?ratio<threshold:ratio>=threshold;
     }
     if(condition.type==='state.progress-empty'){
       return RuntimeValueReferenceService.resolve(

@@ -380,3 +380,18 @@ character175의 geopin/ReactiveEquipmentService/EquipmentGaugePresentationServic
 ## 회피 창/누적 성장 수정자 — 3.0.0-character.189
 
 기존 progress/채널/입력조건/원형공격/반격CC 모듈 조합. JustDodgeService.begin에 공용 character.dodge.justWindowMultiplier 옵션(생략시1) 추가. 기존 just-dodge 초기화 바인딩에서 로컬캐릭터 트리거도 전달. ProgressStateService thresholdModifiers의 valuePerProgress 옵션으로 누적 진행도에 비례한 버프 산정·고정value 기존동작 유지. 비안정 소모속도는 입력시조건에 맞는 채널을 생성해 시작시 고정. 캐릭터 이름분기/새 네트워크패킷 없음.
+
+
+## 진행도 비율/빈 채널 — 3.0.0-character.196
+
+기존 damage-received 진행도/2층호게이지/조건별 channel.attack/레이저공격 조합. maxHealthRatio2와 공용 passive rate0으로 체력변화에도 용량동기화. TriggerConditionService에 기존비율gte와 같은해석의 ratio-lt 추가. ChannelAttackService는 소모자원이0이면틱 실행전에종료하여 무료피해방지. 캐릭터ID 분기/새패킷 없음.
+
+
+## 반격 완료 진행도 — 3.0.0-character.197
+
+순수캐릭터 수치와 기존 state.progress after-attack/CounterModuleService.onFinishModules/조건별 modifier.set 조합. 새공용코드/캐릭터ID분기 없음.
+
+
+## 진행도 비율/빈 채널 — 3.0.0-character.198
+
+캐릭터 설명/공격 range만 수정. 기존 공용범위와참조 사용.

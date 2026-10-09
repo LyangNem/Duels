@@ -7019,32 +7019,13 @@ const CHARACTER_DATA=freezeCharacterData({
     stats: {maxHealth: 1800, speed: 4.25, radius: 20, baseDamage: 40, difficulty: 3},
     desc: "차지 타입 아머로 받은 피해를 축적하여 한방에 터뜨리는 캐릭터",
     tooltipSkills: [
-      {
-        key: "ALWAYS",
-        name: "차지 타입 아머",
-        attack: "megaLaserTick",
-        showCost: false,
-        text: "피해를 받으면 충전. 최대 체력의 {progressThresholdPercent}% 이상 피해를 받을 시 파비 레이저 활성화"
-      },
-      {key: "LMB", name: "레이저 연사", attack: "lmb", text: "레이저를 {pellets}발씩 {burstCount}회 발사 (탄당 {damage})"},
-      {
-        key: "RMB",
-        name: "버티기",
-        attack: "rmb",
-        ability: "rmb",
-        text: "{delaySeconds}초 후 {modifierSeconds}초간 받는 피해 {modifierPercent}% 감소 및 주변 적 넉백"
-      },
-      {
-        key: "RMB CHARGE",
-        name: "파비 레이저",
-        attack: "megaLaserTick",
-        ability: "rmb",
-        progressStateKey: "erapabi-charge-armor",
-        showCost: false,
-        text: "{channelChargeSeconds}초 선딜레이 후 저장 피해를 소모하며 벽과 적을 관통하는 레이저 발사 (타당 {damage})"
-      },
+      {key: "ALWAYS", name: "차지 타입 아머", showCost: false, text: "받은 피해를 아머로 저장"},
+      {key: "LMB", name: "레이저 건 아머", attack: "lmb", text: "레이저를 {pellets}발씩 {burstCount}회 발사 (탄당 {damage})"},
+      {key: "RMB", name: "파비 레이저", attack: "megaLaserTick", ability: "rmb", text: "{channelChargeSeconds}초 선딜레이 후 아머를 소모하며 레이저 발사. 100% 미만에서 시작하면 소모량 2배 (타당 {damage})"},
       {key: "L-Shift", name: "한바퀴 회전", attack: "counter", text: "땅을 짚고 빠르게 회전해 앞뒤 피해 ({damage})"}
     ],
+    passives: [{type: "state.progress-rate", stateKey: "erapabi-charge-armor", maxHealthRatio: 2, ratePerSecond: 0, initial: 0,
+      presentation: characterValue("triggers.0.modules.0.presentation")}],
     triggers: [
       {
         id: "charge-armor-store-damage",
@@ -7056,7 +7037,7 @@ const CHARACTER_DATA=freezeCharacterData({
             stateKey: "erapabi-charge-armor",
             operation: "add",
             amountFrom: "healthDamage",
-            maxHealthRatio: 4,
+            maxHealthRatio: 2,
             presentation: {
               type: "arc-gauge",
               color: "#38bdf8",
@@ -7074,7 +7055,7 @@ const CHARACTER_DATA=freezeCharacterData({
     attacks: {
       lmb: {
         id: "attack.erapabi.lmb",
-        damageRatio: 1,
+        damageRatio: 1.25,
         cost: 250,
         cd: 380,
         range: 900,
@@ -7104,66 +7085,6 @@ const CHARACTER_DATA=freezeCharacterData({
           }
         ],
         tags: ["평타"]
-      },
-      rmb: {
-        id: "attack.erapabi.rmb",
-        damageRatio: 0,
-        cost: 300,
-        cd: 400,
-        attackDelayGroup: "erapabi-rmb",
-        attackDelay: 400,
-        windupCancelBuffs: [{stat: "defense", sourceId: "ability.erapabi.rmb:fortify"}],
-        range: 0,
-        effectsOnly: true,
-        modules: [
-          {
-            type: "effect.spawn",
-            renderType: "areaCircle",
-            range: 72,
-            r: 72,
-            color: "56,189,248",
-            fillAlpha: 0.035,
-            strokeAlpha: 0.72,
-            lineWidth: 2.5,
-            duration: 400,
-            followSource: true
-          }
-        ],
-        tags: ["스킬", "선딜레이"]
-      },
-      rmbBurst: {
-        id: "attack.erapabi.rmb-burst",
-        damageRatio: 0,
-        cost: 0,
-        cd: 0,
-        range: 200,
-        effectsOnly: true,
-        modules: [
-          {type: "delivery.area", shape: "circle", range: characterValue("attacks.rmbBurst.range"), wallPolicy: "block"},
-          {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 70,
-            speed: 10,
-            oncePerExecution: true
-          },
-          {
-            type: "effect.spawn",
-            renderType: "areaCircle",
-            range: characterValue("attacks.rmbBurst.range"),
-            r: characterValue("attacks.rmbBurst.range"),
-            color: "56,189,248",
-            fillAlpha: 0.08,
-            strokeAlpha: 0.72,
-            lineWidth: 2.5,
-            durationFrames: 18,
-            clipToAttackArea: true,
-            replaceAutoAreaEffect: true,
-            scaleWithAttackRange: true
-          }
-        ],
-        tags: ["스킬"]
       },
       megaLaserStart: {
         id: "attack.erapabi.mega-laser-start",
@@ -7280,60 +7201,25 @@ const CHARACTER_DATA=freezeCharacterData({
         }
       },
       rmb: {
-        id: "ability.erapabi.rmb",
-        input: "rmb",
-        attackId: "attack.erapabi.rmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "rmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"}
-          ],
-          modules: [
-            {type: "channel.stop", stateKey: "erapabi-mega-laser"},
-            {
-              type: "action.attack",
-              alternateWhen: {
-                attackId: "attack.erapabi.mega-laser-start",
-                conditions: [{type: "state.progress-ratio-gte", stateKey: "erapabi-charge-armor", value: 0.5}]
-              }
-            },
-            {type: "timing.delay", duration: 400, requireAttackId: "attack.erapabi.rmb"},
-            {
-              type: "modifier.set",
-              stat: "defense",
-              value: 0.5,
-              duration: 3000,
-              sourceId: "ability.erapabi.rmb:fortify",
-              requireAttackId: "attack.erapabi.rmb"
-            },
-            {
-              type: "action.trigger-attack",
-              attackId: "attack.erapabi.rmb-burst",
-              requireExecuted: true,
-              requireAttackId: "attack.erapabi.rmb"
-            },
-            {
-              type: "channel.attack",
-              stateKey: "erapabi-mega-laser",
-              attackId: "attack.erapabi.mega-laser-tick",
-              chargeDuration: 500,
-              interval: 40,
-              fireSound: "shoot",
-              aimMode: "live-source",
-              drainStateKey: "erapabi-charge-armor",
-              drainAmount: 100,
-              selfStatus: {status: "bind", applyDuringCharge: true},
-              cooldownMs: 400,
-              cooldownAttackIds: ["attack.erapabi.rmb", "attack.erapabi.mega-laser-start"],
-              requireExecuted: true,
-              requireAttackId: "attack.erapabi.mega-laser-start"
-            }
-          ]
-        }
+        id: "ability.erapabi.rmb", input: "rmb", attackId: "attack.erapabi.mega-laser-start",
+        trigger: {type: "trigger", event: "input.press", conditions: [
+          {type: "input.slot", slot: "rmb"}, {type: "entity.alive"}, {type: "ability.pending-ready"}, {type: "combat.can-act"}
+        ], modules: [
+          {type: "channel.stop", stateKey: "erapabi-mega-laser"},
+          {type: "action.attack"},
+          {type: "channel.attack", stateKey: "erapabi-mega-laser", attackId: "attack.erapabi.mega-laser-tick",
+            chargeDuration: 500, interval: 40, fireSound: "shoot", aimMode: "live-source",
+            drainStateKey: "erapabi-charge-armor", drainAmount: 100,
+            selfStatus: {status: "bind", applyDuringCharge: true}, cooldownMs: 400,
+            cooldownAttackIds: ["attack.erapabi.mega-laser-start"], requireExecuted: true,
+            conditions: [{type: "state.progress-ratio-gte", stateKey: "erapabi-charge-armor", value: 0.5}]},
+          {type: "channel.attack", stateKey: "erapabi-mega-laser", attackId: "attack.erapabi.mega-laser-tick",
+            chargeDuration: 500, interval: 40, fireSound: "shoot", aimMode: "live-source",
+            drainStateKey: "erapabi-charge-armor", drainAmount: 200,
+            selfStatus: {status: "bind", applyDuringCharge: true}, cooldownMs: 400,
+            cooldownAttackIds: ["attack.erapabi.mega-laser-start"], requireExecuted: true,
+            conditions: [{type: "state.progress-ratio-lt", stateKey: "erapabi-charge-armor", value: 0.5}]}
+        ]}
       },
       counter: {
         id: "ability.erapabi.counter",
@@ -8110,7 +7996,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "damageRatio": 2,
       "cost": 0,
       "cd": 0,
-      "range": 130,
+      "range": 350,
       "modules": [
         {
           "type": "delivery.area",
@@ -16306,7 +16192,7 @@ const CHARACTER_DATA=freezeCharacterData({
     title: "마법 소녀",
     color: "#ff21da",
     classification: {style: 7, range: 0, role: 1},
-    stats: {maxHealth: 1200, speed: 4, radius: 20, baseDamage: 200, difficulty: 3},
+    stats: {maxHealth: 1000, speed: 4, radius: 20, baseDamage: 150, difficulty: 3},
     desc: "정의를 수호하며 단계적으로 성장하는 마법소녀 캐릭터",
     tagPersistentActionStateKeys: ["meramona-stage", "meramona-hit-stack"],
     worldGaugeModules: [
@@ -16352,7 +16238,7 @@ const CHARACTER_DATA=freezeCharacterData({
         key: "L-Shift",
         name: "지지않아!",
         attack: "counter",
-        text: "정의의 에너지 방출. 적중 수만큼 {progressDecaySeconds}초간 임시 단계 상승 ({damage})"
+        text: "정의의 에너지 방출. 적중 여부와 관계없이 {progressDecaySeconds}초간 임시 단계 1단계 상승 ({damage})"
       }
     ],
     attacks: {
@@ -16380,7 +16266,7 @@ const CHARACTER_DATA=freezeCharacterData({
             stateKey: "meramona-hit-stack",
             operation: "add",
             amount: 1,
-            max: 3,
+            max: 2,
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
           }
@@ -16577,7 +16463,7 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {
             type: "state.progress",
-            when: "on-hit",
+            when: "after-attack",
             stateKey: "meramona-temp-stage",
             operation: "add",
             amount: 1,
@@ -16747,6 +16633,12 @@ const CHARACTER_DATA=freezeCharacterData({
               windup: 300,
               consumeState: "counter-ready",
               preview: {type: "preview.create", shape: "attack-shape"},
+              onFinishModules: [
+                {type: "modifier.set", stat: "speed", value: 0.25, duration: 4000, sourceId: "meramona:stage-speed",
+                  conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 2}]},
+                {type: "modifier.set", stat: "attackRate", value: 0.5, duration: 4000, sourceId: "meramona:stage-attack-rate",
+                  conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 3}]}
+              ],
               cc: {
                 type: "movement.neutralize-knockback",
                 target: "hit-target",
@@ -44129,16 +44021,10 @@ const TriggerConditionService=Object.freeze({
         }
       )>=1;
     }
-    if(condition.type==='state.progress-ratio-gte'){
-      return RuntimeValueReferenceService.resolve(
-        source,
-        {
-          type:'progress',
-          stateKey:String(condition.stateKey||''),
-          mode:'ratio',
-          initial:Number(condition.initial)||0
-        }
-      )>=Math.max(0,Number(condition.value)||0);
+    if(condition.type==='state.progress-ratio-gte'||condition.type==='state.progress-ratio-lt'){
+      const ratio=RuntimeValueReferenceService.resolve(source,{type:'progress',stateKey:String(condition.stateKey||''),mode:'ratio',initial:Number(condition.initial)||0});
+      const threshold=Math.max(0,Number(condition.value)||0);
+      return condition.type==='state.progress-ratio-lt'?ratio<threshold:ratio>=threshold;
     }
     if(condition.type==='state.progress-empty'){
       return RuntimeValueReferenceService.resolve(
@@ -48028,6 +47914,13 @@ const ChannelAttackService=Object.freeze({
       if(state.phase!=='active')continue;
 
       while(now>=state.nextTickAt&&entity.alive){
+        if(state.drainStateKey&&state.drainAmount>0){
+          const resource=ProgressStateService.state(entity,state.drainStateKey);
+          if(!resource||(Number(resource.value)||0)<=0){
+            this.stop(entity,state.stateKey,now);updated=true;break;
+          }
+        }
+
         const base=
           AbilityService.attackById(
             entity.character,

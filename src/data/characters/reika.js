@@ -737,7 +737,7 @@
       "damageRatio": 2,
       "cost": 0,
       "cd": 0,
-      "range": 130,
+      "range": 350,
       "modules": [
         {
           "type": "delivery.area",

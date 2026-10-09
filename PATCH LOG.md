@@ -1612,3 +1612,27 @@ character.59 뉴/레이카 검 리디자인과 함께 제공. 대상: geopin.js/
 - 구조: 기존 입력 트리거의 공용 진행도/모드 조건 재사용.
 - 대상: src/data/characters/reika.js, tools/test-reika.cjs, README.md, docs/REIKA.md, project.json, DIVIDE TASKS.md, runtime.js.
 - 검증: 레이카 회귀 및 전체16스크립트 통과. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 미검증.
+
+
+## 3.0.0-character.196 — 2026-10-10 KST
+
+- 변경: 파비 버티기/rmbBurst/방어버프 및 RMB CHARGE 행 제거. 파비 레이저를 일반RMB 스킬로 통합·아머조건없이 입력가능. 평타명 레이저 건 아머·탄당40→50(2발×2회/250비용/900거리 유지). 피격 저장 아머 최대치는 최대체력4배→2배:첫링100%는최대체력만큼 피격/전체200%는2배피격(1800체력=1800/3600). 일반레이저 시작시첫링100%미만이면틱당200·이상이면100소모로 고정. 선딜500ms/40ms틱/타당150/거리4000/기존앞뒤반격 유지. 아머0도 입력/선딜가능하되 아머가 없으면 피해없이종료. 레이카195 유지.
+- 구조: 기존 damage-received 진행도/2층호게이지/조건별 channel.attack/레이저공격 조합. maxHealthRatio2와 공용 passive rate0으로 체력변화에도 용량동기화. TriggerConditionService에 기존비율gte와 같은해석의 ratio-lt 추가. ChannelAttackService는 소모자원이0이면틱 실행전에종료하여 무료피해방지. 캐릭터ID 분기/새패킷 없음.
+- 대상: characters/erapabi, TriggerConditionService, ChannelAttackService, test-erapabi, docs/ERAPABI, CHARACTER CONTRACT, README, project, DIVIDE TASKS, runtime.
+- 검증: 파비4그룹 및 전체16회귀 통과. 탄당50·평타2×2,1800/3600체력별피격100/200% 상한,0/99/100/150/200% 실제입력/선딜/선택소모/고갈/쿨다운,체력버프100%비율경계 검증. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제브라우저/온라인 플레이 미검증.
+
+
+## 3.0.0-character.197 — 2026-10-10 KST
+
+- 변경: 메라모나 체력1200→1000/기본피해200→150(전단계평타·변신타격·반격 모두150). 스킬필요평타적중3→2·단계별참조와설명동기화. 반격은 적중여부와무관하게 사용완료시4초간 임시1단계 상승. 미적중시에도 누적단계에맞는속도/공격속도 버프를 공용onFinishModules로 적용. 다른캐릭터 변경 유지.
+- 구조: 순수캐릭터 수치와 기존 state.progress after-attack/CounterModuleService.onFinishModules/조건별 modifier.set 조합. 새공용코드/캐릭터ID분기 없음.
+- 대상: characters/meramona, test-meramona, docs/MERAMONA, CHARACTER CONTRACT, README, project, DIVIDE TASKS, runtime.
+- 검증: 메라모나2그룹 및 전체17회귀 통과. 모든피해150/2회스킬조건·미적중 임시단계/영구단계합산속도와공격속도·적중중복상승없음 검증. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인플레이 미검증.
+
+
+## 3.0.0-character.198 — 2026-10-10 KST
+
+- 변경: 파비 ALWAYS 차지 타입 아머 설명을 사용자문구 받은 피해를 아머로 저장으로 변경(showCost:false 유지). 레이카 반격 정지점 원형회전 반경130→350. 실제원형타격/회전이펙트는 기존 counterSpin.range 참조로동기화. 돌진거리300/피해200/무력화넉백과 기타수치 유지.
+- 구조: 캐릭터 설명/공격 range만 수정. 기존 공용범위와참조 사용.
+- 대상: characters/erapabi/reika, docs/ERAPABI, CHARACTER CONTRACT, README, project, DIVIDE TASKS, runtime.
+- 검증: 전체17회귀/build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 시각검수 미실시.

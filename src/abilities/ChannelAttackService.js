@@ -676,6 +676,13 @@ const ChannelAttackService=Object.freeze({
       if(state.phase!=='active')continue;
 
       while(now>=state.nextTickAt&&entity.alive){
+        if(state.drainStateKey&&state.drainAmount>0){
+          const resource=ProgressStateService.state(entity,state.drainStateKey);
+          if(!resource||(Number(resource.value)||0)<=0){
+            this.stop(entity,state.stateKey,now);updated=true;break;
+          }
+        }
+
         const base=
           AbilityService.attackById(
             entity.character,
