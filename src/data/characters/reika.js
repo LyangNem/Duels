@@ -15,7 +15,7 @@
     "baseDamage": 100,
     "difficulty": 3
   },
-  "desc": "태양의 가호로 각성해 강화된 공격을 퍼붓는 캐릭터",
+  "desc": "가호를 충전하고 태양의 대검과 화염 검격으로 적을 압박하는 캐릭터",
   "worldEffectModules": [
     {
       "type": "effect.spawn",
@@ -58,10 +58,9 @@
   "tooltipSkills": [
     {
       "key": "ALWAYS",
-      "name": "가호 준비",
-      "attack": "gahoActivate",
+      "name": "가호 충전",
       "showCost": false,
-      "text": "시간이 지나거나 적을 타격해 게이지 충전"
+      "text": "시간이 지나거나 적을 타격해 가호 충전"
     },
     {
       "key": "LMB",
@@ -71,50 +70,25 @@
     },
     {
       "key": "RMB",
-      "name": "저리가!",
-      "attack": "rmbPush",
-      "text": "선딜레이 후 빠르게 한 바퀴 회전해 주변 적에게 피해 및 넉백 ({damage})"
-    },
-    {
-      "key": "RMB CHARGE",
       "name": "태양의 가호",
-      "attack": "gahoActivate",
-      "linkedAttack": "gahoActivate",
-      "costText": "스테미나 0",
-      "text": "선딜레이 후 주변 폭발 및 화염. 레이카는 가호 상태로 전환 ({damage})"
+      "attack": "gahoWeapon",
+      "linkedAttack": "gahoSlam",
+      "secondaryAttack": "gahoLand",
+      "text": "가호 100% 이상 및 비활성 상태에서 사용. 공중으로 떠오르며 가호 활성화. 지정 지점으로 대검 투척 후 해당 지점으로 강하 ({damageSequence})"
     },
     {
       "key": "L-Shift",
       "name": "반동제어불능!",
       "attack": "counter",
-      "text": "전방으로 돌진하며 경로 상에 피해. 적에게 적중 시 정지  ({damage})"
+      "linkedAttack": "counterSpin",
+      "text": "전방으로 돌진하며 적중 시 정지. 정지 지점에서 대검으로 한 바퀴 회전하여 피해 ({linkedDamage})"
     },
     {
       "key": "LMB PROTECTION",
-      "name": "검격의 화염",
+      "name": "태양의 검격",
       "attack": "lmbBlessed",
       "linkedAttack": "lmbWave",
-      "text": "대검 휘두르기 및 태양의 파동을 내보내 화염 부여 ({damage})"
-    },
-    {
-      "key": "RMB PROTECTION",
-      "name": "공중 강하",
-      "attack": "gahoWeapon",
-      "linkedAttack": "gahoSlam",
-      "secondaryAttack": "gahoLand",
-      "text": "잠시 공중에 떠올라 무적 상태에서 대검을 투척 후 해당 지점으로 강하 ({damageSequence})"
-    },
-    {
-      "key": "L-Shift PROTECTION",
-      "name": "돌진 회전베기!",
-      "attack": "counterBlessed",
-      "linkedAttack": "counterBlessedExplosion",
-      "text": "전방으로 돌진하며 경로 상에 피해 및 화염. 대검을 한 바퀴 돌리며 주변 적 피해 및 화염. 적에게 적중 시 정지 ({damageSequence})"
-    },
-    {
-      "key": "Space PROTECTION",
-      "name": "불길",
-      "text": "경로에 불길 생성. 밟을 시 화염"
+      "text": "대검을 휘두르며 전방으로 화염 검기 소환. 적중 시 화염 ({damage}/{linkedDamage})"
     }
   ],
   "triggers": [
@@ -122,21 +96,14 @@
       "id": "reika-gaho-damage-charge",
       "type": "trigger",
       "event": "damage-dealt",
-      "conditions": [
-        {
-          "type": "state.mode-is",
-          "stateKey": "reika-mode",
-          "value": "normal",
-          "initial": "normal"
-        }
-      ],
+      "conditions": [],
       "modules": [
         {
           "type": "state.progress",
           "stateKey": "reika-gaho",
           "operation": "add",
           "amountFrom": "healthDamage",
-          "amountScale": 0.06,
+          "amountScale": 0.04,
           "max": 200,
           "presentation": {
             "type": "arc-gauge",
@@ -178,7 +145,7 @@
       "type": "state.progress-rate",
       "stateKey": "reika-gaho",
       "max": 200,
-      "ratePerSecond": -16,
+      "ratePerSecond": -25,
       "whenMode": {
         "stateKey": "reika-mode",
         "value": "blessed",
@@ -199,53 +166,6 @@
         "maxChargeFlash": true,
         "flashAfterFirstLayer": true
       }
-    },
-    {
-      "type": "dodge.trail-field",
-      "stateKey": "reika-fire-trail",
-      "spacing": 14,
-      "whenMode": {
-        "stateKey": "reika-mode",
-        "value": "blessed",
-        "initial": "normal"
-      },
-      "field": {
-        "type": "field.area",
-        "stateKey": "reika-fire-trail",
-        "shape": "circle",
-        "range": 35,
-        "duration": 4000,
-        "targetRelations": [
-          "enemy"
-        ],
-        "intervalMode": "per-target",
-        "interval": 4000,
-        "triggerOnEnter": true,
-        "onTrigger": [
-          {
-            "type": "status.apply",
-            "status": "burn",
-            "duration": 3000,
-            "data": {
-              "flat": {
-                "$ref": "statusDefaults.burn.flat"
-              },
-              "interval": {
-                "$ref": "statusDefaults.burn.interval"
-              },
-              "tickAtEnd": true,
-              "stackMode": "refresh-type"
-            }
-          }
-        ],
-        "presentation": {
-          "type": "areaCircle",
-          "color": "56,189,248",
-          "fillAlpha": 0.055,
-          "strokeAlpha": 0.42,
-          "lineWidth": 1.5
-        }
-      }
     }
   ],
   "attacks": {
@@ -254,7 +174,7 @@
       "damageRatio": 1,
       "cost": 150,
       "cd": 560,
-      "range": 230,
+      "range": 350,
       "modules": [
         {
           "type": "delivery.area",
@@ -302,14 +222,31 @@
       ],
       "tags": [
         "평타"
-      ]
+      ],
+      "presentation": {
+        "colorVariants": [
+          {
+            "color": "56,189,248",
+            "conditions": [
+              {
+                "type": "state.mode-is",
+                "stateKey": "reika-mode",
+                "value": "blessed",
+                "initial": "normal"
+              }
+            ]
+          }
+        ]
+      }
     },
     "lmbBlessed": {
       "id": "attack.reika.lmb-blessed",
-      "damageRatio": 2,
-      "cost": 200,
+      "damageRatio": 1,
+      "cost": 150,
       "cd": 450,
-      "range": 230,
+      "range": {
+        "$ref": "attacks.lmb.range"
+      },
       "modules": [
         {
           "type": "delivery.area",
@@ -353,42 +290,74 @@
             "a",
             "b"
           ]
+        },
+        {
+          "type": "status.apply",
+          "status": "burn",
+          "duration": 2000,
+          "data": {
+            "flat": {
+              "$ref": "statusDefaults.burn.flat"
+            },
+            "interval": {
+              "$ref": "statusDefaults.burn.interval"
+            },
+            "tickAtEnd": true,
+            "stackMode": "refresh-type"
+          },
+          "oncePerExecution": true
         }
       ],
       "tags": [
         "평타"
-      ]
+      ],
+      "presentation": {
+        "colorVariants": [
+          {
+            "color": "56,189,248",
+            "conditions": [
+              {
+                "type": "state.mode-is",
+                "stateKey": "reika-mode",
+                "value": "blessed",
+                "initial": "normal"
+              }
+            ]
+          }
+        ]
+      }
     },
     "lmbWave": {
       "id": "attack.reika.lmb-wave",
-      "damageRatio": 0,
+      "damageRatio": 1,
       "cost": 0,
       "cd": 0,
-      "range": 276,
+      "range": 875,
       "modules": [
         {
-          "type": "effect.spawn",
-          "renderType": "hitImpactRing",
-          "position": "source",
-          "r": 0,
-          "maxR": {
-            "$ref": "attacks.lmbWave.range"
-          },
-          "color": "56,189,248",
-          "strokeAlpha": 1,
-          "lineWidth": 5.5,
-          "duration": 300,
-          "animation": true,
-          "damage": {
-            "attackId": "attack.reika.lmb-wave",
-            "hitMode": "expanding-ring",
-            "contactOnly": true,
-            "oncePerExecution": true,
-            "module": {
-              "type": "delivery.area",
-              "shape": "circle",
-              "range": 276,
-              "wallPolicy": "ignore"
+          "type": "delivery.range-projectile",
+          "speed": 50,
+          "radius": 104
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": true,
+          "walls": false
+        },
+        {
+          "type": "projectile.presentation",
+          "kind": "range-projectile",
+          "style": {
+            "fillAlpha": 0.2,
+            "strokeAlpha": 0.92,
+            "strokeWidth": 3,
+            "innerScale": 0.55,
+            "innerAlpha": 0.45,
+            "innerStrokeWidth": 2,
+            "afterimage": {
+              "duration": 240,
+              "interval": 40,
+              "alpha": 0.18
             }
           }
         },
@@ -411,145 +380,29 @@
       ],
       "tags": [
         "평타"
-      ]
-    },
-    "rmbPush": {
-      "id": "attack.reika.rmb-push",
-      "damageRatio": 1,
-      "cost": 300,
-      "cd": 980,
-      "range": 230,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "contactType": "melee",
-          "shape": "circle",
-          "range": {
-            "$ref": "attacks.rmbPush.range"
-          },
-          "delay": 300,
-          "wallPolicy": "block",
-          "render": false
-        },
-        {
-          "type": "effect.spawn",
-          "renderType": "annularDoubleSweep",
-          "position": "source",
-          "r": {
-            "$ref": "attacks.rmbPush.range"
-          },
-          "inner": 0,
-          "span": 6.283185307179586,
-          "sweepCount": 1,
-          "sweepDirection": "clockwise",
-          "startAngleOffset": 3.141592653589793,
-          "sweepFraction": 0.75,
-          "fadePower": 1.35,
-          "hitColor": "255,122,0",
-          "fillAlpha": 0.2,
-          "strokeAlpha": 0.88,
-          "lineWidth": 2.5,
-          "edgeLine": false,
-          "delay": 300,
-          "duration": 300,
-          "animation": true,
-          "clipToAttackArea": true,
-          "replaceAutoAreaEffect": true,
-          "scaleWithAttackRange": true
-        },
-        {
-          "type": "movement.knockback",
-          "target": "hit-target",
-          "direction": "away-from-source",
-          "distance": 180,
-          "speed": 12,
-          "oncePerExecution": true
-        },
-        {
-          "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "reika-sword-rotation",
-          "values": [
-            "a",
-            "b"
-          ]
-        }
       ],
-      "tags": [
-        "스킬",
-        "선딜레이"
-      ]
-    },
-    "gahoActivate": {
-      "id": "attack.reika.gaho-activate",
-      "damageRatio": 5,
-      "cost": 0,
-      "cd": 700,
-      "range": 180,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "shape": "circle",
-          "range": {
-            "$ref": "attacks.gahoActivate.range"
-          },
-          "delay": 500,
-          "wallPolicy": "ignore",
-          "color": "56,189,248",
-          "renderType": "areaCircle"
-        },
-        {
-          "type": "movement.knockback",
-          "target": "hit-target",
-          "direction": "away-from-source",
-          "distance": 84,
-          "speed": 10,
-          "oncePerExecution": true
-        },
-        {
-          "type": "status.apply",
-          "status": "burn",
-          "duration": 3000,
-          "data": {
-            "flat": {
-              "$ref": "statusDefaults.burn.flat"
-            },
-            "interval": {
-              "$ref": "statusDefaults.burn.interval"
-            },
-            "tickAtEnd": true,
-            "stackMode": "refresh-type"
-          },
-          "oncePerExecution": true
-        },
-        {
-          "type": "mode.set",
-          "when": "after-delivery",
-          "stateKey": "reika-mode",
-          "value": "blessed",
-          "initial": "normal"
-        },
-        {
-          "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "reika-sword-rotation",
-          "values": [
-            "a",
-            "b"
-          ]
-        }
-      ],
-      "tags": [
-        "스킬",
-        "선딜레이"
-      ]
+      "presentation": {
+        "colorVariants": [
+          {
+            "color": "56,189,248",
+            "conditions": [
+              {
+                "type": "state.mode-is",
+                "stateKey": "reika-mode",
+                "value": "blessed",
+                "initial": "normal"
+              }
+            ]
+          }
+        ]
+      }
     },
     "gahoWeapon": {
       "id": "attack.reika.gaho-weapon",
       "damageRatio": 0,
       "cost": 400,
       "cd": 750,
-      "range": 1200,
+      "range": 500,
       "modules": [
         {
           "type": "effect.spawn",
@@ -570,7 +423,7 @@
           "targetPointTravelDuration": 100,
           "radius": 16,
           "targetPoint": true,
-          "targetPointClampToAttackRange": false,
+          "targetPointClampToAttackRange": true,
           "targetPointResolve": "nearest-open",
           "targetPointClearance": 4,
           "targetPreview": {
@@ -593,7 +446,7 @@
             "attack.reika.gaho-slam"
           ],
           "sourceRelocate": {
-            "stateKey": "reika-gaho-impact-travel",
+            "stateKey": "movement:reika-airborne",
             "delay": 50,
             "duration": 140,
             "tags": [
@@ -616,6 +469,21 @@
             },
             "onEndAttackIds": [
               "attack.reika.gaho-land"
+            ],
+            "replaceActive": true,
+            "blocksAction": true,
+            "trajectory": {
+              "type": "trajectory.arc",
+              "height": 0,
+              "startHeight": 90,
+              "screenLiftRatio": 0.7
+            },
+            "buffs": [
+              {
+                "type": "evasionInvulnerable",
+                "value": 1,
+                "duration": "movement"
+              }
             ]
           }
         },
@@ -643,18 +511,67 @@
             "a",
             "b"
           ]
+        },
+        {
+          "type": "movement.move",
+          "when": "after-attack",
+          "stateKey": "movement:reika-airborne",
+          "distance": 0,
+          "duration": 510,
+          "replaceActive": true,
+          "blocksAction": true,
+          "presentation": false,
+          "trajectory": {
+            "type": "trajectory.arc",
+            "height": 90,
+            "apexHold": 0.8,
+            "screenLiftRatio": 0.7
+          },
+          "collision": {
+            "passWalls": true,
+            "passEnemies": true
+          },
+          "buffs": [
+            {
+              "type": "evasionInvulnerable",
+              "value": 1,
+              "duration": "movement"
+            }
+          ]
+        },
+        {
+          "type": "mode.set",
+          "when": "after-attack",
+          "stateKey": "reika-mode",
+          "value": "blessed",
+          "initial": "normal"
         }
       ],
       "tags": [
         "스킬"
-      ]
+      ],
+      "presentation": {
+        "colorVariants": [
+          {
+            "color": "56,189,248",
+            "conditions": [
+              {
+                "type": "state.mode-is",
+                "stateKey": "reika-mode",
+                "value": "blessed",
+                "initial": "normal"
+              }
+            ]
+          }
+        ]
+      }
     },
     "gahoSlam": {
       "id": "attack.reika.gaho-slam",
       "damageRatio": 2,
       "cost": 0,
       "cd": 0,
-      "range": 90,
+      "range": 180,
       "modules": [
         {
           "type": "delivery.area",
@@ -669,14 +586,31 @@
       ],
       "tags": [
         "스킬"
-      ]
+      ],
+      "presentation": {
+        "colorVariants": [
+          {
+            "color": "56,189,248",
+            "conditions": [
+              {
+                "type": "state.mode-is",
+                "stateKey": "reika-mode",
+                "value": "blessed",
+                "initial": "normal"
+              }
+            ]
+          }
+        ]
+      }
     },
     "gahoLand": {
       "id": "attack.reika.gaho-land",
       "damageRatio": 2,
       "cost": 0,
       "cd": 0,
-      "range": 70,
+      "range": {
+        "$ref": "attacks.gahoSlam.range"
+      },
       "modules": [
         {
           "type": "delivery.area",
@@ -695,15 +629,37 @@
           "distance": 20,
           "speed": 10,
           "oncePerExecution": true
+        },
+        {
+          "type": "mode.set",
+          "when": "after-delivery",
+          "stateKey": "reika-mode",
+          "value": "blessed",
+          "initial": "normal"
         }
       ],
       "tags": [
         "스킬"
-      ]
+      ],
+      "presentation": {
+        "colorVariants": [
+          {
+            "color": "56,189,248",
+            "conditions": [
+              {
+                "type": "state.mode-is",
+                "stateKey": "reika-mode",
+                "value": "blessed",
+                "initial": "normal"
+              }
+            ]
+          }
+        ]
+      }
     },
     "counter": {
       "id": "attack.reika.counter",
-      "damageRatio": 2,
+      "damageRatio": 0,
       "cost": 0,
       "cd": 300,
       "range": 300,
@@ -734,167 +690,50 @@
           "presentation": {
             "type": "dash-line",
             "color": "255,122,0",
-            "width": 7,
-            "alpha": 0.45,
-            "duration": {
-              "$ref": "attacks.counter.modules.0.duration"
-            }
-          }
-        },
-        {
-          "type": "effect.spawn",
-          "when": "after-attack",
-          "renderType": "effectShape",
-          "visible": false,
-          "duration": {
-            "$ref": "attacks.counter.modules.0.duration"
-          },
-          "animation": {
-            "mode": "forward",
-            "distance": {
-              "$ref": "attacks.counter.range"
-            },
-            "easing": "linear",
-            "clipByMovementCollision": true
-          },
-          "damage": {
-            "attackId": "attack.reika.counter",
-            "requireMovementExecution": true,
-            "movementStateKey": "movement:move",
-            "oncePerExecution": true,
-            "hitMode": "body-contact",
-            "contactRadius": 44,
-            "pathPresentation": {
-              "color": "255,122,0",
-              "width": 44,
-              "duration": 200
-            },
-            "stopAfterFirstContact": false
-          }
-        },
-        {
-          "type": "mode.toggle",
-          "when": "after-attack",
-          "stateKey": "reika-sword-rotation",
-          "values": [
-            "a",
-            "b"
-          ]
-        }
-      ],
-      "tags": [
-        "반격"
-      ]
-    },
-    "counterBlessed": {
-      "id": "attack.reika.counter-blessed",
-      "damageRatio": 2,
-      "cost": 0,
-      "cd": 300,
-      "range": 300,
-      "presentation": {
-        "color": "56,189,248"
-      },
-      "previewGeometry": {
-        "shape": "rect",
-        "range": {
-          "$ref": "attacks.counterBlessed.range"
-        },
-        "halfWidth": 44,
-        "wallPolicy": "ignore"
-      },
-      "modules": [
-        {
-          "type": "status.apply",
-          "status": "burn",
-          "duration": 2000,
-          "data": {
-            "flat": {
-              "$ref": "statusDefaults.burn.flat"
-            },
-            "interval": {
-              "$ref": "statusDefaults.burn.interval"
-            },
-            "tickAtEnd": true,
-            "stackMode": "refresh-type"
-          },
-          "oncePerExecution": true
-        },
-        {
-          "type": "movement.move",
-          "speedMultiplier": 1.35,
-          "tags": [
-            "이동기"
-          ],
-          "distance": {
-            "$ref": "attacks.counterBlessed.range"
-          },
-          "duration": 220,
-          "control": "fixed",
-          "collision": {
-            "passWalls": true,
-            "passEnemies": false
+            "width": 12,
+            "alpha": 0.65,
+            "duration": 250,
+            "colorVariants": [
+              {
+                "color": "56,189,248",
+                "conditions": [
+                  {
+                    "type": "state.mode-is",
+                    "stateKey": "reika-mode",
+                    "value": "blessed",
+                    "initial": "normal"
+                  }
+                ]
+              }
+            ],
+            "trail": true
           },
           "onEndAttackIds": [
-            "attack.reika.counter-blessed-explosion"
-          ],
-          "presentation": {
-            "type": "dash-line",
-            "color": "56,189,248",
-            "width": 8,
-            "alpha": 0.52,
-            "duration": {
-              "$ref": "attacks.counterBlessed.modules.1.duration"
-            }
-          }
-        },
-        {
-          "type": "effect.spawn",
-          "when": "after-attack",
-          "renderType": "effectShape",
-          "visible": false,
-          "duration": {
-            "$ref": "attacks.counterBlessed.modules.1.duration"
-          },
-          "animation": {
-            "mode": "forward",
-            "distance": {
-              "$ref": "attacks.counterBlessed.range"
-            },
-            "easing": "linear",
-            "clipByMovementCollision": true
-          },
-          "damage": {
-            "attackId": "attack.reika.counter-blessed",
-            "requireMovementExecution": true,
-            "movementStateKey": "movement:move",
-            "oncePerExecution": true,
-            "hitMode": "body-contact",
-            "contactRadius": 44,
-            "pathPresentation": {
-              "color": "56,189,248",
-              "width": 44,
-              "duration": 200
-            },
-            "stopAfterFirstContact": false
-          }
-        },
-        {
-          "type": "mode.toggle",
-          "when": "after-attack",
-          "stateKey": "reika-sword-rotation",
-          "values": [
-            "a",
-            "b"
+            "attack.reika.counter-spin"
           ]
         }
       ],
       "tags": [
         "반격"
-      ]
+      ],
+      "presentation": {
+        "colorVariants": [
+          {
+            "color": "56,189,248",
+            "conditions": [
+              {
+                "type": "state.mode-is",
+                "stateKey": "reika-mode",
+                "value": "blessed",
+                "initial": "normal"
+              }
+            ]
+          }
+        ]
+      }
     },
-    "counterBlessedExplosion": {
-      "id": "attack.reika.counter-blessed-explosion",
+    "counterSpin": {
+      "id": "attack.reika.counter-spin",
       "damageRatio": 2,
       "cost": 0,
       "cd": 0,
@@ -904,26 +743,10 @@
           "type": "delivery.area",
           "shape": "circle",
           "range": {
-            "$ref": "attacks.counterBlessedExplosion.range"
+            "$ref": "attacks.counterSpin.range"
           },
           "wallPolicy": "block",
           "render": false
-        },
-        {
-          "type": "status.apply",
-          "status": "burn",
-          "duration": 2000,
-          "data": {
-            "flat": {
-              "$ref": "statusDefaults.burn.flat"
-            },
-            "interval": {
-              "$ref": "statusDefaults.burn.interval"
-            },
-            "tickAtEnd": true,
-            "stackMode": "refresh-type"
-          },
-          "oncePerExecution": true
         },
         {
           "type": "movement.neutralize-knockback",
@@ -938,7 +761,7 @@
           "renderType": "annularDoubleSweep",
           "position": "source",
           "r": {
-            "$ref": "attacks.counterBlessedExplosion.range"
+            "$ref": "attacks.counterSpin.range"
           },
           "inner": 0,
           "span": 6.283185307179586,
@@ -947,7 +770,7 @@
           "startAngleOffset": 3.141592653589793,
           "sweepFraction": 0.75,
           "fadePower": 1.35,
-          "hitColor": "56,189,248",
+          "hitColor": "255,122,0",
           "fillAlpha": 0.2,
           "strokeAlpha": 0.88,
           "lineWidth": 2.5,
@@ -957,11 +780,35 @@
           "clipToAttackArea": true,
           "replaceAutoAreaEffect": true,
           "scaleWithAttackRange": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "reika-sword-rotation",
+          "values": [
+            "a",
+            "b"
+          ]
         }
       ],
       "tags": [
         "반격"
-      ]
+      ],
+      "presentation": {
+        "colorVariants": [
+          {
+            "color": "56,189,248",
+            "conditions": [
+              {
+                "type": "state.mode-is",
+                "stateKey": "reika-mode",
+                "value": "blessed",
+                "initial": "normal"
+              }
+            ]
+          }
+        ]
+      }
     }
   },
   "abilities": {
@@ -1014,7 +861,7 @@
     "rmb": {
       "id": "ability.reika.rmb",
       "input": "rmb",
-      "attackId": "attack.reika.rmb-push",
+      "attackId": "attack.reika.gaho-weapon",
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -1031,132 +878,20 @@
           },
           {
             "type": "combat.can-act"
-          }
+          },
+          {"type": "state.progress-gte", "stateKey": "reika-gaho", "value": 100},
+          {"type": "state.mode-is", "stateKey": "reika-mode", "value": "normal", "initial": "normal"}
         ],
         "modules": [
-          {
-            "type": "preview.create",
-            "conditions": [
-              {
-                "type": "state.mode-is",
-                "stateKey": "reika-mode",
-                "value": "normal",
-                "initial": "normal"
-              },
-              {
-                "type": "state.progress-lt",
-                "stateKey": "reika-gaho",
-                "value": 100
-              }
-            ],
-            "shape": "attack-shape",
-            "attackId": "attack.reika.rmb-push",
-            "duration": 300,
-            "followSource": true,
-            "aimMode": "live-source",
-            "requireResource": true
-          },
-          {
-            "type": "ability.lock",
-            "conditions": [
-              {
-                "type": "state.mode-is",
-                "stateKey": "reika-mode",
-                "value": "normal",
-                "initial": "normal"
-              },
-              {
-                "type": "state.progress-lt",
-                "stateKey": "reika-gaho",
-                "value": 100
-              }
-            ],
-            "duration": 300
-          },
-          {
-            "type": "action.attack",
-            "alternates": [
-              {
-                "attackId": "attack.reika.gaho-weapon",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "reika-mode",
-                    "value": "blessed",
-                    "initial": "normal"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.reika.gaho-activate",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "reika-mode",
-                    "value": "normal",
-                    "initial": "normal"
-                  },
-                  {
-                    "type": "state.progress-gte",
-                    "stateKey": "reika-gaho",
-                    "value": 100
-                  }
-                ]
-              }
-            ]
-          },
           {
             "type": "preview.create",
             "shape": "attack-shape",
             "attackId": "attack.reika.gaho-weapon",
             "duration": 320,
-            "requireExecuted": true,
-            "requireAttackId": "attack.reika.gaho-weapon"
+            "requireResource": true
           },
           {
-            "type": "preview.create",
-            "shape": "attack-shape",
-            "attackId": "attack.reika.gaho-activate",
-            "duration": 500,
-            "requireAttackId": "attack.reika.gaho-activate"
-          },
-          {
-            "type": "effect.spawn",
-            "renderType": "areaCircle",
-            "position": "source",
-            "range": 180,
-            "color": "56,189,248",
-            "fillAlpha": 0.175,
-            "strokeAlpha": 0.665,
-            "lineWidth": 1.5,
-            "duration": 500,
-            "followSource": true,
-            "progressSweep": true,
-            "progressSweepDirection": "clockwise",
-            "scaleWithAttackRange": true,
-            "requireAttackId": "attack.reika.gaho-activate"
-          },
-          {
-            "type": "status.apply",
-            "status": "bind",
-            "duration": 500,
-            "sourceId": "ability.reika.rmb:gaho-bind",
-            "requireAttackId": "attack.reika.gaho-activate"
-          },
-          {
-            "type": "status.apply",
-            "status": "bind",
-            "duration": 510,
-            "sourceId": "ability.reika.rmb:gaho-airborne-bind",
-            "requireAttackId": "attack.reika.gaho-weapon"
-          },
-          {
-            "type": "modifier.set",
-            "stat": "evasionInvulnerable",
-            "value": 1,
-            "duration": 510,
-            "sourceId": "ability.reika.rmb:gaho-airborne-invulnerable",
-            "requireAttackId": "attack.reika.gaho-weapon"
+            "type": "action.attack"
           }
         ]
       }
@@ -1195,17 +930,6 @@
             "type": "counter.execute",
             "windup": 300,
             "consumeState": "counter-ready",
-            "alternateWhen": {
-              "attackId": "attack.reika.counter-blessed",
-              "conditions": [
-                {
-                  "type": "state.mode-is",
-                  "stateKey": "reika-mode",
-                  "value": "blessed",
-                  "initial": "normal"
-                }
-              ]
-            },
             "preview": {
               "type": "preview.create",
               "shape": "attack-shape"

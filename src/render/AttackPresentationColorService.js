@@ -1,7 +1,18 @@
 
 
 const AttackPresentationColorService=Object.freeze({
+  variant(source,attack=null,module=null){
+    const variants=module?.presentation?.colorVariants||attack?.presentation?.colorVariants||[];
+    for(const entry of variants){
+      if(entry.color&&(entry.conditions||[]).every(condition=>
+        TriggerConditionService.matches(condition,{source,attack,module,now:performance.now()})
+      ))return ColorService.rgbString(entry.color);
+    }
+    return null;
+  },
   resolve(source,attack=null,module=null){
+    const variant=this.variant(source,attack,module);
+    if(variant)return variant;
     if(
       attack?.presentation?.teamColor===true||
       module?.teamColor===true||

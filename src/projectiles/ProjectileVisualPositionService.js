@@ -1,6 +1,20 @@
 
 
 const ProjectileVisualPositionService=Object.freeze({
+  histories:new WeakMap(),
+  afterimages(projectile,visual,config,now=performance.now()){
+    if(!projectile||!config)return [];
+    const duration=Math.max(1,Number(config.duration)||200);
+    const interval=Math.max(1,Number(config.interval)||40);
+    let history=this.histories.get(projectile);
+    if(!history){history=[];this.histories.set(projectile,history);}
+    while(history.length&&now-history[0].at>=duration)history.shift();
+    const last=history[history.length-1];
+    if(!last||now-last.at>=interval){
+      history.push({x:visual.x,y:visual.y,scale:visual.scale,at:now});
+    }
+    return history;
+  },
   sample(projectile,out=null){
     const result=out&&typeof out==='object'?out:{};
 

@@ -52,6 +52,13 @@ const CharacterCommandInputService={
     return true;
   },
 
+  reset(){
+    this.close();
+    this.buffer='';
+    this.clearResult();
+    return true;
+  },
+
   appendCode(code){
     const keyMatch=
       /^Key([A-Z])$/.exec(

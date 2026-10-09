@@ -559,12 +559,12 @@ test('레이카 가호 실제 ability 미리보기 즉시 생성·공통 색 / �
  const e=reset();e.character=reika;c.ModeStateService.set(e,'reika-mode','blessed');
  load('src/combat/AttackPreviewService.js','AttackPreviewService');
  c.SimulationScheduleService={scheduleContinuation(){}};
- const ability=reika.abilities.rmb,module=ability.trigger.modules.find(m=>m.type==='preview.create'&&m.requireAttackId==='attack.reika.gaho-weapon');
+ const ability=reika.abilities.rmb,module=ability.trigger.modules.find(m=>m.type==='preview.create'&&m.attackId==='attack.reika.gaho-weapon');
  assert.ok(module);const attack=reika.attacks.gahoWeapon;
  const context={source:e,ability,attack,executed:true,resolvedAttackId:attack.id,angle:0,targetPoint:{x:300,y:200},now:clock};
  c.AbilityModuleService.handlers['preview.create'](context,()=>{},module);
  assert.ok(e.attackPreview);assert.equal(e.attackPreview.until,clock+320);assert.equal(e.attackPreview.range,reika.attacks.gahoSlam.range);assert.equal(e.attackPreview.style,null);
- assert.equal(e.attackPreview.x,300);assert.equal(e.attackPreview.y,200);
+ assert.ok(Math.abs(Math.hypot(e.attackPreview.x-e.x,e.attackPreview.y-e.y)-Math.hypot(200,-300))<1e-6);assert.equal(e.attackPreview.x,300);assert.equal(e.attackPreview.y,200);
  assert.equal(nyu.worldEffectModules[0].scale,1.75);
 });
 test('발명 슬롯 교체·과반동2배·주먹240/250·충격 도약 제자리250',()=>{

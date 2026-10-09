@@ -847,8 +847,6 @@ const Training={
     if(!this.active)return false;
     if(this.sessionMode==='training'){
       this.closePanels();
-      CharacterCommandInputService.close();
-      CharacterCommandInputService.clearResult();
       this.settings={...TRAINING_DEFAULT_SETTINGS};
       DebugMapService.set('training-tilemap');
       CameraFovService.reset();
@@ -1030,6 +1028,7 @@ const Training={
     return true;
   },
   setupSession(){
+    CharacterCommandInputService.reset();
     if(this.sessionMode==='online')return this.setupOnlineSession();
     PointerHoldInputService.releaseAll();
     EntityService.clear();
@@ -1122,8 +1121,7 @@ const Training={
     this.syncHud();
   },
   exit(){
-    CharacterCommandInputService.close();
-    CharacterCommandInputService.clearResult();
+    CharacterCommandInputService.reset();
     CameraFovService.reset();
     this.active=false;
     cancelAnimationFrame(this.raf);
@@ -3171,6 +3169,18 @@ const Training={
       }
 
       if(style?.kind==='range-projectile'){
+        const echoes=ProjectileVisualPositionService.afterimages(b,visual,style.afterimage,now);
+        for(const echo of echoes){
+          const life=Math.max(0,1-(now-echo.at)/Math.max(1,Number(style.afterimage?.duration)||200));
+          if(now===echo.at)continue;
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(echo.x,echo.y,Math.max(1,Number(b.radius)||1)*echo.scale,0,Math.PI*2);
+          ctx.fillStyle=`rgba(${b.renderRgb},${alpha*life*Math.max(0,Number(style.afterimage?.alpha)||.18)})`;
+          ctx.strokeStyle=`rgba(${b.renderRgb},${alpha*life*.25})`;
+          ctx.lineWidth=Math.max(1,Number(style.strokeWidth)||3);
+          ctx.fill();ctx.stroke();ctx.restore();
+        }
         const radius=Math.max(1,Number(b.radius)||1)*visual.scale;
         const outerRgb=ColorService.rgbString(style.strokeColor,b.renderRgb);
         const innerRgb=ColorService.rgbString(style.innerColor,b.renderRgb);
@@ -3257,7 +3267,8 @@ const Training={
 
         if(!stationaryNumbered){
           const half=radius*.5;
-          const crossColor=ColorService.rgbString(ColorService.brighten(b.source?.character?.color||b.source?.color||b.renderRgb));
+          const paletteColor=AttackPresentationColorService.variant(b.source,b.attack,{presentation:style});
+          const crossColor=ColorService.rgbString(ColorService.brighten(paletteColor||b.source?.character?.color||b.source?.color||b.renderRgb));
           ctx.strokeStyle=`rgba(${crossColor},${returningStrokeAlpha*.85})`;
           ctx.lineWidth=Math.max(.5,radius/6*visual.scale);
 

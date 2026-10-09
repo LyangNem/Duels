@@ -1493,3 +1493,122 @@ character.59 뉴/레이카 검 리디자인과 함께 제공. 대상: geopin.js/
 - 파일: characters/levina; README/PATCH LOG/project/DIVIDE TASKS/runtime; 무기/캐릭터 계약 문서.
 - 검증: 헤브 실제발사/출혈/회복 회귀 및 build/docs/check/verify/runtime구문/ZIP무결성 통과.
 - 실플레이 권장: 레비나 삼지창 축소·투척중숨김·복원.
+
+
+## 3.0.0-character.182 — 2026-10-09 KST
+
+- 변경: 타우 스킬이 맵 외곽에 닿았을 때 귀환만 하던 문제 수정. 경계 접촉점으로 이동한 뒤 투사체는 기존처럼 귀환한다.
+- 원인/구조: 공용 ProjectileService의 경계 귀환 분기에서 좌표 보정 후 onProjectileWallHit을 귀환 시작 전에 호출한다. 기존 movement.move 모듈 사용, 캐릭터 전용 분기 없음.
+- 대상: src/projectiles/ProjectileService.js, tools/test-tau-hit-move.cjs, README.md, project.json, DIVIDE TASKS.md, runtime.js.
+- 검증: 실제 updateOutbound에서 상하좌우 경계 및 모서리의 접촉좌표·이동거리·이동 후 귀환 순서, 기존 적중 후 이동 회귀 통과. build/docs/check/verify/runtime 구문 및 ZIP 무결성 검증. 실제 온라인 플레이 미검증.
+- 실플레이 확인: 타우 스킬을 맵 외곽 네 방향과 모서리에 발사해 이동/귀환 확인.
+
+
+## 3.0.0-character.183 — 2026-10-09 KST
+
+- 변경: 타우 스킬 맵 외곽 접촉 시 이동만 하도록 정정. 접촉점으로 이동하고 투사체는 제거하며 귀환하지 않는다.
+- 원인/구조: projectile.return의 returnAtBoundary를 명시적으로 false 지정 가능하게 수정. 생략 시 기존 returnAtRange 정책 유지. 타우는 false로 지정하여 기존 벽 충돌 이동/제거 경로 사용. 일반 사거리 끝 귀환 유지.
+- 대상: src/projectiles/ProjectileService.js, src/projectiles/ProjectileModuleService.js, src/data/characters/tau.js, tools/test-tau-hit-move.cjs, README.md, project.json, DIVIDE TASKS.md, runtime.js.
+- 검증: 실제 updateOutbound에서 상하좌우 경계 및 모서리의 접촉좌표·이동거리·이동 후 투사체 제거·귀환 없음, 기존 적중 후 이동 회귀 통과. build/docs/check/verify/runtime 구문 및 ZIP 무결성 검증. 실제 온라인 플레이 미검증.
+- 실플레이 확인: 타우 스킬을 맵 외곽 네 방향과 모서리에 발사해 이동만 하고 투사체 제거 확인.
+
+
+## 3.0.0-character.184 — 2026-10-09 KST
+
+- 변경: 가에 이전 라운드의 작성 중인 명령이 다음 라운드에 남던 문제 수정. 새 세션 생성 전 입력창·버퍼·결과 표시를 모두 초기화.
+- 원인/구조: CharacterCommandInputService.reset으로 입력 상태 초기화 책임 통합. Training.setupSession의 온라인 분기 전에 호출하여 라운드·훈련장 공통 적용, exit도 동일 reset 사용.
+- 대상: src/input/CharacterCommandInputService.js, src/modes/Training.js, tools/test-gae.cjs, README.md, project.json, DIVIDE TASKS.md, runtime.js.
+- 검증: 실제 setupSession 실행으로 미완성/완성 입력·결과 잔존·입력 잠금 제거 및 재열기 검증. 가에 10개 회귀 및 build/docs/check/verify/runtime 구문·ZIP 무결성 통과. 실제 온라인 플레이 미검증.
+- 실플레이 확인: 가에 명령을 작성하던 상태로 라운드 종료 후 다음 라운드의 입력창/명령 잔존 여부 확인.
+
+
+## 3.0.0-character.185 — 2026-10-09 KST
+
+- 요청/결과: 레이카 리메이크: 기존 칭호/색·체력1300/느림 유지. 기본평타와 가호평타 검격/검기 사거리350, 스킬 투척거리350. 가호 게이지와 모드에 관계없이 공중 상승→대검 투척→강하 스킬 사용. 가호 전용 우클릭/반격/회피 불길 삭제, 가호 평타만 유지. 반격은 적 접촉 또는 사거리 끝의 정지점에서 회전 타격. 가호 활성 중 타격으로도 게이지 충전.
+- 구조: 기존 공용 AttackSpec/Trigger/진행도/모드/투사체 착탄/자기 이동/원격 상태 조합. movement.move의 거리0+trajectory는 지속시간과 시간 진행률로 제자리 공중 상승 유지. projectile.impact.sourceRelocate가 replaceActive/blocksAction/trajectory/buffs를 공용 이동으로 전달해 상승을 강하로 교체. 캐릭터 이름 분기 없음. 게이지0에서 스킬 사용 가능, 가호 유지 시간은 남은 게이지 기준(사용자 확인), 스킬 타격으로 충전된 게이지는 착지 후 가호에 반영.
+- 대상: characters/reika, MovementAbilityService, ProjectileImpactService; 레이카 새 회귀/사거리/이동접촉/지오핀/무기 기존 검사 계약 갱신; README/REIKA/CHARACTER CONTRACT/project/DIVIDE TASKS/runtime. 기존 무기검사의 헤브 재타격/크기 기대값도 현재 실제 계약과 일치시킴(헤브 전투 변경 없음).
+- 검증: 레이카 새7그룹: 0/50/200 게이지·일반/가호 6조합의 실제220ms발사/착탄/이동종료; 전방 검기/화염; 적 접촉 및 최대거리 정지점 회전; 활성중 충전/200상한/소진; 제자리 공중 시간·원격 동일높이·350목표제한 검사. 전체15개 회귀 스크립트 및 build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제 브라우저·두 기기 온라인 플레이는 미검증.
+- 플레이 확인: 0게이지·가호중 스킬, 적중 게이지 유지,350거리, 반격 정지점 회전.
+
+
+## 3.0.0-character.186 — 2026-10-09 KST
+
+- 변경: 레이카 스킬 최대 이동/투척거리500. 화염 검기는 샤베트 평타와 같은 공용 progressRect, 폭208(halfWidth104, 샤베트2배), 전방350. 일반/가호 평타 시계방향 좌→우 스윕. 가호 평타100/검기100. 낙하1타 반경90→180(+100%),2타도1타 참조180. 타격 충전은50피해당 최대게이지4%(200중8), 가호 소모 초당16→20(+25%). 가호중 모든 공격/이동/무기투사체 중앙표시 하늘색.
+- 구조: 순수 캐릭터 수치·진행 직사각형/스윕 공용 모듈 재사용. AttackPresentationColorService에 조건부 presentation.colorVariants 팔레트 해석을 추가하고 명시적 effect.spawn·공용 자기이동·무기투사체 +표시도 같은 팔레트를 사용. 기본팔레트 없는 기존 공격은 원래 색/캐릭터 밝은색 유지. 캐릭터 이름 분기 없음. 공격 팔레트는 생성 시 이펙트 snapshot에 포함하여 기존 원격 복제 경로 사용.
+- 대상: characters/reika, AttackPresentationColorService, AttackModuleService, MovementAbilityService, Training 무기투사체 표시; test-reika/geopin/terdion 기대값과 docs/REIKA/CHARACTER CONTRACT/README/project/DIVIDE TASKS/runtime.
+- 검증: 레이카10그룹(실제 공중/강하·500목표제한·충전/소진·180동일낙하·100/100피해·넓은 공용형상·스윕·실제 생성 회전이펙트 팔레트/원본 보존) 및 전체15회귀 스크립트 통과. build/docs/check/verify/runtime구문/ZIP무결성 검사. 실제 브라우저·두 기기 온라인 시각검수는 미실시.
+- 미지정 수치 결정: 가호 소모속도는 기존보다25%높은 초당20, 검기폭은 샤베트 평타2배로 지정.
+
+
+## 3.0.0-character.187 — 2026-10-09 KST
+
+- 변경: 레이카 검기를 공용 범위 투사체로 변경. 사거리350→875(2.5배), 반경104/탄속50/피해100/적 관통·벽 차단·화염 유지. 이동 중 지나온 위치에240ms 잔상(40ms 간격)을 남기고 페이드. 일반/가호 평타 좌우 스윕 제거. 가호 충전은50피해당 최대1%(최대200중2), 피해량×0.04. 반격 실제 이동 구간에250ms 잔선(폭12/알파0.65), 가호중 하늘색 및 온라인 이펙트 복제.
+- 구조: 캐릭터 조건 분기 없이 기존 delivery.range-projectile 및 projectile.presentation 재사용. ProjectileVisualPositionService의 공용 WeakMap 이력과 Training 범위투사체 렌더로 잔상 생성. MovementAbilityService의 opt-in presentation.trail은 미래 경로 대신 실제 이동분을 공용 MovementPresentationService로 표시/복제. 기존 비trail 이동은 유지.
+- 검증: 레이카12그룹(실제 잔상 렌더의 고정 위치/페이드/만료, 실제 반격 이동분/색/온라인 전송 포함) 및 전체15회귀 스크립트 통과. build/docs/check/verify/runtime구문/ZIP무결성 검사. 실제 브라우저 및 두 기기 온라인 시각 검수는 미실시.
+
+
+## 3.0.0-character.188 — 2026-10-10 KST
+
+- 변경: 레이카 가호 활성(blessed) 도중에는 모든 적중 피해의 가호 충전 차단. 비활성(normal)일 때만50피해당1% 충전. 시간 충전/가호 소모 및 다른 전투 수치는 유지.
+- 구조: 기존 트리거 조건 state.mode-is 재사용.
+- 대상: src/data/characters/reika.js, tools/test-reika.cjs, README.md, docs/REIKA.md, project.json, DIVIDE TASKS.md, runtime.js.
+- 검증: 레이카12그룹 및 전체15회귀 통과. 활성중100/5000피해에도 게이지 유지, 소진후50피해2충전 및200상한 검증. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제 온라인 플레이 미검증.
+
+
+## 3.0.0-character.189 — 2026-10-10 KST
+
+- 변경: 에라 파비 회피 타입 아머 리메이크. 칭호/색/1800체력/빠름4.25/반격형 원거리 탱커 유지. 저스트 회피 판정시간80→120ms(+50%), 성공마다 아머20% 충전·5회완충·피격충전 제거. 평타 레이저 건 아머는 기존2발×2회/40피해/250비용/900거리 유지. 우클릭은 아머가 조금이라도 있으면500ms후 파비 레이저(기존 타당150/4000거리/40ms틱). 시작시 완충이면틱당100, 미완충이면200 소모(최대7200·기존 완충지속2.88초 유지). 버티기/방어버프/조건부스킬 변경 제거. 반격 출력 증가는170반경 원형250피해/기존무력화넉백84·사용완료마다 기본회피거리10% 누적 영구증가.
+- 구조: 기존 progress/채널/입력조건/원형공격/반격CC 모듈 조합. JustDodgeService.begin에 공용 character.dodge.justWindowMultiplier 옵션(생략시1) 추가. 기존 just-dodge 초기화 바인딩에서 로컬캐릭터 트리거도 전달. ProgressStateService thresholdModifiers의 valuePerProgress 옵션으로 누적 진행도에 비례한 버프 산정·고정value 기존동작 유지. 비안정 소모속도는 입력시조건에 맞는 채널을 생성해 시작시 고정. 캐릭터 이름분기/새 네트워크패킷 없음.
+- 대상: characters/erapabi, JustDodgeService, initialization-120, ProgressStateService, test-erapabi, docs/ERAPABI, CHARACTER CONTRACT, README, project, DIVIDE TASKS, runtime.
+- 검증: 에라 파비 신규5그룹 및 전체16회귀 통과. 실제저회확정→트리거20%/중복차단/상한, 일반캐릭터80ms 유지, 실제 우클릭 모듈 및 채널선딜/완충·부분2배 소모/고갈종료/쿨다운, 반격 실제종료마다10% 누적/Infinity 지속/타버프보존 검증. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제 브라우저/온라인 플레이 미검증.
+- 미지정 결정: 저회 시간 증가50%(120ms), 나머지 공격 수치 기존 유지.
+
+
+## 3.0.0-character.190 — 2026-10-10 KST
+
+- 변경: 레이카 스킬 입력은 가호 완충(최대200/100%) 및 비활성(normal) 상태에서만 허용. 부분충전/가호활성 상태에서는 스킬 공격과 입력 미리보기 생성 차단. 가호 활성중 적중충전을 복구하고 일반/활성 모두50피해당2%(200중4, 피해량×0.08) 충전. 기존 소모속도20/검기875/스킬500/스테미나400 등 유지.
+- 구조: 기존 입력 트리거의 공용 진행도/모드 조건 재사용.
+- 대상: src/data/characters/reika.js, tools/test-reika.cjs, README.md, docs/REIKA.md, project.json, DIVIDE TASKS.md, runtime.js.
+- 검증: 레이카12그룹 및 전체16회귀 통과. 게이지0/50/200×일반/가호6조합에서 완충일반만 스킬허용, 나머지5조합 공격·이동·미리보기 없음. 활성중100피해8충전·상한 및 일반50피해4충전 검증. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제 온라인 플레이 미검증.
+
+
+## 3.0.0-character.191 — 2026-10-10 KST
+
+- 변경: 에라 파비 완충/안정발사 기준을 첫 번째 호게이지로 정정(전체7200중3600·readyAtRatio0.5). 미만 시작시 소모200, 이상이면100 고정. 패시브는 저스트회피 판정80→120ms만 유지·성공충전 제거. 반격은 기존170원형250피해/무력화넉백 유지하며 사용완료마다 첫호게이지20%(720) 충전·5회첫링완충·10회전체상한. 영구회피거리 증가 및 erapabi-output 진행도 생성 제거. 레이카190 및 기타수치 유지.
+- 구조: 기존 공용 state.progress after-attack 및 채널 입력조건만 조합. 새 실행코드 없음.
+- 대상: src/data/characters/erapabi.js, tools/test-erapabi.cjs, docs/ERAPABI.md, README.md, project.json, DIVIDE TASKS.md, runtime.js.
+- 검증: 에라파비5그룹과 전체16회귀 통과. 실제저회120ms/충전없음, 0/부분 스킬조건, 첫링 경계50% 및49%·80%·100% 실제채널소모, 반격11회충전상한/영구거리버프생성없음/기존타버프유지 검사. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
+- 확인: 사용자 선택으로 회피시간 증가는 저스트회피 판정시간을 의미. 충전20%는 첫링기준으로 적용.
+
+
+## 3.0.0-character.192 — 2026-10-10 KST
+
+- 변경: 레이카 가호 표시를 단일 호게이지로 통일(layers1/readyAtRatio1). 한 링100%가 완충이며 스킬은100% 및 비활성 상태에서만 사용. 기존50피해2%충전/가호중충전/초당소모20과 공격수치 유지. 내부진행도200=화면100% 매핑 유지.
+- 구조: 기존 입력 트리거의 공용 진행도/모드 조건 재사용.
+- 대상: src/data/characters/reika.js, tools/test-reika.cjs, README.md, docs/REIKA.md, project.json, DIVIDE TASKS.md, runtime.js.
+- 검증: 레이카12그룹 및 전체16회귀 통과. 모든 가호 프레젠테이션 layers1/readyAtRatio1, 완충비활성만 스킬허용과50피해2%충전 검증. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 시각검수 미실시.
+
+
+## 3.0.0-character.193 — 2026-10-10 KST
+
+- 변경: 사용자 확인에 따라 에라 파비 리메이크 전(character188) 캐릭터 원문을 바이트 동일하게 복구. 피격 피해 저장형 아머/기존 버티기(방어50%3초와 주변넉백)/아머50% 이상 조건부 파비레이저/앞뒤 회전반격 복구. 저회시간 기본80ms·반격 아머충전과 영구거리증가 없음. 레이카192 단일호게이지와 최신전투 변경 유지. 공용 확장옵션은 남아있지만 파비는 사용하지 않음.
+- 구조: 리메이크 전 캐릭터 데이터 원문 복구. 공용 서비스/다른 캐릭터는 유지.
+- 대상: src/data/characters/erapabi.js, tools/test-erapabi.cjs, docs/ERAPABI.md, README.md, project.json, DIVIDE TASKS.md, runtime.js.
+- 검증: 에라파비 복구3그룹 및 전체16회귀 통과. 원문 바이트동일·피격저장/체력4배상한/저회충전없음/80ms·버티기/레이저분기50%·실제채널소모/고갈 검증. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
+- 확인: 사용자가 리메이크 전 복구를 선택.
+
+
+## 3.0.0-character.194 — 2026-10-10 KST
+
+- 변경: 레이카 가호는 첫호게이지100%/두번째까지200%의 2층 개념으로 정정. 내부200=표시200%, 스킬은100%이상 및 비활성 상태에서 허용. 일반/가호중50피해당2%(피해량×0.04) 충전. layers2/readyAtRatio0.5 복구. 초당 가호 감소량20→25%(25%증가);100%는 무충전4초/200%는8초. 파비 리메이크전 복구193 및 나머지수치 유지.
+- 구조: 기존 입력 트리거의 공용 진행도/모드 조건 재사용.
+- 대상: src/data/characters/reika.js, tools/test-reika.cjs, README.md, docs/REIKA.md, project.json, DIVIDE TASKS.md, runtime.js.
+- 검증: 레이카12그룹 및 전체16회귀 통과.0/99/100/150/200×일반/가호10조합의100%경계,2층표시,50피해2%,초당25소모 검증. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 시각검수 미실시.
+
+
+## 3.0.0-character.195 — 2026-10-10 KST
+
+- 변경: 레이카 가호평타 스테미나 비용200→150. 일반평타와 동일150. 가호 검기/피해/사거리/발사간격/게이지 조건과 나머지 캐릭터 유지. 설명 비용은 기존 공격값 참조로150 반영.
+- 구조: 기존 입력 트리거의 공용 진행도/모드 조건 재사용.
+- 대상: src/data/characters/reika.js, tools/test-reika.cjs, README.md, docs/REIKA.md, project.json, DIVIDE TASKS.md, runtime.js.
+- 검증: 레이카 회귀 및 전체16스크립트 통과. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 미검증.

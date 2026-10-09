@@ -294,7 +294,7 @@ const ProgressStateService=Object.freeze({
       const active=module?.strict===true?value>threshold:value>=threshold;
       const sourceId=String(module?.sourceId||`progress:${state.stateKey}:${index}:${stat}`);
       if(active){
-        const modifierValue=Number(module?.value)||0;
+        const modifierValue=(Number(module?.value)||0)+(Number(module?.valuePerProgress)||0)*value;
         let existing=null;
         for(const item of BuffService.live(entity,stat)){
           if(item.sourceId!==sourceId)continue;

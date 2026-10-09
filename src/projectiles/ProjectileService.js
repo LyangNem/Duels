@@ -3926,11 +3926,10 @@ const ProjectileService={
       */
       if(
         returning&&
-        (
-          returning.returnAtRange===true||
-          returning.returnAtBoundary===true
-        )
+        returning.returnAtBoundary===true
       ){
+        // Resolve contact effects at the clamped boundary before changing flight phase.
+        AttackModuleService.onProjectileWallHit(projectile);
         ProjectileStateService.beginReturn(
           projectile,
           {manual:false}

@@ -21,7 +21,7 @@ function setup(id,key){now=1000;wall=Infinity;hits=[];c.Training.sessionMode='tr
  const owner=c.AttackModuleService.spawnAttackEffect(source,attack,0,{sequence:1},fx);assert.equal(owner.damage.remotePathTimeline.distance,k.distance);assert.equal(owner.damage.remotePathTimeline.duration,k.duration);
  const spec=c.EffectSpawnService.definitionSnapshot(owner);delete spec.animationState;source.actionState.clear();source.local=false;c.Training.sessionMode='online';const effect=c.EffectSpawnService.spawn(spec,{source});assert.ok(effect.animationState.movementPathTimeline);return{source,target,effect,k};}
 function tick(h,elapsed,x){now=1000+elapsed;h.target.x=x;c.EffectSpawnService.applyMovementTrackedDamage(h.effect)}
-for(const [id,key] of [['lime','lmb'],['reika','counter'],['reika','counterBlessed']]){
+for(const [id,key] of [['lime','lmb']]){
  let h=setup(id,key);for(let ms=10;ms<=h.k.duration;ms+=10)tick(h,ms,185+ms*.24);assert.deepEqual(hits,['target'],id+' moving away');count++;
  // 같은 실행의 접촉은 중복 피해 없음.
  tick(h,h.k.duration+16,h.target.x);assert.deepEqual(hits,['target']);count++;

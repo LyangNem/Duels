@@ -211,7 +211,7 @@ const MovementAbilityService=Object.freeze({
                 state.traveled/state.distance
               )
             )
-            :0;
+            :Math.max(0,Math.min(1,(now-state.startedAt)/state.duration));
         return ArcTrajectoryService.sample(
           progress,
           state.trajectory||null
@@ -629,8 +629,13 @@ const MovementAbilityService=Object.freeze({
       module.presentation!==false&&
       presentationAuthority
     ){
-      const presentation=module.presentation||{type:'dash-line',width:6,alpha:.4,duration:167};
-      if(presentation.resolveOnFinish===true){
+      let presentation=module.presentation||{type:'dash-line',width:6,alpha:.4,duration:167};
+      if(presentation.colorVariants?.length){
+        presentation={...presentation,color:AttackPresentationColorService.resolve(entity,null,{presentation})};
+      }
+      if(presentation.trail===true){
+        state.trailPresentation={...presentation};
+      }else if(presentation.resolveOnFinish===true){
         state.resolvedMovementPresentation={...presentation};
       }else{
         const presentationDistance=
@@ -1056,6 +1061,10 @@ const MovementAbilityService=Object.freeze({
       Number(toY)-Number(fromY)
     );
     const pointContact=segmentLength<=1e-6;
+    if(!pointContact&&state.trailPresentation&&EntitySimulationAuthorityService.isLocal(entity)){
+      MovementPresentationService.pushLine(entity,fromX,fromY,toX,toY,state.trailPresentation);
+    }
+
 
     if(!Array.isArray(state.damagePathSegments)){
       state.damagePathSegments=[];
@@ -1128,7 +1137,8 @@ const MovementAbilityService=Object.freeze({
   applyProgressAttacks(entity,state,now){
     if(!state.progressAttacks?.length||!entity.alive||
        !EntitySimulationAuthorityService.isLocal(entity))return false;
-    const progress=state.distance>0?Math.min(1,state.traveled/state.distance):0;
+    const progress=state.distance>0?Math.min(1,state.traveled/state.distance)
+      :Math.max(0,Math.min(1,(now-state.startedAt)/state.duration));
     let fired=false;
     for(const item of state.progressAttacks){
       if(item.resolved||progress<item.progress)continue;
@@ -1191,6 +1201,10 @@ const MovementAbilityService=Object.freeze({
 
     const remainingDistance=Math.max(0,state.distance-state.traveled);
     if(remainingDistance<=.0001){
+      if(state.distance===0&&state.trajectory&&now<state.endsAt){
+        this.applyProgressAttacks(entity,state,now);
+        return true;
+      }
       // 실제 이동거리가 0이어도 몸통 접촉 공격은 현재 위치를 1회 판정해야 한다.
       this.applyPathDamage(
         entity,

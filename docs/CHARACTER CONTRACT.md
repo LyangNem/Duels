@@ -360,3 +360,23 @@ character175의 geopin/ReactiveEquipmentService/EquipmentGaugePresentationServic
 ## 화살비 장판 중심 넉백 — 3.0.0-character.181
 
 헤브 순수캐릭터 데이터 변경·공용모듈 조합 유지.
+
+
+## 레이카 공중 이동 계약 — 3.0.0-character.185
+
+기존 공용 AttackSpec/Trigger/진행도/모드/투사체 착탄/자기 이동/원격 상태 조합. movement.move의 거리0+trajectory는 지속시간과 시간 진행률로 제자리 공중 상승 유지. projectile.impact.sourceRelocate가 replaceActive/blocksAction/trajectory/buffs를 공용 이동으로 전달해 상승을 강하로 교체. 캐릭터 이름 분기 없음. 게이지0에서 스킬 사용 가능, 가호 유지 시간은 남은 게이지 기준(사용자 확인), 스킬 타격으로 충전된 게이지는 착지 후 가호에 반영.
+
+
+## 공격 상태별 팔레트 — 3.0.0-character.186
+
+순수 캐릭터 수치·진행 직사각형/스윕 공용 모듈 재사용. AttackPresentationColorService에 조건부 presentation.colorVariants 팔레트 해석을 추가하고 명시적 effect.spawn·공용 자기이동·무기투사체 +표시도 같은 팔레트를 사용. 기본팔레트 없는 기존 공격은 원래 색/캐릭터 밝은색 유지. 캐릭터 이름 분기 없음. 공격 팔레트는 생성 시 이펙트 snapshot에 포함하여 기존 원격 복제 경로 사용.
+
+
+## 범위 투사체 잔상/이동 잔선 — 3.0.0-character.187
+
+캐릭터 조건 분기 없이 기존 delivery.range-projectile 및 projectile.presentation 재사용. ProjectileVisualPositionService의 공용 WeakMap 이력과 Training 범위투사체 렌더로 잔상 생성. MovementAbilityService의 opt-in presentation.trail은 미래 경로 대신 실제 이동분을 공용 MovementPresentationService로 표시/복제. 기존 비trail 이동은 유지.
+
+
+## 회피 창/누적 성장 수정자 — 3.0.0-character.189
+
+기존 progress/채널/입력조건/원형공격/반격CC 모듈 조합. JustDodgeService.begin에 공용 character.dodge.justWindowMultiplier 옵션(생략시1) 추가. 기존 just-dodge 초기화 바인딩에서 로컬캐릭터 트리거도 전달. ProgressStateService thresholdModifiers의 valuePerProgress 옵션으로 누적 진행도에 비례한 버프 산정·고정value 기존동작 유지. 비안정 소모속도는 입력시조건에 맞는 채널을 생성해 시작시 고정. 캐릭터 이름분기/새 네트워크패킷 없음.

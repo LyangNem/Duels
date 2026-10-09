@@ -42,9 +42,9 @@ test('반 내구도 타격은 체력 피해로 집계·레이카 충전·온라�
  const victim={...target(),kind:'player',character:van,actionState:new Map(),health:800,maxHealth:800};
  const key=van.wrenchDurability.stateKey;
  const hit=()=>h.DamagePipeline.apply({source:attacker,target:victim,attack:a,impact:{type:'projectile'}});
- const full=hit();assert.equal(full.applied,true);assert.equal(full.healthDamage,100);assert.equal(full.amount,100);assert.equal(victim.health,800);assert.equal(victim.actionState.get(key).value,700);assert.equal(attacker.actionState.get('reika-gaho').value,6);
- victim.actionState.get(key).value=50;const split=hit();assert.equal(split.healthDamage,100);assert.equal(victim.actionState.get(key).value,0);assert.equal(victim.health,750);assert.equal(attacker.actionState.get('reika-gaho').value,12);
- const body=hit();assert.equal(body.healthDamage,100);assert.equal(victim.health,650);assert.equal(attacker.actionState.get('reika-gaho').value,18);
+ const full=hit();assert.equal(full.applied,true);assert.equal(full.healthDamage,100);assert.equal(full.amount,100);assert.equal(victim.health,800);assert.equal(victim.actionState.get(key).value,700);assert.equal(attacker.actionState.get('reika-gaho').value,4);
+ victim.actionState.get(key).value=50;const split=hit();assert.equal(split.healthDamage,100);assert.equal(victim.actionState.get(key).value,0);assert.equal(victim.health,750);assert.equal(attacker.actionState.get('reika-gaho').value,8);
+ const body=hit();assert.equal(body.healthDamage,100);assert.equal(victim.health,650);assert.equal(attacker.actionState.get('reika-gaho').value,12);
  loadH('src/network/NetworkHitAuthorityService.js','NetworkHitAuthorityService');
  const sent=[];h.Training.sessionMode='online';h.OnlineDuelService={active:true,roundToken:1};h.OnlineParticipantEntityService={pid:e=>e===attacker?'P1':'P2'};h.RoomService={sendGameplay:p=>sent.push(p)};
  assert.equal(h.NetworkHitAuthorityService.notify(full),true);assert.equal(sent[0].amount,100);assert.equal(sent[0].durabilityBlocked,false);assert.equal(sent[0].targetHealth,650);

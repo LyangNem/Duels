@@ -48,3 +48,28 @@ function fire(e,a){c.TriggeredAttackService.execute(e,a,0)}
 function selected(e,slot){return c.AbilityService.resolvedInputAttack(e,e.character.abilities[slot])}
 
 const tau=c.CharacterDataService.compile('tau'),e=entity({character:tau}),t=entity({id:'enemy',teamId:'B',x:850,y:620}),a=tau.attacks.rmb,ex=c.AttackExecutionService.create(e,a,0);ex.projectileImpactPoint={x:800,y:600};c.ProjectileStateService={get:()=>null};c.AttackModuleService.onHit(e,t,a,{execution:ex},0,{phase:'outbound'});const state=e.actionState.get('movement:move');assert.ok(state);assert.equal(state.distance,Math.hypot(800-e.x,600-e.y));console.log('PASS Tau move after removed projectile');
+
+// Actual outbound update: boundary contact moves Tau and removes the projectile without returning.
+load('src/projectiles/ProjectileService.js','ProjectileService');
+c.WorldBoundsService={width:()=>2000,height:()=>2000};
+c.WorldGeometryService={...c.WorldGeometryService,boundaryRayDistance:(x,y,angle,length,pad)=>{const dx=Math.cos(angle),dy=Math.sin(angle);return Math.min(length,dx>1e-8?(2000-pad-x)/dx:dx<-1e-8?(pad-x)/dx:Infinity,dy>1e-8?(2000-pad-y)/dy:dy<-1e-8?(pad-y)/dy:Infinity)},raycastDistance:(x,y,a,d)=>d};
+c.ProjectileOrbitService={update:()=>false,config:()=>null};
+c.AttackGuardService={intercept:()=>false};
+c.TargetPointProjectileService={arrival:()=>null};
+c.ProjectileCollisionShapeService={};
+c.ProjectileTetherMovementService={releaseProjectile(){}};c.RemoteProjectileHomingPresentationService={clear(){}};c.ProjectileImpactService={resolve:()=>true};c.AugmentService.onProjectileResolved=()=>{};
+c.RemoteProjectileHomingPresentationBufferService={syncCollision(){}};
+for(const [x,y,angle,endX,endY] of [[1970,1000,0,1988,1000],[30,1000,Math.PI,12,1000],[1000,1970,Math.PI/2,1000,1988],[1000,30,-Math.PI/2,1000,12],[1970,1970,Math.PI/4,1988,1988]]){
+ const source=entity({character:tau,x,y}),execution=c.AttackExecutionService.create(source,a,angle);
+ const p={source,attack:a,x,y,prevX:x,prevY:y,angle,vx:Math.cos(angle)*50,vy:Math.sin(angle)*50,radius:12,travel:0,maxTravelDistance:650,behavior:c.ProjectileModuleService.config(a),volley:{execution},hitIds:new Set()};
+ c.ProjectileStateService={get:()=>p,clear(){assert.ok(source.actionState.get('movement:move'));},beginReturn:()=>assert.fail('boundary must not return')};
+ c.ProjectileService.items=[p];
+ c.ProjectileService.updateOutbound(p,0,1,clock);
+ assert.equal(c.ProjectileService.items.length,0);assert.equal(p.behavior.returning.phase,'outbound');assert.ok(Math.abs(p.x-endX)<1e-6);assert.ok(Math.abs(p.y-endY)<1e-6);
+ const move=source.actionState.get('movement:move');assert.ok(Math.abs(move.distance-Math.hypot(endX-x,endY-y))<1e-6);
+}
+console.log('PASS Tau boundary contact movement: four edges and corner, no return');
+
+assert.equal(c.ProjectileModuleService.config({modules:[{type:'projectile.return',returnAtRange:true}]}).returning.returnAtBoundary,true);
+assert.equal(c.ProjectileModuleService.config(a).returning.returnAtRange,true);
+console.log('PASS ordinary range return preserved and boundary override independent');

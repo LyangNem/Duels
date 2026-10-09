@@ -5,7 +5,8 @@ const JustDodgeService=Object.freeze({
   begin(entity,now=performance.now()){
     const expiresAt=
       now+
-      GAME_DATA.dodge.justWindow;
+      GAME_DATA.dodge.justWindow*
+      Math.max(0,Number(entity.character?.dodge?.justWindowMultiplier) || 1);
 
     entity.justDodgeStartedAt=now;
     entity.justDodgeWindowUntil=expiresAt;

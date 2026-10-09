@@ -691,6 +691,10 @@ const ProjectileImpactService=Object.freeze({
               relocate.stateKey||
               'projectile-impact-source-relocate'
             ),
+            replaceActive:relocate.replaceActive===true,
+            blocksAction:relocate.blocksAction===true,
+            trajectory:relocate.trajectory||null,
+            buffs:Array.isArray(relocate.buffs)?relocate.buffs:[],
             direction:'target-point',
             duration,
             tags:Array.isArray(relocate.tags)

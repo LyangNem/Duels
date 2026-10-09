@@ -1611,6 +1611,16 @@ const AttackModuleService=Object.freeze({
       targetEntityId:module.target==='source'?String(source.id||''):String(module.targetEntityId||'')
     };
 
+    if(spec.presentation?.colorVariants?.length){
+      const color=AttackPresentationColorService.variant(source,spec,module);
+      if(color){
+        effect.color=color;
+        for(const key of ['strokeColor','hitColor','coreColor','innerColor','outerColor']){
+          if(key in effect)effect[key]=color;
+        }
+      }
+    }
+
     if(effect.damage){
       effect.damage={
         ...effect.damage,

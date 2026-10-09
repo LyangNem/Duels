@@ -76,7 +76,9 @@ const ProjectileModuleService=Object.freeze({
           phase:'outbound',
           stopAtRange:returning.stopAtRange===true,
           returnAtRange:returning.returnAtRange===true,
-          returnAtBoundary:returning.returnAtBoundary===true,
+          returnAtBoundary:returning.returnAtBoundary===undefined
+            ?returning.returnAtRange===true
+            :returning.returnAtBoundary===true,
           returnOnMiss:returning.returnOnMiss===true,
           autoAfterMs:Math.max(0,Number(returning.autoAfterMs)||0),
           speed:Math.max(.001,Number(returning.speed)||1),

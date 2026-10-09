@@ -173,6 +173,7 @@
           "returnAttackId": "attack.tau.rmb-return",
           "stopAtRange": true,
           "returnAtRange": true,
+          "returnAtBoundary": false,
           "returnOnMiss": true,
           "speed": 28,
           "damageOnReturn": true

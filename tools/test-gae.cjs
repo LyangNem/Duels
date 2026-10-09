@@ -35,4 +35,18 @@ test('fixed electric layers and tooltip order',()=>{
  for(const instant of [false,true]){c.CommandFeatureService.setState(e,'laser-instant',instant);const a=c.AttackFeatureTransformService.prepare(e,ch.attacks.laser);if(instant){const fx=a.modules.find(m=>m.type==='effect.spawn');assert.equal(fx.coreColor,'255,145,35')}else{const style=a.modules.find(m=>m.type==='projectile.presentation').style;for(const k of ['outerColor','midColor','coreColor','centerColor'])assert.equal(style[k],'255,145,35')}}
  assert.deepEqual(Array.from(ch.tooltipSkills,t=>t.key==='/'?t.name:t.key),['LMB','RMB','L-Shift','기능 활성화','/knockback','/accelerate','/fix','/electric','/dual','/pierce','/instant','/wide','/range']);
 });
+test('다음 온라인 라운드 진입 전 미완성 입력·결과·입력 잠금 초기화',()=>{
+ const input=c.CharacterCommandInputService;
+ // Execute the actual setupSession method with a stand-in world builder.
+ const source=fs.readFileSync(path.join(root,'src/modes/Training.js'),'utf8');
+ const method=source.slice(source.indexOf('  setupSession(){')+'  setupSession(){'.length,source.indexOf('\n  exit(){')).trim().replace(/},$/,'');
+ const setup=vm.runInContext('(function(){'+method+'})',c);
+ for(const oldText of ['/ele','/range']){
+   input.open();input.buffer=oldText;input.showResult('/wide','ok',now);
+   let rebuilt=false;
+   const training={sessionMode:'online',setupOnlineSession(){rebuilt=true;assert.equal(input.openState,false);assert.equal(input.buffer,'');assert.equal(input.resultText,'');assert.equal(input.capturesGameInput(),false);assert.equal(input.visibleText(now),null);return true;}};
+   assert.equal(setup.call(training),true);assert.equal(rebuilt,true);
+   input.open();assert.equal(input.buffer,'/');input.close();
+ }
+});
 console.log('PASS '+passed+' Gae/remake groups');
