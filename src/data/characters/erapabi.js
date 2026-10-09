@@ -9,7 +9,7 @@
     tooltipSkills: [
       {key: "ALWAYS", name: "차지 타입 아머", showCost: false, text: "받은 피해를 아머로 저장"},
       {key: "LMB", name: "레이저 건 아머", attack: "lmb", text: "레이저를 {pellets}발씩 {burstCount}회 발사 (탄당 {damage})"},
-      {key: "RMB", name: "파비 레이저", attack: "megaLaserTick", ability: "rmb", text: "{channelChargeSeconds}초 선딜레이 후 아머를 소모하며 레이저 발사. 100% 미만에서 시작하면 소모량 2배 (타당 {damage})"},
+      {key: "RMB", name: "파비 레이저", attack: "megaLaserTick", ability: "rmb", text: "{channelChargeSeconds}초 선딜레이 후 아머를 소모하며 레이저 발사. 100% 미만에서 시작하면 저장된 아머 소모 속도 2배 (타당 {damage})"},
       {key: "L-Shift", name: "한바퀴 회전", attack: "counter", text: "땅을 짚고 빠르게 회전해 앞뒤 피해 ({damage})"}
     ],
     passives: [{type: "state.progress-rate", stateKey: "erapabi-charge-armor", maxHealthRatio: 2, ratePerSecond: 0, initial: 0,
