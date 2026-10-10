@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-character.201",
+  "version": "3.0.0-character.204",
   "source": "3.1717 (65).html",
   "original_script_sha256": "6fd12004e89d39fffe6a916d711147f63a7039b1a1cc995f7cc8532751f0ed8e",
   "load_order": [
@@ -360,6 +360,7 @@
     "src/modes/TrainingWorldDrawService.js",
     "src/render/RuliRulerPresentationService.js",
     "src/render/CameraAimOffsetService.js",
+    "src/core/GameplayBrowserService.js",
     "src/modes/Training.js",
     "src/ui/CharacterTooltip.js",
     "src/input/CharacterTooltipPointerTracking.js",
@@ -842,14 +843,14 @@
     },
     {
       "path": "src/data/characters/erapabi.js",
-      "role": "파비201·차지타입아머설명정리·기존피격충전/평타50/일반레이저유지",
+      "role": "에라 파비 순수 캐릭터 데이터·평타40/레이저틱120/반격240",
       "symbols": [
         "erapabi"
       ]
     },
     {
       "path": "src/data/characters/reika.js",
-      "role": "레이카201·반격원형회전350반경·기존돌진/가호수치유지",
+      "role": "레이카 순수 캐릭터 데이터·평타/돌진/회전275·가호100/200%",
       "symbols": [
         "reika"
       ]
@@ -877,7 +878,7 @@
     },
     {
       "path": "src/data/characters/cherity.js",
-      "role": "체리티 순수 데이터: 차징 평타 탄속52, 기존 차징/은신/반격 모듈 조합",
+      "role": "체리티 순수 캐릭터 데이터·차징 평타 스테미나100~750·공용 차징/카메라/관통 모듈 조합",
       "symbols": [
         "cherity"
       ]
@@ -968,7 +969,7 @@
     },
     {
       "path": "src/data/characters/meramona.js",
-      "role": "메라모나197·체력1000/피해150·적중2회스킬·반격미적중임시단계/성장버프",
+      "role": "메라모나 순수 캐릭터 데이터·단계별 평타 판정/표시 두께2배",
       "symbols": [
         "meramona"
       ]
@@ -1024,7 +1025,7 @@
     },
     {
       "path": "src/data/characters/ruli.js",
-      "role": "ruli 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.",
+      "role": "룰리 순수 캐릭터 데이터·체력1100",
       "symbols": [
         "ruli"
       ]
@@ -1080,7 +1081,7 @@
     },
     {
       "path": "src/data/characters/atsuteo.js",
-      "role": "atsuteo 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.",
+      "role": "아츠테오 순수 캐릭터 데이터·회전원석 피해120·원석 채굴/보유/이동/반격 모듈 조합",
       "symbols": [
         "atsuteo"
       ]
@@ -1115,7 +1116,7 @@
     },
     {
       "path": "src/data/characters/gae.js",
-      "role": "가에 데이터:500ms 선딜·미리보기·고정 주황 ELECTRIC·설명 정렬; FIX 잃은체력25% 회복 데이터·활성 명령8칸 게이지 구성",
+      "role": "가에 순수 캐릭터 데이터·fix 잃은 체력20% 회복",
       "symbols": [
         "gae"
       ]
@@ -5720,7 +5721,7 @@
     },
     {
       "path": "src/modes/Training.js",
-      "role": "세션/월드 렌더·범위투사체 고정위치 잔상 페이드 및 공용무기 표시",
+      "role": "훈련장/온라인 세션·렌더·시작 시 공용 전체화면 요청",
       "symbols": [
         "Training",
         "active",
@@ -7046,6 +7047,18 @@
       "path": "docs/DIRA.md",
       "role": "디라200 식재료스토브 스테미나회복 계약 및 검증",
       "symbols": []
+    },
+    {
+      "path": "src/core/GameplayBrowserService.js",
+      "role": "훈련장·게임 진입 전체화면 요청/거절 시 다음 입력 재시도·게임 중 Ctrl+W 차단 시도·선택형 keyboard lock",
+      "symbols": [
+        "GameplayBrowserService"
+      ]
+    },
+    {
+      "path": "tools/test-gameplay-browser.cjs",
+      "role": "전체화면 거절/재시도·단축키 게임 범위·일반W·Esc·API 미지원 회귀",
+      "symbols": []
     }
   ],
   "baseline_resources": [
@@ -7108,7 +7121,7 @@
   "baseline_rules_sha256": "eaaf531ff3eedf5244ec6829d0fe12d1932bab4c252c79b68ecf839e27ea6bac",
   "old_rule_16": "16. Duels 3.0은 반드시 단일 HTML 파일로 유지한다.\n- 외부 JS/CSS 파일로 게임 코드를 분리하지 않는다.\n- 단일 파일 내부에서도 시스템별 영역과 책임을 명확하게 구획한다.\n- 단일 파일 조건은 모듈화 금지를 의미하지 않는다.",
   "new_rule_16": "16. DUELS 3.0은 역할별 여러 소스 파일로 개발한다.\n- 캐릭터는 캐릭터별 데이터 원본, 실행 기능은 공통 서비스 단위로 분리한다.\n- 실행 순서와 공유 문맥을 유지하는 조립은 허용한다. 생성 결과를 직접 수정하지 않는다.\n- 배포 파일명은 Duels.zip, 진입 HTML은 Duels.html로 고정한다.",
-  "current_script_sha256": "21ceebe63e22d88e8eb74dfeace587e8b092eb9aaeb3b06d4f1a3acb1efed6ed",
+  "current_script_sha256": "3ed2731900c7f771e5417d76bc588c80e5180e85aec548a25862a5fe6c43809e",
   "baseline_layout_sha256": "91b3fa54ece362a30852be9cdb5fccd051c0afda78cc6e891b240eab54747aac",
   "current_resource_sha256": {
     "styles/game.css": "6ea2aa04d77de61e961dea89d7bb0160e5d8f3806d516d68d6ff24b60b0c5f47",

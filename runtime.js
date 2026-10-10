@@ -7055,7 +7055,7 @@ const CHARACTER_DATA=freezeCharacterData({
     attacks: {
       lmb: {
         id: "attack.erapabi.lmb",
-        damageRatio: 1.25,
+        damageRatio: 1,
         cost: 250,
         cd: 380,
         range: 900,
@@ -7113,7 +7113,7 @@ const CHARACTER_DATA=freezeCharacterData({
       },
       megaLaserTick: {
         id: "attack.erapabi.mega-laser-tick",
-        damageRatio: 3.75,
+        damageRatio: 3,
         cost: 0,
         cd: 0,
         range: 4000,
@@ -7158,7 +7158,7 @@ const CHARACTER_DATA=freezeCharacterData({
       },
       counter: {
         id: "attack.erapabi.counter",
-        damageRatio: 6.25,
+        damageRatio: 6,
         cost: 0,
         cd: 300,
         range: 170,
@@ -7433,7 +7433,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "damageRatio": 1,
       "cost": 150,
       "cd": 560,
-      "range": 350,
+      "range": 275,
       "modules": [
         {
           "type": "delivery.area",
@@ -7921,7 +7921,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "damageRatio": 0,
       "cost": 0,
       "cd": 300,
-      "range": 300,
+      "range": 275,
       "previewGeometry": {
         "shape": "rect",
         "range": {
@@ -7996,7 +7996,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "damageRatio": 2,
       "cost": 0,
       "cd": 0,
-      "range": 350,
+      "range": 275,
       "modules": [
         {
           "type": "delivery.area",
@@ -9092,7 +9092,7 @@ const CHARACTER_DATA=freezeCharacterData({
         "duration": 700,
         "maxProgress": 2,
         "costMin": 100,
-        "costMax": 600,
+        "costMax": 750,
         "costTiming": "during-charge",
         "staminaRegenDuringCharge": false,
         "damageRatio": {
@@ -16249,7 +16249,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 350,
         range: 550,
         modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 12},
+          {type: "delivery.projectile", speed: 32.2, radius: 24},
           {
             type: "projectile.presentation",
             kind: "projectile-style",
@@ -16280,7 +16280,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 350,
         range: 900,
         modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 12},
+          {type: "delivery.projectile", speed: 32.2, radius: 24},
           {
             type: "projectile.presentation",
             kind: "projectile-style",
@@ -16311,7 +16311,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 350,
         range: 900,
         modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 12},
+          {type: "delivery.projectile", speed: 32.2, radius: 24},
           {
             type: "projectile.presentation",
             kind: "projectile-style",
@@ -16346,7 +16346,7 @@ const CHARACTER_DATA=freezeCharacterData({
             type: "delivery.area",
             shape: "rect",
             range: characterValue("attacks.lmbStage4.range"),
-            halfWidth: 12,
+            halfWidth: 24,
             wallPolicy: "block",
             projectileClassification: "instant-laser"
           },
@@ -19309,7 +19309,7 @@ const CHARACTER_DATA=freezeCharacterData({
     title: "최고의 재단사",
     color: "#e6dd85",
     classification: {style: 5, range: 0, role: 1},
-    stats: {maxHealth: 1200, speed: 4, radius: 20, baseDamage: 500, difficulty: 4},
+    stats: {maxHealth: 1100, speed: 4, radius: 20, baseDamage: 500, difficulty: 4},
     desc: "정확한 거리를 가늠하며 전투하는 캐릭터",
     tagPersistentActionStateKeys: ["ruli-range-stage"],
     ringPresentation: {
@@ -23586,7 +23586,7 @@ const CHARACTER_DATA=freezeCharacterData({
       },
       oreHit: {
         id: "attack.atsuteo.ore-hit",
-        damageRatio: 1,
+        damageRatio: 0.8,
         cost: 0,
         cd: 0,
         range: 0,
@@ -25637,7 +25637,7 @@ const CHARACTER_DATA=freezeCharacterData({
     }
   },
   "commandFeatures": {
-    "fixMissingHealthRatio": 0.25,
+    "fixMissingHealthRatio": 0.2,
     "fixGlowDuration": 1000,
     "laser": {
       "speed": 30,
@@ -138564,7 +138564,50 @@ const CameraAimOffsetService=Object.freeze({
       y:dy/length*maxDistance*strength
     };
   }
-});const TRAINING_DEFAULT_SETTINGS=Object.freeze({dummyHp:'killable',botHp:'killable',infiniteHp:false,infiniteStam:false,hasMelee:false,hasRanged:false,meleeDamage:100,rangedDamage:100,meleeAttackSpeed:100,rangedAttackSpeed:100,showCooldown:true,showDps:true});
+});const GameplayBrowserService={
+  installed:false,
+  pending:false,
+  requesting:false,
+  enter(){
+    if(!this.installed){
+      this.installed=true;
+      window.addEventListener('keydown',event=>{
+        if(!Training.active)return;
+        if((event.ctrlKey||event.metaKey)&&(event.code==='KeyW'||String(event.key).toLowerCase()==='w')){
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return;
+        }
+        if(this.pending&&event.isTrusted)this.request();
+      },true);
+      window.addEventListener('pointerdown',event=>{
+        if(this.pending&&Training.active&&event.isTrusted)this.request();
+      },true);
+      document.addEventListener('fullscreenchange',()=>{
+        if(!document.fullscreenElement){
+          try{navigator.keyboard?.unlock?.();}catch{}
+        }
+      });
+    }
+    this.pending=true;
+    this.request();
+  },
+  request(){
+    if(this.requesting)return;
+    if(document.fullscreenElement){this.pending=false;return;}
+    const root=document.documentElement;
+    if(!root?.requestFullscreen){this.pending=false;return;}
+    this.requesting=true;
+    try{
+      Promise.resolve(root.requestFullscreen()).then(()=>{
+        this.pending=false;
+        if(!Training.active||!document.fullscreenElement)return;
+        try{Promise.resolve(navigator.keyboard?.lock?.(['KeyW'])).catch(()=>{});}catch{}
+      }).catch(()=>{this.pending=!!Training.active;}).finally(()=>{this.requesting=false;});
+    }catch{this.requesting=false;this.pending=!!Training.active;}
+  }
+};
+const TRAINING_DEFAULT_SETTINGS=Object.freeze({dummyHp:'killable',botHp:'killable',infiniteHp:false,infiniteStam:false,hasMelee:false,hasRanged:false,meleeDamage:100,rangedDamage:100,meleeAttackSpeed:100,rangedAttackSpeed:100,showCooldown:true,showDps:true});
 
 
 const Training={
@@ -139380,6 +139423,7 @@ const Training={
     }
 
     this.active=true;
+    GameplayBrowserService.enter();
     if(this.sessionMode==='training'){
       DebugMapService.set('training-tilemap');
     }

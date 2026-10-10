@@ -164,7 +164,7 @@
       },
       oreHit: {
         id: "attack.atsuteo.ore-hit",
-        damageRatio: 1,
+        damageRatio: 0.8,
         cost: 0,
         cd: 0,
         range: 0,

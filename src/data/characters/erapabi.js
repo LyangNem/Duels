@@ -43,7 +43,7 @@
     attacks: {
       lmb: {
         id: "attack.erapabi.lmb",
-        damageRatio: 1.25,
+        damageRatio: 1,
         cost: 250,
         cd: 380,
         range: 900,
@@ -101,7 +101,7 @@
       },
       megaLaserTick: {
         id: "attack.erapabi.mega-laser-tick",
-        damageRatio: 3.75,
+        damageRatio: 3,
         cost: 0,
         cd: 0,
         range: 4000,
@@ -146,7 +146,7 @@
       },
       counter: {
         id: "attack.erapabi.counter",
-        damageRatio: 6.25,
+        damageRatio: 6,
         cost: 0,
         cd: 300,
         range: 170,

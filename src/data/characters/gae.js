@@ -493,7 +493,7 @@
     }
   },
   "commandFeatures": {
-    "fixMissingHealthRatio": 0.25,
+    "fixMissingHealthRatio": 0.2,
     "fixGlowDuration": 1000,
     "laser": {
       "speed": 30,

@@ -74,7 +74,7 @@ c.AbilityService.resolvedInputAttack=()=>ch.attacks.megaLaserStart;
 c.AbilityService.attackById=(character,id)=>Object.values(character.attacks).find(a=>a.id===id);
 
 test('평타 탄당50/2×2·버티기삭제·RMB 레이저 단일 스킬·기존반격 유지',()=>{
- assert.equal(ch.attacks.lmb.damageRatio*ch.baseDamage,50);assert.equal(ch.tooltipSkills[1].name,'레이저 건 아머');assert.equal(ch.tooltipSkills[2].key,'RMB');assert.equal(ch.tooltipSkills.length,4);
+ assert.equal(ch.attacks.lmb.damageRatio*ch.baseDamage,40);assert.equal(ch.tooltipSkills[1].name,'레이저 건 아머');assert.equal(ch.tooltipSkills[2].key,'RMB');assert.equal(ch.tooltipSkills.length,4);
  assert.equal(ch.attacks.rmb,undefined);assert.equal(ch.attacks.rmbBurst,undefined);assert.equal(ch.abilities.rmb.attackId,ch.attacks.megaLaserStart.id);
  assert.equal(ch.attacks.lmb.modules[0].count,2);assert.equal(ch.attacks.lmb.modules[2].count,2);assert.equal(ch.attacks.counter.modules.filter(m=>m.type==='delivery.area').length,2);
 });

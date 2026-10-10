@@ -1660,3 +1660,24 @@ character.59 뉴/레이카 검 리디자인과 함께 제공. 대상: geopin.js/
 - 구조: 캐릭터 classification.role 데이터만 변경·공용카드/정렬 표시 참조.
 - 대상: characters/erapabi/reika, docs/ERAPABI, CHARACTER CONTRACT, README, project, DIVIDE TASKS, runtime.
 - 검증: 헤브회귀/build/docs/check/verify/runtime구문/ZIP무결성 통과.
+
+
+## 3.0.0-character.202 — 2026-10-10 KST
+
+- 변경: 가에 fix 잃은 체력20%. 레이카 일반/가호 평타·반격 돌진/회전275. 룰리 체력1100. 메라모나 단계별 평타 반경/반폭12→24. 파비 평타40/스킬 타당120/반격240. 훈련장·온라인 시작 시 공용 전체화면 요청, 거절 시 다음 신뢰 입력에서 재시도. 게임 중 Ctrl+W/Meta+W preventDefault 및 지원 시 KeyW keyboard lock 시도. 브라우저 예약 단축키의 완전 차단은 보장되지 않음. Esc 종료 후 강제 재진입 없음.
+- 대상: gae/reika/ruli/meramona/erapabi 캐릭터 데이터, Training, GameplayBrowserService, 관련 회귀, README/project/DIVIDE TASKS/runtime.
+- 검증: 기존18회귀·신규 브라우저 서비스 회귀, build/docs/check/verify/runtime 구문 및 ZIP 무결성 검사. 실제 브라우저 단축키/온라인 미검증.
+
+
+## 3.0.0-character.203 — 2026-10-10 KST
+
+- 변경: 아츠테오 회전원석(oreHit) 피해150→120. baseDamage150×damageRatio0.8. 평타100·반격200 및 원석 수/회전/이동 판정 유지. ALWAYS 설명은 기존 피해 참조로 자동120 반영.
+- 대상: src/data/characters/atsuteo.js, README, PATCH LOG, project, DIVIDE TASKS, runtime.
+- 검증: 구조 회귀·build/docs/check/verify/runtime 구문·ZIP 무결성 통과. 실제 온라인 미검증.
+
+
+## 3.0.0-character.204 — 2026-10-10 KST
+
+- 변경: 체리티 평타 차징 스테미나100~600→100~750. 최소100 유지·최대750. 차징 중 소비/재생 제한/피해/사거리 유지. 설명은 기존 charge 비용 참조 사용.
+- 대상: src/data/characters/cherity.js, README, PATCH LOG, project, DIVIDE TASKS, runtime.
+- 검증: 구조 회귀·build/docs/check/verify/runtime 구문·ZIP 무결성 통과. 실제 온라인 미검증.

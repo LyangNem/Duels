@@ -5,7 +5,7 @@
     title: "최고의 재단사",
     color: "#e6dd85",
     classification: {style: 5, range: 0, role: 1},
-    stats: {maxHealth: 1200, speed: 4, radius: 20, baseDamage: 500, difficulty: 4},
+    stats: {maxHealth: 1100, speed: 4, radius: 20, baseDamage: 500, difficulty: 4},
     desc: "정확한 거리를 가늠하며 전투하는 캐릭터",
     tagPersistentActionStateKeys: ["ruli-range-stage"],
     ringPresentation: {

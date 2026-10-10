@@ -54,7 +54,7 @@ function mode(e){return c.ModeStateService.current(e,'reika-mode','normal');}
 function damageCharge(e,amount){c.CharacterTriggerEffectService.run(e,'damage-dealt',{source:e,target:entity({id:'enemy',teamId:'B'}),attack:ch.attacks.lmbBlessed,amount,healthDamage:amount,now:clock});}
 test('스펙·제거된 가호 스킬/회피 변형·기본 근거리 상한',()=>{
  assert.equal(ch.maxHealth,1300);assert.equal(ch.speed,3.75);assert.equal(ch.title,'태양의 기사');assert.equal(ch.color,'#ff7a00');
- assert.equal(ch.attacks.lmb.range,350);assert.equal(ch.attacks.lmbBlessed.range,350);assert.equal(ch.attacks.gahoWeapon.range,500);
+ assert.equal(ch.attacks.lmb.range,275);assert.equal(ch.attacks.lmbBlessed.range,275);assert.equal(ch.attacks.gahoWeapon.range,500);
  for(const key of ['rmbPush','gahoActivate','counterBlessed','counterBlessedExplosion'])assert.equal(ch.attacks[key],undefined);
  assert.equal(ch.passives.some(p=>p.type==='dodge.trail-field'),false);
  for(const ability of [ch.abilities.rmb,ch.abilities.counter])assert.equal(ability.trigger.modules.some(m=>m.alternateWhen||m.alternates),false);
@@ -87,7 +87,7 @@ test('반격은 실제 정지 위치에서만 회전 타격·적 충돌/최대 �
   clock=1000;areas=[];c.EntityService.items.clear();const e=entity(),enemy=entity({id:'enemy',teamId:'B',x:targetX});c.EntityService.items.set(e.id,e);c.EntityService.items.set(enemy.id,enemy);
   c.TriggeredAttackService.execute(e,ch.attacks.counter,0);assert.equal(areas.length,0);
   clock=1220;c.MovementAbilityService.update(e,clock,220,{x:0,y:0});assert.equal(areas.length,1);assert.equal(areas[0].a.id,ch.attacks.counterSpin.id);
-  assert.equal(e.x,targetX===500?484:700);assert.ok(c.ModeStateService.state(e,'reika-sword-rotation'));assert.equal(e.actionState.has('movement:move'),false);
+  assert.equal(e.x,targetX===500?484:675);assert.ok(c.ModeStateService.state(e,'reika-sword-rotation'));assert.equal(e.actionState.has('movement:move'),false);
  }
 });
 test('가호 검격100·875 범위투사체 검기100/화염·적 관통/벽 차단',()=>{
@@ -148,7 +148,7 @@ test('반격 이동은 실제 이동분만 잔선 생성·상태별 색·온라�
   let emitted=[],packets=[];c.EffectSpawnService.spawn=fx=>(emitted.push(fx),fx);c.OnlinePresentationSyncService.shouldSend=()=>true;c.OnlinePresentationSyncService.send=(...args)=>packets.push(args);
   c.TriggeredAttackService.execute(e,ch.attacks.counter,0);assert.equal(emitted.length,0);
   clock=1016;c.MovementAbilityService.update(e,clock,16);assert.ok(emitted.length>0);const fx=emitted[0];
-  assert.equal(fx.x,400);assert.equal(fx.tx,e.x);assert.ok(fx.tx<700);assert.equal(fx.dur,250);assert.equal(fx.color,blessed?'56,189,248':'255,122,0');assert.equal(packets[0][0],'effect-spawn');
+  assert.equal(fx.x,400);assert.equal(fx.tx,e.x);assert.ok(fx.tx<675);assert.equal(fx.dur,250);assert.equal(fx.color,blessed?'56,189,248':'255,122,0');assert.equal(packets[0][0],'effect-spawn');
  }
  c.OnlinePresentationSyncService.shouldSend=()=>false;
 });

@@ -814,6 +814,7 @@ const Training={
     }
 
     this.active=true;
+    GameplayBrowserService.enter();
     if(this.sessionMode==='training'){
       DebugMapService.set('training-tilemap');
     }

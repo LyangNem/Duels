@@ -62,7 +62,7 @@
         cd: 350,
         range: 550,
         modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 12},
+          {type: "delivery.projectile", speed: 32.2, radius: 24},
           {
             type: "projectile.presentation",
             kind: "projectile-style",
@@ -93,7 +93,7 @@
         cd: 350,
         range: 900,
         modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 12},
+          {type: "delivery.projectile", speed: 32.2, radius: 24},
           {
             type: "projectile.presentation",
             kind: "projectile-style",
@@ -124,7 +124,7 @@
         cd: 350,
         range: 900,
         modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 12},
+          {type: "delivery.projectile", speed: 32.2, radius: 24},
           {
             type: "projectile.presentation",
             kind: "projectile-style",
@@ -159,7 +159,7 @@
             type: "delivery.area",
             shape: "rect",
             range: characterValue("attacks.lmbStage4.range"),
-            halfWidth: 12,
+            halfWidth: 24,
             wallPolicy: "block",
             projectileClassification: "instant-laser"
           },

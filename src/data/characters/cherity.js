@@ -59,7 +59,7 @@
         "duration": 700,
         "maxProgress": 2,
         "costMin": 100,
-        "costMax": 600,
+        "costMax": 750,
         "costTiming": "during-charge",
         "staminaRegenDuringCharge": false,
         "damageRatio": {

@@ -174,7 +174,7 @@
       "damageRatio": 1,
       "cost": 150,
       "cd": 560,
-      "range": 350,
+      "range": 275,
       "modules": [
         {
           "type": "delivery.area",
@@ -662,7 +662,7 @@
       "damageRatio": 0,
       "cost": 0,
       "cd": 300,
-      "range": 300,
+      "range": 275,
       "previewGeometry": {
         "shape": "rect",
         "range": {
@@ -737,7 +737,7 @@
       "damageRatio": 2,
       "cost": 0,
       "cd": 0,
-      "range": 350,
+      "range": 275,
       "modules": [
         {
           "type": "delivery.area",
