@@ -11412,7 +11412,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "modifier.set",
           "when": "on-hit",
           "stat": "damage",
-          "value": 0.5,
+          "value": 0.35,
           "duration": 5000,
           "sourceId": "attack.prill.counter:damage-boost",
           "recipient": "source",
@@ -11426,7 +11426,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "modifier.set",
           "when": "on-hit",
           "stat": "damage",
-          "value": 0.5,
+          "value": 0.35,
           "duration": 5000,
           "sourceId": "attack.prill.counter:ally-damage-boost",
           "recipient": "target",
@@ -11655,7 +11655,7 @@ const CHARACTER_DATA=freezeCharacterData({
                 {
                   "type": "modifier.set",
                   "stat": "damage",
-                  "value": 0.5,
+                  "value": 0.35,
                   "duration": 220,
                   "stackGroup": "prill-cleaned-zone-damage",
                   "removeOnExit": true
@@ -34957,6 +34957,7 @@ const CharacterRecordService=Object.freeze({
 
 const MatchResultSubmissionService=Object.freeze({
   queues:new Map(),
+  settlements:new Map(),
   sleep(ms){
     return new Promise(resolve=>setTimeout(resolve,ms));
   },
@@ -35053,8 +35054,10 @@ const MatchResultSubmissionService=Object.freeze({
     const uid=String(globalThis.DuelsFirebase?.currentUser?.()?.uid||'');
     // 방/캐릭터가 변경되어도 같은 경기 ID와 당시 참가자로 재제출한다.
     const snapshot=JSON.parse(JSON.stringify(submission));
-    const previous=this.queues.get(accountId)||Promise.resolve();
-    const job=previous.catch(()=>{}).then(async()=>{
+    const settlementKey=`${accountId}:${snapshot.settlementId}`;
+    const existing=this.settlements.get(settlementKey);
+    if(existing)return existing;
+    const job=(async()=>{
       let refreshToken=false;
       for(let attempt=0;;attempt+=1){
         if(String(AccountState.current?.accountId||'')!==accountId||
@@ -35064,7 +35067,18 @@ const MatchResultSubmissionService=Object.freeze({
           throw error;
         }
         try{
-          const latest=await this.request('/match/submit',{submission:snapshot},{forceRefresh:refreshToken});
+          // Serialize HTTP attempts, not an entire settlement's indefinite retry loop.
+          // An unconfirmed earlier round must not prevent later participants/results
+          // from ever reaching the server.
+          const previous=this.queues.get(accountId)||Promise.resolve();
+          const attemptJob=previous.catch(()=>{}).then(()=>
+            this.request('/match/submit',{submission:snapshot},{forceRefresh:refreshToken})
+          );
+          this.queues.set(accountId,attemptJob);
+          let latest;
+          try{latest=await attemptJob;}finally{
+            if(this.queues.get(accountId)===attemptJob)this.queues.delete(accountId);
+          }
           refreshToken=false;
           if(latest?.conflict===true){
             const error=new Error('참가자들이 제출한 경기 결과가 서로 일치하지 않습니다.');
@@ -35084,10 +35098,10 @@ const MatchResultSubmissionService=Object.freeze({
         }
         await this.sleep(attempt<8?500:Math.min(30000,1000*Math.pow(2,Math.min(5,attempt-8))));
       }
-    });
-    this.queues.set(accountId,job);
+    })();
+    this.settlements.set(settlementKey,job);
     try{return await job;}finally{
-      if(this.queues.get(accountId)===job)this.queues.delete(accountId);
+      if(this.settlements.get(settlementKey)===job)this.settlements.delete(settlementKey);
     }
   },
   async submitDeparture({characterId,mode,eventId}={}){
@@ -39419,11 +39433,10 @@ const BuffService=Object.freeze({
     entity.combatSnapshotDirty=true;
     return true;
   },
-  set(entity,type,value,sourceId,duration=Infinity,data={}){
+  set(entity,type,value,sourceId,duration=Infinity,data={},now=performance.now()){
     if(!entity||!COMBAT_BUFF_DEFS[type])return false;
 
     const list=entity.buffs.get(type)||[];
-    const now=performance.now();
     const end=duration===Infinity
       ?Infinity
       :now+Math.max(0,Number(duration)||0);
@@ -39863,7 +39876,8 @@ const TimedThresholdBuffService=Object.freeze({
             )
             :null,
           sourceEntityId:source?.id||null
-        }
+        },
+        now
       );
     });
 
@@ -39955,16 +39969,10 @@ const TimedThresholdBuffService=Object.freeze({
       )
     );
 
-    /*
-      frame 시작 시 master timer는 이미 elapsed만큼 자연 감소한 상태다.
-      N개의 오라에서 초당 N초 순증가시키려면:
-      - 기존 timer가 있으면 자연 감소 1배를 상쇄 + N배 충전 = (N+1)배 연장
-      - timer가 0이면 감소분이 없으므로 N배만 추가
-    */
-    const extension=
-      current>0
-        ?elapsedMs*(count+1)
-        :elapsedMs*count;
+    /* Compensate one frame of decay even at zero. Otherwise an ally entering
+       after the pulse loses each tiny increment before the next update and
+       never accumulates time. Casting remains a separate one-segment add. */
+    const extension=elapsedMs*(count+1);
 
     return this.sync(
       target,
@@ -138566,45 +138574,16 @@ const CameraAimOffsetService=Object.freeze({
   }
 });const GameplayBrowserService={
   installed:false,
-  pending:false,
-  requesting:false,
   enter(){
-    if(!this.installed){
-      this.installed=true;
-      window.addEventListener('keydown',event=>{
-        if(!Training.active)return;
-        if((event.ctrlKey||event.metaKey)&&(event.code==='KeyW'||String(event.key).toLowerCase()==='w')){
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          return;
-        }
-        if(this.pending&&event.isTrusted)this.request();
-      },true);
-      window.addEventListener('pointerdown',event=>{
-        if(this.pending&&Training.active&&event.isTrusted)this.request();
-      },true);
-      document.addEventListener('fullscreenchange',()=>{
-        if(!document.fullscreenElement){
-          try{navigator.keyboard?.unlock?.();}catch{}
-        }
-      });
-    }
-    this.pending=true;
-    this.request();
-  },
-  request(){
-    if(this.requesting)return;
-    if(document.fullscreenElement){this.pending=false;return;}
-    const root=document.documentElement;
-    if(!root?.requestFullscreen){this.pending=false;return;}
-    this.requesting=true;
-    try{
-      Promise.resolve(root.requestFullscreen()).then(()=>{
-        this.pending=false;
-        if(!Training.active||!document.fullscreenElement)return;
-        try{Promise.resolve(navigator.keyboard?.lock?.(['KeyW'])).catch(()=>{});}catch{}
-      }).catch(()=>{this.pending=!!Training.active;}).finally(()=>{this.requesting=false;});
-    }catch{this.requesting=false;this.pending=!!Training.active;}
+    if(this.installed)return;
+    this.installed=true;
+    window.addEventListener('keydown',event=>{
+      if(!Training.active)return;
+      if((event.ctrlKey||event.metaKey)&&(event.code==='KeyW'||String(event.key).toLowerCase()==='w')){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    },true);
   }
 };
 const TRAINING_DEFAULT_SETTINGS=Object.freeze({dummyHp:'killable',botHp:'killable',infiniteHp:false,infiniteStam:false,hasMelee:false,hasRanged:false,meleeDamage:100,rangedDamage:100,meleeAttackSpeed:100,rangedAttackSpeed:100,showCooldown:true,showDps:true});

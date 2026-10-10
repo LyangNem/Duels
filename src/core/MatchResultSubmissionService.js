@@ -4,6 +4,7 @@
 
 const MatchResultSubmissionService=Object.freeze({
   queues:new Map(),
+  settlements:new Map(),
   sleep(ms){
     return new Promise(resolve=>setTimeout(resolve,ms));
   },
@@ -100,8 +101,10 @@ const MatchResultSubmissionService=Object.freeze({
     const uid=String(globalThis.DuelsFirebase?.currentUser?.()?.uid||'');
     // 방/캐릭터가 변경되어도 같은 경기 ID와 당시 참가자로 재제출한다.
     const snapshot=JSON.parse(JSON.stringify(submission));
-    const previous=this.queues.get(accountId)||Promise.resolve();
-    const job=previous.catch(()=>{}).then(async()=>{
+    const settlementKey=`${accountId}:${snapshot.settlementId}`;
+    const existing=this.settlements.get(settlementKey);
+    if(existing)return existing;
+    const job=(async()=>{
       let refreshToken=false;
       for(let attempt=0;;attempt+=1){
         if(String(AccountState.current?.accountId||'')!==accountId||
@@ -111,7 +114,18 @@ const MatchResultSubmissionService=Object.freeze({
           throw error;
         }
         try{
-          const latest=await this.request('/match/submit',{submission:snapshot},{forceRefresh:refreshToken});
+          // Serialize HTTP attempts, not an entire settlement's indefinite retry loop.
+          // An unconfirmed earlier round must not prevent later participants/results
+          // from ever reaching the server.
+          const previous=this.queues.get(accountId)||Promise.resolve();
+          const attemptJob=previous.catch(()=>{}).then(()=>
+            this.request('/match/submit',{submission:snapshot},{forceRefresh:refreshToken})
+          );
+          this.queues.set(accountId,attemptJob);
+          let latest;
+          try{latest=await attemptJob;}finally{
+            if(this.queues.get(accountId)===attemptJob)this.queues.delete(accountId);
+          }
           refreshToken=false;
           if(latest?.conflict===true){
             const error=new Error('참가자들이 제출한 경기 결과가 서로 일치하지 않습니다.');
@@ -131,10 +145,10 @@ const MatchResultSubmissionService=Object.freeze({
         }
         await this.sleep(attempt<8?500:Math.min(30000,1000*Math.pow(2,Math.min(5,attempt-8))));
       }
-    });
-    this.queues.set(accountId,job);
+    })();
+    this.settlements.set(settlementKey,job);
     try{return await job;}finally{
-      if(this.queues.get(accountId)===job)this.queues.delete(accountId);
+      if(this.settlements.get(settlementKey)===job)this.settlements.delete(settlementKey);
     }
   },
   async submitDeparture({characterId,mode,eventId}={}){

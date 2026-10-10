@@ -22,11 +22,10 @@ const BuffService=Object.freeze({
     entity.combatSnapshotDirty=true;
     return true;
   },
-  set(entity,type,value,sourceId,duration=Infinity,data={}){
+  set(entity,type,value,sourceId,duration=Infinity,data={},now=performance.now()){
     if(!entity||!COMBAT_BUFF_DEFS[type])return false;
 
     const list=entity.buffs.get(type)||[];
-    const now=performance.now();
     const end=duration===Infinity
       ?Infinity
       :now+Math.max(0,Number(duration)||0);

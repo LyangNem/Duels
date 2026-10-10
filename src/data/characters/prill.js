@@ -389,7 +389,7 @@
           "type": "modifier.set",
           "when": "on-hit",
           "stat": "damage",
-          "value": 0.5,
+          "value": 0.35,
           "duration": 5000,
           "sourceId": "attack.prill.counter:damage-boost",
           "recipient": "source",
@@ -403,7 +403,7 @@
           "type": "modifier.set",
           "when": "on-hit",
           "stat": "damage",
-          "value": 0.5,
+          "value": 0.35,
           "duration": 5000,
           "sourceId": "attack.prill.counter:ally-damage-boost",
           "recipient": "target",
@@ -632,7 +632,7 @@
                 {
                   "type": "modifier.set",
                   "stat": "damage",
-                  "value": 0.5,
+                  "value": 0.35,
                   "duration": 220,
                   "stackGroup": "prill-cleaned-zone-damage",
                   "removeOnExit": true

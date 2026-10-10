@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-character.204",
+  "version": "3.0.0-character.207",
   "source": "3.1717 (65).html",
   "original_script_sha256": "6fd12004e89d39fffe6a916d711147f63a7039b1a1cc995f7cc8532751f0ed8e",
   "load_order": [
@@ -906,7 +906,7 @@
     },
     {
       "path": "src/data/characters/prill.js",
-      "role": "프릴 빗자루·3타콤보 회전좌우/찌르기·청소스킬 매타격모션",
+      "role": "프릴 순수 캐릭터 데이터·스킬 청소구역/반격 자신·아군 피해 증가35%·공용 모듈 조합",
       "symbols": [
         "prill"
       ]
@@ -1468,7 +1468,7 @@
     },
     {
       "path": "src/core/MatchResultSubmissionService.js",
-      "role": "엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: MatchResultSubmissionService.",
+      "role": "서버 경기 결과 제출·계정별 HTTP 요청 직렬화·라운드별 독립 재시도·동일 정산 중복 방지",
       "symbols": [
         "MatchResultSubmissionService",
         "queues",
@@ -1918,7 +1918,7 @@
     },
     {
       "path": "src/core/BuffService.js",
-      "role": "엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: BuffService.",
+      "role": "공용 버프 저장/갱신/만료·set 선택적 기준시각으로 시뮬레이션 시각 보존",
       "symbols": [
         "BuffService",
         "add",
@@ -1938,7 +1938,7 @@
     },
     {
       "path": "src/core/TimedThresholdBuffService.js",
-      "role": "엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TimedThresholdBuffService.",
+      "role": "시간 기반 단계버프·스킬 한칸 충전/주변 초당 지속 충전·프레임 시각 저장·0경계 감소 보상",
       "symbols": [
         "TimedThresholdBuffService",
         "auraStateBuffer",
@@ -7050,14 +7050,24 @@
     },
     {
       "path": "src/core/GameplayBrowserService.js",
-      "role": "훈련장·게임 진입 전체화면 요청/거절 시 다음 입력 재시도·게임 중 Ctrl+W 차단 시도·선택형 keyboard lock",
+      "role": "게임 중 Ctrl+W 차단 시도만 담당·전체화면/재요청/키보드 잠금 없음",
       "symbols": [
         "GameplayBrowserService"
       ]
     },
     {
       "path": "tools/test-gameplay-browser.cjs",
-      "role": "전체화면 거절/재시도·단축키 게임 범위·일반W·Esc·API 미지원 회귀",
+      "role": "자동 전체화면 호출 없음·게임 중 Ctrl+W·일반W/게임밖 유지 검사",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-timed-threshold.cjs",
+      "role": "엔소냐 한칸/지속 충전·프레임/처리시각 차이·늦은 진입/이탈·적/원격 제외 회귀",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-match-submission.cjs",
+      "role": "미확정 앞 라운드 뒤 제출 보장·HTTP 직렬화·동일ID 중복방지·재시도 snapshot 및 큐 정리 회귀",
       "symbols": []
     }
   ],
@@ -7121,7 +7131,7 @@
   "baseline_rules_sha256": "eaaf531ff3eedf5244ec6829d0fe12d1932bab4c252c79b68ecf839e27ea6bac",
   "old_rule_16": "16. Duels 3.0은 반드시 단일 HTML 파일로 유지한다.\n- 외부 JS/CSS 파일로 게임 코드를 분리하지 않는다.\n- 단일 파일 내부에서도 시스템별 영역과 책임을 명확하게 구획한다.\n- 단일 파일 조건은 모듈화 금지를 의미하지 않는다.",
   "new_rule_16": "16. DUELS 3.0은 역할별 여러 소스 파일로 개발한다.\n- 캐릭터는 캐릭터별 데이터 원본, 실행 기능은 공통 서비스 단위로 분리한다.\n- 실행 순서와 공유 문맥을 유지하는 조립은 허용한다. 생성 결과를 직접 수정하지 않는다.\n- 배포 파일명은 Duels.zip, 진입 HTML은 Duels.html로 고정한다.",
-  "current_script_sha256": "3ed2731900c7f771e5417d76bc588c80e5180e85aec548a25862a5fe6c43809e",
+  "current_script_sha256": "8583028bf7195765b47c6f27e94811800d3de38938920fe5ae4197e81fb20754",
   "baseline_layout_sha256": "91b3fa54ece362a30852be9cdb5fccd051c0afda78cc6e891b240eab54747aac",
   "current_resource_sha256": {
     "styles/game.css": "6ea2aa04d77de61e961dea89d7bb0160e5d8f3806d516d68d6ff24b60b0c5f47",

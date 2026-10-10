@@ -180,7 +180,8 @@ const TimedThresholdBuffService=Object.freeze({
             )
             :null,
           sourceEntityId:source?.id||null
-        }
+        },
+        now
       );
     });
 
@@ -272,16 +273,10 @@ const TimedThresholdBuffService=Object.freeze({
       )
     );
 
-    /*
-      frame 시작 시 master timer는 이미 elapsed만큼 자연 감소한 상태다.
-      N개의 오라에서 초당 N초 순증가시키려면:
-      - 기존 timer가 있으면 자연 감소 1배를 상쇄 + N배 충전 = (N+1)배 연장
-      - timer가 0이면 감소분이 없으므로 N배만 추가
-    */
-    const extension=
-      current>0
-        ?elapsedMs*(count+1)
-        :elapsedMs*count;
+    /* Compensate one frame of decay even at zero. Otherwise an ally entering
+       after the pulse loses each tiny increment before the next update and
+       never accumulates time. Casting remains a separate one-segment add. */
+    const extension=elapsedMs*(count+1);
 
     return this.sync(
       target,

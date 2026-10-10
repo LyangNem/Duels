@@ -1,43 +1,14 @@
 const GameplayBrowserService={
   installed:false,
-  pending:false,
-  requesting:false,
   enter(){
-    if(!this.installed){
-      this.installed=true;
-      window.addEventListener('keydown',event=>{
-        if(!Training.active)return;
-        if((event.ctrlKey||event.metaKey)&&(event.code==='KeyW'||String(event.key).toLowerCase()==='w')){
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          return;
-        }
-        if(this.pending&&event.isTrusted)this.request();
-      },true);
-      window.addEventListener('pointerdown',event=>{
-        if(this.pending&&Training.active&&event.isTrusted)this.request();
-      },true);
-      document.addEventListener('fullscreenchange',()=>{
-        if(!document.fullscreenElement){
-          try{navigator.keyboard?.unlock?.();}catch{}
-        }
-      });
-    }
-    this.pending=true;
-    this.request();
-  },
-  request(){
-    if(this.requesting)return;
-    if(document.fullscreenElement){this.pending=false;return;}
-    const root=document.documentElement;
-    if(!root?.requestFullscreen){this.pending=false;return;}
-    this.requesting=true;
-    try{
-      Promise.resolve(root.requestFullscreen()).then(()=>{
-        this.pending=false;
-        if(!Training.active||!document.fullscreenElement)return;
-        try{Promise.resolve(navigator.keyboard?.lock?.(['KeyW'])).catch(()=>{});}catch{}
-      }).catch(()=>{this.pending=!!Training.active;}).finally(()=>{this.requesting=false;});
-    }catch{this.requesting=false;this.pending=!!Training.active;}
+    if(this.installed)return;
+    this.installed=true;
+    window.addEventListener('keydown',event=>{
+      if(!Training.active)return;
+      if((event.ctrlKey||event.metaKey)&&(event.code==='KeyW'||String(event.key).toLowerCase()==='w')){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    },true);
   }
 };

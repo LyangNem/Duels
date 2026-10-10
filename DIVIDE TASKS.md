@@ -1,6 +1,6 @@
 # DIVIDE TASKS
 
-버전: 3.0.0-character.204
+버전: 3.0.0-character.207
 
 역할 변경 시 project.json의 role/symbols도 수정하고 `python tools/project.py docs`로 이 문서를 갱신한다. 해시 검사는 역할 의미의 정확성을 대신하지 않는다. runtime.js는 생성 결과이며 직접 편집하지 않는다.
 
@@ -9,8 +9,8 @@
 | `AGENTS.md` | AI 작업자에게 README 정독·문서 갱신 의무 안내 |  | e22055c0c72b7010c9e6eef168ac2f49e01a5411385ce87b4370aba513f29590 |
 | `DIVIDE TASKS.md` | 전체 파일 역할·심볼·해시 목록 |  | 자기 참조 제외 |
 | `Duels.html` | Duels 진입 화면·DOM·리소스 연결·방 모드/금지/도움말 UI·회피 비용 및 체력 구분선 간격 참조 표시 영역 |  | a29b958ca694261b34752692a43ecb8557d7d41035e0e2fc340a2f05c4e3af35 |
-| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | 64884fee1ad4a9275a3d67f03f8c545c7a18d2138ba3728999fc5e8cb67cfc14 |
-| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | 072165fba437a941794332bca1ca0bd6d3a965e1df10004cfd542640cf13ddc5 |
+| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | fdb0c46e881001934393fa4fa0c9484b9785e45b2d9310ece64c911b7f4cd742 |
+| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | 73f2ec321adee4f7b1355c033b65ec52f2e7e8318b1d55dd626421185ed7bb06 |
 | `START.bat` | Windows 로컬 서버 실행 |  | d383b503b5d39e16324de2f7031e5cd69175f3b54bfbf477097ee758f094c849 |
 | `START.sh` | Linux/macOS 로컬 서버 실행 |  | 14be4f1c3b060556e2df88e1811eabe8d8ceeb8011f4c0c498399a9675e94bfa |
 | `docs/CHARACTER CONTRACT.md` | 공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약 |  | cfbc8686792af841ddd7c9c5de0589e9a47b40a9c8ca192b5e42f5a280c70e4c |
@@ -30,7 +30,7 @@
 | `docs/VERIFICATION.md` | split.2 검수 발견 오류·수정·통과 검사·실행 한계와 재현 방법 기록 |  | ae9d7cc0de36c42ea51f7ed040a8fc4ef8a53b31cb750f2bf010dc482d7038e9 |
 | `docs/WEAPON IMAGE GUIDE.md` | 무기181 화살비 장판 중심 넉백·공용형상 검수계약 |  | a90e1e0ed7172c96248df423fc9da2dce2b6f0869719087e1b0472e0cf2483c8 |
 | `docs/WEAPON UPDATES.md` | 무기181 화살비 장판 중심 넉백·공용형상 검수계약 |  | 1ffb9e450ba47736f47d6371576decf4ccabdc1893eb272e6434763cc25b2629 |
-| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | 4b953e38758db5934026e0cbd4f2fca6bbd5077055009ff74b8d33ec20f82794 |
+| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | 3007159a8282bf23771f07d7845dd42798100f2d8a4a17901e192ca4969cfa22 |
 | `src/abilities/AbilityAttackExecutionService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: AbilityAttackExecutionService. | AbilityAttackExecutionService, execute | 6aa6f2993ec47e9ca212f2f318d8a66ae4266eaf68021cb10d1cc7710d0ce019 |
 | `src/abilities/AbilityModuleService.js` | 공용 능력모듈·공식 실제 오입력 inputErrorMotion·회피차단/자연회복 보존 | AbilityModuleService | cedfb168fb888fbc6cd1df961ddec16b7cb39c407cf4f03ad98e18b98e6c125c |
 | `src/abilities/AbilityService.js` | 공통 Trigger/능력 실행·선택 무기 해석·행동 결과의 모드 snapshot/입력 방향 | AbilityService, attackById, damageRatio, eventAttack, resolvedInputAttack, trigger, canActivate, activate | 6b265ec62f13153df17abc8966a5ab4ae8cebe388e97f99d669e19da01bacdeb |
@@ -124,7 +124,7 @@
 | `src/core/AugmentHudStyleService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: AugmentHudStyleService. | AugmentHudStyleService, className | a9c2da0ea32a86ffa5b4b3f54fd6ef6548d089443f62cfa988fefb01449aafbe |
 | `src/core/AugmentService.js` | 공통 증강/공격 수치 준비·공속에 따른 개별/공유 공격 대기시간 일치 | AugmentService, rebuild, owner, count, effects, captureResourceConditionSnapshot, presentationAdjustmentValue, staminaHealthFallbackRatio, syncVitals, acquire, remove, cleanupRemovedTriggerBuffs, syncConstantBuffs, update, rangeAdjustmentTotalForTags, prepareRangeField, prepareAttackLinkedGeometry, attackAdjustmentTotals, attackCostMultiplier, scaleRangeValue, scaleRangeGeometry, scaleAttackRangeModule, prepareAttack, preparedAttackRange, beforeDefeat, damageBatchProtected, beforeIncomingDamage, onDamageApplied, onConfirmedDamageDealt, onProjectileResolved | e0927d7d6b0b6aad654f915fc27fb66e396d36862e8ade64782222e1a71b2d35 |
 | `src/core/BetweenAugmentHudService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: BetweenAugmentHudService. | BetweenAugmentHudService, characterIcon, augmentIcons, render | c6933f5c766a34911d42576287e3154dff61e03326c506b578703cac294a3472 |
-| `src/core/BuffService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: BuffService. | BuffService, add, set, refresh, remove, sync, hasSource, live, resolveRaw, resolve, remaining, presentationOpacity, visualEntry, applyToStats | 4e76d43dcaf7b571098b01ec187b866ecd6684fa06c8232b7115f110515ae630 |
+| `src/core/BuffService.js` | 공용 버프 저장/갱신/만료·set 선택적 기준시각으로 시뮬레이션 시각 보존 | BuffService, add, set, refresh, remove, sync, hasSource, live, resolveRaw, resolve, remaining, presentationOpacity, visualEntry, applyToStats | a49d5c6ba14366c11acc926a863b8af5690da92afde1701d499928aa6c48bdfe |
 | `src/core/COMBAT_BUFF_DEFS.js` | 공통 버프 스탯·표시명·합산 제한; regenPercent 감소 하한 -100% | COMBAT_BUFF_DEFS, damage, defense, speed, regenDelay, regenFlat, regenPercent, regeneration, invulnerable, evasionInvulnerable, stealth, staminaRegen, staminaCost, attackRate, projectileSpeed, dodgeDistance, dodgeSpeed, ccDuration, counterWindow, healing, maxHealth, maxStamina, projectileRadius, wallPass | 70e39e44f6e9ced8fe570a30a232a374a550f209608bb49d17a3b4000f7f91a1 |
 | `src/core/COMBAT_DOT_STATUS_TYPES.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: COMBAT_DOT_STATUS_TYPES. | COMBAT_DOT_STATUS_TYPES | e8c579bf2074c4036a9340a18a639aa8097c3c205fc11b05d3ce2b8584e15a7a |
 | `src/core/COMBAT_STATUS_DEFS.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: COMBAT_STATUS_DEFS. | COMBAT_STATUS_DEFS, stun, revive, neutralize, freeze, bind, slow, zap, discharge, burn, poison, bleed, sleep, silence | 79110bc724ac07523eb9d7f3c916cf9f3d13a420ae93f810eb22fec6d78a3220 |
@@ -162,7 +162,7 @@
 | `src/core/ForcedMovementWindupInterruptService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: ForcedMovementWindupInterruptService. | ForcedMovementWindupInterruptService, interrupt | 418087fcdc82881f38baea9bacee6be51293380e12f55ebd83d72baba72ffab1 |
 | `src/core/GameEvents.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: GameEvents. | GameEvents, listeners, on, emit | ae97cfc33de8823522cfa4ac720abcc51d86303533597c6570a6f4faaacd627d |
 | `src/core/GameHudVisibilityService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: GameHudVisibilityService. | GameHudVisibilityService, selectors, syncMobileDebugButton, hideAll, showGame | 479120e1f2957ff97c331031649a308b06a352394ca16cea6fc427b2c5f16ed8 |
-| `src/core/GameplayBrowserService.js` | 훈련장·게임 진입 전체화면 요청/거절 시 다음 입력 재시도·게임 중 Ctrl+W 차단 시도·선택형 keyboard lock | GameplayBrowserService | eea264063e1cfda628ba419fe9e422d7a8d3d9579a8184e41b47c0da3fb69202 |
+| `src/core/GameplayBrowserService.js` | 게임 중 Ctrl+W 차단 시도만 담당·전체화면/재요청/키보드 잠금 없음 | GameplayBrowserService | b88d844d2fd1469217d0b7c73a34ba1570ce765ebbce75f5e35d6d4b63034c75 |
 | `src/core/GameplayFeatureStateSyncService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: GameplayFeatureStateSyncService. | GameplayFeatureStateSyncService, handlers, register, send, apply | 7d2f3deb0bec80bfdf3b07bfe8d3805899265c02ca0c0172705926cd6f49ed92 |
 | `src/core/GridPathfindingService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: GridPathfindingService. | GridPathfindingService, DEFAULT_CELL, MAX_EXPANSIONS, grid, key, cellCenter, pointCell, dynamicBlocked, staticWalkable, walkable, nearestWalkable, heuristic, neighbors, reconstruct, segmentBlockedByDynamic, search, findPath | 96ae778567de839f38181afc0cf4cc14b8cab2639146edcf2e671e3a06a78317 |
 | `src/core/HelpTabs.js` | 도움말 탭 전환·실제 GAME_DATA.dodge.cost 참조 갱신 | HelpTabs, open | 480a68021d57a33bf6beeeac854202d00344079955644163ff2390e9a5ff6c70 |
@@ -176,7 +176,7 @@
 | `src/core/MatchChoiceService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: MatchChoiceService. | MatchChoiceService, rarityWeights, shuffled, characterIds, characterOptions, augmentOptions | 2560515208c26176a8b0039dc2bf094ba2b479349da17a0ed9a2eca2bf3ab29f |
 | `src/core/MatchModeService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: MatchModeService. | MatchModeService, DUEL, FFA, TEAM, participants, teamCounts, isExactTwoVsTwo, resolve, isFfa, isTeam | 4f9b17e729db062011e6a284a5a9c028c5dec75477564ccfd3a3693c07c36a76 |
 | `src/core/MatchReadyCountdownService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: MatchReadyCountdownService. | MatchReadyCountdownService, seconds | 5930d1f441c78fc1ec578b70adb50870370873b497134345f005170283a4f5bd |
-| `src/core/MatchResultSubmissionService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: MatchResultSubmissionService. | MatchResultSubmissionService, queues, sleep, accountUid, participantSnapshot, payload, request, submitRound, submitDeparture | 705e33c5f0312c3cb2c277109bed838f8c9617483ef6e2f3aa6b1162b18477da |
+| `src/core/MatchResultSubmissionService.js` | 서버 경기 결과 제출·계정별 HTTP 요청 직렬화·라운드별 독립 재시도·동일 정산 중복 방지 | MatchResultSubmissionService, queues, sleep, accountUid, participantSnapshot, payload, request, submitRound, submitDeparture | 5fc3285bfa9597080075fc521e04724877e0442ba9127ae203b94c055511dc48 |
 | `src/core/MatchSpawnService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: MatchSpawnService. | MatchSpawnService, shuffled, pointClear, polygon, pointMap | 3c07163775ddad3f0ce6247c801e781e3370d9af6aa514a5af3859433e44cb52 |
 | `src/core/ModeStateService.js` | 공용 모드상태·기존 turns/타임스탬프/원격복원·회전대기열 제거 | ModeStateService, KIND, key, state, current, set, toggle, serialize, applyRemote | 4ad4f1add03ce944935c37742397916e921b12d77bb33f95ae81d4bbdbe2bd24 |
 | `src/core/ModuleValueService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: ModuleValueService. | ModuleValueService, summonFieldModifier, attackDamage, resolve | d9e4fc5cc59609311a73c1446db624f6bcd02457e77fc39a64f9b16e3a6c8968 |
@@ -216,7 +216,7 @@
 | `src/core/TagService.js` | 공통 공격 태그 자동 파생·사거리/모듈 성질·무제한 탐색 redirect의 유도 태그 유지 | TagService, rangeTag, isDerivedTag, explicitAttackTags, characterFor, characterMetadata, attackRange, addStatusTags, addBuffTags, addShapeTags, fieldGeometryTags, derivedModuleTags, linkedAbilityModuleTags, derivedAttackTags, attackTags, isCrowdControlAttack, fieldTags, primaryAttackRange, characterTags, characterStyleLabel, hasAttack, effectTags | ec4eb5e0b39bbe65058fd2f0b8b284e18039b455d5539be71e8e54268960885a |
 | `src/core/TemporalSnapshotService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TemporalSnapshotService. | TemporalSnapshotService, config, state, sample, at, presentationSnapshot, update, updatePresentation | ea4167cc0b55613dde0a5abf282915753f87579134ad99e1b717c1492f950444 |
 | `src/core/TimedActionStateService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TimedActionStateService. | TimedActionStateService, open, state, consume, cancelOnDamage, cancelOnForcedMovement, serialize, applyRemote, updatePresentation | 0f43e9553a4d6a6b7b52d4264109c6eede8ed68a162267a1845541cc081e938c |
-| `src/core/TimedThresholdBuffService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TimedThresholdBuffService. | TimedThresholdBuffService, auraStateBuffer, auraStatePool, gaugeGroupScratch, gaugeGroupPool, auraTargets, auraTargetPool, configSnapshotCache, sourceId, master, remaining, normalizeConfig, configSnapshot, sync, add, extendFromAura, gaugeGroups, auraStates, updateAuras | 47fd8420a42f4e294b638244e5567dc893ce5010016a692451c8ff76b420627b |
+| `src/core/TimedThresholdBuffService.js` | 시간 기반 단계버프·스킬 한칸 충전/주변 초당 지속 충전·프레임 시각 저장·0경계 감소 보상 | TimedThresholdBuffService, auraStateBuffer, auraStatePool, gaugeGroupScratch, gaugeGroupPool, auraTargets, auraTargetPool, configSnapshotCache, sourceId, master, remaining, normalizeConfig, configSnapshot, sync, add, extendFromAura, gaugeGroups, auraStates, updateAuras | ad1d8bffea717c88fab702663c452a493adf44804a43de491480b16805538af2 |
 | `src/core/TriggerConditionService.js` | 공용 트리거조건 해석·진행도비율gte/lt 경계판정 | TriggerConditionService, resourceState, matches | 093f06432a89ee67b752ecf0a07b7540abaef5753da09a4ed4e36fbb51735206 |
 | `src/core/TriggerDispatchService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TriggerDispatchService. | TriggerDispatchService, execute | 9936001a1d270a1d5d88fb32a6ec99fb93538c7611da4ce6cf5788537c1f3b86 |
 | `src/core/TriggerModuleService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TriggerModuleService. | TriggerModuleService, matches | 98e48231fb4cb6cf58627cbce9d7cbf2636b361ca26306324ef86659713f1c97 |
@@ -370,7 +370,7 @@
 | `src/data/characters/nyu.js` | nyu 순수 모듈 데이터·무기 모션 실제 전달(on-delivery) 시점 설정·면 그립/끝마개/확대 검 얇은 윤곽 | nyu | 413ffb5da750668ad66eab5830eff33b5c255c07f95c8be67599f40d8f0c7bb3 |
 | `src/data/characters/peluna.js` | 펠루나 교차쌍망치·소형망치/반대회전/단계색 | peluna | 03d24bf27a7219f474a1461a3804aa20c10d02edbf1cbb70289c691fd07fafac |
 | `src/data/characters/phase.js` | 페이즈 순수 데이터: 저체력 강화 설명 ALWAYS 분리·기존 격투/점프/반격 모듈 유지 | phase | 16e6cd736163797520d16ea7adc0682bc631e238fbca0b9b1e880bf44b031821 |
-| `src/data/characters/prill.js` | 프릴 빗자루·3타콤보 회전좌우/찌르기·청소스킬 매타격모션 | prill | e62ed080784f205284895f423af74f80ce4d833c7ecf48111df7c6e47b87b5c8 |
+| `src/data/characters/prill.js` | 프릴 순수 캐릭터 데이터·스킬 청소구역/반격 자신·아군 피해 증가35%·공용 모듈 조합 | prill | 4bf0e1f352455cc9cd46bece5d0d9c0746e851d0b603008810b06275fef37674 |
 | `src/data/characters/quri.js` | 큐리 공식성장·5단계확대큐브/모션·반격폭발무력화넉백 | quri | b5752d0fe3b5f1d40a2f174e327480b9d2e07f2731f54d3c59348e6cb35c2a28 |
 | `src/data/characters/raise.js` | raise 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | raise | 85cd46e379bf7572acbbd3e49d7222ea7b59392ea3b5cf39cf8466ac88a9f966 |
 | `src/data/characters/reika.js` | 레이카 순수 캐릭터 데이터·평타/돌진/회전275·가호100/200% | reika | ddeafadcd8bf62e230eaf7b4b410d7644e2cd65a751cc4fa1770de99a85f61d7 |
@@ -549,11 +549,12 @@
 | `tools/test-dira-stove.cjs` | 디라 실제식재료적중·스토브전용150회복/중복/원격제외1그룹 |  | d9fb235a6b01f6173e133c898b18d8d8deb74015f7f893bf2856e4cb59af7009 |
 | `tools/test-erapabi.cjs` | 파비201 실제입력/피격100/200%·체력변화·비안정2배소모/고갈4그룹 |  | e8cd63bbd05d64a0f4f2fd26ec648e016e48dc467c81688b2601fc1e3a38de25 |
 | `tools/test-gae.cjs` | 가에 명령·모듈·입력 및 실제 라운드 구성 전 입력 상태 초기화 회귀 | load, test | a00a98eb2896251115c5e85b20d03127340efb77ccb37b1b654ee3f485651510 |
-| `tools/test-gameplay-browser.cjs` | 전체화면 거절/재시도·단축키 게임 범위·일반W·Esc·API 미지원 회귀 |  | c57e34a3d22d58b32b5807ac55eb5cd49a24c45445cc86adec1464fbddd79999 |
+| `tools/test-gameplay-browser.cjs` | 자동 전체화면 호출 없음·게임 중 Ctrl+W·일반W/게임밖 유지 검사 |  | b46dbc4c6b50f21482fb3f22854b958c6413872e5afbe81c1bdce75e5569797f |
 | `tools/test-gameplay-fixes.cjs` | 실제 서비스 실행 회귀 15개: 사망 관전·방어 경로·선택 상한·불규칙 잔향 수신 보간·종료/축소·독립성·모드 초기값/선택지/증강 제출 차단 회귀·단독 금지 실제 버튼 확정/복귀 회귀·모드별 전환/재실행 저장 복원·자동카운트다운 회귀·금지창 재개방 스크롤/즉시 지정점 미리보기 회귀 |  | aa65459aaf8a4061c9b93ddac11ac4bba171d50e551dec060989d57034d95624 |
 | `tools/test-geopin.cjs` | 지오핀 조건/충돌/무기 및 레이카 공용500 목표미리보기 회귀 |  | 0009e0509408cadfdf7746576e6c0d52979a5e3d58f4687d1823fabba2221770 |
 | `tools/test-hab-projectile.cjs` | 헤브 실제 ProjectileService 맵 경계/사거리 무시·대상별1초 재타격 회귀 |  | 1ab472196b2883e4af9eaaaa91fe0774d56949d9040291fcae295c959e3e792c |
 | `tools/test-hab.cjs` | 헤브201 조건형딜러 분류 및 기존전투회귀 |  | 8fc5f0da4240fd16e6c83c1f972665164b719827af64c435dfb871cf13e23e80 |
+| `tools/test-match-submission.cjs` | 미확정 앞 라운드 뒤 제출 보장·HTTP 직렬화·동일ID 중복방지·재시도 snapshot 및 큐 정리 회귀 |  | dc7e253d46fe9b1503a2957a7c9d6f1268b95d948d34a1f2fa5c3f14a9d7dfdd |
 | `tools/test-meramona.cjs` | 메라모나피해/스킬2회조건·반격미적중단계와성장버프2그룹 |  | a0457e53e353578dc68387e0642d7d8db38957d1afeac1268889de8e49d8d15b |
 | `tools/test-movement-contact.cjs` | 실제 이동접촉 원격 판정 회귀·라임 경로 유지(레이카 반격은 정지점 회전으로 새 검사 이전) |  | dccab022202fb3f2815b35555cc08eaa379ebb980298974006cdc12992d8e653 |
 | `tools/test-reika.cjs` | 레이카12그룹·스킬6상태사용조건/활성충전2%·스킬/검기/잔상/이동전송 회귀 |  | 951e20f5813d5bf4fede87fbe945aa9d74aafb2afaf3d1034c8e8f8a350579e2 |
@@ -562,5 +563,6 @@
 | `tools/test-structure.cjs` | 공용구조 및 남은 지오핀무기 태그 회귀 |  | fc8619125ace9e6754d303ce0c756fa527cf46a5ae4d113bce1dc72fe2345789 |
 | `tools/test-tau-hit-move.cjs` | 타우 적중 후 이동 및 실제 외곽 네 방향/모서리 접촉점 이동·제거/비귀환 및 기본 귀환 정책 회귀 |  | 9c6a2000d508f20284a188333d79ab8244f3f5ab264a290024528a48616e6619 |
 | `tools/test-terdion.cjs` | 테르디온 폭약/공용 피해·스패너 체력피해 레이카 충전비율0.04 회귀 | test, load, carrier, damage, loadCancellation | 88ea06811c9b2e04fafe285113c40c614b672ee230aef8f6538dd32484d2570a |
+| `tools/test-timed-threshold.cjs` | 엔소냐 한칸/지속 충전·프레임/처리시각 차이·늦은 진입/이탈·적/원격 제외 회귀 |  | b0f5cc8f6ec0c872ffeb1dc7f18a0cbecfd222c6190bbba2c1126d5678aef5cf |
 | `tools/test-weapon-updates.cjs` | 공용 무기이미지/모션 회귀·레이카 공중스킬 비용미리보기·현재 헤브 크기/재타격 계약 | test, entity, gun, fire, selected, canvasStub | 7bd0c07dacbf2f4f3de305b91146ab4c68fd5e16b117c3a27f4370a584a42c17 |
 | `tools/verify.py` | 분할/배포/규칙 검사 및 메타데이터의 명시 캐릭터62명 등록 수·중복·누락 검증 | Document, document_hash, verify | 3fc34310268471a52bd911bd713601026254d50f2edcddc1a97a5ab6d0c6996f |
