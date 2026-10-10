@@ -395,3 +395,18 @@ character175의 geopin/ReactiveEquipmentService/EquipmentGaugePresentationServic
 ## 진행도 비율/빈 채널 — 3.0.0-character.198
 
 캐릭터 설명/공격 range만 수정. 기존 공용범위와참조 사용.
+
+
+## 진행도 비율/빈 채널 — 3.0.0-character.199
+
+캐릭터 tooltipSkills 문구만 수정.
+
+
+## 반격 완료 진행도 — 3.0.0-character.200
+
+기존 resource.restore on-hit/source/oncePerExecution과 공용 cooking.own-stove 조건 조합. 조건은 CookingService.isOwnStove 재사용. 새캐릭터ID분기없음.
+
+
+## 진행도 비율/빈 채널 — 3.0.0-character.201
+
+캐릭터 classification.role 데이터만 변경·공용카드/정렬 표시 참조.

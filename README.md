@@ -1,5 +1,29 @@
 # DUELS 3.0 README — 작업 전 반드시 전체 정독
 
+## 파비 레이저 조정 — 3.0.0-character.201
+
+헤브 분류를 조건형 중거리 딜러로 변경(role6암살자→1딜러). 기존조건형style5/평타550중거리 기준 유지. 전투수치변경없음.
+
+캐릭터 classification.role 데이터만 변경·공용카드/정렬 표시 참조.
+
+헤브회귀/build/docs/check/verify/runtime구문/ZIP무결성 통과.
+
+## 디라 스토브 조정 — 3.0.0-character.200
+
+디라 평타 식재료가 자기 스토브에 적중하면 source 디라의 스테미나150 회복. 기존식재료투입/소비와 아군회복 유지. 타플레이어/타소환수/타인스토브에는 새스테미나회복없음·실행당1회·원격미러 중복제외.
+
+기존 resource.restore on-hit/source/oncePerExecution과 공용 cooking.own-stove 조건 조합. 조건은 CookingService.isOwnStove 재사용. 새캐릭터ID분기없음.
+
+디라스토브1그룹 및 전체18회귀 통과. 실제적중모듈경로에서150회복/중복제외/타인스토브와아군제외/최대치/원격미러제외 검증. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
+
+## 파비 레이저 조정 — 3.0.0-character.199
+
+파비 레이저 설명 소모량2배를 저장된 아머 소모 속도2배로 변경. 실제전투값/레이카 등 기타변경 유지.
+
+캐릭터 tooltipSkills 문구만 수정.
+
+build/docs/check/verify/runtime구문/ZIP무결성 통과. 전투변경없음.
+
 ## 파비 레이저 조정 — 3.0.0-character.198
 
 파비 ALWAYS 차지 타입 아머 설명을 사용자문구 받은 피해를 아머로 저장으로 변경(showCost:false 유지). 레이카 반격 정지점 원형회전 반경130→350. 실제원형타격/회전이펙트는 기존 counterSpin.range 참조로동기화. 돌진거리300/피해200/무력화넉백과 기타수치 유지.

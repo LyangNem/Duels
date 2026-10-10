@@ -7,7 +7,7 @@
   "classification": {
     "style": 5,
     "range": 0,
-    "role": 6
+    "role": 1
   },
   "stats": {
     "maxHealth": 1200,

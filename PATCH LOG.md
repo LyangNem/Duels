@@ -1636,3 +1636,27 @@ character.59 뉴/레이카 검 리디자인과 함께 제공. 대상: geopin.js/
 - 구조: 캐릭터 설명/공격 range만 수정. 기존 공용범위와참조 사용.
 - 대상: characters/erapabi/reika, docs/ERAPABI, CHARACTER CONTRACT, README, project, DIVIDE TASKS, runtime.
 - 검증: 전체17회귀/build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 시각검수 미실시.
+
+
+## 3.0.0-character.199 — 2026-10-10 KST
+
+- 변경: 파비 레이저 설명 소모량2배를 저장된 아머 소모 속도2배로 변경. 실제전투값/레이카 등 기타변경 유지.
+- 구조: 캐릭터 tooltipSkills 문구만 수정.
+- 대상: characters/erapabi/reika, docs/ERAPABI, CHARACTER CONTRACT, README, project, DIVIDE TASKS, runtime.
+- 검증: build/docs/check/verify/runtime구문/ZIP무결성 통과. 전투변경없음.
+
+
+## 3.0.0-character.200 — 2026-10-10 KST
+
+- 변경: 디라 평타 식재료가 자기 스토브에 적중하면 source 디라의 스테미나150 회복. 기존식재료투입/소비와 아군회복 유지. 타플레이어/타소환수/타인스토브에는 새스테미나회복없음·실행당1회·원격미러 중복제외.
+- 구조: 기존 resource.restore on-hit/source/oncePerExecution과 공용 cooking.own-stove 조건 조합. 조건은 CookingService.isOwnStove 재사용. 새캐릭터ID분기없음.
+- 대상: characters/dira, TriggerConditionService, test-dira-stove, docs/DIRA, CHARACTER CONTRACT, README, project, DIVIDE TASKS, runtime.
+- 검증: 디라스토브1그룹 및 전체18회귀 통과. 실제적중모듈경로에서150회복/중복제외/타인스토브와아군제외/최대치/원격미러제외 검증. build/docs/check/verify/runtime구문/ZIP무결성 통과. 실제온라인 플레이 미검증.
+
+
+## 3.0.0-character.201 — 2026-10-10 KST
+
+- 변경: 헤브 분류를 조건형 중거리 딜러로 변경(role6암살자→1딜러). 기존조건형style5/평타550중거리 기준 유지. 전투수치변경없음.
+- 구조: 캐릭터 classification.role 데이터만 변경·공용카드/정렬 표시 참조.
+- 대상: characters/erapabi/reika, docs/ERAPABI, CHARACTER CONTRACT, README, project, DIVIDE TASKS, runtime.
+- 검증: 헤브회귀/build/docs/check/verify/runtime구문/ZIP무결성 통과.

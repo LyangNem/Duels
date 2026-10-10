@@ -1,6 +1,6 @@
 # DIVIDE TASKS
 
-버전: 3.0.0-character.198
+버전: 3.0.0-character.201
 
 역할 변경 시 project.json의 role/symbols도 수정하고 `python tools/project.py docs`로 이 문서를 갱신한다. 해시 검사는 역할 의미의 정확성을 대신하지 않는다. runtime.js는 생성 결과이며 직접 편집하지 않는다.
 
@@ -9,12 +9,13 @@
 | `AGENTS.md` | AI 작업자에게 README 정독·문서 갱신 의무 안내 |  | e22055c0c72b7010c9e6eef168ac2f49e01a5411385ce87b4370aba513f29590 |
 | `DIVIDE TASKS.md` | 전체 파일 역할·심볼·해시 목록 |  | 자기 참조 제외 |
 | `Duels.html` | Duels 진입 화면·DOM·리소스 연결·방 모드/금지/도움말 UI·회피 비용 및 체력 구분선 간격 참조 표시 영역 |  | a29b958ca694261b34752692a43ecb8557d7d41035e0e2fc340a2f05c4e3af35 |
-| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | 56a94013c3eaf0faed052f49da893077c8e3bbcc59f7b7a3c33a0a2542421f22 |
-| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | 7bfc840241fce1243153308cd5333a17e4ce05f2d641e520caad1796d9571544 |
+| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | c64cac7f4f1421ed9b1fe96ed429ba07573b1a4f3786802ea83a093466792524 |
+| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | 199c7b1484718f8109094e6be6c1f7b7f0e4f8806d130aec3f6f0a87447a25b7 |
 | `START.bat` | Windows 로컬 서버 실행 |  | d383b503b5d39e16324de2f7031e5cd69175f3b54bfbf477097ee758f094c849 |
 | `START.sh` | Linux/macOS 로컬 서버 실행 |  | 14be4f1c3b060556e2df88e1811eabe8d8ceeb8011f4c0c498399a9675e94bfa |
-| `docs/CHARACTER CONTRACT.md` | 공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약 |  | 0c4a213f03a6f8be35c88ed1d47ce801f36e92c0e9f7de49fbedefde38e51214 |
-| `docs/ERAPABI.md` | 파비198 일반레이저/피격충전/평타50 계약과 검증 |  | bc0b7422a2fdabb963ca79d36473ca65fb8ce7b35c7798cfd3123de929bf0e4a |
+| `docs/CHARACTER CONTRACT.md` | 공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약 |  | cfbc8686792af841ddd7c9c5de0589e9a47b40a9c8ca192b5e42f5a280c70e4c |
+| `docs/DIRA.md` | 디라200 식재료스토브 스테미나회복 계약 및 검증 |  | 83023dbfc6ccf67f3c12eecda8711f5928fbee1cd6e27bee13a89388ccd75f19 |
+| `docs/ERAPABI.md` | 파비201 일반레이저/피격충전/평타50 계약과 검증 |  | 90bb091b6e3860b242d655269fe5479e9263a19beb874e6f09c4adb2ffa35ea1 |
 | `docs/GAE REMAKE.md` | 가에 리메이크 및 반 후속 재생25/적중5회복구 기록 |  | b907c326e786c251ff6e1623775b185f4eda33f300b5a4a46714eb8e2bf1acc2 |
 | `docs/GEOPIN.md` | 지오핀 최신 수치/모듈·소환수 포함 급접근350ms/100/350·회피 관측/재감지450·검수 계약·후면6톱니 기어 외형 기록·모따기 기어 외형 보정 기록·기어 전면 재설계 기록·6살 원형 축 디자인 기록·기어 리디자인 롤백 기록·기존 기어 세부 보정 기록·16톱니 복구 기록; character.100 발명 슬롯 및 새 무기 계약 |  | 9a744cda2be04efe7f9e2eefe2568f4a4ed27f41d5d7e84ff261fa10db948f78 |
 | `docs/HAB.md` | 헤브 최신121 실제 무기투사체 스타일·기존출혈/항시/선체/작살·회귀검수 |  | 0cc4e8ccce5f57439412910c698484113431798bdc6bd0515e212cec20e22ce3 |
@@ -29,7 +30,7 @@
 | `docs/VERIFICATION.md` | split.2 검수 발견 오류·수정·통과 검사·실행 한계와 재현 방법 기록 |  | ae9d7cc0de36c42ea51f7ed040a8fc4ef8a53b31cb750f2bf010dc482d7038e9 |
 | `docs/WEAPON IMAGE GUIDE.md` | 무기181 화살비 장판 중심 넉백·공용형상 검수계약 |  | a90e1e0ed7172c96248df423fc9da2dce2b6f0869719087e1b0472e0cf2483c8 |
 | `docs/WEAPON UPDATES.md` | 무기181 화살비 장판 중심 넉백·공용형상 검수계약 |  | 1ffb9e450ba47736f47d6371576decf4ccabdc1893eb272e6434763cc25b2629 |
-| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | 644fa6240de4d6a8555bc8f8be1af923cd742fc176ec013b6ec2cac48441ee0e |
+| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | 22979a9ce92e39f52703e4d9ecfa168bcac79da65f2b4b0cefc96db7f0fc4ad4 |
 | `src/abilities/AbilityAttackExecutionService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: AbilityAttackExecutionService. | AbilityAttackExecutionService, execute | 6aa6f2993ec47e9ca212f2f318d8a66ae4266eaf68021cb10d1cc7710d0ce019 |
 | `src/abilities/AbilityModuleService.js` | 공용 능력모듈·공식 실제 오입력 inputErrorMotion·회피차단/자연회복 보존 | AbilityModuleService | cedfb168fb888fbc6cd1df961ddec16b7cb39c407cf4f03ad98e18b98e6c125c |
 | `src/abilities/AbilityService.js` | 공통 Trigger/능력 실행·선택 무기 해석·행동 결과의 모드 snapshot/입력 방향 | AbilityService, attackById, damageRatio, eventAttack, resolvedInputAttack, trigger, canActivate, activate | 6b265ec62f13153df17abc8966a5ab4ae8cebe388e97f99d669e19da01bacdeb |
@@ -215,7 +216,7 @@
 | `src/core/TemporalSnapshotService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TemporalSnapshotService. | TemporalSnapshotService, config, state, sample, at, presentationSnapshot, update, updatePresentation | ea4167cc0b55613dde0a5abf282915753f87579134ad99e1b717c1492f950444 |
 | `src/core/TimedActionStateService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TimedActionStateService. | TimedActionStateService, open, state, consume, cancelOnDamage, cancelOnForcedMovement, serialize, applyRemote, updatePresentation | 0f43e9553a4d6a6b7b52d4264109c6eede8ed68a162267a1845541cc081e938c |
 | `src/core/TimedThresholdBuffService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TimedThresholdBuffService. | TimedThresholdBuffService, auraStateBuffer, auraStatePool, gaugeGroupScratch, gaugeGroupPool, auraTargets, auraTargetPool, configSnapshotCache, sourceId, master, remaining, normalizeConfig, configSnapshot, sync, add, extendFromAura, gaugeGroups, auraStates, updateAuras | 47fd8420a42f4e294b638244e5567dc893ce5010016a692451c8ff76b420627b |
-| `src/core/TriggerConditionService.js` | 공용 트리거조건 해석·진행도비율gte/lt 경계판정 | TriggerConditionService, resourceState, matches | e07fdbf8957c1afe92c2cebd2d3f56a79d8f8e925dcc0998efd6795f13368a85 |
+| `src/core/TriggerConditionService.js` | 공용 트리거조건 해석·진행도비율gte/lt 경계판정 | TriggerConditionService, resourceState, matches | 093f06432a89ee67b752ecf0a07b7540abaef5753da09a4ed4e36fbb51735206 |
 | `src/core/TriggerDispatchService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TriggerDispatchService. | TriggerDispatchService, execute | 9936001a1d270a1d5d88fb32a6ec99fb93538c7611da4ce6cf5788537c1f3b86 |
 | `src/core/TriggerModuleService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: TriggerModuleService. | TriggerModuleService, matches | 98e48231fb4cb6cf58627cbce9d7cbf2636b361ca26306324ef86659713f1c97 |
 | `src/core/VisualFeedbackService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: VisualFeedbackService. | VisualFeedbackService, attackProfile, attack, motion, attackState | 8ab104707011fa162c7a78ba1a34e6411cf14c8014eebb18f88832ec4f452fe4 |
@@ -335,13 +336,13 @@
 | `src/data/characters/cyien.js` | 사이엔 순수 모듈 데이터·모든 적 처치 최대격/절격 준비·평타/패리/절격·항시로 처치 설명 통합 | cyien | bd5e444943bedd51df5c800d3f5a6a21069ca3c80a64a1511a80103d22e97d5e |
 | `src/data/characters/dazbin.js` | dazbin 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | dazbin | eba2a2b10e0c925594cb5f11f4f6e44ff5af18e2e5150c7f9c737618581200b7 |
 | `src/data/characters/deltroove.js` | deltroove 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | deltroove | d97da7133a5fa46b6095e021dc3d6c0a69740977416f43d2a832178d2b5bf33c |
-| `src/data/characters/dira.js` | 디라 요리 전투 데이터·프라이팬/식재료 이미지·실제 요리사용에만 고정 접시 잔향 ·139 무기 기본위치 중앙 정렬 | dira | bd16e9af5bafe247a90a3f0c4fa011a3c99e9ba879a5a257f7b983716a294a51 |
+| `src/data/characters/dira.js` | 디라200·식재료자기스토브적중 source스테미나150회복·공용조건/회복모듈 | dira | 4da36c3381e312116b783797f016782ad0803d08ac896295dd031ad5fadb47b9 |
 | `src/data/characters/elin.js` | 엘린 유령1000체력·재소환체력 최대값참조/모드별무기·치유잔향 | elin | 1ea57e6f0388c4edd3c171fc135865174a91bf42ed5db40ab5b70856b80df828 |
-| `src/data/characters/erapabi.js` | 파비198·차지타입아머설명정리·기존피격충전/평타50/일반레이저유지 | erapabi | 5f22f0bb6cc51a2aa98f98d9b3bb6175db9df380b7ac76d8a56cbb76607b8467 |
+| `src/data/characters/erapabi.js` | 파비201·차지타입아머설명정리·기존피격충전/평타50/일반레이저유지 | erapabi | 2cdddaecb4a18b159ae210d14c78a02c42c5f14f5a2a49c2703482a772e28338 |
 | `src/data/characters/ezrail.js` | ezrail 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | ezrail | 9e2a88aff5995b77dea72008fb15ef1bafe8c1c56071c8f1f0c74520424b0535 |
 | `src/data/characters/gae.js` | 가에 데이터:500ms 선딜·미리보기·고정 주황 ELECTRIC·설명 정렬; FIX 잃은체력25% 회복 데이터·활성 명령8칸 게이지 구성 | gae | 251c54554ca1c0bd0c9639ec735f92ac870ce6909599565ff0dc60c6799445fd |
 | `src/data/characters/geopin.js` | 지오핀8조건·3스택발명/자동장착 데이터 | geopin | 59dea3315fa5d8b0eb12b1f67858b789053f6ff21f2d7c39dc37a5826c9f3cb1 |
-| `src/data/characters/hab.js` | 헤브 전투데이터·평타250/스킬500비용·스킬넉백없음 | hab | 78f7844e2ed79c560f9ab5e6b07b29d827e484505e9529517809a543a2239b1a |
+| `src/data/characters/hab.js` | 헤브201·조건형중거리딜러 분류·기존전투유지 | hab | 69674571c9fa48c44d6431a440b978b54468f80b4b6ce6ccff0c49db0bef8232 |
 | `src/data/characters/hapupu.js` | 하푸푸 데이터·평타넉백47.25/표식/반격 | hapupu | a36a7ca7db732e9ed3e992451b92ad5d4240d44d6814f36a26843d8e0e80798c |
 | `src/data/characters/hatsuhats.js` | 하츠하츠 드래그 전투 데이터·붓 이미지·실제 평타/반격/스킬 시계회전·기본 이동선 제외 | hatsuhats | 1fd690d869e734750848322048b2c2d10ed9c49bbfd2239b900b799bc12a311c |
 | `src/data/characters/herjang.js` | herjang 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. 분할 전 원본의 이동 선 미표시를 presentation:false로 보존.·RMB SUMMONER 명령 표기 | herjang | 6ca9072c28a98f940c3321a7649f812ff3bce0ea401bd07c40fa49cd50994386 |
@@ -371,7 +372,7 @@
 | `src/data/characters/prill.js` | 프릴 빗자루·3타콤보 회전좌우/찌르기·청소스킬 매타격모션 | prill | e62ed080784f205284895f423af74f80ce4d833c7ecf48111df7c6e47b87b5c8 |
 | `src/data/characters/quri.js` | 큐리 공식성장·5단계확대큐브/모션·반격폭발무력화넉백 | quri | b5752d0fe3b5f1d40a2f174e327480b9d2e07f2731f54d3c59348e6cb35c2a28 |
 | `src/data/characters/raise.js` | raise 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | raise | 85cd46e379bf7572acbbd3e49d7222ea7b59392ea3b5cf39cf8466ac88a9f966 |
-| `src/data/characters/reika.js` | 레이카198·반격원형회전350반경·기존돌진/가호수치유지 | reika | 822d7760add8507a0afc3aa6a174b281482838aad5ae644e83e9e94726a28e56 |
+| `src/data/characters/reika.js` | 레이카201·반격원형회전350반경·기존돌진/가호수치유지 | reika | 822d7760add8507a0afc3aa6a174b281482838aad5ae644e83e9e94726a28e56 |
 | `src/data/characters/roon.js` | 로온 멜론/빙수 무기·의도된 과육 팔레트 보존·빙결 잔향 | roon | c56cba514af278a6df429618147791121ddf636d4ed7074a2821478646262bfb |
 | `src/data/characters/ruli.js` | ruli 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | ruli | f5b38f677724634b3ed71f3c5bbbdb56c20cddb19c474828b0d0200e06f83e39 |
 | `src/data/characters/runef.js` | 루네프 순수4원소/연계모듈·책마법색/페이드·낙뢰3전달 everyDelivery 색 재반응 | runef | 47db58bb9dc61ea19847d92d1d4e3048c4a7dd56bc61cd7c4cafb9f5cb1c82e5 |
@@ -544,12 +545,13 @@
 | `tools/serve.py` | 로컬 서버와 시작 전 검사·자동 조립 |  | 28500bbd995bffb97083aed18f06c16c3ccdea0489496cb144603075699be86d |
 | `tools/test-character-range.cjs` | 62명 초기 최대 평타사거리·분류/정렬·레이카350 검수 |  | 1ab54286a6938a4ff9505922568208190481324c6b10589d8f1f4548e4d63d31 |
 | `tools/test-cyien.cjs` | 사이엔 실제 모든 공격 처치/절격 준비·제외 대상·로컬/원격 확정 및 snapshot·설명5회귀 | test, entity, value, ready | dac1477e3d4b138a00cc12050ffa4e5d96c166236614764c82d3b23dadbf0a4d |
-| `tools/test-erapabi.cjs` | 파비198 실제입력/피격100/200%·체력변화·비안정2배소모/고갈4그룹 |  | 96678d12cdfe0cde2ff5f4312e6c0b9ac3716f125f89fe41c20cc611206a1740 |
+| `tools/test-dira-stove.cjs` | 디라 실제식재료적중·스토브전용150회복/중복/원격제외1그룹 |  | d9fb235a6b01f6173e133c898b18d8d8deb74015f7f893bf2856e4cb59af7009 |
+| `tools/test-erapabi.cjs` | 파비201 실제입력/피격100/200%·체력변화·비안정2배소모/고갈4그룹 |  | 96678d12cdfe0cde2ff5f4312e6c0b9ac3716f125f89fe41c20cc611206a1740 |
 | `tools/test-gae.cjs` | 가에 명령·모듈·입력 및 실제 라운드 구성 전 입력 상태 초기화 회귀 | load, test | 4a54c5e9e58c5fc8f2b3df885eba0f8a295450c956266bd449736d4d50ec8e04 |
 | `tools/test-gameplay-fixes.cjs` | 실제 서비스 실행 회귀 15개: 사망 관전·방어 경로·선택 상한·불규칙 잔향 수신 보간·종료/축소·독립성·모드 초기값/선택지/증강 제출 차단 회귀·단독 금지 실제 버튼 확정/복귀 회귀·모드별 전환/재실행 저장 복원·자동카운트다운 회귀·금지창 재개방 스크롤/즉시 지정점 미리보기 회귀 |  | aa65459aaf8a4061c9b93ddac11ac4bba171d50e551dec060989d57034d95624 |
 | `tools/test-geopin.cjs` | 지오핀 조건/충돌/무기 및 레이카 공용500 목표미리보기 회귀 |  | 0009e0509408cadfdf7746576e6c0d52979a5e3d58f4687d1823fabba2221770 |
 | `tools/test-hab-projectile.cjs` | 헤브 실제 ProjectileService 맵 경계/사거리 무시·대상별1초 재타격 회귀 |  | 1ab472196b2883e4af9eaaaa91fe0774d56949d9040291fcae295c959e3e792c |
-| `tools/test-hab.cjs` | 헤브 실제공격·넉백제거/비용250·500 회귀 |  | d9e670ddcf67434420d6a2acce9d64d486d6bce5a9af8a60d7030fb9fcbebb14 |
+| `tools/test-hab.cjs` | 헤브201 조건형딜러 분류 및 기존전투회귀 |  | 8fc5f0da4240fd16e6c83c1f972665164b719827af64c435dfb871cf13e23e80 |
 | `tools/test-meramona.cjs` | 메라모나피해/스킬2회조건·반격미적중단계와성장버프2그룹 |  | a0457e53e353578dc68387e0642d7d8db38957d1afeac1268889de8e49d8d15b |
 | `tools/test-movement-contact.cjs` | 실제 이동접촉 원격 판정 회귀·라임 경로 유지(레이카 반격은 정지점 회전으로 새 검사 이전) |  | dccab022202fb3f2815b35555cc08eaa379ebb980298974006cdc12992d8e653 |
 | `tools/test-reika.cjs` | 레이카12그룹·스킬6상태사용조건/활성충전2%·스킬/검기/잔상/이동전송 회귀 |  | a46beb7cd0df2de8dd3e6d1991993dc1b42dae7f96244bc1ab28a1fa76b57add |

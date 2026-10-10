@@ -186,6 +186,7 @@ const TriggerConditionService=Object.freeze({
       }
       return true;
     }
+    if(condition.type==='cooking.own-stove')return CookingService.isOwnStove(source,context.target);
     if(condition.type==='target.status-active'){
       const target=context.target||null;
       if(!target)return false;

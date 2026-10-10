@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-character.198",
+  "version": "3.0.0-character.201",
   "source": "3.1717 (65).html",
   "original_script_sha256": "6fd12004e89d39fffe6a916d711147f63a7039b1a1cc995f7cc8532751f0ed8e",
   "load_order": [
@@ -842,14 +842,14 @@
     },
     {
       "path": "src/data/characters/erapabi.js",
-      "role": "파비198·차지타입아머설명정리·기존피격충전/평타50/일반레이저유지",
+      "role": "파비201·차지타입아머설명정리·기존피격충전/평타50/일반레이저유지",
       "symbols": [
         "erapabi"
       ]
     },
     {
       "path": "src/data/characters/reika.js",
-      "role": "레이카198·반격원형회전350반경·기존돌진/가호수치유지",
+      "role": "레이카201·반격원형회전350반경·기존돌진/가호수치유지",
       "symbols": [
         "reika"
       ]
@@ -1164,7 +1164,7 @@
     },
     {
       "path": "src/data/characters/dira.js",
-      "role": "디라 요리 전투 데이터·프라이팬/식재료 이미지·실제 요리사용에만 고정 접시 잔향 ·139 무기 기본위치 중앙 정렬",
+      "role": "디라200·식재료자기스토브적중 source스테미나150회복·공용조건/회복모듈",
       "symbols": [
         "dira"
       ]
@@ -6943,7 +6943,7 @@
     },
     {
       "path": "src/data/characters/hab.js",
-      "role": "헤브 전투데이터·평타250/스킬500비용·스킬넉백없음",
+      "role": "헤브201·조건형중거리딜러 분류·기존전투유지",
       "symbols": [
         "hab"
       ]
@@ -6955,7 +6955,7 @@
     },
     {
       "path": "tools/test-hab.cjs",
-      "role": "헤브 실제공격·넉백제거/비용250·500 회귀",
+      "role": "헤브201 조건형딜러 분류 및 기존전투회귀",
       "symbols": []
     },
     {
@@ -7019,12 +7019,12 @@
     },
     {
       "path": "tools/test-erapabi.cjs",
-      "role": "파비198 실제입력/피격100/200%·체력변화·비안정2배소모/고갈4그룹",
+      "role": "파비201 실제입력/피격100/200%·체력변화·비안정2배소모/고갈4그룹",
       "symbols": []
     },
     {
       "path": "docs/ERAPABI.md",
-      "role": "파비198 일반레이저/피격충전/평타50 계약과 검증",
+      "role": "파비201 일반레이저/피격충전/평타50 계약과 검증",
       "symbols": []
     },
     {
@@ -7035,6 +7035,16 @@
     {
       "path": "docs/MERAMONA.md",
       "role": "메라모나197 수치/스킬조건/반격단계 계약 및 검증",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-dira-stove.cjs",
+      "role": "디라 실제식재료적중·스토브전용150회복/중복/원격제외1그룹",
+      "symbols": []
+    },
+    {
+      "path": "docs/DIRA.md",
+      "role": "디라200 식재료스토브 스테미나회복 계약 및 검증",
       "symbols": []
     }
   ],
@@ -7098,7 +7108,7 @@
   "baseline_rules_sha256": "eaaf531ff3eedf5244ec6829d0fe12d1932bab4c252c79b68ecf839e27ea6bac",
   "old_rule_16": "16. Duels 3.0은 반드시 단일 HTML 파일로 유지한다.\n- 외부 JS/CSS 파일로 게임 코드를 분리하지 않는다.\n- 단일 파일 내부에서도 시스템별 영역과 책임을 명확하게 구획한다.\n- 단일 파일 조건은 모듈화 금지를 의미하지 않는다.",
   "new_rule_16": "16. DUELS 3.0은 역할별 여러 소스 파일로 개발한다.\n- 캐릭터는 캐릭터별 데이터 원본, 실행 기능은 공통 서비스 단위로 분리한다.\n- 실행 순서와 공유 문맥을 유지하는 조립은 허용한다. 생성 결과를 직접 수정하지 않는다.\n- 배포 파일명은 Duels.zip, 진입 HTML은 Duels.html로 고정한다.",
-  "current_script_sha256": "c341c8893adb7d92d671cf6ed7b4e666dc72da65ce43439f67fec114aae690cb",
+  "current_script_sha256": "21ceebe63e22d88e8eb74dfeace587e8b092eb9aaeb3b06d4f1a3acb1efed6ed",
   "baseline_layout_sha256": "91b3fa54ece362a30852be9cdb5fccd051c0afda78cc6e891b240eab54747aac",
   "current_resource_sha256": {
     "styles/game.css": "6ea2aa04d77de61e961dea89d7bb0160e5d8f3806d516d68d6ff24b60b0c5f47",

@@ -390,6 +390,8 @@
             "ally"
           ]
         },
+        {"type": "resource.restore", "when": "on-hit", "resource": "stamina", "recipient": "source", "amount": 150,
+          "targetRelations": ["ally"], "oncePerExecution": true, "conditions": [{"type": "cooking.own-stove"}]},
         {
           "type": "cooking.consume-ingredient",
           "when": "on-hit",
