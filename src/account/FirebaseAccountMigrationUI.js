@@ -139,21 +139,43 @@ const FirebaseAccountMigrationUI={
         'firebase'
       );
 
+      const progressAtLoad=typeof CharacterRecordProgressionService!=='undefined'
+        ?CharacterRecordProgressionService.authoritativeProgress
+        :null;
       void globalThis.DuelsFirebase
         .loadOwnAccount()
         .then(profile=>{
           if(
             profile?.duelsAccountReady===true
           ){
-            FirebaseAccountCacheService
-              .save(profile,user);
-
             const authoritative=
               this.accountForGame(
                 profile,
                 user
               );
-
+            const current=AccountState.current;
+            const progressChanged=typeof CharacterRecordProgressionService!=='undefined'&&
+              CharacterRecordProgressionService.authoritativeProgress!==progressAtLoad;
+            if(current?.firebaseUid===user.uid&&
+              (current.recordSettlementPending===true||progressChanged)){
+              // A login fetch started before a settlement cannot roll it back.
+              authoritative.characterRecords={...(current.characterRecords||{})};
+              authoritative.characterStats={...(current.characterStats||{})};
+              authoritative.recordSettlementPending=!!current.recordSettlementPending;
+            }
+            const confirmed=authoritative.recordSettlementPending===true&&
+              typeof CharacterRecordProgressionService!=='undefined'
+              ?CharacterRecordProgressionService.authoritativeProgress
+              :null;
+            FirebaseAccountCacheService.save({
+              ...profile,
+              characterRecords:authoritative.recordSettlementPending===true
+                ?(confirmed?.characterRecords||profile.characterRecords||{})
+                :authoritative.characterRecords,
+              characterStats:authoritative.recordSettlementPending===true
+                ?(confirmed?.characterStats||profile.characterStats||{})
+                :authoritative.characterStats
+            },user);
             authoritative.firebaseSyncPending=false;
 
             if(

@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-character.207",
+  "version": "3.0.0-character.210",
   "source": "3.1717 (65).html",
   "original_script_sha256": "6fd12004e89d39fffe6a916d711147f63a7039b1a1cc995f7cc8532751f0ed8e",
   "load_order": [
@@ -692,7 +692,7 @@
     },
     {
       "path": "src/account/FirebaseAccountMigrationUI.js",
-      "role": "계정·프로필·기록。 담당 선언/초기화: FirebaseAccountMigrationUI.",
+      "role": "Firebase 로그인/마이그레이션·지연 계정 조회가 새 레코드/미확정 투영 덮어쓰기 방지·캐시 서버확정값 유지",
       "symbols": [
         "FirebaseAccountMigrationUI",
         "legacyAccount",
@@ -969,7 +969,7 @@
     },
     {
       "path": "src/data/characters/meramona.js",
-      "role": "메라모나 순수 캐릭터 데이터·단계별 평타 판정/표시 두께2배",
+      "role": "메라모나 순수 캐릭터 데이터·모든 단계 평타 스테미나200/스킬400·두께2배·2회적중 성장/반격임시단계",
       "symbols": [
         "meramona"
       ]
@@ -1468,7 +1468,7 @@
     },
     {
       "path": "src/core/MatchResultSubmissionService.js",
-      "role": "서버 경기 결과 제출·계정별 HTTP 요청 직렬화·라운드별 독립 재시도·동일 정산 중복 방지",
+      "role": "정산별 독립 재시도·계정별 요청 직렬화·서버 확정 대기/통신 거절 진단",
       "symbols": [
         "MatchResultSubmissionService",
         "queues",
@@ -1483,7 +1483,7 @@
     },
     {
       "path": "src/account/CharacterRecordProgressionService.js",
-      "role": "계정·프로필·기록。 담당 선언/초기화: CharacterRecordProgressionService.",
+      "role": "레코드 임시/서버 정산·서버 확정 캐시 반영·제출 누락/정산 차단 진단",
       "symbols": [
         "CharacterRecordProgressionService",
         "saveQueue",
@@ -5659,7 +5659,7 @@
     },
     {
       "path": "src/render/ConditionalTargetLinkPresentationService.js",
-      "role": "월드 시각 표현·이펙트·게이지。 담당 선언/초기화: ConditionalTargetLinkPresentationService.",
+      "role": "공용 조건 대상 점선·공용 은신 시야 판정으로 숨겨진 적 연결 제외",
       "symbols": [
         "ConditionalTargetLinkPresentationService",
         "draw"
@@ -7069,6 +7069,16 @@
       "path": "tools/test-match-submission.cjs",
       "role": "미확정 앞 라운드 뒤 제출 보장·HTTP 직렬화·동일ID 중복방지·재시도 snapshot 및 큐 정리 회귀",
       "symbols": []
+    },
+    {
+      "path": "tools/test-record-sync.cjs",
+      "role": "지연 로그인 응답의 최신 확정/미확정 레코드 유지·확정 캐시 갱신·프로필 적용 회귀",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-target-link.cjs",
+      "role": "숨겨진 은신 적 연결 차단·일반/노출 적과50%경계 유지 검사",
+      "symbols": []
     }
   ],
   "baseline_resources": [
@@ -7131,7 +7141,7 @@
   "baseline_rules_sha256": "eaaf531ff3eedf5244ec6829d0fe12d1932bab4c252c79b68ecf839e27ea6bac",
   "old_rule_16": "16. Duels 3.0은 반드시 단일 HTML 파일로 유지한다.\n- 외부 JS/CSS 파일로 게임 코드를 분리하지 않는다.\n- 단일 파일 내부에서도 시스템별 영역과 책임을 명확하게 구획한다.\n- 단일 파일 조건은 모듈화 금지를 의미하지 않는다.",
   "new_rule_16": "16. DUELS 3.0은 역할별 여러 소스 파일로 개발한다.\n- 캐릭터는 캐릭터별 데이터 원본, 실행 기능은 공통 서비스 단위로 분리한다.\n- 실행 순서와 공유 문맥을 유지하는 조립은 허용한다. 생성 결과를 직접 수정하지 않는다.\n- 배포 파일명은 Duels.zip, 진입 HTML은 Duels.html로 고정한다.",
-  "current_script_sha256": "8583028bf7195765b47c6f27e94811800d3de38938920fe5ae4197e81fb20754",
+  "current_script_sha256": "bc417406f3a69bb9ebb9d9d9482a845158594336de7e336bb5111f1c05cc654f",
   "baseline_layout_sha256": "91b3fa54ece362a30852be9cdb5fccd051c0afda78cc6e891b240eab54747aac",
   "current_resource_sha256": {
     "styles/game.css": "6ea2aa04d77de61e961dea89d7bb0160e5d8f3806d516d68d6ff24b60b0c5f47",

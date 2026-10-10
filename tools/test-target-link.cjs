@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+let drawn=0;const viewer={alive:true,id:'viewer',x:0,y:0,radius:20,character:{conditionalTargetLinks:[{healthRatioBelow:.5,relation:'enemy'}]}},target={alive:true,id:'enemy',x:300,y:0,radius:20,maxHealth:1000,health:400};
+const c={performance:{now:()=>1000},Training:{player:viewer},EntitySimulationAuthorityService:{isLocal:()=>true},EntityService:{items:new Map([['enemy',target]])},RelationService:{relation:()=> 'enemy'},BuffService:{visualEntry:e=>e.stealth?{item:{start:0,data:{revealRadius:80}}}:null},ColorService:{rgbString:()=> '1,2,3'}};vm.createContext(c);
+for(const name of ['StealthPresentationService','ConditionalTargetLinkPresentationService'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/render/'+name+'.js'),'utf8')+'\nthis.'+name+'='+name,c);
+const ctx={save:()=>{},restore:()=>{},beginPath:()=>{},moveTo:()=>{},lineTo:()=>{},setLineDash:()=>{},stroke:()=>drawn++};
+c.ConditionalTargetLinkPresentationService.draw(ctx,viewer);assert.equal(drawn,1);
+target.stealth=true;c.ConditionalTargetLinkPresentationService.draw(ctx,viewer);assert.equal(drawn,1);
+c.StealthPresentationService.reveal(target,600,1000,{broadcast:false});c.ConditionalTargetLinkPresentationService.draw(ctx,viewer);assert.equal(drawn,2);
+target.stealth=false;target.health=500;c.ConditionalTargetLinkPresentationService.draw(ctx,viewer);assert.equal(drawn,2);
+console.log('PASS hidden stealth target link suppressed; ordinary/revealed targets and strict50% threshold preserved');

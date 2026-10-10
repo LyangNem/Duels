@@ -48,6 +48,8 @@ const ConditionalTargetLinkPresentationService=Object.freeze({
           relation
         )continue;
 
+        if(StealthPresentationService.state(viewer,target).hideWorldUi)continue;
+
         const maximum=
           Math.max(
             1,

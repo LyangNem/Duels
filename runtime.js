@@ -1312,21 +1312,43 @@ const FirebaseAccountMigrationUI={
         'firebase'
       );
 
+      const progressAtLoad=typeof CharacterRecordProgressionService!=='undefined'
+        ?CharacterRecordProgressionService.authoritativeProgress
+        :null;
       void globalThis.DuelsFirebase
         .loadOwnAccount()
         .then(profile=>{
           if(
             profile?.duelsAccountReady===true
           ){
-            FirebaseAccountCacheService
-              .save(profile,user);
-
             const authoritative=
               this.accountForGame(
                 profile,
                 user
               );
-
+            const current=AccountState.current;
+            const progressChanged=typeof CharacterRecordProgressionService!=='undefined'&&
+              CharacterRecordProgressionService.authoritativeProgress!==progressAtLoad;
+            if(current?.firebaseUid===user.uid&&
+              (current.recordSettlementPending===true||progressChanged)){
+              // A login fetch started before a settlement cannot roll it back.
+              authoritative.characterRecords={...(current.characterRecords||{})};
+              authoritative.characterStats={...(current.characterStats||{})};
+              authoritative.recordSettlementPending=!!current.recordSettlementPending;
+            }
+            const confirmed=authoritative.recordSettlementPending===true&&
+              typeof CharacterRecordProgressionService!=='undefined'
+              ?CharacterRecordProgressionService.authoritativeProgress
+              :null;
+            FirebaseAccountCacheService.save({
+              ...profile,
+              characterRecords:authoritative.recordSettlementPending===true
+                ?(confirmed?.characterRecords||profile.characterRecords||{})
+                :authoritative.characterRecords,
+              characterStats:authoritative.recordSettlementPending===true
+                ?(confirmed?.characterStats||profile.characterStats||{})
+                :authoritative.characterStats
+            },user);
             authoritative.firebaseSyncPending=false;
 
             if(
@@ -16245,7 +16267,7 @@ const CHARACTER_DATA=freezeCharacterData({
       lmb: {
         id: "attack.meramona.lmb",
         damageRatio: 1,
-        cost: 150,
+        cost: 200,
         cd: 350,
         range: 550,
         modules: [
@@ -16276,7 +16298,7 @@ const CHARACTER_DATA=freezeCharacterData({
       lmbStage1: {
         id: "attack.meramona.lmb-stage1",
         damageRatio: 1,
-        cost: 150,
+        cost: 200,
         cd: 350,
         range: 900,
         modules: [
@@ -16307,7 +16329,7 @@ const CHARACTER_DATA=freezeCharacterData({
       lmbStage3: {
         id: "attack.meramona.lmb-stage3",
         damageRatio: 1,
-        cost: 150,
+        cost: 200,
         cd: 350,
         range: 900,
         modules: [
@@ -16338,7 +16360,7 @@ const CHARACTER_DATA=freezeCharacterData({
       lmbStage4: {
         id: "attack.meramona.lmb-stage4",
         damageRatio: 1,
-        cost: 150,
+        cost: 200,
         cd: 350,
         range: 900,
         modules: [
@@ -16393,7 +16415,7 @@ const CHARACTER_DATA=freezeCharacterData({
       rmb: {
         id: "attack.meramona.rmb",
         damageRatio: 0,
-        cost: 0,
+        cost: 400,
         cd: 500,
         range: 170,
         effectsOnly: true,
@@ -35086,8 +35108,16 @@ const MatchResultSubmissionService=Object.freeze({
             throw error;
           }
           if(latest?.finalized===true&&latest.progress&&latest.result)return latest;
+          if(attempt===0)console.warn('[Duels] record settlement awaiting server confirmation',{
+            roundToken:snapshot.roundToken,finalized:latest?.finalized===true,
+            hasProgress:!!latest?.progress,hasResult:!!latest?.result
+          });
         }catch(error){
           const status=Number(error?.status)||0;
+          if(attempt===0)console.warn('[Duels] record submission request failed',{
+            roundToken:snapshot.roundToken,status,code:String(error?.code||''),
+            message:String(error?.message||'')
+          });
           if(error?.code==='result-conflict')throw error;
           if(status===401&&!refreshToken){
             refreshToken=true;
@@ -35354,6 +35384,18 @@ const CharacterRecordProgressionService={
       }
     };
 
+    // Cache only server-confirmed progress, never the optimistic projection.
+    const account=AccountState.current;
+    const user=globalThis.DuelsFirebase?.currentUser?.();
+    if(account?.firebaseAccount===true&&user&&account.firebaseUid===user.uid&&
+      typeof FirebaseAccountCacheService!=='undefined'){
+      FirebaseAccountCacheService.save({
+        ...account,
+        duelsAccountReady:true,
+        characterRecords:this.authoritativeProgress.characterRecords,
+        characterStats:this.authoritativeProgress.characterStats
+      },user);
+    }
     return this.authoritativeProgress;
   },
 
@@ -36042,12 +36084,20 @@ const CharacterRecordProgressionService={
     }
     const eligibility=this.settlementEligibility();
     if(!eligibility.allowed){
+      console.warn('[Duels] record settlement blocked',{roundToken:token,reason:eligibility.reason});
       const blocked={token,blocked:true,reason:eligibility.reason,delta:0};
       this.resultByRound.set(resultKey,blocked);
       return blocked;
     }
     const submission=MatchResultSubmissionService.payload(payload);
-    if(!submission)return null;
+    if(!submission){
+      console.error('[Duels] record submission snapshot missing',{
+        roundToken:token,hasMatchId:!!RoomService.serverMatchId,
+        participantCount:RoomService.matchPids().length,
+        participantsReady:!!MatchResultSubmissionService.participantSnapshot()
+      });
+      return null;
+    }
     const accountId=String(account.accountId||'');
     const optimistic=
       this.optimisticRoundResult(
@@ -123533,6 +123583,8 @@ const ConditionalTargetLinkPresentationService=Object.freeze({
           String(config.relation||'enemy')!==
           relation
         )continue;
+
+        if(StealthPresentationService.state(viewer,target).hideWorldUi)continue;
 
         const maximum=
           Math.max(

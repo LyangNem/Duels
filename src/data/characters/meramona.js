@@ -58,7 +58,7 @@
       lmb: {
         id: "attack.meramona.lmb",
         damageRatio: 1,
-        cost: 150,
+        cost: 200,
         cd: 350,
         range: 550,
         modules: [
@@ -89,7 +89,7 @@
       lmbStage1: {
         id: "attack.meramona.lmb-stage1",
         damageRatio: 1,
-        cost: 150,
+        cost: 200,
         cd: 350,
         range: 900,
         modules: [
@@ -120,7 +120,7 @@
       lmbStage3: {
         id: "attack.meramona.lmb-stage3",
         damageRatio: 1,
-        cost: 150,
+        cost: 200,
         cd: 350,
         range: 900,
         modules: [
@@ -151,7 +151,7 @@
       lmbStage4: {
         id: "attack.meramona.lmb-stage4",
         damageRatio: 1,
-        cost: 150,
+        cost: 200,
         cd: 350,
         range: 900,
         modules: [
@@ -206,7 +206,7 @@
       rmb: {
         id: "attack.meramona.rmb",
         damageRatio: 0,
-        cost: 0,
+        cost: 400,
         cd: 500,
         range: 170,
         effectsOnly: true,

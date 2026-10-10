@@ -133,8 +133,16 @@ const MatchResultSubmissionService=Object.freeze({
             throw error;
           }
           if(latest?.finalized===true&&latest.progress&&latest.result)return latest;
+          if(attempt===0)console.warn('[Duels] record settlement awaiting server confirmation',{
+            roundToken:snapshot.roundToken,finalized:latest?.finalized===true,
+            hasProgress:!!latest?.progress,hasResult:!!latest?.result
+          });
         }catch(error){
           const status=Number(error?.status)||0;
+          if(attempt===0)console.warn('[Duels] record submission request failed',{
+            roundToken:snapshot.roundToken,status,code:String(error?.code||''),
+            message:String(error?.message||'')
+          });
           if(error?.code==='result-conflict')throw error;
           if(status===401&&!refreshToken){
             refreshToken=true;

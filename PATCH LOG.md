@@ -1702,3 +1702,24 @@ character.59 뉴/레이카 검 리디자인과 함께 제공. 대상: geopin.js/
 - 변경/원인: 자동 전체화면/실패 재요청/keyboard lock 제거. 기존 게임중 Ctrl+W preventDefault만 유지. 레코드 제출의 계정별 큐가 한 라운드 전체 무한 재시도를 기다려 뒤 라운드를 제출하지 못하던 구조 수정: HTTP 개별 요청만 직렬화하고 정산별 독립 재시도·동일 정산 중복 방지. 서버 승인/로그인/동일계정·기기 제한 및 점수 산정은 유지. 실제 사용자 저장 실패 원인과 서버 응답은 미확인이며 이 변경으로 실서비스 저장 복구를 단정하지 않음.
 - 대상: GameplayBrowserService, MatchResultSubmissionService, test-gameplay-browser/test-match-submission, README/PATCH LOG/project/DIVIDE TASKS/runtime.
 - 검증: 전체21회귀·build/docs/check/verify/runtime 구문·ZIP 무결성 통과. 첫 라운드 미확정 응답/재시도 대기 중 두번째 라운드 제출·확정 재현 검사. 실제 서버 저장 미검증.
+
+
+## 3.0.0-character.208 — 2026-10-11 KST
+
+- 변경/원인: 로그인 캐시 진입 뒤 계정 조회 지연 응답이 그 사이 확정된 최신 레코드/전적을 덮어쓰는 경쟁 조건 수정. 조회 시작 시 authoritativeProgress 참조 기록·확정변화/미확정 투영 존재시 최신 점수 유지하면서 프로필 동기화. 서버 확정 진행도를 로그인 캐시에 저장·임시점수 캐시 저장 제외. 정산 차단/제출 snapshot 누락/첫 통신 실패/서버 확정 대기 진단 추가(토큰·개인식별정보 미출력). 207의 앞 라운드 재시도 막힘 수정 유지. 서버 정산 실응답은 확인하지 못했으며 실제 사용자 저장 실패 원인 확정/서버 저장 복구를 단정하지 않음.
+- 대상: FirebaseAccountMigrationUI/CharacterRecordProgressionService/MatchResultSubmissionService/test-record-sync, README/PATCH LOG/project/DIVIDE TASKS/runtime.
+- 검증: 전체22회귀·build/docs/check/verify/runtime 구문·ZIP 무결성 통과. 조회 지연 중100→200 확정 후100 응답에도200유지/캐시200, 미확정300은화면유지·캐시확정200 검사. 실제 서버 응답/저장 미검증.
+
+
+## 3.0.0-character.209 — 2026-10-11 KST
+
+- 변경: 메라 모나 모든 단계 평타 스테미나150→200. 스킬 변신 비용0→400. 후속 변신타격/반격 비용0 유지·피해/성장조건/연출 유지. 기존 공격 비용 참조로 설명/공용소비 동기화.
+- 대상: meramona 캐릭터, README/PATCH LOG/project/DIVIDE TASKS/runtime.
+- 검증: 메라모나/구조 회귀·build/docs/check/verify/runtime 구문·ZIP 무결성 통과. 실제 온라인 미검증.
+
+
+## 3.0.0-character.210 — 2026-10-11 KST
+
+- 변경: 사이엔 체력50%미만 대상 점선이 은신 적 위치를 노출하던 문제 수정. 공용 ConditionalTargetLinkPresentationService가 StealthPresentationService.state.hideWorldUi를 확인해 시야에 숨겨진 적 연결 제외. 근접감지/행동으로 실제노출된 대상은 공용시야대로 표시. 전투/피해/게이지변경없음.
+- 대상: ConditionalTargetLinkPresentationService/test-target-link, README/PATCH LOG/project/DIVIDE TASKS/runtime.
+- 검증: 대상연결/사이엔/구조 회귀·build/docs/check/verify/runtime 구문·ZIP 무결성 통과. 실제 온라인 시각 미검증.

@@ -1,6 +1,6 @@
 # DIVIDE TASKS
 
-버전: 3.0.0-character.207
+버전: 3.0.0-character.210
 
 역할 변경 시 project.json의 role/symbols도 수정하고 `python tools/project.py docs`로 이 문서를 갱신한다. 해시 검사는 역할 의미의 정확성을 대신하지 않는다. runtime.js는 생성 결과이며 직접 편집하지 않는다.
 
@@ -9,8 +9,8 @@
 | `AGENTS.md` | AI 작업자에게 README 정독·문서 갱신 의무 안내 |  | e22055c0c72b7010c9e6eef168ac2f49e01a5411385ce87b4370aba513f29590 |
 | `DIVIDE TASKS.md` | 전체 파일 역할·심볼·해시 목록 |  | 자기 참조 제외 |
 | `Duels.html` | Duels 진입 화면·DOM·리소스 연결·방 모드/금지/도움말 UI·회피 비용 및 체력 구분선 간격 참조 표시 영역 |  | a29b958ca694261b34752692a43ecb8557d7d41035e0e2fc340a2f05c4e3af35 |
-| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | fdb0c46e881001934393fa4fa0c9484b9785e45b2d9310ece64c911b7f4cd742 |
-| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | 73f2ec321adee4f7b1355c033b65ec52f2e7e8318b1d55dd626421185ed7bb06 |
+| `PATCH LOG.md` | 버전별 변경·검증·잔여 작업 기록 |  | 043080cd1f58386abf0a32402e140e10a33feadbefb30e9155650bf04995ea5d |
+| `README.md` | 작업 전 필독 규칙·실행 안내·현 상태와 제약 |  | f68fe687566476b467777fb2d9becbe80dd75ab1f1b164eb7b8edf9a3030f054 |
 | `START.bat` | Windows 로컬 서버 실행 |  | d383b503b5d39e16324de2f7031e5cd69175f3b54bfbf477097ee758f094c849 |
 | `START.sh` | Linux/macOS 로컬 서버 실행 |  | 14be4f1c3b060556e2df88e1811eabe8d8ceeb8011f4c0c498399a9675e94bfa |
 | `docs/CHARACTER CONTRACT.md` | 공식 데이터 구조와 향후 값 입력·모듈 조합 데이터의 연결 계약 |  | cfbc8686792af841ddd7c9c5de0589e9a47b40a9c8ca192b5e42f5a280c70e4c |
@@ -30,7 +30,7 @@
 | `docs/VERIFICATION.md` | split.2 검수 발견 오류·수정·통과 검사·실행 한계와 재현 방법 기록 |  | ae9d7cc0de36c42ea51f7ed040a8fc4ef8a53b31cb750f2bf010dc482d7038e9 |
 | `docs/WEAPON IMAGE GUIDE.md` | 무기181 화살비 장판 중심 넉백·공용형상 검수계약 |  | a90e1e0ed7172c96248df423fc9da2dce2b6f0869719087e1b0472e0cf2483c8 |
 | `docs/WEAPON UPDATES.md` | 무기181 화살비 장판 중심 넉백·공용형상 검수계약 |  | 1ffb9e450ba47736f47d6371576decf4ccabdc1893eb272e6434763cc25b2629 |
-| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | 3007159a8282bf23771f07d7845dd42798100f2d8a4a17901e192ca4969cfa22 |
+| `project.json` | 원본 기준·실행 순서·역할 메타데이터 |  | c1b1c855a396e5383b88be1f8a1875c038547037acd4eb2bdce04ebcbf7ea66e |
 | `src/abilities/AbilityAttackExecutionService.js` | 기술 실행·범용 기능 조합。 담당 선언/초기화: AbilityAttackExecutionService. | AbilityAttackExecutionService, execute | 6aa6f2993ec47e9ca212f2f318d8a66ae4266eaf68021cb10d1cc7710d0ce019 |
 | `src/abilities/AbilityModuleService.js` | 공용 능력모듈·공식 실제 오입력 inputErrorMotion·회피차단/자연회복 보존 | AbilityModuleService | cedfb168fb888fbc6cd1df961ddec16b7cb39c407cf4f03ad98e18b98e6c125c |
 | `src/abilities/AbilityService.js` | 공통 Trigger/능력 실행·선택 무기 해석·행동 결과의 모드 snapshot/입력 방향 | AbilityService, attackById, damageRatio, eventAttack, resolvedInputAttack, trigger, canActivate, activate | 6b265ec62f13153df17abc8966a5ab4ae8cebe388e97f99d669e19da01bacdeb |
@@ -48,11 +48,11 @@
 | `src/account/AccountUI.js` | 계정·프로필·기록。 담당 선언/초기화: AccountUI. | AccountUI, setMessage, setTab, getGuestIdentity, enter, enterGuest, logout, cancelFirebaseMigration, setSyncState, updateChip, restoreSession | 13a07c53435bda159f647a65d4720d1be435f30a7175d7d6c8c30d44778ec8db |
 | `src/account/AuthResolutionUI.js` | 계정·프로필·기록。 담당 선언/초기화: AuthResolutionUI. | AuthResolutionUI, pending, setPending, resolve | 837a15b8ebf8a36e99f3fa2305660df378f960588a2917b956bf5752bf1db5dd |
 | `src/account/CharacterRecordLiveRefreshService.js` | 계정·프로필·기록。 담당 선언/초기화: CharacterRecordLiveRefreshService. | CharacterRecordLiveRefreshService, profileFor, updateTooltip, updateCard, ownerPid, matchesOwner, refresh | 3ec824fe2b33b3c1c4d31727346b2fa21a98b9776990ece7d4ed41b596643a88 |
-| `src/account/CharacterRecordProgressionService.js` | 계정·프로필·기록。 담당 선언/초기화: CharacterRecordProgressionService. | CharacterRecordProgressionService, saveQueue, resultByRound, matchGeneration, departurePenaltyGeneration, authoritativeProgress, settlementEligibility, modeValues, teamSize, opposingTeamSize, teamWinMultiplier, won, placement, ffaTeamCount, ffaOutcome, ffaScoreMultiplier, characterId, captureAuthoritativeProgress, setAuthoritativeProgress, syncLocalRecordPresentation, applyOptimisticRecord, rebuildOptimisticProjection, showRecordCorrection, optimisticRoundResult, showRecordDelta, scheduleSave, applyServerProgress, applyRoundResult, applyDeparturePenalty, reset | 4bb6529bf911c7e45ccaae6afdfa962db2f401b2947fb16011ce1ca7e4ca7bab |
+| `src/account/CharacterRecordProgressionService.js` | 레코드 임시/서버 정산·서버 확정 캐시 반영·제출 누락/정산 차단 진단 | CharacterRecordProgressionService, saveQueue, resultByRound, matchGeneration, departurePenaltyGeneration, authoritativeProgress, settlementEligibility, modeValues, teamSize, opposingTeamSize, teamWinMultiplier, won, placement, ffaTeamCount, ffaOutcome, ffaScoreMultiplier, characterId, captureAuthoritativeProgress, setAuthoritativeProgress, syncLocalRecordPresentation, applyOptimisticRecord, rebuildOptimisticProjection, showRecordCorrection, optimisticRoundResult, showRecordDelta, scheduleSave, applyServerProgress, applyRoundResult, applyDeparturePenalty, reset | e401a05d5c57c768f241c1a11ee6f62043450ca4230a25fe4671da53f3d491d5 |
 | `src/account/CharacterRecordService.js` | 계정·프로필·기록。 담당 선언/초기화: CharacterRecordService. | CharacterRecordService, rankingCache, rankingCacheMs, allRankingState, clearRankingCache, masteryTiers, normalizeAllRankings, refreshTopPlayerBadges, loadAllRankings, stats, points, roman, masterStage, tier, applyMasterStageBadge, applyMasteryStyle, applyCardStyle, applyHudIconStyle, normalizeRanking, ranking, resetCardView, resetGridViews, detail, renderStats, renderRanking, cycle | acc1c07e7b13daf5612704650945af282876534f0148c9bebdd3d3c61bd69fbc |
 | `src/account/EntitySimulationAuthorityService.js` | 계정·프로필·기록。 담당 선언/초기화: EntitySimulationAuthorityService. | EntitySimulationAuthorityService, root, isLocal | 01f267424ad8aadadbe9bad6d954c47334f512769d7d89ed93149314318eed32 |
 | `src/account/FirebaseAccountCacheService.js` | 계정·프로필·기록。 담당 선언/초기화: FirebaseAccountCacheService. | FirebaseAccountCacheService, key, sanitize, save, load, remove | 2b309b03677f01455c6faef3cdd06b0fc759df5dae89e83fbee91fe500142228 |
-| `src/account/FirebaseAccountMigrationUI.js` | 계정·프로필·기록。 담당 선언/초기화: FirebaseAccountMigrationUI. | FirebaseAccountMigrationUI, legacyAccount, migrationToken, firebaseUser, gate, message, setProgressWarning, showForm, showNewAccountForm, resetLegacy, open, close, accountForGame, enterFirebaseProfile, afterGoogleLogin, verifyLegacy, migrateLegacy, createNew, switchGoogleAccount, bind | 80eaf90678cd917087b6fa2db2160347bfe317f8e8703c2da920b3fa51163737 |
+| `src/account/FirebaseAccountMigrationUI.js` | Firebase 로그인/마이그레이션·지연 계정 조회가 새 레코드/미확정 투영 덮어쓰기 방지·캐시 서버확정값 유지 | FirebaseAccountMigrationUI, legacyAccount, migrationToken, firebaseUser, gate, message, setProgressWarning, showForm, showNewAccountForm, resetLegacy, open, close, accountForGame, enterFirebaseProfile, afterGoogleLogin, verifyLegacy, migrateLegacy, createNew, switchGoogleAccount, bind | 46c7898ca00a6a9fab6b9a156351248783858de16ac0b8e378dd44b3effa7faf |
 | `src/account/FirebaseAccountPersistenceService.js` | 계정·프로필·기록。 담당 선언/초기화: FirebaseAccountPersistenceService. | FirebaseAccountPersistenceService, save | da754bcaebb5c3f5966a2e154110181655cb83f7683ecae75c7f4823911cc81b |
 | `src/account/FirebaseProfilePersistenceService.js` | 계정·프로필·기록。 담당 선언/초기화: FirebaseProfilePersistenceService. | FirebaseProfilePersistenceService, payload, save | a1815a493df2b56eb555f42182e8de952043521f8a84a9993faf9df02835c137 |
 | `src/account/FirebaseProgressPersistenceService.js` | 계정·프로필·기록。 담당 선언/초기화: FirebaseProgressPersistenceService. | FirebaseProgressPersistenceService, payload, save | ce26286b2ea5f974cc9069acc93b44a8f8c37d3080b2e9dbb74e9c933f9738e5 |
@@ -176,7 +176,7 @@
 | `src/core/MatchChoiceService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: MatchChoiceService. | MatchChoiceService, rarityWeights, shuffled, characterIds, characterOptions, augmentOptions | 2560515208c26176a8b0039dc2bf094ba2b479349da17a0ed9a2eca2bf3ab29f |
 | `src/core/MatchModeService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: MatchModeService. | MatchModeService, DUEL, FFA, TEAM, participants, teamCounts, isExactTwoVsTwo, resolve, isFfa, isTeam | 4f9b17e729db062011e6a284a5a9c028c5dec75477564ccfd3a3693c07c36a76 |
 | `src/core/MatchReadyCountdownService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: MatchReadyCountdownService. | MatchReadyCountdownService, seconds | 5930d1f441c78fc1ec578b70adb50870370873b497134345f005170283a4f5bd |
-| `src/core/MatchResultSubmissionService.js` | 서버 경기 결과 제출·계정별 HTTP 요청 직렬화·라운드별 독립 재시도·동일 정산 중복 방지 | MatchResultSubmissionService, queues, sleep, accountUid, participantSnapshot, payload, request, submitRound, submitDeparture | 5fc3285bfa9597080075fc521e04724877e0442ba9127ae203b94c055511dc48 |
+| `src/core/MatchResultSubmissionService.js` | 정산별 독립 재시도·계정별 요청 직렬화·서버 확정 대기/통신 거절 진단 | MatchResultSubmissionService, queues, sleep, accountUid, participantSnapshot, payload, request, submitRound, submitDeparture | 6ce415fd73d8958307b0260e485b6808d8f76caf2e1bd5ac2899c82e0b11aad5 |
 | `src/core/MatchSpawnService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: MatchSpawnService. | MatchSpawnService, shuffled, pointClear, polygon, pointMap | 3c07163775ddad3f0ce6247c801e781e3370d9af6aa514a5af3859433e44cb52 |
 | `src/core/ModeStateService.js` | 공용 모드상태·기존 turns/타임스탬프/원격복원·회전대기열 제거 | ModeStateService, KIND, key, state, current, set, toggle, serialize, applyRemote | 4ad4f1add03ce944935c37742397916e921b12d77bb33f95ae81d4bbdbe2bd24 |
 | `src/core/ModuleValueService.js` | 엔티티·실행 흐름·공통 서비스。 담당 선언/초기화: ModuleValueService. | ModuleValueService, summonFieldModifier, attackDamage, resolve | d9e4fc5cc59609311a73c1446db624f6bcd02457e77fc39a64f9b16e3a6c8968 |
@@ -362,7 +362,7 @@
 | `src/data/characters/mainmad.js` | mainmad 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. 분할 전 원본의 이동 선 미표시를 presentation:false로 보존. | mainmad | e7544d28270086082b2d1a57cb4ed68795f25d7757ce4426fd22bfc9827fc319 |
 | `src/data/characters/maisil.js` | 메이실 가위절삭·반격귀환 공용무력화넉백 | maisil | 9302079d28a868c6c938e24fa3fc91af18256b1124a6e0a2233725887efda96f |
 | `src/data/characters/mehugu.js` | mehugu 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | mehugu | 476bfee7b38525b0b25bfc0f6ff517a7f8a9fa8da0f280ce3093e2dc29d13cdb |
-| `src/data/characters/meramona.js` | 메라모나 순수 캐릭터 데이터·단계별 평타 판정/표시 두께2배 | meramona | 9c5f23b0be1201f02c913e0c79411c8da713dbe1c71da2db3d6d8c610bb3b0f9 |
+| `src/data/characters/meramona.js` | 메라모나 순수 캐릭터 데이터·모든 단계 평타 스테미나200/스킬400·두께2배·2회적중 성장/반격임시단계 | meramona | 562afad94c2e146939eabe3842bbd5f6020cef26d9a8efb6532dbf2090f73507 |
 | `src/data/characters/miaruky.js` | miaruky 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | miaruky | d1c73b139fff5cdff7c9e7195e771e0af89bbaf3db4b11d488d2a76bb3c0e145 |
 | `src/data/characters/nanamnang.js` | nanamnang 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. | nanamnang | 10d3a68c0d1c89fd0968f26ed3a2c71941efda09ed3baf4416cf79a69245f2ef |
 | `src/data/characters/nare.js` | nare 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.·스킬 비용800 | nare | 877c5d02fc731181c4093c09af641a3a10d69d1deefec0264ff3667511f1d458 |
@@ -464,7 +464,7 @@
 | `src/render/CharacterBanPresentationService.js` | 월드 시각 표현·이펙트·게이지。 담당 선언/초기화: CharacterBanPresentationService. | CharacterBanPresentationService, syncMark, apply | 3a99c27b5feaf5984f5f210c818fd6a9bcc4bb5b6a271a1e8cc288e57107831f |
 | `src/render/CharacterNamePresentationService.js` | 월드 시각 표현·이펙트·게이지。 담당 선언/초기화: CharacterNamePresentationService. | CharacterNamePresentationService, glow, apply | 3f391af6e11c5e436857fb3b6556da56a502c5280bab1223ccda29aa2c8621a1 |
 | `src/render/CharacterTriggerEffectService.js` | 캐릭터 공통 이벤트 Trigger 효과 체인·자원/진행도/Modifier 및 effect.spawn의 공통 AttackModuleService/EffectSpawnService 실행 | CharacterTriggerEffectService, run | bc4eea151439286f4d1c17de9e86b8f4252e614ff126e83c6f4c5835e26053f5 |
-| `src/render/ConditionalTargetLinkPresentationService.js` | 월드 시각 표현·이펙트·게이지。 담당 선언/초기화: ConditionalTargetLinkPresentationService. | ConditionalTargetLinkPresentationService, draw | 3750598696c9210b1eee542cfda753db92873690bf422ce10e06a5c0e1419eba |
+| `src/render/ConditionalTargetLinkPresentationService.js` | 공용 조건 대상 점선·공용 은신 시야 판정으로 숨겨진 적 연결 제외 | ConditionalTargetLinkPresentationService, draw | ddb5b674f1a1cc9c6e49be38a7af96220305ae0bf94f92a439aadc85bbe81baf |
 | `src/render/EffectPresentationVisibilityService.js` | 월드 시각 표현·이펙트·게이지。 담당 선언/초기화: EffectPresentationVisibilityService. | EffectPresentationVisibilityService, visible | ecc37ffcce9342e0ce6dc8fac2942ddacc09dca39f4e8d7d5cfdd43525ad90bd |
 | `src/render/EffectSpawnService.js` | 공용 효과 생성/복제·무기잔향 imageColor/imageConfig/알파/원래 생성좌표 전달 | EffectSpawnService, shouldPresentAttack, keyed, presets, resolve, networkClone, definitionSnapshot, resolvedSnapshot, presentationSnapshot, restorePresentationSnapshot, removeKey, getByKey, clearAll, compact, spawn, presentationRange, initAnimation, ease, normalizeAnglePositive, effectDamageTarget, applyProgressiveDamage, applyAnimationDamage, registerMovementDamage, appendMovementPathPresentation, appendRemoteMovementTimelinePresentation, applyMovementTrackedDamage, update | 6f736acb105250bf0fa037bb26278a4763c535b4ea09cb373305e4f6c8b53a25 |
 | `src/render/EntitySquashPresentationService.js` | 월드 시각 표현·이펙트·게이지。 담당 선언/초기화: EntitySquashPresentationService. | EntitySquashPresentationService, impactStates, wallStates, neutral, key, impact, wallContact, sample, reset | ace1a7ff3db62e29cc3607eec8a16f492633760c8c06ef30308291004c39cb79 |
@@ -557,10 +557,12 @@
 | `tools/test-match-submission.cjs` | 미확정 앞 라운드 뒤 제출 보장·HTTP 직렬화·동일ID 중복방지·재시도 snapshot 및 큐 정리 회귀 |  | dc7e253d46fe9b1503a2957a7c9d6f1268b95d948d34a1f2fa5c3f14a9d7dfdd |
 | `tools/test-meramona.cjs` | 메라모나피해/스킬2회조건·반격미적중단계와성장버프2그룹 |  | a0457e53e353578dc68387e0642d7d8db38957d1afeac1268889de8e49d8d15b |
 | `tools/test-movement-contact.cjs` | 실제 이동접촉 원격 판정 회귀·라임 경로 유지(레이카 반격은 정지점 회전으로 새 검사 이전) |  | dccab022202fb3f2815b35555cc08eaa379ebb980298974006cdc12992d8e653 |
+| `tools/test-record-sync.cjs` | 지연 로그인 응답의 최신 확정/미확정 레코드 유지·확정 캐시 갱신·프로필 적용 회귀 |  | 065de9c0b9aba801d86642c8d89e6ce8f4e558f632ed26ecabba7f375b473a04 |
 | `tools/test-reika.cjs` | 레이카12그룹·스킬6상태사용조건/활성충전2%·스킬/검기/잔상/이동전송 회귀 |  | 951e20f5813d5bf4fede87fbe945aa9d74aafb2afaf3d1034c8e8f8a350579e2 |
 | `tools/test-room-connection.cjs` | 모의 Peer 방 연결19그룹·복제 탭 identity/같은 기기 계정 독립 승인·이탈/승계/순서·충격 전달/반사 실제 Room 호스트 중계/클라이언트 수신 검사·모드 탭 DOM 질의 mock |  | 745eeb52667be46de3ce3070b8321556f1eb94d0bf0ae1cef740950aecf9e88f |
 | `tools/test-siro.cjs` | 시로 실제공격피해80·160·80 및 기존동작 회귀 |  | 3adbb03cbeee952070bc2558cf92af12aeff7cd0760f707b4ed3b93b9afcb0c8 |
 | `tools/test-structure.cjs` | 공용구조 및 남은 지오핀무기 태그 회귀 |  | fc8619125ace9e6754d303ce0c756fa527cf46a5ae4d113bce1dc72fe2345789 |
+| `tools/test-target-link.cjs` | 숨겨진 은신 적 연결 차단·일반/노출 적과50%경계 유지 검사 |  | 13415ab3535b7a0ccf47b295caa28016f8c7f360eada65f2fa673034e64c9cee |
 | `tools/test-tau-hit-move.cjs` | 타우 적중 후 이동 및 실제 외곽 네 방향/모서리 접촉점 이동·제거/비귀환 및 기본 귀환 정책 회귀 |  | 9c6a2000d508f20284a188333d79ab8244f3f5ab264a290024528a48616e6619 |
 | `tools/test-terdion.cjs` | 테르디온 폭약/공용 피해·스패너 체력피해 레이카 충전비율0.04 회귀 | test, load, carrier, damage, loadCancellation | 88ea06811c9b2e04fafe285113c40c614b672ee230aef8f6538dd32484d2570a |
 | `tools/test-timed-threshold.cjs` | 엔소냐 한칸/지속 충전·프레임/처리시각 차이·늦은 진입/이탈·적/원격 제외 회귀 |  | b0f5cc8f6ec0c872ffeb1dc7f18a0cbecfd222c6190bbba2c1126d5678aef5cf |

@@ -241,6 +241,18 @@ const CharacterRecordProgressionService={
       }
     };
 
+    // Cache only server-confirmed progress, never the optimistic projection.
+    const account=AccountState.current;
+    const user=globalThis.DuelsFirebase?.currentUser?.();
+    if(account?.firebaseAccount===true&&user&&account.firebaseUid===user.uid&&
+      typeof FirebaseAccountCacheService!=='undefined'){
+      FirebaseAccountCacheService.save({
+        ...account,
+        duelsAccountReady:true,
+        characterRecords:this.authoritativeProgress.characterRecords,
+        characterStats:this.authoritativeProgress.characterStats
+      },user);
+    }
     return this.authoritativeProgress;
   },
 
@@ -929,12 +941,20 @@ const CharacterRecordProgressionService={
     }
     const eligibility=this.settlementEligibility();
     if(!eligibility.allowed){
+      console.warn('[Duels] record settlement blocked',{roundToken:token,reason:eligibility.reason});
       const blocked={token,blocked:true,reason:eligibility.reason,delta:0};
       this.resultByRound.set(resultKey,blocked);
       return blocked;
     }
     const submission=MatchResultSubmissionService.payload(payload);
-    if(!submission)return null;
+    if(!submission){
+      console.error('[Duels] record submission snapshot missing',{
+        roundToken:token,hasMatchId:!!RoomService.serverMatchId,
+        participantCount:RoomService.matchPids().length,
+        participantsReady:!!MatchResultSubmissionService.participantSnapshot()
+      });
+      return null;
+    }
     const accountId=String(account.accountId||'');
     const optimistic=
       this.optimisticRoundResult(
