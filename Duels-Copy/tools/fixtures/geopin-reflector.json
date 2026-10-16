@@ -1,0 +1,29 @@
+{
+  "id": "summon.geopin.reflector",
+  "name": "반사 장치",
+  "maxHealth": 900,
+  "respawnHealth": 900,
+  "radius": 26,
+  "speed": 0,
+  "respawnDelay": 7000,
+  "projectileRelay": {
+    "family": "rubber",
+    "ownerOnly": true,
+    "searchRadius": 0,
+    "rotationStateKey": "reflector-spin"
+  },
+  "presentation": {
+    "color": "#e6ca3b"
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "gear",
+      "scale": 1.6,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "reflector-spin",
+      "rotationMs": 350
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+
+CombatHudInputShieldService.bind();

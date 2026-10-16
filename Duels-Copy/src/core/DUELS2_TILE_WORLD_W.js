@@ -1,0 +1,2 @@
+
+const DUELS2_TILE_WORLD_W = GAME_DATA.world.width / DUELS2_TILE_COLS;
