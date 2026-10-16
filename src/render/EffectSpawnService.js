@@ -61,6 +61,7 @@ const EffectSpawnService=Object.freeze({
     const result={};
     for(const [key,item] of Object.entries(value)){
       if(
+        key==='carrierState'||
         key==='animationState'||
         key==='rangeTransition'||
         key==='rangeSampleAt'||
@@ -120,6 +121,7 @@ const EffectSpawnService=Object.freeze({
     const effect=this.keyed.get(target)||null;
     if(!effect)return false;
 
+    if(typeof PathCarrierService!=='undefined')PathCarrierService.release(effect);
     this.keyed.delete(target);
     const index=Training.fx.indexOf(effect);
     if(index>=0){
@@ -133,6 +135,7 @@ const EffectSpawnService=Object.freeze({
     return this.keyed.get(target)||null;
   },
   clearAll(){
+    if(typeof PathCarrierService!=='undefined')for(const effect of Training.fx)PathCarrierService.release(effect);
     Training.fx.length=0;
     this.keyed.clear();
     if(typeof ModeGearPresentationService!=='undefined')ModeGearPresentationService.clearDeathRemnants();
@@ -254,6 +257,9 @@ const EffectSpawnService=Object.freeze({
       start:now,
       dur:Math.max(GAME_DATA.frameMs,Number(r.dur)||Number(r.duration)||GAME_DATA.frameMs),
       sourceEntityId,
+      attackId:r.attackId||context.attack?.id||null,
+      executionSequence:r.executionSequence??context.execution?.sequence??null,
+      abilityUseId:r.abilityUseId||context.abilityUseId||null,
       followSourceX:
         r.followSource===true
           ?Number(sourceEntity?.x)||Number(r.x)||0
@@ -491,7 +497,7 @@ const EffectSpawnService=Object.freeze({
           1,
           Math.max(0,previousProgress)*growthSpeed
         );
-      const currentLength=
+      let currentLength=
         range*
         Math.min(
           1,
@@ -500,6 +506,19 @@ const EffectSpawnService=Object.freeze({
       const angle=Number(effect.angle)||0;
       const cos=Math.cos(angle);
       const sin=Math.sin(angle);
+
+      if(state.deliveryInteractionResolved)return false;
+      let interaction=null;
+      if(damage.interactionAttackId){
+        if(!state.interactionAttack){
+          const linked=AbilityService.attackById(source.character,damage.interactionAttackId);
+          if(linked)state.interactionAttack=AugmentService.prepareAttack(source,linked,performance.now());
+        }
+        if(state.interactionAttack){
+          interaction=ProjectileRedirectService.pressureContact(source,state.interactionAttack,angle,{x:cx,y:cy},currentLength,halfWidth);
+          if(interaction)currentLength=Math.min(currentLength,interaction.length);
+        }
+      }
 
       const projectileClear=damage.projectileClear;
       if(
@@ -576,6 +595,11 @@ const EffectSpawnService=Object.freeze({
         };
         if(this.effectDamageTarget(effect,target,impactPoint))hitAny=true;
       },state.attack);
+      if(interaction&&!state.deliveryHadContact&&ProjectileRedirectService.resolvePressureContact(source,state.interactionAttack,angle,{x:cx,y:cy},range,interaction,`pressure:${source.id}:${state.execution.sequence}`)){
+        state.deliveryInteractionResolved=true;state.deliveryFollowupResolved=true;state.deliveryHadContact=true;
+        effect.range=interaction.length;effect.damage={...damage,module:{...module,range:interaction.length}};
+        return hitAny;
+      }
       if(currentLength>=range&&damage.missAttackId&&!state.deliveryFollowupResolved){
         state.deliveryFollowupResolved=true;
         if(!state.deliveryHadContact&&source.alive&&EntitySimulationAuthorityService.isLocal(source)){
@@ -913,6 +937,8 @@ const EffectSpawnService=Object.freeze({
           execution:state.execution,
           impact:{
             type:'effect-animation',
+            contactOnly:damage.contactOnly===true,
+            confirmContact:damage.confirmContact===true,
             shape:
               contactMode
                 ?'body-contact'
@@ -1005,6 +1031,7 @@ const EffectSpawnService=Object.freeze({
         ),
         easing:String(remoteTimeline.easing||'linear'),
         collision:remoteTimeline.collision||null,
+        reflectWalls:remoteTimeline.reflectWalls===true,
         enemyCollisionOvershoot:Math.max(0,Number(remoteTimeline.enemyCollisionOvershoot)||0),
         visualDistance:0,
         damageDistance:0
@@ -1358,6 +1385,31 @@ const EffectSpawnService=Object.freeze({
         );
 
         if(targetDistance>previousDistance+1e-6){
+          if(timeline.reflectWalls===true){
+            const anchor=timeline.collisionAnchor||(timeline.collisionAnchor=Object.create(source));
+            anchor.x=Number(timeline.currentX??timeline.startX)||0;
+            anchor.y=Number(timeline.currentY??timeline.startY)||0;
+            const segments=MovementAbilityService.reflectedPath(anchor,{collision:timeline.collision},
+              Number(timeline.currentAngle??timeline.angle)||0,targetDistance-previousDistance,
+              timeline.reflectionSegments||(timeline.reflectionSegments=[]));
+            let consumed=0;
+            for(const segment of segments){
+              if(segment.reflection)MovementAbilityService.resetReflectionDamage(source,effect,segment.angle);
+              if(effect.damage.resetHitsOnWallReflection===true)effect.angle=segment.angle;
+              const x=segment.fromX+Math.cos(segment.angle)*segment.distance;
+              const y=segment.fromY+Math.sin(segment.angle)*segment.distance;
+              applied=this.applyAnimationDamage(effect,segment.fromX,segment.fromY,x,y,{skipMovementValidation:true})||applied;
+              this.appendMovementPathPresentation(effect,segment.fromX,segment.fromY,x,y);
+              timeline.currentX=x;timeline.currentY=y;timeline.currentAngle=segment.angle;
+              consumed+=segment.distance;
+            }
+            timeline.damageDistance=previousDistance+consumed;
+            timeline.visualDistance=timeline.damageDistance;
+            if(consumed+1e-6<targetDistance-previousDistance){timeline.distance=timeline.damageDistance;timeline.stopped=true;}
+            state.movementDamagePreviousX=Number(source.x)||0;
+            state.movementDamagePreviousY=Number(source.y)||0;
+            return applied;
+          }
           const timelineAngle=Number(timeline.angle)||0;
           const timelineStartX=Number(timeline.startX)||0;
           const timelineStartY=Number(timeline.startY)||0;
@@ -1470,6 +1522,7 @@ const EffectSpawnService=Object.freeze({
   update(now=performance.now()){
     if(!Training.active)return false;
     for(const effect of Training.fx){
+      if(effect?.type==='pathCarrier')PathCarrierService.update(effect,now);
       if(effect?.entityDecoration===true){
         const owner=EntityService.items.get(String(effect.sourceEntityId||''));
         if(!owner?.alive||owner.character?.id!==effect.decorationCharacterId){

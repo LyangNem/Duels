@@ -109,6 +109,7 @@ const AttackModuleService=Object.freeze({
           execution,
           angle:Number(attackAngle)||0,
           now:performance.now(),
+          targetHealthSnapshots:conditionContext?.targetHealthSnapshots,
           beforeHitStatuses:
             conditionContext?.beforeHitStatuses||
             null
@@ -665,11 +666,13 @@ const AttackModuleService=Object.freeze({
       );
     }
   },
-  buildAngles(spec,angle){
+  buildAngles(spec,angle,execution=null){
     const count=this.pelletCount(spec);
     const spread=this.spread(spec);
     if(count===1)return [angle];
 
+    const pattern=this.module(spec,'pattern.scatter');
+    if(Array.isArray(pattern?.angles))return pattern.angles.map(offset=>angle+Number(offset));
     const angles=new Array(count);
     for(let index=0;index<count;index++){
       angles[index]=angle+(index/(count-1)-.5)*spread;
@@ -972,7 +975,7 @@ const AttackModuleService=Object.freeze({
           continue;
         }
 
-        const angles=this.buildAngles(spec,angle);
+        const angles=this.buildAngles(spec,angle,volley?.execution);
         const originPoint=projectile.origin?.type==='point'&&
           Number.isFinite(Number(projectile.origin.x))&&Number.isFinite(Number(projectile.origin.y))
             ?{x:Number(projectile.origin.x),y:Number(projectile.origin.y)}:source;
@@ -1005,6 +1008,8 @@ const AttackModuleService=Object.freeze({
             const point=NetworkCollisionPositionService.point(target);
             const impact={
               type:'direct',
+              contactOnly:module.contactOnly===true,
+              confirmContact:module.confirmContact===true,
               directionAngle:Number(angle)||0,
               origin:{x:Number(source.x)||0,y:Number(source.y)||0},
               point:{x:Number(point.x)||0,y:Number(point.y)||0}
@@ -1034,6 +1039,10 @@ const AttackModuleService=Object.freeze({
           );
           continue;
         }
+
+        const castGeometrySource=module.geometryOriginMode==='cast-source'
+          ?{x:Number(source.x)||0,y:Number(source.y)||0}
+          :null;
 
         const repeatCount=Math.max(
           1,
@@ -1182,7 +1191,8 @@ const AttackModuleService=Object.freeze({
               spec,
               areaAngle,
               areaModule,
-              areaVolley
+              areaVolley,
+              {geometrySource:castGeometrySource}
             );
           };
 
@@ -1195,6 +1205,7 @@ const AttackModuleService=Object.freeze({
                   Number(module.delay)||0
                 )
             )+
+            Math.max(0,Number(module.travelDelay)||0)+
             repeatInterval*repeatIndex;
 
           if(areaDelay<=0){
@@ -1695,6 +1706,7 @@ const AttackModuleService=Object.freeze({
           ),
           easing:String(movement.easing||'linear'),
           collision:{...movement.collision},
+          reflectWalls:movement.reflectWalls===true,
           enemyCollisionOvershoot:Math.max(0,Number(movement.enemyCollisionOvershoot)||0)
         };
       }
@@ -2162,6 +2174,14 @@ const AttackModuleService=Object.freeze({
           module
         );
         return;
+      }
+
+      if(type==='projectile.redirect'&&module.when==='after-attack'){
+        if(!EntitySimulationAuthorityService.isLocal(source))return;
+        const key=`projectile.redirect:${moduleKey}`;
+        if(AttackExecutionService.hasEffect(execution,key))return;
+        AttackExecutionService.markEffect(execution,key);
+        ProjectileRedirectService.retargetOwned(source,module);return;
       }
 
       if(type==='cooking.acquire'&&module.when==='after-attack'){if(EntitySimulationAuthorityService.isLocal(source))CookingService.acquire(source,Math.max(0,Number(module.amount)||0));return;}
@@ -2820,6 +2840,7 @@ const AttackModuleService=Object.freeze({
                     !state||
                     state!==expected||
                     state.kind!=='timed-action-state'||
+                    state.completionPending!==true||
                     (
                       state.characterId!==String(source.character?.id||'')
                     )||
@@ -2827,6 +2848,7 @@ const AttackModuleService=Object.freeze({
                   )return;
                   const completedAt=performance.now();
                   state.completionPending=false;
+                  state.expiresAt=completedAt;
                   const retainMs=Math.max(0,Number(state.retainCompleteMs)||0);
                   if(retainMs>0){
                     state.completedAt=completedAt;
@@ -2894,6 +2916,13 @@ const AttackModuleService=Object.freeze({
                   source.attackPreview=null;
               };
 
+              expected.resolveNow=()=>{
+                if(expected.completionPending!==true)return false;
+                if(forcedMovementInterruptible)AttackWindupService.sendCommit(source,continuationKey);
+                resolveWindow();
+                return true;
+              };
+
               if(
                 forcedMovementInterruptible&&
                 execution?.networkReplay===true
@@ -2914,15 +2943,7 @@ const AttackModuleService=Object.freeze({
                     forcedMovementInterruptible
                       ?'state-window-resolve'
                       :null,
-                  continue:()=>{
-                    if(forcedMovementInterruptible){
-                      AttackWindupService.sendCommit(
-                        source,
-                        continuationKey
-                      );
-                    }
-                    resolveWindow();
-                  }
+                  continue:()=>expected.resolveNow()
                 });
               }
             }
@@ -2939,6 +2960,9 @@ const AttackModuleService=Object.freeze({
       if(type==='equipment.discover'&&module.when==='after-attack'){
         ReactiveEquipmentService.resolveCurrent(source,module,performance.now());
         return;
+      }
+      if(type==='attack.select'&&module.when==='after-attack'){
+        SelectableAttackService.execute(source,module,angle,execution);return;
       }
       if(type==='mode.toggle'&&module.when==='after-attack'){
         ModeStateService.toggle(
@@ -3285,6 +3309,11 @@ const AttackModuleService=Object.freeze({
         if(Training.sessionMode==='online'&&!EntitySimulationAuthorityService.isLocal(target))return;
         const mealCount=Math.max(0,Math.floor(Number(deliveryModule?.projectile?.cookingMealMeta?.count)||Number(execution?.cookingMealCount)||0));
         CookingService.applyThrownMeal(source,target,mealCount);
+        return;
+      }
+
+      if(type==='health.start-natural-regen'&&module.when==='on-hit'){
+        if(EntitySimulationAuthorityService.isLocal(target))NaturalHealthRegenActivityService.startNow(target,performance.now());
         return;
       }
 

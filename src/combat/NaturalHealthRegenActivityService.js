@@ -83,11 +83,12 @@ const NaturalHealthRegenActivityService=Object.freeze({
         Number(entity.lastNaturalRegenBlockTime)||0,
         readyAt
       );
-    entity.nextHealthRegenAt=
-      Math.max(
-        0,
-        Number(now)||performance.now()
-      );
+    // Repeated force-starts may remove the idle gate, never the healing cadence.
+    const lastTick=Number(entity.lastNaturalHealthRegenTickAt);
+    const cadenceAt=entity.lastNaturalHealthRegenTickAt!=null&&Number.isFinite(lastTick)
+      ?lastTick+Math.max(1,Number(entity.healthRegenPolicy.tick)||1)
+      :0;
+    entity.nextHealthRegenAt=Math.max(Number(now)||performance.now(),cadenceAt);
     return true;
   }
 });

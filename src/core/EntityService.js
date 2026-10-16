@@ -69,6 +69,7 @@ const EntityService={
       lastDamageSourcePid:null,
       lastNaturalRegenBlockTime:0,
       nextHealthRegenAt:0,
+      lastNaturalHealthRegenTickAt:null,
       healthRegenPolicy:spec.healthRegenPolicy||null,
       lastAttackTime:0,
       buffRegenTickAt:performance.now(),

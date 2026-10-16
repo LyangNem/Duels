@@ -198,7 +198,7 @@ const WorldGaugeModuleService=Object.freeze({
             :Number(module.range)||0
         );
         if(radius>0){
-          const rgb=ColorService.rgbString(module.color||entity.color,'139,108,217');
+          const rgb=ColorService.rgbString(this.variant(entity,module.colorVariants)?.color||module.color||entity.color,'139,108,217');
           ctx.save();
           ctx.beginPath();
           ctx.arc(Number(entity.x)||0,Number(entity.y)||0,radius,0,Math.PI*2);

@@ -19,6 +19,21 @@
         completePulseColor: "230,221,133"
       }
     },
+    worldEffectModules: [
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "tape-measure",
+    "scale": 1.8,
+    "angle": -0.3,
+    "motionStateKey": "ruli-measure-motion",
+    "motionMs": 260,
+    "motion": {
+      "rotation": 0.12,
+      "travelY": -0.06
+    }
+  }
+],
     tooltipSkills: [
       {key: "LMB", name: "줄자", attack: "lmb", text: "현재 단계의 사거리 끝에서 피해 ({damage})"},
       {key: "RMB", name: "길이 증가", attack: "rangeAdjust", showCost: false, text: "줄자의 길이 증가"},
@@ -71,19 +86,23 @@
             centerDistance: characterValue("rulerPresentation.originDistance"),
             rectCenterMode: "center",
             wallPolicy: "block",
+            travelDelay: characterProduct(characterValue("rulerPresentation.strikeDuration"), characterValue("rulerPresentation.travelFraction")),
+            geometryOriginMode: "cast-source",
             visual: false
           },
           {
             type: "effect.spawn",
             when: "after-attack",
             renderType: "rulerStrike",
+            animateOutline: true,
             position: "source",
             stage: 1,
             stages: characterValue("rulerPresentation.maxStage"),
             strikeLength: characterValue("rulerPresentation.halfWidth", 2),
             strikeWidth: characterValue("rulerPresentation.depth"),
             color: "230,221,133",
-            durationFrames: 18,
+            duration: characterValue("rulerPresentation.strikeDuration"),
+            travelFraction: characterValue("rulerPresentation.travelFraction"),
             targetFromAreaCenter: true,
             syncAreaRectGeometry: true,
             startAtSourceRadius: true
@@ -168,6 +187,7 @@
         inputPolicy: {
           deferTapUntilRelease: true,
           holdRepeatProgress: {
+            onChangeModes: [{"type": "mode.toggle", "when": "after-attack", "stateKey": "ruli-measure-motion", "values": ["a", "b"], "step": 1}],
             stateKey: "ruli-range-stage",
             interval: 200,
             amount: 1,
@@ -190,6 +210,7 @@
           modules: [
             {
               type: "state.progress",
+              onChangeModes: [{"type": "mode.toggle", "when": "after-attack", "stateKey": "ruli-measure-motion", "values": ["a", "b"], "step": 1}],
               stateKey: "ruli-range-stage",
               operation: "add",
               amount: 1,
@@ -235,6 +256,8 @@
       }
     },
     rulerPresentation: {
+      strikeDuration: 300,
+      travelFraction: 0.45,
       stateKey: "ruli-range-stage",
       stageAttackId: "attack.ruli.lmb",
       counterAttackId: "attack.ruli.counter",

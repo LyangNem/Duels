@@ -54,15 +54,15 @@ function mode(e){return c.ModeStateService.current(e,'reika-mode','normal');}
 function damageCharge(e,amount){c.CharacterTriggerEffectService.run(e,'damage-dealt',{source:e,target:entity({id:'enemy',teamId:'B'}),attack:ch.attacks.lmbBlessed,amount,healthDamage:amount,now:clock});}
 test('스펙·제거된 가호 스킬/회피 변형·기본 근거리 상한',()=>{
  assert.equal(ch.maxHealth,1300);assert.equal(ch.speed,3.75);assert.equal(ch.title,'태양의 기사');assert.equal(ch.color,'#ff7a00');
- assert.equal(ch.attacks.lmb.range,275);assert.equal(ch.attacks.lmbBlessed.range,275);assert.equal(ch.attacks.gahoWeapon.range,500);
+ assert.equal(ch.attacks.lmb.range,300);assert.equal(ch.attacks.lmbBlessed.range,300);assert.equal(ch.attacks.gahoWeapon.range,500);
  for(const key of ['rmbPush','gahoActivate','counterBlessed','counterBlessedExplosion'])assert.equal(ch.attacks[key],undefined);
  assert.equal(ch.passives.some(p=>p.type==='dodge.trail-field'),false);
  for(const ability of [ch.abilities.rmb,ch.abilities.counter])assert.equal(ability.trigger.modules.some(m=>m.alternateWhen||m.alternates),false);
 });
-test('가호 중 적중 충전 복구·일반/활성50피해2%·소진 복귀',()=>{
- const e=entity();gauge(e,50);c.ModeStateService.set(e,'reika-mode','blessed','normal');damageCharge(e,100);assert.equal(value(e),54);damageCharge(e,5000);assert.equal(value(e),200);
+test('가호 중 적중 충전 복구·일반/활성50피해3%·소진 복귀',()=>{
+ const e=entity();gauge(e,50);c.ModeStateService.set(e,'reika-mode','blessed','normal');damageCharge(e,100);assert.equal(value(e),56);damageCharge(e,5000);assert.equal(value(e),200);
  c.PassiveProgressRateService.update(e,clock);clock+=250;c.PassiveProgressRateService.update(e,clock);assert.equal(value(e),193.75);assert.equal(mode(e),'blessed');
- gauge(e,1);clock+=250;c.PassiveProgressRateService.update(e,clock);assert.equal(value(e),0);assert.equal(mode(e),'normal');damageCharge(e,50);assert.equal(value(e),2);damageCharge(e,5000);assert.equal(value(e),200);
+ gauge(e,1);clock+=250;c.PassiveProgressRateService.update(e,clock);assert.equal(value(e),0);assert.equal(mode(e),'normal');damageCharge(e,50);assert.equal(value(e),3);damageCharge(e,5000);assert.equal(value(e),200);
 });
 test('스킬은 100%이상/비활성에서만 입력허용·100%미만/활성은 공격/미리보기 없음',()=>{
  for(const initial of [0,99,100,150,200]){
@@ -87,7 +87,7 @@ test('반격은 실제 정지 위치에서만 회전 타격·적 충돌/최대 �
   clock=1000;areas=[];c.EntityService.items.clear();const e=entity(),enemy=entity({id:'enemy',teamId:'B',x:targetX});c.EntityService.items.set(e.id,e);c.EntityService.items.set(enemy.id,enemy);
   c.TriggeredAttackService.execute(e,ch.attacks.counter,0);assert.equal(areas.length,0);
   clock=1220;c.MovementAbilityService.update(e,clock,220,{x:0,y:0});assert.equal(areas.length,1);assert.equal(areas[0].a.id,ch.attacks.counterSpin.id);
-  assert.equal(e.x,targetX===500?484:675);assert.ok(c.ModeStateService.state(e,'reika-sword-rotation'));assert.equal(e.actionState.has('movement:move'),false);
+  assert.equal(e.x,targetX===500?484:700);assert.ok(c.ModeStateService.state(e,'reika-sword-rotation'));assert.equal(e.actionState.has('movement:move'),false);
  }
 });
 test('가호 검격100·875 범위투사체 검기100/화염·적 관통/벽 차단',()=>{
@@ -105,10 +105,10 @@ test('제자리 공중 궤적은 시간으로 유지·원격 동일 높이·시�
 });
 test('스킬 목표점500 제한·활성중 스킬타격도 게이지 충전',()=>{
  const e=entity();gauge(e,200);c.SimulationScheduleService.clear();c.TriggeredAttackService.execute(e,ch.attacks.gahoWeapon,0,{targetPoint:{x:1400,y:500}});clock+=220;c.SimulationScheduleService.update(clock);assert.equal(shots[0].targetPoint.x,900);
- gauge(e,0);c.ModeStateService.set(e,'reika-mode','blessed','normal');damageCharge(e,200);c.AttackModuleService.onDeliveryResolved(e,ch.attacks.gahoLand,0,c.AttackExecutionService.create(e,ch.attacks.gahoLand,0));assert.equal(mode(e),'blessed');assert.equal(value(e),8);
+ gauge(e,0);c.ModeStateService.set(e,'reika-mode','blessed','normal');damageCharge(e,200);c.AttackModuleService.onDeliveryResolved(e,ch.attacks.gahoLand,0,c.AttackExecutionService.create(e,ch.attacks.gahoLand,0));assert.equal(mode(e),'blessed');assert.equal(value(e),12);
 });
-test('50피해당 100%기준2%·낙하2타 같은180범위·소모25·스윕 제거',()=>{
- const e=entity();gauge(e,0);damageCharge(e,50);assert.equal(value(e),2);assert.equal(value(e)/100,.02);
+test('50피해당 100%기준3%·낙하2타 같은180범위·소모25·스윕 제거',()=>{
+ const e=entity();gauge(e,0);damageCharge(e,50);assert.equal(value(e),3);assert.equal(value(e)/100,.03);
  for(const m of [ch.triggers[0].modules[0],...ch.passives]){assert.equal(m.presentation.layers,2);assert.equal(m.presentation.readyAtRatio,.5);} 
  assert.equal(ch.attacks.gahoSlam.range,180);assert.equal(ch.attacks.gahoLand.range,180);assert.equal(ch.passives[1].ratePerSecond,-25);
  for(const key of ['lmb','lmbBlessed']){const fx=ch.attacks[key].modules.find(m=>m.renderType==='arcSweep');assert.equal(fx.animateSweep,false);}
@@ -148,7 +148,7 @@ test('반격 이동은 실제 이동분만 잔선 생성·상태별 색·온라�
   let emitted=[],packets=[];c.EffectSpawnService.spawn=fx=>(emitted.push(fx),fx);c.OnlinePresentationSyncService.shouldSend=()=>true;c.OnlinePresentationSyncService.send=(...args)=>packets.push(args);
   c.TriggeredAttackService.execute(e,ch.attacks.counter,0);assert.equal(emitted.length,0);
   clock=1016;c.MovementAbilityService.update(e,clock,16);assert.ok(emitted.length>0);const fx=emitted[0];
-  assert.equal(fx.x,400);assert.equal(fx.tx,e.x);assert.ok(fx.tx<675);assert.equal(fx.dur,250);assert.equal(fx.color,blessed?'56,189,248':'255,122,0');assert.equal(packets[0][0],'effect-spawn');
+  assert.equal(fx.x,400);assert.equal(fx.tx,e.x);assert.ok(fx.tx<700);assert.equal(fx.dur,200);assert.equal(fx.width,7);assert.equal(fx.color,blessed?'56,189,248':'255,122,0');assert.equal(packets[0][0],'effect-spawn');
  }
  c.OnlinePresentationSyncService.shouldSend=()=>false;
 });

@@ -23,6 +23,113 @@
         gap: 2
       }
     ],
+    worldEffectModules: [
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "magical-wand",
+    "scale": 2.0,
+    "angle": 0.4,
+    "motionStateKey": "meramona-wand-motion",
+    "motionMs": 400,
+    "motion": {
+      "rotation": -0.35,
+      "travelY": -0.12
+    }
+  },
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "magical-wand-1",
+    "scale": 2.0,
+    "angle": 0.4,
+    "motionStateKey": "meramona-wand-motion",
+    "motionMs": 400,
+    "motion": {
+      "rotation": -0.35,
+      "travelY": -0.12
+    },
+    "conditions": [
+      {
+        "type": "state.progress-sum-gte",
+        "stateKeys": [
+          "meramona-stage",
+          "meramona-temp-stage"
+        ],
+        "value": 1
+      }
+    ]
+  },
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "magical-wand-2",
+    "scale": 2.0,
+    "angle": 0.4,
+    "motionStateKey": "meramona-wand-motion",
+    "motionMs": 400,
+    "motion": {
+      "rotation": -0.35,
+      "travelY": -0.12
+    },
+    "conditions": [
+      {
+        "type": "state.progress-sum-gte",
+        "stateKeys": [
+          "meramona-stage",
+          "meramona-temp-stage"
+        ],
+        "value": 2
+      }
+    ]
+  },
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "magical-wand-3",
+    "scale": 2.0,
+    "angle": 0.4,
+    "motionStateKey": "meramona-wand-motion",
+    "motionMs": 400,
+    "motion": {
+      "rotation": -0.35,
+      "travelY": -0.12
+    },
+    "conditions": [
+      {
+        "type": "state.progress-sum-gte",
+        "stateKeys": [
+          "meramona-stage",
+          "meramona-temp-stage"
+        ],
+        "value": 3
+      }
+    ]
+  },
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "magical-wand-4",
+    "scale": 2.0,
+    "angle": 0.4,
+    "motionStateKey": "meramona-wand-motion",
+    "motionMs": 400,
+    "motion": {
+      "rotation": -0.35,
+      "travelY": -0.12
+    },
+    "conditions": [
+      {
+        "type": "state.progress-sum-gte",
+        "stateKeys": [
+          "meramona-stage",
+          "meramona-temp-stage"
+        ],
+        "value": 4
+      }
+    ]
+  }
+],
     tooltipSkills: [
       {
         key: "ALWAYS",
@@ -82,8 +189,9 @@
             max: 2,
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbStage1: {
@@ -113,8 +221,9 @@
             max: characterValue("attacks.lmb.modules.2.max"),
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbStage3: {
@@ -144,8 +253,9 @@
             max: characterValue("attacks.lmb.modules.2.max"),
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbStage4: {
@@ -199,8 +309,9 @@
             max: characterValue("attacks.lmb.modules.2.max"),
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       rmb: {
@@ -210,7 +321,9 @@
         cd: 500,
         range: 170,
         effectsOnly: true,
-        modules: [],
+        modules: [
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["스킬", "선딜레이"]
       },
       emerge: {
@@ -245,8 +358,9 @@
             distance: 140,
             speed: 10,
             oncePerExecution: true
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["스킬"]
       },
       counter: {
@@ -303,8 +417,9 @@
             sourceId: "meramona:stage-attack-rate",
             recipient: "source",
             conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 3}]
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["반격"]
       }
     },

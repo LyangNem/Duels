@@ -145,7 +145,7 @@
     {
       "key": "/",
       "name": "/fix",
-      "text": "잃은 체력의 {v:commandFeatures.fixMissingHealthRatio|percent}% 회복"
+      "text": "{v:commandFeatures.fixRegeneration.duration|seconds}초 재생. 초당 {v:commandFeatures.fixRegeneration.value} 회복 (사용마다 즉시 회복 및 회복 주기 갱신, 중첩 불가)"
     },
     {
       "key": "/",
@@ -219,7 +219,7 @@
               "type": "movement.knockback",
               "target": "hit-target",
               "direction": "away-from-source",
-              "distance": 160,
+              "distance": 80,
               "speed": 12,
               "oncePerExecution": true
             }
@@ -269,6 +269,16 @@
             "coreColor": "225,233,238",
             "centerColor": "255,255,255"
           }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "gae-laser-image",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -297,6 +307,8 @@
           "type": "effect.spawn",
           "when": "after-attack",
           "renderType": "areaCircle",
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true,
           "position": "source",
           "range": {
             "$ref": "attacks.counter.range"
@@ -309,6 +321,17 @@
           "strokeAlpha": 0.9,
           "lineWidth": 2.5,
           "durationFrames": 14
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "weaponImageEcho",
+          "position": "source",
+          "target": "source",
+          "duration": 650,
+          "expansion": 0.55,
+          "imageAlpha": 1,
+          "oncePerExecution": true
         }
       ],
       "tags": [
@@ -340,6 +363,17 @@
           "type": "status.apply",
           "status": "discharge",
           "duration": 1000
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "weaponImageEcho",
+          "position": "source",
+          "target": "source",
+          "duration": 650,
+          "expansion": 0.55,
+          "imageAlpha": 1,
+          "oncePerExecution": true
         }
       ],
       "tags": [
@@ -493,7 +527,7 @@
     }
   },
   "commandFeatures": {
-    "fixMissingHealthRatio": 0.2,
+    "fixRegeneration": {"value": 50, "duration": 5000, "tickInterval": 1000},
     "fixGlowDuration": 1000,
     "laser": {
       "speed": 30,
@@ -524,5 +558,225 @@
       "resultHoldMs": 2000,
       "resultFadeMs": 450
     }
-  }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-emitter",
+      "scale": 2.125,
+      "angle": 0,
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-range-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:laser-range",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-wide-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:laser-wide",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-knockback-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:knockback",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-accelerate-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:accelerate",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-instant-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:laser-instant",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-pierce-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:laser-pierce",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-electric-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:electric",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "color": "#e7cf62"
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-dual-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:laser-dual",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    }
+  ]
 }

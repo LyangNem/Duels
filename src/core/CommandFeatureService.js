@@ -14,7 +14,7 @@ const CommandFeatureService={
     if(!e._commandFeatureInitialized){e._commandFeatureInitialized=true;e._commandOverclock=null;ModeStateService.set(e,this.stateKey('laser'),'active','active');}
     return true;
   },
-  resetEntity(e){if(!e)return false;for(const f of ['laser',...this.featureEntries.map(x=>x.feature)])e.actionState?.delete(ModeStateService.key(this.stateKey(f)));e._commandFixGlowUntil=0;e._commandFeatureInitialized=false;return true;},
+  resetEntity(e){if(!e)return false;for(const f of ['laser',...this.featureEntries.map(x=>x.feature)])e.actionState?.delete(ModeStateService.key(this.stateKey(f)));if(e.buffs&&typeof BuffService!=='undefined')BuffService.remove(e,'regeneration',`${String(e.id||'source')}:command-fix`);e._commandFixGlowUntil=0;e._commandFeatureInitialized=false;return true;},
   has(e,f){return f==='fix'?performance.now()<Number(e?._commandFixGlowUntil||0):ModeStateService.current(e,this.stateKey(f),f==='laser'?'active':'inactive')==='active';},
   networkSnapshot(e){if(!this.isCharacter(e))return null;return ['laser',...this.featureEntries.filter(x=>!x.oneShot).map(x=>x.feature)].filter(f=>this.has(e,f));},
   applyNetworkSnapshot(e,snapshot){if(!this.isCharacter(e)||!Array.isArray(snapshot))return false;for(const f of ['laser',...this.featureEntries.filter(x=>!x.oneShot).map(x=>x.feature)])this.setState(e,f,snapshot.includes(f),{network:true});return true;},
@@ -22,7 +22,14 @@ const CommandFeatureService={
   runFix(e,{network=false}={}){
     if(!this.ensure(e))return false;
     e._commandFixGlowUntil=performance.now()+Number(e.character.commandFeatures.fixGlowDuration||1000);
-    if(!network&&EntitySimulationAuthorityService.isLocal(e))ResourceRestoreEffectService.apply({source:e,target:e,module:{type:'resource.restore',resource:'health',recipient:'source',missingResourceRatio:e.character.commandFeatures.fixMissingHealthRatio,applyHealingModifier:false}});
+    if(!network&&e.alive&&EntitySimulationAuthorityService.isLocal(e)){
+      const regen=e.character.commandFeatures.fixRegeneration;
+      if(regen){
+        const now=performance.now(),key=`${String(e.id||'source')}:command-fix`;
+        BuffService.refresh(e,'regeneration',regen.value,key,regen.duration,{tickInterval:regen.tickInterval,nextTick:now+Math.max(1,Number(regen.tickInterval)||1000),localOnly:true});
+        ResourceRestoreEffectService.apply({source:e,target:e,module:{type:'resource.restore',resource:'health',recipient:'source',amount:regen.value,presentation:'regeneration'}});
+      }
+    }
     if(!network)GameplayFeatureStateSyncService.send(e,'command','fix',true);
     return true;
   },

@@ -2,6 +2,9 @@
 
 const AttackWindupService=Object.freeze({
   TAG:'선딜레이',
+  interruptingStatuses:Object.freeze(['stun','freeze','neutralize','sleep']),
+  statusInterrupts(type){return this.interruptingStatuses.includes(String(type));},
+  hasInterruptingStatus(entity,now=performance.now()){return this.interruptingStatuses.some(type=>(entity?.statuses?.get(type)||[]).some(entry=>entry.end>now));},
   remoteContinuations:new WeakMap(),
   pendingRemoteCommits:new WeakMap(),
   windupEffects:new WeakMap(),
@@ -407,11 +410,9 @@ const AttackWindupService=Object.freeze({
     if(
       typeof CircleFormationService!==
         'undefined'&&
-      CircleFormationService
-        .cancelWindupOnForcedMovement?.(
-          entity,
-          reason
-        )
+      (this.statusInterrupts(reason)
+        ?CircleFormationService.cancelActivation(entity,reason)
+        :CircleFormationService.cancelWindupOnForcedMovement?.(entity,reason))
     ){
       changed=true;
     }
@@ -428,8 +429,8 @@ const AttackWindupService=Object.freeze({
     }
 
     /*
-     * 반격기는 데이터 태그 통합 대상에서는 제외하지만,
-     * 기존 공통 counter windup 자체는 강제이동에 계속 취소된다.
+     * 명시적 전체 선딜 취소 API에서는 반격 대기도 함께 정리한다.
+     * 강제이동 호출 경로는 이 API를 호출하지 않으므로 반격 선딜이 유지된다.
      */
     if(entity.counterWindup){
       const abilityId=

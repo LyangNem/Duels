@@ -18,6 +18,10 @@ const AbilityModuleService=Object.freeze({
   },
 
   handlers:Object.freeze({
+    'movement.path-carrier'(context,next,module){
+      if(context.executed===true&&context.dragReady===true)PathCarrierService.start(context,module);
+      next();
+    },
     'formula.sequence-input'(context,next,module){
       if(context.network===true){
         if(String(context.resolvedAttackId||'').startsWith('formula:')){
@@ -133,6 +137,10 @@ const AbilityModuleService=Object.freeze({
         context.suppressStealthRevealOnAbilityUse=true;
       }
       next();
+    },
+    'formation.remove'(context,next,module){
+      context.executed=CircleFormationService.removeAtPointer(context.source,CircleFormationService.templatePointer(context.source));
+      context.handled=true;next();
     },
     'formation.place-minimum'(context,next,module){
       if(
@@ -573,6 +581,7 @@ const AbilityModuleService=Object.freeze({
         context.handled=true;
         context.executed=true;
         context.resolvedAttackId=`state-window:${stateKey}`;
+        if(module.resolveImmediately===true&&typeof state.resolveNow==='function')state.resolveNow();
         if(module.stopOnHandled===true)return;
         next();
         return;
@@ -1171,6 +1180,19 @@ const AbilityModuleService=Object.freeze({
               :item
           ))
         };
+      }
+
+      if(context.network!==true&&matchedCandidate?.targetStateKey){
+        const targetState=TimedActionStateService.state(source,String(matchedCandidate.targetStateKey),now);
+        const targetId=String(targetState?.data?.targetEntityId||'');
+        const target=targetId?EntityService.items.get(targetId):null;
+        if(!target?.alive||RelationService.relation(source,target)!=='enemy'){
+          if(targetState)TimedActionStateService.consume(source,targetState.stateKey,now);
+          context.handled=true;
+          next();
+          return;
+        }
+        context.targetEntityId=targetId;
       }
 
       const executed=AbilityAttackExecutionService.execute(
@@ -2239,6 +2261,14 @@ const AbilityModuleService=Object.freeze({
       if(module.state==='counter-ready')context.source.counterReadyUntil=0;
       next();
     },
+    'attack.select.prepare'(context,next,module){
+      if(!AttackService.previewReady(context.source,context.attack,performance.now(),true)){
+        context.handled=true;
+        return;
+      }
+      context.attack=SelectableAttackService.prepare(context.source,context.attack,module.duration);
+      next();
+    },
     'preview.create'(context,next,module){
       if(
         context.skipAttackWindup===true&&
@@ -2265,7 +2295,9 @@ const AbilityModuleService=Object.freeze({
           )
           :context.attack;
       const resolvedPreviewAttack=
-        module.attackId
+        context.attack?.selectionPrepared===true&&!module.attackId
+          ?context.attack
+          :module.attackId
           ?previewAttack
           :(
             AbilityService.resolvedInputAttack(
@@ -2331,6 +2363,7 @@ const AbilityModuleService=Object.freeze({
         ){
           created.liveTracking={
             attackId:String(resolvedPreviewAttack?.id||''),
+            preparedAttack:resolvedPreviewAttack?.selectionPrepared===true?resolvedPreviewAttack:null,
             aimMode:String(module.aimMode||'locked'),
             followSource:module.followSource===true,
             includeDeliveryAreas:module.includeDeliveryAreas!==false,
@@ -2355,6 +2388,12 @@ const AbilityModuleService=Object.freeze({
       }
 
       GameEvents.emit('ability-telegraph',context);
+      next();
+    },
+    'modifier.remove'(context,next,module){
+      if(module.requireExecuted!==true||context.executed===true){
+        BuffService.remove(context.source,String(module.stat||''),String(module.sourceId||''));
+      }
       next();
     },
     'modifier.set'(context,next,module){
@@ -2497,6 +2536,8 @@ const AbilityModuleService=Object.freeze({
           :'';
 
       const resume=()=>{
+        // Only a started attack windup may finish through CC; new input still checks canAct.
+        if(duration>0&&context.executed!==true&&context.attack)context.completedWindup=true;
         if(module.aimMode==='live-source'){
           const liveAngle=Number(context.resolveAim?.());
           if(Number.isFinite(liveAngle))context.angle=liveAngle;
@@ -2542,6 +2583,7 @@ const AbilityModuleService=Object.freeze({
         source:context.source,
         abilityId:context.ability.id,
         interruptibleWindup,
+        attackWindup:duration>0&&context.executed!==true&&!!context.attack,
         windupKind:
           interruptibleWindup
             ?'ability-delay'

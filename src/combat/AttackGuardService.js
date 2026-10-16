@@ -268,7 +268,11 @@ const AttackGuardService=Object.freeze({
         continue;
       }
 
-      if(guard.source!==target)continue;
+      if(guard.source!==target){
+        if(guard.spec?.protectArea!==true||
+          !(guard.spec.protectRelations||['self','ally']).includes(RelationService.relation(guard.source,target))||
+          !this.containsPoint(guard,Number(target.x)||0,Number(target.y)||0,Number(target.radius)||0))continue;
+      }
       if(!this.hostile(guard,attackSource))continue;
 
       if(this.isHitscan(context)){

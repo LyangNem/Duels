@@ -41,7 +41,7 @@ const CharacterPassiveBuffService=Object.freeze({
 
     return Number(ref?.value)||0;
   },
-  sync(entity){
+  sync(entity,context={}){
     if(!entity?.buffs)return false;
     const characterId=String(entity.character?.id||'');
     let changed=false;
@@ -67,16 +67,22 @@ const CharacterPassiveBuffService=Object.freeze({
       const conditions=Array.isArray(config?.conditions)?config.conditions:[];
       const conditionsMatch=conditions.every(condition=>
         TriggerConditionService.matches(condition,{
+          ...context,
           source:entity,
           target:entity,
           now:performance.now()
         })===true
       );
       if(!conditionsMatch){
-        if(BuffService.remove(entity,stat,sourceId))changed=true;
+        if(config.retainOnConditionLost!==true&&BuffService.remove(entity,stat,sourceId))changed=true;
         continue;
       }
       const value=this.value(entity,config.valueRef||{});
+      if(Number.isFinite(config.duration)){
+        BuffService.refresh(entity,stat,value,sourceId,Math.max(0,config.duration),this.data(config));
+        changed=true;
+        continue;
+      }
       if(
         BuffService.sync(
           entity,

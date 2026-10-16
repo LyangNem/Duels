@@ -439,6 +439,7 @@ const OnlineDebugControlSyncService={
         return CommandFeatureService.runRepair(target);
 
       case 'equipment-equip':{
+        if(target.character?.ideaModules)return IdeaModuleService.grant(target,String(data.value||''),performance.now());
         const config=ReactiveEquipmentService.config(target);if(!config)return false;
         const value=String(data.value||'');
         const item=config.items.find(entry=>entry.value===value);

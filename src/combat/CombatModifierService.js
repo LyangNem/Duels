@@ -20,6 +20,7 @@ const CombatModifierService=Object.freeze({
       staminaRegenAdditive:0,
       staminaRegenBlocked:false,
       staminaCostMult:1,
+      staminaCostScale:1,
       attackSpeedMult:1,
       projectileSpeedMult:1,
       dodgeDistanceMult:1,

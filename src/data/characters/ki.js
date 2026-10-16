@@ -13,7 +13,7 @@
         name: "손기술",
         attack: "lmb",
         detailAttack: "lmbFinal",
-        text: "{attackSequenceCount}연타 근거리 공격 ({damage}/{detailDamage})"
+        text: "{attackSequenceCount}연타 근거리 공격. 3타 적중 시 코인을 얻어 체력 및 스테미나 {v:attacks.lmbFinal.modules.2.maxResourceRatio|percent}% 회복 ({damage}/{detailDamage})"
       },
       {
         key: "RMB",
@@ -124,6 +124,10 @@
             clipToAttackArea: true,
             replaceAutoAreaEffect: true
           }
+,
+          {type:"resource.restore",when:"on-hit",resource:"health",recipient:"source",maxResourceRatio:0.2,delay:333,oncePerExecution:true},
+          {type:"resource.restore",when:"on-hit",resource:"stamina",recipient:"source",maxResourceRatio:0.2,delay:333,oncePerExecution:true},
+          {type:"effect.spawn",when:"on-hit",renderType:"areaCircle",position:"hit-target",travelToken:true,target:"source",color:"255,165,0",duration:333,oncePerExecution:true}
         ],
         tags: ["평타"]
       },

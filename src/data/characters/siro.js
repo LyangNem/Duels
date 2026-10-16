@@ -792,12 +792,10 @@
       "angle": -0.6,
       "motionStateKey": "siro-weapon-motion",
       "motionMs": 420,
-      "chargeStateKey": "charge:primary",
       "motion": {
         "rotation": -0.48,
         "travelX": -0.65,
-        "travelY": 0.2,
-        "chargeRotation": -0.22
+        "travelY": 0.2
       }
     }
   ]

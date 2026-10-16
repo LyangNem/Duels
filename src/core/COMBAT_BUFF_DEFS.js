@@ -13,6 +13,7 @@ const COMBAT_BUFF_DEFS=Object.freeze({
   evasionInvulnerable:Object.freeze({label:'EVASION INVULNERABLE',limitMode:'flat',toggleOnly:true,presentation:Object.freeze({opacity:.45,outline:'dashed'})}),
   stealth:Object.freeze({label:'STEALTH',limitMode:'flat',toggleOnly:true,presentation:Object.freeze({opacity:1})}),
   staminaRegen:Object.freeze({label:'STAMINA REGEN',min:-.90}),
+  staminaCostScale:Object.freeze({label:'STAMINA COST',limitMode:'flat'}),
   staminaCost:Object.freeze({label:'STAMINA COST',min:-.40}),
   attackRate:Object.freeze({label:'ATTACK SPEED',max:.90}),
   projectileSpeed:Object.freeze({label:'PROJECTILE SPEED',min:-.90}),

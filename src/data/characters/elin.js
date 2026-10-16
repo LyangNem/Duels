@@ -337,7 +337,7 @@
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 18,
+          "speed": 22.5,
           "radius": 15,
           "targetPoint": true,
           "targetPointResolve": "nearest-open",

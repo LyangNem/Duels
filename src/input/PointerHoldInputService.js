@@ -194,6 +194,7 @@ const PointerHoldInputService=Object.freeze({
         max:Math.max(initial,Number(config.max)||initial),
         min,
         blocksStaminaRegen:config.blocksStaminaRegen===true,
+        onChangeModes:config.onChangeModes||[],
         presentation:config.presentation||null
       });
       current.holdRepeatTicks+=1;

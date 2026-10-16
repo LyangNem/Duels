@@ -46,7 +46,7 @@ const SimulationScheduleService={
       if(
         item?.source===source&&
         item?.type==='continuation'&&
-        item?.interruptibleWindup===true
+        (item?.interruptibleWindup===true||item?.attackWindup===true)
       ){
         removed=true;
 

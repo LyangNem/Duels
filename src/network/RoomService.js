@@ -1104,6 +1104,39 @@ const RoomService={
       this.beginStartCountdown();
     }
   },
+  cancelMatchReady(stage){
+    if(!this.localPid)return false;
+    const phase={character:'select',start:'start-augment',between:'between'}[stage];
+    if(!phase||this.duelPhase!==phase)return false;
+    if(this.isHost)return this.receiveMatchReadyCancel(this.localPid,stage);
+    return NetworkPayloadCodec.send(this.hostConnection,{type:'duel-ready-cancel',stage});
+  },
+  receiveMatchReadyCancel(pid,stage){
+    if(!this.isHost||!this.activeMatchPids.has(pid)||!this.matchPids().includes(pid)||this.members.get(pid)?.spectator===true)return false;
+    let packet;
+    if(stage==='character'){
+      if(this.duelPhase!=='select'||!this.characterReady.has(pid))return false;
+      this.characterReady.delete(pid);
+      packet={type:'duel-character-state',ready:[...this.characterReady],selections:this.selectionObject()};
+    }else if(stage==='start'){
+      if(this.duelPhase!=='start-augment'||!this.startAugments.has(pid))return false;
+      clearTimeout(this._startCountdownTimer);this._startCountdownTimer=0;
+      this._startReadyEpoch=(this._startReadyEpoch||0)+1;
+      this.duelPhase='start-augment';this.startAugments.delete(pid);this.matchAugments.delete(pid);
+      packet={type:'duel-start-augment-state',phase:'start-augment',cancelledPid:pid,ready:[...this.startAugments.keys()],selected:Object.fromEntries(this.startAugments)};
+    }else if(stage==='between'){
+      if(this.duelPhase!=='between'||!this.betweenReady.has(pid))return false;
+      clearTimeout(this._betweenCountdownTimer);this._betweenCountdownTimer=0;
+      this._betweenReadyEpoch=(this._betweenReadyEpoch||0)+1;
+      this.duelPhase='between';this.betweenReady.delete(pid);this.betweenSelections.delete(pid);
+      packet={type:'duel-between-state',phase:'between',cancelledPid:pid,ready:[...this.betweenReady],selections:Object.fromEntries(this.betweenSelections)};
+    }else return false;
+    this.sendToPeers(packet);
+    if(stage==='character')OnlineDuelService.updateCharacterReadyState(packet);
+    else if(stage==='start')OnlineDuelService.updateStartAugmentReadyState(packet);
+    else OnlineDuelService.updateBetweenState(packet);
+    return true;
+  },
   submitStartAugment(augmentId){
     if(!this.localPid)return false;
     if(this.isHost)this.receiveStartAugment(this.localPid,augmentId);else NetworkPayloadCodec.send(this.hostConnection,{type:'duel-start-augment-ready',augmentId});
@@ -1147,6 +1180,7 @@ const RoomService={
   beginStartCountdown(){
     if(!this.isHost||this.duelPhase!=='start-augment')return false;
     this.duelPhase='start-countdown';
+    const readyEpoch=this._startReadyEpoch=(this._startReadyEpoch||0)+1;
 
     for(const pid of this.matchPids()){
       const chosen=this.startAugments.get(pid);
@@ -1160,7 +1194,7 @@ const RoomService={
 
     let seconds=MatchReadyCountdownService.seconds(this.matchPids().length);
     const step=()=>{
-      if(!this.isHost||this.duelPhase!=='start-countdown')return;
+      if(!this.isHost||this.duelPhase!=='start-countdown'||readyEpoch!==this._startReadyEpoch)return;
 
       const packet={
         type:'duel-start-countdown',
@@ -1588,15 +1622,6 @@ const RoomService={
 
     // 실제 캐릭터 변경은 다음 라운드 시작 직전에만 반영한다.
 
-    if(
-      augmentMode&&
-      isLoser&&requestedAugment
-    ){
-      const list=this.matchAugments.get(pid)||[];
-      list.push(requestedAugment);
-      this.matchAugments.set(pid,list);
-    }
-
     this.betweenReady.add(pid);
     this.betweenSelections.set(pid,{
       characterId:requestedCharacter||null,
@@ -1626,6 +1651,7 @@ const RoomService={
   beginBetweenCountdown(){
     if(!this.isHost||this.duelPhase!=='between')return false;
     this.duelPhase='between-countdown';
+    const readyEpoch=this._betweenReadyEpoch=(this._betweenReadyEpoch||0)+1;
 
     this.currentMapId=
       this._betweenPacket?.mapId||
@@ -1636,7 +1662,7 @@ const RoomService={
 
     let seconds=MatchReadyCountdownService.seconds(this.matchPids().length);
     const step=()=>{
-      if(!this.isHost||this.duelPhase!=='between-countdown')return;
+      if(!this.isHost||this.duelPhase!=='between-countdown'||readyEpoch!==this._betweenReadyEpoch)return;
 
       const packet={
         type:'duel-between-countdown',
@@ -1655,6 +1681,9 @@ const RoomService={
         this._betweenCountdownTimer=0;
 
         for(const [pid,value] of this.betweenSelections){
+          if(this.settings.gameMode==='augment'&&value?.augmentId){
+            this.matchAugments.set(pid,[...(this.matchAugments.get(pid)||[]),value.augmentId]);
+          }
           const resolvedCharacterId=value?.resolvedCharacterId;
           if(resolvedCharacterId&&GAME_DATA.characters[resolvedCharacterId]){
             this.duelSelections.set(pid,resolvedCharacterId);
@@ -2023,6 +2052,8 @@ const RoomService={
       return this.receiveCharacterReady(pid,String(payload.characterId||''));
     }
 
+    if(payload.type==='duel-ready-cancel')return this.receiveMatchReadyCancel(pid,String(payload.stage||''));
+
     if(payload.type==='duel-start-augment-ready'){
       return this.receiveStartAugment(
         pid,
@@ -2205,6 +2236,7 @@ const RoomService={
           typeof payload!=='object'
         )return;
 
+        if(['room-ping','room-pong','room-leave'].includes(payload.type))return;
         if(payload.type==='hello'){
           if(pid)return;
           if(payload.protocol!==RoomConnectionService.protocol||payload.code!==this.code){reject('version');return}
@@ -2401,6 +2433,7 @@ const RoomService={
 
     connection.on('close',close);
     connection.on('error',close);
+    RoomConnectionService.watchChannel(connection,current,close);
   },
   showJoin(){
     RoomUI.showJoin();
@@ -2786,6 +2819,7 @@ const RoomService={
           payload.selected||{}
         )
       );
+      if(payload.phase==='start-augment')this.duelPhase='start-augment';
       OnlineDuelService
         .updateStartAugmentReadyState(
           payload
@@ -2907,6 +2941,7 @@ const RoomService={
       payload.type===
         'duel-between-state'
     ){
+      if(payload.phase==='between')this.duelPhase='between';
       this.betweenReady=new Set(
         payload.ready||[]
       );
@@ -3013,6 +3048,7 @@ const RoomService={
     connection.on('data',raw=>{
       if(!current())return;
       const payload=NetworkPayloadCodec.decode(raw);if(!payload||typeof payload!=='object')return;
+      if(['room-ping','room-pong','room-leave'].includes(payload.type))return;
       if(payload.type==='room-rejected'||payload.type==='room-full'){
         const reasons={version:'게임 버전이 다릅니다. 모두 같은 DUELS 3.0 파일로 실행해주세요.',migration:'호스트 승계 정보가 일치하지 않습니다.',duplicate:'이미 참가 중인 연결입니다.',invalid:'잘못된 참가 정보입니다.'};
         fail(payload.type==='room-full'?'방이 가득 찼습니다.':reasons[payload.reason]||'입장이 거절되었습니다.');return;
@@ -3035,7 +3071,8 @@ const RoomService={
       try{connection.close()}catch(_){}
       this.beginHostMigration();
     };
-    connection.on('close',disconnected);connection.on('error',disconnected);return true;
+    connection.on('close',disconnected);connection.on('error',disconnected);
+    RoomConnectionService.watchChannel(connection,current,disconnected);return true;
   },
   join(code){
     const normalized=String(code||'').trim();
@@ -3360,6 +3397,8 @@ const RoomService={
     return true;
   },
   leave({silent=false}={}){
+    if(!this.isHost&&this.hostConnection?.open)NetworkPayloadCodec.send(this.hostConnection,{type:'room-leave'});
+    if(this.isHost)for(const connection of this.connections.values())NetworkPayloadCodec.send(connection,{type:'room-leave'});
     if(!silent){
       CharacterRecordProgressionService
         .applyDeparturePenalty();

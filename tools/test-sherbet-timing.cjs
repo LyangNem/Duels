@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');const {run,setClock}=require('./support/runtime-harness.cjs');
+let current=1000;
+function reset(){current=1000;setClock(1000);run(`Training.selectedCharacterId='sherbet';Training.start();Training.settings.infiniteStamina=false;Training.settings.infiniteHp=false;Training.player.x=500;Training.player.y=500;Training.player.stamina=1000;Training.player._attackExecutionRegistry=new Map();Training.dummy.x=650;Training.dummy.y=500;Training.dummy.health=5000;Training.dummy.maxHealth=5000;Training.dummy.healthPolicy.invulnerable=false;Training.mouseWorld=()=>({x:1000,y:500});`)}
+function advance(t){for(let x=current+1;x<=t;x++){setClock(x);run('Training.update(1,performance.now())')}current=t;setClock(t)}
+function click(t){advance(t);run('AbilityService.activate(Training.player,Training.player.character.abilities.lmb,{angle:0})')}
+function state(){return run("TimedActionStateService.state(Training.player,'sherbet-overcool-window').data")}
+function finish(){advance(1450)}
+for(const early of [1,100,249]){reset();click(1000);click(1000+early);assert.equal(state().decided,true);assert.equal(run("[...Training.player._attackExecutionRegistry.values()].filter(e=>e.attackId==='attack.sherbet.lmb').length"),2);for(let t=1250;t<1300;t+=5)click(t);assert.equal(state().choice,'normal');finish();assert.equal(run('Training.dummy.health'),4900);assert.equal(run("CCService.has(Training.dummy,'freeze')"),false);assert.equal(run('Training.player.stamina'),850)}
+console.log('PASS early second click locks normal despite spam during success window');
+for(const success of [250,275,299]){reset();click(1000);click(1000+success);assert.equal(state().choice,'success');assert.equal(state().decided,true);click(1299);assert.equal(state().choice,'success');finish();assert.equal(run('Training.dummy.health'),4800);assert.equal(run("CCService.has(Training.dummy,'freeze')"),true)}
+console.log('PASS correct second click locks freeze; later clicks cannot overwrite');
+reset();click(1000);finish();assert.equal(run('Training.dummy.health'),4900);assert.equal(run("CCService.has(Training.dummy,'freeze')"),false);console.log('PASS no second click resolves normal');
+reset();click(1000);click(1100);finish();click(1500);assert.equal(state().decided,false);click(1750);assert.equal(state().choice,'success');advance(1950);assert.equal(run('Training.dummy.health'),4700);console.log('PASS new attack resets decision and can succeed; cadence remains500ms');
+reset();click(1000);click(1100);assert.equal(state().completedAt,undefined);advance(1200);assert.equal(run('Training.dummy.health'),4900);advance(1450);assert.equal(run('Training.dummy.health'),4900);assert.equal(run("[...Training.player._attackExecutionRegistry.values()].filter(e=>e.attackId==='attack.sherbet.lmb').length"),2);console.log('PASS early attack hits before original300ms windup and never fires again');

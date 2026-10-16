@@ -391,21 +391,25 @@ const OnlineDuelService={
     const confirm=
       document.getElementById('confirm-btn');
     if(confirm){
-      confirm.disabled=localReady;
+      confirm.disabled=false;
       confirm.textContent=
-        localReady?'준비 완료':'선택 완료';
+        localReady?'준비 취소':'선택 완료';
+      confirm.classList.toggle('ready-cancel',localReady);
     }
 
+    document.querySelectorAll('#char-grid .char-card').forEach(card=>card.classList.toggle('selection-locked',localReady));
+    const randomButton=document.getElementById('random-btn');if(randomButton)randomButton.disabled=localReady;
     this.renderCharacterPreviews();
     return true;
   },
   confirmCharacter(){
     if(!this.selecting)return false;
+    if(RoomService.characterReady.has(RoomService.localPid))return RoomService.cancelMatchReady('character');
     const characterId=Training.selectedCharacterId;
     if(!GAME_DATA.characters[characterId]){UiStatusService.set('sel-status','캐릭터를 선택해주세요!','err');return false}
     RoomService.submitCharacter(characterId);
     const confirm=document.getElementById('confirm-btn');
-    if(confirm){confirm.disabled=true;confirm.textContent='준비 완료'}
+    if(confirm){confirm.disabled=false;confirm.textContent='준비 취소';confirm.classList.add('ready-cancel')}
     const randomButton=document.getElementById('random-btn');
     if(randomButton)randomButton.disabled=true;
     document.querySelectorAll('#char-grid .char-card').forEach(card=>card.classList.add('selection-locked'));
@@ -454,7 +458,7 @@ const OnlineDuelService={
     const button=document.getElementById('start-aug-confirm-btn');
     if(peerInfo){peerInfo.style.display='none';peerInfo.innerHTML=''}
     if(countdown){countdown.style.display='none';countdown.textContent=''}
-    if(button){button.style.display='';button.disabled=false;button.textContent=normalMode?'준비 완료':'선택 완료'}
+    if(button){button.style.display='';button.disabled=false;button.classList.remove('ready-cancel');button.textContent=normalMode?'준비 완료':'선택 완료'}
 
     const gridElement=document.getElementById('start-aug-grid');
     if(gridElement){
@@ -650,7 +654,8 @@ charRow.appendChild(card);
 
     if(button){
       button.onclick=()=>{
-        if(this.startAugmentReady)return;
+        if(RoomService.duelPhase==='start-countdown')return;
+        if(this.startAugmentReady){RoomService.cancelMatchReady('start');return;}
 
         if(!normalMode&&!this.startAugmentSelected&&!this.startAugmentNoPickWarned){
           this.startAugmentNoPickWarned=true;
@@ -666,7 +671,7 @@ charRow.appendChild(card);
           card.style.pointerEvents='none';
         });
 
-        button.disabled=true;
+        button.disabled=false;button.textContent='준비 취소';button.classList.add('ready-cancel');
         if(status){
           const others=
             Math.max(
@@ -689,6 +694,10 @@ charRow.appendChild(card);
     }
   },
   updateStartAugmentReadyState(payload){
+    if(payload?.phase==='start-augment'){
+      this.setStartAugChoiceVisibility(true);
+      const peer=document.getElementById('start-aug-peer-info');if(peer){peer.replaceChildren();peer.style.display='none';}
+    }
     const readyPids=
       Array.isArray(payload)
         ?payload
@@ -700,10 +709,12 @@ charRow.appendChild(card);
 
     this.startAugmentReadyPids=
       new Set(readyPids);
-    this.startAugmentSelections={
-      ...(this.startAugmentSelections||{}),
-      ...selected
-    };
+    this.startAugmentSelections={...selected};
+    this.startAugmentReady=this.startAugmentReadyPids.has(RoomService.localPid);
+    const localSpectator=this.spectatorOnly||RoomService.localMember()?.spectator;
+    const readyButton=document.getElementById('start-aug-confirm-btn');
+    if(readyButton){readyButton.disabled=!!localSpectator;readyButton.textContent=localSpectator?'대기 중':this.startAugmentReady?'준비 취소':'준비 완료';readyButton.classList.toggle('ready-cancel',!localSpectator&&this.startAugmentReady);}
+    document.querySelectorAll('#start-aug-grid .start-aug-item').forEach(card=>{card.style.pointerEvents=this.startAugmentReady?'none':'';card.classList.toggle('locked',this.startAugmentReady);});
 
     const otherPids=
       RoomService.matchPids().filter(
@@ -758,6 +769,10 @@ charRow.appendChild(card);
       }
     }
 
+    if(status&&payload?.cancelledPid&&!this.startAugmentReady){
+      status.textContent=payload.cancelledPid===RoomService.localPid?'준비를 취소했습니다.':'다른 플레이어의 준비가 취소되었습니다.';
+      status.className='status';
+    }
     return (
       otherPids.length>0&&
       readyOthers===otherPids.length
@@ -812,7 +827,7 @@ charRow.appendChild(card);
 
     if(button){
       button.style.removeProperty('display');
-      button.disabled=true;
+      button.disabled=true;button.classList.remove('ready-cancel');
     }
 
     if(peerInfo){
@@ -1425,6 +1440,7 @@ charRow.appendChild(card);
           player,
           now
         ),
+      pathCarrierRide:typeof PathCarrierService!=='undefined'?PathCarrierService.serialize(player):null,
       movementAbility:MovementAbilityService.serialize(player),
       attackChannels:
         ChannelAttackService.serialize(player),
@@ -1565,6 +1581,9 @@ charRow.appendChild(card);
       !projectile
     )return false;
 
+    if(reason==='target'&&projectile.behavior?.impact?.requireSuccessfulHit===true&&
+      projectile.hadHit!==true)return false;
+
     const ownerPid=
       OnlineParticipantEntityService.pid(
         projectile.source
@@ -1594,6 +1613,9 @@ charRow.appendChild(card);
           )
         ),
       reason:String(reason||'target'),
+      hitTargetIds:projectile.behavior?.impact?.excludeHitTargets===true
+        ?[...new Set([...(projectile.volley?.execution?.hitTargets||[]),
+          ...(projectile.trajectoryHitAt?.keys?.()||[])])].map(String):[],
       impactPoint:{
         x:Number(projectile.x)||0,
         y:Number(projectile.y)||0
@@ -2049,7 +2071,7 @@ charRow.appendChild(card);
     if(payload.type==='duel-projectile-relay'){
       const source=OnlineParticipantEntityService.entity(String(payload.ownerPid||''));
       if(String(payload.ownerPid||'')!==pid||!(Number(payload.executionSequence)>0))return false;
-      const relay=(Object.values(source?.character?.attacks||{})).some(a=>(a.modules||[]).some(m=>m.type==='projectile.wall-relay'&&m.attackId===payload.attackId));
+      const relay=ProjectileRedirectService.declaredRelay(source?.character,payload.attackId);
       return relay&&ProjectileRedirectService.fireRelay(source,source&&AbilityService.attackById(source.character,String(payload.attackId||'')),payload.point,Number(payload.angle),String(payload.key||''),Number(payload.executionSequence));
     }
 
@@ -2139,6 +2161,10 @@ charRow.appendChild(card);
           :null;
 
       if(projectile){
+        if(projectile.behavior?.impact?.excludeHitTargets===true&&Array.isArray(payload.hitTargetIds)){
+          projectile.trajectoryHitAt=projectile.trajectoryHitAt||new Map();
+          for(const id of payload.hitTargetIds)projectile.trajectoryHitAt.set(String(id),performance.now());
+        }
         const index=
           ProjectileService.items.indexOf(
             projectile
@@ -2166,6 +2192,7 @@ charRow.appendChild(card);
             Number(payload.angle);
         }
 
+        if(reason==='target')projectile.hadHit=true;
         ProjectileImpactService.resolve(
           projectile,
           reason
@@ -2248,8 +2275,12 @@ charRow.appendChild(card);
           Number(payload.angle)||0
         );
       execution.networkReplay=true;
+      if(impactConfig.excludeHitTargets===true&&Array.isArray(payload.hitTargetIds)){
+        for(const id of payload.hitTargetIds)execution.hitTargets.add(String(id));
+      }
 
       const carrier={
+        hadHit:reason==='target',
         source:owner,
         attack,
         x:point.x,
@@ -2930,6 +2961,7 @@ charRow.appendChild(card);
           y:Number(payload.aimTargetPoint.y)
         };
       }
+      if(typeof PathCarrierService!=='undefined')PathCarrierService.applyRemote(remote,payload.pathCarrierRide);
       MovementAbilityService.applyRemote(
         remote,
         payload.movementAbility,
@@ -4560,6 +4592,7 @@ this.betweenReadyPids=new Set();
 
     if(readyButton){
       readyButton.disabled=spectatorOnly;
+      readyButton.classList.remove('ready-cancel');
       readyButton.textContent=
         spectatorOnly
           ?'대기 중'
@@ -4821,10 +4854,9 @@ this.betweenReadyPids=new Set();
 
     if(readyButton){
       readyButton.onclick=()=>{
-        if(
-          spectatorOnly||
-          this.betweenReady
-        )return;
+        if(spectatorOnly)return;
+        if(RoomService.duelPhase==='between-countdown')return;
+        if(this.betweenReady){RoomService.cancelMatchReady('between');return;}
 
         const choices=localAugChoices;
         if(
@@ -4842,7 +4874,7 @@ this.betweenReadyPids=new Set();
         }
 
         this.betweenReady=true;
-        readyButton.disabled=true;
+        readyButton.disabled=false;readyButton.textContent='준비 취소';readyButton.classList.add('ready-cancel');
 
         document.querySelectorAll('#between-char-grid .char-card').forEach(
           card=>card.classList.add('selection-locked')
@@ -5133,6 +5165,16 @@ this.betweenReadyPids=new Set();
       payload?.selections||{};
 
     this.betweenReadyPids=ready;
+    this.betweenReady=ready.has(RoomService.localPid);
+    const localSpectator=this.spectatorOnly||RoomService.localMember()?.spectator;
+    const localReadyButton=document.getElementById('between-ready-btn');
+    if(localReadyButton){localReadyButton.disabled=!!localSpectator;localReadyButton.textContent=localSpectator?'대기 중':this.betweenReady?'준비 취소':'준비 완료';localReadyButton.classList.toggle('ready-cancel',!localSpectator&&this.betweenReady);}
+    document.querySelectorAll('#between-char-grid .char-card').forEach(card=>card.classList.toggle('selection-locked',this.betweenReady));
+    document.querySelectorAll('#between-aug-grid .aug-pick-card').forEach(card=>{card.style.pointerEvents=this.betweenReady?'none':'';});
+    if(payload?.phase==='between'){
+      this.setBetweenReadyResultVisible(false);
+      const status=document.getElementById('between-status');if(status){status.textContent='준비가 취소되었습니다.';status.className='status';}
+    }
     this.betweenStateSelections={
       ...selections
     };
@@ -5286,7 +5328,7 @@ this.betweenReadyPids=new Set();
       RoomService.localMember()?.spectator===true;
 
     if(button){
-      button.disabled=true;
+      button.disabled=true;button.classList.remove('ready-cancel');
       button.textContent=
         spectatorOnly
           ?'대기 중'

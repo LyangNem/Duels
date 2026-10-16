@@ -1,6 +1,13 @@
 
 
 const TrainingWorldDrawService=Object.freeze({
+  drawProjectileOwnerLink(ctx,projectile,visual,style,viewer,alpha=1){
+    if(!ctx||style?.showLink!==true||!projectile?.source||EntityService.owner(projectile.source)!==viewer)return false;
+    ctx.save();ctx.beginPath();ctx.moveTo(projectile.source.x,projectile.source.y);ctx.lineTo(visual.x,visual.y);
+    ctx.strokeStyle=`rgba(${projectile.renderRgb},${alpha*(Number.isFinite(Number(style.linkAlpha))?Math.max(0,Number(style.linkAlpha)):.2)})`;
+    ctx.lineWidth=Math.max(.5,Number(style.linkWidth)||1.5);ctx.setLineDash(Array.isArray(style.linkDash)?style.linkDash:[5,4]);ctx.stroke();ctx.restore();return true;
+  },
+
   emptyOptions:Object.freeze({}),
   previewRgbCache:new Map(),
   previewRgb(value){

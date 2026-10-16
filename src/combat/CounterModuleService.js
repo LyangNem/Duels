@@ -36,6 +36,7 @@ const CounterModuleService=Object.freeze({
   },
   validate(module){
     return Number(module?.windup)===this.requiredWindup&&(
+      module?.cc===null||
       this.isCcModule(module?.cc)||
       !!String(module?.ccRefAttackId||'')
     );
@@ -239,7 +240,10 @@ const CounterModuleService=Object.freeze({
     if(source.counterWindup)return false;
     if(!AttackService.canUse(source,context.attack))return false;
     const now=performance.now();
-    const resolvedAttack=ProgressScaledAttackService.resolve(source,context.attack);
+    const scaledAttack=ProgressScaledAttackService.resolve(source,context.attack);
+    const resolvedAttack=typeof SelectableAttackService!=='undefined'
+      ?SelectableAttackService.prepare(source,scaledAttack,this.requiredWindup)
+      :scaledAttack;
     const baseCc=
       this.referencedCc(source,module)||
       module.cc;
@@ -855,6 +859,7 @@ const CounterModuleService=Object.freeze({
       chargedAttack,
       windup.angle,
       {
+        completedWindup:true,
         extraModules:resolvedCounterCc?[resolvedCounterCc]:[],
         targetPoint:
           windup.targetPoint&&

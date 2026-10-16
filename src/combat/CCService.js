@@ -21,6 +21,10 @@ const CCService=Object.freeze({
       list.some(item=>item.end>now&&item.sourceId===sourceId);
     if(!refreshesRestriction&&entity.character?.reactiveEquipment&&finiteDuration>0&&EntitySimulationAuthorityService.isLocal(entity))ReactiveEquipmentService.restriction(entity,type,String(data?.sourceEntityId||sourceId||''),now);
 
+    if(finiteDuration>0&&typeof AttackWindupService!=='undefined'&&AttackWindupService.statusInterrupts?.(type)){
+      AttackWindupService.interrupt(entity,type,{networkReplay:data.networkReplicated===true||!EntitySimulationAuthorityService.isLocal(entity)});
+    }
+
     let storedParams=params;
 
     if(params.stackMode==='refresh-type'){

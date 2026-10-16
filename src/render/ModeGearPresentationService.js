@@ -32,17 +32,36 @@ const ModeGearPresentationService=Object.freeze({
   deathState:{liveSamples:new WeakMap(),pendingSamples:new WeakMap(),remnants:new Map()},
   DEATH_HOLD_MS:160,DEATH_FADE_MS:1600,
   configs(entity){return entity?.kind==='summon'?(entity.summonSpec?.worldEffectModules||EMPTY_RUNTIME_ITEMS):(entity?.character?.worldEffectModules||EMPTY_RUNTIME_ITEMS);},
+  definition(entity,config){
+    return config.formationKey?CircleFormationService.weaponDefinition(entity,config):WEAPON_IMAGE_DEFS[config.style];
+  },
   sampleWeapons(entity,alpha,now){
     const images=[];
     for(const config of this.configs(entity)){
       if(config.renderType!=='weaponImage'||!this.matches(entity,config.conditions,now,config.conditionTarget))continue;
+      if(config.formationKey&&!this.definition(entity,config))continue;
       images.push(this.sampleImage(entity,config,now));
     }
     return {entity:{radius:entity.radius,character:{color:entity.character?.color}},images,alpha,x:entity.x,y:entity.y,sampledAt:now};
   },
+  movementFacing:new WeakMap(),
+  facingAngle(entity,config){
+    if(config.facing!=='movement')return 0;
+    const x=Number(entity.x)||0,y=Number(entity.y)||0;
+    const previous=this.movementFacing.get(entity);
+    let angle=previous?.angle??(Number.isFinite(entity.lastMovementInputAngle)?entity.lastMovementInputAngle:0);
+    const dx=previous?x-previous.x:0,dy=previous?y-previous.y:0;
+    if(Math.hypot(dx,dy)>.001)angle=Math.atan2(dy,dx);
+    else {
+      const movement=MovementAbilityService.state(entity,config.facingMovementStateKey);
+      if(movement&&Number.isFinite(movement.angle))angle=movement.angle;
+    }
+    this.movementFacing.set(entity,{x,y,angle});
+    return angle;
+  },
   sampleImage(entity,config,now){
     const pose=this.weaponPose(entity,config,now);
-    return {config,sample:{pose:{pulse:pose.pulse,pull:pose.pull},partPoses:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>{const p=this.weaponPose(entity,m,now);return {pulse:p.pulse,pull:p.pull};}),spin:config.rotationStateKey?this.rotation(entity,config,Number(config.rotationMs)||300,now):0,alpha:this.imageAlpha(entity,config,now),activeColor:this.activeColor(entity,config,now),tintAmount:this.activityTint(entity,config,now)?.amount??0,sparkActive:!!config.sparkConditions&&this.matches(entity,config.sparkConditions,now,config.conditionTarget)}};
+    return {config,sample:{facingAngle:this.facingAngle(entity,config),definition:config.formationKey?this.definition(entity,config):undefined,pose:{pulse:pose.pulse,pull:pose.pull},partSpins:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>m.rotationStateKey?this.rotation(entity,m,Number(m.rotationMs)||300,now):0),partPoses:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>{const p=this.weaponPose(entity,m,now);return {pulse:p.pulse,pull:p.pull};}),spin:config.rotationStateKey?this.rotation(entity,config,Number(config.rotationMs)||300,now):0,alpha:this.imageAlpha(entity,config,now),activeColor:this.activeColor(entity,config,now),tintAmount:this.activityTint(entity,config,now)?.amount??0,sparkActive:!!config.sparkConditions&&this.matches(entity,config.sparkConditions,now,config.conditionTarget)}};
   },
   captureDeath(entity,now=performance.now()){
     if(!entity)return false;
@@ -80,6 +99,7 @@ const ModeGearPresentationService=Object.freeze({
     let signature='',color=entity.character?.color;
     for(const config of configs){
       if(config.renderType!=='weaponImage'||!this.matches(entity,config.conditions,now,config.conditionTarget))continue;
+      if(config.formationKey&&!this.definition(entity,config))continue;
       signature+=`${config.style}:${config.color}:${config.empowered===true}|`;color=config.color||color;
     }
     let previous=this.weaponImages.get(entity);
@@ -133,6 +153,11 @@ const ModeGearPresentationService=Object.freeze({
   activityTint(entity,config,now){
     let latest=-Infinity,tint=null;
     for(const activity of config.activityColors||EMPTY_RUNTIME_ITEMS){
+      if(activity.untilProperty){
+        const remaining=Number(entity?.[activity.untilProperty]||0)-now;
+        if(remaining>0)return {color:activity.color,amount:Math.min(1,remaining/Math.max(1,Number(activity.fadeMs)||1))};
+        continue;
+      }
       if(activity.conditions){if(this.matches(entity,activity.conditions,now,config.conditionTarget))return {color:activity.color,amount:1};continue;}
       const at=ModeStateService.state(entity,activity.stateKey)?.changedAt,duration=Number(activity.duration||600);
       if(at!==undefined&&now>=at&&now-at<duration&&at>=latest){
@@ -178,7 +203,7 @@ const ModeGearPresentationService=Object.freeze({
     }
   },
   drawImage(ctx,entity,config,alpha,now=performance.now(),sample=null){
-    const definition=WEAPON_IMAGE_DEFS[config.style];if(!definition)return false;
+    const definition=sample?.definition||this.definition(entity,config);if(!definition)return false;
     const size=Math.max(12,Number(entity.radius)||20)*(Number(config.scale)||1.5);
     const pose=sample?.pose||this.weaponPose(entity,config,now),motion=config.motion||{};
     const spin=sample?.spin??(config.rotationStateKey?this.rotation(entity,config,Number(config.rotationMs)||300,now):0);
@@ -186,7 +211,7 @@ const ModeGearPresentationService=Object.freeze({
     const reaction=sample?0:this.reaction(entity,now);
     ctx.save();ctx.globalAlpha=alpha*(reaction>0?Math.min(1,this.imageAlpha(entity,config,now)+reaction*2):sample?.alpha??this.imageAlpha(entity,config,now));
     ctx.translate(Number(config.x||0),Number(config.y||0));
-    ctx.rotate(Number(config.angle||0)+spin+Number(motion.rotation||0)*pose.pulse+Number(motion.chargeRotation||0)*pose.pull);
+    ctx.rotate(Number(config.angle||0)+(sample?.facingAngle??this.facingAngle(entity,config))+spin+Number(motion.rotation||0)*pose.pulse+Number(motion.chargeRotation||0)*pose.pull);
     ctx.translate(Number(motion.travelX||0)*size*pose.pulse,Number(motion.travelY||0)*size*pose.pulse);
     if(reaction>0)ctx.scale(1+reaction,1+reaction);
     ctx.translate(-Number(definition.origin?.[0]||0)*size,-Number(definition.origin?.[1]||0)*size);
@@ -200,7 +225,8 @@ const ModeGearPresentationService=Object.freeze({
       ctx.translate(Number(part.pivot?.[0]||0)*size,Number(part.pivot?.[1]||0)*size);
       const partMotion=config.partMotions?.[partIndex];
       const partPose=sample?.partPoses?.[partIndex]||(partMotion?this.weaponPose(entity,partMotion,now):pose);
-      ctx.rotate(Number(part.angle||0)+Number(part.pulseAngle||0)*partPose.pulse+Number(partMotion?.rotation||0)*partPose.pulse);
+      const partSpin=sample?.partSpins?.[partIndex]??(partMotion?.rotationStateKey?this.rotation(entity,partMotion,Number(partMotion.rotationMs)||300,now):0);
+      ctx.rotate(Number(part.angle||0)+partSpin+Number(part.pulseAngle||0)*partPose.pulse+Number(partMotion?.rotation||0)*partPose.pulse);
       if(partMotion)ctx.translate(Number(partMotion.travelX||0)*size*partPose.pulse,Number(partMotion.travelY||0)*size*partPose.pulse);
       ctx.scale(Number(part.scaleX??1),Number(part.scaleY??1));
       for(const path of part.paths||EMPTY_RUNTIME_ITEMS){this.path(ctx,path,size);ctx.fillStyle=this.pathFill(path.fillColor,palette,config);ctx.strokeStyle=palette.edge;ctx.lineWidth=Math.min(path.fill?1.8:1.35,path.lineWidth?Math.max(.7,path.lineWidth*size):Math.max(1.3,size*.055));if(path.fill)ctx.fill();if(path.stroke!==false)ctx.stroke();}

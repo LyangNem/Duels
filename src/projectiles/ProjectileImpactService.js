@@ -54,6 +54,7 @@ const ProjectileImpactService=Object.freeze({
   resolve(projectile,reason='impact'){
     const impact=projectile?.behavior?.impact;
     if(!impact)return false;
+    if(reason==='target'&&impact.requireSuccessfulHit===true&&projectile.hadHit!==true)return false;
 
     const source=projectile.source;
     const pathProgress=reason==='path-progress'&&impact.field?.liveProjectilePath===true;
@@ -362,6 +363,7 @@ const ProjectileImpactService=Object.freeze({
     ];
 
     for(const attackId of linkedAttackIds){
+      if(impact.broadcastLinked===true&&!EntitySimulationAuthorityService.isLocal(source))continue;
       const attackKey=String(attackId||'');
       let attack=preparedAttacks.get(attackKey)||null;
 
@@ -386,6 +388,22 @@ const ProjectileImpactService=Object.freeze({
         );
       }
 
+      if(impact.broadcastLinked===true){
+        const spread=Number(impact.randomSpread)||0;
+        // Copy confirmed parent hits, never share the children's accumulating hit sets.
+        // trajectoryHitAt also includes target-authority confirmations received online.
+        const excludedTargetIds=impact.excludeHitTargets===true
+          ?[...new Set([...(projectile.volley?.execution?.hitTargets||[]),
+            ...(projectile.trajectoryHitAt?.keys?.()||[])])].map(String):[];
+        attack={...attack,modules:(attack.modules||[]).map(module=>
+          module.type==='delivery.projectile'?{...module,origin:{type:'point',...point},
+            ...(impact.excludeHitTargets===true?{excludedTargetIds}: {})}:
+          module.type==='pattern.scatter'&&spread>0?{...module,angles:[-Math.random()*spread,Math.random()*spread]}:module)};
+        TriggeredAttackService.execute(source,attack,angle+(Number(impact.angleOffset)||0),{
+          targetPoint:point,hitGroupSequence:impact.shareHitTargets===true?projectile.volley?.execution?.sequence:null
+        });
+        resolved=true;continue;
+      }
       const delivery=AttackModuleService.module(
         attack,
         'delivery.area'

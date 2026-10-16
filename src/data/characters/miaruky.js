@@ -6,6 +6,58 @@
     classification: {style: 3, range: 0, role: 4},
     stats: {maxHealth: 1300, speed: 3.75, radius: 20, baseDamage: 100, difficulty: 3},
     desc: "공구함으로 회복지대를 생성하며 장기전을 이끄는 캐릭터",
+    worldGaugeModules: [{type:"range.circle",range:characterValue("attacks.lmbMelee.range"),visibility:"owner",color:characterValue("color"),alpha:0.42,lineWidth:1.5,dash:[5,5]}],
+    worldEffectModules: [
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "toolbox",
+    "scale": 1.65,
+    "conditions": [
+      {
+        "type": "state.mode-is",
+        "stateKey": "miaruky-weapon-image",
+        "initial": "toolbox",
+        "expiresAfterMs": 800,
+        "expiredValue": "toolbox",
+        "ageStateKey": "miaruky-image-life",
+        "value": "toolbox"
+      },
+      {
+        "type": "summon.inactive",
+        "stateKey": "toolbox"
+      }
+    ],
+    "rotationStateKey": "miaruky-toolbox-motion",
+    "rotationMs": 350,
+    "rotationRadians": -6.283185307179586
+  },
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "toolbox-wrench",
+    "scale": 1.65,
+    "conditions": [
+      {
+        "type": "state.mode-is",
+        "stateKey": "miaruky-weapon-image",
+        "initial": "toolbox",
+        "expiresAfterMs": 800,
+        "expiredValue": "toolbox",
+        "ageStateKey": "miaruky-image-life",
+        "value": "wrench"
+      },
+      {
+        "type": "summon.inactive",
+        "stateKey": "toolbox"
+      }
+    ],
+    "angle": -0.6,
+    "rotationStateKey": "miaruky-image-life",
+    "rotationMs": 350,
+    "rotationRadians": -6.283185307179586
+  }
+],
     tooltipSkills: [
       {key: "LMB RANGED", name: "공구 투척", attack: "lmbRanged", text: "원거리 시 공구를 꺼내 투척 ({damage})"},
       {key: "LMB MELEE", name: "공구함 휘두르기", attack: "lmbMelee", text: "근접 시 공구함 휘두르기 ({damage})"},
@@ -13,7 +65,7 @@
         key: "RMB",
         name: "회복지대",
         attack: "rmb",
-        text: "공구함을 내려놓아 범위 내 아군에게 {summonRegenSeconds}초마다 {summonRegenValue} 회복. 재사용 또는 평타 사용 시 회수"
+        text: "공구함을 내려놓아 아군 체력 {v:attacks.toolboxDeployKnockback.modules.2.amount} 회복. 재사용 또는 평타 사용 시 회수"
       },
       {key: "L-Shift", name: "회복 반격", attack: "counter", text: "범위 내 아군 체력 {healAmount} 회복 및 적에게 피해 ({damage})"}
     ],
@@ -32,17 +84,17 @@
       toolbox: {
         id: "summon.miaruky.toolbox",
         name: "공구함",
-        maxHealth: 800,
+        maxHealth: 400,
         radius: 16,
         speed: 0,
         respawnDelay: 7000,
-        respawnHealth: 800,
+        respawnHealth: 400,
         storedNaturalRegen: true,
         tags: ["소환수", "고정형"],
         fieldArea: {
           stateKey: "toolbox-heal-zone",
           shape: "circle",
-          range: 220,
+          range: 176,
           duration: Infinity,
           follow: "summon",
           targetRelations: ["self", "ally"],
@@ -55,7 +107,7 @@
             {
               type: "modifier.set",
               stat: "regeneration",
-              value: 20,
+              value: 40,
               duration: Infinity,
               removeOnExit: true,
               data: {tickInterval: 250, presentationSource: "zone"}
@@ -73,7 +125,7 @@
         cd: 450,
         attackDelayGroup: "miaruky-primary",
         attackDelay: 450,
-        range: 130,
+        range: characterValue("summons.toolbox.fieldArea.range"),
         modules: [
           {
             type: "delivery.area",
@@ -81,8 +133,9 @@
             range: characterValue("attacks.lmbMelee.range"),
             halfAngle: 1.309,
             contactType: "melee"
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "miaruky-toolbox-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbRanged: {
@@ -93,7 +146,10 @@
         attackDelayGroup: "miaruky-primary",
         attackDelay: 450,
         range: 700,
-        modules: [{type: "delivery.projectile", speed: 18, radius: 15}],
+        modules: [{type: "delivery.projectile", speed: 18, radius: 15},
+{"type": "mode.set", "when": "on-delivery", "stateKey": "miaruky-weapon-image", "value": "wrench"},
+{"type":"mode.toggle","when":"on-delivery","stateKey":"miaruky-image-life","values":["a","b"],"step":1}
+],
         tags: ["평타"]
       },
       rmb: {id: "attack.miaruky.rmb", damageRatio: 0, cost: 250, cd: 300, range: 300, modules: [], tags: ["스킬"]},
@@ -112,19 +168,27 @@
             targetRelations: ["enemy"]
           },
           {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 84,
-            speed: 10,
-            oncePerExecution: true
-          }
+            type: "delivery.area",
+            shape: "circle",
+            range: characterValue("attacks.toolboxDeployKnockback.range"),
+            targetRelations: ["self", "ally"],
+            applyHitEffects: true
+          },
+          {
+            type: "resource.restore",
+            when: "on-hit",
+            resource: "health",
+            recipient: "target",
+            targetRelations: ["self", "ally"],
+            amount: 200
+          },
+
         ],
         tags: ["스킬"]
       },
       counter: {
         id: "attack.miaruky.counter",
-        damageRatio: 2.5,
+        damageRatio: 2,
         cost: 0,
         cd: 300,
         range: 300,
@@ -149,9 +213,10 @@
             resource: "health",
             recipient: "target",
             targetRelations: ["self", "ally"],
-            amountRef: {type: "summon-field-modifier", stateKey: "toolbox", stat: "regeneration", multiplier: 10}
-          }
-        ],
+            amountRef: {type: "summon-field-modifier", stateKey: "toolbox", stat: "regeneration", multiplier: 5}
+          },
+{"type": "effect.spawn", "when": "after-attack", "renderType": "weaponImageEcho", "position": "source", "target": "source", "duration": 650, "expansion": 0.55, "imageAlpha": 1, "oncePerExecution": true, "imageConfig": {"renderType": "weaponImage", "style": "toolbox", "scale": 1.65}}
+],
         tags: ["반격"]
       }
     },

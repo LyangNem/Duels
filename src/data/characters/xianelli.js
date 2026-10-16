@@ -14,7 +14,7 @@
     "speed": 4.25,
     "radius": 20,
     "baseDamage": 100,
-    "difficulty": 3
+    "difficulty": 5
   },
   "desc": "순보를 이용해 위치를 교란하며 전투하는 캐릭터",
   "tooltipSkills": [
@@ -127,6 +127,16 @@
           "mode": "radial",
           "thresholdRatio": 0.6666666666666666,
           "multiplier": 0.6666666666666666
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "xianelli-throw-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -140,7 +150,18 @@
       "cd": 400,
       "range": 900,
       "effectsOnly": true,
-      "modules": [],
+      "modules": [
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "xianelli-dagger-spin",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        }
+      ],
       "tags": [
         "스킬"
       ]
@@ -422,6 +443,16 @@
             3.141592653589793,
             4.71238898038469
           ]
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "xianelli-dagger-spin",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -584,5 +615,24 @@
         ]
       }
     }
-  }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "throwing-dagger",
+      "scale": 1.8,
+      "angle": 0.65,
+      "motionStateKey": "xianelli-throw-motion",
+      "motionMs": 480,
+      "motion": {
+        "rotation": 0.65,
+        "travelX": 1.35,
+        "travelY": -0.3
+      },
+      "rotationStateKey": "xianelli-dagger-spin",
+      "rotationMs": 350,
+      "rotationRadians": 6.283185307179586
+    }
+  ]
 }

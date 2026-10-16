@@ -1,7 +1,15 @@
+// Capture Escape before chat/debug inputs, and keep panel controls native.
+window.addEventListener('keydown',event=>PanelController.handleGameplayKeydown(event),{capture:true});
+for(const type of ['mousedown','click','contextmenu','wheel'])window.addEventListener(type,event=>{
+  if(PanelController.capturesGameInput()&&!PanelController.panel('settings').contains(event.target)){
+    event.preventDefault();event.stopImmediatePropagation();
+  }
+},{capture:true,passive:false});
 
 
 window.addEventListener('keydown',event=>{
   SoundService.unlock();
+  if(PanelController.capturesGameInput())return;
 
   if(DebugMapEditorService.active){
     if(event.code==='Escape'){
@@ -81,12 +89,4 @@ window.addEventListener('keydown',event=>{
     if(!event.repeat)Training.use('counter');
   }
 
-  if(event.code==='Escape'){
-    const opened=['training-settings-panel','training-char-panel','training-aug-panel'].some(id=>document.getElementById(id));
-    if(opened){
-      event.preventDefault();
-      Training.closePanels();
-      Training.buildHud();
-    }
-  }
 });

@@ -1,0 +1,62 @@
+{
+  "id": "attack.fixture.reflection",
+  "damageRatio": 1.6666666666666667,
+  "cost": 0,
+  "cd": 0,
+  "range": 800,
+  "modules": [
+    {
+      "type": "movement.move",
+      "when": "after-attack",
+      "stateKey": "movement:reflection",
+      "direction": "attack",
+      "distance": 800,
+      "duration": 500,
+      "replaceActive": true,
+      "blocksAction": true,
+      "reflectWalls": true,
+      "collision": {
+        "passWalls": false,
+        "passEnemies": true
+      },
+      "presentation": false
+    },
+    {
+      "type": "effect.spawn",
+      "when": "after-attack",
+      "renderType": "effectShape",
+      "visible": false,
+      "duration": 500,
+      "animation": {
+        "mode": "forward",
+        "distance": 800,
+        "easing": "linear",
+        "clipByMovementCollision": true
+      },
+      "damage": {
+        "attackId": "attack.fixture.reflection",
+        "requireMovementExecution": true,
+        "movementStateKey": "movement:reflection",
+        "oncePerExecution": true,
+        "resetHitsOnWallReflection": true,
+        "hitMode": "body-contact",
+        "contactRadius": 38,
+        "stopAfterFirstContact": false,
+        "pathPresentation": {
+          "color": "207,119,184",
+          "width": 38,
+          "duration": 180
+        }
+      }
+    }
+  ],
+  "tags": [
+    "스킬"
+  ],
+  "previewGeometry": {
+    "shape": "rect",
+    "range": 800,
+    "halfWidth": 38,
+    "wallPolicy": "block"
+  }
+}

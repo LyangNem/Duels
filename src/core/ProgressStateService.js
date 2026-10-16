@@ -326,6 +326,7 @@ const ProgressStateService=Object.freeze({
     const state=this.ensure(entity,module);
     if(!state)return false;
     const now=performance.now();
+    const previousValue=state.value;
     // Stacking counters grow a finite capacity; snapshots remain JSON-safe.
     if(module.growMax===true&&operation==='add'){
       state.max=Math.max(state.max,state.value+Math.max(0,Number(module.amount)||0));
@@ -346,6 +347,7 @@ const ProgressStateService=Object.freeze({
     }else{
       state.value=Math.max(0,Math.min(state.max,state.value+(Number(module.amount)||1)));
     }
+    if(state.value!==previousValue)for(const mode of module.onChangeModes||[])ModeStateService.toggle(entity,mode);
     state.lastActivityAt=now;
     const stepInterval=Math.max(0,Number(state.decay?.stepInterval)||0);
     if(stepInterval>0){

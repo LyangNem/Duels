@@ -94,6 +94,55 @@ function applyDuels3Release(notes) {
 
 /* 패널 */
 const PanelController = Object.freeze({
+  settingsHome:{parent:null,next:null},
+  placeSettings(inGame){
+    const panel=this.panel('settings');
+    if(!panel)return;
+    if(inGame){
+      if(!panel.classList.contains('duels-settings-ingame')){
+        this.settingsHome.parent=panel.parentNode;
+        this.settingsHome.next=panel.nextSibling;
+        document.body.appendChild(panel);
+        panel.classList.add('duels-settings-ingame');
+      }
+    }else if(panel.classList.contains('duels-settings-ingame')){
+      panel.classList.remove('duels-settings-ingame');
+      const home=this.settingsHome;
+      if(home.parent)home.parent.insertBefore(panel,home.next?.parentNode===home.parent?home.next:null);
+      home.parent=null;home.next=null;
+    }
+  },
+  inGameContext(){return (typeof Training!=='undefined'&&Training.active)||(typeof RoomService!=='undefined'&&!!RoomService.localPid);},
+  capturesGameInput(){
+    return this.inGameContext()&&this.panel('settings')?.hidden===false;
+  },
+  handleGameplayKeydown(event){
+    if(!this.inGameContext())return false;
+    if(event.code==='Escape'||event.key==='Escape'){
+      event.preventDefault();event.stopImmediatePropagation();
+      if(event.repeat)return true;
+      // The capture listener owns Escape: close an active editor before settings.
+      if(typeof CharacterCommandInputService!=='undefined'&&CharacterCommandInputService.openState){
+        CharacterCommandInputService.close();
+        return true;
+      }
+      if(typeof OnlineChatService!=='undefined'&&OnlineChatService.openState){
+        OnlineChatService.close({selectDraftOnReopen:true});
+        return true;
+      }
+      if(typeof DebugMapEditorService!=='undefined'&&DebugMapEditorService.active)DebugMapEditorService.stop();
+      if(typeof DebugPanel!=='undefined'&&DebugPanel.capturesGameInput())DebugPanel.close();
+      if(typeof CharacterCommandInputService!=='undefined')CharacterCommandInputService.close();
+      if(typeof OnlineChatService!=='undefined'&&OnlineChatService.openState)OnlineChatService.close();
+      Training.closePanels();
+      this.toggle('settings');
+      return true;
+    }
+    if(this.capturesGameInput()&&!this.panel('settings').contains(event.target)){
+      event.preventDefault();event.stopImmediatePropagation();return true;
+    }
+    return false;
+  },
   panel(name){
     return name === 'help'
       ?document.getElementById('duels-help-panel')
@@ -108,6 +157,7 @@ const PanelController = Object.freeze({
       if (name === except) continue;
       const panel=this.panel(name);
       if(panel)panel.hidden=true;
+      if(name==='settings')this.placeSettings(false);
     }
   },
   toggle(name, forceOpen) {
@@ -120,6 +170,15 @@ const PanelController = Object.freeze({
         :panel.hidden;
 
     if (shouldOpen) this.closeAll(name);
+    if(name==='settings'){
+      const inGame=shouldOpen&&this.inGameContext();
+      if(inGame)GameInputResetService.releaseAll();
+      if(!shouldOpen){
+        ProfileSettingsUI.setPickerOpen(false);
+        if(panel.contains(document.activeElement))document.activeElement?.blur?.();
+      }
+      this.placeSettings(inGame);
+    }
     panel.hidden = !shouldOpen;
 
     if (shouldOpen && name === 'help') {
@@ -134,9 +193,11 @@ const PanelController = Object.freeze({
     if (shouldOpen && name === 'settings') {
       DisplaySettings.syncUi();
       ProfileSettingsUI.render();
+      if(panel.classList.contains('duels-settings-ingame')){panel.tabIndex=-1;panel.focus();}
     }
   }
 });
+
 
 const HelpTabs = Object.freeze({
   open(name) {
@@ -1810,7 +1871,7 @@ function freezeCharacterData(value){
 const CHARACTER_RULES=freezeCharacterData({
   weaponPresentation: {transientMs: 800},
   styles: {"1": "파워형", "2": "기동형", "3": "지속전투형", "4": "차징형", "5": "조건형", "6": "반격형", "7": "성장형", "8": "범위장악형", "9": "행동제약형"},
-  moveLabels: {"hab":"느림", "siro":"매우 빠름", "geopin":"매우 빠름", "shubi":"보통", "ruvu":"보통", "miaruky":"느림", "mainmad":"빠름", "mehugu":"보통", "lian":"빠름", "tau":"빠름", "veleu":"매우 빠름", "elin":"느림", "nsonya":"매우 빠름", "maisil":"빠름", "erapabi":"빠름", "reika":"느림", "shairaz":"느림", "phase":"보통", "kan":"매우 빠름", "cherity":"보통", "konyeong":"빠름", "herjang":"보통", "hatsuhats":"보통", "prill":"보통", "dazbin":"빠름", "yui":"빠름", "peluna":"빠름", "sherina":"느림", "sya":"매우 빠름", "runef":"보통", "roon":"빠름", "intu":"빠름", "meramona":"보통", "tadta":"매우 느림", "nanamnang":"느림", "raise":"빠름", "levina":"매우 빠름", "ki":"빠름", "sor":"보통", "jerry":"느림", "ruli":"보통", "lete":"빠름", "clea":"빠름", "shello":"빠름", "tinya":"느림", "lime":"보통", "quri":"보통", "hapupu":"매우 빠름", "atsuteo":"보통", "nare":"빠름", "kines":"보통", "ezrail":"보통", "nyu":"매우 빠름", "gae":"느림", "cyien":"빠름", "kanon":"빠름", "deltroove":"빠름", "xianelli":"빠름", "ban":"빠름", "sherbet":"보통", "dira":"보통"},
+  moveLabels: {"latis":"빠름", "lena":"빠름", "huri":"빠름", "hab":"느림", "siro":"매우 빠름", "geopin":"느림", "shubi":"보통", "ruvu":"보통", "miaruky":"느림", "mainmad":"빠름", "mehugu":"보통", "lian":"빠름", "tau":"빠름", "veleu":"매우 빠름", "elin":"느림", "nsonya":"매우 빠름", "maisil":"빠름", "erapabi":"빠름", "reika":"느림", "shairaz":"느림", "phase":"보통", "kan":"매우 빠름", "cherity":"매우 느림", "konyeong":"빠름", "herjang":"보통", "hatsuhats":"보통", "prill":"보통", "dazbin":"빠름", "yui":"빠름", "peluna":"빠름", "sherina":"느림", "sya":"매우 빠름", "runef":"보통", "roon":"빠름", "intu":"빠름", "meramona":"보통", "tadta":"매우 느림", "nanamnang":"느림", "raise":"빠름", "levina":"매우 빠름", "ki":"빠름", "sor":"보통", "jerry":"느림", "ruli":"보통", "lete":"빠름", "clea":"빠름", "shello":"빠름", "tinya":"느림", "lime":"보통", "quri":"보통", "hapupu":"매우 빠름", "atsuteo":"보통", "nare":"빠름", "kines":"보통", "ezrail":"보통", "nyu":"매우 빠름", "gae":"느림", "cyien":"빠름", "kanon":"빠름", "deltroove":"빠름", "xianelli":"빠름", "ban":"빠름", "sherbet":"보통", "dira":"보통"},
   roles: {"1": "딜러", "2": "저격수", "3": "탱커", "4": "서포터", "5": "컨트롤러", "6": "암살자"},
   ranges: [
     {id: 1, maxInclusive: 150, tag: "초근거리"},
@@ -2574,6 +2635,58 @@ const CHARACTER_DATA=freezeCharacterData({
     classification: {style: 3, range: 0, role: 4},
     stats: {maxHealth: 1300, speed: 3.75, radius: 20, baseDamage: 100, difficulty: 3},
     desc: "공구함으로 회복지대를 생성하며 장기전을 이끄는 캐릭터",
+    worldGaugeModules: [{type:"range.circle",range:characterValue("attacks.lmbMelee.range"),visibility:"owner",color:characterValue("color"),alpha:0.42,lineWidth:1.5,dash:[5,5]}],
+    worldEffectModules: [
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "toolbox",
+    "scale": 1.65,
+    "conditions": [
+      {
+        "type": "state.mode-is",
+        "stateKey": "miaruky-weapon-image",
+        "initial": "toolbox",
+        "expiresAfterMs": 800,
+        "expiredValue": "toolbox",
+        "ageStateKey": "miaruky-image-life",
+        "value": "toolbox"
+      },
+      {
+        "type": "summon.inactive",
+        "stateKey": "toolbox"
+      }
+    ],
+    "rotationStateKey": "miaruky-toolbox-motion",
+    "rotationMs": 350,
+    "rotationRadians": -6.283185307179586
+  },
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "toolbox-wrench",
+    "scale": 1.65,
+    "conditions": [
+      {
+        "type": "state.mode-is",
+        "stateKey": "miaruky-weapon-image",
+        "initial": "toolbox",
+        "expiresAfterMs": 800,
+        "expiredValue": "toolbox",
+        "ageStateKey": "miaruky-image-life",
+        "value": "wrench"
+      },
+      {
+        "type": "summon.inactive",
+        "stateKey": "toolbox"
+      }
+    ],
+    "angle": -0.6,
+    "rotationStateKey": "miaruky-image-life",
+    "rotationMs": 350,
+    "rotationRadians": -6.283185307179586
+  }
+],
     tooltipSkills: [
       {key: "LMB RANGED", name: "공구 투척", attack: "lmbRanged", text: "원거리 시 공구를 꺼내 투척 ({damage})"},
       {key: "LMB MELEE", name: "공구함 휘두르기", attack: "lmbMelee", text: "근접 시 공구함 휘두르기 ({damage})"},
@@ -2581,7 +2694,7 @@ const CHARACTER_DATA=freezeCharacterData({
         key: "RMB",
         name: "회복지대",
         attack: "rmb",
-        text: "공구함을 내려놓아 범위 내 아군에게 {summonRegenSeconds}초마다 {summonRegenValue} 회복. 재사용 또는 평타 사용 시 회수"
+        text: "공구함을 내려놓아 아군 체력 {v:attacks.toolboxDeployKnockback.modules.2.amount} 회복. 재사용 또는 평타 사용 시 회수"
       },
       {key: "L-Shift", name: "회복 반격", attack: "counter", text: "범위 내 아군 체력 {healAmount} 회복 및 적에게 피해 ({damage})"}
     ],
@@ -2600,17 +2713,17 @@ const CHARACTER_DATA=freezeCharacterData({
       toolbox: {
         id: "summon.miaruky.toolbox",
         name: "공구함",
-        maxHealth: 800,
+        maxHealth: 400,
         radius: 16,
         speed: 0,
         respawnDelay: 7000,
-        respawnHealth: 800,
+        respawnHealth: 400,
         storedNaturalRegen: true,
         tags: ["소환수", "고정형"],
         fieldArea: {
           stateKey: "toolbox-heal-zone",
           shape: "circle",
-          range: 220,
+          range: 176,
           duration: Infinity,
           follow: "summon",
           targetRelations: ["self", "ally"],
@@ -2623,7 +2736,7 @@ const CHARACTER_DATA=freezeCharacterData({
             {
               type: "modifier.set",
               stat: "regeneration",
-              value: 20,
+              value: 40,
               duration: Infinity,
               removeOnExit: true,
               data: {tickInterval: 250, presentationSource: "zone"}
@@ -2641,7 +2754,7 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 450,
         attackDelayGroup: "miaruky-primary",
         attackDelay: 450,
-        range: 130,
+        range: characterValue("summons.toolbox.fieldArea.range"),
         modules: [
           {
             type: "delivery.area",
@@ -2649,8 +2762,9 @@ const CHARACTER_DATA=freezeCharacterData({
             range: characterValue("attacks.lmbMelee.range"),
             halfAngle: 1.309,
             contactType: "melee"
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "miaruky-toolbox-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbRanged: {
@@ -2661,7 +2775,10 @@ const CHARACTER_DATA=freezeCharacterData({
         attackDelayGroup: "miaruky-primary",
         attackDelay: 450,
         range: 700,
-        modules: [{type: "delivery.projectile", speed: 18, radius: 15}],
+        modules: [{type: "delivery.projectile", speed: 18, radius: 15},
+{"type": "mode.set", "when": "on-delivery", "stateKey": "miaruky-weapon-image", "value": "wrench"},
+{"type":"mode.toggle","when":"on-delivery","stateKey":"miaruky-image-life","values":["a","b"],"step":1}
+],
         tags: ["평타"]
       },
       rmb: {id: "attack.miaruky.rmb", damageRatio: 0, cost: 250, cd: 300, range: 300, modules: [], tags: ["스킬"]},
@@ -2680,19 +2797,27 @@ const CHARACTER_DATA=freezeCharacterData({
             targetRelations: ["enemy"]
           },
           {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 84,
-            speed: 10,
-            oncePerExecution: true
-          }
+            type: "delivery.area",
+            shape: "circle",
+            range: characterValue("attacks.toolboxDeployKnockback.range"),
+            targetRelations: ["self", "ally"],
+            applyHitEffects: true
+          },
+          {
+            type: "resource.restore",
+            when: "on-hit",
+            resource: "health",
+            recipient: "target",
+            targetRelations: ["self", "ally"],
+            amount: 200
+          },
+
         ],
         tags: ["스킬"]
       },
       counter: {
         id: "attack.miaruky.counter",
-        damageRatio: 2.5,
+        damageRatio: 2,
         cost: 0,
         cd: 300,
         range: 300,
@@ -2717,9 +2842,10 @@ const CHARACTER_DATA=freezeCharacterData({
             resource: "health",
             recipient: "target",
             targetRelations: ["self", "ally"],
-            amountRef: {type: "summon-field-modifier", stateKey: "toolbox", stat: "regeneration", multiplier: 10}
-          }
-        ],
+            amountRef: {type: "summon-field-modifier", stateKey: "toolbox", stat: "regeneration", multiplier: 5}
+          },
+{"type": "effect.spawn", "when": "after-attack", "renderType": "weaponImageEcho", "position": "source", "target": "source", "duration": 650, "expansion": 0.55, "imageAlpha": 1, "oncePerExecution": true, "imageConfig": {"renderType": "weaponImage", "style": "toolbox", "scale": 1.65}}
+],
         tags: ["반격"]
       }
     },
@@ -4152,7 +4278,8 @@ const CHARACTER_DATA=freezeCharacterData({
         {
           "type": "delivery.projectile",
           "speed": 22,
-          "radius": 12
+          "radius": 12,
+          "predictiveConsumeOnContact": false
         },
         {
           "type": "projectile.return",
@@ -4996,10 +5123,11 @@ const CHARACTER_DATA=freezeCharacterData({
             "property": "maxImpactRange"
           },
           "color": "#ffdc00",
-          "fillAlpha": 0.035,
-          "strokeAlpha": 0.95,
-          "lineWidth": 2.5,
-          "duration": 180
+          "fillAlpha": 0.16,
+          "strokeAlpha": 1,
+          "strokeColor": "#fff3a0",
+          "lineWidth": 3.5,
+          "duration": 450
         }
       ],
       "tags": [
@@ -5657,7 +5785,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 18,
+          "speed": 22.5,
           "radius": 15,
           "targetPoint": true,
           "targetPointResolve": "nearest-open",
@@ -6551,7 +6679,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "speed": 4.25,
     "radius": 20,
     "baseDamage": 150,
-    "difficulty": 4
+    "difficulty": 1
   },
   "desc": "가위로 정확한 중앙 타격을 노리며 전투하는 캐릭터",
   "tooltipSkills": [
@@ -7384,7 +7512,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "stateKey": "reika-gaho",
           "operation": "add",
           "amountFrom": "healthDamage",
-          "amountScale": 0.04,
+          "amountScale": 0.06,
           "max": 200,
           "presentation": {
             "type": "arc-gauge",
@@ -7405,7 +7533,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "type": "state.progress-rate",
       "stateKey": "reika-gaho",
       "max": 200,
-      "ratePerSecond": 2.5,
+      "ratePerSecond": 2.875,
       "whenMode": {
         "stateKey": "reika-mode",
         "value": "normal",
@@ -7455,7 +7583,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "damageRatio": 1,
       "cost": 150,
       "cd": 560,
-      "range": 275,
+      "range": 300,
       "modules": [
         {
           "type": "delivery.area",
@@ -7943,7 +8071,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "damageRatio": 0,
       "cost": 0,
       "cd": 300,
-      "range": 275,
+      "range": 300,
       "previewGeometry": {
         "shape": "rect",
         "range": {
@@ -7971,9 +8099,9 @@ const CHARACTER_DATA=freezeCharacterData({
           "presentation": {
             "type": "dash-line",
             "color": "255,122,0",
-            "width": 12,
-            "alpha": 0.65,
-            "duration": 250,
+            "width": 7,
+            "alpha": 0.45,
+            "duration": 200,
             "colorVariants": [
               {
                 "color": "56,189,248",
@@ -8018,7 +8146,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "damageRatio": 2,
       "cost": 0,
       "cd": 0,
-      "range": 275,
+      "range": 300,
       "modules": [
         {
           "type": "delivery.area",
@@ -8160,8 +8288,17 @@ const CHARACTER_DATA=freezeCharacterData({
           {
             "type": "combat.can-act"
           },
-          {"type": "state.progress-gte", "stateKey": "reika-gaho", "value": 100},
-          {"type": "state.mode-is", "stateKey": "reika-mode", "value": "normal", "initial": "normal"}
+          {
+            "type": "state.progress-gte",
+            "stateKey": "reika-gaho",
+            "value": 100
+          },
+          {
+            "type": "state.mode-is",
+            "stateKey": "reika-mode",
+            "value": "normal",
+            "initial": "normal"
+          }
         ],
         "modules": [
           {
@@ -9066,7 +9203,7 @@ const CHARACTER_DATA=freezeCharacterData({
   },
   "stats": {
     "maxHealth": 1000,
-    "speed": 4,
+    "speed": 3.5,
     "radius": 20,
     "baseDamage": 150,
     "difficulty": 5
@@ -9102,10 +9239,10 @@ const CHARACTER_DATA=freezeCharacterData({
   "attacks": {
     "lmb": {
       "id": "attack.cherity.lmb",
-      "damageRatio": 1,
+      "damageRatio": 0.6666666666666666,
       "cost": 0,
       "cd": 600,
-      "range": 1400,
+      "range": Infinity,
       "cameraAimOffset": {
         "maxDistance": 400,
         "minProgress": 1
@@ -9121,7 +9258,8 @@ const CHARACTER_DATA=freezeCharacterData({
           "from": {
             "$ref": "attacks.lmb.damageRatio"
           },
-          "to": 6
+          "to": 6,
+          "step": 0.6666666666666666
         },
         "projectileSpeed": {
           "from": 18,
@@ -9132,6 +9270,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "bind"
         },
         "preview": true,
+        "aimLine": {"teamColor": true, "lineWidth": 1.5, "alpha": 0.65, "fadeDuration": 300, "hideDuringStealth": true},
         "gauge": {
           "layers": 2,
           "overflowColor": "#d88999",
@@ -9149,6 +9288,16 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "projectile.pierce",
           "targets": false,
           "walls": false
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "cherity-rifle-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -9256,6 +9405,22 @@ const CHARACTER_DATA=freezeCharacterData({
           "tags": [
             "이동기"
           ]
+        },
+        {
+          "type": "mode.set",
+          "when": "after-attack",
+          "stateKey": "cherity-weapon-image",
+          "value": "smoke"
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "cherity-image-life",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -9331,6 +9496,22 @@ const CHARACTER_DATA=freezeCharacterData({
             },
             "visibility": "all"
           }
+        },
+        {
+          "type": "mode.set",
+          "when": "after-attack",
+          "stateKey": "cherity-weapon-image",
+          "value": "smoke"
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "cherity-image-life",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -9502,7 +9683,51 @@ const CHARACTER_DATA=freezeCharacterData({
         ]
       }
     }
-  }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "cherity-bolt-rifle",
+      "scale": 1.5,
+      "angle": -0.6,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "cherity-weapon-image",
+          "initial": "rifle",
+          "expiresAfterMs": 800,
+          "ageStateKey": "cherity-image-life",
+          "expiredValue": "rifle",
+          "value": "rifle"
+        }
+      ],
+      "rotationStateKey": "cherity-rifle-motion",
+      "rotationMs": 300,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "smoke-canister",
+      "scale": 1.7,
+      "angle": -0.55,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "cherity-weapon-image",
+          "initial": "rifle",
+          "expiresAfterMs": 800,
+          "ageStateKey": "cherity-image-life",
+          "expiredValue": "rifle",
+          "value": "smoke"
+        }
+      ],
+      "rotationStateKey": "cherity-image-life",
+      "rotationMs": 400,
+      "rotationRadians": -6.283185307179586
+    }
+  ]
 },
   // 코녕: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   konyeong: {
@@ -11986,6 +12211,18 @@ const CHARACTER_DATA=freezeCharacterData({
       resources: ["stamina"],
       color: "#6e97ff"
     },
+    worldEffectModules: [
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "temporal-dagger",
+    "scale": 1.8,
+    "angle": 0.6,
+    "rotationStateKey": "yui-dagger-spin",
+    "rotationMs": 350,
+    "rotationRadians": -6.283185307179586
+  }
+],
     tooltipSkills: [
       {key: "LMB", name: "텔레포트 단검", attack: "lmb", text: "전방 부채꼴 베기. 적중 시 조준 방향으로 순간이동 ({damage})"},
       {key: "RMB", name: "공간 역행", attack: "rmb", text: "{rewindSeconds}초 전의 위치로 되돌아가며 해당 시점으로 스테미나 복원"},
@@ -12040,8 +12277,9 @@ const CHARACTER_DATA=freezeCharacterData({
             resolveOverlapOnEnd: true,
             tags: ["이동기"],
             presentation: {type: "dash-line", color: "110,151,255", width: 6, alpha: 0.4, duration: 167}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "yui-dagger-spin", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       rmb: {
@@ -12051,7 +12289,9 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 500,
         range: 0,
         effectsOnly: true,
-        modules: [],
+        modules: [
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "yui-dagger-spin", "values": ["a", "b"], "step": -1}
+],
         tags: ["스킬"]
       },
       counter: {
@@ -12096,8 +12336,9 @@ const CHARACTER_DATA=freezeCharacterData({
               pathPresentation: {width: 40, duration: 200},
               stopAfterFirstContact: false
             }
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "yui-dagger-spin", "values": ["a", "b"], "step": 1}
+],
         tags: ["반격"]
       }
     },
@@ -14074,7 +14315,7 @@ const CHARACTER_DATA=freezeCharacterData({
     },
     "ice": {
       "id": "attack.runef.ice",
-      "damageRatio": 2,
+      "damageRatio": 0.5,
       "cost": 0,
       "cd": 500,
       "range": 189,
@@ -14711,6 +14952,7 @@ const CHARACTER_DATA=freezeCharacterData({
         },
         {
           "type": "projectile.impact",
+          "requireSuccessfulHit": true,
           "sourceRelocate": {
             "reasons": [
               "target"
@@ -16232,6 +16474,113 @@ const CHARACTER_DATA=freezeCharacterData({
         gap: 2
       }
     ],
+    worldEffectModules: [
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "magical-wand",
+    "scale": 2.0,
+    "angle": 0.4,
+    "motionStateKey": "meramona-wand-motion",
+    "motionMs": 400,
+    "motion": {
+      "rotation": -0.35,
+      "travelY": -0.12
+    }
+  },
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "magical-wand-1",
+    "scale": 2.0,
+    "angle": 0.4,
+    "motionStateKey": "meramona-wand-motion",
+    "motionMs": 400,
+    "motion": {
+      "rotation": -0.35,
+      "travelY": -0.12
+    },
+    "conditions": [
+      {
+        "type": "state.progress-sum-gte",
+        "stateKeys": [
+          "meramona-stage",
+          "meramona-temp-stage"
+        ],
+        "value": 1
+      }
+    ]
+  },
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "magical-wand-2",
+    "scale": 2.0,
+    "angle": 0.4,
+    "motionStateKey": "meramona-wand-motion",
+    "motionMs": 400,
+    "motion": {
+      "rotation": -0.35,
+      "travelY": -0.12
+    },
+    "conditions": [
+      {
+        "type": "state.progress-sum-gte",
+        "stateKeys": [
+          "meramona-stage",
+          "meramona-temp-stage"
+        ],
+        "value": 2
+      }
+    ]
+  },
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "magical-wand-3",
+    "scale": 2.0,
+    "angle": 0.4,
+    "motionStateKey": "meramona-wand-motion",
+    "motionMs": 400,
+    "motion": {
+      "rotation": -0.35,
+      "travelY": -0.12
+    },
+    "conditions": [
+      {
+        "type": "state.progress-sum-gte",
+        "stateKeys": [
+          "meramona-stage",
+          "meramona-temp-stage"
+        ],
+        "value": 3
+      }
+    ]
+  },
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "magical-wand-4",
+    "scale": 2.0,
+    "angle": 0.4,
+    "motionStateKey": "meramona-wand-motion",
+    "motionMs": 400,
+    "motion": {
+      "rotation": -0.35,
+      "travelY": -0.12
+    },
+    "conditions": [
+      {
+        "type": "state.progress-sum-gte",
+        "stateKeys": [
+          "meramona-stage",
+          "meramona-temp-stage"
+        ],
+        "value": 4
+      }
+    ]
+  }
+],
     tooltipSkills: [
       {
         key: "ALWAYS",
@@ -16291,8 +16640,9 @@ const CHARACTER_DATA=freezeCharacterData({
             max: 2,
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbStage1: {
@@ -16322,8 +16672,9 @@ const CHARACTER_DATA=freezeCharacterData({
             max: characterValue("attacks.lmb.modules.2.max"),
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbStage3: {
@@ -16353,8 +16704,9 @@ const CHARACTER_DATA=freezeCharacterData({
             max: characterValue("attacks.lmb.modules.2.max"),
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbStage4: {
@@ -16408,8 +16760,9 @@ const CHARACTER_DATA=freezeCharacterData({
             max: characterValue("attacks.lmb.modules.2.max"),
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       rmb: {
@@ -16419,7 +16772,9 @@ const CHARACTER_DATA=freezeCharacterData({
         cd: 500,
         range: 170,
         effectsOnly: true,
-        modules: [],
+        modules: [
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["스킬", "선딜레이"]
       },
       emerge: {
@@ -16454,8 +16809,9 @@ const CHARACTER_DATA=freezeCharacterData({
             distance: 140,
             speed: 10,
             oncePerExecution: true
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["스킬"]
       },
       counter: {
@@ -16512,8 +16868,9 @@ const CHARACTER_DATA=freezeCharacterData({
             sourceId: "meramona:stage-attack-rate",
             recipient: "source",
             conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 3}]
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
+],
         tags: ["반격"]
       }
     },
@@ -18044,7 +18401,9 @@ const CHARACTER_DATA=freezeCharacterData({
           "strokeAlpha": 0.95,
           "lineWidth": 2.5,
           "durationFrames": 14,
-          "animation": true
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true
         },
         {
           "type": "movement.move",
@@ -18110,7 +18469,9 @@ const CHARACTER_DATA=freezeCharacterData({
           "strokeAlpha": 0.95,
           "lineWidth": 2.5,
           "durationFrames": 14,
-          "animation": true
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true
         }
       ],
       "tags": [
@@ -18315,7 +18676,7 @@ const CHARACTER_DATA=freezeCharacterData({
         name: "손기술",
         attack: "lmb",
         detailAttack: "lmbFinal",
-        text: "{attackSequenceCount}연타 근거리 공격 ({damage}/{detailDamage})"
+        text: "{attackSequenceCount}연타 근거리 공격. 3타 적중 시 코인을 얻어 체력 및 스테미나 {v:attacks.lmbFinal.modules.2.maxResourceRatio|percent}% 회복 ({damage}/{detailDamage})"
       },
       {
         key: "RMB",
@@ -18426,6 +18787,10 @@ const CHARACTER_DATA=freezeCharacterData({
             clipToAttackArea: true,
             replaceAutoAreaEffect: true
           }
+,
+          {type:"resource.restore",when:"on-hit",resource:"health",recipient:"source",maxResourceRatio:0.2,delay:333,oncePerExecution:true},
+          {type:"resource.restore",when:"on-hit",resource:"stamina",recipient:"source",maxResourceRatio:0.2,delay:333,oncePerExecution:true},
+          {type:"effect.spawn",when:"on-hit",renderType:"areaCircle",position:"hit-target",travelToken:true,target:"source",color:"255,165,0",duration:333,oncePerExecution:true}
         ],
         tags: ["평타"]
       },
@@ -19345,6 +19710,21 @@ const CHARACTER_DATA=freezeCharacterData({
         completePulseColor: "230,221,133"
       }
     },
+    worldEffectModules: [
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "tape-measure",
+    "scale": 1.8,
+    "angle": -0.3,
+    "motionStateKey": "ruli-measure-motion",
+    "motionMs": 260,
+    "motion": {
+      "rotation": 0.12,
+      "travelY": -0.06
+    }
+  }
+],
     tooltipSkills: [
       {key: "LMB", name: "줄자", attack: "lmb", text: "현재 단계의 사거리 끝에서 피해 ({damage})"},
       {key: "RMB", name: "길이 증가", attack: "rangeAdjust", showCost: false, text: "줄자의 길이 증가"},
@@ -19397,19 +19777,23 @@ const CHARACTER_DATA=freezeCharacterData({
             centerDistance: characterValue("rulerPresentation.originDistance"),
             rectCenterMode: "center",
             wallPolicy: "block",
+            travelDelay: characterProduct(characterValue("rulerPresentation.strikeDuration"), characterValue("rulerPresentation.travelFraction")),
+            geometryOriginMode: "cast-source",
             visual: false
           },
           {
             type: "effect.spawn",
             when: "after-attack",
             renderType: "rulerStrike",
+            animateOutline: true,
             position: "source",
             stage: 1,
             stages: characterValue("rulerPresentation.maxStage"),
             strikeLength: characterValue("rulerPresentation.halfWidth", 2),
             strikeWidth: characterValue("rulerPresentation.depth"),
             color: "230,221,133",
-            durationFrames: 18,
+            duration: characterValue("rulerPresentation.strikeDuration"),
+            travelFraction: characterValue("rulerPresentation.travelFraction"),
             targetFromAreaCenter: true,
             syncAreaRectGeometry: true,
             startAtSourceRadius: true
@@ -19494,6 +19878,7 @@ const CHARACTER_DATA=freezeCharacterData({
         inputPolicy: {
           deferTapUntilRelease: true,
           holdRepeatProgress: {
+            onChangeModes: [{"type": "mode.toggle", "when": "after-attack", "stateKey": "ruli-measure-motion", "values": ["a", "b"], "step": 1}],
             stateKey: "ruli-range-stage",
             interval: 200,
             amount: 1,
@@ -19516,6 +19901,7 @@ const CHARACTER_DATA=freezeCharacterData({
           modules: [
             {
               type: "state.progress",
+              onChangeModes: [{"type": "mode.toggle", "when": "after-attack", "stateKey": "ruli-measure-motion", "values": ["a", "b"], "step": 1}],
               stateKey: "ruli-range-stage",
               operation: "add",
               amount: 1,
@@ -19561,6 +19947,8 @@ const CHARACTER_DATA=freezeCharacterData({
       }
     },
     rulerPresentation: {
+      strikeDuration: 300,
+      travelFraction: 0.45,
       stateKey: "ruli-range-stage",
       stageAttackId: "attack.ruli.lmb",
       counterAttackId: "attack.ruli.counter",
@@ -21336,10 +21724,14 @@ const CHARACTER_DATA=freezeCharacterData({
     title: "마법진 마법사",
     color: "#92cbd6",
     classification: {style: 5, range: 0, role: 5},
-    stats: {maxHealth: 1200, speed: 3.75, radius: 20, baseDamage: 50, difficulty: 6},
+    stats: {maxHealth: 1200, speed: 3.75, radius: 20, baseDamage: 20, difficulty: 5},
     desc: "얼음 속성 마법진을 그려 공격하는 캐릭터",
     circleFormation: {
       stateKey: "tinya-magic-circles",
+      placementSpace: "camera",
+      editingScale: characterValue("circleFormation.castingScale"),
+      castingScale: 0.75,
+      constrainCentersToView: true,
       color: "146,203,214",
       circle: {
         input: "rmb",
@@ -21353,9 +21745,9 @@ const CHARACTER_DATA=freezeCharacterData({
         holdMoveDeadzone: 10,
         amplifierRadiusTolerance: 1.5
       },
-      activation: {input: "lmb", inputWindowMs: 200, revealMs: 375, holdMoveDeadzone: 10, postEffectCooldownMs: 100},
+      activation: {input: "lmb", inputWindowMs: 0, revealMs: 375, postEffectCooldownMs: 100, presentation: {angle: 0, sweepCount: 1, sweepDirection: "clockwise", startAngleOffset: -1.5707963267948966, span: 6.283185307179586, inner: 0, fillAlpha: 0.2, strokeAlpha: 0.88, lineWidth: 2.5, edgeLine: false}},
       relation: {containAreaRatioMax: 0.55, connectDepthRatioMax: 0.35},
-      amplifier: {duration: 1000, slowFactor: 0.55, maxStage: 3, containedStageWeight: 2},
+      amplifier: {status: "freeze", durationPerSource: 100, maxStage: characterProduct(characterValue("circleFormation.circle.maxCount"), 2), containedStageWeight: 2},
       burstDuration: 440,
       damage: {
         containMultiplier: 2,
@@ -21365,11 +21757,11 @@ const CHARACTER_DATA=freezeCharacterData({
         intersectionContainStep: characterValue("circleFormation.damage.containMultiplier")
       }
     },
+    worldEffectModules: [{type:"effect.spawn",renderType:"weaponImage",style:"formation-template",formationKey:"circleFormation",idleAlpha:0.45,scale:2.5}],
     tooltipSkills: [
-      {key: "LMB", name: "발동", attack: "lmb", text: "현재 구현된 마법진 전체 발동"},
-      {key: "LMB/RMB", name: "마법진 제거", attack: "remove", text: "선택한 마법진 중 가장 최근 마법진 제거"},
-      {key: "LMB/LMB", name: "마법 주문서", attack: "spellbook", text: "가장 최근에 발동한 마법진을 불러옴"},
-      {key: "LMB HOLD", name: "마법진 위치 조정", attack: "lmb", showCost: false, text: "선택한 마법진과 연결된 모든 마법진의 위치 조정"},
+      {key: "LMB", name: "발동", attack: "lmb", costText: "스테미나 {v:attacks.lmb.formationCost.perCircle} × 마법진 수", text: "마우스 위치에서 그린 마법진 전체 발동"},
+      {key: "RMB", name: "마법진 제거", attack: "remove", text: "선택한 마법진 중 가장 최근 마법진 제거"},
+      {key: "RMB HOLD", name: "마법진 위치 조정", attack: "lmb", showCost: false, text: "선택한 마법진과 연결된 모든 마법진의 위치 조정"},
       {
         key: "RMB DRAG",
         name: "마법진",
@@ -21378,33 +21770,33 @@ const CHARACTER_DATA=freezeCharacterData({
         text: "드래그로 마법진을 생성. 마법진의 생성 형태에 따라 추가 효과 적용 ({damage})"
       },
       {
-        key: "RMB INCLUDE", section: "CIRCLE",
+        key: "INCLUDE", section: "CIRCLE",
         name: "",
         showCost: false,
         text: "큰 마법진이 작은 마법진을 완전히 포함하면 작은 마법진의 효과가 {v:circleFormation.damage.containMultiplier}배로 증폭. 일정 크기 이상은 포함 불가"
       },
-      {key: "RMB LINK", section: "CIRCLE", name: "", showCost: false, text: "겹치지 않고 서로 이어진 마법진이 효과를 공유"},
+      {key: "LINK", section: "CIRCLE", name: "", showCost: false, text: "겹치지 않고 서로 이어진 마법진이 효과를 공유"},
       {
-        key: "RMB CROSS", section: "CIRCLE",
+        key: "CROSS", section: "CIRCLE",
         name: "",
         showCost: false,
         text: "마법진이 교차되면 마법진의 피해가 {v:circleFormation.damage.crossMultiplier}배 증가하며 교차지점은 추가로 {v:circleFormation.damage.intersectionMultiplier}배 증가"
       },
       {
-        key: "RMB AMP", section: "CIRCLE",
+        key: "AMP", section: "CIRCLE",
         name: "",
         showCost: false,
-        text: "최소 크기 마법진만 증폭 마법진이 될 수 있음. 직ㆍ간접 연결된 마법진에 증폭 단계에 따라 {v:circleFormation.amplifier.duration|seconds}초 감속ㆍ속박ㆍ빙결"
+        text: "마법진 최소 크기 및 타 마법진의 윤곽선에 배치해 사용. 직간접적으로 연결된 마법진에 증폭 마법진 하나당 {v:circleFormation.amplifier.durationPerSource|seconds}초 빙결. 포함된 증폭 마법진은 지속시간 {v:circleFormation.amplifier.containedStageWeight}배"
       },
-      {key: "RMB HOLD", name: "마법진 수정", attack: "rmb", showCost: false, text: "선택한 마법진의 위치 조정"},
-      {key: "L-Shift", name: "무영창 주문서", attack: "counter", text: "마지막으로 발동한 마법진을 조준 위치에서 재발동. 발동 기록이 없으면 최소 크기 마법진 발동"}
+      {key: "L-Shift", name: "무영창 주문서", attack: "counter", text: "마우스 위치에서 그린 마법진 전체 발동"}
     ],
     attacks: {
       lmb: {
         id: "attack.tinya.lmb",
         damageRatio: 1,
+        formationCost: {formationKey: "circleFormation", perCircle: 50},
         cost: 0,
-        cd: 100,
+        cd: 650,
         attackDelayGroup: "tinya-activation",
         attackDelay: 100,
         range: Infinity,
@@ -21415,15 +21807,7 @@ const CHARACTER_DATA=freezeCharacterData({
             formationKey: "circleFormation",
             source: "pending",
             storeLast: true,
-            consumePlaced: true
-          },
-          {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 84,
-            speed: 10,
-            oncePerExecution: true
+            consumePlaced: false
           }
         ],
         tags: ["평타", "선딜레이"]
@@ -21431,7 +21815,7 @@ const CHARACTER_DATA=freezeCharacterData({
       rmb: {
         id: "attack.tinya.rmb",
         damageRatio: 0,
-        cost: 250,
+        cost: 0,
         cd: 180,
         range: 240,
         effectsOnly: true,
@@ -21452,22 +21836,10 @@ const CHARACTER_DATA=freezeCharacterData({
         modules: [],
         tags: ["스킬"]
       },
-      spellbook: {
-        id: "attack.tinya.spellbook",
-        damageRatio: 0,
-        cost: 600,
-        cd: 0,
-        attackDelayGroup: "tinya-activation",
-        attackDelay: 100,
-        range: Infinity,
-        effectsOnly: true,
-        presentation: {suppressAttackFeedback: true},
-        modules: [],
-        tags: ["스킬"]
-      },
       counter: {
         id: "attack.tinya.counter",
         damageRatio: 1,
+        formationCost: {formationKey: "circleFormation", perCircle: 0},
         cost: 0,
         cd: 550,
         range: Infinity,
@@ -21476,18 +21848,9 @@ const CHARACTER_DATA=freezeCharacterData({
           {
             type: "formation.manifest",
             formationKey: "circleFormation",
-            source: "last",
-            defaultMinimumCircle: true,
+            source: "template",
             storeLast: false,
             consumePlaced: false
-          },
-          {
-            type: "movement.neutralize-knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 84,
-            speed: 10,
-            oncePerExecution: true
           }
         ],
         tags: ["반격"]
@@ -21515,7 +21878,7 @@ const CHARACTER_DATA=freezeCharacterData({
           type: "trigger",
           event: "input.press",
           conditions: [{type: "input.slot", slot: "rmb"}, {type: "entity.alive"}, {type: "combat.can-act"}],
-          modules: [{type: "formation.place-minimum", formationKey: "circleFormation"}]
+          modules: [{type: "formation.remove", formationKey: "circleFormation"}]
         }
       },
       counter: {
@@ -21531,7 +21894,8 @@ const CHARACTER_DATA=freezeCharacterData({
             {type: "ability.pending-ready"},
             {type: "combat.can-act"},
             {type: "source.property.falsy", property: "counterWindup"},
-            {type: "counter.ready"}
+            {type: "counter.ready"},
+            {type: "formation.nonempty", formationKey: "circleFormation"}
           ],
           modules: [
             {
@@ -21539,14 +21903,7 @@ const CHARACTER_DATA=freezeCharacterData({
               windup: 300,
               consumeState: "counter-ready",
               preview: {type: "preview.create", shape: "attack-shape"},
-              cc: {
-                type: "movement.neutralize-knockback",
-                target: "hit-target",
-                direction: "away-from-source",
-                distance: 84,
-                speed: 10,
-                oncePerExecution: true
-              }
+              cc: null
             }
           ]
         }
@@ -23724,6 +24081,7 @@ const CHARACTER_DATA=freezeCharacterData({
     classification: {style: 2, range: 0, role: 2},
     stats: {maxHealth: 1200, speed: 4.25, radius: 20, baseDamage: 150, difficulty: 3},
     desc: "종이 비행기를 타고 압도적인 기동성으로 적을 공격하는 캐릭터",
+    worldEffectModules: [{"type": "effect.spawn", "renderType": "weaponImage", "style": "paper-airplane", "scale": 1.7, "rotationStateKey": "nare-plane-image", "rotationMs": 400, "rotationRadians": -6.283185307179586}],
     tooltipSkills: [
       {
         key: "LMB",
@@ -23752,7 +24110,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {
             type: "delivery.projectile",
             speed: 20,
-            radius: 12,
+            radius: 15,
             collisionTargets: true,
             rehitInterval: 260,
             rangeExtendOnHitRatio: 0.85,
@@ -23766,14 +24124,15 @@ const CHARACTER_DATA=freezeCharacterData({
               targetRelations: ["enemy"]
             }
           },
-          {type: "projectile.pierce", targets: true, walls: true}
-        ],
+          {type: "projectile.pierce", targets: true, walls: true},
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "nare-plane-image", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       rmb: {
         id: "attack.nare.rmb",
         damageRatio: 1.3333333333333333,
-        cost: 800,
+        cost: 400,
         cd: 1200,
         range: 2200,
         presentation: {color: "#b8dcff"},
@@ -23809,8 +24168,9 @@ const CHARACTER_DATA=freezeCharacterData({
               innerAlpha: 0.36,
               innerStrokeWidth: 2
             }
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "nare-plane-image", "values": ["a", "b"], "step": 1}
+],
         tags: ["스킬"]
       },
       rmbExit: {
@@ -23849,7 +24209,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {
             type: "delivery.projectile",
             speed: 20,
-            radius: 11,
+            radius: 15,
             collisionTargets: true,
             rehitInterval: 260,
             rangeExtendOnHitRatio: 0.85,
@@ -23880,8 +24240,9 @@ const CHARACTER_DATA=freezeCharacterData({
             distance: 84,
             speed: 10,
             oncePerExecution: true
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "nare-plane-image", "values": ["a", "b"], "step": 1}
+],
         tags: ["반격"]
       }
     },
@@ -23925,8 +24286,7 @@ const CHARACTER_DATA=freezeCharacterData({
               ],
               fallbackConditions: [
                 {type: "state.absent", stateKey: "projectile-ride"},
-                {type: "cooldowns.ready", attackIds: ["attack.nare.rmb"]},
-                {type: "resource.gte", resource: "stamina", value: 1200}
+                {type: "cooldowns.ready", attackIds: ["attack.nare.rmb"]}
               ]
             },
             {
@@ -25311,7 +25671,7 @@ const CHARACTER_DATA=freezeCharacterData({
     {
       "key": "/",
       "name": "/fix",
-      "text": "잃은 체력의 {v:commandFeatures.fixMissingHealthRatio|percent}% 회복"
+      "text": "{v:commandFeatures.fixRegeneration.duration|seconds}초 재생. 초당 {v:commandFeatures.fixRegeneration.value} 회복 (사용마다 즉시 회복 및 회복 주기 갱신, 중첩 불가)"
     },
     {
       "key": "/",
@@ -25385,7 +25745,7 @@ const CHARACTER_DATA=freezeCharacterData({
               "type": "movement.knockback",
               "target": "hit-target",
               "direction": "away-from-source",
-              "distance": 160,
+              "distance": 80,
               "speed": 12,
               "oncePerExecution": true
             }
@@ -25435,6 +25795,16 @@ const CHARACTER_DATA=freezeCharacterData({
             "coreColor": "225,233,238",
             "centerColor": "255,255,255"
           }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "gae-laser-image",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -25463,6 +25833,8 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "effect.spawn",
           "when": "after-attack",
           "renderType": "areaCircle",
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true,
           "position": "source",
           "range": {
             "$ref": "attacks.counter.range"
@@ -25475,6 +25847,17 @@ const CHARACTER_DATA=freezeCharacterData({
           "strokeAlpha": 0.9,
           "lineWidth": 2.5,
           "durationFrames": 14
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "weaponImageEcho",
+          "position": "source",
+          "target": "source",
+          "duration": 650,
+          "expansion": 0.55,
+          "imageAlpha": 1,
+          "oncePerExecution": true
         }
       ],
       "tags": [
@@ -25506,6 +25889,17 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "status.apply",
           "status": "discharge",
           "duration": 1000
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "weaponImageEcho",
+          "position": "source",
+          "target": "source",
+          "duration": 650,
+          "expansion": 0.55,
+          "imageAlpha": 1,
+          "oncePerExecution": true
         }
       ],
       "tags": [
@@ -25659,7 +26053,7 @@ const CHARACTER_DATA=freezeCharacterData({
     }
   },
   "commandFeatures": {
-    "fixMissingHealthRatio": 0.2,
+    "fixRegeneration": {"value": 50, "duration": 5000, "tickInterval": 1000},
     "fixGlowDuration": 1000,
     "laser": {
       "speed": 30,
@@ -25690,7 +26084,227 @@ const CHARACTER_DATA=freezeCharacterData({
       "resultHoldMs": 2000,
       "resultFadeMs": 450
     }
-  }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-emitter",
+      "scale": 2.125,
+      "angle": 0,
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-range-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:laser-range",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-wide-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:laser-wide",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-knockback-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:knockback",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-accelerate-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:accelerate",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-instant-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:laser-instant",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-pierce-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:laser-pierce",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-electric-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:electric",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "color": "#e7cf62"
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "laser-dual-module",
+      "scale": 2.125,
+      "angle": 0,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "command:laser-dual",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ],
+      "activityColors": [
+        {
+          "untilProperty": "_commandFixGlowUntil",
+          "fadeMs": 300,
+          "color": "#8df0ad"
+        }
+      ],
+      "rotationStateKey": "gae-laser-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    }
+  ]
 },
   // 사이엔: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   cyien: {
@@ -25704,13 +26318,6 @@ const CHARACTER_DATA=freezeCharacterData({
     stats: {maxHealth: 1300, speed: 4.25, radius: 20, baseDamage: 100, difficulty: 6},
     desc: "{v:descriptionValues.comboHits}번의 평타를 모두 적중시키며 채운 스킬로 한방에 적을 처형하는 캐릭터",
     tagPersistentActionStateKeys: ["cyien-gyeok"],
-    killRewardProgress: {
-      excludeTargetKinds: ["summon"],
-      stateKey: "cyien-gyeok",
-      operation: "set-max",
-      max: 8,
-      presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
-    },
     conditionalTargetLinks: [
       {
         relation: "enemy",
@@ -25723,8 +26330,31 @@ const CHARACTER_DATA=freezeCharacterData({
         visibility: "owner"
       }
     ],
+    worldEffectModules: [
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "paired-daggers",
+    "angle": 3.141592653589793,
+    "idleAlpha": 0.45,"activityStateKey":"cyien-dagger-block","useHoldMs":120,"useFadeMs":530,
+    "activityColors": [{"stateKey":"cyien-dagger-block","duration":650,"fadeMs":450,"color":{"$ref":"accentColor"}}],
+    "scale": 1.65,
+    "partMotions": [
+      {
+        "rotationStateKey": "cyien-back-dagger",
+        "rotationMs": 350,
+        "rotationRadians": -6.283185307179586
+      },
+      {
+        "rotationStateKey": "cyien-front-dagger",
+        "rotationMs": 350,
+        "rotationRadians": -6.283185307179586
+      }
+    ]
+  }
+],
     tooltipSkills: [
-      {key: "ALWAYS", name: "격의 차이", attack: "rmbCharged", showCost: false, text: "적 처치 또는 격 최대치 시 절격 활성화"},
+      {key: "ALWAYS", name: "격의 차이", attack: "rmbCharged", showCost: false, text: "격 최대치 시 절격 활성화"},
       {
         key: "LMB",
         name: "양손 단검",
@@ -25788,8 +26418,9 @@ const CHARACTER_DATA=freezeCharacterData({
             durationFrames: 12,
             clipToAttackArea: true,
             replaceAutoAreaEffect: true
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "cyien-front-dagger", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbSecond: {
@@ -25830,8 +26461,9 @@ const CHARACTER_DATA=freezeCharacterData({
             durationFrames: 12,
             clipToAttackArea: true,
             replaceAutoAreaEffect: true
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "cyien-back-dagger", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbBack: {
@@ -25873,8 +26505,9 @@ const CHARACTER_DATA=freezeCharacterData({
             clipToAttackArea: true,
             replaceAutoAreaEffect: true,
             scaleWithAttackRange: true
-          }
-        ],
+          },
+{"type": "effect.spawn", "when": "on-hit", "renderType": "weaponImageEcho", "position": "source", "target": "source", "duration": 650, "expansion": 0.55, "imageAlpha": 1, "oncePerExecution": true}
+],
         tags: ["평타"]
       },
       rmb: {
@@ -25918,6 +26551,7 @@ const CHARACTER_DATA=freezeCharacterData({
             wallPolicy: "block",
             duration: 150,
             onBlock: {
+              modes: [{type: "mode.toggle", stateKey: "cyien-dagger-block", values: ["a", "b"]}],
               progress: {
                 stateKey: "cyien-gyeok",
                 operation: "add",
@@ -25927,8 +26561,10 @@ const CHARACTER_DATA=freezeCharacterData({
               }
             },
             visualState: {effectStateKey: "cyien-parry", duration: 150, syncToGuardDuration: true, color: "168,213,255"}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-back-dagger", "values": ["a", "b"], "step": 1},
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-front-dagger", "values": ["a", "b"], "step": 1}
+],
         tags: ["스킬"]
       },
       rmbCharged: {
@@ -25986,8 +26622,10 @@ const CHARACTER_DATA=freezeCharacterData({
               pathPresentation: {color: "168,213,255", width: 57.2, duration: 200},
               stopAfterFirstContact: false
             }
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-back-dagger", "values": ["a", "b"], "step": 1},
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-front-dagger", "values": ["a", "b"], "step": 1}
+],
         tags: ["스킬"]
       },
       counter: {
@@ -26054,12 +26692,14 @@ const CHARACTER_DATA=freezeCharacterData({
             when: "on-hit",
             stateKey: "cyien-gyeok",
             operation: "add",
-            amount: 2,
+            amount: 1,
             max: characterValue("attacks.lmb.modules.1.max"),
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-back-dagger", "values": ["a", "b"], "step": 1},
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-front-dagger", "values": ["a", "b"], "step": 1}
+],
         tags: ["반격"]
       }
     },
@@ -26294,7 +26934,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "when": "on-hit",
           "resource": "stamina",
           "recipient": "source",
-          "amount": 100,
+          "amount": 70,
           "oncePerExecution": true,
           "excludeTargetKinds": [
             "summon",
@@ -26358,7 +26998,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "when": "on-hit",
           "resource": "stamina",
           "recipient": "source",
-          "amount": 100,
+          "amount": 70,
           "oncePerExecution": true,
           "excludeTargetKinds": [
             "summon",
@@ -26417,7 +27057,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "when": "on-hit",
           "resource": "stamina",
           "recipient": "source",
-          "amount": 100,
+          "amount": 70,
           "oncePerExecution": true,
           "excludeTargetKinds": [
             "summon",
@@ -26966,7 +27606,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "speed": 4.25,
     "radius": 20,
     "baseDamage": 100,
-    "difficulty": 3
+    "difficulty": 5
   },
   "desc": "순보를 이용해 위치를 교란하며 전투하는 캐릭터",
   "tooltipSkills": [
@@ -27079,6 +27719,16 @@ const CHARACTER_DATA=freezeCharacterData({
           "mode": "radial",
           "thresholdRatio": 0.6666666666666666,
           "multiplier": 0.6666666666666666
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "xianelli-throw-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -27092,7 +27742,18 @@ const CHARACTER_DATA=freezeCharacterData({
       "cd": 400,
       "range": 900,
       "effectsOnly": true,
-      "modules": [],
+      "modules": [
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "xianelli-dagger-spin",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        }
+      ],
       "tags": [
         "스킬"
       ]
@@ -27374,6 +28035,16 @@ const CHARACTER_DATA=freezeCharacterData({
             3.141592653589793,
             4.71238898038469
           ]
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "xianelli-dagger-spin",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -27536,7 +28207,26 @@ const CHARACTER_DATA=freezeCharacterData({
         ]
       }
     }
-  }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "throwing-dagger",
+      "scale": 1.8,
+      "angle": 0.65,
+      "motionStateKey": "xianelli-throw-motion",
+      "motionMs": 480,
+      "motion": {
+        "rotation": 0.65,
+        "travelX": 1.35,
+        "travelY": -0.3
+      },
+      "rotationStateKey": "xianelli-dagger-spin",
+      "rotationMs": 350,
+      "rotationRadians": 6.283185307179586
+    }
+  ]
 },
   // 반: 능력치 → 분류 → 기술·상태·설명 (모든 수치는 이 블록에서 편집)
   van: {
@@ -28140,6 +28830,12 @@ const CHARACTER_DATA=freezeCharacterData({
               "min": 250,
               "max": 300,
               "activeOnly": true
+            },
+            {
+              "type": "state.timed-data-equals",
+              "stateKey": "sherbet-overcool-window",
+              "key": "decided",
+              "value": false
             }
           ]
         }
@@ -28161,7 +28857,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "name": "과냉각",
       "attack": "lmb",
       "costText": "스테미나 150",
-      "text": "선딜레이 후 피해. 게이지가 채워지기 직전에 재사용 시 전방의 적을 과냉각시켜 빙결 (100/200)"
+      "text": "선딜레이 후 피해. 두 번째 클릭의 타이밍이 맞으면 과냉각시켜 빙결. 일찍 누르면 즉시 일반 공격 (100/200)"
     },
     {
       "key": "RMB",
@@ -28195,7 +28891,8 @@ const CHARACTER_DATA=freezeCharacterData({
           "retainCompleteMs": 500,
           "data": {
             "choice": "normal",
-            "result": "failed"
+            "result": "failed",
+            "decided": false
           },
           "captureAngle": true,
           "resolveDataKey": "choice",
@@ -28651,7 +29348,8 @@ const CHARACTER_DATA=freezeCharacterData({
             "stateKey": "sherbet-overcool-window",
             "data": {
               "choice": "success",
-              "result": "success"
+              "result": "success",
+              "decided": true
             },
             "stopOnHandled": true,
             "conditions": [
@@ -28661,8 +29359,39 @@ const CHARACTER_DATA=freezeCharacterData({
                 "min": 250,
                 "max": 300,
                 "activeOnly": true
+              },
+              {
+                "type": "state.timed-data-equals",
+                "stateKey": "sherbet-overcool-window",
+                "key": "decided",
+                "value": false
               }
             ]
+          },
+          {
+            "type": "state.window",
+            "operation": "select",
+            "stateKey": "sherbet-overcool-window",
+            "stopOnHandled": true,
+            "conditions": [
+              {
+                "type": "state.exists",
+                "stateKey": "sherbet-overcool-window",
+                "activeOnly": true
+              },
+              {
+                "type": "state.timed-data-equals",
+                "stateKey": "sherbet-overcool-window",
+                "key": "decided",
+                "value": false
+              }
+            ],
+            "data": {
+              "choice": "normal",
+              "result": "failed",
+              "decided": true
+            },
+            "resolveImmediately": true
           },
           {
             "type": "state.window",
@@ -28818,7 +29547,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "role": 4
   },
   "stats": {
-    "maxHealth": 1000,
+    "maxHealth": 1200,
     "speed": 4,
     "radius": 20,
     "baseDamage": 100,
@@ -29086,7 +29815,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "fryingPan": {
       "id": "attack.dira.frying-pan",
       "damageRatio": 1,
-      "cost": 150,
+      "cost": 100,
       "cd": 300,
       "attackDelayGroup": "dira-lmb",
       "attackDelay": 300,
@@ -29094,7 +29823,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 20,
+          "speed": 27,
           "radius": 16,
           "hitRadius": 16
         },
@@ -29157,7 +29886,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 20,
+          "speed": 27,
           "radius": 12,
           "hitRadius": 12,
           "collisionTargets": true,
@@ -29198,7 +29927,7 @@ const CHARACTER_DATA=freezeCharacterData({
             "ally"
           ]
         },
-        {"type": "resource.restore", "when": "on-hit", "resource": "stamina", "recipient": "source", "amount": 150,
+        {"type": "resource.restore", "when": "on-hit", "resource": "stamina", "recipient": "source", "amount": 100,
           "targetRelations": ["ally"], "oncePerExecution": true, "conditions": [{"type": "cooking.own-stove"}]},
         {
           "type": "cooking.consume-ingredient",
@@ -29216,7 +29945,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "meal": {
       "id": "attack.dira.meal",
       "damageRatio": 0,
-      "cost": 150,
+      "cost": 100,
       "cd": 300,
       "attackDelayGroup": "dira-lmb",
       "attackDelay": 300,
@@ -29225,7 +29954,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 20,
+          "speed": 27,
           "radius": 15,
           "hitRadius": 15,
           "collisionTargets": true,
@@ -30193,326 +30922,202 @@ const CHARACTER_DATA=freezeCharacterData({
   "color": "#e6ca3b",
   "classification": {
     "style": 6,
-    "range": 0,
+    "range": 3,
     "role": 1
   },
   "stats": {
-    "maxHealth": 1100,
-    "speed": 4.5,
+    "maxHealth": 900,
+    "speed": 3.75,
     "radius": 20,
     "baseDamage": 100,
     "difficulty": 4
   },
-  "desc": "상대의 공격과 움직임을 분석해 상황에 맞는 발명품으로 대응하는 캐릭터",
-  "reactiveEquipment": {
-    "stateKey": "geopin-weapon",
-    "initial": "rubber",
-    "longDistance": 350,
-    "closeDistance": 350,
-    "approachWindow": 350,
-    "approachDelta": 100,
-    "approachNear": 350,
-    "restrictedStatuses": [
-      "stun",
-      "neutralize",
-      "freeze",
-      "bind",
-      "sleep"
-    ],
+  "desc": "적과 공격에서 아이디어를 얻고 상황에 맞는 모듈을 추가하는 캐릭터",
+  "ideaModules": {
+    "stateKey": "geopin-idea",
+    "range": 350,
+    "closeDistance": {
+      "$ref": "ideaModules.range"
+    },
+    "hitGain": 0.1,
+    "presencePerSecond": 0.2,
+    "attackGain": 0.1,
+    "threshold": 1,
+    "rotationStateKey": "geopin-modules-gear",
     "items": [
       {
-        "value": "recoil",
-        "name": "과반동 발사기",
-        "stateKey": "geopin-invent-jump",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "field"
-            }
-          ]
-        }
-      },
-      {
         "value": "wall",
-        "name": "충격 전달기",
-        "stateKey": "geopin-invent-wall",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "behindWall"
-            }
-          ]
-        }
-      },
-      {
-        "value": "laser",
-        "name": "고회전 발사기",
-        "stateKey": "geopin-invent-laser",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "blocked"
-            }
-          ]
-        }
-      },
-      {
-        "value": "chain",
-        "name": "전이 발사기",
-        "stateKey": "geopin-invent-chain",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "summon"
-            }
-          ]
-        }
+        "name": "충격 전달 모듈",
+        "stateKey": "geopin-module-wall",
+        "situation": "behindWall"
       },
       {
         "value": "punch",
-        "name": "이중 충격기",
-        "stateKey": "geopin-invent-punch",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "approach"
-            }
-          ]
-        }
-      },
-      {
-        "value": "jump",
-        "name": "충격 도약기",
-        "stateKey": "geopin-invent-recoil",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "restricted"
-            }
-          ]
-        }
+        "name": "이중 충격 모듈",
+        "stateKey": "geopin-module-punch",
+        "situation": "close"
       },
       {
         "value": "sniper",
-        "name": "정밀 발사기",
-        "stateKey": "geopin-invent-sniper",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "far"
-            }
-          ]
-        }
-      },
-      {
-        "value": "bomb",
-        "name": "폭발형 발사기",
-        "stateKey": "geopin-invent-bomb",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "close"
-            }
-          ]
-        }
+        "name": "정밀 발사 모듈",
+        "stateKey": "geopin-module-sniper",
+        "situation": "far"
       }
     ],
-    "inputSlot": "lmb",
-    "approachTargetKinds": [
-      "player",
-      "trainingBot",
+    "countStateKey": "geopin-module-count",
+    "situationRange": 650,
+    "presencePerEnemy": true,
+    "excludedEntityKinds": [
       "summon"
-    ],
-    "initialName": "고무탄 발사기",
-    "restrictedAttackTags": [
-      "stun",
-      "neutralize",
-      "freeze",
-      "bind",
-      "sleep"
-    ],
-    "distanceImpactTypes": [
-      "direct",
-      "projectile",
-      "area",
-      "effect-animation"
-    ],
-    "distanceExcludedAttackTags": [
-      "상태 피해",
-      "덫 발동",
-      "stun",
-      "neutralize",
-      "freeze",
-      "bind",
-      "slow",
-      "sleep",
-      "끌어오기"
-    ],
-    "approachSpeedRatio": 1.2,
-    "farExclusive": true,
-    "fieldTrigger": "damage"
+    ]
   },
   "worldEffectModules": [
     {
       "type": "effect.spawn",
       "renderType": "weaponImage",
-      "style": "gear",
-      "color": "#e6ca3b",
-      "scale": 2.5,
-      "rotationStateKey": "geopin-weapon",
+      "style": "rubber-launcher",
+      "scale": 2.1,
+      "angle": -0.45,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "geopin-shot-image",
       "rotationMs": 350,
-      "idleAlpha": 0.2,
-      "useHoldMs": 350,
-      "useFadeMs": 500
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "rubber-muzzle",
+      "scale": 2.1,
+      "angle": -0.45,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "geopin-shot-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "geopin-module-punch",
+          "initial": "inactive",
+          "value": "inactive"
+        }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "rubber-module-punch",
+      "scale": 2.1,
+      "angle": -0.45,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "geopin-shot-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "geopin-module-punch",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "rubber-module-sniper",
+      "scale": 2.1,
+      "angle": -0.45,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "geopin-shot-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "geopin-module-sniper",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "rubber-module-wall",
+      "scale": 2.1,
+      "angle": -0.45,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "geopin-shot-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "geopin-module-wall",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ]
     }
   ],
   "worldGaugeModules": [
     {
-      "type": "gauge.equipment-bank",
+      "type": "range.circle",
       "visibility": "owner",
-      "radius": 11,
-      "x": 58,
-      "y": -30,
-      "gap": 29,
-      "color": "#e6ca3b",
-      "idleAlpha": 0.35,
-      "holdMs": 500,
-      "fadeMs": 500,
-      "columns": 3,
-      "activeColor": "#fff5a3"
-    },
-    {
-      "type": "range.equipment-thresholds",
-      "visibility": "owner",
-      "color": "#e6ca3b",
-      "alpha": 0.4,
+      "range": {
+        "$ref": "ideaModules.range"
+      },
+      "alpha": 0.35,
       "dash": [
-        6,
-        6
-      ],
-      "lineWidth": 1.5
-    }
-  ],
-  "tooltipSkills": [
-    {
-      "key": "ALWAYS",
-      "name": "발명",
-      "text": "각 조건이 3회 발생하면 발명품 제작. 이후 같은 조건 발생 시 자동 장착"
+        5,
+        5
+      ]
     },
     {
-      "key": "LMB",
-      "name": "발명품",
-      "attack": "lmb",
-      "text": "장착한 발명품으로 공격"
-    },
-    {
-      "key": "RMB",
-      "name": "다른 무기!",
-      "attack": "rmb",
-      "text": "이전 발명품으로 전환"
-    },
-    {
-      "key": "RMB HOLD",
-      "name": "애정 발명품",
-      "attack": "rmb",
-      "text": "벽에 튕겨 적을 향하는 기본 고무탄 발사기로 전환"
-    },
-    {
-      "key": "L-Shift",
-      "name": "위험 속 깨달음",
-      "attack": "counter",
-      "text": "마지막 조건의 발명품을 즉시 제작하고 주변에 피해 ({damage})"
-    },
-    {
-      "key": "WEAPON",
-      "name": "과반동 발사기",
-      "text": "지속 장판 피격 시 충전. 고무탄을 발사하며 뒤로 반동 이동 ({damage})",
-      "attack": "recoil",
-      "showCost": false
-    },
-    {
-      "key": "WEAPON",
-      "name": "충격 전달기",
-      "text": "벽 뒤 적에게 피격 시 충전. 벽에 맞힌 고무탄이 벽 너머를 공격 ({damage}/{linkedDamage})",
-      "attack": "wall",
-      "showCost": false,
-      "linkedAttack": "wallBurst"
-    },
-    {
-      "key": "WEAPON",
-      "name": "고회전 발사기",
-      "text": "공격이 방어에 막히면 충전. 고무탄 2발 연사 ({damage})",
-      "attack": "laser",
-      "showCost": false
-    },
-    {
-      "key": "WEAPON",
-      "name": "전이 발사기",
-      "text": "소환수에게 피격 시 충전. 적중 시 튕기는 고무탄 발사 ({damage})",
-      "attack": "chain",
-      "showCost": false
-    },
-    {
-      "key": "WEAPON",
-      "name": "이중 충격기",
-      "text": "적이 빠르게 접근하면 충전. 전방에 피해 및 강한 넉백. 빗나가면 끝에서 고무탄 발사 ({damage}/{linkedDamage})",
-      "attack": "punch",
-      "showCost": false,
-      "linkedAttack": "punchRubber"
-    },
-    {
-      "key": "WEAPON",
-      "name": "충격 도약기",
-      "text": "CC기로 이동을 제한당하면 충전. 주변에 피해를 주며 뒤로 점프 ({damage})",
-      "attack": "jump",
-      "showCost": false
-    },
-    {
-      "key": "WEAPON",
-      "name": "정밀 발사기",
-      "text": "다른 조건 없이 일정 거리 밖의 적에게 피격 시 충전. 빠르고 긴 사거리의 고무탄 발사 ({damage})",
-      "attack": "sniper",
-      "showCost": false
-    },
-    {
-      "key": "WEAPON",
-      "name": "폭발형 발사기",
-      "text": "다른 조건 없이 일정 거리 이내의 적에게 피격 시 충전. 적중 시 또는 사거리 끝에서 폭발 ({damage})",
-      "attack": "bomb",
-      "showCost": false,
-      "linkedAttack": "explosion"
+      "type": "gauge.segmented",
+      "valueMode": "mask",
+      "valueRef": {
+        "type": "mode-match-mask",
+        "modes": [
+          {
+            "stateKey": "geopin-module-punch",
+            "initial": "inactive",
+            "value": "active"
+          },
+          {
+            "stateKey": "geopin-module-sniper",
+            "initial": "inactive",
+            "value": "active"
+          },
+          {
+            "stateKey": "geopin-module-wall",
+            "initial": "inactive",
+            "value": "active"
+          }
+        ]
+      },
+      "height": 4,
+      "gap": 2,
+      "segments": [
+        {
+          "value": "punch",
+          "color": {
+            "$ref": "color"
+          }
+        },
+        {
+          "value": "sniper",
+          "color": {
+            "$ref": "color"
+          }
+        },
+        {
+          "value": "wall",
+          "color": {
+            "$ref": "color"
+          }
+        }
+      ]
     }
   ],
   "attacks": {
@@ -30525,171 +31130,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 32.643,
-          "radius": 15
-        },
-        {
-          "type": "projectile.redirect",
-          "on": [
-            "wall"
-          ],
-          "searchRadius": 0,
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "jump": {
-      "id": "attack.geopin.jump",
-      "damageRatio": 2.5,
-      "cost": 150,
-      "cd": 350,
-      "range": 110,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "shape": "circle",
-          "range": 110,
-          "wallPolicy": "block"
-        },
-        {
-          "type": "trajectory.arc",
-          "height": 55,
-          "screenLiftRatio": 0.55,
-          "apexScale": 1,
-          "apexAlpha": 1,
-          "apexStrokeAlpha": 1
-        },
-        {
-          "type": "movement.move",
-          "when": "after-attack",
-          "direction": "opposite-aim",
-          "distance": 220,
-          "duration": 200,
-          "replaceActive": true,
-          "blocksAction": true,
-          "collision": {
-            "passWalls": true,
-            "passEnemies": true
-          },
-          "resolveOverlapOnEnd": true,
-          "presentation": false,
-          "tags": [
-            "이동기"
-          ],
-          "buffs": [
-            {
-              "type": "evasionInvulnerable",
-              "value": 1,
-              "duration": "movement"
-            }
-          ]
-        }
-      ],
-      "tags": [
-        "평타"
-      ],
-      "previewGeometry": {
-        "shape": "circle",
-        "range": 110,
-        "wallPolicy": "block"
-      }
-    },
-    "wall": {
-      "id": "attack.geopin.wall",
-      "damageRatio": 1.5,
-      "cost": 150,
-      "cd": 350,
-      "range": 650,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 30.0,
-          "radius": 15
-        },
-        {
-          "type": "projectile.wall-relay",
-          "attackId": "attack.geopin.wallBurst"
-        },
-        {
-          "type": "projectile.redirect",
-          "searchRadius": 0,
-          "on": [
-            "wall"
-          ],
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "wallBurst": {
-      "id": "attack.geopin.wallBurst",
-      "damageRatio": 2.5,
-      "cost": 0,
-      "cd": 0,
-      "range": 200,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "shape": "rect",
-          "range": 200,
-          "halfWidth": 45,
-          "wallPolicy": "ignore"
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "laser": {
-      "id": "attack.geopin.laser",
-      "damageRatio": 1.5,
-      "cost": 200,
-      "cd": 350,
-      "range": 650,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 32.643,
-          "radius": 15
-        },
-        {
-          "type": "delivery.delayed-projectile-volley",
-          "count": 2,
-          "delay": 0,
-          "interval": 100,
-          "aimMode": "locked"
-        },
-        {
-          "type": "projectile.redirect",
-          "on": [
-            "wall"
-          ],
-          "searchRadius": 0,
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "chain": {
-      "id": "attack.geopin.chain",
-      "damageRatio": 1.5,
-      "cost": 150,
-      "cd": 350,
-      "range": 850,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 28.07686607142857,
+          "speed": 22.850099999999998,
           "radius": 15
         },
         {
@@ -30710,7 +31151,118 @@ const CHARACTER_DATA=freezeCharacterData({
           "rangeGrowthOn": [
             "hit"
           ],
-          "wallSpeedMultiplier": 0.5
+          "wallSpeedMultiplier": 0.5,
+          "hitSpeedMultiplier": 0.5,
+          "wallSpeedOnce": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "geopin-shot-image",
+          "values": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "tags": [
+        "평타"
+      ],
+      "projectileFamily": "rubber",
+      "attackFeatureTransform": {
+        "type": "mode-modules",
+        "options": [
+          {
+            "stateKey": "geopin-module-sniper",
+            "initial": "inactive",
+            "value": "active",
+            "specOverrides": {
+              "range": 850
+            },
+            "moduleOverrides": [
+              {
+                "type": "delivery.projectile",
+                "values": {
+                  "speed": 36.28395
+                }
+              }
+            ]
+          },
+          {
+            "stateKey": "geopin-module-wall",
+            "initial": "inactive",
+            "value": "active",
+            "modules": [
+              {
+                "type": "projectile.wall-relay",
+                "attackId": "attack.geopin.wallBurst"
+              }
+            ]
+          },
+          {
+            "stateKey": "geopin-module-punch",
+            "initial": "inactive",
+            "value": "active",
+            "modules": [
+              {
+                "type": "effect.spawn",
+                "when": "after-attack",
+                "renderType": "progressRect",
+                "position": "source",
+                "range": 220,
+                "halfWidth": 50,
+                "growthSpeed": 13.464,
+                "travelSpeed": 12240,
+                "animation": true,
+                "clipToAttackArea": true,
+                "color": "#e6ca3b",
+                "strokeColor": "#e6ca3b",
+                "fillAlpha": 0.18,
+                "strokeAlpha": 0.9,
+                "lineWidth": 2.5,
+                "endCap": true,
+                "duration": 220,
+                "damage": {
+                  "attackId": "attack.geopin.punch",
+                  "hitMode": "progressive-rect",
+                  "module": {
+                    "type": "delivery.area",
+                    "shape": "rect",
+                    "range": 220,
+                    "halfWidth": 50,
+                    "wallPolicy": "block"
+                  },
+                  "missAttackId": "attack.geopin.punchRubber",
+                  "interactionAttackId": "attack.geopin.punchRubber"
+                }
+              },
+              {
+                "$ref": "attacks.punch.modules.1"
+              }
+            ],
+            "removeTypes": [
+              "delivery.projectile",
+              "projectile.pierce",
+              "projectile.redirect",
+              "projectile.wall-relay"
+            ]
+          }
+        ]
+      }
+    },
+    "wallBurst": {
+      "id": "attack.geopin.wallBurst",
+      "damageRatio": 1.5,
+      "cost": 0,
+      "cd": 0,
+      "range": 200,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "rect",
+          "range": 200,
+          "halfWidth": 45,
+          "wallPolicy": "ignore"
         }
       ],
       "tags": [
@@ -30719,17 +31271,17 @@ const CHARACTER_DATA=freezeCharacterData({
     },
     "punch": {
       "id": "attack.geopin.punch",
-      "damageRatio": 2.5,
-      "cost": 150,
-      "cd": 350,
-      "range": 250,
+      "damageRatio": 1.5,
+      "cost": 0,
+      "cd": 0,
+      "range": 220,
       "modules": [
         {
           "type": "effect.spawn",
           "when": "after-attack",
           "renderType": "progressRect",
           "position": "source",
-          "range": 250,
+          "range": 220,
           "halfWidth": 50,
           "growthSpeed": 13.464,
           "travelSpeed": 12240,
@@ -30748,18 +31300,19 @@ const CHARACTER_DATA=freezeCharacterData({
             "module": {
               "type": "delivery.area",
               "shape": "rect",
-              "range": 250,
+              "range": 220,
               "halfWidth": 50,
               "wallPolicy": "block"
             },
-            "missAttackId": "attack.geopin.punchRubber"
+            "missAttackId": "attack.geopin.punchRubber",
+            "interactionAttackId": "attack.geopin.punchRubber"
           }
         },
         {
           "type": "movement.knockback",
           "target": "hit-target",
           "direction": "attack",
-          "distance": 180,
+          "distance": 60,
           "speed": 12,
           "when": "on-hit"
         }
@@ -30769,167 +31322,10 @@ const CHARACTER_DATA=freezeCharacterData({
       ],
       "previewGeometry": {
         "shape": "rect",
-        "range": 250,
+        "range": 220,
         "halfWidth": 50,
         "wallPolicy": "block"
       }
-    },
-    "recoil": {
-      "id": "attack.geopin.recoil",
-      "damageRatio": 2.5,
-      "cost": 200,
-      "cd": 350,
-      "range": 650,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 32.643,
-          "radius": 15
-        },
-        {
-          "type": "movement.move",
-          "when": "after-attack",
-          "direction": "opposite-aim",
-          "distance": 200,
-          "duration": 140,
-          "motionMode": "knockback",
-          "collision": {
-            "passWalls": false,
-            "passEnemies": false
-          },
-          "presentation": false
-        },
-        {
-          "type": "projectile.redirect",
-          "searchRadius": 0,
-          "on": [
-            "wall"
-          ],
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "sniper": {
-      "id": "attack.geopin.sniper",
-      "damageRatio": 1.5,
-      "cost": 200,
-      "cd": 350,
-      "range": 850,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 51.83421428571428,
-          "radius": 15
-        },
-        {
-          "type": "projectile.redirect",
-          "searchRadius": 0,
-          "on": [
-            "wall"
-          ],
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "bomb": {
-      "id": "attack.geopin.bomb",
-      "damageRatio": 1.5,
-      "cost": 200,
-      "cd": 350,
-      "range": 250,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 27.5,
-          "radius": 15,
-          "collisionTargets": true
-        },
-        {
-          "type": "projectile.impact",
-          "attackIds": [
-            "attack.geopin.explosion"
-          ],
-          "shareHitTargets": true
-        },
-        {
-          "type": "projectile.redirect",
-          "searchRadius": 0,
-          "on": [
-            "wall"
-          ],
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        },
-        {
-          "type": "hit.once-per-execution"
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "explosion": {
-      "id": "attack.geopin.explosion",
-      "damageRatio": 1.5,
-      "cost": 0,
-      "cd": 0,
-      "range": 110,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "shape": "circle",
-          "range": 110,
-          "wallPolicy": "block"
-        },
-        {
-          "type": "hit.once-per-execution"
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "rmb": {
-      "id": "attack.geopin.rmb",
-      "damageRatio": 0.0,
-      "cost": 0,
-      "cd": 250,
-      "range": 0,
-      "modules": [],
-      "tags": [
-        "스킬"
-      ],
-      "effectsOnly": true
-    },
-    "counter": {
-      "id": "attack.geopin.counter",
-      "damageRatio": 2.5,
-      "cost": 0,
-      "cd": 350,
-      "range": 220,
-      "modules": [
-        {
-          "type": "equipment.discover",
-          "when": "after-attack"
-        },
-        {
-          "type": "delivery.area",
-          "shape": "circle",
-          "range": 220,
-          "wallPolicy": "block"
-        }
-      ],
-      "tags": [
-        "반격"
-      ]
     },
     "punchRubber": {
       "id": "attack.geopin.punchRubber",
@@ -30940,21 +31336,110 @@ const CHARACTER_DATA=freezeCharacterData({
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 32.643,
+          "speed": 22.850099999999998,
           "radius": 15
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": true,
+          "walls": false
         },
         {
           "type": "projectile.redirect",
           "on": [
-            "wall"
+            "wall",
+            "hit"
           ],
+          "maxRedirects": 0,
           "searchRadius": 0,
           "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
+          "rangeGrowthRatio": 0.4,
+          "rangeGrowthOn": [
+            "hit"
+          ],
+          "wallSpeedMultiplier": 0.5,
+          "hitSpeedMultiplier": 0.5,
+          "wallSpeedOnce": true
         }
       ],
       "tags": [
         "평타"
+      ],
+      "projectileFamily": "rubber",
+      "attackFeatureTransform": {
+        "type": "mode-modules",
+        "options": [
+          {
+            "stateKey": "geopin-module-sniper",
+            "initial": "inactive",
+            "value": "active",
+            "specOverrides": {
+              "range": 600
+            },
+            "moduleOverrides": [
+              {
+                "type": "delivery.projectile",
+                "values": {
+                  "speed": 36.28395
+                }
+              }
+            ]
+          },
+          {
+            "stateKey": "geopin-module-wall",
+            "initial": "inactive",
+            "value": "active",
+            "modules": [
+              {
+                "type": "projectile.wall-relay",
+                "attackId": "attack.geopin.wallBurst"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "counter": {
+      "id": "attack.geopin.counter",
+      "damageRatio": 1.5,
+      "cost": 0,
+      "cd": 350,
+      "range": 220,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 220,
+          "wallPolicy": "block"
+        },
+        {
+          "type": "state.progress",
+          "when": "after-attack",
+          "stateKey": "geopin-idea",
+          "operation": "add",
+          "amount": 0.5,
+          "max": 1,
+          "presentation": {
+            "type": "arc-gauge",
+            "color": "#e6ca3b",
+            "maxChargeFlash": true
+          }
+        }
+      ],
+      "tags": [
+        "반격"
+      ]
+    },
+    "rmb": {
+      "id": "attack.geopin.rmb",
+      "damageRatio": 0,
+      "cost": 0,
+      "cd": 300,
+      "range": 0,
+      "effectsOnly": true,
+      "modules": [],
+      "tags": [
+        "스킬"
       ]
     }
   },
@@ -30983,97 +31468,7 @@ const CHARACTER_DATA=freezeCharacterData({
         ],
         "modules": [
           {
-            "type": "action.attack",
-            "alternates": [
-              {
-                "attackId": "attack.geopin.jump",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "jump"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.wall",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "wall"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.laser",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "laser"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.chain",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "chain"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.punch",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "punch"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.recoil",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "recoil"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.sniper",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "sniper"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.bomb",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "bomb"
-                  }
-                ]
-              }
-            ]
+            "type": "action.attack"
           }
         ]
       }
@@ -31082,6 +31477,9 @@ const CHARACTER_DATA=freezeCharacterData({
       "id": "ability.geopin.rmb",
       "input": "rmb",
       "attackId": "attack.geopin.rmb",
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -31098,34 +31496,38 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {
             "type": "combat.can-act"
+          },
+          {
+            "type": "cooldowns.ready",
+            "attackIds": [
+              "attack.geopin.rmb"
+            ]
+          },
+          {
+            "type": "state.absent",
+            "stateKey": "drag:geopin:rmb"
           }
         ],
         "modules": [
           {
-            "type": "action.attack"
-          },
-          {
-            "type": "equipment.select",
-            "operation": "previous",
-            "requireExecuted": true
+            "type": "input.drag-path",
+            "operation": "start",
+            "stateKey": "drag:geopin:rmb",
+            "distanceMode": "world",
+            "pathOrigin": "pointer",
+            "sampleInterval": 8,
+            "previewPath": true,
+            "previewLivePointer": true,
+            "previewColor": "230,202,59",
+            "cost": {
+              "perDistance": 0.7
+            }
           }
         ]
       },
-      "inputPolicy": {
-        "repeatWhileHeld": false,
-        "tapHoldSplit": true,
-        "holdThresholdMs": 200,
-        "holdGauge": true,
-        "holdGaugeTimerOnly": true,
-        "holdGaugeStateKey": "charge:geopin-rmb-mode",
-        "deferTapUntilRelease": true,
-        "holdGaugeRetainMs": 500,
-        "holdGaugeRequireAvailable": true,
-        "cancelUnavailableHold": true
-      },
-      "holdTrigger": {
+      "releaseTrigger": {
         "type": "trigger",
-        "event": "input.hold",
+        "event": "input.release",
         "conditions": [
           {
             "type": "input.slot",
@@ -31133,22 +31535,47 @@ const CHARACTER_DATA=freezeCharacterData({
           },
           {
             "type": "entity.alive"
-          },
-          {
-            "type": "combat.can-act"
-          },
-          {
-            "type": "state.mode-is",
-            "stateKey": "geopin-weapon",
-            "value": "rubber",
-            "initial": "rubber",
-            "invert": true
           }
         ],
         "modules": [
           {
-            "type": "equipment.select",
-            "value": "rubber"
+            "type": "input.drag-path",
+            "operation": "release",
+            "stateKey": "drag:geopin:rmb",
+            "minimumPoints": 2,
+            "capturePointer": true
+          },
+          {
+            "type": "action.attack"
+          },
+          {
+            "type": "movement.path-carrier",
+            "pathSource": "drag-path",
+            "speed": 1200,
+            "radius": 25,
+            "pickupRange": 45,
+            "targetRelations": [
+              "self",
+              "ally"
+            ],
+            "color": {
+              "$ref": "color"
+            },
+            "name": "버터",
+            "collision": {
+              "passWalls": true,
+              "passEnemies": true
+            },
+            "pathOrigin": "pointer",
+            "summonStateKey": "butter",
+            "riderCollision": {
+              "$ref": "abilities.rmb.releaseTrigger.modules.2.collision"
+            }
+          },
+          {
+            "type": "input.drag-path",
+            "operation": "clear",
+            "stateKey": "drag:geopin:rmb"
           }
         ]
       }
@@ -31199,7 +31626,99 @@ const CHARACTER_DATA=freezeCharacterData({
         ]
       }
     }
-  }
+  },
+  "tooltipSkills": [
+    {
+      "key": "ALWAYS",
+      "name": "발명",
+      "showCost": false,
+      "text": "적 타격 또는 주변 공격에서 아이디어 10% 획득. 주변 적 한 명당 초당 20% 획득. 아이디어 100%마다 상황에 맞는 모듈 추가"
+    },
+    {
+      "key": "LMB",
+      "name": "고무탄 발사기",
+      "attack": "lmb",
+      "text": "적과 벽에 튕겨 적을 향하는 고무탄. 튕기면 탄속 감소 ({damage})"
+    },
+    {
+      "key": "RMB DRAG",
+      "name": "도우미 로봇",
+      "attack": "rmb",
+      "text": "버터의 이동경로를 지정",
+      "costRef": {
+        "ability": "rmb",
+        "trigger": "trigger",
+        "module": "input.drag-path",
+        "format": "per-distance",
+        "property": "cost.perDistance"
+      }
+    },
+    {
+      "key": "L-Shift",
+      "name": "위험 속 깨달음",
+      "attack": "counter",
+      "text": "주변에 피해를 주며 아이디어 50% 획득 ({damage})"
+    },
+    {
+      "key": "MODULE",
+      "section": "WEAPON",
+      "name": "이중 충격 모듈",
+      "attack": "punch",
+      "linkedAttack": "punchRubber",
+      "showCost": false,
+      "text": "근거리 적이 있으면 제작. 전방 압력으로 피해 및 넉백. 빗나가면 끝에서 고무탄 발사 ({damage}/{linkedDamage})"
+    },
+    {
+      "key": "MODULE",
+      "section": "WEAPON",
+      "name": "정밀 발사 모듈",
+      "showCost": false,
+      "text": "원거리 적이 있으면 제작. 고무탄 사거리 및 탄속 증가"
+    },
+    {
+      "key": "MODULE",
+      "section": "WEAPON",
+      "name": "충격 전달 모듈",
+      "attack": "wallBurst",
+      "showCost": false,
+      "text": "벽 뒤 적이 있으면 제작. 벽에 맞힌 고무탄이 벽 너머를 공격 ({damage})"
+    }
+  ],
+  "summons": {
+    "butter": {
+      "id": "summon.geopin.butter",
+      "name": "버터",
+      "maxHealth": 400,
+      "radius": 25,
+      "speed": 0,
+      "baseDamage": 0,
+      "respawnDelay": 0,
+      "healthRegen": false,
+      "pathCarrier": true,
+      "tags": [
+        "소환수"
+      ],
+      "ai": {
+        "enabled": false
+      },
+      "protectRidersFromProjectiles": true
+    }
+  },
+  "summonSpecs": [
+    {
+      "stateKey": "butter",
+      "stats": [
+        {
+          "key": "HEALTH",
+          "text": "{maxHealth}"
+        },
+        {
+          "key": "ABILITY",
+          "text": "경로를 이동하며 이동경로의 아군을 운반"
+        }
+      ]
+    }
+  ]
 },
   siro: {
   "id": "siro",
@@ -31995,12 +32514,10 @@ const CHARACTER_DATA=freezeCharacterData({
       "angle": -0.6,
       "motionStateKey": "siro-weapon-motion",
       "motionMs": 420,
-      "chargeStateKey": "charge:primary",
       "motion": {
         "rotation": -0.48,
         "travelX": -0.65,
-        "travelY": 0.2,
-        "chargeRotation": -0.22
+        "travelY": 0.2
       }
     }
   ]
@@ -32392,6 +32909,2141 @@ const CHARACTER_DATA=freezeCharacterData({
     }
   ]
 },
+  huri: {
+  "id": "huri",
+  "name": "후리",
+  "englishName": "Huri",
+  "title": "북극 늑대",
+  "color": "#2d6de0",
+  "classification": {
+    "style": 5,
+    "range": 0,
+    "role": 6
+  },
+  "stats": {
+    "maxHealth": 1000,
+    "speed": 4.25,
+    "radius": 20,
+    "baseDamage": 150,
+    "difficulty": 3
+  },
+  "desc": "체력이 낮은 적을 추적하며 빠르게 파고드는 캐릭터",
+  "passiveBuffs": [
+    {
+      "stat": "staminaCostScale",
+      "sourceId": "character-passive:huri:predator",
+      "valueRef": {
+        "value": 0.5
+      },
+      "duration": 2000,
+      "retainOnConditionLost": true,
+      "conditions": [
+        {
+          "type": "target.exists-in-range",
+          "range": 500,
+          "requireLineOfSight": true,
+          "conditions": [
+            {
+              "type": "target.health-ratio-lt-source"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tooltipSkills": [
+    {
+      "key": "ALWAYS",
+      "name": "포식자",
+      "showCost": false,
+      "text": "주변의 자신보다 체력 비율이 낮은 적을 피식자로 지정. 벽 없이 연결되면 스테미나 소모량 50% 감소 및 적중 시 최대 체력의 {v:triggers.0.modules.0.maxResourceRatio|percent}% 회복. 효과 종료 후 2초간 유지"
+    },
+    {
+      "key": "LMB",
+      "name": "울프 클로",
+      "attack": "lmb",
+      "text": "짧은 거리를 할퀴어 피해 ({damage})"
+    },
+    {
+      "key": "RMB",
+      "name": "아드레날린 포션",
+      "attack": "rmb",
+      "text": "2초간 모든 적을 상대로 포식자 활성화"
+    },
+    {
+      "key": "L-Shift",
+      "name": "단독 사냥",
+      "attack": "counter",
+      "text": "빠르게 돌진해 기절. 적중 시 무력화 후 정지하며 5회 범위 공격. 마지막에 무력화 및 강한 넉백 (타당 {linkedDamage})",
+      "linkedAttack": "huntSector"
+    }
+  ],
+  "attacks": {
+    "lmb": {
+      "id": "attack.huri.lmb",
+      "damageRatio": 1,
+      "cost": 150,
+      "cd": 250,
+      "range": 150,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "sector",
+          "range": {
+            "$ref": "attacks.lmb.range"
+          },
+          "halfAngle": 1.8325957145940461,
+          "wallPolicy": "block",
+          "contactType": "melee"
+        },
+        {
+          "type": "effect.spawn",
+          "when": "on-hit",
+          "renderType": "weaponImageEcho",
+          "position": "source",
+          "target": "source",
+          "duration": 650,
+          "expansion": 0.5,
+          "imageAlpha": 1,
+          "conditions": [
+            {
+              "type": "condition.any",
+              "conditions": [
+                {
+                  "type": "state.exists",
+                  "stateKey": "huri-adrenaline",
+                  "activeOnly": true
+                },
+                {
+                  "type": "target.health-ratio-lt-source"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "tags": [
+        "평타"
+      ],
+      "presentation": {
+        "colorVariants": [
+          {
+            "conditions": [
+              {
+                "type": "buff.active",
+                "stat": "staminaCostScale",
+                "sourceIds": [
+                  "character-passive:huri:predator"
+                ]
+              }
+            ],
+            "color": "#b5d9ff"
+          }
+        ]
+      }
+    },
+    "rmb": {
+      "id": "attack.huri.rmb",
+      "damageRatio": 0,
+      "effectsOnly": true,
+      "cost": 400,
+      "cd": 2500,
+      "range": 0,
+      "modules": [
+        {
+          "type": "effect.spawn",
+          "renderType": "areaCircle",
+          "position": "source",
+          "range": 72,
+          "r": 72,
+          "color": "#b5d9ff",
+          "fillAlpha": 0.04,
+          "strokeAlpha": 0.78,
+          "lineWidth": 2,
+          "duration": 150
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "weaponImageEcho",
+          "position": "source",
+          "target": "source",
+          "duration": 650,
+          "expansion": 0.45,
+          "imageAlpha": 1,
+          "imageColor": "#b5d9ff",
+          "imageConfig": {
+            "type": "effect.spawn",
+            "renderType": "weaponImage",
+            "style": "adrenaline-potion",
+            "scale": 1.8,
+            "angle": -0.2,
+            "alpha": 1
+          }
+        }
+      ],
+      "tags": [
+        "스킬"
+      ],
+      "presentation": {
+        "colorVariants": [
+          {
+            "conditions": [
+              {
+                "type": "buff.active",
+                "stat": "staminaCostScale",
+                "sourceIds": [
+                  "character-passive:huri:predator"
+                ]
+              }
+            ],
+            "color": "#b5d9ff"
+          }
+        ]
+      }
+    },
+    "counter": {
+      "id": "attack.huri.counter",
+      "damageRatio": 0,
+      "cost": 0,
+      "cd": 0,
+      "range": 400,
+      "presentation": {
+        "color": "#2d6de0",
+        "colorVariants": [
+          {
+            "conditions": [
+              {
+                "type": "buff.active",
+                "stat": "staminaCostScale",
+                "sourceIds": [
+                  "character-passive:huri:predator"
+                ]
+              }
+            ],
+            "color": "#b5d9ff"
+          }
+        ]
+      },
+      "previewGeometry": {
+        "shape": "rect",
+        "range": 400,
+        "halfWidth": 44,
+        "wallPolicy": "ignore"
+      },
+      "modules": [
+        {
+          "type": "movement.move",
+          "speedMultiplier": 1.35,
+          "when": "after-attack",
+          "stateKey": "movement:huri-hunt",
+          "direction": "attack",
+          "distance": 400,
+          "duration": 120,
+          "replaceActive": true,
+          "collision": {
+            "passWalls": true,
+            "passEnemies": false
+          },
+          "tags": [
+            "이동기"
+          ],
+          "presentation": {
+            "type": "dash-line",
+            "color": "45,109,224",
+            "width": 7,
+            "alpha": 0.45,
+            "duration": 200,
+            "trail": true,
+            "colorVariants": [
+              {
+                "conditions": [
+                  {
+                    "type": "buff.active",
+                    "stat": "staminaCostScale",
+                    "sourceIds": [
+                      "character-passive:huri:predator"
+                    ]
+                  }
+                ],
+                "color": "#b5d9ff"
+              }
+            ]
+          }
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "effectShape",
+          "visible": false,
+          "duration": 120,
+          "animation": {
+            "mode": "forward",
+            "distance": 400,
+            "easing": "linear",
+            "clipByMovementCollision": true
+          },
+          "damage": {
+            "attackId": "attack.huri.counter",
+            "requireMovementExecution": true,
+            "movementStateKey": "movement:huri-hunt",
+            "oncePerExecution": true,
+            "hitMode": "body-contact",
+            "contactRadius": 44,
+            "stopAfterFirstContact": true,
+            "contactOnly": true,
+            "confirmContact": true
+          }
+        },
+        {
+          "type": "status.apply",
+          "status": "neutralize",
+          "duration": 800
+        },
+        {
+          "type": "hit.sequence",
+          "oncePerExecution": true,
+          "steps": [
+            {
+              "delay": 0,
+              "modules": [
+                {
+                  "type": "action.trigger-attack",
+                  "attackId": "attack.huri.huntSector",
+                  "broadcast": true,
+                  "allowDeadTarget": true
+                }
+              ]
+            },
+            {
+              "delay": 180,
+              "modules": [
+                {
+                  "type": "action.trigger-attack",
+                  "attackId": "attack.huri.huntLine",
+                  "broadcast": true,
+                  "allowDeadTarget": true
+                }
+              ]
+            },
+            {
+              "delay": 360,
+              "modules": [
+                {
+                  "type": "action.trigger-attack",
+                  "attackId": "attack.huri.huntReverse",
+                  "broadcast": true,
+                  "allowDeadTarget": true
+                }
+              ]
+            },
+            {
+              "delay": 540,
+              "modules": [
+                {
+                  "type": "action.trigger-attack",
+                  "attackId": "attack.huri.huntCircle",
+                  "broadcast": true,
+                  "allowDeadTarget": true
+                }
+              ]
+            },
+            {
+              "delay": 760,
+              "modules": [
+                {
+                  "type": "action.trigger-attack",
+                  "attackId": "attack.huri.huntFinish",
+                  "broadcast": true,
+                  "allowDeadTarget": true
+                }
+              ]
+            }
+          ],
+          "sourceModules": [
+            {
+              "type": "movement.stop",
+              "snapToTargetContact": true,
+              "allowDeadTarget": true
+            }
+          ],
+          "authority": "source",
+          "retainOnTargetDeath": true
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "effectsOnly": true
+    },
+    "huntSector": {
+      "id": "attack.huri.huntSector",
+      "damageRatio": 0.6666666666666666,
+      "cost": 0,
+      "cd": 0,
+      "range": 150,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "contactType": "melee",
+          "shape": "sector",
+          "range": 150,
+          "wallPolicy": "block",
+          "halfAngle": 1.35,
+          "render": false
+        },
+        {
+          "type": "effect.spawn",
+          "renderType": "annularDoubleSweep",
+          "position": "source",
+          "r": 150,
+          "inner": 0,
+          "span": 2.7,
+          "sweepCount": 1,
+          "sweepDirection": "clockwise",
+          "startAngleOffset": -1.35,
+          "sweepFraction": 0.75,
+          "fadePower": 1.35,
+          "hitColor": "45,109,224",
+          "fillAlpha": 0.2,
+          "strokeAlpha": 0.88,
+          "lineWidth": 2.5,
+          "edgeLine": false,
+          "duration": 180,
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true,
+          "scaleWithAttackRange": true
+        },
+        {
+          "type": "status.apply",
+          "status": "neutralize",
+          "duration": 200
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "presentation": {
+        "color": "#2d6de0",
+        "colorVariants": [
+          {
+            "conditions": [
+              {
+                "type": "buff.active",
+                "stat": "staminaCostScale",
+                "sourceIds": [
+                  "character-passive:huri:predator"
+                ]
+              }
+            ],
+            "color": "#b5d9ff"
+          }
+        ]
+      }
+    },
+    "huntLine": {
+      "id": "attack.huri.huntLine",
+      "damageRatio": 0.6666666666666666,
+      "cost": 0,
+      "cd": 0,
+      "range": 200,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "contactType": "melee",
+          "shape": "rect",
+          "range": 200,
+          "wallPolicy": "block",
+          "halfWidth": 48
+        },
+        {
+          "type": "status.apply",
+          "status": "neutralize",
+          "duration": 200
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "presentation": {
+        "color": "#2d6de0",
+        "colorVariants": [
+          {
+            "conditions": [
+              {
+                "type": "buff.active",
+                "stat": "staminaCostScale",
+                "sourceIds": [
+                  "character-passive:huri:predator"
+                ]
+              }
+            ],
+            "color": "#b5d9ff"
+          }
+        ]
+      }
+    },
+    "huntReverse": {
+      "id": "attack.huri.huntReverse",
+      "damageRatio": 0.6666666666666666,
+      "cost": 0,
+      "cd": 0,
+      "range": 150,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "contactType": "melee",
+          "shape": "sector",
+          "range": 150,
+          "wallPolicy": "block",
+          "halfAngle": 1.35,
+          "render": false
+        },
+        {
+          "type": "effect.spawn",
+          "renderType": "annularDoubleSweep",
+          "position": "source",
+          "r": 150,
+          "inner": 0,
+          "span": 2.7,
+          "sweepCount": 1,
+          "sweepDirection": "counterclockwise",
+          "startAngleOffset": 1.35,
+          "sweepFraction": 0.75,
+          "fadePower": 1.35,
+          "hitColor": "45,109,224",
+          "fillAlpha": 0.2,
+          "strokeAlpha": 0.88,
+          "lineWidth": 2.5,
+          "edgeLine": false,
+          "duration": 180,
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true,
+          "scaleWithAttackRange": true
+        },
+        {
+          "type": "status.apply",
+          "status": "neutralize",
+          "duration": 200
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "presentation": {
+        "color": "#2d6de0",
+        "colorVariants": [
+          {
+            "conditions": [
+              {
+                "type": "buff.active",
+                "stat": "staminaCostScale",
+                "sourceIds": [
+                  "character-passive:huri:predator"
+                ]
+              }
+            ],
+            "color": "#b5d9ff"
+          }
+        ]
+      }
+    },
+    "huntCircle": {
+      "id": "attack.huri.huntCircle",
+      "damageRatio": 0.6666666666666666,
+      "cost": 0,
+      "cd": 0,
+      "range": 180,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "contactType": "melee",
+          "shape": "circle",
+          "range": 180,
+          "wallPolicy": "block"
+        },
+        {
+          "type": "status.apply",
+          "status": "neutralize",
+          "duration": 200
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "presentation": {
+        "color": "#2d6de0",
+        "colorVariants": [
+          {
+            "conditions": [
+              {
+                "type": "buff.active",
+                "stat": "staminaCostScale",
+                "sourceIds": [
+                  "character-passive:huri:predator"
+                ]
+              }
+            ],
+            "color": "#b5d9ff"
+          }
+        ]
+      }
+    },
+    "huntFinish": {
+      "id": "attack.huri.huntFinish",
+      "damageRatio": 0.6666666666666666,
+      "cost": 0,
+      "cd": 0,
+      "range": 300,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "contactType": "melee",
+          "shape": "circle",
+          "range": 300,
+          "wallPolicy": "block",
+          "render": false
+        },
+        {
+          "type": "movement.neutralize-knockback",
+          "target": "hit-target",
+          "direction": "away-from-source",
+          "distance": 180,
+          "speed": 20,
+          "oncePerExecution": true
+        },
+        {
+          "type": "effect.spawn",
+          "renderType": "annularDoubleSweep",
+          "position": "source",
+          "r": 300,
+          "inner": 0,
+          "span": 6.283185307179586,
+          "sweepCount": 1,
+          "sweepDirection": "clockwise",
+          "startAngleOffset": 3.141592653589793,
+          "sweepFraction": 0.75,
+          "fadePower": 1.35,
+          "hitColor": "45,109,224",
+          "fillAlpha": 0.2,
+          "strokeAlpha": 0.88,
+          "lineWidth": 2.5,
+          "edgeLine": false,
+          "duration": 300,
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true,
+          "scaleWithAttackRange": true
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "presentation": {
+        "color": "#2d6de0",
+        "colorVariants": [
+          {
+            "conditions": [
+              {
+                "type": "buff.active",
+                "stat": "staminaCostScale",
+                "sourceIds": [
+                  "character-passive:huri:predator"
+                ]
+              }
+            ],
+            "color": "#b5d9ff"
+          }
+        ]
+      }
+    }
+  },
+  "abilities": {
+    "lmb": {
+      "id": "ability.huri.lmb",
+      "input": "lmb",
+      "attackId": "attack.huri.lmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "lmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          }
+        ]
+      }
+    },
+    "rmb": {
+      "id": "ability.huri.rmb",
+      "input": "rmb",
+      "attackId": "attack.huri.rmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          },
+          {
+            "type": "state.window",
+            "stateKey": "huri-adrenaline",
+            "duration": 2000,
+            "requireExecuted": true
+          },
+          {
+            "type": "modifier.set",
+            "stat": "staminaCostScale",
+            "value": 0.5,
+            "sourceId": "character-passive:huri:predator",
+            "duration": 2000,
+            "requireExecuted": true
+          }
+        ]
+      },
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      }
+    },
+    "counter": {
+      "id": "ability.huri.counter",
+      "input": "counter",
+      "attackId": "attack.huri.counter",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "counter"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "source.property.falsy",
+            "property": "counterWindup"
+          },
+          {
+            "type": "counter.ready"
+          }
+        ],
+        "modules": [
+          {
+            "type": "counter.execute",
+            "windup": 300,
+            "consumeState": "counter-ready",
+            "preview": {
+              "type": "preview.create",
+              "shape": "attack-shape"
+            },
+            "ccRefAttackId": "attack.huri.counter",
+            "onFinishModules": [
+              {
+                "type": "status.apply",
+                "status": "stun",
+                "duration": 1000,
+                "sourceId": "huri-hunt-recovery"
+              }
+            ]
+          }
+        ]
+      },
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      }
+    }
+  },
+  "triggers": [
+    {
+      "id": "trigger.huri.predator-heal",
+      "type": "trigger",
+      "event": "damage-dealt",
+      "conditions": [
+        {
+          "type": "entity.alive"
+        },
+        {
+          "type": "impact.direct"
+        },
+        {
+          "type": "context.truthy",
+          "key": "healthDamage"
+        },
+        {
+          "type": "buff.active",
+          "stat": "staminaCostScale",
+          "sourceIds": [
+            "character-passive:huri:predator"
+          ]
+        },
+        {
+          "type": "target.kind-not-in",
+          "kinds": [
+            "summon",
+            "trainingBot"
+          ]
+        }
+      ],
+      "modules": [
+        {
+          "type": "resource.restore",
+          "resource": "health",
+          "recipient": "source",
+          "maxResourceRatio": 0.1
+        }
+      ]
+    }
+  ],
+  "conditionalTargetLinks": [
+    {
+      "visibility": "owner",
+      "relation": "enemy",
+      "range": 500,
+      "conditions": [
+        {
+          "type": "target.health-ratio-lt-source"
+        },
+        {
+          "type": "state.absent",
+          "stateKey": "huri-adrenaline",
+          "activeOnly": true
+        }
+      ],
+      "color": "#8bbcff",
+      "alpha": 0.5,
+      "lineWidth": 1.5,
+      "dash": [
+        3,
+        6
+      ],
+      "requireLineOfSight": true
+    },
+    {
+      "visibility": "owner",
+      "relation": "enemy",
+      "conditions": [
+        {
+          "type": "state.exists",
+          "stateKey": "huri-adrenaline",
+          "activeOnly": true
+        }
+      ],
+      "color": "#8bbcff",
+      "alpha": 0.5,
+      "lineWidth": 1.5,
+      "dash": [
+        3,
+        6
+      ],
+      "requireLineOfSight": false
+    }
+  ],
+  "conditionalTargetMarkers": [
+    {
+      "visibility": "owner",
+      "relation": "enemy",
+      "range": 500,
+      "conditions": [
+        {
+          "type": "target.health-ratio-lt-source"
+        },
+        {
+          "type": "state.absent",
+          "stateKey": "huri-adrenaline",
+          "activeOnly": true
+        }
+      ],
+      "marker": {
+        "shape": "weapon-icon",
+        "style": "wolf-claw"
+      }
+    },
+    {
+      "visibility": "owner",
+      "relation": "enemy",
+      "conditions": [
+        {
+          "type": "state.exists",
+          "stateKey": "huri-adrenaline",
+          "activeOnly": true
+        }
+      ],
+      "marker": {
+        "shape": "weapon-icon",
+        "style": "wolf-claw"
+      }
+    }
+  ],
+  "worldGaugeModules": [
+    {
+      "type": "range.circle",
+      "visibility": "owner",
+      "range": 500,
+      "alpha": 0.35,
+      "dash": [
+        5,
+        5
+      ],
+      "colorVariants": [
+        {
+          "conditions": [
+            {
+              "type": "buff.active",
+              "stat": "staminaCostScale",
+              "sourceIds": [
+                "character-passive:huri:predator"
+              ]
+            }
+          ],
+          "color": "#b5d9ff"
+        }
+      ]
+    },
+    {
+      "type": "gauge.arc",
+      "visibility": "owner",
+      "conditions": [
+        {
+          "type": "buff.active",
+          "stat": "staminaCostScale",
+          "sourceIds": [
+            "character-passive:huri:predator"
+          ]
+        }
+      ],
+      "valueRef": {
+        "type": "buff-duration-remaining",
+        "stat": "staminaCostScale",
+        "sourceId": "character-passive:huri:predator",
+        "duration": 2000,
+        "fullWhen": {
+          "$ref": "passiveBuffs.0.conditions"
+        }
+      },
+      "color": "#b5d9ff",
+      "showEmpty": false,
+      "completeColor": "#b5d9ff",
+      "completePulseColor": "#b5d9ff",
+      "maxChargeFlash": true,
+      "completePulseDash": [
+        4,
+        3
+      ]
+    }
+  ],
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "wolf-claw",
+      "scale": 1.8,
+      "alpha": 1,
+      "alphaVariants": [
+        {
+          "conditions": [
+            {
+              "type": "buff.active",
+              "stat": "staminaCostScale",
+              "sourceIds": [
+                "character-passive:huri:predator"
+              ]
+            }
+          ],
+          "alpha": 0.95
+        },
+        {
+          "conditions": [],
+          "alpha": 0.35
+        }
+      ],
+      "activityColors": [
+        {
+          "conditions": [
+            {
+              "type": "buff.active",
+              "stat": "staminaCostScale",
+              "sourceIds": [
+                "character-passive:huri:predator"
+              ]
+            }
+          ],
+          "color": "#b5d9ff"
+        }
+      ]
+    }
+  ],
+  "healPresentation": {
+    "color": "#b5d9ff"
+  }
+},
+  lena: {
+  "id": "lena",
+  "name": "레나",
+  "englishName": "Lena",
+  "title": "샹큼한 레몬",
+  "color": "#e4ed36",
+  "classification": {
+    "style": 3,
+    "range": 0,
+    "role": 5
+  },
+  "stats": {
+    "maxHealth": 1200,
+    "speed": 4.25,
+    "radius": 20,
+    "baseDamage": 150,
+    "difficulty": 3
+  },
+  "desc": "공격을 빠르게 이어 강한 넉백과 감전으로 적을 제어하는 캐릭터",
+  "tooltipSkills": [
+    {
+      "key": "ALWAYS",
+      "name": "짜릿할거야!",
+      "showCost": false,
+      "text": "공격 후 0.5초 안에 다음 공격을 사용하면 강한 넉백 및 5초 감전 추가"
+    },
+    {
+      "key": "LMB",
+      "name": "보드 스윙!",
+      "attack": "lmb",
+      "text": "보드로 전방의 적을 후려쳐 피해 ({damage})"
+    },
+    {
+      "key": "RMB",
+      "name": "샹큼하게 전진!",
+      "attack": "rmb",
+      "linkedAttack": "rmbImpact",
+      "text": "적 또는 벽에 적중 시 주변에 피해 ({linkedDamage})"
+    },
+    {
+      "key": "L-Shift",
+      "name": "앗, 셔!",
+      "attack": "counter",
+      "text": "보드를 한 바퀴 휘둘러 주변에 피해 및 무력화 넉백 ({damage})"
+    }
+  ],
+  "attacks": {
+    "lmb": {
+      "id": "attack.lena.lmb",
+      "damageRatio": 0.6666666666666666,
+      "cost": 100,
+      "cd": 350,
+      "range": 240,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "sector",
+          "range": 240,
+          "wallPolicy": "block",
+          "contactType": "melee",
+          "halfAngle": 1.1
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "lena-board-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "lena-combo",
+          "duration": 500
+        }
+      ],
+      "tags": [
+        "평타"
+      ],
+      "presentation": {
+        "color": "#e4ed36"
+      }
+    },
+    "counter": {
+      "id": "attack.lena.counter",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 0,
+      "range": 280,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 280,
+          "wallPolicy": "block",
+          "contactType": "melee"
+        },
+        {
+          "type": "movement.neutralize-knockback",
+          "target": "hit-target",
+          "direction": "away-from-source",
+          "distance": 100,
+          "speed": 16,
+          "oncePerExecution": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "lena-board-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "lena-combo",
+          "duration": 500
+        },
+        {
+          "type": "effect.spawn",
+          "renderType": "annularDoubleSweep",
+          "position": "source",
+          "r": 280,
+          "inner": 0,
+          "span": 6.283185307179586,
+          "sweepCount": 1,
+          "sweepDirection": "clockwise",
+          "startAngleOffset": 3.141592653589793,
+          "sweepFraction": 0.75,
+          "fadePower": 1.35,
+          "hitColor": "228,237,54",
+          "fillAlpha": 0.2,
+          "strokeAlpha": 0.88,
+          "lineWidth": 2.5,
+          "edgeLine": false,
+          "duration": 300,
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true,
+          "scaleWithAttackRange": true
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "presentation": {
+        "color": "#e4ed36"
+      }
+    },
+    "rmb": {
+      "id": "attack.lena.rmb",
+      "damageRatio": 0.0,
+      "cost": 300,
+      "cd": 1200,
+      "range": 360,
+      "modules": [
+        {
+          "type": "movement.move",
+          "speedMultiplier": 1.35,
+          "when": "after-attack",
+          "stateKey": "movement:lena-board",
+          "direction": "attack",
+          "distance": 360,
+          "duration": 180,
+          "replaceActive": true,
+          "collision": {
+            "passWalls": false,
+            "passEnemies": false
+          },
+          "tags": [
+            "이동기"
+          ],
+          "presentation": {
+            "type": "dash-line",
+            "color": "228,237,54",
+            "width": 7,
+            "alpha": 0.45,
+            "duration": 180,
+            "trail": true
+          },
+          "onEndAttackIds": [
+            "attack.lena.rmbImpact"
+          ],
+          "onEndBeforeMaxDistance": true
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "effectShape",
+          "visible": false,
+          "duration": 180,
+          "animation": {
+            "mode": "forward",
+            "distance": 360,
+            "easing": "linear",
+            "clipByMovementCollision": true
+          },
+          "damage": {
+            "attackId": "attack.lena.rmb",
+            "requireMovementExecution": true,
+            "movementStateKey": "movement:lena-board",
+            "oncePerExecution": true,
+            "hitMode": "body-contact",
+            "contactRadius": 38,
+            "stopAfterFirstContact": true,
+            "contactOnly": true,
+            "confirmContact": true
+          }
+        },
+        {
+          "type": "hit.sequence",
+          "oncePerExecution": true,
+          "steps": [],
+          "sourceModules": [
+            {
+              "type": "movement.stop",
+              "snapToTargetContact": true,
+              "allowDeadTarget": true
+            }
+          ],
+          "authority": "source",
+          "retainOnTargetDeath": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "lena-board-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "lena-combo",
+          "duration": 500
+        }
+      ],
+      "tags": [
+        "스킬"
+      ],
+      "presentation": {
+        "color": "#e4ed36"
+      },
+      "effectsOnly": true,
+      "previewGeometry": {
+        "shape": "rect",
+        "range": 360,
+        "halfWidth": 38,
+        "wallPolicy": "block"
+      }
+    },
+    "rmbImpact": {
+      "id": "attack.lena.rmbImpact",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 0,
+      "range": 180,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 180,
+          "wallPolicy": "block",
+          "contactType": "melee"
+        }
+      ],
+      "tags": [
+        "스킬"
+      ],
+      "presentation": {
+        "color": "#e4ed36"
+      }
+    },
+    "rmbBoost": {
+      "id": "attack.lena.rmbBoost",
+      "damageRatio": 0.0,
+      "cost": 300,
+      "cd": 1200,
+      "range": 360,
+      "modules": [
+        {
+          "type": "movement.move",
+          "speedMultiplier": 1.35,
+          "when": "after-attack",
+          "stateKey": "movement:lena-board",
+          "direction": "attack",
+          "distance": 360,
+          "duration": 180,
+          "replaceActive": true,
+          "collision": {
+            "passWalls": false,
+            "passEnemies": false
+          },
+          "tags": [
+            "이동기"
+          ],
+          "presentation": {
+            "type": "dash-line",
+            "color": "228,237,54",
+            "width": 7,
+            "alpha": 0.45,
+            "duration": 180,
+            "trail": true
+          },
+          "onEndAttackIds": [
+            "attack.lena.rmbImpactBoost"
+          ],
+          "onEndBeforeMaxDistance": true
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "effectShape",
+          "visible": false,
+          "duration": 180,
+          "animation": {
+            "mode": "forward",
+            "distance": 360,
+            "easing": "linear",
+            "clipByMovementCollision": true
+          },
+          "damage": {
+            "attackId": "attack.lena.rmbBoost",
+            "requireMovementExecution": true,
+            "movementStateKey": "movement:lena-board",
+            "oncePerExecution": true,
+            "hitMode": "body-contact",
+            "contactRadius": 38,
+            "stopAfterFirstContact": true,
+            "contactOnly": true,
+            "confirmContact": true
+          }
+        },
+        {
+          "type": "hit.sequence",
+          "oncePerExecution": true,
+          "steps": [],
+          "sourceModules": [
+            {
+              "type": "movement.stop",
+              "snapToTargetContact": true,
+              "allowDeadTarget": true
+            }
+          ],
+          "authority": "source",
+          "retainOnTargetDeath": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "lena-board-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "lena-combo",
+          "duration": 500
+        }
+      ],
+      "tags": [
+        "스킬"
+      ],
+      "presentation": {
+        "color": "#e4ed36"
+      },
+      "effectsOnly": true,
+      "previewGeometry": {
+        "shape": "rect",
+        "range": 360,
+        "halfWidth": 38,
+        "wallPolicy": "block"
+      }
+    },
+    "rmbImpactBoost": {
+      "id": "attack.lena.rmbImpactBoost",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 0,
+      "range": 180,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 180,
+          "wallPolicy": "block",
+          "contactType": "melee"
+        },
+        {
+          "type": "movement.knockback",
+          "target": "hit-target",
+          "direction": "away-from-source",
+          "distance": 180,
+          "speed": 16,
+          "oncePerExecution": true
+        },
+        {
+          "type": "status.apply",
+          "status": "zap",
+          "duration": 5000
+        }
+      ],
+      "tags": [
+        "스킬"
+      ],
+      "presentation": {
+        "color": "#e4ed36"
+      }
+    },
+    "lmbBoost": {
+      "id": "attack.lena.lmbBoost",
+      "damageRatio": 0.6666666666666666,
+      "cost": 100,
+      "cd": 350,
+      "range": 240,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "sector",
+          "range": 240,
+          "wallPolicy": "block",
+          "contactType": "melee",
+          "halfAngle": 1.1
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "lena-board-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "lena-combo",
+          "duration": 500
+        },
+        {
+          "type": "movement.knockback",
+          "target": "hit-target",
+          "direction": "away-from-source",
+          "distance": 180,
+          "speed": 16,
+          "oncePerExecution": true
+        },
+        {
+          "type": "status.apply",
+          "status": "zap",
+          "duration": 5000
+        }
+      ],
+      "tags": [
+        "평타"
+      ],
+      "presentation": {
+        "color": "#e4ed36"
+      }
+    },
+    "counterBoost": {
+      "id": "attack.lena.counterBoost",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 0,
+      "range": 280,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 280,
+          "wallPolicy": "block",
+          "contactType": "melee"
+        },
+        {
+          "type": "movement.neutralize-knockback",
+          "target": "hit-target",
+          "direction": "away-from-source",
+          "distance": 180,
+          "speed": 16,
+          "oncePerExecution": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "lena-board-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "lena-combo",
+          "duration": 500
+        },
+        {
+          "type": "status.apply",
+          "status": "zap",
+          "duration": 5000
+        },
+        {
+          "type": "effect.spawn",
+          "renderType": "annularDoubleSweep",
+          "position": "source",
+          "r": 280,
+          "inner": 0,
+          "span": 6.283185307179586,
+          "sweepCount": 1,
+          "sweepDirection": "clockwise",
+          "startAngleOffset": 3.141592653589793,
+          "sweepFraction": 0.75,
+          "fadePower": 1.35,
+          "hitColor": "228,237,54",
+          "fillAlpha": 0.2,
+          "strokeAlpha": 0.88,
+          "lineWidth": 2.5,
+          "edgeLine": false,
+          "duration": 300,
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true,
+          "scaleWithAttackRange": true
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "presentation": {
+        "color": "#e4ed36"
+      }
+    }
+  },
+  "abilities": {
+    "lmb": {
+      "id": "ability.lena.lmb",
+      "input": "lmb",
+      "attackId": "attack.lena.lmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "lmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          },
+          {
+            "type": "ability.lock",
+            "when": "handled",
+            "duration": 350
+          }
+        ]
+      },
+      "inputAttackAlternates": [
+        {
+          "attackId": "attack.lena.lmbBoost",
+          "conditions": [
+            {
+              "type": "state.exists",
+              "stateKey": "lena-combo",
+              "activeOnly": true
+            }
+          ]
+        }
+      ]
+    },
+    "rmb": {
+      "id": "ability.lena.rmb",
+      "input": "rmb",
+      "attackId": "attack.lena.rmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          },
+          {
+            "type": "ability.lock",
+            "when": "handled",
+            "duration": 1200
+          }
+        ]
+      },
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      },
+      "inputAttackAlternates": [
+        {
+          "attackId": "attack.lena.rmbBoost",
+          "conditions": [
+            {
+              "type": "state.exists",
+              "stateKey": "lena-combo",
+              "activeOnly": true
+            }
+          ]
+        }
+      ]
+    },
+    "counter": {
+      "id": "ability.lena.counter",
+      "input": "counter",
+      "attackId": "attack.lena.counter",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "counter"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "source.property.falsy",
+            "property": "counterWindup"
+          },
+          {
+            "type": "counter.ready"
+          }
+        ],
+        "modules": [
+          {
+            "type": "counter.execute",
+            "windup": 300,
+            "consumeState": "counter-ready",
+            "preview": {
+              "type": "preview.create",
+              "shape": "attack-shape"
+            },
+            "ccRefAttackId": "attack.lena.counter"
+          }
+        ]
+      },
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      },
+      "inputAttackAlternates": [
+        {
+          "attackId": "attack.lena.counterBoost",
+          "conditions": [
+            {
+              "type": "state.exists",
+              "stateKey": "lena-combo",
+              "activeOnly": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "lemon-board",
+      "scale": 1.9,
+      "alpha": 0.55,
+      "rotationStateKey": "lena-board-motion",
+      "rotationMs": 350,
+      "rotationRadians": 6.283185307179586,
+      "facing": "movement",
+      "angle": 1.5707963267948966,
+      "facingMovementStateKey": "movement:lena-board"
+    }
+  ],
+  "worldGaugeModules": [
+    {
+      "type": "gauge.arc",
+      "visibility": "owner",
+      "conditions": [
+        {
+          "type": "state.exists",
+          "stateKey": "lena-combo",
+          "activeOnly": true
+        }
+      ],
+      "valueRef": {
+        "type": "timed-action-remaining",
+        "stateKey": "lena-combo"
+      },
+      "color": "#e4ed36",
+      "showEmpty": false,
+      "maxChargeFlash": true
+    }
+  ]
+},
+  latis: {
+  "id": "latis",
+  "name": "라티스",
+  "englishName": "Latis",
+  "title": "능숙한 낚시꾼",
+  "color": "#358fb8",
+  "classification": {
+    "style": 3,
+    "range": 0,
+    "role": 1
+  },
+  "stats": {
+    "maxHealth": 1300,
+    "speed": 4.25,
+    "radius": 20,
+    "baseDamage": 150,
+    "difficulty": 3
+  },
+  "desc": "낚싯대를 휘두르고 미끼에 걸린 적을 끌어당겨 제압하는 캐릭터",
+  "tooltipSkills": [
+    {
+      "key": "LMB",
+      "name": "낚싯대 휘두르기",
+      "attack": "lmb",
+      "text": "낚싯대를 휘둘러 큰 부채꼴 범위에 피해 ({damage})"
+    },
+    {
+      "key": "RMB",
+      "name": "미끼",
+      "attack": "rmb",
+      "text": "전방으로 벽을 관통하는 낚시찌를 던져 맞은 적에게 피해 ({damage})"
+    },
+    {
+      "key": "RMB/RMB",
+      "name": "월척",
+      "attack": "rmbRecast",
+      "text": "미끼 적중 후 {v:attacks.rmb.modules.2.duration|seconds}초 안에 재사용하면 맞은 적을 약하게 끌어당기며 피해 ({damage})"
+    },
+    {
+      "key": "L-Shift",
+      "name": "내려치기",
+      "attack": "counter",
+      "text": "낚싯대를 강하게 내려쳐 피해 및 무력화 넉백 ({damage})"
+    }
+  ],
+  "attacks": {
+    "lmb": {
+      "id": "attack.latis.lmb",
+      "damageRatio": 1.0,
+      "cost": 150,
+      "cd": 450,
+      "range": 225,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "sector",
+          "range": 225,
+          "wallPolicy": "block",
+          "contactType": "melee",
+          "halfAngle": 1.35
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "latis-rod-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "tags": [
+        "평타"
+      ],
+      "presentation": {
+        "color": "#358fb8"
+      }
+    },
+    "rmb": {
+      "id": "attack.latis.rmb",
+      "damageRatio": 0.6666666666666666,
+      "cost": 300,
+      "cd": 1500,
+      "range": 600,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 30,
+          "radius": 14
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": false,
+          "walls": true
+        },
+        {
+          "type": "state.window",
+          "when": "on-hit",
+          "stateKey": "latis-hook",
+          "duration": 2000,
+          "captureHitTarget": true,
+          "oncePerExecution": true,
+          "data": {
+            "networkSync": true
+          }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "latis-rod-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "projectile.presentation",
+          "kind": "projectile-style",
+          "style": {
+            "showLink": true,
+            "linkAlpha": 0.5,
+            "linkWidth": 1.5,
+            "linkDash": [
+              5,
+              5
+            ]
+          }
+        }
+      ],
+      "tags": [
+        "스킬"
+      ],
+      "presentation": {
+        "color": "#358fb8"
+      }
+    },
+    "rmbRecast": {
+      "id": "attack.latis.rmbRecast",
+      "damageRatio": 0.6666666666666666,
+      "cost": 100,
+      "cd": 0,
+      "range": 0,
+      "modules": [
+        {
+          "type": "delivery.target",
+          "targetRelations": [
+            "enemy"
+          ]
+        },
+        {
+          "type": "movement.pull",
+          "target": "hit-target",
+          "distance": 200,
+          "speed": 8,
+          "oncePerExecution": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "latis-rod-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "tags": [
+        "스킬"
+      ],
+      "presentation": {
+        "color": "#358fb8"
+      }
+    },
+    "counter": {
+      "id": "attack.latis.counter",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 0,
+      "range": 300,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "rect",
+          "range": 300,
+          "wallPolicy": "block",
+          "contactType": "melee",
+          "halfWidth": 65
+        },
+        {
+          "type": "movement.neutralize-knockback",
+          "target": "hit-target",
+          "direction": "away-from-source",
+          "distance": 100,
+          "speed": 12,
+          "oncePerExecution": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "latis-rod-motion",
+          "values": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "presentation": {
+        "color": "#358fb8"
+      }
+    }
+  },
+  "abilities": {
+    "lmb": {
+      "id": "ability.latis.lmb",
+      "input": "lmb",
+      "attackId": "attack.latis.lmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "lmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          }
+        ]
+      }
+    },
+    "rmb": {
+      "id": "ability.latis.rmb",
+      "input": "rmb",
+      "attackId": "attack.latis.rmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack",
+            "alternates": [
+              {
+                "attackId": "attack.latis.rmbRecast",
+                "stateKey": "latis-hook",
+                "targetStateKey": "latis-hook",
+                "consume": true,
+                "conditions": [
+                  {
+                    "type": "state.exists",
+                    "stateKey": "latis-hook",
+                    "activeOnly": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      }
+    },
+    "counter": {
+      "id": "ability.latis.counter",
+      "input": "counter",
+      "attackId": "attack.latis.counter",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "counter"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "source.property.falsy",
+            "property": "counterWindup"
+          },
+          {
+            "type": "counter.ready"
+          }
+        ],
+        "modules": [
+          {
+            "type": "counter.execute",
+            "windup": 300,
+            "consumeState": "counter-ready",
+            "preview": {
+              "type": "preview.create",
+              "shape": "attack-shape"
+            },
+            "ccRefAttackId": "attack.latis.counter"
+          }
+        ]
+      },
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      }
+    }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "fishing-rod",
+      "scale": 1.8,
+      "alpha": 0.55,
+      "angle": -0.65,
+      "rotationStateKey": "latis-rod-motion",
+      "rotationMs": 400,
+      "rotationRadians": 6.283185307179586
+    }
+  ],
+  "worldGaugeModules": [
+    {
+      "type": "gauge.arc",
+      "visibility": "owner",
+      "conditions": [
+        {
+          "type": "state.exists",
+          "stateKey": "latis-hook",
+          "activeOnly": true
+        }
+      ],
+      "valueRef": {
+        "type": "timed-action-remaining",
+        "stateKey": "latis-hook"
+      },
+      "color": "#358fb8",
+      "maxChargeFlash": true,
+      "showEmpty": false
+    }
+  ],
+  "conditionalTargetLinks": [
+    {
+      "visibility": "owner",
+      "relation": "enemy",
+      "conditions": [
+        {
+          "type": "state.exists",
+          "stateKey": "latis-hook",
+          "activeOnly": true
+        },
+        {
+          "type": "target.matches-state-target",
+          "stateKey": "latis-hook"
+        }
+      ],
+      "color": "#358fb8",
+      "alpha": 0.5,
+      "lineWidth": 1.5,
+      "dash": [
+        5,
+        5
+      ]
+    }
+  ]
+},
 });
 /* ===== 캐릭터별 단일 원본: 끝 ===== */
 
@@ -32439,7 +35091,12 @@ const CharacterDataService=Object.freeze({
           return values.reduce((result,item)=>operation==='$sum'?result+item:result*item,operation==='$sum'?0:1);
         }
       }
-      if(Array.isArray(value))return Object.freeze(value.map((item,index)=>resolvePath(`${path}.${index}`)));
+      if(Array.isArray(value)){
+        for(let index=0;index<value.length;index++){
+          if(!(index in value))throw new Error(`캐릭터 설정 배열 항목 누락: ${id}.${path}.${index}`);
+        }
+        return Object.freeze(value.map((item,index)=>resolvePath(`${path}.${index}`)));
+      }
       return Object.freeze(Object.fromEntries(Object.keys(value).map(key=>[key,resolvePath(path?`${path}.${key}`:key)])));
     };
     return resolvePath('');
@@ -33840,7 +36497,18 @@ const CharacterSortService=Object.freeze({
         if(type==='projectile.impact'&&projectile){
           const ids=[...(module.attackIds||[])];
           for(const values of Object.values(module.reasonAttackIds||{}))ids.push(...values);
-          for(const id of ids){const extent=linkedRange(id);if(extent>0)maximum=Math.max(maximum,travel+extent);}
+          for(const id of ids){
+            const extent=linkedRange(id);if(extent<=0)continue;
+            const linked=this.attackById(combat,id);
+            if(module.broadcastLinked===true&&Number.isFinite(Number(module.angleOffset))&&
+              linked?.modules?.some(m=>m.type==='delivery.projectile')){
+              const scatter=linked.modules.find(m=>m.type==='pattern.scatter');
+              const halfSpread=Number(module.randomSpread)||Number(scatter?.spread)/2||0;
+              const separation=Math.max(0,Math.acos(Math.cos(Number(module.angleOffset)))-halfSpread);
+              const end=Number.isFinite(travel+extent)?Math.sqrt(Math.max(0,travel*travel+extent*extent+2*travel*extent*Math.cos(separation))):Infinity;
+              maximum=Math.max(maximum,travel,extent,end);
+            }else maximum=Math.max(maximum,travel+extent);
+          }
           const field=module.field;
           if(field?.damageOnTrigger!==false&&field?.attackId&&Number(this.attackById(combat,field.attackId)?.damageRatio)>0&&this.enemyRangeModule(field)){
             maximum=Math.max(maximum,field.anchorMode==='projectile-path'?travel:travel+this.geometryRange(field,variant));
@@ -35774,7 +38442,9 @@ const CharacterRecordProgressionService={
       Math.round(
         mode===MatchModeService.FFA
           ?(
-              ffaScore?.kind==='loss'
+              ffaScore?.kind==='neutral'
+                ?0
+                :ffaScore?.kind==='loss'
                 ?values.loss*
                   (
                     ffaScore?.multiplier||
@@ -35926,17 +38596,20 @@ const CharacterRecordProgressionService={
       previousResult?.optimistic||
       null;
 
-    this.setAuthoritativeProgress(
-      progress
-    );
+    // Concurrent round responses may carry an older cumulative snapshot.
+    // Compare server-confirmed play counts, never scores (legitimate losses can lower scores).
+    const acceptedProgress={characterRecords:{...(progress.characterRecords||{})},characterStats:{...(progress.characterStats||{})}};
+    const confirmed=this.authoritativeProgress;
+    for(const [id,stats] of Object.entries(confirmed?.characterStats||{})){
+      if(Number(stats?.plays)>Number(acceptedProgress.characterStats[id]?.plays||0)){
+        acceptedProgress.characterStats[id]={...stats};
+        if(Object.prototype.hasOwnProperty.call(confirmed.characterRecords||{},id))acceptedProgress.characterRecords[id]=confirmed.characterRecords[id];
+      }
+    }
+    this.setAuthoritativeProgress(acceptedProgress);
 
-    account.characterRecords={
-      ...(progress.characterRecords||{})
-    };
-
-    account.characterStats={
-      ...(progress.characterStats||{})
-    };
+    account.characterRecords={...acceptedProgress.characterRecords};
+    account.characterStats={...acceptedProgress.characterStats};
 
     account.recordSettlementPending=false;
 
@@ -35948,11 +38621,9 @@ const CharacterRecordProgressionService={
         result?.characterId||''
       );
 
-    const after=
-      CharacterRecordService.points(
-        characterId,
-        account
-      );
+    const after=Number.isFinite(Number(result?.after))
+      ?Math.max(0,Number(result.after))
+      :CharacterRecordService.points(characterId,account);
     const serverResult={
       token:Math.max(1,Number(payload?.roundToken)||1),
       characterId,
@@ -36028,40 +38699,17 @@ const CharacterRecordProgressionService={
     CharacterRecordService.loadAllRankings(true).catch(error=>{
       console.warn('[Duels] ranking refresh failed after settlement',error);
     });
-    const sameAsOptimistic=
-      previousOptimistic&&
-      Number(
-        previousOptimistic.before
-      )===
-        Number(
-          serverResult.before
-        )&&
-      Number(
-        previousOptimistic.after
-      )===
-        Number(
-          serverResult.after
-        )&&
-      Number(
-        previousOptimistic.delta
-      )===
-        Number(
-          serverResult.delta
-        );
-
-    if(
-      previousOptimistic&&
-      !sameAsOptimistic
-    ){
-      this.showRecordCorrection(
-        previousOptimistic.after,
-        serverResult.after,
-        '레코드 서버 정정'
-      );
+    // A shifted account baseline is normal synchronization, not an invalid match.
+    // Compare this round's awarded amount; cumulative snapshots may contain later rounds.
+    if(previousOptimistic&&Number(previousOptimistic.delta)!==serverResult.delta){
+      console.warn('[Duels] record award estimate differs from server',{
+        resultKey,characterId,mode:serverResult.mode,placement:serverResult.placement,
+        estimatedDelta:Number(previousOptimistic.delta)||0,confirmedDelta:serverResult.delta,
+        estimatedBefore:previousOptimistic.before,confirmedBefore:serverResult.before
+      });
+      this.showRecordDelta(serverResult);
     }else if(!previousOptimistic){
-      this.showRecordDelta(
-        serverResult
-      );
+      this.showRecordDelta(serverResult);
     }
 
     return serverResult;
@@ -37602,6 +40250,7 @@ const EntityService={
       lastDamageSourcePid:null,
       lastNaturalRegenBlockTime:0,
       nextHealthRegenAt:0,
+      lastNaturalHealthRegenTickAt:null,
       healthRegenPolicy:spec.healthRegenPolicy||null,
       lastAttackTime:0,
       buffRegenTickAt:performance.now(),
@@ -38863,6 +41512,13 @@ const EntityCharacterDeathResetService=Object.freeze({
   reset(entity,now=performance.now(),options={}){
     if(!entity)return false;
 
+    // Only the local player owns the command editor.
+    if(
+      typeof Training!=='undefined'&&
+      entity===Training.player&&
+      typeof CharacterCommandInputService!=='undefined'
+    )CharacterCommandInputService.close();
+
     const preserveReplacementState=
       options?.preserveReplacementState===true;
 
@@ -38984,6 +41640,7 @@ const EntityRespawnService=Object.freeze({
     entity.healthTrailHealth=entity.maxHealth;
     entity.lastDamageSourcePid=null;
     entity.lastNaturalRegenBlockTime=0;
+    entity.lastNaturalHealthRegenTickAt=null;
     entity.healthTrailDelayUntil=0;
     entity.stamina=entity.maxStamina||0;
     entity.x=Number.isFinite(x)?x:entity.x;
@@ -39100,11 +41757,12 @@ const NaturalHealthRegenActivityService=Object.freeze({
         Number(entity.lastNaturalRegenBlockTime)||0,
         readyAt
       );
-    entity.nextHealthRegenAt=
-      Math.max(
-        0,
-        Number(now)||performance.now()
-      );
+    // Repeated force-starts may remove the idle gate, never the healing cadence.
+    const lastTick=Number(entity.lastNaturalHealthRegenTickAt);
+    const cadenceAt=entity.lastNaturalHealthRegenTickAt!=null&&Number.isFinite(lastTick)
+      ?lastTick+Math.max(1,Number(entity.healthRegenPolicy.tick)||1)
+      :0;
+    entity.nextHealthRegenAt=Math.max(Number(now)||performance.now(),cadenceAt);
     return true;
   }
 });
@@ -39149,12 +41807,14 @@ const HealthRegenService=Object.freeze({
             entity
           );
         }
+        entity.lastNaturalHealthRegenTickAt=now;
         entity.nextHealthRegenAt=now+policy.tick;
       }
     }
 
     // 틱형 재생 버프는 자연 회복과 별도로 정확한 tickInterval마다 회복한다.
     for(const item of BuffService.live(entity,'regeneration',now)){
+      if(item.data?.localOnly===true&&!EntitySimulationAuthorityService.isLocal(entity))continue;
       const interval=Math.max(
         1,
         Number(item.data?.tickInterval)||250
@@ -39334,6 +41994,7 @@ const COMBAT_BUFF_DEFS=Object.freeze({
   evasionInvulnerable:Object.freeze({label:'EVASION INVULNERABLE',limitMode:'flat',toggleOnly:true,presentation:Object.freeze({opacity:.45,outline:'dashed'})}),
   stealth:Object.freeze({label:'STEALTH',limitMode:'flat',toggleOnly:true,presentation:Object.freeze({opacity:1})}),
   staminaRegen:Object.freeze({label:'STAMINA REGEN',min:-.90}),
+  staminaCostScale:Object.freeze({label:'STAMINA COST',limitMode:'flat'}),
   staminaCost:Object.freeze({label:'STAMINA COST',min:-.40}),
   attackRate:Object.freeze({label:'ATTACK SPEED',max:.90}),
   projectileSpeed:Object.freeze({label:'PROJECTILE SPEED',min:-.90}),
@@ -39390,6 +42051,7 @@ const CombatModifierService=Object.freeze({
       staminaRegenAdditive:0,
       staminaRegenBlocked:false,
       staminaCostMult:1,
+      staminaCostScale:1,
       attackSpeedMult:1,
       projectileSpeedMult:1,
       dodgeDistanceMult:1,
@@ -39734,6 +42396,10 @@ const BuffService=Object.freeze({
     stats.regenPercentPerSec+=regenPercent;
     stats.staminaRegenAdditive+=staminaRegen;
     stats.staminaCostMult*=Math.max(0,1+staminaCost);
+    stats.staminaCostScale=1;
+    for(const item of this.live(entity,'staminaCostScale',now)){
+      stats.staminaCostScale*=Math.max(.1,Math.min(1,Number(item.value)||1));
+    }
     // attackRate는 공격 딜레이의 직접 증감률이다. +0.35는 딜레이 -35%, -0.15는 딜레이 +15%.
     stats.attackSpeedMult*=
       1/Math.max(.10,1-attackRate);
@@ -40445,6 +43111,10 @@ const CCService=Object.freeze({
       (params.stackMode==='replace-source'||params.stackMode==='refresh-type')&&
       list.some(item=>item.end>now&&item.sourceId===sourceId);
     if(!refreshesRestriction&&entity.character?.reactiveEquipment&&finiteDuration>0&&EntitySimulationAuthorityService.isLocal(entity))ReactiveEquipmentService.restriction(entity,type,String(data?.sourceEntityId||sourceId||''),now);
+
+    if(finiteDuration>0&&typeof AttackWindupService!=='undefined'&&AttackWindupService.statusInterrupts?.(type)){
+      AttackWindupService.interrupt(entity,type,{networkReplay:data.networkReplicated===true||!EntitySimulationAuthorityService.isLocal(entity)});
+    }
 
     let storedParams=params;
 
@@ -41569,7 +44239,7 @@ const CharacterPassiveBuffService=Object.freeze({
 
     return Number(ref?.value)||0;
   },
-  sync(entity){
+  sync(entity,context={}){
     if(!entity?.buffs)return false;
     const characterId=String(entity.character?.id||'');
     let changed=false;
@@ -41595,16 +44265,22 @@ const CharacterPassiveBuffService=Object.freeze({
       const conditions=Array.isArray(config?.conditions)?config.conditions:[];
       const conditionsMatch=conditions.every(condition=>
         TriggerConditionService.matches(condition,{
+          ...context,
           source:entity,
           target:entity,
           now:performance.now()
         })===true
       );
       if(!conditionsMatch){
-        if(BuffService.remove(entity,stat,sourceId))changed=true;
+        if(config.retainOnConditionLost!==true&&BuffService.remove(entity,stat,sourceId))changed=true;
         continue;
       }
       const value=this.value(entity,config.valueRef||{});
+      if(Number.isFinite(config.duration)){
+        BuffService.refresh(entity,stat,value,sourceId,Math.max(0,config.duration),this.data(config));
+        changed=true;
+        continue;
+      }
       if(
         BuffService.sync(
           entity,
@@ -41881,6 +44557,7 @@ const BuffStatusPresentation=Object.freeze({
     attackRate:Object.freeze({label:'ATK SPD',rgb:'255,70,70'}),
     projectileSpeed:Object.freeze({label:'BULLET SPD',rgb:'255,70,70'}),
     staminaRegen:Object.freeze({label:'STAM REGEN',rgb:'255,155,50'}),
+    staminaCostScale:Object.freeze({label:'STAM COST',rgb:'181,217,255'}),
     staminaCost:Object.freeze({label:'STAM COST',rgb:'255,175,70'}),
     dodgeDistance:Object.freeze({label:'DODGE DIS',rgb:'190,230,255'}),
     dodgeSpeed:Object.freeze({label:'DODGE SPD',rgb:'190,230,255'}),
@@ -41933,6 +44610,11 @@ const BuffStatusPresentation=Object.freeze({
   },
 
   value(entity,type,now){
+    if(type==='staminaCostScale'){
+      let scale=1;
+      for(const item of BuffService.live(entity,type,now))scale*=Math.max(.1,Math.min(1,Number(item.value)||1));
+      return scale-1;
+    }
     const buffValue=BuffService.resolve(
       entity,
       type,
@@ -43017,6 +45699,7 @@ const ProgressStateService=Object.freeze({
     const state=this.ensure(entity,module);
     if(!state)return false;
     const now=performance.now();
+    const previousValue=state.value;
     // Stacking counters grow a finite capacity; snapshots remain JSON-safe.
     if(module.growMax===true&&operation==='add'){
       state.max=Math.max(state.max,state.value+Math.max(0,Number(module.amount)||0));
@@ -43037,6 +45720,7 @@ const ProgressStateService=Object.freeze({
     }else{
       state.value=Math.max(0,Math.min(state.max,state.value+(Number(module.amount)||1)));
     }
+    if(state.value!==previousValue)for(const mode of module.onChangeModes||[])ModeStateService.toggle(entity,mode);
     state.lastActivityAt=now;
     const stepInterval=Math.max(0,Number(state.decay?.stepInterval)||0);
     if(stepInterval>0){
@@ -43513,6 +46197,37 @@ const TriggerConditionService=Object.freeze({
     const source=context.source||context.entity||null;
     const now=Number(context.now)||performance.now();
 
+    if(condition.type==='condition.any')return (condition.conditions||EMPTY_RUNTIME_ITEMS).some(item=>this.matches(item,context));
+    if(condition.type==='target.health-ratio-lt-source'){
+      const target=context.target;
+      const snapshot=context.targetHealthSnapshots?.[String(target?.id||'')];
+      const health=snapshot?.health??target?.health;
+      const maximum=snapshot?.maxHealth??target?.maxHealth;
+      return !!source&&!!target&&Number(source.maxHealth)>0&&Number(maximum)>0&&
+        Math.max(0,Number(health)||0)/maximum<Math.max(0,Number(source.health)||0)/source.maxHealth;
+    }
+    if(condition.type==='target.health-lt-source'){
+      return !!source&&!!context.target&&Number(context.target.health)<Number(source.health);
+    }
+    if(condition.type==='target.matches-state-target'){
+      const state=TimedActionStateService.state(source,String(condition.stateKey||''),now);
+      return !!state&&String(state.data?.targetEntityId||'')===String(context.target?.id||'')&&!!context.target?.id;
+    }
+    if(condition.type==='target.exists-in-range'){
+      if(!source?.alive)return false;
+      const range=Math.max(0,Number(condition.range)||0);
+      for(const target of EntityService.items.values()){
+        if(!target?.alive||context.targetHealthSnapshots?.[String(target.id)]?.alive===false||target.hidden||target===source||RelationService.relation(source,target)!=='enemy')continue;
+        if(Math.hypot(target.x-source.x,target.y-source.y)>range)continue;
+        if(!ProjectileHomingTargetVisibilityService.canPerceive(source,target,now))continue;
+        if(condition.requireLineOfSight&&WorldGeometryService.segmentBlocked(source.x,source.y,target.x,target.y,0))continue;
+        if((condition.conditions||EMPTY_RUNTIME_ITEMS).every(item=>this.matches(item,{...context,source,target,now})))return true;
+      }
+      return false;
+    }
+    if(condition.type==='formation.nonempty'){
+      return context.network===true&&context.senderHandled===true||CircleFormationService.circleCount(source)>0;
+    }
     if(condition.type==='input.slot'){
       return context.inputSlot===condition.slot;
     }
@@ -43905,6 +46620,14 @@ const TriggerConditionService=Object.freeze({
     if(condition.type==='resource.is'){
       return String(context.resource||'')===String(condition.resource||'');
     }
+    if(condition.type==='buff.absent-source'){
+      return !source||(source.buffs?.get(String(condition.stat||''))||EMPTY_RUNTIME_ITEMS)
+        .every(item=>item.end<=now||item.sourceId!==condition.sourceId);
+    }
+    if(condition.type==='buff.active'&&condition.sourceIds){
+      return !!source&&(source.buffs?.get(String(condition.stat||''))||EMPTY_RUNTIME_ITEMS)
+        .some(item=>item.end>now&&condition.sourceIds.includes(item.sourceId)&&item.value!==0);
+    }
     if(condition.type==='buff.active'){
       return !!source&&BuffService.resolve(
         source,
@@ -44254,6 +46977,11 @@ const ProgressHitTargetPolicy=Object.freeze({
 const CharacterTriggerEffectService=Object.freeze({
   run(entity,event,context={}){
     if(!entity)return context;
+    // Damage can make a target satisfy a passive condition during this same hit.
+    // Confirmed target snapshots are read for this event without mutating remote mirrors.
+    if(event==='damage-dealt'&&entity.alive&&entity.character?.passiveBuffs?.length){
+      CharacterPassiveBuffService.sync(entity,{targetHealthSnapshots:context.targetHealthSnapshots});
+    }
 
     const shared={
       ...context,
@@ -44362,7 +47090,7 @@ const CharacterTriggerEffectService=Object.freeze({
           const restored=ResourceRestoreEffectService.apply({
             source:entity,
             target:recipient,
-            module:{...module,recipient:'target'},
+            module:{...module,recipient:'target',...(module.amountFrom?{amount:Math.max(0,Number(shared[module.amountFrom])||0)*(Number(module.amountScale)||0)}:{})},
             presentationDefault:'default',
             reason:'resource.restore',
             now:shared.now
@@ -44381,6 +47109,10 @@ const CharacterTriggerEffectService=Object.freeze({
           continue;
         }
 
+        if(module.type==='modifier.remove'){
+          BuffService.remove(entity,String(module.stat||''),String(module.sourceId||''));
+          continue;
+        }
         if(module.type==='modifier.set'){
           if(!COMBAT_BUFF_DEFS[module.stat])continue;
 
@@ -46281,7 +49013,8 @@ const AugmentService=Object.freeze({
         )*
         damageMultiplier,
       cost:
-        Math.max(0,Number(spec.cost)||0)*
+        Math.max(0,spec.formationCost&&typeof CircleFormationService!=='undefined'
+          ?CircleFormationService.attackCost(entity,spec):Number(spec.cost)||0)*
         costMultiplier,
       range:
         Math.max(
@@ -46963,7 +49696,8 @@ const StaminaService=Object.freeze({
   },
   multiplier(entity,now=performance.now()){
     if(!entity)return 1;
-    return Math.max(.60,Number(CombatStatsService.current(entity,now).staminaCostMult)||1);
+    const stats=CombatStatsService.current(entity,now);
+    return Math.max(.60,Number(stats.staminaCostMult)||1)*Math.max(.1,Number(stats.staminaCostScale??1)||1);
   },
   cost(entity,amount,now=performance.now()){
     const value=Math.max(0,Number(amount)||0);
@@ -47114,7 +49848,7 @@ const SimulationScheduleService={
       if(
         item?.source===source&&
         item?.type==='continuation'&&
-        item?.interruptibleWindup===true
+        (item?.interruptibleWindup===true||item?.attackWindup===true)
       ){
         removed=true;
 
@@ -47602,7 +50336,7 @@ const ChannelAttackService=Object.freeze({
       if(
         state?.kind!==this.KIND||
         state.phase!=='charging'||
-        state.interruptOnForcedMovement===false
+        (state.interruptOnForcedMovement===false&&!AttackWindupService.statusInterrupts(reason))
       ){
         continue;
       }
@@ -49073,6 +51807,9 @@ const NeutralizingKnockbackService=Object.freeze({
 
 const AttackWindupService=Object.freeze({
   TAG:'선딜레이',
+  interruptingStatuses:Object.freeze(['stun','freeze','neutralize','sleep']),
+  statusInterrupts(type){return this.interruptingStatuses.includes(String(type));},
+  hasInterruptingStatus(entity,now=performance.now()){return this.interruptingStatuses.some(type=>(entity?.statuses?.get(type)||[]).some(entry=>entry.end>now));},
   remoteContinuations:new WeakMap(),
   pendingRemoteCommits:new WeakMap(),
   windupEffects:new WeakMap(),
@@ -49478,11 +52215,9 @@ const AttackWindupService=Object.freeze({
     if(
       typeof CircleFormationService!==
         'undefined'&&
-      CircleFormationService
-        .cancelWindupOnForcedMovement?.(
-          entity,
-          reason
-        )
+      (this.statusInterrupts(reason)
+        ?CircleFormationService.cancelActivation(entity,reason)
+        :CircleFormationService.cancelWindupOnForcedMovement?.(entity,reason))
     ){
       changed=true;
     }
@@ -49499,8 +52234,8 @@ const AttackWindupService=Object.freeze({
     }
 
     /*
-     * 반격기는 데이터 태그 통합 대상에서는 제외하지만,
-     * 기존 공통 counter windup 자체는 강제이동에 계속 취소된다.
+     * 명시적 전체 선딜 취소 API에서는 반격 대기도 함께 정리한다.
+     * 강제이동 호출 경로는 이 API를 호출하지 않으므로 반격 선딜이 유지된다.
      */
     if(entity.counterWindup){
       const abilityId=
@@ -49565,25 +52300,13 @@ const AttackWindupService=Object.freeze({
 
     return changed;
   }
-});
-
-/*
- * 기존 호출부 호환용. 실제 선딜 중단의 단일 진실원천은
- * AttackWindupService다.
- */
+});/* 위치 이동은 선딜을 유지하고 기절/빙결/무력화/수면만 공용 선딜 취소 경로로 전달한다. */
 const ForcedMovementWindupInterruptService=Object.freeze({
-  interrupt(
-    entity,
-    reason='forced-movement',
-    options={}
-  ){
-    return AttackWindupService.interrupt(
-      entity,
-      reason,
-      options
-    );
+  interrupt(entity,reason='forced-movement',options={}){
+    return AttackWindupService.statusInterrupts(reason)?AttackWindupService.interrupt(entity,reason,options):false;
   }
 });
+
 
 const MovementService=Object.freeze({
   collides(x,y,radius){
@@ -49644,8 +52367,10 @@ const MovementService=Object.freeze({
     allowed=Math.max(0,allowed);
     if(ignoreWalls||allowed<=0)return allowed;
 
-    const endX=x+dx*allowed;
-    const endY=y+dy*allowed;
+    // All rectangle entry fractions use this same segment, even after a nearer wall wins.
+    const castDistance=allowed;
+    const endX=x+dx*castDistance;
+    const endY=y+dy*castDistance;
 
     for(const wall of DebugMapService.movementWalls()){
       const entry=WorldGeometryService.segmentRectEntry(
@@ -49675,7 +52400,7 @@ const MovementService=Object.freeze({
 
       allowed=Math.min(
         allowed,
-        Math.max(0,allowed*entry)
+        Math.max(0,castDistance*entry)
       );
     }
 
@@ -50357,6 +53082,7 @@ const EffectSpawnService=Object.freeze({
     const result={};
     for(const [key,item] of Object.entries(value)){
       if(
+        key==='carrierState'||
         key==='animationState'||
         key==='rangeTransition'||
         key==='rangeSampleAt'||
@@ -50416,6 +53142,7 @@ const EffectSpawnService=Object.freeze({
     const effect=this.keyed.get(target)||null;
     if(!effect)return false;
 
+    if(typeof PathCarrierService!=='undefined')PathCarrierService.release(effect);
     this.keyed.delete(target);
     const index=Training.fx.indexOf(effect);
     if(index>=0){
@@ -50429,6 +53156,7 @@ const EffectSpawnService=Object.freeze({
     return this.keyed.get(target)||null;
   },
   clearAll(){
+    if(typeof PathCarrierService!=='undefined')for(const effect of Training.fx)PathCarrierService.release(effect);
     Training.fx.length=0;
     this.keyed.clear();
     if(typeof ModeGearPresentationService!=='undefined')ModeGearPresentationService.clearDeathRemnants();
@@ -50550,6 +53278,9 @@ const EffectSpawnService=Object.freeze({
       start:now,
       dur:Math.max(GAME_DATA.frameMs,Number(r.dur)||Number(r.duration)||GAME_DATA.frameMs),
       sourceEntityId,
+      attackId:r.attackId||context.attack?.id||null,
+      executionSequence:r.executionSequence??context.execution?.sequence??null,
+      abilityUseId:r.abilityUseId||context.abilityUseId||null,
       followSourceX:
         r.followSource===true
           ?Number(sourceEntity?.x)||Number(r.x)||0
@@ -50787,7 +53518,7 @@ const EffectSpawnService=Object.freeze({
           1,
           Math.max(0,previousProgress)*growthSpeed
         );
-      const currentLength=
+      let currentLength=
         range*
         Math.min(
           1,
@@ -50796,6 +53527,19 @@ const EffectSpawnService=Object.freeze({
       const angle=Number(effect.angle)||0;
       const cos=Math.cos(angle);
       const sin=Math.sin(angle);
+
+      if(state.deliveryInteractionResolved)return false;
+      let interaction=null;
+      if(damage.interactionAttackId){
+        if(!state.interactionAttack){
+          const linked=AbilityService.attackById(source.character,damage.interactionAttackId);
+          if(linked)state.interactionAttack=AugmentService.prepareAttack(source,linked,performance.now());
+        }
+        if(state.interactionAttack){
+          interaction=ProjectileRedirectService.pressureContact(source,state.interactionAttack,angle,{x:cx,y:cy},currentLength,halfWidth);
+          if(interaction)currentLength=Math.min(currentLength,interaction.length);
+        }
+      }
 
       const projectileClear=damage.projectileClear;
       if(
@@ -50872,6 +53616,11 @@ const EffectSpawnService=Object.freeze({
         };
         if(this.effectDamageTarget(effect,target,impactPoint))hitAny=true;
       },state.attack);
+      if(interaction&&!state.deliveryHadContact&&ProjectileRedirectService.resolvePressureContact(source,state.interactionAttack,angle,{x:cx,y:cy},range,interaction,`pressure:${source.id}:${state.execution.sequence}`)){
+        state.deliveryInteractionResolved=true;state.deliveryFollowupResolved=true;state.deliveryHadContact=true;
+        effect.range=interaction.length;effect.damage={...damage,module:{...module,range:interaction.length}};
+        return hitAny;
+      }
       if(currentLength>=range&&damage.missAttackId&&!state.deliveryFollowupResolved){
         state.deliveryFollowupResolved=true;
         if(!state.deliveryHadContact&&source.alive&&EntitySimulationAuthorityService.isLocal(source)){
@@ -51209,6 +53958,8 @@ const EffectSpawnService=Object.freeze({
           execution:state.execution,
           impact:{
             type:'effect-animation',
+            contactOnly:damage.contactOnly===true,
+            confirmContact:damage.confirmContact===true,
             shape:
               contactMode
                 ?'body-contact'
@@ -51301,6 +54052,7 @@ const EffectSpawnService=Object.freeze({
         ),
         easing:String(remoteTimeline.easing||'linear'),
         collision:remoteTimeline.collision||null,
+        reflectWalls:remoteTimeline.reflectWalls===true,
         enemyCollisionOvershoot:Math.max(0,Number(remoteTimeline.enemyCollisionOvershoot)||0),
         visualDistance:0,
         damageDistance:0
@@ -51654,6 +54406,31 @@ const EffectSpawnService=Object.freeze({
         );
 
         if(targetDistance>previousDistance+1e-6){
+          if(timeline.reflectWalls===true){
+            const anchor=timeline.collisionAnchor||(timeline.collisionAnchor=Object.create(source));
+            anchor.x=Number(timeline.currentX??timeline.startX)||0;
+            anchor.y=Number(timeline.currentY??timeline.startY)||0;
+            const segments=MovementAbilityService.reflectedPath(anchor,{collision:timeline.collision},
+              Number(timeline.currentAngle??timeline.angle)||0,targetDistance-previousDistance,
+              timeline.reflectionSegments||(timeline.reflectionSegments=[]));
+            let consumed=0;
+            for(const segment of segments){
+              if(segment.reflection)MovementAbilityService.resetReflectionDamage(source,effect,segment.angle);
+              if(effect.damage.resetHitsOnWallReflection===true)effect.angle=segment.angle;
+              const x=segment.fromX+Math.cos(segment.angle)*segment.distance;
+              const y=segment.fromY+Math.sin(segment.angle)*segment.distance;
+              applied=this.applyAnimationDamage(effect,segment.fromX,segment.fromY,x,y,{skipMovementValidation:true})||applied;
+              this.appendMovementPathPresentation(effect,segment.fromX,segment.fromY,x,y);
+              timeline.currentX=x;timeline.currentY=y;timeline.currentAngle=segment.angle;
+              consumed+=segment.distance;
+            }
+            timeline.damageDistance=previousDistance+consumed;
+            timeline.visualDistance=timeline.damageDistance;
+            if(consumed+1e-6<targetDistance-previousDistance){timeline.distance=timeline.damageDistance;timeline.stopped=true;}
+            state.movementDamagePreviousX=Number(source.x)||0;
+            state.movementDamagePreviousY=Number(source.y)||0;
+            return applied;
+          }
           const timelineAngle=Number(timeline.angle)||0;
           const timelineStartX=Number(timeline.startX)||0;
           const timelineStartY=Number(timeline.startY)||0;
@@ -51766,6 +54543,7 @@ const EffectSpawnService=Object.freeze({
   update(now=performance.now()){
     if(!Training.active)return false;
     for(const effect of Training.fx){
+      if(effect?.type==='pathCarrier')PathCarrierService.update(effect,now);
       if(effect?.entityDecoration===true){
         const owner=EntityService.items.get(String(effect.sourceEntityId||''));
         if(!owner?.alive||owner.character?.id!==effect.decorationCharacterId){
@@ -52320,6 +55098,11 @@ const InstalledAreaFieldService=Object.freeze({
     now
   ){
     if(!module||!target)return false;
+
+    if(module.type==='health.start-natural-regen'){
+      if(!EntitySimulationAuthorityService.isLocal(target)||target.kind!=='player')return false;
+      return NaturalHealthRegenActivityService.startNow(target,now)!==false;
+    }
 
     if(module.type==='resource.restore'){
       return ResourceRestoreEffectService.apply({
@@ -54950,7 +57733,7 @@ const DragPathInputService=Object.freeze({
         :'world';
 
     const path=
-      distanceMode==='world'
+      distanceMode==='world'&&module.pathOrigin!=='pointer'
         ?[
           {
             x:Number(source.x)||0,
@@ -55512,13 +58295,20 @@ const DragPathInputService=Object.freeze({
       }
       return true;
     }
-    const cost=this.desiredCost(state,rawDistance);
-    if(!this.spend(source,state,cost,now))return false;
-    state.totalDistance+=rawDistance;
-    state.lastWorld={x:world.x,y:world.y};
-    state.lastScreen={x:Number(Training?.mouse?.x)||0,y:Number(Training?.mouse?.y)||0};
+    // Use the live sampling budget for the last segment too. Insufficient stamina
+    // shortens this segment while preserving the already paid route for release.
+    const effective=Math.max(0,(Number(state.totalDistance)||0)-(Number(state.rewindOffset)||0));
+    const requested=Number.isFinite(state.maxDistance)?Math.min(rawDistance,Math.max(0,state.maxDistance-effective)):rawDistance;
+    const accepted=this.spendSegment(source,state,requested,now);
+    if(accepted<=.001)return true;
+    const ratio=accepted/rawDistance;
+    const point={x:state.lastWorld.x+(world.x-state.lastWorld.x)*ratio,y:state.lastWorld.y+(world.y-state.lastWorld.y)*ratio};
+    const screen={x:state.lastScreen.x+((Number(Training?.mouse?.x)||0)-state.lastScreen.x)*ratio,y:state.lastScreen.y+((Number(Training?.mouse?.y)||0)-state.lastScreen.y)*ratio};
+    state.totalDistance+=accepted;
+    state.lastWorld=point;
+    state.lastScreen=screen;
     state.lastSampleAt=now;
-    this.appendPoint(state,world,state.lastScreen,rawDistance);
+    this.appendPoint(state,point,screen,accepted);
     this.setProgress(source,state);
     return true;
   },
@@ -55793,6 +58583,7 @@ const DragPathInputService=Object.freeze({
     return drawn;
   }
 });
+
 
 const MovementAbilityService=Object.freeze({
   KIND:'movement-ability-state',
@@ -56352,6 +59143,7 @@ const MovementAbilityService=Object.freeze({
       lastInputAngle:fixedAngle,
       hasInputDirection:false,
       collision:this.normalizeCollision(module),
+      reflectWalls:module.reflectWalls===true,
       enemyCollisionOvershoot:
         module.collision?.passEnemies===false
           ?(
@@ -56379,6 +59171,7 @@ const MovementAbilityService=Object.freeze({
         module.deferAttacksUntilEnd===true,
       blocksAction:
         module.blocksAction===true,
+      onEndBeforeMaxDistance:module.onEndBeforeMaxDistance===true,
       onEndAttackIds:
         Array.isArray(module.onEndAttackIds)
           ?module.onEndAttackIds.map(String)
@@ -56500,7 +59293,10 @@ const MovementAbilityService=Object.freeze({
   },
 
   finish(entity,state,now=performance.now()){
-    if(!entity||!state)return false;
+    if(!entity||!state||state.finished===true)return false;
+    // Contact damage can finish this state from inside the movement update.
+    // Claim completion before callbacks so the outer collision path cannot finish it twice.
+    state.finished=true;
 
     if(state.resolvedMovementPresentation){
       const presentationAuthority=
@@ -56550,7 +59346,7 @@ const MovementAbilityService=Object.freeze({
       entity.alive&&
       EntitySimulationAuthorityService.isLocal(entity)
     ){
-      for(const attackId of state.onEndAttackIds||[]){
+      for(const attackId of (state.onEndBeforeMaxDistance===true&&state.traveled>=state.distance-1e-6?[]:state.onEndAttackIds)||[]){
         const baseAttack=
           AbilityService.attackById(
             entity.character,
@@ -56894,6 +59690,7 @@ const MovementAbilityService=Object.freeze({
         continue;
       }
 
+      if(effect.damage?.resetHitsOnWallReflection===true)effect.angle=Number(state.angle)||0;
       const bodyContact=
         String(effect?.damage?.hitMode||'')==='body-contact';
       if(pointContact&&!bodyContact){
@@ -56959,7 +59756,60 @@ const MovementAbilityService=Object.freeze({
     return fired;
   },
 
+  // Pure collision trace shared by reflected movement previews and remote contact replay.
+  reflectedPath(entity,module,angle,distance,reuse=[]){
+    const probe=reuse._probe||(reuse._probe=Object.create(entity));
+    if(Object.getPrototypeOf(probe)!==entity)Object.setPrototypeOf(probe,entity);
+    probe.x=Number(entity.x)||0;probe.y=Number(entity.y)||0;
+    const collision=this.normalizeCollision(module);
+    let remaining=Math.max(0,Number(distance)||0),write=0,reflections=0;
+    while(remaining>1e-6){
+      const allowed=CollisionPolicyService.entityTravelDistance(probe,angle,remaining,collision);
+      const part=reuse[write]||(reuse[write]={});
+      Object.assign(part,{fromX:probe.x,fromY:probe.y,angle,distance:allowed,reflection:false});
+      probe.x+=Math.cos(angle)*allowed;probe.y+=Math.sin(angle)*allowed;
+      remaining-=allowed;write++;
+      if(remaining<=1e-6)break;
+      if(reflections++>=8)break;
+      angle=this.reflectedAngle(probe,angle,collision);
+      const escape=CollisionPolicyService.entityTravelDistance(probe,angle,Math.min(.25,remaining),collision);
+      const next=reuse[write]||(reuse[write]={});
+      Object.assign(next,{fromX:probe.x,fromY:probe.y,angle,distance:escape,reflection:true});
+      write++;probe.x+=Math.cos(angle)*escape;probe.y+=Math.sin(angle)*escape;remaining-=escape;
+      if(allowed<=1e-6&&escape<=1e-6)break;
+    }
+    reuse.length=write;
+    return reuse;
+  },
+  resetReflectionDamage(entity,effect,angle){
+    if(effect?.damage?.resetHitsOnWallReflection!==true||!effect.animationState?.attack)return false;
+    const animation=effect.animationState;
+    animation.execution=AttackExecutionService.create(entity,animation.attack,angle,animation.execution?.extraModules||null);
+    effect.angle=angle;
+    return true;
+  },
+  reflectedAngle(entity,angle,collision){
+    const dx=Math.cos(angle),dy=Math.sin(angle),probe=2;
+    let blockedX=false,blockedY=false;
+    const radius=Math.max(0,Number(entity.radius)||0),eps=1e-4;
+    if(typeof WorldBoundsService!=='undefined'){
+      blockedX=(dx<0&&entity.x<=radius+eps)||(dx>0&&entity.x>=WorldBoundsService.width()-radius-eps);
+      blockedY=(dy<0&&entity.y<=radius+eps)||(dy>0&&entity.y>=WorldBoundsService.height()-radius-eps);
+    }
+    if(collision?.passWalls!==true&&typeof DebugMapService!=='undefined')for(const wall of DebugMapService.movementWalls()){
+      const l=wall.x-radius,r=wall.x+wall.w+radius,t=wall.y-radius,b=wall.y+wall.h+radius;
+      if(entity.x<l-eps||entity.x>r+eps||entity.y<t-eps||entity.y>b+eps)continue;
+      if((dx>0&&Math.abs(entity.x-l)<=eps)||(dx<0&&Math.abs(entity.x-r)<=eps))blockedX=true;
+      if((dy>0&&Math.abs(entity.y-t)<=eps)||(dy<0&&Math.abs(entity.y-b)<=eps))blockedY=true;
+    }
+    if(!blockedX&&!blockedY){
+      blockedX=Math.abs(dx)>1e-8&&CollisionPolicyService.entityTravelDistance(entity,dx>0?0:Math.PI,probe,collision)<probe-1e-6;
+      blockedY=Math.abs(dy)>1e-8&&CollisionPolicyService.entityTravelDistance(entity,dy>0?Math.PI/2:-Math.PI/2,probe,collision)<probe-1e-6;
+    }
+    return Math.atan2(blockedY?-dy:dy,blockedX?-dx:dx)+(blockedX||blockedY?0:Math.PI);
+  },
   update(entity,now,dt,movement=null){
+    if(typeof PathCarrierService!=='undefined'&&PathCarrierService.carried(entity))return true;
     if(!entity?.actionState)return false;
 
     let state=null;
@@ -57103,6 +59953,7 @@ const MovementAbilityService=Object.freeze({
     // 진행도 공격이 있으면 프레임 이동을 해당 지점에서 나눈다.
     // 긴 프레임에서도 최고점/중간 발사의 원점과 궤적 높이를 정확히 유지한다.
     let remainingRequested=requested;
+    let reflectionCount=0;
     while(remainingRequested>1e-6){
       let step=remainingRequested;
       for(const item of state.progressAttacks||EMPTY_RUNTIME_ITEMS){
@@ -57120,6 +59971,20 @@ const MovementAbilityService=Object.freeze({
       this.applyPathDamage(entity,state,fromX,fromY,Number(entity.x)||0,Number(entity.y)||0);
       this.applyProgressAttacks(entity,state,now);
       if(travel.enemyCollision===true||allowed+1e-6<step){
+        if(state.reflectWalls&&travel.enemyCollision!==true&&reflectionCount++<8){
+          angle=this.reflectedAngle(entity,angle,state.collision);
+          state.angle=angle;entity.aimAngle=angle;
+          for(const effect of state.pathDamageEffects||EMPTY_RUNTIME_ITEMS)this.resetReflectionDamage(entity,effect,angle);
+          // 접촉면의 부동소수 오차를 피하고 남은 이동량을 반사 방향으로 소비한다.
+          const escape=CollisionPolicyService.entityTravelDistance(entity,angle,
+            Math.min(.25,Math.max(0,remainingRequested-allowed)),state.collision);
+          const contactX=entity.x,contactY=entity.y;
+          entity.x+=Math.cos(angle)*escape;entity.y+=Math.sin(angle)*escape;
+          state.traveled+=escape;
+          this.applyPathDamage(entity,state,contactX,contactY,entity.x,entity.y);
+          remainingRequested=Math.max(0,remainingRequested-allowed-escape);
+          continue;
+        }
         this.finish(entity,state,now);
         return true;
       }
@@ -58614,6 +61479,29 @@ const RoomConnectionService={
     if(migrating)OnlineDuelService.stop({returnToRoom:false});
     if(mode==='join')RoomUI.setJoinStatus(message,'err');else RoomUI.showLobby(message);
   },
+  watchChannel(connection,current,onLost){
+    let ended=false,lastAt=Date.now(),lastPoll=lastAt,timer=0;
+    const stop=()=>{if(ended)return;ended=true;this.cancel(timer);};
+    const lost=()=>{if(ended)return;stop();if(current())onLost();};
+    const poll=()=>{
+      if(ended||!current()){stop();return;}
+      const now=Date.now();if(now-lastPoll>15000)lastAt=now;lastPoll=now;
+      if(connection.open){
+        if(now-lastAt>90000){lost();return;}
+        NetworkPayloadCodec.send(connection,{type:'room-ping'});
+      }
+      timer=this.later(poll,5000);
+    };
+    connection.on('data',raw=>{
+      if(ended||!current())return;
+      const payload=NetworkPayloadCodec.decode(raw);if(!payload||typeof payload!=='object')return;
+      lastAt=Date.now();
+      if(payload.type==='room-ping')NetworkPayloadCodec.send(connection,{type:'room-pong'});
+      if(payload.type==='room-leave')lost();
+    });
+    connection.on('close',stop);connection.on('error',stop);
+    timer=this.later(poll,5000);return stop;
+  },
   watchSignaling(room,peer,token){
     peer.on('disconnected',()=>{
       if(!this.valid(room,token,peer)||peer.destroyed)return;
@@ -59820,6 +62708,39 @@ const RoomService={
       this.beginStartCountdown();
     }
   },
+  cancelMatchReady(stage){
+    if(!this.localPid)return false;
+    const phase={character:'select',start:'start-augment',between:'between'}[stage];
+    if(!phase||this.duelPhase!==phase)return false;
+    if(this.isHost)return this.receiveMatchReadyCancel(this.localPid,stage);
+    return NetworkPayloadCodec.send(this.hostConnection,{type:'duel-ready-cancel',stage});
+  },
+  receiveMatchReadyCancel(pid,stage){
+    if(!this.isHost||!this.activeMatchPids.has(pid)||!this.matchPids().includes(pid)||this.members.get(pid)?.spectator===true)return false;
+    let packet;
+    if(stage==='character'){
+      if(this.duelPhase!=='select'||!this.characterReady.has(pid))return false;
+      this.characterReady.delete(pid);
+      packet={type:'duel-character-state',ready:[...this.characterReady],selections:this.selectionObject()};
+    }else if(stage==='start'){
+      if(this.duelPhase!=='start-augment'||!this.startAugments.has(pid))return false;
+      clearTimeout(this._startCountdownTimer);this._startCountdownTimer=0;
+      this._startReadyEpoch=(this._startReadyEpoch||0)+1;
+      this.duelPhase='start-augment';this.startAugments.delete(pid);this.matchAugments.delete(pid);
+      packet={type:'duel-start-augment-state',phase:'start-augment',cancelledPid:pid,ready:[...this.startAugments.keys()],selected:Object.fromEntries(this.startAugments)};
+    }else if(stage==='between'){
+      if(this.duelPhase!=='between'||!this.betweenReady.has(pid))return false;
+      clearTimeout(this._betweenCountdownTimer);this._betweenCountdownTimer=0;
+      this._betweenReadyEpoch=(this._betweenReadyEpoch||0)+1;
+      this.duelPhase='between';this.betweenReady.delete(pid);this.betweenSelections.delete(pid);
+      packet={type:'duel-between-state',phase:'between',cancelledPid:pid,ready:[...this.betweenReady],selections:Object.fromEntries(this.betweenSelections)};
+    }else return false;
+    this.sendToPeers(packet);
+    if(stage==='character')OnlineDuelService.updateCharacterReadyState(packet);
+    else if(stage==='start')OnlineDuelService.updateStartAugmentReadyState(packet);
+    else OnlineDuelService.updateBetweenState(packet);
+    return true;
+  },
   submitStartAugment(augmentId){
     if(!this.localPid)return false;
     if(this.isHost)this.receiveStartAugment(this.localPid,augmentId);else NetworkPayloadCodec.send(this.hostConnection,{type:'duel-start-augment-ready',augmentId});
@@ -59863,6 +62784,7 @@ const RoomService={
   beginStartCountdown(){
     if(!this.isHost||this.duelPhase!=='start-augment')return false;
     this.duelPhase='start-countdown';
+    const readyEpoch=this._startReadyEpoch=(this._startReadyEpoch||0)+1;
 
     for(const pid of this.matchPids()){
       const chosen=this.startAugments.get(pid);
@@ -59876,7 +62798,7 @@ const RoomService={
 
     let seconds=MatchReadyCountdownService.seconds(this.matchPids().length);
     const step=()=>{
-      if(!this.isHost||this.duelPhase!=='start-countdown')return;
+      if(!this.isHost||this.duelPhase!=='start-countdown'||readyEpoch!==this._startReadyEpoch)return;
 
       const packet={
         type:'duel-start-countdown',
@@ -60304,15 +63226,6 @@ const RoomService={
 
     // 실제 캐릭터 변경은 다음 라운드 시작 직전에만 반영한다.
 
-    if(
-      augmentMode&&
-      isLoser&&requestedAugment
-    ){
-      const list=this.matchAugments.get(pid)||[];
-      list.push(requestedAugment);
-      this.matchAugments.set(pid,list);
-    }
-
     this.betweenReady.add(pid);
     this.betweenSelections.set(pid,{
       characterId:requestedCharacter||null,
@@ -60342,6 +63255,7 @@ const RoomService={
   beginBetweenCountdown(){
     if(!this.isHost||this.duelPhase!=='between')return false;
     this.duelPhase='between-countdown';
+    const readyEpoch=this._betweenReadyEpoch=(this._betweenReadyEpoch||0)+1;
 
     this.currentMapId=
       this._betweenPacket?.mapId||
@@ -60352,7 +63266,7 @@ const RoomService={
 
     let seconds=MatchReadyCountdownService.seconds(this.matchPids().length);
     const step=()=>{
-      if(!this.isHost||this.duelPhase!=='between-countdown')return;
+      if(!this.isHost||this.duelPhase!=='between-countdown'||readyEpoch!==this._betweenReadyEpoch)return;
 
       const packet={
         type:'duel-between-countdown',
@@ -60371,6 +63285,9 @@ const RoomService={
         this._betweenCountdownTimer=0;
 
         for(const [pid,value] of this.betweenSelections){
+          if(this.settings.gameMode==='augment'&&value?.augmentId){
+            this.matchAugments.set(pid,[...(this.matchAugments.get(pid)||[]),value.augmentId]);
+          }
           const resolvedCharacterId=value?.resolvedCharacterId;
           if(resolvedCharacterId&&GAME_DATA.characters[resolvedCharacterId]){
             this.duelSelections.set(pid,resolvedCharacterId);
@@ -60739,6 +63656,8 @@ const RoomService={
       return this.receiveCharacterReady(pid,String(payload.characterId||''));
     }
 
+    if(payload.type==='duel-ready-cancel')return this.receiveMatchReadyCancel(pid,String(payload.stage||''));
+
     if(payload.type==='duel-start-augment-ready'){
       return this.receiveStartAugment(
         pid,
@@ -60921,6 +63840,7 @@ const RoomService={
           typeof payload!=='object'
         )return;
 
+        if(['room-ping','room-pong','room-leave'].includes(payload.type))return;
         if(payload.type==='hello'){
           if(pid)return;
           if(payload.protocol!==RoomConnectionService.protocol||payload.code!==this.code){reject('version');return}
@@ -61117,6 +64037,7 @@ const RoomService={
 
     connection.on('close',close);
     connection.on('error',close);
+    RoomConnectionService.watchChannel(connection,current,close);
   },
   showJoin(){
     RoomUI.showJoin();
@@ -61502,6 +64423,7 @@ const RoomService={
           payload.selected||{}
         )
       );
+      if(payload.phase==='start-augment')this.duelPhase='start-augment';
       OnlineDuelService
         .updateStartAugmentReadyState(
           payload
@@ -61623,6 +64545,7 @@ const RoomService={
       payload.type===
         'duel-between-state'
     ){
+      if(payload.phase==='between')this.duelPhase='between';
       this.betweenReady=new Set(
         payload.ready||[]
       );
@@ -61729,6 +64652,7 @@ const RoomService={
     connection.on('data',raw=>{
       if(!current())return;
       const payload=NetworkPayloadCodec.decode(raw);if(!payload||typeof payload!=='object')return;
+      if(['room-ping','room-pong','room-leave'].includes(payload.type))return;
       if(payload.type==='room-rejected'||payload.type==='room-full'){
         const reasons={version:'게임 버전이 다릅니다. 모두 같은 DUELS 3.0 파일로 실행해주세요.',migration:'호스트 승계 정보가 일치하지 않습니다.',duplicate:'이미 참가 중인 연결입니다.',invalid:'잘못된 참가 정보입니다.'};
         fail(payload.type==='room-full'?'방이 가득 찼습니다.':reasons[payload.reason]||'입장이 거절되었습니다.');return;
@@ -61751,7 +64675,8 @@ const RoomService={
       try{connection.close()}catch(_){}
       this.beginHostMigration();
     };
-    connection.on('close',disconnected);connection.on('error',disconnected);return true;
+    connection.on('close',disconnected);connection.on('error',disconnected);
+    RoomConnectionService.watchChannel(connection,current,disconnected);return true;
   },
   join(code){
     const normalized=String(code||'').trim();
@@ -62076,6 +65001,8 @@ const RoomService={
     return true;
   },
   leave({silent=false}={}){
+    if(!this.isHost&&this.hostConnection?.open)NetworkPayloadCodec.send(this.hostConnection,{type:'room-leave'});
+    if(this.isHost)for(const connection of this.connections.values())NetworkPayloadCodec.send(connection,{type:'room-leave'});
     if(!silent){
       CharacterRecordProgressionService
         .applyDeparturePenalty();
@@ -62287,8 +65214,10 @@ const AttackFeatureTransformService=Object.freeze({
     if(spec._modeModulesPrepared===true)return spec;
     let modules=[...(spec.modules||[])];
     let rate=1;
+    const specOverrides={};
     for(const option of profile.options||[]){
       if(ModeStateService.current(entity,option.stateKey,option.initial)!==String(option.value))continue;
+      Object.assign(specOverrides,option.specOverrides||{});
       const removeTypes=new Set(option.removeTypes||[]);
       modules=modules.filter(module=>!removeTypes.has(AttackModuleService.type(module)));
       modules=modules.map(module=>{
@@ -62298,7 +65227,7 @@ const AttackFeatureTransformService=Object.freeze({
       for(const module of option.modules||[])modules.push(Object.freeze({...module}));
       rate*=1+Math.max(0,Number(option.attackRateIncrease)||0);
     }
-    return Object.freeze({...spec,_modeModulesPrepared:true,
+    return Object.freeze({...spec,...specOverrides,_modeModulesPrepared:true,
       cd:Number(spec.cd||0)/rate,attackDelay:Number(spec.attackDelay||0)/rate,
       modules:Object.freeze(modules)});
   },
@@ -62385,7 +65314,7 @@ const CommandFeatureService={
     if(!e._commandFeatureInitialized){e._commandFeatureInitialized=true;e._commandOverclock=null;ModeStateService.set(e,this.stateKey('laser'),'active','active');}
     return true;
   },
-  resetEntity(e){if(!e)return false;for(const f of ['laser',...this.featureEntries.map(x=>x.feature)])e.actionState?.delete(ModeStateService.key(this.stateKey(f)));e._commandFixGlowUntil=0;e._commandFeatureInitialized=false;return true;},
+  resetEntity(e){if(!e)return false;for(const f of ['laser',...this.featureEntries.map(x=>x.feature)])e.actionState?.delete(ModeStateService.key(this.stateKey(f)));if(e.buffs&&typeof BuffService!=='undefined')BuffService.remove(e,'regeneration',`${String(e.id||'source')}:command-fix`);e._commandFixGlowUntil=0;e._commandFeatureInitialized=false;return true;},
   has(e,f){return f==='fix'?performance.now()<Number(e?._commandFixGlowUntil||0):ModeStateService.current(e,this.stateKey(f),f==='laser'?'active':'inactive')==='active';},
   networkSnapshot(e){if(!this.isCharacter(e))return null;return ['laser',...this.featureEntries.filter(x=>!x.oneShot).map(x=>x.feature)].filter(f=>this.has(e,f));},
   applyNetworkSnapshot(e,snapshot){if(!this.isCharacter(e)||!Array.isArray(snapshot))return false;for(const f of ['laser',...this.featureEntries.filter(x=>!x.oneShot).map(x=>x.feature)])this.setState(e,f,snapshot.includes(f),{network:true});return true;},
@@ -62393,7 +65322,14 @@ const CommandFeatureService={
   runFix(e,{network=false}={}){
     if(!this.ensure(e))return false;
     e._commandFixGlowUntil=performance.now()+Number(e.character.commandFeatures.fixGlowDuration||1000);
-    if(!network&&EntitySimulationAuthorityService.isLocal(e))ResourceRestoreEffectService.apply({source:e,target:e,module:{type:'resource.restore',resource:'health',recipient:'source',missingResourceRatio:e.character.commandFeatures.fixMissingHealthRatio,applyHealingModifier:false}});
+    if(!network&&e.alive&&EntitySimulationAuthorityService.isLocal(e)){
+      const regen=e.character.commandFeatures.fixRegeneration;
+      if(regen){
+        const now=performance.now(),key=`${String(e.id||'source')}:command-fix`;
+        BuffService.refresh(e,'regeneration',regen.value,key,regen.duration,{tickInterval:regen.tickInterval,nextTick:now+Math.max(1,Number(regen.tickInterval)||1000),localOnly:true});
+        ResourceRestoreEffectService.apply({source:e,target:e,module:{type:'resource.restore',resource:'health',recipient:'source',amount:regen.value,presentation:'regeneration'}});
+      }
+    }
     if(!network)GameplayFeatureStateSyncService.send(e,'command','fix',true);
     return true;
   },
@@ -62452,6 +65388,7 @@ const CharacterCommandInputService={
   available(){
     return (
       Training.active&&
+      Training.player?.alive===true&&
       !Training.spectating&&
       CommandFeatureService.isCharacter(
         Training.player
@@ -62483,16 +65420,15 @@ const CharacterCommandInputService={
 
   close(){
     this.openState=false;
+    this.buffer='';
+    this.clearResult();
 
     GameInputResetService.releaseAll();
     return true;
   },
 
   reset(){
-    this.close();
-    this.buffer='';
-    this.clearResult();
-    return true;
+    return this.close();
   },
 
   appendCode(code){
@@ -62555,6 +65491,7 @@ const CharacterCommandInputService={
   },
 
   submit(){
+    if(!this.available()){this.close();return false;}
     if(!this.openState)return false;
 
     const command=
@@ -62566,23 +65503,18 @@ const CharacterCommandInputService={
       );
 
     this.close();
-    this.showResult(
-      command||'/',
-      result.status||(
-        result.ok===true
-          ?'ok'
-          :'error'
-      )
-    );
+
 
     return result.ok===true;
   },
 
   capturesGameInput(){
+    if(this.openState&&!this.available())this.close();
     return this.openState===true;
   },
 
   handleKeydown(event){
+    if(this.openState&&!this.available())this.close();
     if(this.openState){
       event.preventDefault();
       event.stopPropagation();
@@ -62626,6 +65558,10 @@ const CharacterCommandInputService={
   visibleText(
     now=performance.now()
   ){
+    if(!this.available()){
+      if(this.openState||this.buffer||this.resultText)this.close();
+      return null;
+    }
     if(this.openState){
       return {
         text:String(this.buffer||'/'),
@@ -65131,21 +68067,25 @@ const OnlineDuelService={
     const confirm=
       document.getElementById('confirm-btn');
     if(confirm){
-      confirm.disabled=localReady;
+      confirm.disabled=false;
       confirm.textContent=
-        localReady?'준비 완료':'선택 완료';
+        localReady?'준비 취소':'선택 완료';
+      confirm.classList.toggle('ready-cancel',localReady);
     }
 
+    document.querySelectorAll('#char-grid .char-card').forEach(card=>card.classList.toggle('selection-locked',localReady));
+    const randomButton=document.getElementById('random-btn');if(randomButton)randomButton.disabled=localReady;
     this.renderCharacterPreviews();
     return true;
   },
   confirmCharacter(){
     if(!this.selecting)return false;
+    if(RoomService.characterReady.has(RoomService.localPid))return RoomService.cancelMatchReady('character');
     const characterId=Training.selectedCharacterId;
     if(!GAME_DATA.characters[characterId]){UiStatusService.set('sel-status','캐릭터를 선택해주세요!','err');return false}
     RoomService.submitCharacter(characterId);
     const confirm=document.getElementById('confirm-btn');
-    if(confirm){confirm.disabled=true;confirm.textContent='준비 완료'}
+    if(confirm){confirm.disabled=false;confirm.textContent='준비 취소';confirm.classList.add('ready-cancel')}
     const randomButton=document.getElementById('random-btn');
     if(randomButton)randomButton.disabled=true;
     document.querySelectorAll('#char-grid .char-card').forEach(card=>card.classList.add('selection-locked'));
@@ -65194,7 +68134,7 @@ const OnlineDuelService={
     const button=document.getElementById('start-aug-confirm-btn');
     if(peerInfo){peerInfo.style.display='none';peerInfo.innerHTML=''}
     if(countdown){countdown.style.display='none';countdown.textContent=''}
-    if(button){button.style.display='';button.disabled=false;button.textContent=normalMode?'준비 완료':'선택 완료'}
+    if(button){button.style.display='';button.disabled=false;button.classList.remove('ready-cancel');button.textContent=normalMode?'준비 완료':'선택 완료'}
 
     const gridElement=document.getElementById('start-aug-grid');
     if(gridElement){
@@ -65390,7 +68330,8 @@ charRow.appendChild(card);
 
     if(button){
       button.onclick=()=>{
-        if(this.startAugmentReady)return;
+        if(RoomService.duelPhase==='start-countdown')return;
+        if(this.startAugmentReady){RoomService.cancelMatchReady('start');return;}
 
         if(!normalMode&&!this.startAugmentSelected&&!this.startAugmentNoPickWarned){
           this.startAugmentNoPickWarned=true;
@@ -65406,7 +68347,7 @@ charRow.appendChild(card);
           card.style.pointerEvents='none';
         });
 
-        button.disabled=true;
+        button.disabled=false;button.textContent='준비 취소';button.classList.add('ready-cancel');
         if(status){
           const others=
             Math.max(
@@ -65429,6 +68370,10 @@ charRow.appendChild(card);
     }
   },
   updateStartAugmentReadyState(payload){
+    if(payload?.phase==='start-augment'){
+      this.setStartAugChoiceVisibility(true);
+      const peer=document.getElementById('start-aug-peer-info');if(peer){peer.replaceChildren();peer.style.display='none';}
+    }
     const readyPids=
       Array.isArray(payload)
         ?payload
@@ -65440,10 +68385,12 @@ charRow.appendChild(card);
 
     this.startAugmentReadyPids=
       new Set(readyPids);
-    this.startAugmentSelections={
-      ...(this.startAugmentSelections||{}),
-      ...selected
-    };
+    this.startAugmentSelections={...selected};
+    this.startAugmentReady=this.startAugmentReadyPids.has(RoomService.localPid);
+    const localSpectator=this.spectatorOnly||RoomService.localMember()?.spectator;
+    const readyButton=document.getElementById('start-aug-confirm-btn');
+    if(readyButton){readyButton.disabled=!!localSpectator;readyButton.textContent=localSpectator?'대기 중':this.startAugmentReady?'준비 취소':'준비 완료';readyButton.classList.toggle('ready-cancel',!localSpectator&&this.startAugmentReady);}
+    document.querySelectorAll('#start-aug-grid .start-aug-item').forEach(card=>{card.style.pointerEvents=this.startAugmentReady?'none':'';card.classList.toggle('locked',this.startAugmentReady);});
 
     const otherPids=
       RoomService.matchPids().filter(
@@ -65498,6 +68445,10 @@ charRow.appendChild(card);
       }
     }
 
+    if(status&&payload?.cancelledPid&&!this.startAugmentReady){
+      status.textContent=payload.cancelledPid===RoomService.localPid?'준비를 취소했습니다.':'다른 플레이어의 준비가 취소되었습니다.';
+      status.className='status';
+    }
     return (
       otherPids.length>0&&
       readyOthers===otherPids.length
@@ -65552,7 +68503,7 @@ charRow.appendChild(card);
 
     if(button){
       button.style.removeProperty('display');
-      button.disabled=true;
+      button.disabled=true;button.classList.remove('ready-cancel');
     }
 
     if(peerInfo){
@@ -66165,6 +69116,7 @@ charRow.appendChild(card);
           player,
           now
         ),
+      pathCarrierRide:typeof PathCarrierService!=='undefined'?PathCarrierService.serialize(player):null,
       movementAbility:MovementAbilityService.serialize(player),
       attackChannels:
         ChannelAttackService.serialize(player),
@@ -66305,6 +69257,9 @@ charRow.appendChild(card);
       !projectile
     )return false;
 
+    if(reason==='target'&&projectile.behavior?.impact?.requireSuccessfulHit===true&&
+      projectile.hadHit!==true)return false;
+
     const ownerPid=
       OnlineParticipantEntityService.pid(
         projectile.source
@@ -66334,6 +69289,9 @@ charRow.appendChild(card);
           )
         ),
       reason:String(reason||'target'),
+      hitTargetIds:projectile.behavior?.impact?.excludeHitTargets===true
+        ?[...new Set([...(projectile.volley?.execution?.hitTargets||[]),
+          ...(projectile.trajectoryHitAt?.keys?.()||[])])].map(String):[],
       impactPoint:{
         x:Number(projectile.x)||0,
         y:Number(projectile.y)||0
@@ -66789,7 +69747,7 @@ charRow.appendChild(card);
     if(payload.type==='duel-projectile-relay'){
       const source=OnlineParticipantEntityService.entity(String(payload.ownerPid||''));
       if(String(payload.ownerPid||'')!==pid||!(Number(payload.executionSequence)>0))return false;
-      const relay=(Object.values(source?.character?.attacks||{})).some(a=>(a.modules||[]).some(m=>m.type==='projectile.wall-relay'&&m.attackId===payload.attackId));
+      const relay=ProjectileRedirectService.declaredRelay(source?.character,payload.attackId);
       return relay&&ProjectileRedirectService.fireRelay(source,source&&AbilityService.attackById(source.character,String(payload.attackId||'')),payload.point,Number(payload.angle),String(payload.key||''),Number(payload.executionSequence));
     }
 
@@ -66879,6 +69837,10 @@ charRow.appendChild(card);
           :null;
 
       if(projectile){
+        if(projectile.behavior?.impact?.excludeHitTargets===true&&Array.isArray(payload.hitTargetIds)){
+          projectile.trajectoryHitAt=projectile.trajectoryHitAt||new Map();
+          for(const id of payload.hitTargetIds)projectile.trajectoryHitAt.set(String(id),performance.now());
+        }
         const index=
           ProjectileService.items.indexOf(
             projectile
@@ -66906,6 +69868,7 @@ charRow.appendChild(card);
             Number(payload.angle);
         }
 
+        if(reason==='target')projectile.hadHit=true;
         ProjectileImpactService.resolve(
           projectile,
           reason
@@ -66988,8 +69951,12 @@ charRow.appendChild(card);
           Number(payload.angle)||0
         );
       execution.networkReplay=true;
+      if(impactConfig.excludeHitTargets===true&&Array.isArray(payload.hitTargetIds)){
+        for(const id of payload.hitTargetIds)execution.hitTargets.add(String(id));
+      }
 
       const carrier={
+        hadHit:reason==='target',
         source:owner,
         attack,
         x:point.x,
@@ -67670,6 +70637,7 @@ charRow.appendChild(card);
           y:Number(payload.aimTargetPoint.y)
         };
       }
+      if(typeof PathCarrierService!=='undefined')PathCarrierService.applyRemote(remote,payload.pathCarrierRide);
       MovementAbilityService.applyRemote(
         remote,
         payload.movementAbility,
@@ -69300,6 +72268,7 @@ this.betweenReadyPids=new Set();
 
     if(readyButton){
       readyButton.disabled=spectatorOnly;
+      readyButton.classList.remove('ready-cancel');
       readyButton.textContent=
         spectatorOnly
           ?'대기 중'
@@ -69561,10 +72530,9 @@ this.betweenReadyPids=new Set();
 
     if(readyButton){
       readyButton.onclick=()=>{
-        if(
-          spectatorOnly||
-          this.betweenReady
-        )return;
+        if(spectatorOnly)return;
+        if(RoomService.duelPhase==='between-countdown')return;
+        if(this.betweenReady){RoomService.cancelMatchReady('between');return;}
 
         const choices=localAugChoices;
         if(
@@ -69582,7 +72550,7 @@ this.betweenReadyPids=new Set();
         }
 
         this.betweenReady=true;
-        readyButton.disabled=true;
+        readyButton.disabled=false;readyButton.textContent='준비 취소';readyButton.classList.add('ready-cancel');
 
         document.querySelectorAll('#between-char-grid .char-card').forEach(
           card=>card.classList.add('selection-locked')
@@ -69873,6 +72841,16 @@ this.betweenReadyPids=new Set();
       payload?.selections||{};
 
     this.betweenReadyPids=ready;
+    this.betweenReady=ready.has(RoomService.localPid);
+    const localSpectator=this.spectatorOnly||RoomService.localMember()?.spectator;
+    const localReadyButton=document.getElementById('between-ready-btn');
+    if(localReadyButton){localReadyButton.disabled=!!localSpectator;localReadyButton.textContent=localSpectator?'대기 중':this.betweenReady?'준비 취소':'준비 완료';localReadyButton.classList.toggle('ready-cancel',!localSpectator&&this.betweenReady);}
+    document.querySelectorAll('#between-char-grid .char-card').forEach(card=>card.classList.toggle('selection-locked',this.betweenReady));
+    document.querySelectorAll('#between-aug-grid .aug-pick-card').forEach(card=>{card.style.pointerEvents=this.betweenReady?'none':'';});
+    if(payload?.phase==='between'){
+      this.setBetweenReadyResultVisible(false);
+      const status=document.getElementById('between-status');if(status){status.textContent='준비가 취소되었습니다.';status.className='status';}
+    }
     this.betweenStateSelections={
       ...selections
     };
@@ -70026,7 +73004,7 @@ this.betweenReadyPids=new Set();
       RoomService.localMember()?.spectator===true;
 
     if(button){
-      button.disabled=true;
+      button.disabled=true;button.classList.remove('ready-cancel');
       button.textContent=
         spectatorOnly
           ?'대기 중'
@@ -73087,7 +76065,7 @@ const NetworkHitAuthorityService={
     if(
       Training.sessionMode!=='online'||
       !OnlineDuelService.active||
-      !(result?.applied||result?.durabilityBlocked===true)||
+      !(result?.applied||result?.durabilityBlocked===true||result?.confirmContact===true)||
       !result?.target||
       CCService.isDotImpact(
         result.impact
@@ -73170,6 +76148,7 @@ const NetworkHitAuthorityService={
           0,
           Number(result.target.health)||0
         ),
+      targetMaxHealth:Math.max(1,Number(result.target.maxHealth)||1),
       targetAlive:
         result.target.alive!==false,
       defeated:
@@ -73509,6 +76488,9 @@ const NetworkHitAuthorityService={
             ?payload.targetStatusTypes.filter(type=>typeof type==='string')
             :undefined,
           healthDamage:confirmedAmount,
+          targetHealthSnapshots:Number.isFinite(Number(payload.targetHealth))
+            ?{[String(target.id)]:{health:Math.max(0,Number(payload.targetHealth)||0),maxHealth:Math.max(1,Number(payload.targetMaxHealth??target.maxHealth)||1),alive:payload.targetAlive!==false}}
+            :undefined,
           executionHealthDamage:confirmedAmount,
           prevented:payload.prevented===true,
           defeatPrevented:
@@ -73543,6 +76525,7 @@ const NetworkHitAuthorityService={
             confirmedDamageContext
           );
           sourceConfirmedTriggers.add(sourceTriggerKey);
+          GameEvents.emit('source-damage-confirmed',confirmedDamageContext);
           if(sourceConfirmedTriggers.size>512){
             sourceConfirmedTriggers.delete(
               sourceConfirmedTriggers.values().next().value
@@ -73571,6 +76554,11 @@ const NetworkHitAuthorityService={
           // 크리티컬 공격 선택/판정은 이 후처리 경로가 아니므로 영향을 받지 않는다.
           if(payload.durabilityBlocked===true)break;
           const type=AttackModuleService.type(module);
+          if(type==='hit.sequence'&&module.sourceModules){
+            if(module.authority==='source')HitTargetSequenceService.start(sourceEntity,target,attack,execution,Number(payload.directionAngle)||0,module,null);
+            else HitTargetSequenceService.applySourceModules(sourceEntity,target,attack,execution,Number(payload.directionAngle)||0,module);
+            continue;
+          }
           const impactPhase=String(payload.impactPhase||'');
           const moveTargetIsSupported=
             module.target==='hit-target'||
@@ -73690,6 +76678,7 @@ const NetworkHitAuthorityService={
               data:stateData
             },confirmedNow);
           }else if(sourceEffect){
+            if((module.conditions?.length||module.condition)&&!AttackModuleService.hitConditionMatches(sourceEntity,target,attack,execution,Number(execution?.directionAngle)||Number(payload.directionAngle)||0,module,{targetHealthSnapshots:confirmedDamageContext.targetHealthSnapshots}))continue;
             AttackModuleService.spawnAttackEffect(
               sourceEntity,
               attack,
@@ -73939,6 +76928,7 @@ const NetworkHitAuthorityService={
                 }
               }
 
+              projectile.hadHit=true;
               ProjectileImpactService.resolve(
                 projectile,
                 'target'
@@ -73998,6 +76988,7 @@ const NetworkHitAuthorityService={
               )
             ){
               const carrier={
+                hadHit:true,
                 source:sourceEntity,
                 attack,
                 x:Number(impactPoint.x),
@@ -74531,11 +77522,14 @@ const DamagePipeline=Object.freeze({
     }
 
     if(impact?.contactOnly===true){
-      return {
+      const contact={
         applied:false,
         hit:true,
         amount:0,
         contactOnly:true,
+        confirmContact:impact.confirmContact===true,
+        healthDamage:0,
+        shieldDamage:0,
         source,
         target,
         attack,
@@ -74543,6 +77537,8 @@ const DamagePipeline=Object.freeze({
         impact,
         now
       };
+      if(contact.confirmContact)NetworkHitAuthorityService.notify(contact);
+      return contact;
     }
 
     AugmentService.update(source,now);
@@ -76195,7 +79191,19 @@ const HitTargetSequenceService=Object.freeze({
     return nearest===target;
   },
   runModule(source,target,spec,execution,angle,module){
+    if(!source?.alive||(!target?.alive&&module.allowDeadTarget!==true))return false;
     const type=AttackModuleService.type(module);
+    if(type==='movement.stop'){
+      for(const state of Array.from(source.actionState?.values()||[])){
+        if(state?.kind===MovementAbilityService.KIND)MovementAbilityService.finish(source,state);
+      }
+      if(module.snapToTargetContact===true){
+        const gap=(Number(source.radius)||0)+(Number(target.radius)||0)+2;
+        const point=MovementService.findNearestFreePosition(source,target.x-Math.cos(angle)*gap,target.y-Math.sin(angle)*gap);
+        if(point){source.x=point.x;source.y=point.y;source.combatSnapshotDirty=true;}
+      }
+      return true;
+    }
     if(type==='movement.pull'){
       const distance=module.distanceMode==='source-contact'
         ?Math.max(0,Math.hypot(target.x-source.x,target.y-source.y)-(Number(source.radius)||0)-(Number(target.radius)||0)-Math.max(0,Number(module.gap)||0))
@@ -76207,7 +79215,7 @@ const HitTargetSequenceService=Object.freeze({
       const now=performance.now();
       CombatStatusApplicationService.apply({
         source,
-        target,
+        target:module.recipient==='source'?source:target,
         type:String(module.status||''),
         duration:Math.max(0,Number(module.duration)||0),
         sourceId:String(module.sourceId||`${source.id}:hit-sequence:${module.status||'status'}`),
@@ -76235,19 +79243,33 @@ const HitTargetSequenceService=Object.freeze({
         {
           targetEntityId:String(target.id||''),
           targetPoint:{x:Number(target.x)||0,y:Number(target.y)||0},
-          broadcast:false
+          broadcast:module.broadcast===true
         }
       );
     }
     return false;
   },
+  applySourceModules(source,target,spec,execution,angle,module){
+    if(!source?.alive||!EntitySimulationAuthorityService.isLocal(source))return false;
+    const key=`hit-sequence-source:${String(module.stateKey||spec.id||'attack')}`;
+    if(AttackExecutionService.hasEffect(execution,key))return false;
+    AttackExecutionService.markEffect(execution,key);
+    for(const nested of module.sourceModules||EMPTY_RUNTIME_ITEMS)this.runModule(source,target,spec,execution,angle,nested);
+    return true;
+  },
   start(source,target,spec,execution,angle,module,deliveryModule){
+    if(module.authority==='source'&&!EntitySimulationAuthorityService.isLocal(source))return false;
     if(module.targetMode==='nearest'&&!this.nearestTarget(source,target,spec,angle,deliveryModule))return false;
     const key=`hit-sequence:${String(module.stateKey||spec.id||'attack')}`;
     if(module.oncePerExecution&&AttackExecutionService.hasEffect(execution,key))return false;
     if(module.oncePerExecution)AttackExecutionService.markEffect(execution,key);
+    if(module.sourceModules)this.applySourceModules(source,target,spec,execution,angle,module);
     for(const step of module.steps||[]){
-      const run=()=>{for(const nested of step.modules||[])this.runModule(source,target,spec,execution,angle,nested);};
+      const run=()=>{
+        if(!source?.alive||(!target?.alive&&module.retainOnTargetDeath!==true))return;
+        if(!(step.conditions||EMPTY_RUNTIME_ITEMS).every(condition=>TriggerConditionService.matches(condition,{source,target,now:performance.now()})))return;
+        for(const nested of step.modules||[])this.runModule(source,target,spec,execution,angle,nested);
+      };
       const delay=Math.max(0,Number(step.delay)||0);
       if(delay>0)SimulationScheduleService.scheduleContinuation({at:performance.now()+delay,source,abilityId:key,continue:run});
       else run();
@@ -76498,7 +79520,74 @@ const ProjectileWallCollisionModeService=Object.freeze({
       ?0
       :this.size(module);
   }
+});/* 순수 데이터로 정의한 모드별/무작위 공격 묶음. 실제 효과는 공용 AttackSpec 실행. */
+const SelectableAttackService=Object.freeze({
+  pick(values,count=1){
+    const pool=[...new Set(values)];const result=[];
+    while(pool.length&&result.length<count){result.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}
+    return result;
+  },
+  select(source,module){
+    const choices=module.choices||[];
+    if(Array.isArray(module.selectedValues))return module.selectedValues.map(value=>choices.find(item=>item.value===value)).filter(Boolean);
+    const current=ModeStateService.current(source,module.stateKey,module.initial||choices[0]?.value);
+    return module.random===true?this.pick(choices,Math.max(1,Number(module.count)||1)):
+      choices.filter(item=>item.value===current).slice(0,1);
+  },
+  prepare(source,attack,duration=0){
+    if(!source?.alive||!EntitySimulationAuthorityService.isLocal(source))return attack;
+    let changed=false;
+    const modules=(attack?.modules||[]).map(module=>{
+      if(module.type!=='attack.select'||module.telegraph!==true)return module;
+      const selected=this.select(source,module);
+      if(!selected.length)return module;
+      changed=true;
+      const display=module.displayWindow;
+      if(display?.stateKey){
+        ModeStateService.set(source,display.modeStateKey,selected.map(item=>item.value).sort().join('-'));
+        TimedActionStateService.open(source,{...display,interruptOnForcedMovement:true,duration:Math.max(0,Number(duration)||0)+Math.max(0,Number(display.duration)||0)},performance.now());
+      }
+      return {...module,selectedValues:selected.map(item=>item.value)};
+    });
+    return changed?{...attack,modules,selectionPrepared:true}:attack;
+  },
+  execute(source,module,angle,execution){
+    if(!source?.alive||!EntitySimulationAuthorityService.isLocal(source))return false;
+    const choices=module.choices||[];
+    const current=ModeStateService.current(source,module.stateKey,module.initial||choices[0]?.value);
+    const selected=this.select(source,module);
+    const now=performance.now();
+    const display=module.displayWindow;
+    if(display?.stateKey&&selected.length){
+      ModeStateService.set(source,display.modeStateKey,selected.map(item=>item.value).sort().join('-'));
+      TimedActionStateService.open(source,display,now);
+    }
+    for(const item of module.choicesOnly===true?[]:selected){
+      const base=AbilityService.attackById(source.character,item.attackId);
+      if(!base)continue;
+      let attack=AugmentService.prepareAttack(source,base,performance.now());
+      if(Array.isArray(item.modules)&&item.modules.length)attack={...attack,modules:[...attack.modules,...item.modules]};
+      if(module.inheritExtraModules===true&&item.inheritExtraModules!==false)attack={...attack,tags:["반격"],modules:[...attack.modules,...(execution?.extraModules||[])]};
+      TriggeredAttackService.execute(source,attack,angle,{targetPoint:execution?.targetPoint});
+    }
+    if(module.changeMode===true){
+      const next=this.pick(choices.filter(item=>item.value!==current))[0];
+      if(next){
+        const state=ModeStateService.state(source,module.stateKey,true,current);
+        const token={};state.pendingSelection=token;
+        const apply=()=>{
+          if(!source.alive||ModeStateService.state(source,module.stateKey)!==state||state.pendingSelection!==token)return;
+          state.previousValue=state.value;state.changedAt=performance.now();state.previousTurns=Number(state.turns)||0;state.turns=state.previousTurns+1;
+          ModeStateService.set(source,module.stateKey,next.value);delete state.pendingSelection;
+        };
+        const delay=Math.max(0,Number(module.changeModeDelay)||0);
+        if(delay>0)SimulationScheduleService.scheduleContinuation({at:now+delay,source,continue:apply});else apply();
+      }
+    }
+    return true;
+  }
 });
+
 
 const AttackModuleService=Object.freeze({
   volleyTravelRange(source,attack,module,targetPoint=null){
@@ -76609,6 +79698,7 @@ const AttackModuleService=Object.freeze({
           execution,
           angle:Number(attackAngle)||0,
           now:performance.now(),
+          targetHealthSnapshots:conditionContext?.targetHealthSnapshots,
           beforeHitStatuses:
             conditionContext?.beforeHitStatuses||
             null
@@ -77165,11 +80255,13 @@ const AttackModuleService=Object.freeze({
       );
     }
   },
-  buildAngles(spec,angle){
+  buildAngles(spec,angle,execution=null){
     const count=this.pelletCount(spec);
     const spread=this.spread(spec);
     if(count===1)return [angle];
 
+    const pattern=this.module(spec,'pattern.scatter');
+    if(Array.isArray(pattern?.angles))return pattern.angles.map(offset=>angle+Number(offset));
     const angles=new Array(count);
     for(let index=0;index<count;index++){
       angles[index]=angle+(index/(count-1)-.5)*spread;
@@ -77472,7 +80564,7 @@ const AttackModuleService=Object.freeze({
           continue;
         }
 
-        const angles=this.buildAngles(spec,angle);
+        const angles=this.buildAngles(spec,angle,volley?.execution);
         const originPoint=projectile.origin?.type==='point'&&
           Number.isFinite(Number(projectile.origin.x))&&Number.isFinite(Number(projectile.origin.y))
             ?{x:Number(projectile.origin.x),y:Number(projectile.origin.y)}:source;
@@ -77505,6 +80597,8 @@ const AttackModuleService=Object.freeze({
             const point=NetworkCollisionPositionService.point(target);
             const impact={
               type:'direct',
+              contactOnly:module.contactOnly===true,
+              confirmContact:module.confirmContact===true,
               directionAngle:Number(angle)||0,
               origin:{x:Number(source.x)||0,y:Number(source.y)||0},
               point:{x:Number(point.x)||0,y:Number(point.y)||0}
@@ -77534,6 +80628,10 @@ const AttackModuleService=Object.freeze({
           );
           continue;
         }
+
+        const castGeometrySource=module.geometryOriginMode==='cast-source'
+          ?{x:Number(source.x)||0,y:Number(source.y)||0}
+          :null;
 
         const repeatCount=Math.max(
           1,
@@ -77682,7 +80780,8 @@ const AttackModuleService=Object.freeze({
               spec,
               areaAngle,
               areaModule,
-              areaVolley
+              areaVolley,
+              {geometrySource:castGeometrySource}
             );
           };
 
@@ -77695,6 +80794,7 @@ const AttackModuleService=Object.freeze({
                   Number(module.delay)||0
                 )
             )+
+            Math.max(0,Number(module.travelDelay)||0)+
             repeatInterval*repeatIndex;
 
           if(areaDelay<=0){
@@ -78195,6 +81295,7 @@ const AttackModuleService=Object.freeze({
           ),
           easing:String(movement.easing||'linear'),
           collision:{...movement.collision},
+          reflectWalls:movement.reflectWalls===true,
           enemyCollisionOvershoot:Math.max(0,Number(movement.enemyCollisionOvershoot)||0)
         };
       }
@@ -78662,6 +81763,14 @@ const AttackModuleService=Object.freeze({
           module
         );
         return;
+      }
+
+      if(type==='projectile.redirect'&&module.when==='after-attack'){
+        if(!EntitySimulationAuthorityService.isLocal(source))return;
+        const key=`projectile.redirect:${moduleKey}`;
+        if(AttackExecutionService.hasEffect(execution,key))return;
+        AttackExecutionService.markEffect(execution,key);
+        ProjectileRedirectService.retargetOwned(source,module);return;
       }
 
       if(type==='cooking.acquire'&&module.when==='after-attack'){if(EntitySimulationAuthorityService.isLocal(source))CookingService.acquire(source,Math.max(0,Number(module.amount)||0));return;}
@@ -79320,6 +82429,7 @@ const AttackModuleService=Object.freeze({
                     !state||
                     state!==expected||
                     state.kind!=='timed-action-state'||
+                    state.completionPending!==true||
                     (
                       state.characterId!==String(source.character?.id||'')
                     )||
@@ -79327,6 +82437,7 @@ const AttackModuleService=Object.freeze({
                   )return;
                   const completedAt=performance.now();
                   state.completionPending=false;
+                  state.expiresAt=completedAt;
                   const retainMs=Math.max(0,Number(state.retainCompleteMs)||0);
                   if(retainMs>0){
                     state.completedAt=completedAt;
@@ -79394,6 +82505,13 @@ const AttackModuleService=Object.freeze({
                   source.attackPreview=null;
               };
 
+              expected.resolveNow=()=>{
+                if(expected.completionPending!==true)return false;
+                if(forcedMovementInterruptible)AttackWindupService.sendCommit(source,continuationKey);
+                resolveWindow();
+                return true;
+              };
+
               if(
                 forcedMovementInterruptible&&
                 execution?.networkReplay===true
@@ -79414,15 +82532,7 @@ const AttackModuleService=Object.freeze({
                     forcedMovementInterruptible
                       ?'state-window-resolve'
                       :null,
-                  continue:()=>{
-                    if(forcedMovementInterruptible){
-                      AttackWindupService.sendCommit(
-                        source,
-                        continuationKey
-                      );
-                    }
-                    resolveWindow();
-                  }
+                  continue:()=>expected.resolveNow()
                 });
               }
             }
@@ -79439,6 +82549,9 @@ const AttackModuleService=Object.freeze({
       if(type==='equipment.discover'&&module.when==='after-attack'){
         ReactiveEquipmentService.resolveCurrent(source,module,performance.now());
         return;
+      }
+      if(type==='attack.select'&&module.when==='after-attack'){
+        SelectableAttackService.execute(source,module,angle,execution);return;
       }
       if(type==='mode.toggle'&&module.when==='after-attack'){
         ModeStateService.toggle(
@@ -79785,6 +82898,11 @@ const AttackModuleService=Object.freeze({
         if(Training.sessionMode==='online'&&!EntitySimulationAuthorityService.isLocal(target))return;
         const mealCount=Math.max(0,Math.floor(Number(deliveryModule?.projectile?.cookingMealMeta?.count)||Number(execution?.cookingMealCount)||0));
         CookingService.applyThrownMeal(source,target,mealCount);
+        return;
+      }
+
+      if(type==='health.start-natural-regen'&&module.when==='on-hit'){
+        if(EntitySimulationAuthorityService.isLocal(target))NaturalHealthRegenActivityService.startNow(target,performance.now());
         return;
       }
 
@@ -80929,17 +84047,18 @@ const AttackService=Object.freeze({
     );
     return true;
   },
-  canUse(source,spec){
+  canUse(source,spec,{resourcePrepaid=false,completedWindup=false}={}){
     const now=performance.now();
     if(!source?.alive||!spec)return false;
+    if(spec.formationCost&&EntitySimulationAuthorityService.isLocal(source)&&CircleFormationService.circleCount(source)<=0)return false;
     const stats=CombatStatsService.current(source,now);
     if(
-      !stats.canAct||
+      (!stats.canAct&&(!completedWindup||(typeof AttackWindupService!=='undefined'&&AttackWindupService.hasInterruptingStatus?.(source,now))))||
       (source.cooldowns.get(spec.id)||0)>now||
       !this.delayReady(source,spec,now)
     )return false;
 
-    return StaminaService.canSpend(source,spec.cost,now);
+    return resourcePrepaid||StaminaService.canSpend(source,spec.cost,now);
   },
   targetPointPolicy(spec){
     let hasTargetPoint=false;
@@ -81077,7 +84196,7 @@ const AttackService=Object.freeze({
 
     let augmentRequestContext=null;
     if(!committed&&!networkReplay&&!freeAttack){
-      if(!this.canUse(source,spec))return false;
+      if(!this.canUse(source,spec,{resourcePrepaid:options.resourcePrepaid===true,completedWindup:options.completedWindup===true}))return false;
       augmentRequestContext=
         AugmentEffectModuleService.runTrigger(
           source,
@@ -81095,14 +84214,14 @@ const AttackService=Object.freeze({
           ...augmentRequestContext.deferredAttackModules
         ];
       }
-      if(!StaminaService.spend(source,spec.cost,now))return false;
+      if(options.resourcePrepaid!==true&&!StaminaService.spend(source,spec.cost,now))return false;
     }else if(
       !committed&&
       !networkReplay&&
       freeAttack&&
       (
         !source?.alive||
-        CombatStatsService.current(source,now).canAct!==true
+        (CombatStatsService.current(source,now).canAct!==true&&(options.completedWindup!==true||(typeof AttackWindupService!=='undefined'&&AttackWindupService.hasInterruptingStatus?.(source,now))))
       )
     ){
       return false;
@@ -81929,6 +85048,45 @@ const AttackPreviewService=Object.freeze({
         ProgressScaledAttackService.resolve(source,attack),
         performance.now()
       );
+    const selection=(preparedAttack.modules||[]).find(module=>module.type==='attack.select'&&module.telegraph===true&&Array.isArray(module.selectedValues));
+    if(selection){
+      const parts=Array.isArray(preview.parts)?preview.parts:[];
+      const children=preview._selectionPreviews||(preview._selectionPreviews=[]);
+      parts.length=0;
+      let index=0;
+      for(const value of selection.selectedValues){
+        const item=selection.choices.find(choice=>choice.value===value);
+        const selectedAttack=item?AbilityService.attackById(source.character,item.attackId):null;
+        if(!selectedAttack||item.preview===false)continue;
+        const child=this.fromAttack(source,selectedAttack,angle,until,children[index]||null,options);
+        children[index++]=child;
+        if(child.parts?.length){for(const part of child.parts)parts.push(part);}else parts.push(child);
+      }
+      children.length=index;
+      preview.type='circle';preview.range=0;preview.angle=angle;preview.until=until;preview.parts=parts;
+      preview.points=Array.isArray(preview.points)?preview.points:[];preview.points.length=0;
+      return preview;
+    }
+    const reflectedMovement=(preparedAttack.modules||EMPTY_RUNTIME_ITEMS).find(module=>module.type==='movement.move'&&module.reflectWalls===true);
+    if(reflectedMovement&&preparedAttack.previewGeometry?.shape==='rect'){
+      const segments=MovementAbilityService.reflectedPath(source,reflectedMovement,angle,
+        Number(reflectedMovement.distance)||0,preview._reflectionSegments||(preview._reflectionSegments=[]));
+      const parts=Array.isArray(preview.parts)?preview.parts:[];
+      let write=0;
+      for(const segment of segments){
+        if(segment.distance<=1e-6)continue;
+        const part=parts[write]||(parts[write]={});
+        Object.assign(part,{type:'rect',anchorX:segment.fromX,anchorY:segment.fromY,
+          angle:segment.angle,range:segment.distance,halfWidth:Number(preparedAttack.previewGeometry.halfWidth)||0,
+          halfAngle:0,wallPolicy:'ignore',projectile:false,endChord:false});
+        if(Array.isArray(part.points))part.points.length=0;
+        write++;
+      }
+      parts.length=write;preview.parts=parts;preview.type='circle';preview.range=0;
+      preview.angle=angle;preview.until=until;
+      if(Array.isArray(preview.points))preview.points.length=0;
+      return preview;
+    }
     const targetProjectile=AttackModuleService.module(preparedAttack,'delivery.projectile');
     if(targetProjectile?.targetPoint===true&&targetProjectile.targetPreview&&options?.targetPoint){
       let point={x:Number(options.targetPoint.x),y:Number(options.targetPoint.y)};
@@ -82471,7 +85629,7 @@ const AttackPreviewService=Object.freeze({
               fallbackRange,
               wallCollisionPadding
             )
-            :fallbackRange;
+            :Number.isFinite(fallbackRange)?fallbackRange:WorldGeometryService.boundaryRayDistance(anchorX,anchorY,partAngle,Infinity,wallCollisionPadding);
         if(impactModule?.previewStopAtFirstEnemy===true&&pierce?.targets!==true){
           const probe={...source,x:anchorX,y:anchorY};
           part.range=HitScanGeometryService.firstEnemyRange(probe,{range:part.range,halfWidth:projectileRadius,stopAtFirstEnemy:true},partAngle);
@@ -82578,7 +85736,7 @@ const AttackPreviewService=Object.freeze({
             fallbackRange,
             wallCollisionPadding
           )
-          :fallbackRange;
+          :Number.isFinite(fallbackRange)?fallbackRange:WorldGeometryService.boundaryRayDistance(Number(source.x)||0,Number(source.y)||0,angle,Infinity,wallCollisionPadding);
       if(Array.isArray(preview.points)){
         preview.points.length=0;
       }
@@ -82627,7 +85785,7 @@ const AttackPreviewService=Object.freeze({
       return false;
     }
 
-    const attack=
+    const attack=tracking.preparedAttack||
       AbilityService.attackById(
         source.character,
         String(tracking.attackId||'')
@@ -82693,6 +85851,7 @@ const CounterModuleService=Object.freeze({
   },
   validate(module){
     return Number(module?.windup)===this.requiredWindup&&(
+      module?.cc===null||
       this.isCcModule(module?.cc)||
       !!String(module?.ccRefAttackId||'')
     );
@@ -82896,7 +86055,10 @@ const CounterModuleService=Object.freeze({
     if(source.counterWindup)return false;
     if(!AttackService.canUse(source,context.attack))return false;
     const now=performance.now();
-    const resolvedAttack=ProgressScaledAttackService.resolve(source,context.attack);
+    const scaledAttack=ProgressScaledAttackService.resolve(source,context.attack);
+    const resolvedAttack=typeof SelectableAttackService!=='undefined'
+      ?SelectableAttackService.prepare(source,scaledAttack,this.requiredWindup)
+      :scaledAttack;
     const baseCc=
       this.referencedCc(source,module)||
       module.cc;
@@ -83512,6 +86674,7 @@ const CounterModuleService=Object.freeze({
       chargedAttack,
       windup.angle,
       {
+        completedWindup:true,
         extraModules:resolvedCounterCc?[resolvedCounterCc]:[],
         targetPoint:
           windup.targetPoint&&
@@ -83772,13 +86935,17 @@ const ChargedAttackService=Object.freeze({
         normalizedProgress,
         Number(attack?.range)||0
       );
-    const damageRatio=full&&Number.isFinite(Number(full.damageRatio))
+    let damageRatio=full&&Number.isFinite(Number(full.damageRatio))
       ?Number(full.damageRatio)
       :this.lerp(
         charge.damageRatio,
         normalizedProgress,
         Number(attack?.damageRatio)||0
       );
+    const damageStep=Number(charge.damageRatio?.step);
+    if(damageStep>0&&Number.isFinite(damageStep)){
+      damageRatio=Math.floor(damageRatio/damageStep+1e-9)*damageStep;
+    }
     const projectileSpeed=this.lerp(
       charge.projectileSpeed,
       normalizedProgress,
@@ -84725,6 +87892,10 @@ const EntityRingLayoutService=Object.freeze({
           );
         }
       }
+      if(moduleVisible&&module.outlineRing===true&&!moduleFull){
+        const width=Math.max(.1,Number(module.completePulseLineWidth)||this.WIDTHS.flash);
+        takeOuter(Number(module.completePulseRadius)||this.nextRadius(gaugeRadius,gaugeWidth,width),width);
+      }
     }
 
     return {
@@ -85162,6 +88333,74 @@ const EntityRingLayoutService=Object.freeze({
 
 
 const ArcGaugePresentationService=Object.freeze({
+  chargeAimLines:new WeakMap(),
+  aimLineSnapshot(entity,attack,angle,now,point=entity,radius=entity.radius){
+    const config=attack?.charge?.aimLine;if(!config)return null;
+    const x=Number(point.x)||0,y=Number(point.y)||0;
+    const requested=Math.max(0,Number(attack.range)||0);
+    const range=Number.isFinite(requested)?requested:WorldGeometryService.boundaryRayDistance(x,y,angle,Infinity,0);
+    if(!Number.isFinite(range)||range<=0)return null;
+    return {attackId:attack.id,x,y,radius:Math.max(0,Number(radius)||0),range,angle,
+      color:config.teamColor===true?TeamColorPresentationService.colorForEntity(entity,entity.color):config.color||entity.color,
+      alpha:Math.max(0,Math.min(1,Number(config.alpha)||.65)),width:Math.max(.5,Number(config.lineWidth)||1.5),
+      fadeDuration:Math.max(0,Number(config.fadeDuration)||0),hideDuringStealth:config.hideDuringStealth===true,lastActiveAt:now};
+  },
+  captureChargeShot(event){
+    const entity=event?.source,attack=event?.attack,projectile=event?.projectile;
+    if(!entity?.alive||!projectile||!attack?.charge?.aimLine)return false;
+    const now=Number(event.now)||performance.now();
+    const stealth=typeof StealthPresentationService!=='undefined'&&StealthPresentationService.active(entity,now);
+    if(entity.hidden||stealth&&attack.charge.aimLine.hideDuringStealth===true){this.chargeAimLines.delete(entity);return false;}
+    const snapshot=this.aimLineSnapshot(entity,attack,Number(projectile.launchAngle??projectile.angle)||0,now,projectile,0);
+    if(!snapshot)return false;
+    let lines=this.chargeAimLines.get(entity);if(!lines){lines=new Map();this.chargeAimLines.set(entity,lines);}
+    let key='shot:'+attack.id;
+    for(const [storedKey,line] of lines)if(line.attackId===attack.id){key=storedKey;lines.delete(storedKey);}
+    lines.set(key,snapshot);return true;
+  },
+  drawChargeAimLine(ctx,entity,now=performance.now()){
+    if(!ctx||!entity)return false;
+    if(!entity.alive||entity.hidden||!entity.actionState){
+      this.chargeAimLines.delete(entity);return false;
+    }
+    let lines=this.chargeAimLines.get(entity);
+    if(!lines){lines=new Map();this.chargeAimLines.set(entity,lines);}
+    const stealth=typeof StealthPresentationService!=='undefined'&&StealthPresentationService.active(entity,now);
+    const active=new Set();
+    for(const [key,state] of entity.actionState){
+      if(state?.kind!==ChargedAttackService.KIND)continue;
+      const attack=ChargedAttackService.attack(entity,state);
+      const line=attack?.charge?.aimLine;
+      if(!line)continue;
+      if(stealth&&line.hideDuringStealth===true){lines.delete(key);continue;}
+      const local=entity===Training.player;
+      const angle=local&&typeof Training.aimAngle==='function'
+        ?Number(Training.aimAngle())||0
+        :Number.isFinite(Number(entity._remoteAimAngle))
+          ?Number(entity._remoteAimAngle):Number(state.angle)||0;
+      const snapshot=this.aimLineSnapshot(entity,attack,angle,now);
+      if(!snapshot)continue;
+      active.add(key);
+      lines.delete('shot:'+attack.id);
+      lines.set(key,snapshot);
+    }
+    let drawn=false;
+    for(const [key,line] of lines){
+      if(stealth&&line.hideDuringStealth){lines.delete(key);continue;}
+      let fade=1;
+      if(!active.has(key)){
+        fade=line.fadeDuration>0?Math.max(0,1-(now-line.lastActiveAt)/line.fadeDuration):0;
+        if(fade<=0){lines.delete(key);continue;}
+      }
+      ctx.save();ctx.beginPath();
+      ctx.moveTo(line.x+Math.cos(line.angle)*line.radius,line.y+Math.sin(line.angle)*line.radius);
+      ctx.lineTo(line.x+Math.cos(line.angle)*line.range,line.y+Math.sin(line.angle)*line.range);
+      ctx.strokeStyle=`rgba(${ColorService.rgbString(line.color)},${line.alpha*fade})`;
+      ctx.lineWidth=line.width;ctx.setLineDash([]);ctx.stroke();ctx.restore();drawn=true;
+    }
+    if(lines.size===0)this.chargeAimLines.delete(entity);
+    return drawn;
+  },
   render(ctx,target,progress,options={}){
     if(!ctx||!target)return false;
 
@@ -85257,7 +88496,7 @@ const ArcGaugePresentationService=Object.freeze({
     }
 
     if(
-      ratio>=1&&
+      (ratio>=1||options.flashWhilePartial===true)&&
       options.maxChargeFlash===true
     ){
       const pulse=
@@ -85314,6 +88553,14 @@ const ArcGaugePresentationService=Object.freeze({
       ctx.setLineDash([]);
     }
 
+    if(options.outlineRing===true&&ratio>0&&ratio<1&&options.flashWhilePartial!==true){
+      const width=Math.max(.1,Number(options.completePulseLineWidth)||EntityRingLayoutService.WIDTHS.flash);
+      const outer=Number(options.completePulseRadius)||EntityRingLayoutService.nextRadius(radius,Number(options.lineWidth)||3,width);
+      ctx.beginPath();ctx.arc(Number(target.x)||0,Number(target.y)||0,outer,0,Math.PI*2);
+      ctx.lineWidth=width;ctx.strokeStyle=`rgba(${baseRgb},0.5)`;
+      ctx.setLineDash(Array.isArray(options.completePulseDash)?options.completePulseDash:[4,3]);
+      ctx.stroke();ctx.setLineDash([]);
+    }
     ctx.restore();
     return true;
   }
@@ -86268,7 +89515,22 @@ const ModeStateService=Object.freeze({
 
     return state;
   },
+  initialize(entity){
+    if(!entity?.actionState||entity.alive===false||
+      (typeof EntitySimulationAuthorityService!=='undefined'&&
+       !EntitySimulationAuthorityService.isLocal(entity)))return false;
+    let changed=false;
+    for(const config of entity.character?.initialModes||[]){
+      const stateKey=String(config.stateKey||'');
+      const values=[...new Set((config.values||[]).map(String))].filter(Boolean);
+      if(!stateKey||!values.length||this.state(entity,stateKey))continue;
+      const index=config.random===true?Math.floor(Math.random()*values.length):0;
+      this.set(entity,stateKey,values[index]);changed=true;
+    }
+    return changed;
+  },
   current(entity,stateKey,initial=''){
+    this.initialize(entity);
     return String(
       this.state(
         entity,
@@ -86327,6 +89589,7 @@ const ModeStateService=Object.freeze({
     };
   },
   serialize(entity,now=performance.now()){
+    this.initialize(entity);
     const result=[];
     for(const state of entity?.actionState?.values?.()||[]){
       if(state?.kind!==this.KIND)continue;
@@ -86531,6 +89794,91 @@ const ReactiveEquipmentService=Object.freeze({
   return this.select(e,config.initial,now);
  }
 });
+/* Generic permanent module invention from nearby enemies and combat observations. */
+const IdeaModuleService=Object.freeze({
+ allows(config,entity){return !!entity&&!config.excludedEntityKinds?.includes(String(entity.kind||''));},
+ config(e){return e?.kind==='player'?e.character?.ideaModules:null;},
+ state(e,now=performance.now()){
+  const config=this.config(e);if(!config||!e.actionState)return null;
+  let state=e.actionState.get('idea-module-observer');
+  if(!state){state={kind:'idea-module-observer',lastAt:now,seen:new Set(),objects:new WeakSet()};e.actionState.set('idea-module-observer',state);}
+  ProgressStateService.ensure(e,{stateKey:config.stateKey,max:config.threshold,initial:0,presentation:{type:'arc-gauge',color:e.color,lineWidth:3.5,maxChargeFlash:true}});
+  return state;
+ },
+ enemies(e,range=this.config(e)?.range){
+  const config=this.config(e);if(!config)return [];
+  return [...EntityService.items.values()].filter(target=>target!==e&&target?.alive&&this.allows(config,target)&&RelationService.relation(e,target)==='enemy'&&ProjectileHomingTargetVisibilityService.canPerceive(e,target)&&Math.hypot(target.x-e.x,target.y-e.y)<=range);
+ },
+ facts(e){
+  const config=this.config(e),targets=this.enemies(e,config.situationRange??config.range);
+  return {close:targets.some(t=>Math.hypot(t.x-e.x,t.y-e.y)<=config.closeDistance),far:targets.some(t=>Math.hypot(t.x-e.x,t.y-e.y)>config.closeDistance),behindWall:targets.some(t=>ReactiveEquipmentService.behindWall(e,t))};
+ },
+ invent(e,now=performance.now()){
+  const config=this.config(e);if(!config||!e.alive||!EntitySimulationAuthorityService.isLocal(e))return false;
+  const progress=ProgressStateService.state(e,config.stateKey);
+  if(config.items.every(item=>ModeStateService.current(e,item.stateKey,'inactive')==='active')){ProgressStateService.apply(e,{stateKey:config.stateKey,max:config.threshold,operation:'set',value:config.threshold});return false;}if(!progress||progress.value+1e-9<config.threshold)return false;
+  const facts=this.facts(e),item=config.items.find(item=>ModeStateService.current(e,item.stateKey,'inactive')!=='active'&&facts[item.situation]);
+  if(!item)return false;
+  ProgressStateService.apply(e,{stateKey:config.stateKey,max:config.threshold,operation:'set',value:Math.max(0,progress.value-config.threshold)});
+  return this.grant(e,item.value,now);
+ },
+ grant(e,value,now=performance.now()){
+  const config=this.config(e),item=config?.items.find(item=>item.value===value);
+  if(!item||ModeStateService.current(e,item.stateKey,'inactive')==='active')return false;
+  ModeStateService.set(e,item.stateKey,'active','inactive');
+  ProgressStateService.apply(e,{stateKey:config.countStateKey,max:config.items.length,operation:'add',amount:1});
+  const state=ModeStateService.state(e,config.rotationStateKey,true,'initial');state.previousTurns=Number(state.turns)||0;state.turns=state.previousTurns+1;state.changedAt=now;ModeStateService.set(e,config.rotationStateKey,item.value,'initial');
+  if(config.items.every(item=>ModeStateService.current(e,item.stateKey,'inactive')==='active')){this.state(e,now);ProgressStateService.apply(e,{stateKey:config.stateKey,max:config.threshold,operation:'set',value:config.threshold});}
+  return true;
+ },
+ gain(e,amount,now=performance.now()){
+  const config=this.config(e);if(!config||!e.alive||!EntitySimulationAuthorityService.isLocal(e)||!(Number(amount)>0))return false;
+  this.state(e,now);ProgressStateService.apply(e,{stateKey:config.stateKey,max:config.threshold,operation:'add',amount:Math.max(0,Number(amount)||0)});this.invent(e,now);return true;
+ },
+ hit(event){
+  const e=event?.source,config=this.config(e);if(!config||!this.allows(config,event.target)||!(event.amount>0)||event.duplicateExecutionHit||RelationService.relation(e,event.target)!=='enemy')return false;
+  return this.gain(e,config.hitGain,event.now);
+ },
+ segmentDistance(e,a,b){const dx=b.x-a.x,dy=b.y-a.y,d=dx*dx+dy*dy,t=d>0?Math.max(0,Math.min(1,((e.x-a.x)*dx+(e.y-a.y)*dy)/d)):0;return Math.hypot(e.x-a.x-dx*t,e.y-a.y-dy*t);},
+ observe(e,object,key,now){
+  const state=this.state(e,now);if(key){if(state.seen.has(key))return false;state.seen.add(key);}else{if(state.objects.has(object))return false;state.objects.add(object);}
+  return this.gain(e,this.config(e).attackGain,now);
+ },
+ attack(event){
+  if(this.config(event?.source))this.invent(event.source,event.now);
+  for(const e of EntityService.items.values()){
+   const config=this.config(e);if(!config||!e.alive||!this.allows(config,event.source)||!EntitySimulationAuthorityService.isLocal(e)||RelationService.relation(e,event.source)!=='enemy')continue;
+   for(const module of event.attack?.modules||[]){
+    if(module.type!=='delivery.area')continue;
+    const source=module.centerPoint||event.execution?.targetPoint||event.source;
+    let near=false;
+    if(module.shape==='rect'){
+     const angle=event.angle||0,dx=e.x-source.x,dy=e.y-source.y,x=dx*Math.cos(angle)+dy*Math.sin(angle),y=-dx*Math.sin(angle)+dy*Math.cos(angle),range=Number(module.range)||event.attack.range||0;
+     near=Math.hypot(x-Math.max(0,Math.min(range,x)),Math.max(0,Math.abs(y)-(Number(module.halfWidth)||0)))<=config.range;
+    }else near=AreaGeometryService.overlaps(source,module,event.angle||0,e.x,e.y,config.range);
+    if(near){this.observe(e,event.execution||event,`attack:${event.source.id}:${event.execution?.sequence??event.now}`,event.now);break;}
+   }
+  }
+ },
+ update(e,now=performance.now()){
+  const config=this.config(e);if(!config||!e.alive||!EntitySimulationAuthorityService.isLocal(e))return;
+  const state=this.state(e,now),dt=Math.max(0,Math.min(250,now-state.lastAt));state.lastAt=now;
+  const count=this.enemies(e).length;
+  if(count)this.gain(e,config.presencePerSecond*dt/1000*(config.presencePerEnemy===true?count:1),now);
+  for(const p of ProjectileService.items||[]){
+   if(!p.source||!this.allows(config,p.source)||RelationService.relation(e,p.source)!=='enemy')continue;
+   const a={x:Number(p.prevX??p.x),y:Number(p.prevY??p.y)},b={x:Number(p.x),y:Number(p.y)};
+   if(this.segmentDistance(e,a,b)<=config.range+(Number(p.radius)||0))this.observe(e,p,p.networkKey?`projectile:${p.networkKey}`:null,now);
+  }
+  const excluded=new Set(['pathCarrier','weaponImage','weaponImageEcho','weaponImagePulse','dodge','justdodge','parry','hitImpactRing','text','damage']);
+  for(const f of Training.fx||[]){
+   const source=EntityService.items.get(String(f.sourceEntityId||''));if(!source||!this.allows(config,source)||excluded.has(f.type)||RelationService.relation(e,source)!=='enemy'||now<Number(f.start)||now>Number(f.start)+Number(f.dur))continue;
+   const a={x:Number(f.x)||0,y:Number(f.y)||0},b={x:Number(f.tx??f.x)||0,y:Number(f.ty??f.y)||0},radius=Math.max(0,Number(f.r)||Number(f.range)||0);
+   if(this.segmentDistance(e,a,b)<=config.range+radius)this.observe(e,f,f.executionSequence?`attack:${source.id}:${f.executionSequence}`:f.abilityUseId?`ability:${source.id}:${f.abilityUseId}`:f.effectKey?`effect:${f.effectKey}`:null,now);
+  }
+  this.invent(e,now);
+ }
+});
 /* 개별 누적 호 게이지 은행. 활성 무기와 최근 갱신만 강조하며 소유자 전용. */
 const EquipmentGaugePresentationService=Object.freeze({
  thresholds(ctx,e,module){
@@ -86548,20 +89896,22 @@ const EquipmentGaugePresentationService=Object.freeze({
  },
  draw(ctx,e,module,now=performance.now()){
   if(e!==Training.player)return false;
-  const config=ReactiveEquipmentService.config(e);if(!config)return false;
+  const idea=e.character?.ideaModules;
+  const config=ReactiveEquipmentService.config(e)||idea;if(!config)return false;
   const active=ModeStateService.current(e,config.stateKey,config.initial);
   const scale=(Number(e.radius)||20)/20;
   const render=e._equipmentGaugeRender||(e._equipmentGaugeRender={anchor:{x:0,y:0,radius:7,color:e.color},track:{visibility:'all',color:'rgba(255,255,255,.3)',lineWidth:2,showEmpty:true},fill:{visibility:'all',lineWidth:3,showEmpty:true}});
   ctx.save();ctx.translate(Number(e.x)||0,Number(e.y)||0);
   for(let i=0;i<config.items.length;i++){
-   const item=config.items[i],state=ProgressStateService.state(e,item.stateKey);
-   const ratio=Math.max(0,Math.min(1,(Number(state?.value)||0)/item.required));
-   const elapsed=now-Number(state?.lastActivityAt??-Infinity);
+   const item=config.items[i],state=idea?ModeStateService.state(e,item.stateKey):ProgressStateService.state(e,item.stateKey);
+   const activeItem=idea?ModeStateService.current(e,item.stateKey,'inactive')==='active':active===item.value;
+   const ratio=idea?Number(activeItem):Math.max(0,Math.min(1,(Number(state?.value)||0)/item.required));
+   const elapsed=now-Number((idea?state?.changedAt:state?.lastActivityAt)??-Infinity);
    const activity=Math.max(0,Math.min(1,1-(elapsed-Number(module.holdMs||500))/Number(module.fadeMs||500)));
-   ctx.globalAlpha=active===item.value?1:Number(module.idleAlpha??.35)+(1-Number(module.idleAlpha??.35))*activity;
+   ctx.globalAlpha=activeItem?1:Number(module.idleAlpha??.35)+(1-Number(module.idleAlpha??.35))*activity;
    const columns=Math.max(1,Number(module.columns)||1);
    const x=(Number(module.x??38)+(i%columns)*Number(module.gap||18))*scale,y=(Number(module.y??-63)+Math.floor(i/columns)*Number(module.gap||18))*scale,r=Number(module.radius||7)*scale;
-   render.anchor.x=x;render.anchor.y=y;render.anchor.radius=r;render.track.radius=r;render.fill.radius=r;render.fill.color=active===item.value?(module.activeColor||module.color||e.color):(module.color||e.color);
+   render.anchor.x=x;render.anchor.y=y;render.anchor.radius=r;render.track.radius=r;render.fill.radius=r;render.fill.color=activeItem?(module.activeColor||module.color||e.color):(module.color||e.color);
    ArcGaugePresentationService.render(ctx,render.anchor,1,render.track);
    ArcGaugePresentationService.render(ctx,render.anchor,ratio,render.fill);
 
@@ -91966,7 +95316,7 @@ const SegmentedGaugePresentationService=Object.freeze({
             )
           )
           :(
-            mode==='count'
+            mode==='mask'?((Math.floor(Number(value)||0)&(2**index))?1:0):mode==='count'
               ?(
                 index<
                 Math.max(
@@ -92236,6 +95586,15 @@ const RuntimeValueReferenceService=Object.freeze({
     const provider=RuntimeValueReferenceProviders.get(String(ref.type||''));
     if(provider)return provider(entity,ref);
 
+    if(ref.type==='buff-duration-remaining'){
+      const now=performance.now();let end=now;
+      if(ref.fullWhen?.length&&ref.fullWhen.every(condition=>TriggerConditionService.matches(condition,{source:entity,target:entity,now})))return 1;
+      for(const buff of BuffService.live(entity,String(ref.stat||''),now)){
+        if(ref.sourceId&&buff.sourceId!==ref.sourceId)continue;
+        end=Math.max(end,Number(buff.end)||now);
+      }
+      return Math.max(0,Math.min(1,(end-now)/Math.max(1,Number(ref.duration)||1)));
+    }
     if(ref.type==='limited-use-buff-remaining'){
       const target=
         ref.target==='owner'
@@ -92335,7 +95694,7 @@ const RuntimeValueReferenceService=Object.freeze({
       return '';
     }
 
-    if(ref.type==='mode-match-count-ratio'||ref.type==='mode-match-count'){
+    if(ref.type==='mode-match-count-ratio'||ref.type==='mode-match-count'||ref.type==='mode-match-mask'){
       const target=
         ref.target==='owner'
           ?(EntityService.owner(entity)||entity)
@@ -92343,16 +95702,16 @@ const RuntimeValueReferenceService=Object.freeze({
       const modes=Array.isArray(ref.modes)?ref.modes:[];
       if(!modes.length)return 0;
       let matched=0;
-      for(const mode of modes){
+      for(const [index,mode] of modes.entries()){
         if(
           ModeStateService.current(
             target,
             String(mode?.stateKey||''),
             String(mode?.initial||'')
           )===String(mode?.value||'')
-        )matched+=1;
+        )matched+=ref.type==='mode-match-mask'?2**index:1;
       }
-      return ref.type==='mode-match-count'?matched:Math.max(0,Math.min(1,matched/modes.length));
+      return ref.type==='mode-match-mask'||ref.type==='mode-match-count'?matched:Math.max(0,Math.min(1,matched/modes.length));
     }
 
     if(ref.type==='mode'){
@@ -92883,7 +96242,7 @@ const WorldGaugeModuleService=Object.freeze({
             :Number(module.range)||0
         );
         if(radius>0){
-          const rgb=ColorService.rgbString(module.color||entity.color,'139,108,217');
+          const rgb=ColorService.rgbString(this.variant(entity,module.colorVariants)?.color||module.color||entity.color,'139,108,217');
           ctx.save();
           ctx.beginPath();
           ctx.arc(Number(entity.x)||0,Number(entity.y)||0,radius,0,Math.PI*2);
@@ -93791,6 +97150,7 @@ const SummonDeployService=Object.freeze({
 
     this.dropCarry(owner,stateKey,0,now);
     state.active=false;
+    if(spec.pathCarrier===true)state.pathCarrierEnded=true;
     state.health=0;
     state.leashBreakAt=0;
     state.nextHealthDecayAt=0;
@@ -95269,6 +98629,7 @@ const SummonDeployService=Object.freeze({
 
       result.push({
         stateKey:state.stateKey,
+        ...(spec.pathCarrier===true?{pathCarrierSequence:Number(state.pathCarrierSequence)||0,pathCarrierEnded:state.pathCarrierEnded===true}:{}),
         active:state.active===true,
         health:
           entity
@@ -95318,6 +98679,7 @@ const SummonDeployService=Object.freeze({
             Math.max(0,Number(entity.healthRegenPolicy.idle)||0)*
             Math.max(0,CombatStatsService.current(entity,now).regenDelayMult)
           ),
+        modeStates:entity?ModeStateService.serialize(entity,now):[],
         combatSnapshot:
           entity
             ?NetworkCombatSnapshotService
@@ -95361,6 +98723,12 @@ const SummonDeployService=Object.freeze({
         state
       );
       if(!spec||!state)continue;
+      if(spec.pathCarrier===true){
+        const incoming=Number(snapshot.pathCarrierSequence)||0,current=Number(state.pathCarrierSequence)||0;
+        // Late route/health snapshots cannot resurrect a destroyed or replaced carrier.
+        if(incoming<current||(incoming===current&&state.pathCarrierEnded&&snapshot.active===true))continue;
+        state.pathCarrierSequence=incoming;state.pathCarrierEnded=snapshot.pathCarrierEnded===true||snapshot.active!==true;
+      }
 
       state.health=Math.max(
         0,
@@ -95454,6 +98822,7 @@ const SummonDeployService=Object.freeze({
                 Number(snapshot.naturalRegenReadyRemaining)||0
               );
 
+          if(Array.isArray(snapshot.modeStates))ModeStateService.applyRemote(entity,snapshot.modeStates,now);
           if(snapshot.combatSnapshot){
             NetworkCombatSnapshotService
               .apply(
@@ -97361,6 +100730,7 @@ const AbilityAttackExecutionService=Object.freeze({
       {
         networkReplay:context.network===true,
         freeAttack:context.freeAttack===true,
+        completedWindup:context.completedWindup===true,
         targetPoint:
           options.targetPoint!==undefined
             ?options.targetPoint
@@ -97405,7 +100775,179 @@ const AbilityAttackExecutionService=Object.freeze({
     context.lastAttackResult=attackResult;
     return true;
   }
+});/* movement.path-carrier: shared drag route, swept ally pickup and owner-authoritative transport.
+   The visual route travels on every client; each client moves only its own riders. */
+const PathCarrierService=Object.freeze({
+  KIND:'path-carrier-rider',
+  riderKey:'movement:path-carrier-rider',
+  start(context,module){
+    const source=context.source;
+    if(context.network===true||!source?.alive||!EntitySimulationAuthorityService.isLocal(source))return false;
+    const raw=(context.dragPath||[]).slice(0,DragPathInputService.MAX_POINTS).filter(point=>Number.isFinite(point?.x)&&Number.isFinite(point?.y));
+    const start=module.pathOrigin==='pointer'?raw[0]:source;
+    if(!start)return false;
+    const points=[{x:Number(start.x),y:Number(start.y)}];
+    const radius=Math.max(1,Number(module.radius)||25);
+    let total=0;
+    const maximum=Number.isFinite(Number(module.maxDistance))?Math.max(0,Number(module.maxDistance)):Infinity;
+    for(const point of raw){
+      if(!Number.isFinite(point?.x)||!Number.isFinite(point?.y))continue;
+      const from=points[points.length-1],distance=Math.hypot(point.x-from.x,point.y-from.y);
+      if(distance<.001)continue;
+      const angle=Math.atan2(point.y-from.y,point.x-from.x);
+      const requested=Math.min(distance,Math.max(0,maximum-total));
+      const allowed=CollisionPolicyService.entityTravelDistance({...source,...from,radius},angle,requested,module.collision);
+      if(allowed>.001){points.push({x:from.x+Math.cos(angle)*allowed,y:from.y+Math.sin(angle)*allowed});total+=allowed;}
+      if(allowed<distance-.001)break;
+    }
+    if(total<.001)return false;
+    const speed=Math.max(1,Number(module.speed)||1200),now=Number(context.now)||performance.now();
+    const summonStateKey=String(module.summonStateKey||'');
+    let summonSnapshot=null;
+    if(summonStateKey){
+      const spec=SummonDeployService.spec(source,summonStateKey);
+      if(!spec)return false;
+      // A new use replaces the prior route, not the owner's movement or stored summon health.
+      for(const old of Training.fx)if(old.type==='pathCarrier'&&old.sourceEntityId===source.id&&old.summonStateKey===summonStateKey){this.release(old);old.dur=0;}
+      const state=SummonDeployService.state(source,summonStateKey,true);
+      if(state.active)SummonDeployService.recall(source,summonStateKey);
+      state.health=Number(spec.maxHealth)||1;state.destroyedUntil=0;state.readyFlashUntil=0;
+      state.pathCarrierSequence=(Number(state.pathCarrierSequence)||0)+1;state.pathCarrierEnded=false;
+      const robot=SummonDeployService.spawn(source,summonStateKey,{x:points[0].x,y:points[0].y});
+      if(!robot)return false;
+      // The summon uses common wall/boundary spawn correction; only the route start follows it.
+      const offset=Math.hypot(robot.x-points[0].x,robot.y-points[0].y);
+      if(offset>.001){points[0]={x:robot.x,y:robot.y};total=0;for(let i=1;i<points.length;i++)total+=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);}
+      summonSnapshot=SummonDeployService.serialize(source,now).find(item=>item.stateKey===summonStateKey);
+    }
+    const effect=EffectSpawnService.spawn({type:'pathCarrier',key:`path-carrier:${source.id}:${context.abilityUseId||now}`,
+      summonStateKey,summonSnapshot,x:points[0].x,y:points[0].y,points,total,speed,radius,pickupRange:Math.max(0,Number(module.pickupRange)||45),
+      collision:module.collision,riderCollision:module.riderCollision||module.collision,targetRelations:module.targetRelations||['ally'],color:module.color||source.color,name:module.name||'',start:now,dur:total/speed*1000+160},{source});
+    if(effect&&OnlinePresentationSyncService?.shouldSend?.(source))OnlinePresentationSyncService.send('effect-spawn',source,{effect:EffectSpawnService.presentationSnapshot(effect,now)});
+    return !!effect;
+  },
+  wallPassKey:'movement:path-carrier-wall-pass',
+  clearRider(entity,effect){
+    if(entity?.actionState?.get(this.riderKey)?.effect!==effect)return;
+    entity.actionState.delete(this.riderKey);
+    BuffService.remove(entity,'wallPass',this.wallPassKey);
+    if(entity.alive&&EntitySimulationAuthorityService.isLocal(entity))MovementService.ensureValidPosition(entity);
+  },
+  carrierFor(entity){
+    if(!entity?.alive)return null;
+    const effect=entity.actionState?.get(this.riderKey)?.effect;
+    const snapshot=effect?{ownerId:effect.sourceEntityId,stateKey:effect.summonStateKey,sequence:effect.summonSnapshot?.pathCarrierSequence}:entity._remotePathCarrierRide;
+    if(!snapshot?.stateKey)return null;
+    const owner=EntityService.items.get(String(snapshot.ownerId||'')),state=SummonDeployService.state(owner,snapshot.stateKey,false);
+    const robot=SummonDeployService.entity(owner,snapshot.stateKey);
+    return state?.active&&!state.pathCarrierEnded&&state.pathCarrierSequence===snapshot.sequence&&robot?.alive&&robot.health>0?robot:null;
+  },
+  serialize(entity){
+    const carrier=this.carrierFor(entity);
+    if(!carrier)return null;
+    const owner=EntityService.items.get(String(carrier.ownerId||'')),state=SummonDeployService.state(owner,carrier.summonStateKey,false);
+    return {ownerId:owner.id,stateKey:carrier.summonStateKey,sequence:state.pathCarrierSequence};
+  },
+  applyRemote(entity,snapshot){
+    if(!entity||EntitySimulationAuthorityService.isLocal(entity))return false;
+    entity._remotePathCarrierRide=snapshot&&typeof snapshot.ownerId==='string'&&typeof snapshot.stateKey==='string'&&Number.isFinite(snapshot.sequence)
+      ?{ownerId:snapshot.ownerId,stateKey:snapshot.stateKey,sequence:snapshot.sequence}:null;
+    return true;
+  },
+  projectileTarget(projectile,target){
+    const policy=projectile.behavior?.collisionPolicy;
+    if(policy?.passEnemies===true||projectile.behavior?.pierce?.targets===true||projectile.rehitInterval>0||projectile.attack?.effectsOnly===true||projectile.projectile?.collisionTargets===true||(projectile.attack?.modules||[]).some(m=>m.type==='delivery.range-projectile'))return target;
+    const carrier=this.carrierFor(target);
+    return carrier?.summonSpec?.protectRidersFromProjectiles===true&&RelationService.relation(projectile.source,target)==='enemy'&&RelationService.relation(projectile.source,carrier)==='enemy'?carrier:target;
+  },
+  carried(entity){
+    const state=entity?.actionState?.get(this.riderKey);
+    return state?.kind===this.KIND&&entity.alive!==false;
+  },
+  release(effect){
+    for(const id of effect?.carrierState?.riders||[]){
+      const entity=EntityService.items.get(id),state=entity?.actionState?.get(this.riderKey);
+      if(state?.effect===effect)this.clearRider(entity,effect);
+    }
+    if(effect?.carrierState)effect.carrierState.riders.clear();
+    if(effect?.summonStateKey){
+      const owner=EntityService.items.get(String(effect.sourceEntityId||''));
+      const state=SummonDeployService.state(owner,effect.summonStateKey,false);
+      if(state&&state.pathCarrierSequence===effect.summonSnapshot?.pathCarrierSequence){
+        state.pathCarrierEnded=true;
+        const robot=SummonDeployService.entity(owner,effect.summonStateKey);
+        if(robot)BuffService.remove(robot,'wallPass',this.wallPassKey);
+        if(state.active)SummonDeployService.recall(owner,effect.summonStateKey);
+      }
+    }
+  },
+  segment(effect,source,from,to){
+    const state=effect.carrierState,dx=to.x-from.x,dy=to.y-from.y,length2=dx*dx+dy*dy;
+    for(const entity of EntityService.items.values()){
+      if(!entity?.alive||entity.kind==='summon'||!entity.actionState||!EntitySimulationAuthorityService.isLocal(entity)||!effect.targetRelations.includes(RelationService.relation(source,entity)))continue;
+      const existing=entity.actionState.get(this.riderKey);
+      if(existing&&existing.effect!==effect)continue;
+      if(!state.riders.has(entity.id)){
+        const point=NetworkCollisionPositionService.point(entity);
+        const t=length2?Math.max(0,Math.min(1,((point.x-from.x)*dx+(point.y-from.y)*dy)/length2)):0;
+        const near={x:from.x+dx*t,y:from.y+dy*t};
+        if(Math.hypot(point.x-near.x,point.y-near.y)>effect.pickupRange+(Number(entity.radius)||0)||WorldGeometryService.segmentBlocked(point.x,point.y,near.x,near.y,0))continue;
+        if(entity.forcedMotion)MovementService.finalizeForcedMotion(entity);
+        MovementAbilityService.clear(entity);
+        entity.actionState.set(this.riderKey,{kind:this.KIND,effect});state.riders.add(entity.id);
+      }
+      if(effect.riderCollision?.passWalls===true)BuffService.refresh(entity,'wallPass',1,this.wallPassKey,200);
+      // Riders use the declared carrier collision policy, including wall passage.
+      const distance=Math.hypot(to.x-entity.x,to.y-entity.y),angle=Math.atan2(to.y-entity.y,to.x-entity.x);
+      const allowed=CollisionPolicyService.entityTravelDistance(entity,angle,distance,effect.riderCollision||{passWalls:false,passEnemies:true});
+      entity.x+=Math.cos(angle)*allowed;entity.y+=Math.sin(angle)*allowed;
+      if(allowed<distance-.001){this.clearRider(entity,effect);state.riders.delete(entity.id);}
+    }
+    for(const id of [...state.riders]){
+      const entity=EntityService.items.get(id);
+      if(!entity?.alive||entity.actionState?.get(this.riderKey)?.effect!==effect){this.clearRider(entity,effect);state.riders.delete(id);}
+    }
+  },
+  update(effect,now){
+    if(effect?.type!=='pathCarrier')return false;
+    const source=EntityService.items.get(String(effect.sourceEntityId||''));
+    if(!source?.alive||!Array.isArray(effect.points)||effect.points.length<2){this.release(effect);effect.dur=0;return false;}
+    if(!effect.carrierState){
+      if(effect.summonStateKey&&!EntitySimulationAuthorityService.isLocal(source)&&effect.summonSnapshot)SummonDeployService.applyRemote(source,[effect.summonSnapshot],now);
+      effect.x=effect.points[0].x;effect.y=effect.points[0].y;effect.carrierState={distance:0,index:1,riders:new Set(),finished:false};
+    }
+    const robot=effect.summonStateKey?SummonDeployService.entity(source,effect.summonStateKey):null;
+    if(effect.summonStateKey){
+      const summonState=SummonDeployService.state(source,effect.summonStateKey,false);
+      if(!robot?.alive||robot.health<=0||summonState?.pathCarrierEnded||summonState?.pathCarrierSequence!==effect.summonSnapshot?.pathCarrierSequence){this.release(effect);effect.dur=0;return false;}
+    }
+    const state=effect.carrierState;
+    if(state.finished)return false;
+    const target=Math.min(effect.total,Math.max(0,now-effect.start)*effect.speed/1000);
+    let remaining=Math.max(0,target-state.distance);
+    // Process every crossed segment, including bends, even on a long frame.
+    while(remaining>.0001&&state.index<effect.points.length){
+      const point=effect.points[state.index],from={x:effect.x,y:effect.y},distance=Math.hypot(point.x-from.x,point.y-from.y);
+      if(distance<.0001){state.index++;continue;}
+      const step=Math.min(remaining,distance),to={x:from.x+(point.x-from.x)*step/distance,y:from.y+(point.y-from.y)*step/distance};
+      this.segment(effect,source,from,to);effect.x=to.x;effect.y=to.y;effect.angle=Math.atan2(to.y-from.y,to.x-from.x);
+      remaining-=step;state.distance+=step;if(step>=distance-.0001)state.index++;
+    }
+    if(robot){if(effect.collision?.passWalls===true)BuffService.refresh(robot,'wallPass',1,this.wallPassKey,200);robot.x=effect.x;robot.y=effect.y;}
+    if(state.distance>=effect.total-.0001){state.finished=true;this.release(effect);}
+    return true;
+  },
+  draw(ctx,effect,now){
+    const fade=Math.max(0,Math.min(1,(effect.dur-(now-effect.start))/160));
+    ctx.save();ctx.translate(effect.x,effect.y);ctx.globalAlpha=fade;ctx.fillStyle=effect.color;ctx.strokeStyle=ColorService.brighten(effect.color,.55);ctx.lineWidth=2;
+    ctx.beginPath();ctx.roundRect(-22,-17,44,34,7);ctx.fill();ctx.stroke();
+    ctx.fillStyle=`rgb(${ColorService.rgbString(effect.color).split(',').map(value=>Math.round(Number(value)*.55)).join(',')})`;ctx.fillRect(-15,-8,30,13);
+    ctx.strokeStyle=ColorService.brighten(effect.color,.8);ctx.beginPath();ctx.moveTo(-10,-2);ctx.lineTo(-4,-2);ctx.moveTo(4,-2);ctx.lineTo(10,-2);ctx.stroke();
+    ctx.fillStyle=effect.color;ctx.fillRect(-26,14,15,7);ctx.fillRect(11,14,15,7);
+    ctx.beginPath();ctx.moveTo(0,-17);ctx.lineTo(0,-25);ctx.stroke();ctx.beginPath();ctx.arc(0,-26,3,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
 });
+
 
 const AbilityModuleService=Object.freeze({
   addUsageTags(context,module){
@@ -97425,6 +100967,10 @@ const AbilityModuleService=Object.freeze({
   },
 
   handlers:Object.freeze({
+    'movement.path-carrier'(context,next,module){
+      if(context.executed===true&&context.dragReady===true)PathCarrierService.start(context,module);
+      next();
+    },
     'formula.sequence-input'(context,next,module){
       if(context.network===true){
         if(String(context.resolvedAttackId||'').startsWith('formula:')){
@@ -97540,6 +101086,10 @@ const AbilityModuleService=Object.freeze({
         context.suppressStealthRevealOnAbilityUse=true;
       }
       next();
+    },
+    'formation.remove'(context,next,module){
+      context.executed=CircleFormationService.removeAtPointer(context.source,CircleFormationService.templatePointer(context.source));
+      context.handled=true;next();
     },
     'formation.place-minimum'(context,next,module){
       if(
@@ -97980,6 +101530,7 @@ const AbilityModuleService=Object.freeze({
         context.handled=true;
         context.executed=true;
         context.resolvedAttackId=`state-window:${stateKey}`;
+        if(module.resolveImmediately===true&&typeof state.resolveNow==='function')state.resolveNow();
         if(module.stopOnHandled===true)return;
         next();
         return;
@@ -98578,6 +102129,19 @@ const AbilityModuleService=Object.freeze({
               :item
           ))
         };
+      }
+
+      if(context.network!==true&&matchedCandidate?.targetStateKey){
+        const targetState=TimedActionStateService.state(source,String(matchedCandidate.targetStateKey),now);
+        const targetId=String(targetState?.data?.targetEntityId||'');
+        const target=targetId?EntityService.items.get(targetId):null;
+        if(!target?.alive||RelationService.relation(source,target)!=='enemy'){
+          if(targetState)TimedActionStateService.consume(source,targetState.stateKey,now);
+          context.handled=true;
+          next();
+          return;
+        }
+        context.targetEntityId=targetId;
       }
 
       const executed=AbilityAttackExecutionService.execute(
@@ -99646,6 +103210,14 @@ const AbilityModuleService=Object.freeze({
       if(module.state==='counter-ready')context.source.counterReadyUntil=0;
       next();
     },
+    'attack.select.prepare'(context,next,module){
+      if(!AttackService.previewReady(context.source,context.attack,performance.now(),true)){
+        context.handled=true;
+        return;
+      }
+      context.attack=SelectableAttackService.prepare(context.source,context.attack,module.duration);
+      next();
+    },
     'preview.create'(context,next,module){
       if(
         context.skipAttackWindup===true&&
@@ -99672,7 +103244,9 @@ const AbilityModuleService=Object.freeze({
           )
           :context.attack;
       const resolvedPreviewAttack=
-        module.attackId
+        context.attack?.selectionPrepared===true&&!module.attackId
+          ?context.attack
+          :module.attackId
           ?previewAttack
           :(
             AbilityService.resolvedInputAttack(
@@ -99738,6 +103312,7 @@ const AbilityModuleService=Object.freeze({
         ){
           created.liveTracking={
             attackId:String(resolvedPreviewAttack?.id||''),
+            preparedAttack:resolvedPreviewAttack?.selectionPrepared===true?resolvedPreviewAttack:null,
             aimMode:String(module.aimMode||'locked'),
             followSource:module.followSource===true,
             includeDeliveryAreas:module.includeDeliveryAreas!==false,
@@ -99762,6 +103337,12 @@ const AbilityModuleService=Object.freeze({
       }
 
       GameEvents.emit('ability-telegraph',context);
+      next();
+    },
+    'modifier.remove'(context,next,module){
+      if(module.requireExecuted!==true||context.executed===true){
+        BuffService.remove(context.source,String(module.stat||''),String(module.sourceId||''));
+      }
       next();
     },
     'modifier.set'(context,next,module){
@@ -99904,6 +103485,8 @@ const AbilityModuleService=Object.freeze({
           :'';
 
       const resume=()=>{
+        // Only a started attack windup may finish through CC; new input still checks canAct.
+        if(duration>0&&context.executed!==true&&context.attack)context.completedWindup=true;
         if(module.aimMode==='live-source'){
           const liveAngle=Number(context.resolveAim?.());
           if(Number.isFinite(liveAngle))context.angle=liveAngle;
@@ -99949,6 +103532,7 @@ const AbilityModuleService=Object.freeze({
         source:context.source,
         abilityId:context.ability.id,
         interruptibleWindup,
+        attackWindup:duration>0&&context.executed!==true&&!!context.attack,
         windupKind:
           interruptibleWindup
             ?'ability-delay'
@@ -102635,6 +106219,10 @@ const ProjectileModuleService=Object.freeze({
       impact:impact
         ?{
           shareHitTargets:impact.shareHitTargets===true,
+          excludeHitTargets:impact.excludeHitTargets===true,
+          broadcastLinked:impact.broadcastLinked===true,
+          angleOffset:Number(impact.angleOffset)||0,
+          randomSpread:Math.max(0,Number(impact.randomSpread)||0),
           snapToRangeEnd:impact.snapToRangeEnd===true,
           oncePerProjectile:impact.oncePerProjectile===true,
           cancelDelayedOnRemove:impact.cancelDelayedOnRemove===true,
@@ -105604,7 +109192,11 @@ const AttackGuardService=Object.freeze({
         continue;
       }
 
-      if(guard.source!==target)continue;
+      if(guard.source!==target){
+        if(guard.spec?.protectArea!==true||
+          !(guard.spec.protectRelations||['self','ally']).includes(RelationService.relation(guard.source,target))||
+          !this.containsPoint(guard,Number(target.x)||0,Number(target.y)||0,Number(target.radius)||0))continue;
+      }
       if(!this.hostile(guard,attackSource))continue;
 
       if(this.isHitscan(context)){
@@ -106313,6 +109905,7 @@ const ProjectileImpactService=Object.freeze({
   resolve(projectile,reason='impact'){
     const impact=projectile?.behavior?.impact;
     if(!impact)return false;
+    if(reason==='target'&&impact.requireSuccessfulHit===true&&projectile.hadHit!==true)return false;
 
     const source=projectile.source;
     const pathProgress=reason==='path-progress'&&impact.field?.liveProjectilePath===true;
@@ -106621,6 +110214,7 @@ const ProjectileImpactService=Object.freeze({
     ];
 
     for(const attackId of linkedAttackIds){
+      if(impact.broadcastLinked===true&&!EntitySimulationAuthorityService.isLocal(source))continue;
       const attackKey=String(attackId||'');
       let attack=preparedAttacks.get(attackKey)||null;
 
@@ -106645,6 +110239,22 @@ const ProjectileImpactService=Object.freeze({
         );
       }
 
+      if(impact.broadcastLinked===true){
+        const spread=Number(impact.randomSpread)||0;
+        // Copy confirmed parent hits, never share the children's accumulating hit sets.
+        // trajectoryHitAt also includes target-authority confirmations received online.
+        const excludedTargetIds=impact.excludeHitTargets===true
+          ?[...new Set([...(projectile.volley?.execution?.hitTargets||[]),
+            ...(projectile.trajectoryHitAt?.keys?.()||[])])].map(String):[];
+        attack={...attack,modules:(attack.modules||[]).map(module=>
+          module.type==='delivery.projectile'?{...module,origin:{type:'point',...point},
+            ...(impact.excludeHitTargets===true?{excludedTargetIds}: {})}:
+          module.type==='pattern.scatter'&&spread>0?{...module,angles:[-Math.random()*spread,Math.random()*spread]}:module)};
+        TriggeredAttackService.execute(source,attack,angle+(Number(impact.angleOffset)||0),{
+          targetPoint:point,hitGroupSequence:impact.shareHitTargets===true?projectile.volley?.execution?.sequence:null
+        });
+        resolved=true;continue;
+      }
       const delivery=AttackModuleService.module(
         attack,
         'delivery.area'
@@ -107525,6 +111135,8 @@ const ProjectileTargetFilterService=Object.freeze({
     if(!projectile||!target)return false;
     for(const module of projectile.attack?.modules||[]){
       const type=AttackModuleService.type(module);
+      if(type==='delivery.projectile'&&Array.isArray(module.excludedTargetIds)&&
+        module.excludedTargetIds.includes(String(target.id)))return false;
       const handler=this.handlers.get(type);
       if(typeof handler!=='function')continue;
       if(handler({projectile,target,module})===false)return false;
@@ -107537,7 +111149,7 @@ const ProjectileRedirectSyncService=Object.freeze({
   if(Training.sessionMode!=='online'||!OnlineDuelService.active)return;
   RoomService.sendGameplay({type:'duel-projectile-redirect',roundToken:OnlineDuelService.roundToken,
    projectileOwnerPid:OnlineParticipantEntityService.pid(p.source),projectileKey:p.networkKey,
-   revision:p.redirectRevision,x:p.x,y:p.y,angle:p.angle,vx:p.vx,vy:p.vy,travel:p.travel,
+   relayPresentation:p.relayPresentation||null,revision:p.redirectRevision,x:p.x,y:p.y,angle:p.angle,vx:p.vx,vy:p.vy,travel:p.travel,
    redirectCount:p.redirectCount||0,ended:p.redirectEnded===true,hitIds:Array.from(p.hitIds||[]),
    maxTravelDistance:p.maxTravelDistance,rangeBounceBase:p.rangeBounceBase,rangeBounceCount:p.rangeBounceCount||0,
    wallRedirectCount:p.wallRedirectCount||0,hitRedirectCount:p.hitRedirectCount||0,fadeResetTravel:p.fadeResetTravel||0});
@@ -107566,6 +111178,9 @@ const ProjectileRedirectSyncService=Object.freeze({
 });
 /* 벽 반사/적중 연쇄와 벽 반대편 AttackSpec 전달. 공통 투사체 권위 결과 복제. */
 const ProjectileRedirectService=Object.freeze({
+ declaredRelay(character,attackId){
+  return Object.values(character?.attacks||{}).some(attack=>[...(attack.modules||[]),...(attack.attackFeatureTransform?.options||[]).flatMap(option=>option.modules||[])].some(module=>module.type==='projectile.wall-relay'&&module.attackId===attackId));
+ },
  module(p,type){return ProjectileModuleService.module(p?.attack,type)},
  supports(config,event){return Array.isArray(config?.on)?config.on.includes(event):config?.on===event},
  extendRange(p,config,event){
@@ -107592,13 +111207,14 @@ const ProjectileRedirectService=Object.freeze({
   return best;
  },
  aim(p,target,angle){
+  delete p.relayPresentation;
   if(target){const point=NetworkCollisionPositionService.point(target);angle=Math.atan2(point.y-p.y,point.x-p.x)}
   const speed=Math.hypot(p.vx,p.vy)||Number(p.baseSpeed)||24;
   p.angle=angle;p.vx=Math.cos(angle)*speed;p.vy=Math.sin(angle)*speed;
   p.prevX=p.x;p.prevY=p.y;
   p.redirectRevision=(Number(p.redirectRevision)||0)+1;
  },
- broadcast(p){GameEvents.emit('projectile-redirected',{projectile:p});},
+ broadcast(p){if(p.suppressRedirectBroadcast===true)return;GameEvents.emit('projectile-redirected',{projectile:p});},
  apply(p,snapshot){
   if(!p||!(snapshot.revision>Number(p.networkRedirectRevision||0)))return false;
   for(const k of ['x','y','angle','vx','vy','travel','revision','redirectCount'])if(!Number.isFinite(Number(snapshot[k])))return false;
@@ -107606,7 +111222,30 @@ const ProjectileRedirectService=Object.freeze({
   for(const k of ['maxTravelDistance','rangeBounceBase','rangeBounceCount','wallRedirectCount','hitRedirectCount','fadeResetTravel'])if(Number.isFinite(Number(snapshot[k])))p[k]=Number(snapshot[k]);
   p.baseSpeed=Math.hypot(p.vx,p.vy);
   p.prevX=p.x;p.prevY=p.y;p.redirectRevision=Number(snapshot.revision);p.networkRedirectRevision=Number(snapshot.revision);p.redirectEnded=snapshot.ended===true;
+  if(snapshot.relayPresentation){const relay=EntityService.items.get(snapshot.relayPresentation.entityId);if(relay)ModeStateService.applyRemote(relay,snapshot.relayPresentation.modeStates,performance.now());}
   for(const id of snapshot.hitIds||[])p.hitIds.add(String(id));return true;
+ },
+ retargetOwned(source,config){
+  if(!source?.alive||!EntitySimulationAuthorityService.isLocal(source))return 0;
+  let changed=0;
+  for(const p of ProjectileService.items){
+   if(p.source!==source||config.family&&p.attack?.projectileFamily!==config.family||!(Math.hypot(p.vx,p.vy)>0)||p.redirectEnded===true)continue;
+   const target=this.nearest(p,config);if(!target)continue;
+   this.aim(p,target,p.angle);this.broadcast(p);changed++;
+  }
+  return changed;
+ },
+ relaySummon(p,target,now=performance.now()){
+  const config=target?.summonSpec?.projectileRelay;
+  if(!config||config.family!==p.attack?.projectileFamily||!EntitySimulationAuthorityService.isLocal(p.source))return false;
+  if(config.ownerOnly===true&&String(target.ownerId)!==String(p.source.id))return false;
+  const contacts=p._relayContacts||(p._relayContacts=new Map());if(contacts.has(target.id))return false;
+  const ratio=Math.max(0,Math.min(1,ProjectileCollisionShapeService.contactRatio(p,target))),oldX=p.x,oldY=p.y;
+  p.x=p.prevX+(oldX-p.prevX)*ratio;p.y=p.prevY+(oldY-p.prevY)*ratio;
+  const next=this.nearest(p,config);if(!next){p.x=oldX;p.y=oldY;return false;}
+  const advanced=Math.hypot(oldX-p.prevX,oldY-p.prevY);
+  p.travel=Math.max(0,(Number(p.travel)||0)-advanced*(1-ratio));
+  contacts.set(target.id,true);this.aim(p,next,p.angle);if(config.rotationStateKey){ModeStateService.toggle(target,{stateKey:config.rotationStateKey,values:['a','b']});p.relayPresentation={entityId:target.id,modeStates:ModeStateService.serialize(target,now)};}this.broadcast(p);return true;
  },
  hit(p,target){
   const config=this.module(p,'projectile.redirect');
@@ -107615,7 +111254,7 @@ const ProjectileRedirectService=Object.freeze({
   const limit=config.maxRedirects===0?Infinity:Number(config.maxRedirects||0);
   const next=(Number(p.hitRedirectCount)||0)<limit?this.nearest(p,config,target):null;
   if(!next){p.redirectEnded=true;p.redirectRevision=(Number(p.redirectRevision)||0)+1;this.broadcast(p);return false;}
-  p.hitRedirectCount=(Number(p.hitRedirectCount)||0)+1;p.redirectCount=(Number(p.redirectCount)||0)+1;this.aim(p,next,p.angle);this.broadcast(p);return true;
+  p.hitRedirectCount=(Number(p.hitRedirectCount)||0)+1;p.redirectCount=(Number(p.redirectCount)||0)+1;const multiplier=Number(config.hitSpeedMultiplier??1);p.vx*=multiplier;p.vy*=multiplier;this.aim(p,next,p.angle);this.broadcast(p);return true;
  },
   contact(p,boundary=false){
   const pad=Number(p.radius)||0,epsilon=.01;
@@ -107686,9 +111325,66 @@ const ProjectileRedirectService=Object.freeze({
    if(WorldGeometryService.raycastDistance(p.x,p.y,candidate,2,Number(p.radius)||0)>=2-1e-6)angle=candidate;
   }
   p.wallRedirectCount=(Number(p.wallRedirectCount)||0)+1;p.redirectCount=(Number(p.redirectCount)||0)+1;this.extendRange(p,config,'wall');this.aim(p,null,angle);
-  const speedMultiplier=Math.max(0,Number(config.wallSpeedMultiplier??1));
+  const speedMultiplier=config.wallSpeedOnce===true&&p.wallRedirectCount>1?1:Math.max(0,Number(config.wallSpeedMultiplier??1));
   if(Number.isFinite(speedMultiplier)){p.vx*=speedMultiplier;p.vy*=speedMultiplier;p.baseSpeed=Math.hypot(p.vx,p.vy);}
   if(EntitySimulationAuthorityService.isLocal(p.source))this.broadcast(p);return true;
+ },
+ pressureContact(source,attack,angle,origin,length,halfWidth){
+  const dx=Math.cos(angle),dy=Math.sin(angle);
+  let best=null;
+  for(const target of EntityService.items.values()){
+   const config=target?.summonSpec?.projectileRelay;
+   if(!target.alive||!config||config.family!==attack.projectileFamily||(config.ownerOnly&&String(target.ownerId)!==String(source.id)))continue;
+   const px=target.x-origin.x,py=target.y-origin.y,along=px*dx+py*dy,across=Math.abs(-px*dy+py*dx),radius=Math.max(0,Number(target.radius)||0);
+   const side=Math.max(0,across-halfWidth);if(side>radius)continue;
+   const at=Math.max(0,along-Math.sqrt(Math.max(0,radius*radius-side*side)));
+   if(along+radius<0||at>length||best&&at>=best.length)continue;
+   if(WorldGeometryService.segmentBlocked(origin.x,origin.y,origin.x+dx*at,origin.y+dy*at,0))continue;
+   const point={x:origin.x+dx*at,y:origin.y+dy*at};
+   if(!this.nearest({source,attack,...point,radius:Number(this.module({attack},'delivery.projectile')?.radius)||0,hitIds:new Set()},config))continue;
+   best={length:at,target};
+  }
+  const relay=this.module({attack},'projectile.wall-relay'),redirect=this.module({attack},'projectile.redirect');
+  if(relay||this.supports(redirect,'wall')){
+   const at=WorldGeometryService.raycastDistance(origin.x,origin.y,angle,length,0);
+   if(at<=length&&(!best||at<best.length)){
+    const carrier={source,attack,angle,radius:0,prevX:origin.x,prevY:origin.y,x:origin.x+dx*at,y:origin.y+dy*at};
+    const contact=this.contact(carrier,false);if(contact?.wall)best={length:at,carrier,contact,relay,wallBounce:this.supports(redirect,'wall')};
+   }
+  }
+  if(this.supports(redirect,'wall')){
+   // The map edge is not a wall block. Test the outgoing bullet's center boundary.
+   const radius=Math.max(0,Number(this.module({attack},'delivery.projectile')?.radius)||0);
+   const at=WorldGeometryService.boundaryRayDistance(origin.x,origin.y,angle,length,radius);
+   const carrier={source,attack,angle,radius,prevX:origin.x,prevY:origin.y,x:origin.x+dx*at,y:origin.y+dy*at};
+   const contact=this.contact(carrier,true);
+   if((contact.nx||contact.ny)&&at<=length&&(!best||at<best.length))best={length:at,carrier,contact,boundary:true,wallBounce:true};
+  }
+  return best;
+ },
+ resolvePressureContact(source,attack,angle,origin,range,plan,key){
+  if(!plan)return false;
+  if(plan.contact?.wall||plan.boundary){
+   if(!EntitySimulationAuthorityService.isLocal(source))return true;
+   if(!plan.wallBounce){plan.carrier.networkKey=key;return this.relay(plan.carrier,plan.relay,plan.contact);}
+   const delivery=this.module({attack},'delivery.projectile');if(!delivery)return false;
+   const speed=Math.max(0,Number(delivery.speed)||0);
+   const carrier={...plan.carrier,radius:Math.max(0,Number(delivery.radius)||0),vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,baseSpeed:speed,travel:0,hitIds:new Set(),networkKey:key,suppressRedirectBroadcast:true};
+   // Reuse actual wall normals, seam clearance, visibility-safe homing, relay and bounce slowdown.
+   if(!this.wall(carrier,plan.boundary===true))return false;
+   const outgoing={...attack,range:Math.max(0,Number(attack.range)||0)+range-plan.length-(Number(carrier.travel)||0),modules:attack.modules.map(m=>m.type==='delivery.projectile'?{...m,speed:Math.hypot(carrier.vx,carrier.vy),origin:{type:'point',x:carrier.x,y:carrier.y}}:m.type==='projectile.redirect'&&m.wallSpeedOnce===true?{...m,wallSpeedMultiplier:1}:m)};
+   TriggeredAttackService.execute(source,outgoing,carrier.angle);return true;
+  }
+  const target=plan.target,config=target?.summonSpec?.projectileRelay;if(!target?.alive||!config)return false;
+  const point={x:origin.x+Math.cos(angle)*plan.length,y:origin.y+Math.sin(angle)*plan.length};
+  const carrier={source,attack,...point,radius:Number(this.module({attack},'delivery.projectile')?.radius)||0,hitIds:new Set()};
+  const enemy=this.nearest(carrier,config);if(!enemy)return false;
+  if(!EntitySimulationAuthorityService.isLocal(source))return true;
+  const enemyPoint=NetworkCollisionPositionService.point(enemy),direction=Math.atan2(enemyPoint.y-point.y,enemyPoint.x-point.x);
+  if(config.rotationStateKey)ModeStateService.toggle(target,{stateKey:config.rotationStateKey,values:['a','b']});
+  // A real shared projectile delivery inherits speed and remaining range; the pressure never continues beyond the relay.
+  const outgoing={...attack,range:Math.max(0,Number(attack.range)||0)+range-plan.length,modules:attack.modules.map(m=>m.type==='delivery.projectile'?{...m,origin:{type:'point',...point}}:m)};
+  TriggeredAttackService.execute(source,outgoing,direction);return true;
  },
  fireRelay(source,attack,point,angle,key,sequence=0){
   if(!source||!attack||!key||!Number.isFinite(point?.x)||!Number.isFinite(point?.y)||!Number.isFinite(angle))return false;
@@ -108613,6 +112309,7 @@ const ProjectileService={
     return true;
   },
   hitTarget(projectile,target,phase='outbound',contactMode='static'){
+    if(contactMode!=='swept-only'&&typeof PathCarrierService!=='undefined')target=PathCarrierService.projectileTarget(projectile,target);
     const returning=projectile.behavior?.returning;
     const hitIds=
       returning?.sharedHitIds===true
@@ -109042,6 +112739,10 @@ const ProjectileService={
     return ordered;
   },
   processTargets(projectile,index,now){
+    for(const [id] of projectile._relayContacts||[]){
+      const target=EntityService.items.get(id),radius=(Number(projectile.radius)||0)+(Number(target?.radius)||0)+.01;
+      if(!target?.alive||(Math.hypot(projectile.x-target.x,projectile.y-target.y)>radius&&Math.hypot(projectile.prevX-target.x,projectile.prevY-target.y)>radius))projectile._relayContacts.delete(id);
+    }
     const returning=projectile.behavior?.returning;
     const policy=projectile.behavior?.collisionPolicy||CollisionPolicyService.normalize({passWalls:projectile.behavior?.pierce?.walls===true,passEnemies:projectile.behavior?.pierce?.targets===true});
     if(
@@ -109051,7 +112752,10 @@ const ProjectileService={
         projectile.projectile?.collisionTargets===true
       )
     ){
-      for(const target of this.contactOrder(projectile)){
+      for(const contactTarget of this.contactOrder(projectile)){
+        const target=typeof PathCarrierService!=='undefined'&&ProjectileCollisionShapeService.hitsTarget(projectile,contactTarget)
+          ?PathCarrierService.projectileTarget(projectile,contactTarget):contactTarget;
+        if(target?.summonSpec?.projectileRelay&&ProjectileRedirectService.relaySummon(projectile,target,now))return false;
         const relation=
           RelationService.relation(
             projectile.source,
@@ -109071,7 +112775,7 @@ const ProjectileService={
             EntityTargetReferenceService.resolve(
               projectile.targetEntityId
             );
-          if(designated!==target)continue;
+          if(designated!==target&&designated!==contactTarget)continue;
         }
 
         if(configuredRelations){
@@ -109130,7 +112834,7 @@ const ProjectileService={
         const overlapsTarget=
           ProjectileCollisionShapeService.hitsTarget(
             projectile,
-            target
+            contactTarget
           );
         const overlapsJustDodgePath=
           relation==='enemy'&&
@@ -109332,7 +113036,7 @@ const ProjectileService={
         }
 
         const endX=projectile.x,endY=projectile.y,endTravel=projectile.travel;
-        const contact=overlapsTarget?ProjectileCollisionShapeService.contactRatio(projectile,target):1;
+        const contact=overlapsTarget?ProjectileCollisionShapeService.contactRatio(projectile,contactTarget):1;
         const segmentLength=Math.hypot(endX-projectile.prevX,endY-projectile.prevY);
         projectile.x=projectile.prevX+(endX-projectile.prevX)*contact;
         projectile.y=projectile.prevY+(endY-projectile.prevY)*contact;
@@ -113367,6 +117071,7 @@ const Presentation=Object.freeze({
 
     EffectSpawnService.spawn({
       type:'healPulse',
+      color:entity.character?.healPresentation?.color||null,
       x:Number(entity.x)||0,
       y:Number(entity.y)||0,
       r:0,
@@ -113599,7 +117304,7 @@ const StageStatusEffectService=Object.freeze({
 
 const WeightedCircleAttackDeliveryService=Object.freeze({
   execute({
-    source,attack,execution,model,circles=[],impactCircleForTarget=null,
+    source,attack,execution,model,circles=[],distanceFalloff=null,distanceOrigin=null,impactCircleForTarget=null,
     statusStageForTarget=null,statusConfig=null,now=performance.now()
   }={}){
     if(!source||!attack||!execution||!model||!Array.isArray(circles)||!circles.length)return 0;
@@ -113607,6 +117312,15 @@ const WeightedCircleAttackDeliveryService=Object.freeze({
     const executionBaseDamage=Number.isFinite(Number(execution?.sourceBaseDamageSnapshot))
       ?Math.max(0,Number(execution.sourceBaseDamageSnapshot))
       :Math.max(0,Number(source.baseDamage)||0);
+    const origin=distanceOrigin||source;
+    const baseDamageForCircle=distanceFalloff?circle=>{
+      const minimum=Math.min(executionBaseDamage,Math.max(0,Number(distanceFalloff.minBaseDamage)||0));
+      const distance=Math.hypot((Number(circle.x)||0)-(Number(origin.x)||0),(Number(circle.y)||0)-(Number(origin.y)||0));
+      const progress=Math.max(0,Math.min(1,distance/Math.max(1,Number(distanceFalloff.maxDistance)||1)));
+      const raw=executionBaseDamage+(minimum-executionBaseDamage)*progress;
+      const step=Math.max(0,Number(distanceFalloff.step)||0);
+      return step>0?Math.max(minimum,Math.min(executionBaseDamage,Math.ceil((raw-1e-9)/step)*step)):raw;
+    }:null;
     let hitCount=0;
     for(const target of EntityService.items.values()){
       if(!target||target===source||!target.alive||target.hidden||!RelationService.canTarget(source,target,{},attack))continue;
@@ -113626,7 +117340,9 @@ const WeightedCircleAttackDeliveryService=Object.freeze({
       };
       const result=AttackHitTriggerService.damage({
         source,target,attack,execution,impact,
-        amountOverride:executionBaseDamage*Math.max(0,Number(attack.damageRatio)||0)*sourceDamageMultiplier*multiplier
+        amountOverride:(baseDamageForCircle
+          ?Math.max(0,Number(model.multiplierForTarget?.(point.x,point.y,Math.max(0,Number(target.radius)||0),baseDamageForCircle))||0)
+          :executionBaseDamage*multiplier)*Math.max(0,Number(attack.damageRatio)||0)*sourceDamageMultiplier
       });
       if(!result?.hit)continue;
       const deliveryModule={
@@ -113643,7 +117359,396 @@ const WeightedCircleAttackDeliveryService=Object.freeze({
     }
     return hitCount;
   }
+});const AnnularSweepPresentationService=Object.freeze({
+  draw(ctx,f,now,{sweepProgress=null}={}){
+    if(!ctx||!f)return false;
+    const progress=Math.max(0,Math.min(1,(now-Number(f.start))/Math.max(1,Number(f.dur)||1)));
+        ctx.save();
+
+        const hasAnnularClip=
+          Array.isArray(f.points)&&
+          f.points.length>=3;
+        const applyAnnularClip=()=>{
+          if(!hasAnnularClip)return;
+          ctx.beginPath();
+          ctx.moveTo(
+            Number(f.points[0]?.x)||0,
+            Number(f.points[0]?.y)||0
+          );
+          for(
+            let pointIndex=1;
+            pointIndex<f.points.length;
+            pointIndex++
+          ){
+            ctx.lineTo(
+              Number(f.points[pointIndex]?.x)||0,
+              Number(f.points[pointIndex]?.y)||0
+            );
+          }
+          ctx.closePath();
+          ctx.clip();
+        };
+        applyAnnularClip();
+
+        // 기존 듀얼즈 shape.annularDoubleSweep와 동일한 시각 수식.
+        // Duels 3에서는 f.dur가 총 지속시간(ms)이므로 공통 progress를 사용한다.
+        const legacyAlpha=1-progress;
+        const sweepFraction=
+          Math.max(
+            .001,
+            Math.min(
+              .999,
+              Number(f.sweepFraction)||.55
+            )
+          );
+        const sweep=sweepProgress!==null?Math.max(0,Math.min(1,Number(sweepProgress)||0)):
+          Math.min(
+            1,
+            progress/sweepFraction
+          );
+        const fade=
+          progress>sweepFraction
+            ?Math.pow(
+              1-
+              (
+                progress-sweepFraction
+              )/
+              (
+                1-sweepFraction
+              ),
+              Number(f.fadePower)||1.5
+            )
+            :1;
+
+        // 회전 공격은 진행 중 기본 공격과 같은 선명도를 유지하고,
+        // sweep 완료 뒤에만 fade 곡선으로 사라진다. 수명 alpha와 fade를
+        // 중복 곱해 공격 중간부터 과도하게 흐려지는 현상을 만들지 않는다.
+        const visualAlpha=sweepProgress!==null?1:
+          (f.lifetimeAlpha===true?legacyAlpha:1)*
+          (progress>sweepFraction?fade:1);
+
+        const outer=
+          Math.max(
+            1,
+            Number(f.outer)||
+            Number(f.r)||
+            60
+          );
+        const inner=
+          Math.max(
+            0,
+            Number(f.inner)||0
+          );
+        const angle=
+          (Number.isFinite(Number(f.angle))
+            ?Number(f.angle)
+            :-Math.PI/2)+
+          (Number(f.startAngleOffset)||0);
+        const span=
+          Number.isFinite(Number(f.halfAngle))
+            ?Number(f.halfAngle)
+            :(
+              Number.isFinite(Number(f.span))
+                ?Number(f.span)
+                :Math.PI
+            );
+        const hitColor=
+          ColorService.rgbString(
+            f.hitColor||
+            (
+              f.empow
+                ?(
+                  f.empoweredColor||
+                  '255,160,40'
+                )
+                :(
+                  f.color||
+                  '180,180,200'
+                )
+            ),
+            '180,180,200'
+          );
+        const safeColor=
+          ColorService.rgbString(
+            f.safeColor,
+            '80,80,100'
+          );
+
+        const sweepCount=Math.max(
+          1,
+          Math.floor(Number(f.sweepCount)||2)
+        );
+        const clockwise=
+          String(f.sweepDirection||'clockwise')!==
+          'counterclockwise';
+
+        for(let index=0;index<sweepCount;index++){
+          const converge=
+            f.converge===true;
+
+          // 기본(Tau): 서로 반대편 시작점에서 같은 방향으로 sweep.
+          // sweepCount:1은 하나의 회전 공격이 지정 span 전체를 순회한다.
+          // converge: 지정된 최종 부채꼴의 양 끝에서 중앙을 향해 각각 sweep.
+          const finalStart=
+            angle-span;
+          const finalEnd=
+            angle+span;
+          const startAngle=
+            converge
+              ?(
+                index===0
+                  ?finalStart
+                  :finalEnd
+              )
+              :angle+index*(Math.PI*2/sweepCount);
+          const signedSweep=
+            span*sweep*(clockwise?1:-1);
+          const endAngle=
+            converge
+              ?(
+                index===0
+                  ?finalStart+span*sweep
+                  :finalEnd-span*sweep
+              )
+              :startAngle+signedSweep;
+          const counterClockwise=
+            converge
+              ?index===1
+              :!clockwise;
+
+          if(inner>0){
+            ctx.beginPath();
+            ctx.moveTo(f.x,f.y);
+            ctx.arc(
+              f.x,
+              f.y,
+              inner,
+              startAngle,
+              endAngle,
+              counterClockwise
+            );
+            ctx.closePath();
+            ctx.fillStyle=
+              `rgba(${safeColor},${visualAlpha*Math.max(0,Number(f.safeFillAlpha)||.1)})`;
+            ctx.fill();
+            ctx.setLineDash(
+              Array.isArray(f.safeDash)
+                ?f.safeDash
+                :[5,4]
+            );
+            ctx.strokeStyle=
+              `rgba(${safeColor},${visualAlpha*Math.max(0,Number(f.safeStrokeAlpha)||.55)})`;
+            ctx.lineWidth=
+              Math.max(
+                .5,
+                Number(f.safeLineWidth)||1.5
+              );
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+
+          const hitFillAlpha=
+            visualAlpha*
+            Math.max(
+              0,
+              Number(f.fillAlpha)||.28
+            );
+          const hitStrokeAlpha=
+            visualAlpha*
+            Math.max(
+              0,
+              Number(f.strokeAlpha)||.95
+            );
+          const visibleLineWidth=
+            Math.max(
+              .5,
+              Number(f.lineWidth)||2.5
+            );
+
+          if(inner<=0&&f.edgeLine===false){
+            /*
+              중심까지 닫는 sector path는 fill 경계에 방사형 seam을 만들 수 있다.
+              중심이 0인 edge-less sweep은 두꺼운 원호 stroke로 면을 채워
+              시작/끝 방사선을 path 자체에서 제거한다.
+            */
+            ctx.save();
+            ctx.lineCap='butt';
+            ctx.beginPath();
+            ctx.arc(
+              f.x,
+              f.y,
+              outer*.5,
+              startAngle,
+              endAngle,
+              counterClockwise
+            );
+            ctx.strokeStyle=
+              `rgba(${hitColor},${hitFillAlpha})`;
+            ctx.lineWidth=outer;
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.beginPath();
+            ctx.arc(
+              f.x,
+              f.y,
+              outer,
+              startAngle,
+              endAngle,
+              counterClockwise
+            );
+            ctx.strokeStyle=
+              `rgba(${hitColor},${hitStrokeAlpha})`;
+            ctx.lineWidth=visibleLineWidth;
+            if(!hasAnnularClip||f.clipMaskOnly===true)ctx.stroke();
+          }else{
+            ctx.beginPath();
+            ctx.arc(
+              f.x,
+              f.y,
+              outer,
+              startAngle,
+              endAngle,
+              counterClockwise
+            );
+            if(inner>0){
+              ctx.arc(
+                f.x,
+                f.y,
+                inner,
+                endAngle,
+                startAngle,
+                !counterClockwise
+              );
+            }else{
+              ctx.lineTo(f.x,f.y);
+            }
+            ctx.closePath();
+            ctx.fillStyle=
+              `rgba(${hitColor},${hitFillAlpha})`;
+            ctx.fill();
+            ctx.strokeStyle=
+              `rgba(${hitColor},${hitStrokeAlpha})`;
+            ctx.lineWidth=visibleLineWidth;
+            if(f.edgeLine===false){
+              ctx.beginPath();
+              ctx.arc(
+                f.x,
+                f.y,
+                outer,
+                startAngle,
+                endAngle,
+                counterClockwise
+              );
+              if(!hasAnnularClip||f.clipMaskOnly===true)ctx.stroke();
+              if(inner>0){
+                ctx.beginPath();
+                ctx.arc(
+                  f.x,
+                  f.y,
+                  inner,
+                  startAngle,
+                  endAngle,
+                  counterClockwise
+                );
+                if(!hasAnnularClip||f.clipMaskOnly===true)ctx.stroke();
+              }
+            }else if(!hasAnnularClip){
+              ctx.stroke();
+            }
+          }
+
+          if(f.edgeLine===true&&Math.abs(endAngle-startAngle)>1e-5){
+            const edgeColor=ColorService.rgbString(f.edgeColor,'255,255,255');
+            const edgeAlpha=Math.max(0,Math.min(1,Number.isFinite(Number(f.edgeAlpha))?Number(f.edgeAlpha):.75));
+            const edgeLineWidth=Math.max(.5,Number(f.edgeLineWidth)||2.5);
+            ctx.beginPath();
+            ctx.moveTo(
+              f.x+Math.cos(endAngle)*inner,
+              f.y+Math.sin(endAngle)*inner
+            );
+            ctx.lineTo(
+              f.x+Math.cos(endAngle)*outer,
+              f.y+Math.sin(endAngle)*outer
+            );
+            ctx.strokeStyle=`rgba(${edgeColor},${visualAlpha*edgeAlpha})`;
+            ctx.lineWidth=edgeLineWidth;
+            ctx.setLineDash([]);
+            ctx.stroke();
+          }
+
+
+
+        }
+
+        /*
+          clipToAttackArea가 있는 회전 공격은 완성된 polygon 윤곽을 시작 프레임부터
+          미리 그리지 않는다. 스야 arcSweep과 동일하게 현재 sweep 각도만큼의 geometry를
+          다시 만들고 그 polygon을 stroke해 외곽선과 벽 절단면이 애니메이션 진행과 함께
+          생성되도록 한다.
+        */
+        if(hasAnnularClip&&sweep>0&&f.clipMaskOnly!==true){
+          // clip 마스크 바깥에서 현재 geometry 윤곽을 그려 벽 절단선이 반쪽으로 잘리지 않게 한다.
+          ctx.restore();
+          ctx.save();
+          for(let index=0;index<sweepCount;index++){
+            const converge=f.converge===true;
+            const finalStart=angle-span;
+            const finalEnd=angle+span;
+            const startAngle=
+              converge
+                ?(index===0?finalStart:finalEnd)
+                :angle+index*(Math.PI*2/sweepCount);
+            const signedSweep=span*sweep*(clockwise?1:-1);
+            const endAngle=
+              converge
+                ?(index===0?finalStart+span*sweep:finalEnd-span*sweep)
+                :startAngle+signedSweep;
+            const counterClockwise=converge?index===1:!clockwise;
+            const currentPoints=
+              ProgressiveClippedAreaOutlinePresentationService
+                .annularSweepPoints(
+                  f,
+                  startAngle,
+                  endAngle,
+                  outer,
+                  inner,
+                  counterClockwise
+                );
+            ProgressiveClippedAreaOutlinePresentationService.strokePolygon(
+              ctx,
+              currentPoints,
+              {
+                color:hitColor,
+                alpha:visualAlpha*Math.max(0,Number(f.strokeAlpha)||.95),
+                lineWidth:Math.max(.5,Number(f.lineWidth)||2.5)
+              }
+            );
+          }
+        }
+
+        const integratedCuts=Array.isArray(f.wallCutSegments)?f.wallCutSegments:[];
+        if(integratedCuts.length){
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          for(const segment of integratedCuts){
+            const ax=Number(segment?.ax),ay=Number(segment?.ay),bx=Number(segment?.bx),by=Number(segment?.by);
+            if(![ax,ay,bx,by].every(Number.isFinite))continue;
+            ctx.moveTo(ax,ay);
+            ctx.lineTo(bx,by);
+          }
+          ctx.strokeStyle=`rgba(${hitColor},${visualAlpha*Math.max(0,Math.min(1,Number(f.strokeAlpha)||.95))})`;
+          ctx.lineWidth=Math.max(.5,Number(f.lineWidth)||2.5);
+          ctx.lineCap='round';
+          ctx.lineJoin='round';
+          ctx.stroke();
+        }
+        ctx.restore();
+
+    return true;
+  }
 });
+
 
 const CircleFormationService=Object.freeze({
   states:new WeakMap(),
@@ -113693,6 +117798,58 @@ const CircleFormationService=Object.freeze({
     return state;
   },
 
+
+  templateCircles(entity){
+    const state=this.state(entity,false);
+    if(!state)return this.EMPTY;
+    return this.isLocalEntity(entity)?state.circles:state.remoteCircles;
+  },
+  circleCount(entity){return this.templateCircles(entity).length;},
+  attackCost(entity,attack){return Math.max(0,Number(attack.formationCost?.perCircle)||0)*this.circleCount(entity);},
+  view(){
+    const canvas=Training.canvas||GAME_DATA.canvas||{};
+    const cam=Training.cameraState||{x:0,y:0};
+    const zoom=Math.max(.01,(Training.spectatorZoom?.()||1)*(typeof CameraFovService!=='undefined'?CameraFovService.scale(performance.now()):1));
+    return {x:(Number(cam.x)||0)+(Number(canvas.width)||0)/2,y:(Number(cam.y)||0)+(Number(canvas.height)||0)/2,zoom,width:Number(canvas.width)||0,height:Number(canvas.height)||0};
+  },
+  editingScale(entity){return Math.max(.01,Number(this.config(entity)?.editingScale)||1);},
+  templateBounds(entity){
+    const view=this.view(),scale=this.editingScale(entity);
+    return {x:view.width>0?view.width/2/scale:Infinity,y:view.height>0?view.height/2/scale:Infinity};
+  },
+  constrainCenter(entity,point){
+    if(!this.config(entity)?.constrainCentersToView)return {...point};
+    const bounds=this.templateBounds(entity);
+    return {...point,x:Math.max(-bounds.x,Math.min(bounds.x,point.x)),y:Math.max(-bounds.y,Math.min(bounds.y,point.y))};
+  },
+  templatePointer(entity){
+    const point=this.pointerFor(entity),view=this.view();
+    const scale=this.editingScale(entity);
+    return this.constrainCenter(entity,{x:(point.x-view.x)*view.zoom/scale,y:(point.y-view.y)*view.zoom/scale});
+  },
+  displayTemplate(circles,entity=Training.player){
+    const view=this.view(),scale=this.editingScale(entity);
+    return this.cloneCircles(circles).map(c=>({...c,x:view.x+c.x*scale/view.zoom,y:view.y+c.y*scale/view.zoom,r:c.r*scale/view.zoom,templateScale:scale/view.zoom}));
+  },
+  boundsCenter(circles){
+    if(!circles.length)return {x:0,y:0};
+    return {
+      x:(Math.min(...circles.map(c=>c.x-c.r))+Math.max(...circles.map(c=>c.x+c.r)))/2,
+      y:(Math.min(...circles.map(c=>c.y-c.r))+Math.max(...circles.map(c=>c.y+c.r)))/2
+    };
+  },
+  revealProgress(start,end,now){
+    return Math.max(0,Math.min(1,(now-start)/Math.max(1,end-start)));
+  },
+  castTemplate(entity,pointer){
+    const list=this.templateCircles(entity);
+    if(!list.length)return [];
+    const zoom=this.view().zoom,scale=Math.max(.01,Number(this.config(entity)?.castingScale)||1);
+    const center=this.boundsCenter(list);
+    const relative=list.map(c=>({dx:(c.x-center.x)*scale/zoom,dy:(c.y-center.y)*scale/zoom,r:c.r*scale/zoom,order:c.order,templateScale:scale/zoom}));
+    return this.cloneRelative(relative,pointer.x,pointer.y,`${entity.id}:template`);
+  },
+
   pointerFor(entity,fallback=null){
     if(
       fallback&&
@@ -113705,11 +117862,11 @@ const CircleFormationService=Object.freeze({
       this.isLocalEntity(entity)&&
       Training.active
     ){
-      const point=Training.mouseWorld();
-      return {
-        x:Number(point.x)||0,
-        y:Number(point.y)||0
-      };
+      const point=Training.mouseWorld(null,{allowOutsideWorld:true});
+      const cam=Training.cameraState||{},canvas=Training.canvas||GAME_DATA.canvas||{};
+      const fov=typeof CameraFovService!=='undefined'?Math.max(.01,CameraFovService.scale(performance.now())):1;
+      const cx=(Number(cam.x)||0)+(Number(canvas.width)||0)/2,cy=(Number(cam.y)||0)+(Number(canvas.height)||0)/2;
+      return {x:cx+((Number(point.x)||0)-cx)/fov,y:cy+((Number(point.y)||0)-cy)/fov};
     }
     const remote=entity?._remoteAimTargetPoint;
     if(
@@ -113732,6 +117889,7 @@ const CircleFormationService=Object.freeze({
       x:Number(circle?.x)||0,
       y:Number(circle?.y)||0,
       r:Math.max(0,Number(circle?.r)||0),
+      templateScale:Math.max(.001,Number(circle?.templateScale)||1),
       order:Math.max(0,Number(circle?.order)||index+1)
     };
   },
@@ -113751,6 +117909,7 @@ const CircleFormationService=Object.freeze({
       dx:circle.x-cx,
       dy:circle.y-cy,
       r:circle.r,
+      templateScale:circle.templateScale,
       order:Number(circle.order)||index+1
     }));
   },
@@ -113764,6 +117923,7 @@ const CircleFormationService=Object.freeze({
         x:Number(cx)+(Number(circle?.dx)||0),
         y:Number(cy)+(Number(circle?.dy)||0),
         r:Math.max(0,Number(circle?.r)||0),
+        templateScale:Math.max(.001,Number(circle?.templateScale)||1),
         order:Number(circle?.order)||index+1
       }));
   },
@@ -113820,7 +117980,7 @@ const CircleFormationService=Object.freeze({
   isMinimum(entity,circle){
     return Math.abs(
       (Number(circle?.r)||0)-
-      this.minRadius(entity)
+      this.minRadius(entity)*(Number(circle?.templateScale)||1)
     )<=Math.max(
       .01,
       Number(
@@ -114290,6 +118450,8 @@ const CircleFormationService=Object.freeze({
 
     return {
       sourceIds,
+      sourceContributionByCircle,
+      stackBySource:Number(this.config(entity)?.amplifier?.durationPerSource)>0,
       minimumIds,
       containedSources,
       stageByCircle,
@@ -114554,7 +118716,8 @@ const CircleFormationService=Object.freeze({
     const multiplierForTarget=(
       x,
       y,
-      radius=0
+      radius=0,
+      baseDamageForCircle=null
     )=>{
       const targetCircle={
         x:Number(x)||0,
@@ -114573,9 +118736,8 @@ const CircleFormationService=Object.freeze({
         ){
           best=Math.max(
             best,
-            circleMultiplierById.get(
-              String(circle.id)
-            )??1
+            (circleMultiplierById.get(String(circle.id))??1)*
+            (baseDamageForCircle?baseDamageForCircle(circle):1)
           );
         }
       }
@@ -114590,12 +118752,8 @@ const CircleFormationService=Object.freeze({
         ){
           best=Math.max(
             best,
-            crossMultiplierByPair.get(
-              this.pairKey(
-                relation.a,
-                relation.b
-              )
-            )??this.config(entity).damage.intersectionBase
+            (crossMultiplierByPair.get(this.pairKey(relation.a,relation.b))??this.config(entity).damage.intersectionBase)*
+            (baseDamageForCircle?Math.max(baseDamageForCircle(relation.a),baseDamageForCircle(relation.b)):1)
           );
         }
       }
@@ -114795,16 +118953,11 @@ const CircleFormationService=Object.freeze({
       !state||
       !config||
       !attack||
-      state.circles.length>=this.maxCount(entity)
+      !entity.alive
     )return false;
+    if(state.circles.length>=this.maxCount(entity)){state.limitPreview={circle:{...circle},endAt:now+400};return false;}
 
-    if(
-      !this.commitUtility(
-        entity,
-        attack,
-        now
-      )
-    )return false;
+    if(!entity.alive||CombatStatsService.current(entity,now).canAct!==true)return false;
 
     const minRadius=
       Math.max(0,Number(config.minRadius)||0);
@@ -114817,12 +118970,13 @@ const CircleFormationService=Object.freeze({
       )
     );
 
+    const center=this.constrainCenter(entity,{x:Number(circle?.x)||0,y:Number(circle?.y)||0});
     state.circleOrder++;
     state.circles.push({
       id:
         `${String(entity.id)}:${String(state.formationKey)}:${state.circleOrder}`,
-      x:Number(circle?.x)||0,
-      y:Number(circle?.y)||0,
+      x:center.x,
+      y:center.y,
       r:radius,
       order:state.circleOrder
     });
@@ -114868,333 +119022,43 @@ const CircleFormationService=Object.freeze({
   },
 
   press(entity,slot,now=performance.now()){
-    const config=this.config(entity);
-    const state=this.state(entity);
-    if(
-      !config||
-      !state||
-      !entity?.alive||
-      CombatStatsService.current(entity,now)
-        .canAct!==true
-    )return false;
-
-    const pointer=this.pointerFor(entity);
-
-    if(
-      String(slot)===
-      String(config.circle?.input||'')
-    ){
-      const cast=state.activation;
-      if(cast?.phase==='input'){
-        this.cancelActivation(
-          entity,
-          'cross-input-remove'
-        );
-
-        if(
-          this.removeAtPointer(
-            entity,
-            pointer
-          )
-        ){
-          this.commitUtility(
-            entity,
-            this.utilityAttack(
-              entity,
-              'remove'
-            ),
-            now
-          );
-        }
-
-        state.circleInput={
-          mode:'consumed'
-        };
-        return true;
-      }
-
-      if(cast){
-        state.circleInput={
-          mode:'consumed'
-        };
-        return true;
-      }
-
-      const picked=this.circleAtPointer(
-        state.circles,
-        pointer
-      );
-      state.circleInput={
-        mode:'pending',
-        startAt:now,
-        start:{...pointer},
-        last:{...pointer},
-        createStart:null,
-        circle:picked||null,
-        preview:null,
-        moved:false,
-        dragIntent:false,
-        dragStarted:false,
-        holdOrigin:{...pointer},
-        limitBlocked:
-          state.circles.length>=
-          this.maxCount(entity)
-      };
+    const config=this.config(entity),state=this.state(entity);
+    if(!config||!state||!entity.alive||CombatStatsService.current(entity,now).canAct!==true)return false;
+    if(slot===config.circle.input){
+      if(state.activation||entity.counterWindup)return false;
+      const pointer=this.templatePointer(entity),circle=this.circleAtPointer(state.circles,pointer);
+      state.circleInput={mode:'pending',startAt:now,start:{...pointer},last:{...pointer},circle,
+        selectedIds:this.connectedIds(entity,new Set(circle?[String(circle.id)]:[]),state.circles),preview:null};
       return true;
     }
-
-    if(
-      String(slot)===
-      String(config.activation?.input||'')
-    ){
-      const existing=state.activation;
-
-      if(existing?.phase==='input'){
-        if(existing.held)return true;
-
-        const previous=
-          this.cancelActivation(
-            entity,
-            'same-input-recast'
-          );
-        const saved=
-          state.lastFormation.length
-            ?state.lastFormation
-            :previous?.previousFormation||[];
-
-        const spellbook=
-          this.utilityAttack(
-            entity,
-            'spellbook'
-          );
-
-        if(
-          saved.length&&
-          this.commitUtility(
-            entity,
-            spellbook,
-            now
-          )
-        ){
-          const restored=
-            this.cloneRelative(
-              saved,
-              pointer.x,
-              pointer.y,
-              `${entity.id}:spellbook`
-            ).slice(
-              0,
-              this.maxCount(entity)
-            );
-          state.circles=restored;
-          state.circleOrder=Math.max(
-            state.circleOrder,
-            ...restored.map(
-              circle=>Number(circle.order)||0
-            ),
-            0
-          );
-        }
-        return true;
-      }
-
-      if(existing)return true;
-
-      return this.beginActivation(
-        entity,
-        pointer,
-        {
-          held:true,
-          now
-        }
-      );
-    }
-
+    if(slot===config.activation.input)return this.beginActivation(entity,this.pointerFor(entity),{now});
     return false;
   },
 
-  release(
-    entity,
-    slot,
-    triggerRelease=true,
-    now=performance.now()
-  ){
-    const config=this.config(entity);
-    const state=this.state(entity,false);
-    if(!config||!state)return false;
-
-    if(
-      String(slot)===
-      String(config.circle?.input||'')
-    ){
-      const input=state.circleInput;
-      state.circleInput=null;
-
-      if(!triggerRelease){
-        return true;
-      }
-
-      if(
-        !input||
-        input.mode==='consumed'
-      )return true;
-
-      if(input.mode==='move'){
-        return true;
-      }
-
-      let creation=null;
-
-      if(
-        input.mode==='create'&&
-        input.preview
-      ){
-        creation={...input.preview};
-      }else if(input.mode==='pending'){
-        creation={
-          x:Number(input.start.x)||0,
-          y:Number(input.start.y)||0,
-          r:this.minRadius(entity)
-        };
-      }
-
-      if(creation){
-        if(
-          state.circles.length>=
-          this.maxCount(entity)
-        ){
-          state.limitPreview={
-            ...creation,
-            endAt:now+280
-          };
-          return true;
-        }
-
-        this.placeCircle(
-          entity,
-          creation,
-          now
-        );
-      }
-      return true;
-    }
-
-    if(
-      String(slot)===
-      String(config.activation?.input||'')
-    ){
-      const cast=state.activation;
-      if(!cast)return true;
-
-      if(!triggerRelease){
-        this.cancelActivation(
-          entity,
-          'input-reset'
-        );
-        return true;
-      }
-
-      cast.held=false;
-
-      if(cast.phase==='move'){
-        this.finishGroupMove(
-          entity,
-          now
-        );
-      }
-      return true;
-    }
-
-    return false;
-  },
-
-  beginActivation(
-    entity,
-    pointer,
-    {
-      held=false,
-      now=performance.now()
-    }={}
-  ){
-    const state=this.state(entity);
-    const config=this.config(entity);
+  release(entity,slot,triggerRelease=true,now=performance.now()){
+    const state=this.state(entity,false),config=this.config(entity);
     if(!state||!config)return false;
+    if(slot===config.activation.input)return true;
+    if(slot!==config.circle.input)return false;
+    if(triggerRelease)this.updateCircleInput(entity,state,now);
+    const input=state.circleInput;state.circleInput=null;
+    if(!triggerRelease||!input||!entity.alive||CombatStatsService.current(entity,now).canAct!==true)return true;
+    if(input.mode==='create'&&input.preview)this.placeCircle(entity,input.preview,now);
+    else if(input.mode==='pending'&&input.circle)this.removeAtPointer(entity,input.start);
+    return true;
+  },
 
-    if(state.activation)return false;
-
-    const lmbAttack=
-      this.utilityAttack(entity,'lmb');
-    if(!lmbAttack)return false;
-
-    const prepared=
-      AugmentService.prepareAttack(
-        entity,
-        ProgressScaledAttackService.resolve(
-          entity,
-          lmbAttack
-        ),
-        now
-      );
-
-    if(
-      !entity.alive||
-      CombatStatsService.current(entity,now)
-        .canAct!==true||
-      !AttackService.cooldownReady(
-        entity,
-        prepared,
-        now
-      )
-    )return false;
-
-    const currentCircles=
-      this.cloneCircles(
-        state.circles,
-        'activation-current'
-      );
-    const hasSavedFormation=
-      Array.isArray(state.lastFormation)&&
-      state.lastFormation.length>0;
-    if(
-      !currentCircles.length&&
-      !hasSavedFormation
-    )return false;
-
-    const picked=this.circlesAtPointer(
-      state.circles,
-      pointer
-    );
-    const selectedIds=this.connectedIds(
-      entity,
-      new Set(
-        picked.map(circle=>String(circle.id))
-      ),
-      state.circles
-    );
-    const inputWindow=Math.max(
-      1,
-      Number(
-        config.activation?.inputWindowMs
-      )||200
-    );
-
-    state.activation={
-      phase:'input',
-      startedAt:now,
-      inputUntil:now+inputWindow,
-      held:held===true,
-      pointer:{...pointer},
-      selectedIds,
-      activationCircles:currentCircles,
-      previousFormation:
-        state.lastFormation.map(
-          item=>({...item})
-        ),
-      moveLast:{...pointer},
-      holdOrigin:{...pointer},
-      moveStarted:false
-    };
-
+  beginActivation(entity,pointer,{now=performance.now()}={}){
+    const state=this.state(entity),config=this.config(entity),base=this.utilityAttack(entity,'lmb');
+    if(!state||!config||!base||!state.circles.length||state.activation||entity.counterWindup)return false;
+    const prepared=AugmentService.prepareAttack(entity,{...base,cost:this.attackCost(entity,base)},now);
+    if(!entity.alive||CombatStatsService.current(entity,now).canAct!==true||!AttackService.cooldownReady(entity,prepared,now)||!StaminaService.canSpend(entity,prepared.cost,now))return false;
+    if(!StaminaService.spend(entity,prepared.cost,now))return false;
+    state.circleInput=null;
+    state.activation={preparedAttack:prepared,resourcePrepaid:true,phase:'reveal',startedAt:now,revealStartedAt:now,
+      revealUntil:now+Math.max(0,Number(config.activation.revealMs)||0),
+      activationCircles:this.castTemplate(entity,pointer),pointer:{...pointer},held:false};
+    state.revealStartedAt=now;state.revealUntil=state.activation.revealUntil;
     return true;
   },
 
@@ -115326,229 +119190,37 @@ const CircleFormationService=Object.freeze({
   },
 
   updateCircleInput(entity,state,now){
-    const input=state.circleInput;
-    const config=this.circleConfig(entity);
-    if(
-      !input||
-      input.mode==='consumed'||
-      !config
-    )return false;
-
-    const pointer=this.pointerFor(entity);
-
+    const input=state.circleInput,config=this.circleConfig(entity);
+    if(!input||!config)return false;
+    if(CombatStatsService.current(entity,now).canAct!==true){state.circleInput=null;return false;}
+    const pointer=this.templatePointer(entity),elapsed=now-input.startAt;
     if(input.mode==='pending'){
-      const distance=Math.hypot(
-        pointer.x-input.start.x,
-        pointer.y-input.start.y
-      );
-      const intentDistance=Math.max(
-        0,
-        Number(config.dragIntentDistance)||5
-      );
-      const startDistance=Math.max(
-        intentDistance,
-        Number(config.dragStartDistance)||12
-      );
-
-      if(distance>=intentDistance){
-        input.dragIntent=true;
-      }
-
-      if(distance>=startDistance){
-        const holdMs=Math.max(
-          1,
-          Number(config.moveHoldMs)||150
-        );
-
-        if(now-input.startAt<holdMs){
-          input.mode='create';
-          input.createStart={...input.start};
-        }else if(input.circle){
-          input.mode='move';
-          input.last={...input.start};
-          input.holdOrigin={...input.start};
-          input.dragStarted=true;
-          input.moved=true;
-        }
-      }
+      if(input.circle&&elapsed>=Math.max(1,Number(config.moveHoldMs)||150)){
+        input.mode='move';input.last={...input.start};
+      }else if(Math.hypot(pointer.x-input.start.x,pointer.y-input.start.y)>=Math.max(1,Number(config.dragStartDistance)||12))input.mode='create';
     }
-
     if(input.mode==='create'){
-      const origin=
-        input.createStart||
-        input.start;
-      const distance=Math.hypot(
-        pointer.x-origin.x,
-        pointer.y-origin.y
-      );
-      const minRadius=Math.max(
-        0,
-        Number(config.minRadius)||0
-      );
-      const maxRadius=this.maxRadius(entity,now);
-      const radius=Math.max(
-        minRadius,
-        Math.min(maxRadius,distance/2)
-      );
-
-      input.preview={
-        x:(origin.x+pointer.x)/2,
-        y:(origin.y+pointer.y)/2,
-        r:radius
-      };
+      const radius=Math.max(this.minRadius(entity),Math.min(this.maxRadius(entity,now),Math.hypot(pointer.x-input.start.x,pointer.y-input.start.y)/2));
+      input.preview={x:(pointer.x+input.start.x)/2,y:(pointer.y+input.start.y)/2,r:radius};
+    }else if(input.mode==='move'){
+      let dx=pointer.x-input.last.x,dy=pointer.y-input.last.y;
+      const selected=state.circles.filter(c=>input.selectedIds.has(String(c.id)));
+      if(this.config(entity)?.constrainCentersToView&&selected.length){
+        const bounds=this.templateBounds(entity);
+        dx=Math.max(-bounds.x-Math.min(...selected.map(c=>c.x)),Math.min(bounds.x-Math.max(...selected.map(c=>c.x)),dx));
+        dy=Math.max(-bounds.y-Math.min(...selected.map(c=>c.y)),Math.min(bounds.y-Math.max(...selected.map(c=>c.y)),dy));
+      }
+      for(const circle of selected){circle.x+=dx;circle.y+=dy;}
       input.last={...pointer};
-      return true;
     }
-
-    if(
-      input.mode==='move'&&
-      input.circle
-    ){
-      const deadzone=Math.max(
-        0,
-        Number(config.holdMoveDeadzone)||10
-      );
-      const origin=input.holdOrigin||input.start;
-
-      if(
-        !input.dragStarted&&
-        Math.hypot(
-          pointer.x-origin.x,
-          pointer.y-origin.y
-        )>=deadzone
-      ){
-        input.dragStarted=true;
-      }
-
-      if(input.dragStarted){
-        const dx=pointer.x-input.last.x;
-        const dy=pointer.y-input.last.y;
-        const distance=Math.hypot(dx,dy);
-        const factor=
-          distance<.35
-            ?1
-            :Math.min(
-              .58,
-              .22+distance/180
-            );
-        const mx=dx*factor;
-        const my=dy*factor;
-
-        if(Math.abs(mx)+Math.abs(my)>.001){
-          input.circle.x+=mx;
-          input.circle.y+=my;
-          input.last={
-            x:input.last.x+mx,
-            y:input.last.y+my
-          };
-          input.moved=true;
-        }
-      }
-      return true;
-    }
-
-    return false;
+    return true;
   },
 
   updateActivation(entity,state,now){
     const cast=state.activation;
-    const config=this.config(entity);
-    if(!cast||!config)return false;
-
-    if(
-      cast.phase==='input'&&
-      now>=cast.inputUntil
-    ){
-      if(cast.held){
-        if(!cast.selectedIds?.size){
-          this.cancelActivation(
-            entity,
-            'hold-outside-circle'
-          );
-          return false;
-        }
-
-        cast.phase='move';
-        cast.moveLast={...cast.pointer};
-        cast.holdOrigin={...cast.pointer};
-        cast.moveStarted=false;
-      }else{
-        this.beginReveal(
-          entity,
-          cast,
-          now
-        );
-      }
-    }
-
-    if(cast.phase==='move'){
-      const pointer=this.pointerFor(entity);
-      const deadzone=Math.max(
-        0,
-        Number(
-          config.activation?.holdMoveDeadzone
-        )||10
-      );
-      const origin=
-        cast.holdOrigin||
-        cast.pointer;
-
-      if(
-        !cast.moveStarted&&
-        Math.hypot(
-          pointer.x-origin.x,
-          pointer.y-origin.y
-        )>=deadzone
-      ){
-        cast.moveStarted=true;
-      }
-
-      if(cast.moveStarted){
-        const dx=pointer.x-cast.moveLast.x;
-        const dy=pointer.y-cast.moveLast.y;
-        const distance=Math.hypot(dx,dy);
-        const factor=
-          distance<.35
-            ?1
-            :Math.min(
-              .58,
-              .22+distance/180
-            );
-        const mx=dx*factor;
-        const my=dy*factor;
-
-        if(Math.abs(mx)+Math.abs(my)>.001){
-          for(const circle of state.circles){
-            if(
-              cast.selectedIds.has(
-                String(circle.id)
-              )
-            ){
-              circle.x+=mx;
-              circle.y+=my;
-            }
-          }
-          cast.moveLast={
-            x:cast.moveLast.x+mx,
-            y:cast.moveLast.y+my
-          };
-        }
-      }
-      return true;
-    }
-
-    if(
-      cast.phase==='reveal'&&
-      now>=cast.revealUntil
-    ){
-      this.resolveActivation(
-        entity,
-        cast,
-        now
-      );
-      return true;
-    }
-
+    if(!cast)return false;
+    if(!entity.alive){this.cancelActivation(entity,'dead');return false;}
+    if(now>=cast.revealUntil)this.resolveActivation(entity,cast,now);
     return true;
   },
 
@@ -115559,6 +119231,7 @@ const CircleFormationService=Object.freeze({
     if(!entity?.alive){
       if(!state.clearedForDeath){
         state.circles.length=0;
+        state.remoteCircles.length=0;state.remotePreview=null;state.remoteManifestPreview=[];
         state.circleInput=null;
         state.activation=null;
         state.revealStartedAt=0;
@@ -115573,6 +119246,9 @@ const CircleFormationService=Object.freeze({
 
     state.clearedForDeath=false;
 
+    if(this.isLocalEntity(entity)&&this.config(entity)?.constrainCentersToView){
+      for(const circle of state.circles)Object.assign(circle,this.constrainCenter(entity,circle));
+    }
     this.updateCircleInput(
       entity,
       state,
@@ -115619,8 +119295,8 @@ const CircleFormationService=Object.freeze({
 
     if(!circles.length)return false;
 
-    const attack=
-      this.utilityAttack(entity,'lmb');
+    const base=this.utilityAttack(entity,'lmb');
+    const attack=cast.preparedAttack||(base?{...base,cost:this.attackCost(entity,base)}:null);
     if(!attack)return false;
 
     const pointerCenter={
@@ -115650,7 +119326,8 @@ const CircleFormationService=Object.freeze({
       AttackService.execute(
         entity,
         attack,
-        angle
+        angle,
+        {preparedSpec:cast.resourcePrepaid===true,resourcePrepaid:cast.resourcePrepaid===true,completedWindup:true}
       );
 
     if(!executed){
@@ -115666,7 +119343,6 @@ const CircleFormationService=Object.freeze({
 
     state.lastFormation=
       this.snapshotRelative(circles);
-    state.circles.length=0;
     this.createBurst(
       entity,
       circles,
@@ -115718,6 +119394,13 @@ const CircleFormationService=Object.freeze({
     if(!state)return [];
 
     const sourceMode=String(module?.source||'placed');
+    if(sourceMode==='template'){
+      if(state.pendingManifest?.source==='last'){
+        const list=this.cloneCircles(state.pendingManifest.circles);state.pendingManifest=null;return list;
+      }
+      return this.castTemplate(entity,this.pointerFor(entity,execution?.targetPoint));
+    }
+
     if(
       sourceMode==='pending'&&state.pendingManifest?.circles?.length
     ){
@@ -115817,6 +119500,7 @@ const CircleFormationService=Object.freeze({
       Number(target?.radius)||0
     );
     let stage=0;
+    const sources=new Map();
 
     for(const circle of model.list){
       if(
@@ -115826,6 +119510,9 @@ const CircleFormationService=Object.freeze({
         )<=
         radius+circle.r
       ){
+        if(model.amplifier.stackBySource){
+          for(const [sourceId,weight] of model.amplifier.sourceContributionByCircle.get(String(circle.id))||[])sources.set(sourceId,Math.max(sources.get(sourceId)||0,Number(weight)||0));
+        }
         stage=Math.max(
           stage,
           Number(
@@ -115837,12 +119524,16 @@ const CircleFormationService=Object.freeze({
         );
       }
     }
-    return stage;
+    return model.amplifier.stackBySource?[...sources.values()].reduce((sum,weight)=>sum+weight,0):stage;
   },
 
   amplifierStatusConfig(entity){
     const config=this.config(entity)?.amplifier||{};
     const duration=Math.max(0,Number(config.duration)||0);
+    if(Number(config.durationPerSource)>0&&config.status){
+      return {sourceId:`${String(entity?.id||'source')}:formation-amplifier`,
+        stages:Array.from({length:Math.max(1,Number(config.maxStage)||1)},(_,index)=>({stage:index+1,status:String(config.status),duration:(index+1)*Number(config.durationPerSource)}))};
+    }
     return {
       sourceId:`${String(entity?.id||'source')}:formation-amplifier`,
       duration,
@@ -115874,6 +119565,8 @@ const CircleFormationService=Object.freeze({
       execution,
       model,
       circles,
+      distanceFalloff:this.config(entity).damage?.distanceFalloff||null,
+      distanceOrigin:execution.formationSourcePoint||entity,
       impactCircleForTarget:target=>this.strongestImpactCircle(model,target)||circles[0],
       statusStageForTarget:target=>this.amplifierStageForTarget(model,target),
       statusConfig:this.amplifierStatusConfig(entity),
@@ -115897,6 +119590,7 @@ const CircleFormationService=Object.freeze({
       );
     if(!circles.length)return false;
 
+    execution.formationSourcePoint={x:Number(entity.x)||0,y:Number(entity.y)||0};
     this.applyManifestDamage(
       entity,
       attack,
@@ -115914,7 +119608,7 @@ const CircleFormationService=Object.freeze({
       }
 
       if(
-        ['last','current'].includes(
+        ['last','current','template'].includes(
           String(module.source||'')
         )
       ){
@@ -115994,7 +119688,7 @@ const CircleFormationService=Object.freeze({
         attackId:String(attack?.id||''),
         angle:Number(angle)||0,
         executionSequence:Math.max(0,Math.floor(Number(executionSequence)||0)),
-        snapshot:{circles:this.cloneCircles(circles,'network-manifest')}
+        snapshot:{circles:this.cloneCircles(circles,'network-manifest'),damageOrigin:{x:Number(entity.x)||0,y:Number(entity.y)||0}}
       }
     );
   },
@@ -116049,6 +119743,10 @@ const CircleFormationService=Object.freeze({
       'remote-manifest'
     );
     if(!circles.length)return false;
+    const origin=payload?.snapshot?.damageOrigin;
+    execution.formationSourcePoint=origin&&Number.isFinite(Number(origin.x))&&Number.isFinite(Number(origin.y))
+      ?{x:Number(origin.x),y:Number(origin.y)}
+      :{x:Number(entity.x)||0,y:Number(entity.y)||0};
 
     this.applyManifestDamage(
       entity,
@@ -116126,10 +119824,10 @@ const CircleFormationService=Object.freeze({
             )
           )
           :0,
-      circles:this.cloneCircles(
-        state.circles,
-        'state'
-      )
+      manifestPreview:state.activation?.phase==='reveal'?this.cloneCircles(state.activation.activationCircles,'manifest-preview'):[],
+      placementSpace:'camera',
+      preview:state.circleInput?.mode==='create'?{...state.circleInput.preview}:null,
+      circles:this.cloneCircles(state.circles,'state')
     };
   },
 
@@ -116151,6 +119849,8 @@ const CircleFormationService=Object.freeze({
       return false;
     }
 
+    state.remoteManifestPreview=this.cloneCircles(snapshot.manifestPreview||[],'remote-preview');
+    state.remotePreview=snapshot.preview?this.cloneCircle(snapshot.preview):null;
     state.remoteCircles=
       this.cloneCircles(
         snapshot.circles,
@@ -116636,7 +120336,7 @@ const CircleFormationService=Object.freeze({
         if(item.amplifyLevel>0){
           icons.push({
             type:'solo',
-            label:[
+            label:this.config(entity).amplifier.durationPerSource?String(item.amplifyLevel):[
               '',
               'I',
               'II',
@@ -116868,7 +120568,7 @@ const CircleFormationService=Object.freeze({
 
     const circleInput=state.circleInput;
     if(
-      circleInput?.mode==='pending'&&
+      (circleInput?.mode==='pending'||circleInput?.mode==='move')&&
       circleInput.circle
     ){
       const holdMs=Math.max(
@@ -117106,363 +120806,70 @@ const CircleFormationService=Object.freeze({
     );
   },
 
-  draw(
-    ctx,
-    runtime,
-    now=performance.now()
-  ){
-    if(!ctx||!runtime)return false;
-    let drawn=false;
-
+  weaponDefinition(entity,config){
+    const state=this.state(entity,false);if(!state)return null;
+    const preview=this.isLocalEntity(entity)?state.circleInput?.preview:state.remotePreview;
+    const templates=this.templateCircles(entity);
+    const circles=[...templates,...(preview&&templates.length<this.maxCount(entity)?[preview]:[])];
+    if(!circles.length)return null;
+    const key=circles.map(c=>`${c.x},${c.y},${c.r}`).join('|');
+    if(state.weaponDefinitionKey===key)return state.weaponDefinition;
+    const minX=Math.min(...circles.map(c=>c.x-c.r)),maxX=Math.max(...circles.map(c=>c.x+c.r));
+    const minY=Math.min(...circles.map(c=>c.y-c.r)),maxY=Math.max(...circles.map(c=>c.y+c.r));
+    const scale=2/Math.max(1,maxX-minX,maxY-minY),cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+    const definition={origin:[0,0],paths:[],rings:[]};
+    for(const circle of circles){const x=(circle.x-cx)*scale,y=(circle.y-cy)*scale,r=circle.r*scale;
+      definition.rings.push({x,y,radius:r},{x,y,radius:r*.85});}
+    state.weaponDefinitionKey=key;state.weaponDefinition=definition;
+    return definition;
+  },
+  drawEditingPreview(ctx,entity,circle,invalid,now){
+    const preview={...circle,id:'preview'};
+    return this.drawSet(ctx,entity,this.displayTemplate([preview],entity),.48,{
+      hideRoleIcons:false,extraInvalidIds:invalid?new Set(['preview']):null
+    });
+  },
+  drawReveal(ctx,entity,circles,progress,now){
+    const presentation=this.activationConfig(entity)?.presentation||{};
+    const color=TeamColorPresentationService.colorForEntity(entity,entity.color);
+    for(const circle of circles)AnnularSweepPresentationService.draw(ctx,{...presentation,x:circle.x,y:circle.y,r:circle.r,hitColor:color,start:now,dur:1},now,{sweepProgress:progress});
+    return circles.length>0;
+  },
+  drawWeapon(ctx,entity,config,alpha=1,now=performance.now()){
+    return ModeGearPresentationService.drawImage(ctx,entity,config,alpha,now);
+  },
+  draw(ctx,runtime,now=performance.now()){
+    if(!ctx||!runtime)return false;let drawn=false;
     for(const entity of EntityService.items.values()){
-      if(
-        !entity?.alive||
-        entity.hidden||
-        !this.config(entity)
-      )continue;
-
-      const state=this.state(entity);
-      if(!state)continue;
-
+      if(!entity.alive||entity.hidden||!this.config(entity))continue;
+      const state=this.state(entity);if(!state)continue;
       if(this.isLocalEntity(entity)){
         const input=state.circleInput;
-        const revealActive=
-          state.activation?.phase==='reveal';
-        const revealMs=Math.max(
-          1,
-          Number(
-            this.config(entity)
-              ?.activation?.revealMs
-          )||1
-        );
-        const revealProgress=
-          revealActive
-            ?Math.max(
-              0,
-              Math.min(
-                1,
-                (
-                  1-
-                  (
-                    Math.max(
-                      0,
-                      state.revealUntil-now
-                    )/
-                    revealMs
-                  )
-                )*2
-              )
-            )
-            :1;
-        const creatingPreview=
-          input?.mode==='create'&&
-          !!input.preview;
-        const alpha=
-          revealActive
-            ?1
-            :.48;
-
-        if(
-          state.circles.length&&
-          !creatingPreview
-        ){
-          drawn=
-            this.drawSet(
-              ctx,
-              entity,
-              state.circles,
-              alpha,
-              {
-                hideRoleIcons:revealActive,
-                revealProgress,
-                teamOutline:revealActive
-              }
-            )||drawn;
+        const hasPreview=input?.mode==='create'&&input.preview;
+        const templates=[...state.circles,...(hasPreview?[{...input.preview,id:'preview'}]:[])];
+        const invalidPreview=hasPreview&&state.circles.length>=this.maxCount(entity);
+        if(templates.length)drawn=this.drawSet(ctx,entity,this.displayTemplate(templates,entity),.48,{hideRoleIcons:false,extraInvalidIds:invalidPreview?new Set(['preview']):null})||drawn;
+        if(state.limitPreview&&now<state.limitPreview.endAt)drawn=this.drawEditingPreview(ctx,entity,state.limitPreview.circle,true,now)||drawn;
+        if(state.activation?.phase==='reveal'&&now<state.activation.revealUntil)drawn=this.drawReveal(ctx,entity,state.activation.activationCircles,this.revealProgress(state.activation.revealStartedAt,state.activation.revealUntil,now),now)||drawn;
+        if(input?.circle&&(input.mode==='pending'||input.mode==='move')){
+          const progress=Math.min(1,(now-input.startAt)/Math.max(1,this.circleConfig(entity).moveHoldMs));
+          this.drawHoldGauge(ctx,entity,progress,now);
+          for(const circle of this.displayTemplate(state.circles,entity))this.drawHoldGauge(ctx,circle,progress,now);
         }
-
-        if(
-          creatingPreview
-        ){
-          const preview={
-            id:'formation-preview',
-            x:input.preview.x,
-            y:input.preview.y,
-            r:input.preview.r,
-            order:Number.MAX_SAFE_INTEGER
-          };
-          const previewSet=[
-            ...this.cloneCircles(
-              state.circles,
-              'preview-base'
-            ),
-            preview
-          ];
-          const previewGraph=
-            this.graph(
-              entity,
-              previewSet
-            );
-          const previewInvalidIds=
-            new Set();
-
-          if(input.limitBlocked){
-            previewInvalidIds.add(
-              String(preview.id)
-            );
-          }
-
-          for(const relation of previewGraph.rels){
-            if(
-              relation.type!=='invalidContain'
-            )continue;
-
-            if(
-              String(relation.a.id)===
-                String(preview.id)||
-              String(relation.b.id)===
-                String(preview.id)
-            ){
-              previewInvalidIds.add(
-                String(preview.id)
-              );
-            }
-          }
-
-          drawn=
-            this.drawSet(
-              ctx,
-              entity,
-              previewSet,
-              .48,
-              {
-                extraInvalidIds:
-                  previewInvalidIds
-              }
-            )||drawn;
-        }
-
-        if(
-          state.limitPreview&&
-          now<state.limitPreview.endAt
-        ){
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(
-            state.limitPreview.x,
-            state.limitPreview.y,
-            state.limitPreview.r,
-            0,
-            Math.PI*2
-          );
-          ctx.strokeStyle='rgba(255,72,82,.98)';
-          ctx.fillStyle='rgba(230,55,65,.22)';
-          ctx.lineWidth=4;
-          ctx.setLineDash([8,5]);
-          ctx.fill();
-          ctx.stroke();
-          ctx.restore();
-        }
-
-        if(
-          input?.mode==='pending'&&
-          input.circle
-        ){
-          const config=this.circleConfig(entity);
-          const progress=
-            Math.max(
-              0,
-              Math.min(
-                1,
-                (
-                  now-input.startAt
-                )/
-                Math.max(
-                  1,
-                  Number(config.moveHoldMs)||150
-                )
-              )
-            );
-          this.drawHoldGauge(
-            ctx,
-            entity,
-            progress,
-            now
-          );
-          this.drawHoldGauge(
-            ctx,
-            input.circle,
-            progress,
-            now
-          );
-        }
-
-        const cast=state.activation;
-        if(cast?.phase==='input'){
-          const progress=
-            Math.max(
-              0,
-              Math.min(
-                1,
-                (
-                  now-cast.startedAt
-                )/
-                Math.max(
-                  1,
-                  cast.inputUntil-cast.startedAt
-                )
-              )
-            );
-          this.drawHoldGauge(
-            ctx,
-            entity,
-            progress,
-            now
-          );
-          for(const circle of state.circles){
-            if(
-              cast.selectedIds.has(
-                String(circle.id)
-              )
-            ){
-              this.drawHoldGauge(
-                ctx,
-                circle,
-                progress,
-                now
-              );
-            }
-          }
-        }else if(cast?.phase==='move'){
-          this.drawHoldGauge(
-            ctx,
-            entity,
-            1,
-            now
-          );
-          for(const circle of state.circles){
-            if(
-              cast.selectedIds.has(
-                String(circle.id)
-              )
-            ){
-              this.drawHoldGauge(
-                ctx,
-                circle,
-                1,
-                now
-              );
-            }
-          }
-        }
-
-        this.drawCounterPreview(
-          ctx,
-          entity,
-          now
-        );
-      }else if(state.remoteCircles.length){
-        const localEntity=Training.player;
-        const allied=
-          !!localEntity&&
-          RelationService.relation(
-            localEntity,
-            entity
-          )==='ally';
-        const revealing=
-          state.remoteRevealUntil>now;
-
-        if(allied||revealing){
-          const revealMs=Math.max(
-            1,
-            Number(
-              this.config(entity)
-                ?.activation?.revealMs
-            )||1
-          );
-          const revealProgress=
-            revealing
-              ?Math.max(
-                0,
-                Math.min(
-                  1,
-                  (
-                    1-
-                    (
-                      Math.max(
-                        0,
-                        state.remoteRevealUntil-now
-                      )/
-                      revealMs
-                    )
-                  )*2
-                )
-              )
-              :1;
-
-          drawn=
-            this.drawSet(
-              ctx,
-              entity,
-              state.remoteCircles,
-              revealing?1:.48,
-              {
-                hideRoleIcons:true,
-                revealProgress,
-                teamOutline:revealing
-              }
-            )||drawn;
-        }
+        this.drawCounterPreview(ctx,entity,now);
       }
-
-      if(
-        state.burst&&
-        now<state.burst.endAt
-      ){
-        const alpha=
-          Math.max(
-            0,
-            (
-              state.burst.endAt-now
-            )/
-            Math.max(
-              1,
-              state.burst.duration
-            )
-          );
-        drawn=
-          this.drawSet(
-            ctx,
-            entity,
-            state.burst.circles,
-            alpha,
-            {
-              manifest:true,
-              hideRoleIcons:true,
-              amplifierSegments:
-                state.burst.amplifierSegments,
-              manifestProgress:
-                Math.max(
-                  0,
-                  Math.min(
-                    1,
-                    (
-                      now-
-                      Number(state.burst.startedAt)
-                    )/
-                    Math.max(
-                      1,
-                      Number(state.burst.duration)||1
-                    )
-                  )
-                )
-            }
-          )||drawn;
+      if(!this.isLocalEntity(entity)&&state.remoteRevealUntil>now&&state.remoteManifestPreview?.length){
+        drawn=this.drawReveal(ctx,entity,state.remoteManifestPreview,this.revealProgress(state.remoteRevealStartedAt,state.remoteRevealUntil,now),now)||drawn;
+      }
+      if(state.burst&&now<state.burst.endAt){
+        const progress=Math.min(1,(now-state.burst.startedAt)/state.burst.duration);
+        drawn=this.drawSet(ctx,entity,state.burst.circles,1-progress,{manifest:true,hideRoleIcons:true,amplifierSegments:state.burst.amplifierSegments,manifestProgress:progress})||drawn;
       }
     }
-
     return drawn;
   }
 });
+
 
 GameplayAttackSnapshotSyncService.register(
   'circle-formation',
@@ -117663,6 +121070,7 @@ const PointerHoldInputService=Object.freeze({
         max:Math.max(initial,Number(config.max)||initial),
         min,
         blocksStaminaRegen:config.blocksStaminaRegen===true,
+        onChangeModes:config.onChangeModes||[],
         presentation:config.presentation||null
       });
       current.holdRepeatTicks+=1;
@@ -118295,7 +121703,7 @@ const EnvelopeIconPresentationService=Object.freeze({
 
 
 const RecipientAssignmentPresentationService=Object.freeze({
-  assignments(target){
+  assignments(target,includeConditional=false){
     if(!target)return [];
 
     const result=[];
@@ -118344,6 +121752,19 @@ const RecipientAssignmentPresentationService=Object.freeze({
       });
     }
 
+    if(includeConditional){
+      const owner=Training.player;
+      if(owner?.alive&&!owner.hidden&&EntitySimulationAuthorityService.isLocal(owner)){
+        for(const config of owner.character?.conditionalTargetMarkers||EMPTY_RUNTIME_ITEMS){
+          if(config.visibility!=='owner')continue;
+          if(RelationService.relation(owner,target)!==String(config.relation||'enemy'))continue;
+          if(Number.isFinite(config.range)&&Math.hypot(target.x-owner.x,target.y-owner.y)>Math.max(0,Number(config.range)||0))continue;
+          if(!ProjectileHomingTargetVisibilityService.canPerceive(owner,target))continue;
+          if(!(config.conditions||EMPTY_RUNTIME_ITEMS).every(condition=>TriggerConditionService.matches(condition,{source:owner,target})))continue;
+          result.push({owner,presentation:config});
+        }
+      }
+    }
     return result;
   },
   markerColor(assignment){
@@ -118368,7 +121789,7 @@ const RecipientAssignmentPresentationService=Object.freeze({
   ){
     if(!ctx||!target)return false;
 
-    const assignments=this.assignments(target);
+    const assignments=this.assignments(target,true);
     if(!assignments.length)return false;
 
     for(
@@ -118376,6 +121797,22 @@ const RecipientAssignmentPresentationService=Object.freeze({
       index<assignments.length;
       index++
     ){
+      const assignment=assignments[index];
+      const marker=assignment.presentation?.marker;
+      if(marker?.shape==='weapon-icon'&&WEAPON_IMAGE_DEFS[marker.style]){
+        ctx.save();
+        ctx.translate(Number(bx)+Number(barWidth)+8+index*16,Number(by)+2.5);
+        ctx.fillStyle=this.markerColor(assignment);
+        ctx.strokeStyle=ColorService.brighten(this.markerColor(assignment),.65);
+        ctx.lineWidth=.8;
+        for(const path of WEAPON_IMAGE_DEFS[marker.style].paths||EMPTY_RUNTIME_ITEMS){
+          ModeGearPresentationService.path(ctx,path,5);
+          if(path.fill)ctx.fill();
+          ctx.stroke();
+        }
+        ctx.restore();
+        continue;
+      }
       EnvelopeIconPresentationService.draw(
         ctx,
         Number(bx)+Number(barWidth)+8+index*16,
@@ -119659,7 +123096,6 @@ const EntityDodgeService=Object.freeze({
     const now=performance.now();
     const activeMovement=
       MovementAbilityService.active(entity);
-    if(activeMovement)return false;
     if(
       !sequenceContinuation&&
       !AugmentDodgeSequenceService.ready(entity,now)
@@ -119784,6 +123220,9 @@ const EntityDodgeService=Object.freeze({
       entity,
       now
     );
+
+    // During an ability movement, dodge adds protection only; the ability remains the sole movement owner.
+    if(activeMovement)return true;
 
     const len=Math.hypot(dx,dy);
     if(len<=.01)return true;
@@ -121046,12 +124485,20 @@ const StealthPresentationService=Object.freeze({
       viewer===target||
       !this.active(target,now)
     )return false;
-    return RelationService.relation(viewer,target)!=='ally';
+    return RelationService.relation(viewer,target)!=='ally'&&
+      this.fadeRatio(target,now)>=1&&!this.exposedByAnyEnemy(target,now);
   },
   state(viewer,target,now=performance.now()){
     if(!this.active(target,now))return {active:false,alpha:1,hostile:false,detected:false,revealed:false,hideWorldUi:false};
     if(this.hiddenFromDeadSpectator(viewer,target,now)){
       return {active:true,alpha:0,hostile:true,detected:false,revealed:false,hideWorldUi:true,hiddenFromSpectator:true};
+    }
+    if(Training.spectating===true&&viewer?.alive===false&&
+      viewer!==target&&RelationService.relation(viewer,target)!=='ally'){
+      const detected=this.detectedByAnyEnemy(target,now);
+      const revealed=this.temporarilyRevealed(target,now);
+      return {active:true,alpha:detected?1:Math.max(1-this.fadeRatio(target,now),revealed?this.revealAlpha(target,now):0),
+        hostile:true,detected:detected||revealed,revealed,hideWorldUi:!(detected||revealed)};
     }
     const hostile=viewer&&viewer!==target&&RelationService.relation(viewer,target)==='enemy';
     const fade=this.fadeRatio(target,now);
@@ -123586,6 +127033,9 @@ const ConditionalTargetLinkPresentationService=Object.freeze({
 
         if(StealthPresentationService.state(viewer,target).hideWorldUi)continue;
 
+        if(config.conditions&&!config.conditions.every(condition=>TriggerConditionService.matches(condition,{source:viewer,target,now:performance.now()})))continue;
+        if(Number.isFinite(config.range)&&Math.hypot(target.x-viewer.x,target.y-viewer.y)>config.range)continue;
+        if(config.requireLineOfSight&&WorldGeometryService.segmentBlocked(viewer.x,viewer.y,target.x,target.y,0))continue;
         const maximum=
           Math.max(
             1,
@@ -123608,7 +127058,7 @@ const ConditionalTargetLinkPresentationService=Object.freeze({
               Number(config.healthRatioBelow)||0
             )
           );
-        if(!(healthRatio<threshold))continue;
+        if(config.healthRatioBelow!==undefined&&!(healthRatio<threshold))continue;
 
         const dx=
           (Number(target.x)||0)-
@@ -123745,13292 +127195,92 @@ const VanWrenchDurabilityPresentationService=Object.freeze({
   }
 });
 /* 공용 순수 무기 형상·관절·기준점. */
-const WEAPON_IMAGE_DEFS=freezeCharacterData({
-  "sun": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            0,
-            -2.95
-          ],
-          [
-            "L",
-            0.48,
-            -2.55
-          ],
-          [
-            "L",
-            0.48,
-            0.65
-          ],
-          [
-            "L",
-            -0.48,
-            0.65
-          ],
-          [
-            "L",
-            -0.48,
-            -2.55
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#9c6e2a",
-        "lineWidth": 0.1
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0,
-            -2.65
-          ],
-          [
-            "L",
-            0,
-            0.48
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.15
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1,
-            0.5
-          ],
-          [
-            "L",
-            -0.82,
-            0.82
-          ],
-          [
-            "L",
-            -0.3,
-            0.78
-          ],
-          [
-            "L",
-            0,
-            0.9
-          ],
-          [
-            "L",
-            0.3,
-            0.78
-          ],
-          [
-            "L",
-            0.82,
-            0.82
-          ],
-          [
-            "L",
-            1,
-            0.5
-          ],
-          [
-            "L",
-            0.42000000000000004,
-            0.55
-          ],
-          [
-            "L",
-            0,
-            0.35
-          ],
-          [
-            "L",
-            -0.42000000000000004,
-            0.55
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#dba94b",
-        "lineWidth": 0.075
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0,
-            0.6,
-            0.19,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "stroke": false,
-        "fillColor": "#fff0a3"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.25,
-            0.6
-          ],
-          [
-            "L",
-            -0.34,
-            0.6
-          ],
-          [
-            "M",
-            0.25,
-            0.6
-          ],
-          [
-            "L",
-            0.34,
-            0.6
-          ],
-          [
-            "M",
-            0,
-            0.35
-          ],
-          [
-            "L",
-            0,
-            0.26
-          ],
-          [
-            "M",
-            0,
-            0.85
-          ],
-          [
-            "L",
-            0,
-            0.94
-          ]
-        ],
-        "lineWidth": 0.04
-      },
-      {
-        "points": [
-          [
-            -0.15,
-            0.83
-          ],
-          [
-            0.15,
-            0.83
-          ],
-          [
-            0.13,
-            1.48
-          ],
-          [
-            -0.13,
-            1.48
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#775c36"
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            0.94
-          ],
-          [
-            0.14,
-            1.01
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            1.0699999999999998
-          ],
-          [
-            0.14,
-            1.1400000000000001
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            1.2
-          ],
-          [
-            0.14,
-            1.27
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            1.33
-          ],
-          [
-            0.14,
-            1.4
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.18,
-            1.48
-          ],
-          [
-            0.18,
-            1.48
-          ],
-          [
-            0.16,
-            1.59
-          ],
-          [
-            -0.16,
-            1.59
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#775c36"
-      }
-    ],
-    "origin": [
-      0,
-      -0.68
-    ]
-  },
-  "dark": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            0,
-            -3.1
-          ],
-          [
-            "L",
-            0.5,
-            -2.35
-          ],
-          [
-            "L",
-            0.35,
-            -1.45
-          ],
-          [
-            "L",
-            0.53,
-            -1.1
-          ],
-          [
-            "L",
-            0.32,
-            -0.9200000000000002
-          ],
-          [
-            "L",
-            0.34,
-            0.6
-          ],
-          [
-            "L",
-            -0.34,
-            0.6
-          ],
-          [
-            "L",
-            -0.32,
-            -0.9200000000000002
-          ],
-          [
-            "L",
-            -0.53,
-            -1.1
-          ],
-          [
-            "L",
-            -0.35,
-            -1.45
-          ],
-          [
-            "L",
-            -0.5,
-            -2.35
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292035",
-        "lineWidth": 0.1
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0,
-            -2.8
-          ],
-          [
-            "L",
-            -0.13,
-            -1.7
-          ],
-          [
-            "L",
-            0.12,
-            -1.05
-          ],
-          [
-            "L",
-            0,
-            0.48
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.08499999999999999
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.9399999999999998,
-            0.25
-          ],
-          [
-            "L",
-            -0.6,
-            0.8
-          ],
-          [
-            "L",
-            0,
-            0.65
-          ],
-          [
-            "L",
-            0.6,
-            0.8
-          ],
-          [
-            "L",
-            0.9399999999999998,
-            0.25
-          ],
-          [
-            "L",
-            0.5,
-            0.4600000000000001
-          ],
-          [
-            "L",
-            0,
-            0.42000000000000004
-          ],
-          [
-            "L",
-            -0.5,
-            0.4600000000000001
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#493057",
-        "lineWidth": 0.075
-      },
-      {
-        "points": [
-          [
-            -0.15,
-            0.83
-          ],
-          [
-            0.15,
-            0.83
-          ],
-          [
-            0.13,
-            1.48
-          ],
-          [
-            -0.13,
-            1.48
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#49324f"
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            0.94
-          ],
-          [
-            0.14,
-            1.01
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            1.0699999999999998
-          ],
-          [
-            0.14,
-            1.1400000000000001
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            1.2
-          ],
-          [
-            0.14,
-            1.27
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            1.33
-          ],
-          [
-            0.14,
-            1.4
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.18,
-            1.48
-          ],
-          [
-            0.18,
-            1.48
-          ],
-          [
-            0.16,
-            1.59
-          ],
-          [
-            -0.16,
-            1.59
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#49324f"
-      }
-    ],
-    "origin": [
-      0,
-      -0.755
-    ]
-  },
-  "pistol": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            -1.55,
-            -0.52
-          ],
-          [
-            "L",
-            1.15,
-            -0.52
-          ],
-          [
-            "L",
-            1.37,
-            -0.32
-          ],
-          [
-            "L",
-            1.37,
-            0.029999999999999995
-          ],
-          [
-            "L",
-            -1.55,
-            0.029999999999999995
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#66616b",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.3,
-            0.029999999999999995
-          ],
-          [
-            "L",
-            0.91,
-            0.029999999999999995
-          ],
-          [
-            "L",
-            0.76,
-            0.23
-          ],
-          [
-            "L",
-            -0.38,
-            0.23
-          ],
-          [
-            "L",
-            -0.61,
-            1.27
-          ],
-          [
-            "L",
-            -1.27,
-            1.27
-          ],
-          [
-            "L",
-            -1.04,
-            0.2
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292b35",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.46,
-            0.22
-          ],
-          [
-            "L",
-            0.34,
-            0.22
-          ],
-          [
-            "L",
-            0.22,
-            0.64
-          ],
-          [
-            "L",
-            -0.5400000000000001,
-            0.64
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292b35",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.28,
-            0.32
-          ],
-          [
-            "L",
-            0.11999999999999998,
-            0.32
-          ],
-          [
-            "L",
-            0.05,
-            0.51
-          ],
-          [
-            "L",
-            -0.31,
-            0.51
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.04
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.32,
-            -0.37
-          ],
-          [
-            "L",
-            0.9599999999999999,
-            -0.37
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.05
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.16,
-            -0.28
-          ],
-          [
-            "L",
-            -1.1,
-            -0.07
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.04666666666666666
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.9899999999999999,
-            -0.28
-          ],
-          [
-            "L",
-            -0.93,
-            -0.07
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.04666666666666666
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.8199999999999998,
-            -0.28
-          ],
-          [
-            "L",
-            -0.76,
-            -0.07
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.04666666666666666
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.0800000000000003,
-            1.12
-          ],
-          [
-            "L",
-            -0.7,
-            1.12
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.06666666666666667
-      }
-    ],
-    "origin": [
-      -0.08999999999999997,
-      0.375
-    ]
-  },
-  "shotgun": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            0.55,
-            -0.23999999999999996
-          ],
-          [
-            "L",
-            2.65,
-            -0.23999999999999996
-          ],
-          [
-            "L",
-            2.65,
-            -0.05
-          ],
-          [
-            "L",
-            0.55,
-            -0.05
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#66616b",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            2.52,
-            -0.29
-          ],
-          [
-            "L",
-            2.77,
-            -0.29
-          ],
-          [
-            "L",
-            2.77,
-            0.02
-          ],
-          [
-            "L",
-            2.52,
-            0.02
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292b35",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.15,
-            -0.39
-          ],
-          [
-            "L",
-            0.75,
-            -0.39
-          ],
-          [
-            "L",
-            0.89,
-            -0.2
-          ],
-          [
-            "L",
-            0.7099999999999999,
-            0.3
-          ],
-          [
-            "L",
-            -0.93,
-            0.3
-          ],
-          [
-            "L",
-            -1.15,
-            0.09
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#66616b",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.15,
-            -0.21
-          ],
-          [
-            "L",
-            -1.4199999999999997,
-            -0.21
-          ],
-          [
-            "L",
-            -2.15,
-            -0.38
-          ],
-          [
-            "L",
-            -2.58,
-            -0.38
-          ],
-          [
-            "L",
-            -2.58,
-            0.56
-          ],
-          [
-            "L",
-            -2.12,
-            0.56
-          ],
-          [
-            "L",
-            -1.55,
-            0.17
-          ],
-          [
-            "L",
-            -1.1,
-            0.14
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292b35",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -2.4,
-            -0.23
-          ],
-          [
-            "L",
-            -2.4,
-            0.39
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.1
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.72,
-            0.3
-          ],
-          [
-            "L",
-            -0.26,
-            0.3
-          ],
-          [
-            "L",
-            -0.49,
-            1.02
-          ],
-          [
-            "L",
-            -0.99,
-            1.02
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292b35",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.25,
-            0.3
-          ],
-          [
-            "L",
-            0.34,
-            0.3
-          ],
-          [
-            "L",
-            0.2,
-            0.64
-          ],
-          [
-            "L",
-            -0.34,
-            0.64
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292b35",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.13,
-            0.4
-          ],
-          [
-            "L",
-            0.2,
-            0.4
-          ],
-          [
-            "L",
-            0.11999999999999998,
-            0.5400000000000001
-          ],
-          [
-            "L",
-            -0.19,
-            0.5400000000000001
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.03666666666666667
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.95,
-            -0.23999999999999996
-          ],
-          [
-            "L",
-            0.59,
-            -0.23999999999999996
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.056666666666666664
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.8,
-            -0.11999999999999998
-          ],
-          [
-            "L",
-            1.95,
-            -0.11999999999999998
-          ],
-          [
-            "L",
-            1.95,
-            0.4
-          ],
-          [
-            "L",
-            0.8,
-            0.4
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#59525e",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.97,
-            0
-          ],
-          [
-            "L",
-            0.97,
-            0.26
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.05
-      },
-      {
-        "commands": [
-          [
-            "M",
-            1.14,
-            0
-          ],
-          [
-            "L",
-            1.14,
-            0.26
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.05
-      },
-      {
-        "commands": [
-          [
-            "M",
-            1.31,
-            0
-          ],
-          [
-            "L",
-            1.31,
-            0.26
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.05
-      },
-      {
-        "commands": [
-          [
-            "M",
-            1.48,
-            0
-          ],
-          [
-            "L",
-            1.48,
-            0.26
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.05
-      },
-      {
-        "commands": [
-          [
-            "M",
-            1.65,
-            0
-          ],
-          [
-            "L",
-            1.65,
-            0.26
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.05
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.78,
-            0.18
-          ],
-          [
-            "L",
-            2.25,
-            0.18
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.1
-      }
-    ],
-    "origin": [
-      0.09499999999999997,
-      0.315
-    ]
-  },
-  "sniper": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            0.55,
-            -0.23999999999999996
-          ],
-          [
-            "L",
-            3.1,
-            -0.23999999999999996
-          ],
-          [
-            "L",
-            3.1,
-            -0.05
-          ],
-          [
-            "L",
-            0.55,
-            -0.05
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#547c98",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            2.97,
-            -0.29
-          ],
-          [
-            "L",
-            3.22,
-            -0.29
-          ],
-          [
-            "L",
-            3.22,
-            0.02
-          ],
-          [
-            "L",
-            2.97,
-            0.02
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292b35",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.15,
-            -0.39
-          ],
-          [
-            "L",
-            0.75,
-            -0.39
-          ],
-          [
-            "L",
-            0.89,
-            -0.2
-          ],
-          [
-            "L",
-            0.7099999999999999,
-            0.3
-          ],
-          [
-            "L",
-            -0.93,
-            0.3
-          ],
-          [
-            "L",
-            -1.15,
-            0.09
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#547c98",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.15,
-            -0.21
-          ],
-          [
-            "L",
-            -1.4199999999999997,
-            -0.21
-          ],
-          [
-            "L",
-            -2.15,
-            -0.38
-          ],
-          [
-            "L",
-            -2.58,
-            -0.38
-          ],
-          [
-            "L",
-            -2.58,
-            0.56
-          ],
-          [
-            "L",
-            -2.12,
-            0.56
-          ],
-          [
-            "L",
-            -1.55,
-            0.17
-          ],
-          [
-            "L",
-            -1.1,
-            0.14
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292b35",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -2.4,
-            -0.23
-          ],
-          [
-            "L",
-            -2.4,
-            0.39
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.1
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.72,
-            0.3
-          ],
-          [
-            "L",
-            -0.26,
-            0.3
-          ],
-          [
-            "L",
-            -0.49,
-            1.02
-          ],
-          [
-            "L",
-            -0.99,
-            1.02
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292b35",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.25,
-            0.3
-          ],
-          [
-            "L",
-            0.34,
-            0.3
-          ],
-          [
-            "L",
-            0.2,
-            0.64
-          ],
-          [
-            "L",
-            -0.34,
-            0.64
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#292b35",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.13,
-            0.4
-          ],
-          [
-            "L",
-            0.2,
-            0.4
-          ],
-          [
-            "L",
-            0.11999999999999998,
-            0.5400000000000001
-          ],
-          [
-            "L",
-            -0.19,
-            0.5400000000000001
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.03666666666666667
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.95,
-            -0.23999999999999996
-          ],
-          [
-            "L",
-            0.59,
-            -0.23999999999999996
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.056666666666666664
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.1,
-            0.3
-          ],
-          [
-            "L",
-            0.55,
-            0.3
-          ],
-          [
-            "L",
-            0.45,
-            0.85
-          ],
-          [
-            "L",
-            -0.02,
-            0.85
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#36516b",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.55,
-            -0.42
-          ],
-          [
-            "L",
-            -0.55,
-            -0.62
-          ],
-          [
-            "L",
-            0.25,
-            -0.62
-          ],
-          [
-            "L",
-            0.25,
-            -0.42
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.06666666666666667
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.03,
-            -0.85
-          ],
-          [
-            "L",
-            0.69,
-            -0.85
-          ],
-          [
-            "L",
-            0.69,
-            -0.56
-          ],
-          [
-            "L",
-            -1.03,
-            -0.56
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#3a607a",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.16,
-            -0.9599999999999999
-          ],
-          [
-            "L",
-            -0.85,
-            -0.9599999999999999
-          ],
-          [
-            "L",
-            -0.85,
-            -0.46
-          ],
-          [
-            "L",
-            -1.16,
-            -0.46
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#547c98",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.5,
-            -1
-          ],
-          [
-            "L",
-            0.94,
-            -1
-          ],
-          [
-            "L",
-            0.94,
-            -0.42
-          ],
-          [
-            "L",
-            0.5,
-            -0.42
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#547c98",
-        "lineWidth": 0.05333333333333334
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.78,
-            -0.87
-          ],
-          [
-            "L",
-            0.78,
-            -0.55
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.1
-      }
-    ],
-    "origin": [
-      0.32000000000000006,
-      0.010000000000000009
-    ]
-  },
-  "bow": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            -0.2,
-            -2.18
-          ],
-          [
-            "C",
-            0.12,
-            -1.94,
-            0.43,
-            -1.75,
-            0.58,
-            -1.25
-          ],
-          [
-            "C",
-            0.72,
-            -0.76,
-            0.53,
-            -0.46,
-            0.44,
-            -0.23
-          ],
-          [
-            "L",
-            0.34,
-            -0.23
-          ],
-          [
-            "C",
-            0.35,
-            -0.65,
-            0.54,
-            -0.78,
-            0.42,
-            -1.27
-          ],
-          [
-            "C",
-            0.3,
-            -1.74,
-            0.02,
-            -1.93,
-            -0.2,
-            -2.18
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.2,
-            2.18
-          ],
-          [
-            "C",
-            0.12,
-            1.94,
-            0.43,
-            1.75,
-            0.58,
-            1.25
-          ],
-          [
-            "C",
-            0.72,
-            0.76,
-            0.53,
-            0.46,
-            0.44,
-            0.23
-          ],
-          [
-            "L",
-            0.34,
-            0.23
-          ],
-          [
-            "C",
-            0.35,
-            0.65,
-            0.54,
-            0.78,
-            0.42,
-            1.27
-          ],
-          [
-            "C",
-            0.3,
-            1.74,
-            0.02,
-            1.93,
-            -0.2,
-            2.18
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true
-      },
-      {
-        "points": [
-          [
-            0.32,
-            -0.25
-          ],
-          [
-            0.48,
-            -0.25
-          ],
-          [
-            0.48,
-            0.25
-          ],
-          [
-            0.32,
-            0.25
-          ]
-        ],
-        "closed": true,
-        "fill": true
-      },
-      {
-        "points": [
-          [
-            0.34,
-            -0.12
-          ],
-          [
-            0.46,
-            -0.12
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            0.34,
-            0.12
-          ],
-          [
-            0.46,
-            0.12
-          ]
-        ]
-      }
-    ],
-    "string": {
-      "start": [
-        -0.2,
-        -2.18
-      ],
-      "end": [
-        -0.2,
-        2.18
-      ],
-      "restX": -0.2,
-      "pullX": -1.1
-    },
-    "origin": [
-      0.21492187499999996,
-      0
-    ]
-  },
-  "harpoon": {
-    "paths": [
-      {
-        "points": [
-          [
-            -2.4,
-            -0.09
-          ],
-          [
-            1.14,
-            -0.09
-          ],
-          [
-            1.14,
-            -0.29
-          ],
-          [
-            2.55,
-            0
-          ],
-          [
-            1.14,
-            0.29
-          ],
-          [
-            1.14,
-            0.09
-          ],
-          [
-            -2.4,
-            0.09
-          ]
-        ],
-        "closed": true,
-        "fill": true
-      },
-      {
-        "points": [
-          [
-            -2.53,
-            -0.17
-          ],
-          [
-            -2.28,
-            -0.17
-          ],
-          [
-            -2.28,
-            0.17
-          ],
-          [
-            -2.53,
-            0.17
-          ]
-        ],
-        "closed": true,
-        "fill": true
-      },
-      {
-        "points": [
-          [
-            1.34,
-            0.07
-          ],
-          [
-            0.81,
-            0.68
-          ],
-          [
-            0.61,
-            0.46
-          ],
-          [
-            0.95,
-            0.12
-          ]
-        ],
-        "closed": true,
-        "fill": true
-      },
-      {
-        "points": [
-          [
-            1.24,
-            0
-          ],
-          [
-            2.12,
-            0
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -1.06,
-            -0.15
-          ],
-          [
-            -0.22,
-            -0.15
-          ],
-          [
-            -0.16,
-            0.15
-          ],
-          [
-            -1.12,
-            0.15
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#70513d"
-      },
-      {
-        "points": [
-          [
-            -0.98,
-            -0.14
-          ],
-          [
-            -1.04,
-            0.14
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.82,
-            -0.14
-          ],
-          [
-            -0.88,
-            0.14
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.6599999999999999,
-            -0.14
-          ],
-          [
-            -0.72,
-            0.14
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.5,
-            -0.14
-          ],
-          [
-            -0.56,
-            0.14
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.33999999999999997,
-            -0.14
-          ],
-          [
-            -0.4,
-            0.14
-          ]
-        ]
-      }
-    ],
-    "origin": [
-      0.010000000000000009,
-      0.19500000000000003
-    ]
-  },
-  "wrench": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            -1.12,
-            -0.43
-          ],
-          [
-            "L",
-            -0.76,
-            -0.43
-          ],
-          [
-            "L",
-            -0.57,
-            -0.22
-          ],
-          [
-            "L",
-            0.57,
-            -0.22
-          ],
-          [
-            "L",
-            0.76,
-            -0.43
-          ],
-          [
-            "L",
-            1.12,
-            -0.43
-          ],
-          [
-            "L",
-            1.23,
-            -0.22
-          ],
-          [
-            "L",
-            0.86,
-            -0.22
-          ],
-          [
-            "L",
-            0.74,
-            0
-          ],
-          [
-            "L",
-            0.86,
-            0.22
-          ],
-          [
-            "L",
-            1.23,
-            0.22
-          ],
-          [
-            "L",
-            1.12,
-            0.43
-          ],
-          [
-            "L",
-            0.76,
-            0.43
-          ],
-          [
-            "L",
-            0.57,
-            0.22
-          ],
-          [
-            "L",
-            -0.57,
-            0.22
-          ],
-          [
-            "L",
-            -0.76,
-            0.43
-          ],
-          [
-            "L",
-            -1.12,
-            0.43
-          ],
-          [
-            "L",
-            -1.23,
-            0.22
-          ],
-          [
-            "L",
-            -0.86,
-            0.22
-          ],
-          [
-            "L",
-            -0.74,
-            0
-          ],
-          [
-            "L",
-            -0.86,
-            -0.22
-          ],
-          [
-            "L",
-            -1.23,
-            -0.22
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(105,137,56,.96)",
-        "lineWidth": 0.03663003663003663
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.5,
-            -0.08
-          ],
-          [
-            "L",
-            0.5,
-            -0.08
-          ],
-          [
-            "L",
-            0.5,
-            0.08
-          ],
-          [
-            "L",
-            -0.5,
-            0.08
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(12,16,14,.55)",
-        "lineWidth": 0.016483516483516484
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.45,
-            -0.14
-          ],
-          [
-            "L",
-            0.45,
-            -0.14
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.020146520146520148
-      }
-    ],
-    "origin": [
-      0,
-      0
-    ]
-  },
-  "gear": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            0.87,
-            0
-          ],
-          [
-            "L",
-            0.996917333733128,
-            0.07845909572784494
-          ],
-          [
-            "L",
-            0.9767658813208723,
-            0.21430915306505077
-          ],
-          [
-            "L",
-            0.8325380920870217,
-            0.2525476692113822
-          ],
-          [
-            "L",
-            0.8037751932848195,
-            0.3329345861576281
-          ],
-          [
-            "L",
-            0.8910065241883679,
-            0.45399049973954675
-          ],
-          [
-            "L",
-            0.8204014435255135,
-            0.5717879602276122
-          ],
-          [
-            "L",
-            0.6725190944255811,
-            0.5519221572223716
-          ],
-          [
-            "L",
-            0.6151828996322964,
-            0.6151828996322962
-          ],
-          [
-            "L",
-            0.6494480483301835,
-            0.760405965600031
-          ],
-          [
-            "L",
-            0.5391383229110004,
-            0.8422172337162864
-          ],
-          [
-            "L",
-            0.41011516103861806,
-            0.7672714999830689
-          ],
-          [
-            "L",
-            0.33293458615762817,
-            0.8037751932848195
-          ],
-          [
-            "L",
-            0.30901699437494745,
-            0.9510565162951535
-          ],
-          [
-            "L",
-            0.1757962799343547,
-            0.9844265680898916
-          ],
-          [
-            "L",
-            0.08527491208671786,
-            0.8658107122048112
-          ],
-          [
-            "L",
-            5.327213576290987e-17,
-            0.87
-          ],
-          [
-            "L",
-            -0.07845909572784487,
-            0.996917333733128
-          ],
-          [
-            "L",
-            -0.21430915306505058,
-            0.9767658813208725
-          ],
-          [
-            "L",
-            -0.2525476692113821,
-            0.8325380920870218
-          ],
-          [
-            "L",
-            -0.3329345861576281,
-            0.8037751932848195
-          ],
-          [
-            "L",
-            -0.45399049973954675,
-            0.8910065241883679
-          ],
-          [
-            "L",
-            -0.5717879602276121,
-            0.8204014435255137
-          ],
-          [
-            "L",
-            -0.5519221572223715,
-            0.6725190944255813
-          ],
-          [
-            "L",
-            -0.6151828996322962,
-            0.6151828996322964
-          ],
-          [
-            "L",
-            -0.7604059656000308,
-            0.6494480483301838
-          ],
-          [
-            "L",
-            -0.8422172337162864,
-            0.5391383229110004
-          ],
-          [
-            "L",
-            -0.7672714999830689,
-            0.41011516103861817
-          ],
-          [
-            "L",
-            -0.8037751932848195,
-            0.3329345861576282
-          ],
-          [
-            "L",
-            -0.9510565162951535,
-            0.3090169943749475
-          ],
-          [
-            "L",
-            -0.9844265680898916,
-            0.17579627993435473
-          ],
-          [
-            "L",
-            -0.8658107122048112,
-            0.08527491208671792
-          ],
-          [
-            "L",
-            -0.87,
-            1.0654427152581974e-16
-          ],
-          [
-            "L",
-            -0.9969173337331282,
-            -0.07845909572784437
-          ],
-          [
-            "L",
-            -0.9767658813208723,
-            -0.2143091530650509
-          ],
-          [
-            "L",
-            -0.8325380920870218,
-            -0.252547669211382
-          ],
-          [
-            "L",
-            -0.8037751932848195,
-            -0.332934586157628
-          ],
-          [
-            "L",
-            -0.8910065241883681,
-            -0.45399049973954625
-          ],
-          [
-            "L",
-            -0.8204014435255135,
-            -0.5717879602276125
-          ],
-          [
-            "L",
-            -0.6725190944255813,
-            -0.5519221572223714
-          ],
-          [
-            "L",
-            -0.6151828996322964,
-            -0.6151828996322962
-          ],
-          [
-            "L",
-            -0.6494480483301841,
-            -0.7604059656000305
-          ],
-          [
-            "L",
-            -0.5391383229110001,
-            -0.8422172337162867
-          ],
-          [
-            "L",
-            -0.4101151610386182,
-            -0.7672714999830689
-          ],
-          [
-            "L",
-            -0.3329345861576286,
-            -0.8037751932848193
-          ],
-          [
-            "L",
-            -0.30901699437494756,
-            -0.9510565162951535
-          ],
-          [
-            "L",
-            -0.1757962799343548,
-            -0.9844265680898916
-          ],
-          [
-            "L",
-            -0.08527491208671759,
-            -0.8658107122048113
-          ],
-          [
-            "L",
-            -1.598164072887296e-16,
-            -0.87
-          ],
-          [
-            "L",
-            0.07845909572784432,
-            -0.9969173337331282
-          ],
-          [
-            "L",
-            0.21430915306505088,
-            -0.9767658813208723
-          ],
-          [
-            "L",
-            0.252547669211382,
-            -0.8325380920870218
-          ],
-          [
-            "L",
-            0.3329345861576283,
-            -0.8037751932848194
-          ],
-          [
-            "L",
-            0.4539904997395466,
-            -0.891006524188368
-          ],
-          [
-            "L",
-            0.571787960227612,
-            -0.8204014435255138
-          ],
-          [
-            "L",
-            0.5519221572223717,
-            -0.6725190944255811
-          ],
-          [
-            "L",
-            0.6151828996322962,
-            -0.6151828996322964
-          ],
-          [
-            "L",
-            0.7604059656000305,
-            -0.6494480483301841
-          ],
-          [
-            "L",
-            0.8422172337162867,
-            -0.5391383229110002
-          ],
-          [
-            "L",
-            0.7672714999830688,
-            -0.4101151610386182
-          ],
-          [
-            "L",
-            0.8037751932848193,
-            -0.33293458615762866
-          ],
-          [
-            "L",
-            0.9510565162951535,
-            -0.3090169943749476
-          ],
-          [
-            "L",
-            0.9844265680898916,
-            -0.17579627993435484
-          ],
-          [
-            "L",
-            0.8658107122048113,
-            -0.08527491208671764
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgb(64,57,17)",
-        "lineWidth": 0.04
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0,
-            0,
-            0.73,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(18,24,25,.96)",
-        "lineWidth": 0.024
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.04364592461617385,
-            -0.1951794898661211
-          ],
-          [
-            "L",
-            -0.06389338665397004,
-            -0.6368026657779364
-          ],
-          [
-            "L",
-            0.06389338665397011,
-            -0.6368026657779364
-          ],
-          [
-            "L",
-            0.04364592461617387,
-            -0.1951794898661211
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.42)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.14720743421366136,
-            -0.1353882244223277
-          ],
-          [
-            "L",
-            0.5195405924343593,
-            -0.3737346288651279
-          ],
-          [
-            "L",
-            0.5834339790883294,
-            -0.26306803691280867
-          ],
-          [
-            "L",
-            0.19085335882983523,
-            -0.059791265443793436
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.42)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.19085335882983523,
-            0.05979126544379339
-          ],
-          [
-            "L",
-            0.5834339790883294,
-            0.2630680369128085
-          ],
-          [
-            "L",
-            0.5195405924343595,
-            0.37373462886512776
-          ],
-          [
-            "L",
-            0.14720743421366136,
-            0.13538822442232765
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.42)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.04364592461617387,
-            0.1951794898661211
-          ],
-          [
-            "L",
-            0.06389338665397011,
-            0.6368026657779364
-          ],
-          [
-            "L",
-            -0.06389338665397004,
-            0.6368026657779364
-          ],
-          [
-            "L",
-            -0.04364592461617385,
-            0.1951794898661211
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.42)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.14720743421366125,
-            0.13538822442232779
-          ],
-          [
-            "L",
-            -0.5195405924343592,
-            0.3737346288651281
-          ],
-          [
-            "L",
-            -0.5834339790883294,
-            0.2630680369128088
-          ],
-          [
-            "L",
-            -0.19085335882983517,
-            0.05979126544379345
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.42)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.19085335882983523,
-            -0.0597912654437934
-          ],
-          [
-            "L",
-            -0.5834339790883294,
-            -0.2630680369128086
-          ],
-          [
-            "L",
-            -0.5195405924343593,
-            -0.37373462886512804
-          ],
-          [
-            "L",
-            -0.1472074342136613,
-            -0.13538822442232776
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.42)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "A",
-            3.551475717527324e-17,
-            -0.58,
-            0.06,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.85)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0.5022947341949744,
-            -0.29,
-            0.06,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.85)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0.5022947341949745,
-            0.28999999999999987,
-            0.06,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.85)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "A",
-            3.551475717527324e-17,
-            0.58,
-            0.06,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.85)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "A",
-            -0.5022947341949743,
-            0.2900000000000002,
-            0.06,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.85)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "A",
-            -0.5022947341949744,
-            -0.2900000000000001,
-            0.06,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgba(230,202,59,.85)",
-        "lineWidth": 0.02
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.19052558883257653,
-            0.10999999999999999
-          ],
-          [
-            "L",
-            1.3471114790620886e-17,
-            0.22
-          ],
-          [
-            "L",
-            -0.19052558883257645,
-            0.11000000000000007
-          ],
-          [
-            "L",
-            -0.19052558883257653,
-            -0.10999999999999995
-          ],
-          [
-            "L",
-            -4.041334437186265e-17,
-            -0.22
-          ],
-          [
-            "L",
-            0.19052558883257653,
-            -0.10999999999999993
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "rgb(64,57,17)",
-        "lineWidth": 0.03
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0,
-            0,
-            0.075,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "stroke": false,
-        "fillColor": "#fff7c2"
-      }
-    ],
-    "origin": [
-      -1.1102230246251565e-16,
-      -1.1102230246251565e-16
-    ]
-  },
-  "sun-blessed": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            0,
-            -2.95
-          ],
-          [
-            "L",
-            0.48,
-            -2.55
-          ],
-          [
-            "L",
-            0.48,
-            0.65
-          ],
-          [
-            "L",
-            -0.48,
-            0.65
-          ],
-          [
-            "L",
-            -0.48,
-            -2.55
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#195a77",
-        "lineWidth": 0.1
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0,
-            -2.65
-          ],
-          [
-            "L",
-            0,
-            0.48
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.15
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1,
-            0.5
-          ],
-          [
-            "L",
-            -0.82,
-            0.82
-          ],
-          [
-            "L",
-            -0.3,
-            0.78
-          ],
-          [
-            "L",
-            0,
-            0.9
-          ],
-          [
-            "L",
-            0.3,
-            0.78
-          ],
-          [
-            "L",
-            0.82,
-            0.82
-          ],
-          [
-            "L",
-            1,
-            0.5
-          ],
-          [
-            "L",
-            0.42000000000000004,
-            0.55
-          ],
-          [
-            "L",
-            0,
-            0.35
-          ],
-          [
-            "L",
-            -0.42000000000000004,
-            0.55
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "stroke": true,
-        "fillColor": "#248dbc",
-        "lineWidth": 0.075
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0,
-            0.6,
-            0.19,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "stroke": false,
-        "fillColor": "#8be7ff"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.25,
-            0.6
-          ],
-          [
-            "L",
-            -0.34,
-            0.6
-          ],
-          [
-            "M",
-            0.25,
-            0.6
-          ],
-          [
-            "L",
-            0.34,
-            0.6
-          ],
-          [
-            "M",
-            0,
-            0.35
-          ],
-          [
-            "L",
-            0,
-            0.26
-          ],
-          [
-            "M",
-            0,
-            0.85
-          ],
-          [
-            "L",
-            0,
-            0.94
-          ]
-        ],
-        "lineWidth": 0.04
-      },
-      {
-        "points": [
-          [
-            -0.15,
-            0.83
-          ],
-          [
-            0.15,
-            0.83
-          ],
-          [
-            0.13,
-            1.48
-          ],
-          [
-            -0.13,
-            1.48
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#245c75"
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            0.94
-          ],
-          [
-            0.14,
-            1.01
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            1.0699999999999998
-          ],
-          [
-            0.14,
-            1.1400000000000001
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            1.2
-          ],
-          [
-            0.14,
-            1.27
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.14,
-            1.33
-          ],
-          [
-            0.14,
-            1.4
-          ]
-        ]
-      },
-      {
-        "points": [
-          [
-            -0.18,
-            1.48
-          ],
-          [
-            0.18,
-            1.48
-          ],
-          [
-            0.16,
-            1.59
-          ],
-          [
-            -0.16,
-            1.59
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#245c75"
-      }
-    ],
-    "origin": [
-      0,
-      -0.68
-    ]
-  },
-  "frost-scythe": {
-    "paths": [
-      {
-        "points": [
-          [
-            -0.1,
-            -2.06
-          ],
-          [
-            0.1,
-            -2.06
-          ],
-          [
-            0.09,
-            1.86
-          ],
-          [
-            0,
-            2.06
-          ],
-          [
-            -0.09,
-            1.86
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#293e60",
-        "stroke": true
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.26,
-            -2.18
-          ],
-          [
-            "L",
-            0.18,
-            -2.61
-          ],
-          [
-            "L",
-            0.41,
-            -2.33
-          ],
-          [
-            "L",
-            0.91,
-            -2.43
-          ],
-          [
-            "L",
-            1.06,
-            -2.15
-          ],
-          [
-            "L",
-            1.59,
-            -2.01
-          ],
-          [
-            "L",
-            1.67,
-            -1.72
-          ],
-          [
-            "L",
-            2.09,
-            -1.43
-          ],
-          [
-            "L",
-            2.75,
-            -0.56
-          ],
-          [
-            "C",
-            1.91,
-            -1.23,
-            0.73,
-            -1.71,
-            -0.19,
-            -1.56
-          ],
-          [
-            "L",
-            -0.3,
-            -1.77
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#426e9c"
-      },
-      {
-        "points": [
-          [
-            0.13,
-            -2.39
-          ],
-          [
-            0.4,
-            -1.88
-          ],
-          [
-            1.61,
-            -1.77
-          ],
-          [
-            2.75,
-            -0.56
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -0.24,
-            -1.96
-          ],
-          [
-            0,
-            -2.21
-          ],
-          [
-            0.24,
-            -1.96
-          ],
-          [
-            0,
-            -1.68
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#8ab9de",
-        "stroke": true
-      },
-      {
-        "points": [
-          [
-            0,
-            -2.06
-          ],
-          [
-            0.1,
-            -1.96
-          ],
-          [
-            0,
-            -1.79
-          ],
-          [
-            -0.1,
-            -1.96
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#b9dcf0",
-        "stroke": false
-      },
-      {
-        "points": [
-          [
-            0,
-            -1.6
-          ],
-          [
-            0,
-            1.66
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -0.16,
-            1.66
-          ],
-          [
-            0,
-            2.1
-          ],
-          [
-            0.16,
-            1.66
-          ],
-          [
-            0,
-            1.46
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#6595bb",
-        "stroke": true
-      }
-    ],
-    "origin": [
-      0,
-      0
-    ]
-  },
-  "chain-scythe-right": {
-    "paths": [
-      {
-        "points": [
-          [
-            -0.09,
-            -1.5
-          ],
-          [
-            0.09,
-            -1.5
-          ],
-          [
-            0.08,
-            1.26
-          ],
-          [
-            -0.08,
-            1.26
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#20585d"
-      },
-      {
-        "points": [
-          [
-            -0.18,
-            -1.57
-          ],
-          [
-            0.65,
-            -1.57
-          ],
-          [
-            1.46,
-            -1.23
-          ],
-          [
-            1.77,
-            -0.57
-          ],
-          [
-            1.72,
-            -0.13
-          ],
-          [
-            1.46,
-            -0.73
-          ],
-          [
-            0.52,
-            -1.13
-          ],
-          [
-            -0.18,
-            -1.13
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#2d8186"
-      },
-      {
-        "points": [
-          [
-            -0.15,
-            -1.64
-          ],
-          [
-            0.15,
-            -1.64
-          ],
-          [
-            0.15,
-            -1.1
-          ],
-          [
-            -0.15,
-            -1.1
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#368a90"
-      },
-      {
-        "points": [
-          [
-            -0.12,
-            1.13
-          ],
-          [
-            0.12,
-            1.13
-          ],
-          [
-            0.12,
-            1.3
-          ],
-          [
-            -0.12,
-            1.3
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#368a90"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.16,
-            -1.05
-          ],
-          [
-            "C",
-            -0.22,
-            -1.06,
-            -0.23,
-            -0.97,
-            -0.14,
-            -0.9299999999999999
-          ],
-          [
-            "L",
-            0.12,
-            -0.8
-          ],
-          [
-            "C",
-            0.21,
-            -0.76,
-            0.23,
-            -0.85,
-            0.14,
-            -0.89
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#377b80",
-        "lineWidth": 0.022
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.16,
-            -0.5700000000000001
-          ],
-          [
-            "C",
-            -0.22,
-            -0.5800000000000001,
-            -0.23,
-            -0.49,
-            -0.14,
-            -0.45
-          ],
-          [
-            "L",
-            0.12,
-            -0.32
-          ],
-          [
-            "C",
-            0.21,
-            -0.28,
-            0.23,
-            -0.37,
-            0.14,
-            -0.41000000000000003
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#377b80",
-        "lineWidth": 0.022
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.16,
-            -0.09000000000000004
-          ],
-          [
-            "C",
-            -0.22,
-            -0.10000000000000003,
-            -0.23,
-            -0.010000000000000037,
-            -0.14,
-            0.02999999999999997
-          ],
-          [
-            "L",
-            0.12,
-            0.15999999999999998
-          ],
-          [
-            "C",
-            0.21,
-            0.19999999999999996,
-            0.23,
-            0.10999999999999996,
-            0.14,
-            0.06999999999999997
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#377b80",
-        "lineWidth": 0.022
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.16,
-            0.38999999999999996
-          ],
-          [
-            "C",
-            -0.22,
-            0.37999999999999995,
-            -0.23,
-            0.47,
-            -0.14,
-            0.51
-          ],
-          [
-            "L",
-            0.12,
-            0.6399999999999999
-          ],
-          [
-            "C",
-            0.21,
-            0.6799999999999999,
-            0.23,
-            0.59,
-            0.14,
-            0.5499999999999999
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#377b80",
-        "lineWidth": 0.022
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.16,
-            0.8699999999999999
-          ],
-          [
-            "C",
-            -0.22,
-            0.8599999999999999,
-            -0.23,
-            0.95,
-            -0.14,
-            0.99
-          ],
-          [
-            "L",
-            0.12,
-            1.1199999999999999
-          ],
-          [
-            "C",
-            0.21,
-            1.16,
-            0.23,
-            1.0699999999999998,
-            0.14,
-            1.03
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#377b80",
-        "lineWidth": 0.022
-      }
-    ],
-    "origin": [
-      0,
-      0
-    ]
-  },
-  "chain-scythe-left": {
-    "paths": [
-      {
-        "points": [
-          [
-            0.09,
-            -1.5
-          ],
-          [
-            -0.09,
-            -1.5
-          ],
-          [
-            -0.08,
-            1.26
-          ],
-          [
-            0.08,
-            1.26
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#20585d"
-      },
-      {
-        "points": [
-          [
-            0.18,
-            -1.57
-          ],
-          [
-            -0.65,
-            -1.57
-          ],
-          [
-            -1.46,
-            -1.23
-          ],
-          [
-            -1.77,
-            -0.57
-          ],
-          [
-            -1.72,
-            -0.13
-          ],
-          [
-            -1.46,
-            -0.73
-          ],
-          [
-            -0.52,
-            -1.13
-          ],
-          [
-            0.18,
-            -1.13
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#2d8186"
-      },
-      {
-        "points": [
-          [
-            0.15,
-            -1.64
-          ],
-          [
-            -0.15,
-            -1.64
-          ],
-          [
-            -0.15,
-            -1.1
-          ],
-          [
-            0.15,
-            -1.1
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#368a90"
-      },
-      {
-        "points": [
-          [
-            0.12,
-            1.13
-          ],
-          [
-            -0.12,
-            1.13
-          ],
-          [
-            -0.12,
-            1.3
-          ],
-          [
-            0.12,
-            1.3
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#368a90"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.16,
-            -1.05
-          ],
-          [
-            "C",
-            0.22,
-            -1.06,
-            0.23,
-            -0.97,
-            0.14,
-            -0.9299999999999999
-          ],
-          [
-            "L",
-            -0.12,
-            -0.8
-          ],
-          [
-            "C",
-            -0.21,
-            -0.76,
-            -0.23,
-            -0.85,
-            -0.14,
-            -0.89
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#377b80",
-        "lineWidth": 0.022
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.16,
-            -0.5700000000000001
-          ],
-          [
-            "C",
-            0.22,
-            -0.5800000000000001,
-            0.23,
-            -0.49,
-            0.14,
-            -0.45
-          ],
-          [
-            "L",
-            -0.12,
-            -0.32
-          ],
-          [
-            "C",
-            -0.21,
-            -0.28,
-            -0.23,
-            -0.37,
-            -0.14,
-            -0.41000000000000003
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#377b80",
-        "lineWidth": 0.022
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.16,
-            -0.09000000000000004
-          ],
-          [
-            "C",
-            0.22,
-            -0.10000000000000003,
-            0.23,
-            -0.010000000000000037,
-            0.14,
-            0.02999999999999997
-          ],
-          [
-            "L",
-            -0.12,
-            0.15999999999999998
-          ],
-          [
-            "C",
-            -0.21,
-            0.19999999999999996,
-            -0.23,
-            0.10999999999999996,
-            -0.14,
-            0.06999999999999997
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#377b80",
-        "lineWidth": 0.022
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.16,
-            0.38999999999999996
-          ],
-          [
-            "C",
-            0.22,
-            0.37999999999999995,
-            0.23,
-            0.47,
-            0.14,
-            0.51
-          ],
-          [
-            "L",
-            -0.12,
-            0.6399999999999999
-          ],
-          [
-            "C",
-            -0.21,
-            0.6799999999999999,
-            -0.23,
-            0.59,
-            -0.14,
-            0.5499999999999999
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#377b80",
-        "lineWidth": 0.022
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.16,
-            0.8699999999999999
-          ],
-          [
-            "C",
-            0.22,
-            0.8599999999999999,
-            0.23,
-            0.95,
-            0.14,
-            0.99
-          ],
-          [
-            "L",
-            -0.12,
-            1.1199999999999999
-          ],
-          [
-            "C",
-            -0.21,
-            1.16,
-            -0.23,
-            1.0699999999999998,
-            -0.14,
-            1.03
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#377b80",
-        "lineWidth": 0.022
-      }
-    ],
-    "origin": [
-      0,
-      0
-    ]
-  },
-  "small-wrench": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            -0.85,
-            -0.17
-          ],
-          [
-            "L",
-            0.45,
-            -0.17
-          ],
-          [
-            "L",
-            0.68,
-            -0.43
-          ],
-          [
-            "L",
-            1.07,
-            -0.43
-          ],
-          [
-            "L",
-            1.22,
-            -0.2
-          ],
-          [
-            "L",
-            0.86,
-            -0.2
-          ],
-          [
-            "L",
-            0.71,
-            0
-          ],
-          [
-            "L",
-            0.86,
-            0.2
-          ],
-          [
-            "L",
-            1.22,
-            0.2
-          ],
-          [
-            "L",
-            1.07,
-            0.43
-          ],
-          [
-            "L",
-            0.68,
-            0.43
-          ],
-          [
-            "L",
-            0.45,
-            0.17
-          ],
-          [
-            "L",
-            -0.85,
-            0.17
-          ],
-          [
-            "C",
-            -1.21,
-            0.17,
-            -1.21,
-            -0.17,
-            -0.85,
-            -0.17
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "rgba(105,137,56,.96)"
-      },
-      {
-        "points": [
-          [
-            -0.65,
-            -0.065
-          ],
-          [
-            0.34,
-            -0.065
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "commands": [
-          [
-            "A",
-            -0.94,
-            0,
-            0.085,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "stroke": true,
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      0.050000000000000044,
-      0
-    ]
-  },
-  "melon-slice": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            -1.65,
-            -0.55
-          ],
-          [
-            "L",
-            1.65,
-            -0.55
-          ],
-          [
-            "C",
-            1.31,
-            1.16,
-            -1.31,
-            1.16,
-            -1.65,
-            -0.55
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#285841"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.47,
-            -0.5
-          ],
-          [
-            "L",
-            1.47,
-            -0.5
-          ],
-          [
-            "C",
-            1.15,
-            0.92,
-            -1.15,
-            0.92,
-            -1.47,
-            -0.5
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#6b9956",
-        "stroke": false
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.29,
-            -0.45
-          ],
-          [
-            "L",
-            1.29,
-            -0.45
-          ],
-          [
-            "C",
-            1,
-            0.7,
-            -1,
-            0.7,
-            -1.29,
-            -0.45
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#9dbd68",
-        "stroke": false
-      },
-      {
-        "points": [
-          [
-            -0.68,
-            -0.29
-          ],
-          [
-            -0.58,
-            -0.13
-          ],
-          [
-            -0.64,
-            0.01
-          ],
-          [
-            -0.74,
-            -0.15
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#405c35",
-        "stroke": false
-      },
-      {
-        "points": [
-          [
-            -0.05,
-            -0.23
-          ],
-          [
-            0.05,
-            -0.05
-          ],
-          [
-            0,
-            0.1
-          ],
-          [
-            -0.1,
-            -0.05
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#405c35",
-        "stroke": false
-      },
-      {
-        "points": [
-          [
-            0.64,
-            -0.29
-          ],
-          [
-            0.74,
-            -0.15
-          ],
-          [
-            0.64,
-            0.01
-          ],
-          [
-            0.58,
-            -0.13
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#405c35",
-        "stroke": false
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.38,
-            -0.34
-          ],
-          [
-            "C",
-            -1.09,
-            0.87,
-            1.09,
-            0.87,
-            1.38,
-            -0.34
-          ]
-        ],
-        "lineWidth": 0.03
-      }
-    ],
-    "origin": [
-      0,
-      0.09124999999999994
-    ]
-  },
-  "melon-slush": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            -1.46,
-            -0.31
-          ],
-          [
-            "L",
-            1.46,
-            -0.31
-          ],
-          [
-            "L",
-            1.08,
-            0.61
-          ],
-          [
-            "C",
-            0.61,
-            0.93,
-            -0.61,
-            0.93,
-            -1.08,
-            0.61
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#4e8c6b"
-      },
-      {
-        "points": [
-          [
-            -0.15,
-            0.81
-          ],
-          [
-            0.15,
-            0.81
-          ],
-          [
-            0.18,
-            1.03
-          ],
-          [
-            -0.18,
-            1.03
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#3c735b",
-        "stroke": true
-      },
-      {
-        "points": [
-          [
-            -0.65,
-            1.01
-          ],
-          [
-            0.65,
-            1.01
-          ],
-          [
-            0.7,
-            1.15
-          ],
-          [
-            -0.7,
-            1.15
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#4e8c6b",
-        "stroke": true
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.33,
-            -0.34
-          ],
-          [
-            "C",
-            -1.29,
-            -0.82,
-            -0.76,
-            -0.96,
-            -0.64,
-            -1.33
-          ],
-          [
-            "C",
-            -0.34,
-            -1.63,
-            -0.15,
-            -1.31,
-            0.04,
-            -1.56
-          ],
-          [
-            "C",
-            0.34,
-            -1.48,
-            0.51,
-            -1.16,
-            0.76,
-            -1.15
-          ],
-          [
-            "C",
-            1.1,
-            -1.02,
-            1.25,
-            -0.77,
-            1.33,
-            -0.34
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#d4f0de"
-      },
-      {
-        "points": [
-          [
-            -0.85,
-            -0.63
-          ],
-          [
-            -0.57,
-            -1.13
-          ],
-          [
-            -0.12,
-            -0.89
-          ],
-          [
-            -0.34,
-            -0.45
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#a5d89e",
-        "stroke": true
-      },
-      {
-        "points": [
-          [
-            0.11,
-            -1.05
-          ],
-          [
-            0.47,
-            -1.32
-          ],
-          [
-            0.88,
-            -0.79
-          ],
-          [
-            0.5,
-            -0.54
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#a5d89e",
-        "stroke": true
-      },
-      {
-        "points": [
-          [
-            -0.85,
-            -0.63
-          ],
-          [
-            -0.34,
-            -0.45
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            0.11,
-            -1.05
-          ],
-          [
-            0.5,
-            -0.54
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -1.18,
-            -0.1
-          ],
-          [
-            1.18,
-            -0.1
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.78,
-            0.13
-          ],
-          [
-            "C",
-            -0.41,
-            0.44,
-            0.41,
-            0.44,
-            0.78,
-            0.13
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      0,
-      -0.20500000000000007
-    ]
-  },
-  "snow-crystal": {
-    "paths": [
-      {
-        "points": [
-          [
-            0.36,
-            -0.09
-          ],
-          [
-            1.46,
-            -0.09
-          ],
-          [
-            1.72,
-            0
-          ],
-          [
-            1.46,
-            0.09
-          ],
-          [
-            0.36,
-            0.09
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            0.76,
-            -0.02
-          ],
-          [
-            1.04,
-            -0.37
-          ],
-          [
-            1.02,
-            -0.56
-          ],
-          [
-            0.87,
-            -0.48
-          ],
-          [
-            0.57,
-            -0.1
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            0.76,
-            0.02
-          ],
-          [
-            1.04,
-            0.37
-          ],
-          [
-            1.02,
-            0.56
-          ],
-          [
-            0.87,
-            0.48
-          ],
-          [
-            0.57,
-            0.1
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            0.2579,
-            0.2668
-          ],
-          [
-            0.8079,
-            1.2194
-          ],
-          [
-            0.86,
-            1.4896
-          ],
-          [
-            0.6521,
-            1.3094
-          ],
-          [
-            0.1021,
-            0.3568
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            0.3973,
-            0.6482
-          ],
-          [
-            0.8404,
-            0.7157
-          ],
-          [
-            0.995,
-            0.6033
-          ],
-          [
-            0.8507,
-            0.5134
-          ],
-          [
-            0.3716,
-            0.4436
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            0.3627,
-            0.6682
-          ],
-          [
-            0.1996,
-            1.0857
-          ],
-          [
-            0.025,
-            1.1633
-          ],
-          [
-            0.0193,
-            0.9934
-          ],
-          [
-            0.1984,
-            0.5436
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            -0.1021,
-            0.3568
-          ],
-          [
-            -0.6521,
-            1.3094
-          ],
-          [
-            -0.86,
-            1.4896
-          ],
-          [
-            -0.8079,
-            1.2194
-          ],
-          [
-            -0.2579,
-            0.2668
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            -0.3627,
-            0.6682
-          ],
-          [
-            -0.1996,
-            1.0857
-          ],
-          [
-            -0.025,
-            1.1633
-          ],
-          [
-            -0.0193,
-            0.9934
-          ],
-          [
-            -0.1984,
-            0.5436
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            -0.3973,
-            0.6482
-          ],
-          [
-            -0.8404,
-            0.7157
-          ],
-          [
-            -0.995,
-            0.6033
-          ],
-          [
-            -0.8507,
-            0.5134
-          ],
-          [
-            -0.3716,
-            0.4436
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            -0.36,
-            0.09
-          ],
-          [
-            -1.46,
-            0.09
-          ],
-          [
-            -1.72,
-            0
-          ],
-          [
-            -1.46,
-            -0.09
-          ],
-          [
-            -0.36,
-            -0.09
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            -0.76,
-            0.02
-          ],
-          [
-            -1.04,
-            0.37
-          ],
-          [
-            -1.02,
-            0.56
-          ],
-          [
-            -0.87,
-            0.48
-          ],
-          [
-            -0.57,
-            0.1
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            -0.76,
-            -0.02
-          ],
-          [
-            -1.04,
-            -0.37
-          ],
-          [
-            -1.02,
-            -0.56
-          ],
-          [
-            -0.87,
-            -0.48
-          ],
-          [
-            -0.57,
-            -0.1
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            -0.2579,
-            -0.2668
-          ],
-          [
-            -0.8079,
-            -1.2194
-          ],
-          [
-            -0.86,
-            -1.4896
-          ],
-          [
-            -0.6521,
-            -1.3094
-          ],
-          [
-            -0.1021,
-            -0.3568
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            -0.3973,
-            -0.6482
-          ],
-          [
-            -0.8404,
-            -0.7157
-          ],
-          [
-            -0.995,
-            -0.6033
-          ],
-          [
-            -0.8507,
-            -0.5134
-          ],
-          [
-            -0.3716,
-            -0.4436
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            -0.3627,
-            -0.6682
-          ],
-          [
-            -0.1996,
-            -1.0857
-          ],
-          [
-            -0.025,
-            -1.1633
-          ],
-          [
-            -0.0193,
-            -0.9934
-          ],
-          [
-            -0.1984,
-            -0.5436
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            0.1021,
-            -0.3568
-          ],
-          [
-            0.6521,
-            -1.3094
-          ],
-          [
-            0.86,
-            -1.4896
-          ],
-          [
-            0.8079,
-            -1.2194
-          ],
-          [
-            0.2579,
-            -0.2668
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            0.3627,
-            -0.6682
-          ],
-          [
-            0.1996,
-            -1.0857
-          ],
-          [
-            0.025,
-            -1.1633
-          ],
-          [
-            0.0193,
-            -0.9934
-          ],
-          [
-            0.1984,
-            -0.5436
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            0.3973,
-            -0.6482
-          ],
-          [
-            0.8404,
-            -0.7157
-          ],
-          [
-            0.995,
-            -0.6033
-          ],
-          [
-            0.8507,
-            -0.5134
-          ],
-          [
-            0.3716,
-            -0.4436
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            0.4,
-            0
-          ],
-          [
-            0.2,
-            0.3464
-          ],
-          [
-            -0.2,
-            0.3464
-          ],
-          [
-            -0.4,
-            0
-          ],
-          [
-            -0.2,
-            -0.3464
-          ],
-          [
-            0.2,
-            -0.3464
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      },
-      {
-        "points": [
-          [
-            0.22,
-            0
-          ],
-          [
-            0.11,
-            0.1905
-          ],
-          [
-            -0.11,
-            0.1905
-          ],
-          [
-            -0.22,
-            0
-          ],
-          [
-            -0.11,
-            -0.1905
-          ],
-          [
-            0.11,
-            -0.1905
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#497c9b"
-      }
-    ],
-    "origin": [
-      0,
-      0
-    ]
-  },
-  "electronic-shotgun": {
-    "paths": [
-      {
-        "points": [
-          [
-            -1.25,
-            -0.74
-          ],
-          [
-            0.87,
-            -0.74
-          ],
-          [
-            0.94,
-            -0.66
-          ],
-          [
-            0.94,
-            0.2
-          ],
-          [
-            0.8,
-            0.3
-          ],
-          [
-            -1.23,
-            0.3
-          ],
-          [
-            -1.48,
-            0.04
-          ],
-          [
-            -1.48,
-            -0.45
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#873b23"
-      },
-      {
-        "points": [
-          [
-            0.94,
-            -0.66
-          ],
-          [
-            1.53,
-            -0.66
-          ],
-          [
-            1.53,
-            0.2
-          ],
-          [
-            0.94,
-            0.2
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#46261e"
-      },
-      {
-        "points": [
-          [
-            1.28,
-            -0.47
-          ],
-          [
-            1.28,
-            0.01
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -1.02,
-            0.3
-          ],
-          [
-            -0.38,
-            0.3
-          ],
-          [
-            -0.56,
-            1.28
-          ],
-          [
-            -1.25,
-            1.28
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#5c3024"
-      },
-      {
-        "points": [
-          [
-            -0.26,
-            0.36
-          ],
-          [
-            0.5,
-            0.36
-          ],
-          [
-            0.44,
-            0.8
-          ],
-          [
-            -0.33,
-            0.8
-          ]
-        ],
-        "closed": true,
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -0.04,
-            0.34
-          ],
-          [
-            -0.05,
-            0.57
-          ],
-          [
-            0.13,
-            0.64
-          ]
-        ],
-        "lineWidth": 0.045
-      },
-      {
-        "points": [
-          [
-            -1.18,
-            -0.5
-          ],
-          [
-            -0.29,
-            -0.5
-          ],
-          [
-            -0.29,
-            -0.08
-          ],
-          [
-            -1.18,
-            -0.08
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#54291e"
-      },
-      {
-        "points": [
-          [
-            -1.02,
-            -0.29
-          ],
-          [
-            -0.45,
-            -0.29
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            0.02,
-            -0.5
-          ],
-          [
-            0.02,
-            -0.09
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            0.26,
-            -0.5
-          ],
-          [
-            0.26,
-            -0.09
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            0.5,
-            -0.5
-          ],
-          [
-            0.5,
-            -0.09
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -1.25,
-            -0.85
-          ],
-          [
-            -0.78,
-            -0.85
-          ],
-          [
-            -0.78,
-            -0.74
-          ],
-          [
-            -1.25,
-            -0.74
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#873b23"
-      },
-      {
-        "points": [
-          [
-            -1.04,
-            1.02
-          ],
-          [
-            -0.7,
-            1.02
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      0.025000000000000022,
-      0.21500000000000002
-    ]
-  },
-  "spellbook": {
-    "paths": [
-      {
-        "points": [
-          [
-            -1.48,
-            -1.07
-          ],
-          [
-            -0.12,
-            -0.88
-          ],
-          [
-            0,
-            -0.67
-          ],
-          [
-            0.12,
-            -0.88
-          ],
-          [
-            1.48,
-            -1.07
-          ],
-          [
-            1.48,
-            0.91
-          ],
-          [
-            0.16,
-            1.1
-          ],
-          [
-            0,
-            0.97
-          ],
-          [
-            -0.16,
-            1.1
-          ],
-          [
-            -1.48,
-            0.91
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#362450"
-      },
-      {
-        "points": [
-          [
-            -1.3,
-            -0.9
-          ],
-          [
-            -0.15,
-            -0.73
-          ],
-          [
-            0,
-            -0.57
-          ],
-          [
-            0,
-            0.78
-          ],
-          [
-            -0.16,
-            0.9
-          ],
-          [
-            -1.3,
-            0.73
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#8062a3"
-      },
-      {
-        "points": [
-          [
-            1.3,
-            -0.9
-          ],
-          [
-            0.15,
-            -0.73
-          ],
-          [
-            0,
-            -0.57
-          ],
-          [
-            0,
-            0.78
-          ],
-          [
-            0.16,
-            0.9
-          ],
-          [
-            1.3,
-            0.73
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#8062a3"
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.57
-          ],
-          [
-            0,
-            0.8
-          ]
-        ],
-        "lineWidth": 0.045
-      },
-      {
-        "points": [
-          [
-            -1.05,
-            -0.48
-          ],
-          [
-            -0.35,
-            -0.36
-          ]
-        ],
-        "lineWidth": 0.025
-      },
-      {
-        "points": [
-          [
-            0.35,
-            -0.36
-          ],
-          [
-            1.05,
-            -0.48
-          ]
-        ],
-        "lineWidth": 0.025
-      },
-      {
-        "points": [
-          [
-            -1.05,
-            -0.18
-          ],
-          [
-            -0.35,
-            -0.06
-          ]
-        ],
-        "lineWidth": 0.025
-      },
-      {
-        "points": [
-          [
-            0.35,
-            -0.06
-          ],
-          [
-            1.05,
-            -0.18
-          ]
-        ],
-        "lineWidth": 0.025
-      },
-      {
-        "points": [
-          [
-            -1.05,
-            0.12
-          ],
-          [
-            -0.35,
-            0.24
-          ]
-        ],
-        "lineWidth": 0.025
-      },
-      {
-        "points": [
-          [
-            0.35,
-            0.24
-          ],
-          [
-            1.05,
-            0.12
-          ]
-        ],
-        "lineWidth": 0.025
-      },
-      {
-        "points": [
-          [
-            -1.05,
-            0.42
-          ],
-          [
-            -0.35,
-            0.54
-          ]
-        ],
-        "lineWidth": 0.025
-      },
-      {
-        "points": [
-          [
-            0.35,
-            0.54
-          ],
-          [
-            1.05,
-            0.42
-          ]
-        ],
-        "lineWidth": 0.025
-      },
-      {
-        "points": [
-          [
-            0,
-            0.9
-          ],
-          [
-            0.18,
-            1.05
-          ],
-          [
-            0.18,
-            1.45
-          ],
-          [
-            0,
-            1.31
-          ],
-          [
-            -0.18,
-            1.45
-          ],
-          [
-            -0.18,
-            1.05
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#503570"
-      }
-    ],
-    "leaf": {
-      "left": -1.3,
-      "right": 1.3,
-      "top": -0.9,
-      "bottom": 0.73,
-      "color": "#8062a3"
-    },
-    "origin": [
-      0,
-      0.18999999999999995
-    ]
-  },
-  "moon-crescent": {
-    "origin": [
-      0,
-      0
-    ],
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            1.63,
-            0
-          ],
-          [
-            "C",
-            1.63,
-            0.9002241424999999,
-            0.9002241424999999,
-            1.63,
-            0,
-            1.63
-          ],
-          [
-            "C",
-            -0.9002241424999999,
-            1.63,
-            -1.63,
-            0.9002241424999999,
-            -1.63,
-            0
-          ],
-          [
-            "C",
-            -1.63,
-            -0.9002241424999999,
-            -0.9002241424999999,
-            -1.63,
-            0,
-            -1.63
-          ],
-          [
-            "C",
-            0.9002241424999999,
-            -1.63,
-            1.63,
-            -0.9002241424999999,
-            1.63,
-            0
-          ],
-          [
-            "Z"
-          ],
-          [
-            "M",
-            1.6,
-            0
-          ],
-          [
-            "C",
-            1.6,
-            -0.563330445,
-            1.143330445,
-            -1.02,
-            0.58,
-            -1.02
-          ],
-          [
-            "C",
-            0.016669555000000003,
-            -1.02,
-            -0.44000000000000006,
-            -0.563330445,
-            -0.44000000000000006,
-            0
-          ],
-          [
-            "C",
-            -0.44000000000000006,
-            0.563330445,
-            0.016669555000000003,
-            1.02,
-            0.58,
-            1.02
-          ],
-          [
-            "C",
-            1.143330445,
-            1.02,
-            1.6,
-            0.563330445,
-            1.6,
-            0
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#4e6a8c",
-        "lineWidth": 0.055
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.05,
-            -1.44
-          ],
-          [
-            "C",
-            -1.21,
-            -1.43,
-            -1.85,
-            0.46,
-            -0.64,
-            1.3
-          ]
-        ],
-        "lineWidth": 0.04
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.12,
-            -1.12
-          ],
-          [
-            "C",
-            -0.98,
-            -0.77,
-            -1.02,
-            0.67,
-            -0.14,
-            1.11
-          ]
-        ],
-        "lineWidth": 0.045
-      },
-      {
-        "points": [
-          [
-            -1.49,
-            0
-          ],
-          [
-            -1.16,
-            -0.15
-          ],
-          [
-            -0.91,
-            0
-          ],
-          [
-            -1.16,
-            0.15
-          ],
-          [
-            -1.49,
-            0
-          ]
-        ],
-        "lineWidth": 0.05
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.86,
-            -1.13
-          ],
-          [
-            "L",
-            -0.78,
-            -0.9
-          ],
-          [
-            "L",
-            -0.55,
-            -0.94
-          ]
-        ],
-        "lineWidth": 0.04
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.86,
-            1.13
-          ],
-          [
-            "L",
-            -0.78,
-            0.9
-          ],
-          [
-            "L",
-            -0.55,
-            0.94
-          ]
-        ],
-        "lineWidth": 0.04
-      }
-    ]
-  },
-  "front-fist": {
-    "paths": [
-      {
-        "points": [
-          [
-            -0.57,
-            0.43
-          ],
-          [
-            -0.84,
-            0.08
-          ],
-          [
-            -0.82,
-            -0.46
-          ],
-          [
-            -0.65,
-            -0.82
-          ],
-          [
-            -0.32,
-            -1.02
-          ],
-          [
-            0.05,
-            -1.07
-          ],
-          [
-            0.4,
-            -0.96
-          ],
-          [
-            0.64,
-            -0.73
-          ],
-          [
-            0.71,
-            -0.4
-          ],
-          [
-            0.88,
-            -0.15
-          ],
-          [
-            0.86,
-            0.23
-          ],
-          [
-            0.57,
-            0.48
-          ],
-          [
-            0.43,
-            0.86
-          ],
-          [
-            -0.44,
-            0.86
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#702e38"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.62,
-            -0.03
-          ],
-          [
-            "C",
-            -0.34,
-            0.1,
-            0.22,
-            0.05,
-            0.45,
-            -0.14
-          ],
-          [
-            "L",
-            0.47,
-            -0.54
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.79,
-            -0.13
-          ],
-          [
-            "C",
-            0.48,
-            -0.22,
-            0.36,
-            0.02,
-            0.41,
-            0.26
-          ],
-          [
-            "L",
-            0.6,
-            0.44
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -0.29,
-            -0.62
-          ],
-          [
-            -0.28,
-            -0.16
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            0.05,
-            -0.64
-          ],
-          [
-            0.07,
-            -0.13
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -0.48,
-            0.57
-          ],
-          [
-            0.48,
-            0.57
-          ],
-          [
-            0.43,
-            0.94
-          ],
-          [
-            -0.43,
-            0.94
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#49232c"
-      },
-      {
-        "points": [
-          [
-            -0.4,
-            0.77
-          ],
-          [
-            0.4,
-            0.77
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      0.020000000000000018,
-      -0.06500000000000006
-    ]
-  },
-  "shoe-sole": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            -0.58,
-            -1.22
-          ],
-          [
-            "C",
-            -0.92,
-            -1.02,
-            -0.94,
-            -0.56,
-            -0.77,
-            -0.21
-          ],
-          [
-            "L",
-            -0.5,
-            0.39
-          ],
-          [
-            "L",
-            -0.48,
-            0.96
-          ],
-          [
-            "C",
-            -0.27,
-            1.24,
-            0.28,
-            1.24,
-            0.48,
-            0.96
-          ],
-          [
-            "L",
-            0.49,
-            0.38
-          ],
-          [
-            "L",
-            0.77,
-            -0.2
-          ],
-          [
-            "C",
-            0.98,
-            -0.64,
-            0.85,
-            -1.08,
-            0.55,
-            -1.24
-          ],
-          [
-            "C",
-            0.2,
-            -1.42,
-            -0.24,
-            -1.4,
-            -0.58,
-            -1.22
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#542b34"
-      },
-      {
-        "points": [
-          [
-            -0.58,
-            -1.06
-          ],
-          [
-            -0.11,
-            -1.15
-          ],
-          [
-            -0.1,
-            -0.68
-          ],
-          [
-            -0.63,
-            -0.62
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#7b3d49"
-      },
-      {
-        "points": [
-          [
-            0.11,
-            -1.15
-          ],
-          [
-            0.58,
-            -1.06
-          ],
-          [
-            0.63,
-            -0.62
-          ],
-          [
-            0.1,
-            -0.68
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#7b3d49"
-      },
-      {
-        "points": [
-          [
-            -0.65,
-            -0.43
-          ],
-          [
-            -0.13,
-            -0.46
-          ],
-          [
-            -0.1,
-            -0.05
-          ],
-          [
-            -0.48,
-            0.07
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#7b3d49"
-      },
-      {
-        "points": [
-          [
-            0.13,
-            -0.46
-          ],
-          [
-            0.65,
-            -0.43
-          ],
-          [
-            0.48,
-            0.07
-          ],
-          [
-            0.1,
-            -0.05
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#7b3d49"
-      },
-      {
-        "points": [
-          [
-            -0.36,
-            0.55
-          ],
-          [
-            0.36,
-            0.55
-          ],
-          [
-            0.35,
-            0.9
-          ],
-          [
-            0.2,
-            1.01
-          ],
-          [
-            -0.2,
-            1.01
-          ],
-          [
-            -0.35,
-            0.9
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#7b3d49"
-      },
-      {
-        "points": [
-          [
-            -0.36,
-            0.26
-          ],
-          [
-            0,
-            0.41
-          ],
-          [
-            0.36,
-            0.26
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      -0.0007697211371527346,
-      -0.09770446777343744
-    ]
-  },
-  "puzzle-cube": {
-    "paths": [
-      {
-        "points": [
-          [
-            -3.469446951953614e-18,
-            -1.29587352
-          ],
-          [
-            0.38058666666666663,
-            -1.096553146666667
-          ],
-          [
-            0,
-            -0.8954646311111114
-          ],
-          [
-            -0.38058666666666663,
-            -1.096553146666667
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4266666666666667,
-            -1.0724201866666667
-          ],
-          [
-            0.8072533333333333,
-            -0.8730998133333334
-          ],
-          [
-            0.42666666666666664,
-            -0.6700290755555558
-          ],
-          [
-            0.04608000000000001,
-            -0.8711175911111112
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8533333333333333,
-            -0.8489668533333333
-          ],
-          [
-            1.2339200000000001,
-            -0.6496464799999999
-          ],
-          [
-            0.8533333333333335,
-            -0.44459352
-          ],
-          [
-            0.47274666666666676,
-            -0.6456820355555557
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4266666666666667,
-            -1.0724201866666667
-          ],
-          [
-            -0.046080000000000065,
-            -0.8711175911111114
-          ],
-          [
-            -0.42666666666666664,
-            -0.6700290755555557
-          ],
-          [
-            -0.8072533333333333,
-            -0.8730998133333334
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.8467446311111112
-          ],
-          [
-            0.38058666666666663,
-            -0.6454420355555558
-          ],
-          [
-            0,
-            -0.44237129777777795
-          ],
-          [
-            -0.38058666666666663,
-            -0.6454420355555557
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.42666666666666664,
-            -0.6210690755555556
-          ],
-          [
-            0.8072533333333335,
-            -0.41976648000000005
-          ],
-          [
-            0.42666666666666675,
-            -0.21471352000000005
-          ],
-          [
-            0.046080000000000065,
-            -0.41778425777777783
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8533333333333333,
-            -0.8489668533333333
-          ],
-          [
-            -0.47274666666666676,
-            -0.6456820355555557
-          ],
-          [
-            -0.8533333333333334,
-            -0.4445935200000001
-          ],
-          [
-            -1.2339200000000001,
-            -0.6496464799999999
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.42666666666666664,
-            -0.6210690755555557
-          ],
-          [
-            -0.04608000000000001,
-            -0.4177842577777779
-          ],
-          [
-            -0.42666666666666675,
-            -0.21471352000000005
-          ],
-          [
-            -0.8072533333333334,
-            -0.41976648000000005
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.3931712977777778
-          ],
-          [
-            0.3805866666666667,
-            -0.18988648000000002
-          ],
-          [
-            0,
-            0.015166479999999982
-          ],
-          [
-            -0.3805866666666667,
-            -0.18988648000000002
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.25696,
-            -0.6125599999999999
-          ],
-          [
-            -0.8763733333333334,
-            -0.40740000000000004
-          ],
-          [
-            -0.8763733333333334,
-            0.005893333333333195
-          ],
-          [
-            -1.2569600000000003,
-            -0.19926666666666668
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333333,
-            -0.38256000000000007
-          ],
-          [
-            -0.44970666666666675,
-            -0.17740000000000003
-          ],
-          [
-            -0.4497066666666668,
-            0.2358933333333333
-          ],
-          [
-            -0.8302933333333335,
-            0.030733333333333224
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            -0.15256000000000003
-          ],
-          [
-            -0.023040000000000022,
-            0.05259999999999999
-          ],
-          [
-            -0.023040000000000022,
-            0.4658933333333332
-          ],
-          [
-            -0.4036266666666667,
-            0.26073333333333326
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.2569600000000003,
-            -0.14922666666666667
-          ],
-          [
-            -0.8763733333333334,
-            0.05593333333333328
-          ],
-          [
-            -0.8763733333333334,
-            0.46922666666666657
-          ],
-          [
-            -1.25696,
-            0.2640666666666666
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333335,
-            0.08077333333333331
-          ],
-          [
-            -0.4497066666666668,
-            0.2859333333333334
-          ],
-          [
-            -0.44970666666666675,
-            0.6992266666666667
-          ],
-          [
-            -0.8302933333333334,
-            0.4940666666666666
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            0.3107733333333333
-          ],
-          [
-            -0.023040000000000026,
-            0.5159333333333332
-          ],
-          [
-            -0.023040000000000022,
-            0.9292266666666664
-          ],
-          [
-            -0.4036266666666667,
-            0.7240666666666664
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.25696,
-            0.3141066666666666
-          ],
-          [
-            -0.8763733333333334,
-            0.5192666666666667
-          ],
-          [
-            -0.8763733333333334,
-            0.93256
-          ],
-          [
-            -1.25696,
-            0.7273999999999999
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333333,
-            0.5441066666666667
-          ],
-          [
-            -0.44970666666666675,
-            0.7492666666666666
-          ],
-          [
-            -0.44970666666666675,
-            1.16256
-          ],
-          [
-            -0.8302933333333334,
-            0.9574
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            0.7741066666666665
-          ],
-          [
-            -0.023040000000000026,
-            0.9792666666666665
-          ],
-          [
-            -0.023040000000000022,
-            1.3925599999999998
-          ],
-          [
-            -0.4036266666666667,
-            1.1873999999999998
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.052599999999999994
-          ],
-          [
-            0.40362666666666663,
-            -0.15256
-          ],
-          [
-            0.40362666666666663,
-            0.2607333333333333
-          ],
-          [
-            0.023039999999999998,
-            0.4658933333333332
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            -0.1774
-          ],
-          [
-            0.8302933333333332,
-            -0.38255999999999996
-          ],
-          [
-            0.8302933333333333,
-            0.03073333333333328
-          ],
-          [
-            0.4497066666666667,
-            0.23589333333333332
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333333,
-            -0.4074
-          ],
-          [
-            1.25696,
-            -0.6125599999999999
-          ],
-          [
-            1.2569600000000003,
-            -0.19926666666666668
-          ],
-          [
-            0.8763733333333333,
-            0.0058933333333332505
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.5159333333333332
-          ],
-          [
-            0.40362666666666663,
-            0.31077333333333335
-          ],
-          [
-            0.4036266666666667,
-            0.7240666666666666
-          ],
-          [
-            0.023039999999999998,
-            0.9292266666666664
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            0.2859333333333334
-          ],
-          [
-            0.8302933333333333,
-            0.08077333333333336
-          ],
-          [
-            0.8302933333333333,
-            0.49406666666666665
-          ],
-          [
-            0.4497066666666667,
-            0.6992266666666667
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333333,
-            0.05593333333333328
-          ],
-          [
-            1.2569600000000003,
-            -0.14922666666666667
-          ],
-          [
-            1.25696,
-            0.2640666666666666
-          ],
-          [
-            0.8763733333333332,
-            0.46922666666666657
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.9792666666666665
-          ],
-          [
-            0.4036266666666666,
-            0.7741066666666666
-          ],
-          [
-            0.40362666666666663,
-            1.1874
-          ],
-          [
-            0.023039999999999998,
-            1.3925599999999998
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            0.7492666666666667
-          ],
-          [
-            0.8302933333333333,
-            0.5441066666666666
-          ],
-          [
-            0.8302933333333333,
-            0.9573999999999999
-          ],
-          [
-            0.4497066666666667,
-            1.16256
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333332,
-            0.5192666666666667
-          ],
-          [
-            1.25696,
-            0.3141066666666666
-          ],
-          [
-            1.25696,
-            0.7273999999999999
-          ],
-          [
-            0.8763733333333333,
-            0.93256
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      }
-    ],
-    "origin": [
-      0,
-      0.0483432399999999
-    ]
-  },
-  "simple-shield": {
-    "paths": [
-      {
-        "points": [
-          [
-            -1.72,
-            -0.7788
-          ],
-          [
-            -1.45,
-            -1.0266
-          ],
-          [
-            1.45,
-            -1.0266
-          ],
-          [
-            1.72,
-            -0.7788
-          ],
-          [
-            1.72,
-            0.7788
-          ],
-          [
-            1.45,
-            1.0266
-          ],
-          [
-            -1.45,
-            1.0266
-          ],
-          [
-            -1.72,
-            0.7788
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#694524"
-      },
-      {
-        "points": [
-          [
-            -1.43,
-            -0.6843999999999999
-          ],
-          [
-            1.43,
-            -0.6843999999999999
-          ],
-          [
-            1.43,
-            0.6843999999999999
-          ],
-          [
-            -1.43,
-            0.6843999999999999
-          ],
-          [
-            -1.43,
-            -0.6843999999999999
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -0.23,
-            -0.44839999999999997
-          ],
-          [
-            0.23,
-            -0.44839999999999997
-          ],
-          [
-            0.32,
-            0
-          ],
-          [
-            0.23,
-            0.44839999999999997
-          ],
-          [
-            -0.23,
-            0.44839999999999997
-          ],
-          [
-            -0.32,
-            0
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#986738"
-      },
-      {
-        "points": [
-          [
-            -1.62,
-            0
-          ],
-          [
-            -1.1,
-            0
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            1.1,
-            0
-          ],
-          [
-            1.62,
-            0
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      0,
-      0
-    ]
-  },
-  "spirit-shield": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            -1.15,
-            -0.98
-          ],
-          [
-            "L",
-            0,
-            -1.2
-          ],
-          [
-            "L",
-            1.15,
-            -0.98
-          ],
-          [
-            "L",
-            1.05,
-            0.34
-          ],
-          [
-            "C",
-            0.8,
-            0.95,
-            0.3,
-            1.24,
-            0,
-            1.48
-          ],
-          [
-            "C",
-            -0.3,
-            1.24,
-            -0.8,
-            0.95,
-            -1.05,
-            0.34
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#34495d"
-      },
-      {
-        "points": [
-          [
-            -0.87,
-            -0.75
-          ],
-          [
-            0,
-            -0.92
-          ],
-          [
-            0.87,
-            -0.75
-          ],
-          [
-            0.78,
-            0.28
-          ],
-          [
-            0,
-            1.14
-          ],
-          [
-            -0.78,
-            0.28
-          ],
-          [
-            -0.87,
-            -0.75
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.55
-          ],
-          [
-            0.36,
-            -0.12
-          ],
-          [
-            0,
-            0.63
-          ],
-          [
-            -0.36,
-            -0.12
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#536b83"
-      }
-    ],
-    "origin": [
-      0,
-      0.14
-    ]
-  },
-  "spirit-goggles": {
-    "paths": [
-      {
-        "points": [
-          [
-            -1.6,
-            -0.17
-          ],
-          [
-            -1.27,
-            -0.17
-          ],
-          [
-            -1.27,
-            0.2
-          ],
-          [
-            -1.6,
-            0.2
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#34495d"
-      },
-      {
-        "points": [
-          [
-            1.27,
-            -0.17
-          ],
-          [
-            1.6,
-            -0.17
-          ],
-          [
-            1.6,
-            0.2
-          ],
-          [
-            1.27,
-            0.2
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#34495d"
-      },
-      {
-        "points": [
-          [
-            -1.3599999999999999,
-            -0.48
-          ],
-          [
-            -0.37000000000000005,
-            -0.48
-          ],
-          [
-            -0.19000000000000006,
-            -0.27
-          ],
-          [
-            -0.28,
-            0.31
-          ],
-          [
-            -0.5,
-            0.48
-          ],
-          [
-            -1.1800000000000002,
-            0.48
-          ],
-          [
-            -1.37,
-            0.25
-          ],
-          [
-            -1.37,
-            -0.24
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#34495d"
-      },
-      {
-        "points": [
-          [
-            0.20000000000000007,
-            -0.48
-          ],
-          [
-            1.19,
-            -0.48
-          ],
-          [
-            1.37,
-            -0.27
-          ],
-          [
-            1.28,
-            0.31
-          ],
-          [
-            1.06,
-            0.48
-          ],
-          [
-            0.38,
-            0.48
-          ],
-          [
-            0.19000000000000006,
-            0.25
-          ],
-          [
-            0.19000000000000006,
-            -0.24
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#34495d"
-      },
-      {
-        "points": [
-          [
-            -0.22,
-            -0.12
-          ],
-          [
-            0,
-            -0.25
-          ],
-          [
-            0.22,
-            -0.12
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -1.1800000000000002,
-            -0.27
-          ],
-          [
-            -0.5,
-            -0.27
-          ],
-          [
-            -0.4,
-            -0.13
-          ],
-          [
-            -0.47000000000000003,
-            0.22
-          ],
-          [
-            -1.08,
-            0.25
-          ],
-          [
-            -1.1800000000000002,
-            0.1
-          ],
-          [
-            -1.1800000000000002,
-            -0.27
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            0.38,
-            -0.27
-          ],
-          [
-            1.06,
-            -0.27
-          ],
-          [
-            1.1600000000000001,
-            -0.13
-          ],
-          [
-            1.09,
-            0.22
-          ],
-          [
-            0.48000000000000004,
-            0.25
-          ],
-          [
-            0.38,
-            0.1
-          ],
-          [
-            0.38,
-            -0.27
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      0,
-      0
-    ]
-  },
-  "frying-pan": {
-    "paths": [
-      {
-        "points": [
-          [
-            -0.14,
-            0.63
-          ],
-          [
-            0.14,
-            0.63
-          ],
-          [
-            0.22,
-            2.01
-          ],
-          [
-            -0.22,
-            2.01
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#674a32"
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0,
-            -0.19,
-            0.95,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#4c4740"
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0,
-            -0.19,
-            0.78,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": false
-      },
-      {
-        "points": [
-          [
-            -0.11,
-            1.8
-          ],
-          [
-            0.11,
-            1.8
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      0,
-      0.43499999999999994
-    ]
-  },
-  "loaded-pan": {
-    "paths": [
-      {
-        "points": [
-          [
-            -0.14,
-            0.63
-          ],
-          [
-            0.14,
-            0.63
-          ],
-          [
-            0.22,
-            2.01
-          ],
-          [
-            -0.22,
-            2.01
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#674a32"
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0,
-            -0.19,
-            0.95,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#4c4740"
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0,
-            -0.19,
-            0.78,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": false
-      },
-      {
-        "points": [
-          [
-            -0.11,
-            1.8
-          ],
-          [
-            0.11,
-            1.8
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -0.62,
-            -0.56
-          ],
-          [
-            -0.11,
-            -0.72
-          ],
-          [
-            0.05,
-            -0.29
-          ],
-          [
-            -0.48,
-            -0.09
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bd8850"
-      },
-      {
-        "points": [
-          [
-            0.13,
-            -0.68
-          ],
-          [
-            0.62,
-            -0.43
-          ],
-          [
-            0.36,
-            -0.05
-          ],
-          [
-            -0.01,
-            -0.27
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#8f723b"
-      },
-      {
-        "points": [
-          [
-            -0.39,
-            0.13
-          ],
-          [
-            0.17,
-            -0.07
-          ],
-          [
-            0.41,
-            0.35
-          ],
-          [
-            -0.19,
-            0.51
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#d7a96d"
-      },
-      {
-        "points": [
-          [
-            -0.46,
-            -0.44
-          ],
-          [
-            -0.2,
-            -0.51
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            0.14,
-            0.16
-          ],
-          [
-            0.25,
-            0.29
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      0,
-      0.43499999999999994
-    ]
-  },
-  "cooked-meal": {
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            -1.52,
-            0.04
-          ],
-          [
-            "C",
-            -1.45,
-            -0.74,
-            1.45,
-            -0.74,
-            1.52,
-            0.04
-          ],
-          [
-            "C",
-            1.41,
-            0.83,
-            -1.41,
-            0.83,
-            -1.52,
-            0.04
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#cbb8a0"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -1.26,
-            0.02
-          ],
-          [
-            "C",
-            -1.19,
-            -0.48,
-            1.19,
-            -0.48,
-            1.26,
-            0.02
-          ],
-          [
-            "C",
-            1.11,
-            0.5,
-            -1.11,
-            0.5,
-            -1.26,
-            0.02
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.64,
-            -0.44
-          ],
-          [
-            "C",
-            -0.49,
-            -0.67,
-            0.08,
-            -0.69,
-            0.42,
-            -0.42
-          ],
-          [
-            "L",
-            0.58,
-            -0.03
-          ],
-          [
-            "C",
-            0.37,
-            0.21,
-            -0.24,
-            0.25,
-            -0.66,
-            -0.02
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#976347"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.45,
-            -0.34
-          ],
-          [
-            "L",
-            0.09,
-            -0.07
-          ],
-          [
-            "M",
-            -0.22,
-            -0.46
-          ],
-          [
-            "L",
-            0.28,
-            -0.2
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.39,
-            -0.25
-          ],
-          [
-            "C",
-            0.5,
-            -0.71,
-            0.91,
-            -0.76,
-            0.95,
-            -0.4
-          ],
-          [
-            "C",
-            0.86,
-            -0.24,
-            0.67,
-            -0.16,
-            0.39,
-            -0.25
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#647850"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.59,
-            -0.17
-          ],
-          [
-            "C",
-            1.1,
-            -0.5,
-            1.28,
-            -0.16,
-            0.99,
-            0.07
-          ],
-          [
-            "C",
-            0.82,
-            0.11,
-            0.7,
-            0,
-            0.59,
-            -0.17
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#73865a"
-      },
-      {
-        "commands": [
-          [
-            "A",
-            -0.78,
-            0.15,
-            0.14,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#b98c4f"
-      },
-      {
-        "commands": [
-          [
-            "A",
-            -0.4,
-            0.32,
-            0.12,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#b98c4f"
-      },
-      {
-        "commands": [
-          [
-            "A",
-            0.02,
-            0.32,
-            0.09,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#b98c4f"
-      }
-    ],
-    "origin": [
-      0,
-      -0.002285156250000031
-    ]
-  },
-  "tailor-scissors": {
-    "origin": [
-      0,
-      -0.33
-    ],
-    "parts": [
-      {
-        "pivot": [
-          0,
-          0
-        ],
-        "angle": 0.36,
-        "pulseAngle": -0.31,
-        "scaleX": -1,
-        "paths": [
-          {
-            "points": [
-              [
-                -0.055,
-                -2.15
-              ],
-              [
-                -0.17,
-                -1.77
-              ],
-              [
-                -0.29,
-                -0.58
-              ],
-              [
-                -0.15,
-                0.13
-              ],
-              [
-                0.08,
-                0.13
-              ],
-              [
-                0.08,
-                -0.25
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#9b8d9f",
-            "lineWidth": 0.05
-          },
-          {
-            "points": [
-              [
-                -0.08,
-                -1.48
-              ],
-              [
-                -0.11,
-                -0.5
-              ]
-            ],
-            "lineWidth": 0.028
-          },
-          {
-            "points": [
-              [
-                -0.08,
-                0.05
-              ],
-              [
-                0.15,
-                0.05
-              ],
-              [
-                0.5,
-                0.55
-              ],
-              [
-                0.27,
-                0.68
-              ],
-              [
-                0.1,
-                0.34
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#58415e",
-            "lineWidth": 0.05
-          },
-          {
-            "commands": [
-              [
-                "M",
-                0.25549999999999995,
-                0.43000000000000005
-              ],
-              [
-                "L",
-                0.6845,
-                0.43000000000000005
-              ],
-              [
-                "L",
-                0.86,
-                0.662
-              ],
-              [
-                "L",
-                0.86,
-                1.358
-              ],
-              [
-                "L",
-                0.6845,
-                1.5899999999999999
-              ],
-              [
-                "L",
-                0.25549999999999995,
-                1.5899999999999999
-              ],
-              [
-                "L",
-                0.07999999999999996,
-                1.358
-              ],
-              [
-                "L",
-                0.07999999999999996,
-                0.662
-              ],
-              [
-                "Z"
-              ],
-              [
-                "M",
-                0.20999999999999996,
-                0.746
-              ],
-              [
-                "L",
-                0.20999999999999996,
-                1.274
-              ],
-              [
-                "L",
-                0.32699999999999996,
-                1.45
-              ],
-              [
-                "L",
-                0.613,
-                1.45
-              ],
-              [
-                "L",
-                0.73,
-                1.274
-              ],
-              [
-                "L",
-                0.73,
-                0.746
-              ],
-              [
-                "L",
-                0.613,
-                0.5700000000000001
-              ],
-              [
-                "L",
-                0.32699999999999996,
-                0.5700000000000001
-              ],
-              [
-                "Z"
-              ]
-            ],
-            "fill": true,
-            "fillColor": "#58415e",
-            "lineWidth": 0.05
-          }
-        ]
-      },
-      {
-        "pivot": [
-          0,
-          0
-        ],
-        "angle": -0.36,
-        "pulseAngle": 0.31,
-        "paths": [
-          {
-            "points": [
-              [
-                -0.055,
-                -2.15
-              ],
-              [
-                -0.17,
-                -1.77
-              ],
-              [
-                -0.29,
-                -0.58
-              ],
-              [
-                -0.15,
-                0.13
-              ],
-              [
-                0.08,
-                0.13
-              ],
-              [
-                0.08,
-                -0.25
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#9b8d9f",
-            "lineWidth": 0.05
-          },
-          {
-            "points": [
-              [
-                -0.08,
-                -1.48
-              ],
-              [
-                -0.11,
-                -0.5
-              ]
-            ],
-            "lineWidth": 0.028
-          },
-          {
-            "points": [
-              [
-                -0.08,
-                0.05
-              ],
-              [
-                0.15,
-                0.05
-              ],
-              [
-                0.5,
-                0.55
-              ],
-              [
-                0.27,
-                0.68
-              ],
-              [
-                0.1,
-                0.34
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#58415e",
-            "lineWidth": 0.05
-          },
-          {
-            "commands": [
-              [
-                "M",
-                0.27599999999999997,
-                0.5
-              ],
-              [
-                "L",
-                0.5840000000000001,
-                0.5
-              ],
-              [
-                "L",
-                0.71,
-                0.668
-              ],
-              [
-                "L",
-                0.71,
-                1.1720000000000002
-              ],
-              [
-                "L",
-                0.5840000000000001,
-                1.34
-              ],
-              [
-                "L",
-                0.27599999999999997,
-                1.34
-              ],
-              [
-                "L",
-                0.14999999999999997,
-                1.1720000000000002
-              ],
-              [
-                "L",
-                0.14999999999999997,
-                0.668
-              ],
-              [
-                "Z"
-              ],
-              [
-                "M",
-                0.26,
-                0.746
-              ],
-              [
-                "L",
-                0.26,
-                1.094
-              ],
-              [
-                "L",
-                0.33649999999999997,
-                1.21
-              ],
-              [
-                "L",
-                0.5235,
-                1.21
-              ],
-              [
-                "L",
-                0.6,
-                1.094
-              ],
-              [
-                "L",
-                0.6,
-                0.746
-              ],
-              [
-                "L",
-                0.5235,
-                0.6300000000000001
-              ],
-              [
-                "L",
-                0.33649999999999997,
-                0.6300000000000001
-              ],
-              [
-                "Z"
-              ]
-            ],
-            "fill": true,
-            "fillColor": "#58415e",
-            "lineWidth": 0.05
-          }
-        ]
-      }
-    ],
-    "paths": [
-      {
-        "commands": [
-          [
-            "A",
-            0,
-            0.035,
-            0.125,
-            0,
-            6.283185307179586
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#c1afc8",
-        "lineWidth": 0.045
-      },
-      {
-        "points": [
-          [
-            -0.05,
-            0.035
-          ],
-          [
-            0.05,
-            0.035
-          ]
-        ],
-        "lineWidth": 0.025
-      }
-    ]
-  },
-  "puzzle-cube-cross": {
-    "paths": [
-      {
-        "points": [
-          [
-            -3.469446951953614e-18,
-            -1.29587352
-          ],
-          [
-            0.38058666666666663,
-            -1.096553146666667
-          ],
-          [
-            0,
-            -0.8954646311111114
-          ],
-          [
-            -0.38058666666666663,
-            -1.096553146666667
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4266666666666667,
-            -1.0724201866666667
-          ],
-          [
-            0.8072533333333333,
-            -0.8730998133333334
-          ],
-          [
-            0.42666666666666664,
-            -0.6700290755555558
-          ],
-          [
-            0.04608000000000001,
-            -0.8711175911111112
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8533333333333333,
-            -0.8489668533333333
-          ],
-          [
-            1.2339200000000001,
-            -0.6496464799999999
-          ],
-          [
-            0.8533333333333335,
-            -0.44459352
-          ],
-          [
-            0.47274666666666676,
-            -0.6456820355555557
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4266666666666667,
-            -1.0724201866666667
-          ],
-          [
-            -0.046080000000000065,
-            -0.8711175911111114
-          ],
-          [
-            -0.42666666666666664,
-            -0.6700290755555557
-          ],
-          [
-            -0.8072533333333333,
-            -0.8730998133333334
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.8467446311111112
-          ],
-          [
-            0.38058666666666663,
-            -0.6454420355555558
-          ],
-          [
-            0,
-            -0.44237129777777795
-          ],
-          [
-            -0.38058666666666663,
-            -0.6454420355555557
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.42666666666666664,
-            -0.6210690755555556
-          ],
-          [
-            0.8072533333333335,
-            -0.41976648000000005
-          ],
-          [
-            0.42666666666666675,
-            -0.21471352000000005
-          ],
-          [
-            0.046080000000000065,
-            -0.41778425777777783
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8533333333333333,
-            -0.8489668533333333
-          ],
-          [
-            -0.47274666666666676,
-            -0.6456820355555557
-          ],
-          [
-            -0.8533333333333334,
-            -0.4445935200000001
-          ],
-          [
-            -1.2339200000000001,
-            -0.6496464799999999
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.42666666666666664,
-            -0.6210690755555557
-          ],
-          [
-            -0.04608000000000001,
-            -0.4177842577777779
-          ],
-          [
-            -0.42666666666666675,
-            -0.21471352000000005
-          ],
-          [
-            -0.8072533333333334,
-            -0.41976648000000005
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.3931712977777778
-          ],
-          [
-            0.3805866666666667,
-            -0.18988648000000002
-          ],
-          [
-            0,
-            0.015166479999999982
-          ],
-          [
-            -0.3805866666666667,
-            -0.18988648000000002
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.25696,
-            -0.6125599999999999
-          ],
-          [
-            -0.8763733333333334,
-            -0.40740000000000004
-          ],
-          [
-            -0.8763733333333334,
-            0.005893333333333195
-          ],
-          [
-            -1.2569600000000003,
-            -0.19926666666666668
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333333,
-            -0.38256000000000007
-          ],
-          [
-            -0.44970666666666675,
-            -0.17740000000000003
-          ],
-          [
-            -0.4497066666666668,
-            0.2358933333333333
-          ],
-          [
-            -0.8302933333333335,
-            0.030733333333333224
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            -0.15256000000000003
-          ],
-          [
-            -0.023040000000000022,
-            0.05259999999999999
-          ],
-          [
-            -0.023040000000000022,
-            0.4658933333333332
-          ],
-          [
-            -0.4036266666666667,
-            0.26073333333333326
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.2569600000000003,
-            -0.14922666666666667
-          ],
-          [
-            -0.8763733333333334,
-            0.05593333333333328
-          ],
-          [
-            -0.8763733333333334,
-            0.46922666666666657
-          ],
-          [
-            -1.25696,
-            0.2640666666666666
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333335,
-            0.08077333333333331
-          ],
-          [
-            -0.4497066666666668,
-            0.2859333333333334
-          ],
-          [
-            -0.44970666666666675,
-            0.6992266666666667
-          ],
-          [
-            -0.8302933333333334,
-            0.4940666666666666
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            0.3107733333333333
-          ],
-          [
-            -0.023040000000000026,
-            0.5159333333333332
-          ],
-          [
-            -0.023040000000000022,
-            0.9292266666666664
-          ],
-          [
-            -0.4036266666666667,
-            0.7240666666666664
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.25696,
-            0.3141066666666666
-          ],
-          [
-            -0.8763733333333334,
-            0.5192666666666667
-          ],
-          [
-            -0.8763733333333334,
-            0.93256
-          ],
-          [
-            -1.25696,
-            0.7273999999999999
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333333,
-            0.5441066666666667
-          ],
-          [
-            -0.44970666666666675,
-            0.7492666666666666
-          ],
-          [
-            -0.44970666666666675,
-            1.16256
-          ],
-          [
-            -0.8302933333333334,
-            0.9574
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            0.7741066666666665
-          ],
-          [
-            -0.023040000000000026,
-            0.9792666666666665
-          ],
-          [
-            -0.023040000000000022,
-            1.3925599999999998
-          ],
-          [
-            -0.4036266666666667,
-            1.1873999999999998
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.052599999999999994
-          ],
-          [
-            0.40362666666666663,
-            -0.15256
-          ],
-          [
-            0.40362666666666663,
-            0.2607333333333333
-          ],
-          [
-            0.023039999999999998,
-            0.4658933333333332
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            -0.1774
-          ],
-          [
-            0.8302933333333332,
-            -0.38255999999999996
-          ],
-          [
-            0.8302933333333333,
-            0.03073333333333328
-          ],
-          [
-            0.4497066666666667,
-            0.23589333333333332
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333333,
-            -0.4074
-          ],
-          [
-            1.25696,
-            -0.6125599999999999
-          ],
-          [
-            1.2569600000000003,
-            -0.19926666666666668
-          ],
-          [
-            0.8763733333333333,
-            0.0058933333333332505
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.5159333333333332
-          ],
-          [
-            0.40362666666666663,
-            0.31077333333333335
-          ],
-          [
-            0.4036266666666667,
-            0.7240666666666666
-          ],
-          [
-            0.023039999999999998,
-            0.9292266666666664
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            0.2859333333333334
-          ],
-          [
-            0.8302933333333333,
-            0.08077333333333336
-          ],
-          [
-            0.8302933333333333,
-            0.49406666666666665
-          ],
-          [
-            0.4497066666666667,
-            0.6992266666666667
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333333,
-            0.05593333333333328
-          ],
-          [
-            1.2569600000000003,
-            -0.14922666666666667
-          ],
-          [
-            1.25696,
-            0.2640666666666666
-          ],
-          [
-            0.8763733333333332,
-            0.46922666666666657
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.9792666666666665
-          ],
-          [
-            0.4036266666666666,
-            0.7741066666666666
-          ],
-          [
-            0.40362666666666663,
-            1.1874
-          ],
-          [
-            0.023039999999999998,
-            1.3925599999999998
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            0.7492666666666667
-          ],
-          [
-            0.8302933333333333,
-            0.5441066666666666
-          ],
-          [
-            0.8302933333333333,
-            0.9573999999999999
-          ],
-          [
-            0.4497066666666667,
-            1.16256
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333332,
-            0.5192666666666667
-          ],
-          [
-            1.25696,
-            0.3141066666666666
-          ],
-          [
-            1.25696,
-            0.7273999999999999
-          ],
-          [
-            0.8763733333333333,
-            0.93256
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      }
-    ],
-    "origin": [
-      0,
-      0.0483432399999999
-    ]
-  },
-  "puzzle-cube-f2l": {
-    "paths": [
-      {
-        "points": [
-          [
-            -3.469446951953614e-18,
-            -1.29587352
-          ],
-          [
-            0.38058666666666663,
-            -1.096553146666667
-          ],
-          [
-            0,
-            -0.8954646311111114
-          ],
-          [
-            -0.38058666666666663,
-            -1.096553146666667
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4266666666666667,
-            -1.0724201866666667
-          ],
-          [
-            0.8072533333333333,
-            -0.8730998133333334
-          ],
-          [
-            0.42666666666666664,
-            -0.6700290755555558
-          ],
-          [
-            0.04608000000000001,
-            -0.8711175911111112
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8533333333333333,
-            -0.8489668533333333
-          ],
-          [
-            1.2339200000000001,
-            -0.6496464799999999
-          ],
-          [
-            0.8533333333333335,
-            -0.44459352
-          ],
-          [
-            0.47274666666666676,
-            -0.6456820355555557
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4266666666666667,
-            -1.0724201866666667
-          ],
-          [
-            -0.046080000000000065,
-            -0.8711175911111114
-          ],
-          [
-            -0.42666666666666664,
-            -0.6700290755555557
-          ],
-          [
-            -0.8072533333333333,
-            -0.8730998133333334
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.8467446311111112
-          ],
-          [
-            0.38058666666666663,
-            -0.6454420355555558
-          ],
-          [
-            0,
-            -0.44237129777777795
-          ],
-          [
-            -0.38058666666666663,
-            -0.6454420355555557
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.42666666666666664,
-            -0.6210690755555556
-          ],
-          [
-            0.8072533333333335,
-            -0.41976648000000005
-          ],
-          [
-            0.42666666666666675,
-            -0.21471352000000005
-          ],
-          [
-            0.046080000000000065,
-            -0.41778425777777783
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8533333333333333,
-            -0.8489668533333333
-          ],
-          [
-            -0.47274666666666676,
-            -0.6456820355555557
-          ],
-          [
-            -0.8533333333333334,
-            -0.4445935200000001
-          ],
-          [
-            -1.2339200000000001,
-            -0.6496464799999999
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.42666666666666664,
-            -0.6210690755555557
-          ],
-          [
-            -0.04608000000000001,
-            -0.4177842577777779
-          ],
-          [
-            -0.42666666666666675,
-            -0.21471352000000005
-          ],
-          [
-            -0.8072533333333334,
-            -0.41976648000000005
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.3931712977777778
-          ],
-          [
-            0.3805866666666667,
-            -0.18988648000000002
-          ],
-          [
-            0,
-            0.015166479999999982
-          ],
-          [
-            -0.3805866666666667,
-            -0.18988648000000002
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.25696,
-            -0.6125599999999999
-          ],
-          [
-            -0.8763733333333334,
-            -0.40740000000000004
-          ],
-          [
-            -0.8763733333333334,
-            0.005893333333333195
-          ],
-          [
-            -1.2569600000000003,
-            -0.19926666666666668
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333333,
-            -0.38256000000000007
-          ],
-          [
-            -0.44970666666666675,
-            -0.17740000000000003
-          ],
-          [
-            -0.4497066666666668,
-            0.2358933333333333
-          ],
-          [
-            -0.8302933333333335,
-            0.030733333333333224
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            -0.15256000000000003
-          ],
-          [
-            -0.023040000000000022,
-            0.05259999999999999
-          ],
-          [
-            -0.023040000000000022,
-            0.4658933333333332
-          ],
-          [
-            -0.4036266666666667,
-            0.26073333333333326
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.2569600000000003,
-            -0.14922666666666667
-          ],
-          [
-            -0.8763733333333334,
-            0.05593333333333328
-          ],
-          [
-            -0.8763733333333334,
-            0.46922666666666657
-          ],
-          [
-            -1.25696,
-            0.2640666666666666
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333335,
-            0.08077333333333331
-          ],
-          [
-            -0.4497066666666668,
-            0.2859333333333334
-          ],
-          [
-            -0.44970666666666675,
-            0.6992266666666667
-          ],
-          [
-            -0.8302933333333334,
-            0.4940666666666666
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            0.3107733333333333
-          ],
-          [
-            -0.023040000000000026,
-            0.5159333333333332
-          ],
-          [
-            -0.023040000000000022,
-            0.9292266666666664
-          ],
-          [
-            -0.4036266666666667,
-            0.7240666666666664
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.25696,
-            0.3141066666666666
-          ],
-          [
-            -0.8763733333333334,
-            0.5192666666666667
-          ],
-          [
-            -0.8763733333333334,
-            0.93256
-          ],
-          [
-            -1.25696,
-            0.7273999999999999
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333333,
-            0.5441066666666667
-          ],
-          [
-            -0.44970666666666675,
-            0.7492666666666666
-          ],
-          [
-            -0.44970666666666675,
-            1.16256
-          ],
-          [
-            -0.8302933333333334,
-            0.9574
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            0.7741066666666665
-          ],
-          [
-            -0.023040000000000026,
-            0.9792666666666665
-          ],
-          [
-            -0.023040000000000022,
-            1.3925599999999998
-          ],
-          [
-            -0.4036266666666667,
-            1.1873999999999998
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.052599999999999994
-          ],
-          [
-            0.40362666666666663,
-            -0.15256
-          ],
-          [
-            0.40362666666666663,
-            0.2607333333333333
-          ],
-          [
-            0.023039999999999998,
-            0.4658933333333332
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            -0.1774
-          ],
-          [
-            0.8302933333333332,
-            -0.38255999999999996
-          ],
-          [
-            0.8302933333333333,
-            0.03073333333333328
-          ],
-          [
-            0.4497066666666667,
-            0.23589333333333332
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333333,
-            -0.4074
-          ],
-          [
-            1.25696,
-            -0.6125599999999999
-          ],
-          [
-            1.2569600000000003,
-            -0.19926666666666668
-          ],
-          [
-            0.8763733333333333,
-            0.0058933333333332505
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.5159333333333332
-          ],
-          [
-            0.40362666666666663,
-            0.31077333333333335
-          ],
-          [
-            0.4036266666666667,
-            0.7240666666666666
-          ],
-          [
-            0.023039999999999998,
-            0.9292266666666664
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            0.2859333333333334
-          ],
-          [
-            0.8302933333333333,
-            0.08077333333333336
-          ],
-          [
-            0.8302933333333333,
-            0.49406666666666665
-          ],
-          [
-            0.4497066666666667,
-            0.6992266666666667
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333333,
-            0.05593333333333328
-          ],
-          [
-            1.2569600000000003,
-            -0.14922666666666667
-          ],
-          [
-            1.25696,
-            0.2640666666666666
-          ],
-          [
-            0.8763733333333332,
-            0.46922666666666657
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.9792666666666665
-          ],
-          [
-            0.4036266666666666,
-            0.7741066666666666
-          ],
-          [
-            0.40362666666666663,
-            1.1874
-          ],
-          [
-            0.023039999999999998,
-            1.3925599999999998
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            0.7492666666666667
-          ],
-          [
-            0.8302933333333333,
-            0.5441066666666666
-          ],
-          [
-            0.8302933333333333,
-            0.9573999999999999
-          ],
-          [
-            0.4497066666666667,
-            1.16256
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333332,
-            0.5192666666666667
-          ],
-          [
-            1.25696,
-            0.3141066666666666
-          ],
-          [
-            1.25696,
-            0.7273999999999999
-          ],
-          [
-            0.8763733333333333,
-            0.93256
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      }
-    ],
-    "origin": [
-      0,
-      0.0483432399999999
-    ]
-  },
-  "puzzle-cube-oll": {
-    "paths": [
-      {
-        "points": [
-          [
-            -3.469446951953614e-18,
-            -1.29587352
-          ],
-          [
-            0.38058666666666663,
-            -1.096553146666667
-          ],
-          [
-            0,
-            -0.8954646311111114
-          ],
-          [
-            -0.38058666666666663,
-            -1.096553146666667
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4266666666666667,
-            -1.0724201866666667
-          ],
-          [
-            0.8072533333333333,
-            -0.8730998133333334
-          ],
-          [
-            0.42666666666666664,
-            -0.6700290755555558
-          ],
-          [
-            0.04608000000000001,
-            -0.8711175911111112
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8533333333333333,
-            -0.8489668533333333
-          ],
-          [
-            1.2339200000000001,
-            -0.6496464799999999
-          ],
-          [
-            0.8533333333333335,
-            -0.44459352
-          ],
-          [
-            0.47274666666666676,
-            -0.6456820355555557
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4266666666666667,
-            -1.0724201866666667
-          ],
-          [
-            -0.046080000000000065,
-            -0.8711175911111114
-          ],
-          [
-            -0.42666666666666664,
-            -0.6700290755555557
-          ],
-          [
-            -0.8072533333333333,
-            -0.8730998133333334
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.8467446311111112
-          ],
-          [
-            0.38058666666666663,
-            -0.6454420355555558
-          ],
-          [
-            0,
-            -0.44237129777777795
-          ],
-          [
-            -0.38058666666666663,
-            -0.6454420355555557
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.42666666666666664,
-            -0.6210690755555556
-          ],
-          [
-            0.8072533333333335,
-            -0.41976648000000005
-          ],
-          [
-            0.42666666666666675,
-            -0.21471352000000005
-          ],
-          [
-            0.046080000000000065,
-            -0.41778425777777783
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8533333333333333,
-            -0.8489668533333333
-          ],
-          [
-            -0.47274666666666676,
-            -0.6456820355555557
-          ],
-          [
-            -0.8533333333333334,
-            -0.4445935200000001
-          ],
-          [
-            -1.2339200000000001,
-            -0.6496464799999999
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.42666666666666664,
-            -0.6210690755555557
-          ],
-          [
-            -0.04608000000000001,
-            -0.4177842577777779
-          ],
-          [
-            -0.42666666666666675,
-            -0.21471352000000005
-          ],
-          [
-            -0.8072533333333334,
-            -0.41976648000000005
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.3931712977777778
-          ],
-          [
-            0.3805866666666667,
-            -0.18988648000000002
-          ],
-          [
-            0,
-            0.015166479999999982
-          ],
-          [
-            -0.3805866666666667,
-            -0.18988648000000002
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.25696,
-            -0.6125599999999999
-          ],
-          [
-            -0.8763733333333334,
-            -0.40740000000000004
-          ],
-          [
-            -0.8763733333333334,
-            0.005893333333333195
-          ],
-          [
-            -1.2569600000000003,
-            -0.19926666666666668
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333333,
-            -0.38256000000000007
-          ],
-          [
-            -0.44970666666666675,
-            -0.17740000000000003
-          ],
-          [
-            -0.4497066666666668,
-            0.2358933333333333
-          ],
-          [
-            -0.8302933333333335,
-            0.030733333333333224
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            -0.15256000000000003
-          ],
-          [
-            -0.023040000000000022,
-            0.05259999999999999
-          ],
-          [
-            -0.023040000000000022,
-            0.4658933333333332
-          ],
-          [
-            -0.4036266666666667,
-            0.26073333333333326
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.2569600000000003,
-            -0.14922666666666667
-          ],
-          [
-            -0.8763733333333334,
-            0.05593333333333328
-          ],
-          [
-            -0.8763733333333334,
-            0.46922666666666657
-          ],
-          [
-            -1.25696,
-            0.2640666666666666
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333335,
-            0.08077333333333331
-          ],
-          [
-            -0.4497066666666668,
-            0.2859333333333334
-          ],
-          [
-            -0.44970666666666675,
-            0.6992266666666667
-          ],
-          [
-            -0.8302933333333334,
-            0.4940666666666666
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            0.3107733333333333
-          ],
-          [
-            -0.023040000000000026,
-            0.5159333333333332
-          ],
-          [
-            -0.023040000000000022,
-            0.9292266666666664
-          ],
-          [
-            -0.4036266666666667,
-            0.7240666666666664
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.25696,
-            0.3141066666666666
-          ],
-          [
-            -0.8763733333333334,
-            0.5192666666666667
-          ],
-          [
-            -0.8763733333333334,
-            0.93256
-          ],
-          [
-            -1.25696,
-            0.7273999999999999
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333333,
-            0.5441066666666667
-          ],
-          [
-            -0.44970666666666675,
-            0.7492666666666666
-          ],
-          [
-            -0.44970666666666675,
-            1.16256
-          ],
-          [
-            -0.8302933333333334,
-            0.9574
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            0.7741066666666665
-          ],
-          [
-            -0.023040000000000026,
-            0.9792666666666665
-          ],
-          [
-            -0.023040000000000022,
-            1.3925599999999998
-          ],
-          [
-            -0.4036266666666667,
-            1.1873999999999998
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.052599999999999994
-          ],
-          [
-            0.40362666666666663,
-            -0.15256
-          ],
-          [
-            0.40362666666666663,
-            0.2607333333333333
-          ],
-          [
-            0.023039999999999998,
-            0.4658933333333332
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            -0.1774
-          ],
-          [
-            0.8302933333333332,
-            -0.38255999999999996
-          ],
-          [
-            0.8302933333333333,
-            0.03073333333333328
-          ],
-          [
-            0.4497066666666667,
-            0.23589333333333332
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333333,
-            -0.4074
-          ],
-          [
-            1.25696,
-            -0.6125599999999999
-          ],
-          [
-            1.2569600000000003,
-            -0.19926666666666668
-          ],
-          [
-            0.8763733333333333,
-            0.0058933333333332505
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#51416f",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.5159333333333332
-          ],
-          [
-            0.40362666666666663,
-            0.31077333333333335
-          ],
-          [
-            0.4036266666666667,
-            0.7240666666666666
-          ],
-          [
-            0.023039999999999998,
-            0.9292266666666664
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            0.2859333333333334
-          ],
-          [
-            0.8302933333333333,
-            0.08077333333333336
-          ],
-          [
-            0.8302933333333333,
-            0.49406666666666665
-          ],
-          [
-            0.4497066666666667,
-            0.6992266666666667
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333333,
-            0.05593333333333328
-          ],
-          [
-            1.2569600000000003,
-            -0.14922666666666667
-          ],
-          [
-            1.25696,
-            0.2640666666666666
-          ],
-          [
-            0.8763733333333332,
-            0.46922666666666657
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.9792666666666665
-          ],
-          [
-            0.4036266666666666,
-            0.7741066666666666
-          ],
-          [
-            0.40362666666666663,
-            1.1874
-          ],
-          [
-            0.023039999999999998,
-            1.3925599999999998
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            0.7492666666666667
-          ],
-          [
-            0.8302933333333333,
-            0.5441066666666666
-          ],
-          [
-            0.8302933333333333,
-            0.9573999999999999
-          ],
-          [
-            0.4497066666666667,
-            1.16256
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333332,
-            0.5192666666666667
-          ],
-          [
-            1.25696,
-            0.3141066666666666
-          ],
-          [
-            1.25696,
-            0.7273999999999999
-          ],
-          [
-            0.8763733333333333,
-            0.93256
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      }
-    ],
-    "origin": [
-      0,
-      0.0483432399999999
-    ]
-  },
-  "puzzle-cube-pll": {
-    "paths": [
-      {
-        "points": [
-          [
-            -3.469446951953614e-18,
-            -1.29587352
-          ],
-          [
-            0.38058666666666663,
-            -1.096553146666667
-          ],
-          [
-            0,
-            -0.8954646311111114
-          ],
-          [
-            -0.38058666666666663,
-            -1.096553146666667
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4266666666666667,
-            -1.0724201866666667
-          ],
-          [
-            0.8072533333333333,
-            -0.8730998133333334
-          ],
-          [
-            0.42666666666666664,
-            -0.6700290755555558
-          ],
-          [
-            0.04608000000000001,
-            -0.8711175911111112
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8533333333333333,
-            -0.8489668533333333
-          ],
-          [
-            1.2339200000000001,
-            -0.6496464799999999
-          ],
-          [
-            0.8533333333333335,
-            -0.44459352
-          ],
-          [
-            0.47274666666666676,
-            -0.6456820355555557
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4266666666666667,
-            -1.0724201866666667
-          ],
-          [
-            -0.046080000000000065,
-            -0.8711175911111114
-          ],
-          [
-            -0.42666666666666664,
-            -0.6700290755555557
-          ],
-          [
-            -0.8072533333333333,
-            -0.8730998133333334
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.8467446311111112
-          ],
-          [
-            0.38058666666666663,
-            -0.6454420355555558
-          ],
-          [
-            0,
-            -0.44237129777777795
-          ],
-          [
-            -0.38058666666666663,
-            -0.6454420355555557
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.42666666666666664,
-            -0.6210690755555556
-          ],
-          [
-            0.8072533333333335,
-            -0.41976648000000005
-          ],
-          [
-            0.42666666666666675,
-            -0.21471352000000005
-          ],
-          [
-            0.046080000000000065,
-            -0.41778425777777783
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8533333333333333,
-            -0.8489668533333333
-          ],
-          [
-            -0.47274666666666676,
-            -0.6456820355555557
-          ],
-          [
-            -0.8533333333333334,
-            -0.4445935200000001
-          ],
-          [
-            -1.2339200000000001,
-            -0.6496464799999999
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.42666666666666664,
-            -0.6210690755555557
-          ],
-          [
-            -0.04608000000000001,
-            -0.4177842577777779
-          ],
-          [
-            -0.42666666666666675,
-            -0.21471352000000005
-          ],
-          [
-            -0.8072533333333334,
-            -0.41976648000000005
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.3931712977777778
-          ],
-          [
-            0.3805866666666667,
-            -0.18988648000000002
-          ],
-          [
-            0,
-            0.015166479999999982
-          ],
-          [
-            -0.3805866666666667,
-            -0.18988648000000002
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.25696,
-            -0.6125599999999999
-          ],
-          [
-            -0.8763733333333334,
-            -0.40740000000000004
-          ],
-          [
-            -0.8763733333333334,
-            0.005893333333333195
-          ],
-          [
-            -1.2569600000000003,
-            -0.19926666666666668
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333333,
-            -0.38256000000000007
-          ],
-          [
-            -0.44970666666666675,
-            -0.17740000000000003
-          ],
-          [
-            -0.4497066666666668,
-            0.2358933333333333
-          ],
-          [
-            -0.8302933333333335,
-            0.030733333333333224
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            -0.15256000000000003
-          ],
-          [
-            -0.023040000000000022,
-            0.05259999999999999
-          ],
-          [
-            -0.023040000000000022,
-            0.4658933333333332
-          ],
-          [
-            -0.4036266666666667,
-            0.26073333333333326
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.2569600000000003,
-            -0.14922666666666667
-          ],
-          [
-            -0.8763733333333334,
-            0.05593333333333328
-          ],
-          [
-            -0.8763733333333334,
-            0.46922666666666657
-          ],
-          [
-            -1.25696,
-            0.2640666666666666
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333335,
-            0.08077333333333331
-          ],
-          [
-            -0.4497066666666668,
-            0.2859333333333334
-          ],
-          [
-            -0.44970666666666675,
-            0.6992266666666667
-          ],
-          [
-            -0.8302933333333334,
-            0.4940666666666666
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            0.3107733333333333
-          ],
-          [
-            -0.023040000000000026,
-            0.5159333333333332
-          ],
-          [
-            -0.023040000000000022,
-            0.9292266666666664
-          ],
-          [
-            -0.4036266666666667,
-            0.7240666666666664
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -1.25696,
-            0.3141066666666666
-          ],
-          [
-            -0.8763733333333334,
-            0.5192666666666667
-          ],
-          [
-            -0.8763733333333334,
-            0.93256
-          ],
-          [
-            -1.25696,
-            0.7273999999999999
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.8302933333333333,
-            0.5441066666666667
-          ],
-          [
-            -0.44970666666666675,
-            0.7492666666666666
-          ],
-          [
-            -0.44970666666666675,
-            1.16256
-          ],
-          [
-            -0.8302933333333334,
-            0.9574
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            -0.4036266666666667,
-            0.7741066666666665
-          ],
-          [
-            -0.023040000000000026,
-            0.9792666666666665
-          ],
-          [
-            -0.023040000000000022,
-            1.3925599999999998
-          ],
-          [
-            -0.4036266666666667,
-            1.1873999999999998
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.052599999999999994
-          ],
-          [
-            0.40362666666666663,
-            -0.15256
-          ],
-          [
-            0.40362666666666663,
-            0.2607333333333333
-          ],
-          [
-            0.023039999999999998,
-            0.4658933333333332
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            -0.1774
-          ],
-          [
-            0.8302933333333332,
-            -0.38255999999999996
-          ],
-          [
-            0.8302933333333333,
-            0.03073333333333328
-          ],
-          [
-            0.4497066666666667,
-            0.23589333333333332
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333333,
-            -0.4074
-          ],
-          [
-            1.25696,
-            -0.6125599999999999
-          ],
-          [
-            1.2569600000000003,
-            -0.19926666666666668
-          ],
-          [
-            0.8763733333333333,
-            0.0058933333333332505
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.5159333333333332
-          ],
-          [
-            0.40362666666666663,
-            0.31077333333333335
-          ],
-          [
-            0.4036266666666667,
-            0.7240666666666666
-          ],
-          [
-            0.023039999999999998,
-            0.9292266666666664
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            0.2859333333333334
-          ],
-          [
-            0.8302933333333333,
-            0.08077333333333336
-          ],
-          [
-            0.8302933333333333,
-            0.49406666666666665
-          ],
-          [
-            0.4497066666666667,
-            0.6992266666666667
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333333,
-            0.05593333333333328
-          ],
-          [
-            1.2569600000000003,
-            -0.14922666666666667
-          ],
-          [
-            1.25696,
-            0.2640666666666666
-          ],
-          [
-            0.8763733333333332,
-            0.46922666666666657
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.023039999999999998,
-            0.9792666666666665
-          ],
-          [
-            0.4036266666666666,
-            0.7741066666666666
-          ],
-          [
-            0.40362666666666663,
-            1.1874
-          ],
-          [
-            0.023039999999999998,
-            1.3925599999999998
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.4497066666666667,
-            0.7492666666666667
-          ],
-          [
-            0.8302933333333333,
-            0.5441066666666666
-          ],
-          [
-            0.8302933333333333,
-            0.9573999999999999
-          ],
-          [
-            0.4497066666666667,
-            1.16256
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      },
-      {
-        "points": [
-          [
-            0.8763733333333332,
-            0.5192666666666667
-          ],
-          [
-            1.25696,
-            0.3141066666666666
-          ],
-          [
-            1.25696,
-            0.7273999999999999
-          ],
-          [
-            0.8763733333333333,
-            0.93256
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bba8ed",
-        "lineWidth": 0.022
-      }
-    ],
-    "origin": [
-      0,
-      0.0483432399999999
-    ]
-  },
-  "workshop-hammer": {
-    "origin": [
-      0,
-      0.16
-    ],
-    "paths": [
-      {
-        "points": [
-          [
-            -0.15,
-            -0.98
-          ],
-          [
-            0.19,
-            -0.98
-          ],
-          [
-            0.23,
-            1.71
-          ],
-          [
-            0.11,
-            1.94
-          ],
-          [
-            -0.14,
-            1.94
-          ],
-          [
-            -0.25,
-            1.71
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#32556b",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -1.43,
-            -1.56
-          ],
-          [
-            -0.8,
-            -1.56
-          ],
-          [
-            -0.8,
-            -0.55
-          ],
-          [
-            -1.43,
-            -0.55
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#628096",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -0.86,
-            -1.38
-          ],
-          [
-            0.24,
-            -1.53
-          ],
-          [
-            0.72,
-            -1.42
-          ],
-          [
-            1.16,
-            -1.07
-          ],
-          [
-            1.48,
-            -0.31
-          ],
-          [
-            1.1,
-            -0.56
-          ],
-          [
-            0.75,
-            -0.98
-          ],
-          [
-            0.25,
-            -0.91
-          ],
-          [
-            -0.86,
-            -0.71
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#3b627a",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            0.66,
-            -1.38
-          ],
-          [
-            1.19,
-            -1.15
-          ],
-          [
-            1.5,
-            -0.54
-          ],
-          [
-            1.22,
-            -0.75
-          ],
-          [
-            0.85,
-            -1.02
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#294c61",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -0.29,
-            -1.38
-          ],
-          [
-            0.18,
-            -1.38
-          ],
-          [
-            0.24,
-            -0.76
-          ],
-          [
-            -0.29,
-            -0.76
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#234054",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -1.27,
-            -1.37
-          ],
-          [
-            -1.27,
-            -0.73
-          ]
-        ],
-        "lineWidth": 0.045
-      },
-      {
-        "points": [
-          [
-            -0.22,
-            0.57
-          ],
-          [
-            0.21,
-            0.57
-          ],
-          [
-            0.23,
-            1.69
-          ],
-          [
-            0.11,
-            1.83
-          ],
-          [
-            -0.13,
-            1.83
-          ],
-          [
-            -0.24,
-            1.69
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#233e53",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -0.16,
-            0.89
-          ],
-          [
-            0.16,
-            0.89
-          ]
-        ],
-        "lineWidth": 0.04
-      },
-      {
-        "points": [
-          [
-            -0.16,
-            1.16
-          ],
-          [
-            0.16,
-            1.16
-          ]
-        ],
-        "lineWidth": 0.04
-      },
-      {
-        "points": [
-          [
-            -0.16,
-            1.43
-          ],
-          [
-            0.16,
-            1.43
-          ]
-        ],
-        "lineWidth": 0.04
-      }
-    ]
-  },
-  "workshop-nail": {
-    "paths": [
-      {
-        "points": [
-          [
-            -0.13,
-            -1.32
-          ],
-          [
-            0.13,
-            -1.32
-          ],
-          [
-            0.14,
-            1.5
-          ],
-          [
-            0,
-            1.94
-          ],
-          [
-            -0.14,
-            1.5
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#285774"
-      },
-      {
-        "points": [
-          [
-            -0.59,
-            -1.59
-          ],
-          [
-            0.59,
-            -1.59
-          ],
-          [
-            0.66,
-            -1.29
-          ],
-          [
-            -0.66,
-            -1.29
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#254d68"
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.86
-          ],
-          [
-            0,
-            1.32
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      0,
-      0.17499999999999993
-    ]
-  },
-  "artists-brush": {
-    "paths": [
-      {
-        "points": [
-          [
-            -0.12,
-            -0.71
-          ],
-          [
-            0.12,
-            -0.71
-          ],
-          [
-            0.17,
-            1.55
-          ],
-          [
-            0,
-            1.88
-          ],
-          [
-            -0.17,
-            1.55
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#385c19"
-      },
-      {
-        "points": [
-          [
-            -0.24,
-            -1.04
-          ],
-          [
-            0.24,
-            -1.04
-          ],
-          [
-            0.2,
-            -0.65
-          ],
-          [
-            -0.2,
-            -0.65
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#294916"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.23,
-            -1
-          ],
-          [
-            "C",
-            -0.56,
-            -1.53,
-            -0.34,
-            -1.99,
-            0,
-            -2.22
-          ],
-          [
-            "C",
-            0.35,
-            -1.94,
-            0.48,
-            -1.49,
-            0.23,
-            -1
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#244015"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0,
-            -2.02
-          ],
-          [
-            "C",
-            -0.16,
-            -1.64,
-            -0.18,
-            -1.4,
-            -0.09,
-            -1.2
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            0.12,
-            -1.24
-          ],
-          [
-            0.17,
-            -1.59
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -0.08,
-            0.89
-          ],
-          [
-            0.09,
-            0.89
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ],
-    "origin": [
-      -0.01653489289460358,
-      -0.17000000000000015
-    ]
-  },
-  "chocolate-pistols": {
-    "origin": [
-      0,
-      0.12
-    ],
-    "parts": [
-      {
-        "pivot": [
-          -0.19,
-          -0.25
-        ],
-        "paths": [
-          {
-            "points": [
-              [
-                -1.31,
-                -0.38
-              ],
-              [
-                -1.13,
-                -0.57
-              ],
-              [
-                0.89,
-                -0.57
-              ],
-              [
-                1.32,
-                -0.3
-              ],
-              [
-                1.32,
-                -0.01
-              ],
-              [
-                -1.31,
-                -0.01
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#956775",
-            "lineWidth": 0.05
-          },
-          {
-            "points": [
-              [
-                -1.13,
-                -0.01
-              ],
-              [
-                1.05,
-                -0.01
-              ],
-              [
-                0.79,
-                0.22
-              ],
-              [
-                -0.1,
-                0.22
-              ],
-              [
-                -0.19,
-                0.51
-              ],
-              [
-                -0.23,
-                1.13
-              ],
-              [
-                -0.74,
-                1.13
-              ],
-              [
-                -0.98,
-                0.94
-              ],
-              [
-                -0.79,
-                0.22
-              ],
-              [
-                -1.13,
-                0.22
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#523442",
-            "lineWidth": 0.05
-          },
-          {
-            "commands": [
-              [
-                "M",
-                -0.11,
-                0.22
-              ],
-              [
-                "L",
-                0.54,
-                0.22
-              ],
-              [
-                "L",
-                0.45,
-                0.69
-              ],
-              [
-                "L",
-                -0.23,
-                0.69
-              ],
-              [
-                "M",
-                0.09,
-                0.26
-              ],
-              [
-                "L",
-                0.01,
-                0.47
-              ]
-            ],
-            "lineWidth": 0.06
-          },
-          {
-            "points": [
-              [
-                -0.15,
-                -0.42
-              ],
-              [
-                0.34,
-                -0.42
-              ],
-              [
-                0.34,
-                -0.15
-              ],
-              [
-                -0.15,
-                -0.15
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#4b303e",
-            "lineWidth": 0.05
-          },
-          {
-            "points": [
-              [
-                -1.06,
-                -0.33
-              ],
-              [
-                -0.97,
-                -0.12
-              ]
-            ],
-            "lineWidth": 0.035
-          },
-          {
-            "points": [
-              [
-                -0.86,
-                -0.41
-              ],
-              [
-                -0.73,
-                -0.13
-              ]
-            ],
-            "lineWidth": 0.035
-          },
-          {
-            "points": [
-              [
-                -0.66,
-                -0.4
-              ],
-              [
-                -0.52,
-                -0.13
-              ]
-            ],
-            "lineWidth": 0.035
-          },
-          {
-            "points": [
-              [
-                1.1,
-                -0.25
-              ],
-              [
-                1.1,
-                -0.09
-              ]
-            ],
-            "lineWidth": 0.05
-          },
-          {
-            "points": [
-              [
-                -0.67,
-                0.53
-              ],
-              [
-                -0.36,
-                0.53
-              ]
-            ],
-            "lineWidth": 0.045
-          },
-          {
-            "points": [
-              [
-                -0.7,
-                0.78
-              ],
-              [
-                -0.39,
-                0.78
-              ]
-            ],
-            "lineWidth": 0.045
-          },
-          {
-            "points": [
-              [
-                0.92,
-                -0.59
-              ],
-              [
-                1.05,
-                -0.59
-              ],
-              [
-                1.05,
-                -0.48
-              ],
-              [
-                0.92,
-                -0.48
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#74505e",
-            "lineWidth": 0.05
-          }
-        ]
-      },
-      {
-        "pivot": [
-          0.19,
-          0.25
-        ],
-        "paths": [
-          {
-            "points": [
-              [
-                -1.31,
-                -0.38
-              ],
-              [
-                -1.13,
-                -0.57
-              ],
-              [
-                0.89,
-                -0.57
-              ],
-              [
-                1.32,
-                -0.3
-              ],
-              [
-                1.32,
-                -0.01
-              ],
-              [
-                -1.31,
-                -0.01
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#956775",
-            "lineWidth": 0.05
-          },
-          {
-            "points": [
-              [
-                -1.13,
-                -0.01
-              ],
-              [
-                1.05,
-                -0.01
-              ],
-              [
-                0.79,
-                0.22
-              ],
-              [
-                -0.1,
-                0.22
-              ],
-              [
-                -0.19,
-                0.51
-              ],
-              [
-                -0.23,
-                1.13
-              ],
-              [
-                -0.74,
-                1.13
-              ],
-              [
-                -0.98,
-                0.94
-              ],
-              [
-                -0.79,
-                0.22
-              ],
-              [
-                -1.13,
-                0.22
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#523442",
-            "lineWidth": 0.05
-          },
-          {
-            "commands": [
-              [
-                "M",
-                -0.11,
-                0.22
-              ],
-              [
-                "L",
-                0.54,
-                0.22
-              ],
-              [
-                "L",
-                0.45,
-                0.69
-              ],
-              [
-                "L",
-                -0.23,
-                0.69
-              ],
-              [
-                "M",
-                0.09,
-                0.26
-              ],
-              [
-                "L",
-                0.01,
-                0.47
-              ]
-            ],
-            "lineWidth": 0.06
-          },
-          {
-            "points": [
-              [
-                -0.15,
-                -0.42
-              ],
-              [
-                0.34,
-                -0.42
-              ],
-              [
-                0.34,
-                -0.15
-              ],
-              [
-                -0.15,
-                -0.15
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#4b303e",
-            "lineWidth": 0.05
-          },
-          {
-            "points": [
-              [
-                -1.06,
-                -0.33
-              ],
-              [
-                -0.97,
-                -0.12
-              ]
-            ],
-            "lineWidth": 0.035
-          },
-          {
-            "points": [
-              [
-                -0.86,
-                -0.41
-              ],
-              [
-                -0.73,
-                -0.13
-              ]
-            ],
-            "lineWidth": 0.035
-          },
-          {
-            "points": [
-              [
-                -0.66,
-                -0.4
-              ],
-              [
-                -0.52,
-                -0.13
-              ]
-            ],
-            "lineWidth": 0.035
-          },
-          {
-            "points": [
-              [
-                1.1,
-                -0.25
-              ],
-              [
-                1.1,
-                -0.09
-              ]
-            ],
-            "lineWidth": 0.05
-          },
-          {
-            "points": [
-              [
-                -0.67,
-                0.53
-              ],
-              [
-                -0.36,
-                0.53
-              ]
-            ],
-            "lineWidth": 0.045
-          },
-          {
-            "points": [
-              [
-                -0.7,
-                0.78
-              ],
-              [
-                -0.39,
-                0.78
-              ]
-            ],
-            "lineWidth": 0.045
-          },
-          {
-            "points": [
-              [
-                0.92,
-                -0.59
-              ],
-              [
-                1.05,
-                -0.59
-              ],
-              [
-                1.05,
-                -0.48
-              ],
-              [
-                0.92,
-                -0.48
-              ]
-            ],
-            "closed": true,
-            "fill": true,
-            "fillColor": "#74505e",
-            "lineWidth": 0.05
-          }
-        ]
-      }
-    ]
-  },
-  "chocolate-bazooka": {
-    "origin": [
-      0,
-      0.12
-    ],
-    "paths": [
-      {
-        "points": [
-          [
-            -1.55,
-            -0.4
-          ],
-          [
-            1.3,
-            -0.4
-          ],
-          [
-            1.3,
-            0.4
-          ],
-          [
-            -1.55,
-            0.4
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#66515b",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -1.82,
-            -0.58
-          ],
-          [
-            -1.4,
-            -0.58
-          ],
-          [
-            -1.4,
-            0.58
-          ],
-          [
-            -1.82,
-            0.58
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#a27d87",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            1.28,
-            -0.62
-          ],
-          [
-            1.74,
-            -0.62
-          ],
-          [
-            1.88,
-            -0.44
-          ],
-          [
-            1.88,
-            0.44
-          ],
-          [
-            1.74,
-            0.62
-          ],
-          [
-            1.28,
-            0.62
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#a27d87",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -0.74,
-            0.4
-          ],
-          [
-            -0.26,
-            0.4
-          ],
-          [
-            -0.43,
-            1.22
-          ],
-          [
-            -0.89,
-            1.22
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#372d36",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            0.52,
-            0.4
-          ],
-          [
-            0.86,
-            0.4
-          ],
-          [
-            0.83,
-            0.91
-          ],
-          [
-            0.5,
-            0.91
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#493944",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -0.59,
-            -0.4
-          ],
-          [
-            -0.59,
-            -0.74
-          ],
-          [
-            0.35,
-            -0.74
-          ],
-          [
-            0.35,
-            -0.4
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#493944",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -1.22,
-            -0.18
-          ],
-          [
-            1.1,
-            -0.18
-          ]
-        ],
-        "lineWidth": 0.04
-      },
-      {
-        "points": [
-          [
-            -1.65,
-            -0.37
-          ],
-          [
-            -1.65,
-            0.37
-          ]
-        ],
-        "lineWidth": 0.07
-      },
-      {
-        "points": [
-          [
-            1.55,
-            -0.4
-          ],
-          [
-            1.55,
-            0.4
-          ]
-        ],
-        "lineWidth": 0.075
-      },
-      {
-        "points": [
-          [
-            -0.71,
-            0.64
-          ],
-          [
-            -0.4,
-            0.64
-          ]
-        ],
-        "lineWidth": 0.05
-      },
-      {
-        "points": [
-          [
-            -0.78,
-            0.87
-          ],
-          [
-            -0.46,
-            0.87
-          ]
-        ],
-        "lineWidth": 0.05
-      },
-      {
-        "points": [
-          [
-            0.4,
-            0.4
-          ],
-          [
-            0.32,
-            0.77
-          ],
-          [
-            -0.27,
-            0.77
-          ]
-        ],
-        "lineWidth": 0.05
-      }
-    ]
-  },
-  "chocolate-bomb": {
-    "origin": [
-      0,
-      -0.12
-    ],
-    "paths": [
-      {
-        "points": [
-          [
-            -0.85,
-            -1.04
-          ],
-          [
-            0.85,
-            -1.04
-          ],
-          [
-            1.06,
-            -0.83
-          ],
-          [
-            1.06,
-            0.86
-          ],
-          [
-            0.85,
-            1.07
-          ],
-          [
-            -0.85,
-            1.07
-          ],
-          [
-            -1.06,
-            0.86
-          ],
-          [
-            -1.06,
-            -0.83
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#47303b",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -0.88,
-            -0.88
-          ],
-          [
-            0.88,
-            -0.88
-          ],
-          [
-            0.88,
-            0.32
-          ],
-          [
-            -0.88,
-            0.32
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#76505b",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            -1.06,
-            0.32
-          ],
-          [
-            -0.7,
-            0.2
-          ],
-          [
-            -0.34,
-            0.38
-          ],
-          [
-            0,
-            0.2
-          ],
-          [
-            0.35,
-            0.38
-          ],
-          [
-            0.7,
-            0.2
-          ],
-          [
-            1.06,
-            0.32
-          ],
-          [
-            1.06,
-            0.86
-          ],
-          [
-            0.85,
-            1.07
-          ],
-          [
-            -0.85,
-            1.07
-          ],
-          [
-            -1.06,
-            0.86
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#ab7d86",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.85
-          ],
-          [
-            0,
-            0.22
-          ]
-        ],
-        "lineWidth": 0.045
-      },
-      {
-        "points": [
-          [
-            -0.86,
-            -0.3
-          ],
-          [
-            0.86,
-            -0.3
-          ]
-        ],
-        "lineWidth": 0.045
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0,
-            -1.04
-          ],
-          [
-            "C",
-            -0.12,
-            -1.43,
-            0.38,
-            -1.64,
-            0.58,
-            -1.31
-          ]
-        ],
-        "lineWidth": 0.095
-      },
-      {
-        "points": [
-          [
-            -0.27,
-            0.58
-          ],
-          [
-            0,
-            0.4
-          ],
-          [
-            0.27,
-            0.58
-          ],
-          [
-            0,
-            0.78
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#61414d",
-        "lineWidth": 0.055
-      }
-    ]
-  },
-  "dodge-slip": {
-    "origin": [
-      0,
-      0
-    ],
-    "paths": [
-      {
-        "commands": [
-          [
-            "M",
-            -1.29,
-            -0.68
-          ],
-          [
-            "C",
-            -1.81,
-            0.13,
-            -1.25,
-            1.35,
-            -0.24,
-            1.44
-          ],
-          [
-            "C",
-            -0.9,
-            1.04,
-            -1.06,
-            0.07,
-            -0.72,
-            -0.58
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#916570"
-      },
-      {
-        "commands": [
-          [
-            "M",
-            1.29,
-            0.68
-          ],
-          [
-            "C",
-            1.81,
-            -0.13,
-            1.25,
-            -1.35,
-            0.24,
-            -1.44
-          ],
-          [
-            "C",
-            0.9,
-            -1.04,
-            1.06,
-            -0.07,
-            0.72,
-            0.58
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#916570"
-      },
-      {
-        "points": [
-          [
-            -1.54,
-            -0.97
-          ],
-          [
-            -0.87,
-            -1.27
-          ]
-        ],
-        "lineWidth": 0.07
-      },
-      {
-        "points": [
-          [
-            1.54,
-            0.97
-          ],
-          [
-            0.87,
-            1.27
-          ]
-        ],
-        "lineWidth": 0.07
-      },
-      {
-        "points": [
-          [
-            -0.13,
-            -0.61
-          ],
-          [
-            0.34,
-            -0.12
-          ],
-          [
-            0.13,
-            0.61
-          ],
-          [
-            -0.34,
-            0.12
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#b7808b",
-        "lineWidth": 0.05
-      }
-    ]
-  },
-  "demon-trident": {
-    "origin": [
-      0,
-      -0.15
-    ],
-    "paths": [
-      {
-        "points": [
-          [
-            -0.1,
-            -1.68
-          ],
-          [
-            0.1,
-            -1.68
-          ],
-          [
-            0.12,
-            1.9
-          ],
-          [
-            0,
-            2.13
-          ],
-          [
-            -0.12,
-            1.9
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#583140",
-        "lineWidth": 0.05
-      },
-      {
-        "points": [
-          [
-            0,
-            -2.82
-          ],
-          [
-            0.26,
-            -2.26
-          ],
-          [
-            0.13,
-            -2.35
-          ],
-          [
-            0.13,
-            -1.34
-          ],
-          [
-            0.43,
-            -1.53
-          ],
-          [
-            0.62,
-            -1.77
-          ],
-          [
-            0.65,
-            -2.29
-          ],
-          [
-            0.53,
-            -2.14
-          ],
-          [
-            0.7,
-            -2.73
-          ],
-          [
-            1.02,
-            -2.26
-          ],
-          [
-            0.89,
-            -2.31
-          ],
-          [
-            0.88,
-            -1.65
-          ],
-          [
-            0.61,
-            -1.2
-          ],
-          [
-            0.22,
-            -0.98
-          ],
-          [
-            -0.22,
-            -0.98
-          ],
-          [
-            -0.61,
-            -1.2
-          ],
-          [
-            -0.88,
-            -1.65
-          ],
-          [
-            -0.89,
-            -2.31
-          ],
-          [
-            -1.02,
-            -2.26
-          ],
-          [
-            -0.7,
-            -2.73
-          ],
-          [
-            -0.53,
-            -2.14
-          ],
-          [
-            -0.65,
-            -2.29
-          ],
-          [
-            -0.62,
-            -1.77
-          ],
-          [
-            -0.43,
-            -1.53
-          ],
-          [
-            -0.13,
-            -1.34
-          ],
-          [
-            -0.13,
-            -2.35
-          ],
-          [
-            -0.26,
-            -2.26
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#926070",
-        "lineWidth": 0.05
-      },
-      {
-        "points": [
-          [
-            -0.21,
-            -1.05
-          ],
-          [
-            0,
-            -1.3
-          ],
-          [
-            0.21,
-            -1.05
-          ],
-          [
-            0,
-            -0.79
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#bb8292",
-        "lineWidth": 0.05
-      },
-      {
-        "points": [
-          [
-            0,
-            -0.6
-          ],
-          [
-            0,
-            1.61
-          ]
-        ],
-        "lineWidth": 0.03
-      },
-      {
-        "points": [
-          [
-            -0.19,
-            1.7
-          ],
-          [
-            0.19,
-            1.7
-          ],
-          [
-            0.14,
-            1.97
-          ],
-          [
-            0,
-            2.13
-          ],
-          [
-            -0.14,
-            1.97
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#926070",
-        "lineWidth": 0.05
-      }
-    ]
-  },
-  "maid-broom": {
-    "origin": [
-      0,
-      0
-    ],
-    "paths": [
-      {
-        "points": [
-          [
-            -0.08,
-            -2.2
-          ],
-          [
-            0.08,
-            -2.2
-          ],
-          [
-            0.1,
-            0.58
-          ],
-          [
-            -0.1,
-            0.58
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#644253",
-        "lineWidth": 0.05
-      },
-      {
-        "points": [
-          [
-            -0.17,
-            0.43
-          ],
-          [
-            0.17,
-            0.43
-          ],
-          [
-            0.21,
-            0.76
-          ],
-          [
-            -0.21,
-            0.76
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#a97b95",
-        "lineWidth": 0.05
-      },
-      {
-        "points": [
-          [
-            -0.24,
-            0.68
-          ],
-          [
-            0.24,
-            0.68
-          ],
-          [
-            0.52,
-            1.02
-          ],
-          [
-            0.76,
-            1.94
-          ],
-          [
-            0.51,
-            2.13
-          ],
-          [
-            0.29,
-            2.02
-          ],
-          [
-            0,
-            2.15
-          ],
-          [
-            -0.29,
-            2.02
-          ],
-          [
-            -0.51,
-            2.13
-          ],
-          [
-            -0.76,
-            1.94
-          ],
-          [
-            -0.52,
-            1.02
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#9b6b84",
-        "lineWidth": 0.05
-      },
-      {
-        "points": [
-          [
-            -0.48,
-            0.99
-          ],
-          [
-            0.48,
-            0.99
-          ],
-          [
-            0.53,
-            1.2
-          ],
-          [
-            -0.53,
-            1.2
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#563548",
-        "lineWidth": 0.05
-      },
-      {
-        "points": [
-          [
-            -0.32,
-            1.32
-          ],
-          [
-            -0.49,
-            1.94
-          ]
-        ],
-        "lineWidth": 0.03
-      },
-      {
-        "points": [
-          [
-            -0.12,
-            1.3
-          ],
-          [
-            -0.21,
-            1.99
-          ]
-        ],
-        "lineWidth": 0.03
-      },
-      {
-        "points": [
-          [
-            0.12,
-            1.3
-          ],
-          [
-            0.21,
-            1.99
-          ]
-        ],
-        "lineWidth": 0.03
-      },
-      {
-        "points": [
-          [
-            0.32,
-            1.32
-          ],
-          [
-            0.49,
-            1.94
-          ]
-        ],
-        "lineWidth": 0.03
-      },
-      {
-        "points": [
-          [
-            -0.12,
-            -2.21
-          ],
-          [
-            0.12,
-            -2.21
-          ],
-          [
-            0.12,
-            -2.06
-          ],
-          [
-            -0.12,
-            -2.06
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#9b6b84",
-        "lineWidth": 0.05
-      }
-    ]
-  },
-  "marshmallow-skewer": {
-    "origin": [
-      0,
-      0
-    ],
-    "paths": [
-      {
-        "points": [
-          [
-            -0.075,
-            -1.6
-          ],
-          [
-            0.075,
-            -1.6
-          ],
-          [
-            0.095,
-            1.47
-          ],
-          [
-            -0.095,
-            1.47
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#796144",
-        "lineWidth": 0.045
-      },
-      {
-        "points": [
-          [
-            -0.055,
-            -3
-          ],
-          [
-            0,
-            -3.38
-          ],
-          [
-            0.055,
-            -3
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#796144",
-        "lineWidth": 0.045
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.72,
-            -2.83
-          ],
-          [
-            "C",
-            -0.62,
-            -3.04,
-            0.53,
-            -3.04,
-            0.72,
-            -2.84
-          ],
-          [
-            "C",
-            0.86,
-            -2.67,
-            0.82,
-            -1.9,
-            0.64,
-            -1.72
-          ],
-          [
-            "C",
-            0.4,
-            -1.5,
-            -0.45,
-            -1.52,
-            -0.67,
-            -1.73
-          ],
-          [
-            "C",
-            -0.84,
-            -1.9,
-            -0.89,
-            -2.6,
-            -0.72,
-            -2.83
-          ],
-          [
-            "Z"
-          ]
-        ],
-        "fill": true,
-        "fillColor": "#eadbc2",
-        "lineWidth": 0.055
-      },
-      {
-        "commands": [
-          [
-            "M",
-            -0.71,
-            -2.81
-          ],
-          [
-            "C",
-            -0.46,
-            -2.61,
-            0.47,
-            -2.61,
-            0.72,
-            -2.83
-          ]
-        ],
-        "lineWidth": 0.04
-      },
-      {
-        "commands": [
-          [
-            "M",
-            0.6,
-            -2.65
-          ],
-          [
-            "C",
-            0.69,
-            -2.35,
-            0.65,
-            -1.95,
-            0.54,
-            -1.79
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -0.13,
-            0.78
-          ],
-          [
-            0.13,
-            0.78
-          ],
-          [
-            0.19,
-            1.12
-          ],
-          [
-            0.19,
-            1.96
-          ],
-          [
-            0.11,
-            2.18
-          ],
-          [
-            -0.11,
-            2.18
-          ],
-          [
-            -0.19,
-            1.96
-          ],
-          [
-            -0.19,
-            1.12
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#67533b",
-        "lineWidth": 0.045
-      },
-      {
-        "points": [
-          [
-            -0.19,
-            1.27
-          ],
-          [
-            0.19,
-            1.27
-          ]
-        ],
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -0.19,
-            1.7
-          ],
-          [
-            0.19,
-            1.7
-          ]
-        ],
-        "lineWidth": 0.035
-      }
-    ]
-  },
-  "forge-hammer": {
-    "origin": [
-      0,
-      0
-    ],
-    "paths": [
-      {
-        "points": [
-          [
-            -0.12,
-            -2
-          ],
-          [
-            0.12,
-            -2
-          ],
-          [
-            0.16,
-            1.67
-          ],
-          [
-            0.09,
-            1.88
-          ],
-          [
-            -0.09,
-            1.88
-          ],
-          [
-            -0.16,
-            1.67
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#424247",
-        "lineWidth": 0.045
-      },
-      {
-        "points": [
-          [
-            -1.27,
-            -2.24
-          ],
-          [
-            -0.66,
-            -2.65
-          ],
-          [
-            0.64,
-            -2.65
-          ],
-          [
-            0.64,
-            -2.76
-          ],
-          [
-            1.16,
-            -2.76
-          ],
-          [
-            1.29,
-            -2.63
-          ],
-          [
-            1.29,
-            -1.64
-          ],
-          [
-            1.16,
-            -1.5
-          ],
-          [
-            0.64,
-            -1.5
-          ],
-          [
-            0.64,
-            -1.61
-          ],
-          [
-            -0.66,
-            -1.61
-          ],
-          [
-            -1.27,
-            -1.96
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#68686d",
-        "lineWidth": 0.055
-      },
-      {
-        "points": [
-          [
-            0.64,
-            -2.65
-          ],
-          [
-            0.64,
-            -1.61
-          ]
-        ],
-        "lineWidth": 0.045
-      },
-      {
-        "points": [
-          [
-            -0.22,
-            -2.48
-          ],
-          [
-            0.22,
-            -2.48
-          ],
-          [
-            0.22,
-            -1.73
-          ],
-          [
-            -0.22,
-            -1.73
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#4a4a50",
-        "lineWidth": 0.035
-      },
-      {
-        "points": [
-          [
-            -0.16,
-            0.5
-          ],
-          [
-            0.16,
-            0.5
-          ],
-          [
-            0.18,
-            1.53
-          ],
-          [
-            -0.18,
-            1.53
-          ]
-        ],
-        "closed": true,
-        "fill": true,
-        "fillColor": "#36363b",
-        "lineWidth": 0.04
-      },
-      {
-        "points": [
-          [
-            -0.18,
-            0.8
-          ],
-          [
-            0.18,
-            0.8
-          ]
-        ],
-        "lineWidth": 0.03
-      },
-      {
-        "points": [
-          [
-            -0.18,
-            1.2
-          ],
-          [
-            0.18,
-            1.2
-          ]
-        ],
-        "lineWidth": 0.03
-      }
-    ]
-  },
-  "forge-hammer-mirrored": {
-    "origin": [
-      0,
-      0
-    ],
-    "parts": [
-      {
-        "scaleX": -1,
-        "paths": [
-          {
-            "points": [
-              [
-                -0.1125,
-                -1.2
-              ],
-              [
-                0.1125,
-                -1.2
-              ],
-              [
-                0.15,
-                0.9
-              ],
-              [
-                0.1,
-                1.12
-              ],
-              [
-                -0.1,
-                1.12
-              ],
-              [
-                -0.15,
-                0.9
-              ]
-            ],
-            "lineWidth": 0.04,
-            "closed": true,
-            "fill": true,
-            "fillColor": "#424247"
-          },
-          {
-            "points": [
-              [
-                -0.7,
-                -1.592
-              ],
-              [
-                -0.62,
-                -1.704
-              ],
-              [
-                0.62,
-                -1.704
-              ],
-              [
-                0.7,
-                -1.592
-              ],
-              [
-                0.7,
-                -1.158
-              ],
-              [
-                0.62,
-                -1.046
-              ],
-              [
-                -0.62,
-                -1.046
-              ],
-              [
-                -0.7,
-                -1.158
-              ]
-            ],
-            "lineWidth": 0.05,
-            "closed": true,
-            "fill": true,
-            "fillColor": "#68686d"
-          },
-          {
-            "points": [
-              [
-                -0.49,
-                -1.704
-              ],
-              [
-                -0.49,
-                -1.046
-              ]
-            ],
-            "lineWidth": 0.035
-          },
-          {
-            "points": [
-              [
-                0.49,
-                -1.704
-              ],
-              [
-                0.49,
-                -1.046
-              ]
-            ],
-            "lineWidth": 0.035
-          },
-          {
-            "points": [
-              [
-                -0.15,
-                -1.662
-              ],
-              [
-                0.15,
-                -1.662
-              ],
-              [
-                0.15,
-                -1.088
-              ],
-              [
-                -0.15,
-                -1.088
-              ]
-            ],
-            "lineWidth": 0.035,
-            "closed": true,
-            "fill": true,
-            "fillColor": "#4a4a50"
-          },
-          {
-            "points": [
-              [
-                -0.15,
-                0.1
-              ],
-              [
-                0.15,
-                0.1
-              ],
-              [
-                0.2,
-                0.82
-              ],
-              [
-                0.1375,
-                1.04
-              ],
-              [
-                -0.1375,
-                1.04
-              ],
-              [
-                -0.2,
-                0.82
-              ]
-            ],
-            "lineWidth": 0.04,
-            "closed": true,
-            "fill": true,
-            "fillColor": "#36363b"
-          },
-          {
-            "points": [
-              [
-                -0.175,
-                0.4
-              ],
-              [
-                0.175,
-                0.4
-              ]
-            ],
-            "lineWidth": 0.03
-          },
-          {
-            "points": [
-              [
-                -0.1875,
-                0.75
-              ],
-              [
-                0.1875,
-                0.75
-              ]
-            ],
-            "lineWidth": 0.03
-          }
-        ]
-      }
-    ]
-  }
+const WEAPON_IMAGE_DEFS=freezeCharacterData({"fishing-rod":{"origin":[0,0],"paths":[{"points":[[-0.14,1.3],[0.14,1.3],[0.1,-0.15],[0.05,-1.4],[-0.08,-2.05],[-0.14,-2.22],[-0.09,-1.35],[-0.1,-0.15]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.1,0.55],[0.1,0.55]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.04},{"commands":[["M",-0.14,-2.22],["C",0.5,-1.85,0.82,-1.1,0.68,-0.32]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[0.68,-0.4],[0.83,-0.2],[0.68,0.05],[0.53,-0.2]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.04}],"rings":[{"x":-0.22,"y":0.78,"radius":0.2},{"x":-0.22,"y":0.78,"radius":0.065}]},"lemon-board":{"origin":[0,0],"paths":[{"points":[[-0.48,-1.45],[-0.65,-1.2],[-0.65,1.2],[-0.48,1.45],[0.48,1.45],[0.65,1.2],[0.65,-1.2],[0.48,-1.45]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[-0.42,-0.95],[0.42,-0.95]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.05},{"points":[[-0.42,0.95],[0.42,0.95]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.05}],"rings":[{"x":0,"y":0,"radius":0.25}]},
+"adrenaline-potion":{"origin": [0, 0], "paths": [{"points": [[-0.3, -1.1], [0.3, -1.1], [0.3, -0.6], [0.66, -0.24], [0.7, 0.72], [0.48, 1], [-0.48, 1], [-0.7, 0.72], [-0.66, -0.24], [-0.3, -0.6]], "closed": true, "fill": true}, {"points": [[-0.38, -1.16], [0.38, -1.16], [0.38, -0.91], [-0.38, -0.91]], "closed": true, "fill": true}, {"points": [[-0.5, 0.3], [0.5, 0.3]], "stroke": true}]},
+"wolf-claw":{"origin": [0, 0], "paths": [{"commands": [["M", -0.21999999999999997, -0.88], ["C", -0.48, -0.38, -0.6799999999999999, 0.28, -1.02, 1.12], ["C", -0.99, 0.42, -0.78, -0.38, -0.21999999999999997, -0.88], ["Z"]], "closed": true, "fill": true}, {"commands": [["M", 0.38, -1.04], ["C", 0.12, -0.54, -0.08, 0.12, -0.42, 0.96], ["C", -0.39, 0.26, -0.18, -0.54, 0.38, -1.04], ["Z"]], "closed": true, "fill": true}, {"commands": [["M", 0.98, -0.88], ["C", 0.72, -0.38, 0.52, 0.28, 0.18, 1.12], ["C", 0.20999999999999996, 0.42, 0.42, -0.38, 0.98, -0.88], ["Z"]], "closed": true, "fill": true}]},
+"rubber-launcher":{"origin": [0.025, -0.22], "paths": [{"points": [[-1.25, -0.74], [0.87, -0.74], [0.94, -0.66], [0.94, 0.2], [0.8, 0.3], [-1.23, 0.3], [-1.48, 0.04], [-1.48, -0.45]], "closed": true, "fill": true, "fillColor": "#873b23"}, {"points": [[-1.18, -0.5], [-0.29, -0.5], [-0.29, -0.08], [-1.18, -0.08]], "closed": true, "fill": true, "fillColor": "#54291e"}, {"points": [[-1.02, -0.29], [-0.45, -0.29]], "lineWidth": 0.035}, {"points": [[0.02, -0.5], [0.02, -0.09]], "lineWidth": 0.035}, {"points": [[0.26, -0.5], [0.26, -0.09]], "lineWidth": 0.035}, {"points": [[0.5, -0.5], [0.5, -0.09]], "lineWidth": 0.035}, {"points": [[-1.02, -0.74], [-0.38, -0.74], [-0.56, -1.72], [-1.25, -1.72]], "closed": true, "fill": true, "fillColor": "#5c3024"}, {"points": [[-0.26, -0.8], [0.5, -0.8], [0.44, -1.24], [-0.33, -1.24]], "closed": true, "lineWidth": 0.055}, {"points": [[-0.04, -0.78], [-0.05, -1.01], [0.13, -1.08]], "lineWidth": 0.045}, {"points": [[-1.04, -1.46], [-0.7, -1.46]], "lineWidth": 0.035}, {"points": [[-1.23, 0.3], [0.8, 0.3], [0.68, 0.44], [-1.08, 0.44]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.045, "fillColor": "#54291e"}]},"rubber-muzzle":{"origin": [0.025, -0.22], "paths": [{"points": [[0.94, -0.66], [1.53, -0.66], [1.53, 0.2], [0.94, 0.2]], "closed": true, "fill": true, "fillColor": "#46261e"}, {"points": [[1.28, -0.47], [1.28, 0.01]], "lineWidth": 0.035}]},"rubber-module-punch":{"origin": [0.025, -0.22], "paths": [{"points": [[0.94, -0.66], [1.57, -0.66], [1.76, -0.48], [1.76, 0.04], [1.57, 0.22], [0.94, 0.22]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#5c3024"}, {"points": [[1.46, -0.53], [1.6, -0.4], [1.6, -0.04], [1.46, 0.09]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#46261e"}, {"points": [[1.09, -0.54], [1.09, 0.1]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}, {"points": [[1.2, -0.38], [1.34, -0.38]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}, {"points": [[1.2, -0.06], [1.34, -0.06]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}]},"rubber-module-sniper":{"origin": [0.025, -0.22], "paths": [{"points": [[-0.16, 0.3], [1.06, 0.3], [1.3, 0.5], [1.17, 0.8], [-0.08, 0.8], [-0.27, 0.6]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.045, "fillColor": "#46261e"}, {"points": [[0.02, 0.38], [0.83, 0.38], [1.05, 0.52], [0.97, 0.69], [0.02, 0.69]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.045, "fillColor": "#873b23"}, {"points": [[0.17, 0.54], [0.68, 0.54]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.045}, {"points": [[0.41, 0.42], [0.41, 0.66]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.045}, {"points": [[1.06, 0.42], [1.2, 0.51]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.045}]},"rubber-module-wall":{"origin": [0.025, -0.22], "paths": [{"points": [[-2.07, -0.505], [-1.48, -0.505], [-1.48, 0.095], [-2.07, 0.095], [-2.13, 0.035], [-2.13, -0.445]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#5c3024"}, {"points": [[-1.64, -0.505], [-1.48, -0.505], [-1.48, 0.095], [-1.64, 0.095]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#46261e"}, {"points": [[-2.02, -0.305], [-1.77, -0.305], [-1.77, -0.105], [-2.02, -0.105]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#54291e"}, {"points": [[-1.92, -0.305], [-1.92, -0.105]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}]},
+
+"cherity-bolt-rifle":{"origin":[0.25,0.1],"paths":[{"points":[[-3.1,-0.25],[-2.35,-0.25],[-2.12,-0.07],[-1.32,-0.07],[-1.32,0.14],[-2.14,0.14],[-2.53,0.53],[-3.1,0.53]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-3.18,-0.34],[-3.02,-0.34],[-3.02,0.6099999999999999],[-3.18,0.6099999999999999]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-2.83,-0.48],[-1.87,-0.48],[-1.87,-0.3],[-2.83,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-2.65,0.16],[-2.08,0.16],[-2.37,0.4],[-2.65,0.4]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-1.48,-0.32],[1.46,-0.32],[1.67,-0.14],[1.67,0.25],[1.44,0.39],[-0.26,0.39],[-0.46,0.21],[-1.48,0.21]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.4,-0.43],[1.5300000000000002,-0.43],[1.5300000000000002,-0.31],[-1.4,-0.31]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[1.67,-0.095],[3.11,-0.095],[3.11,0.095],[1.67,0.095]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[3.11,-0.21],[3.67,-0.21],[3.76,-0.12],[3.76,0.12],[3.67,0.21],[3.11,0.21]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[3.24,-0.14],[3.3350000000000004,-0.14],[3.3350000000000004,0.14],[3.24,0.14]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[3.48,-0.14],[3.575,-0.14],[3.575,0.14],[3.48,0.14]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.27,0.39],[0.3,0.39],[0.27,0.93],[-0.18,0.93],[-0.3,0.8]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.34,0.21],[-0.97,0.21],[-1.1,0.79],[-1.46,0.7]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.94,0.21],[-0.46,0.21],[-0.42,0.5],[-0.61,0.6],[-0.94,0.5]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-1.37,-0.78],[-1.1500000000000001,-0.78],[-1.1500000000000001,-0.43000000000000005],[-1.37,-0.43000000000000005]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.85,-0.62],[-0.72,-0.62],[-0.72,-0.43],[-0.85,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.34,-0.62],[0.47000000000000003,-0.62],[0.47000000000000003,-0.43],[0.34,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.15,-0.74],[0.48,-0.74],[0.69,-0.91],[1.02,-0.91],[1.14,-0.77],[1.14,-0.61],[1.02,-0.48],[0.69,-0.48],[0.48,-0.61],[-1.15,-0.61]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.18,-0.89],[0.020000000000000018,-0.89],[0.020000000000000018,-0.74],[-0.18,-0.74]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.5,-0.17],[0.18999999999999995,-0.17],[0.18999999999999995,0.06],[-0.5,0.06]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.14,-0.03],[0.33,0.17],[0.43,0.17]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.57,-0.08],[0.69,-0.08],[0.69,0.13],[0.57,0.13]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.85,-0.08],[0.97,-0.08],[0.97,0.13],[0.85,0.13]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[1.13,-0.08],[1.25,-0.08],[1.25,0.13],[1.13,0.13]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045}]},
+"tape-measure":{"origin":[0,0],"paths":[{"points":[[1.26529,-0.87882],[-1.43471,0.56118],[-1.26529,0.87882],[1.43471,-0.56118]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.76,-0.9],[1.35,-0.9],[1.53,-0.8],[1.53,-0.64],[1.35,-0.54],[-1.76,-0.54],[-1.85,-0.64],[-1.85,-0.8]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.35,0.54],[1.76,0.54],[1.85,0.64],[1.85,0.8],[1.76,0.9],[-1.35,0.9],[-1.53,0.8],[-1.53,0.64]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.59,-0.88],[-1.59,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.59,0.88],[1.59,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.365,-0.88],[-1.365,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.365,0.88],[1.365,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.14,-0.88],[-1.14,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.14,0.88],[1.14,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.915,-0.88],[-0.915,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.915,0.88],[0.915,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.69,-0.88],[-0.69,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.69,0.88],[0.69,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.465,-0.88],[-0.465,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.465,0.88],[0.465,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.24,-0.88],[-0.24,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.24,0.88],[0.24,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.015,-0.88],[-0.015,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.015,0.88],[0.015,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.21,-0.88],[0.21,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.21,0.88],[-0.21,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.435,-0.88],[0.435,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.435,0.88],[-0.435,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.66,-0.88],[0.66,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.66,0.88],[-0.66,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.885,-0.88],[0.885,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.885,0.88],[-0.885,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.11,-0.88],[1.11,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.11,0.88],[-1.11,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.0,-0.726],[1.04235,-0.64659]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.73,-0.582],[0.77235,-0.50259]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.46,-0.438],[0.54471,-0.27918]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.19,-0.294],[0.23235,-0.21459]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.08,-0.15],[-0.03765,-0.07059]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.35,-0.006],[-0.26529,0.15282]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.62,0.138],[-0.57765,0.21741]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.89,0.282],[-0.84765,0.36141]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.16,0.426],[-1.07529,0.58482]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03}],"rings":[{"x":1.35,"y":-0.72,"radius":0.09},{"x":-1.35,"y":0.72,"radius":0.09}]},
+"temporal-dagger":{"origin":[0,0],"paths":[{"points":[[0,-1.5],[-0.26,-1.02],[-0.26,0.05],[0.26,0.05],[0.26,-1.02]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0,-1.26],[0,0.02]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.49,0.07],["L",-0.2,0.08],["L",0.2,0.08],["L",0.49,0.07],["L",0.54,0.19],["C",0.34,0.3,0.2,0.22,0,0.22],["C",-0.2,0.22,-0.34,0.3,-0.54,0.19],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.14,0.22],["L",0.14,0.22],["L",0.12,0.97],["L",-0.12,0.97],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.19,0.95],["L",0.19,0.95],["L",0.19,1.05],["C",0.19,1.22,-0.19,1.22,-0.19,1.05],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.14,0.41],[0.14,0.41]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.13,0.66],[0.13,0.66]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},
+"throwing-dagger":{"origin":[0,0],"paths":[{"points":[[0,-1.5],[-0.22,-1.08],[-0.22,0.04],[0.22,0.04],[0.22,-1.08]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0,-1.16],[0,-0.02]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,0.04],[0.31,0.04],[0.31,0.17],[-0.31,0.17]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.15,0.17],["L",0.15,0.17],["L",0.15,1.02],["C",0.15,1.23,-0.15,1.23,-0.15,1.02],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.065,0.4],[0.065,0.4],[0.065,0.55],[-0.065,0.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.065,0.73],[0.065,0.73],[0.065,0.88],[-0.065,0.88]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},
+
+
+
+
+
+"laser-emitter":{"origin":[0,0],"paths":[{"points":[[-1.28,-0.25],[-1.08,-0.45],[0.55,-0.45],[0.83,-0.24],[0.83,0.24],[0.55,0.45],[-1.08,0.45],[-1.28,0.25]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.89,-0.23],[-0.46,-0.23],[-0.46,0.23],[-0.89,0.23]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0.44,"y":0,"radius":0.27},{"x":0.44,"y":0,"radius":0.12}]},
+"laser-dual-module":{"origin":[0,0],"featureRole":"two-emission-ports","paths":[{"points":[[0.74,-0.32],[1.26,-0.32],[1.43,-0.2],[1.43,0.2],[1.26,0.32],[0.74,0.32]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.85,-0.27],[1.4,-0.27],[1.4,-0.14],[0.85,-0.14]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.85,0.14],[1.4,0.14],[1.4,0.27],[0.85,0.27]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}],"rings":[{"x":1.32,"y":-0.205,"radius":0.05},{"x":1.32,"y":0.205,"radius":0.05}]},"laser-wide-module":{"origin":[0,0],"featureRole":"flared-emission-collar","paths":[{"points":[[0.54,-0.42],[1.31,-0.69],[1.78,-0.58],[1.87,-0.43],[1.69,-0.42],[1.28,-0.52],[0.54,-0.31]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.54,0.42],[1.31,0.69],[1.78,0.58],[1.87,0.43],[1.69,0.42],[1.28,0.52],[0.54,0.31]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[1.8,-0.43],[1.8,0.43]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"laser-range-module":{"origin":[0,0],"featureRole":"long-focus-rails","paths":[{"points":[[0.51,-0.4],[2.24,-0.4],[2.24,-0.33],[0.51,-0.33]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.51,0.33],[2.24,0.33],[2.24,0.4],[0.51,0.4]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[2.18,-0.35],[2.36,-0.14],[2.36,0.14],[2.18,0.35]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":2.24,"y":0,"radius":0.14}]},"laser-pierce-module":{"origin":[0,0],"featureRole":"penetration-compression-chamber","paths":[{"points":[[0.58,-0.25],[1.08,-0.25],[1.3,-0.08],[1.3,0.08],[1.08,0.25],[0.58,0.25]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.71,-0.18],[0.78,-0.18],[0.78,0.18],[0.71,0.18]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.86,-0.15],[0.9299999999999999,-0.15],[0.9299999999999999,0.15],[0.86,0.15]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[1.01,-0.12],[1.08,-0.12],[1.08,0.12],[1.01,0.12]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},"laser-instant-module":{"origin":[0,0],"featureRole":"pulse-discharge-cell","paths":[{"points":[[-0.93,0.45],[0.33,0.45],[0.41,0.61],[0.31,0.88],[-0.9,0.88],[-1.01,0.66]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.74,0.49],[-0.74,0.84]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.43,0.49],[-0.43,0.84]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.12,0.49],[-0.12,0.84]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.19,0.49],[0.19,0.81]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.68,0.61],[-0.49,0.61],[-0.4,0.75],[-0.18,0.55],[0.03,0.69],[0.17,0.69]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"laser-knockback-module":{"origin":[0,0],"featureRole":"recoil-actuator","paths":[{"points":[[-1.79,-0.17],[-1.2000000000000002,-0.17],[-1.2000000000000002,-0.05000000000000002],[-1.79,-0.05000000000000002]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.79,0.05],[-1.2000000000000002,0.05],[-1.2000000000000002,0.16999999999999998],[-1.79,0.16999999999999998]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.79,-0.3],[-1.93,-0.18],[-1.93,0.18],[-1.79,0.3],[-1.61,0.3],[-1.61,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.74,-0.15],[-1.74,0.15]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"laser-accelerate-module":{"origin":[0,0],"featureRole":"rapid-fire-cooling-fins","paths":[{"points":[[-1.04,-0.51],[-0.10000000000000009,-0.51],[-0.10000000000000009,-0.43],[-1.04,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.98,-0.78],[-0.86,-0.78],[-0.86,-0.51],[-0.98,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.73,-0.78],[-0.61,-0.78],[-0.61,-0.51],[-0.73,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.48,-0.78],[-0.36,-0.78],[-0.36,-0.51],[-0.48,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.23,-0.78],[-0.11000000000000001,-0.78],[-0.11000000000000001,-0.51],[-0.23,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},"laser-electric-module":{"origin":[0,0],"featureRole":"electrode-windings","paths":[{"points":[[-0.31,-0.49],[-0.22999999999999998,-0.49],[-0.22999999999999998,0.49],[-0.31,0.49]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.1,-0.49],[-0.020000000000000004,-0.49],[-0.020000000000000004,0.49],[-0.1,0.49]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.11,-0.49],[0.19,-0.49],[0.19,0.49],[0.11,0.49]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,-0.49],[0.19,-0.49]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,0.49],[0.19,0.49]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"smoke-canister":{"origin":[0,0],"paths":[{"points":[[-0.5,-0.61],[0.5,-0.61],[0.64,-0.4],[0.64,0.69],[0.48,0.9],[-0.48,0.9],[-0.64,0.69],[-0.64,-0.4]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,-0.92],[0.31,-0.92],[0.31,-0.6100000000000001],[-0.31,-0.6100000000000001]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.49,-1.03],[0.49,-1.03],[0.49,-0.93],[-0.49,-0.93]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.37,-1.03],[0.61,-0.79],[0.55,-0.56]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.62,-0.13],[0.62,-0.13],[0.62,0.010000000000000009],[-0.62,0.010000000000000009]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.28,0.39],[0,0.1],[0.28,0.39]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":-0.12,"y":-1.19,"radius":0.16}]},"paper-airplane":{"origin":[0,0],"paths":[{"points":[[-1.22,-0.01],[1.42,-0.86],[0.61,1.04],[-0.05,0.49],[-0.43,0.92],[-0.42,0.22]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.22,-0.01],[-0.42,0.22],[1.42,-0.86]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.42,0.22],[-0.05,0.49],[1.42,-0.86]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.43,0.92],[-0.05,0.49]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},
+
+"paired-daggers": {"origin":[0,0],"parts":[{"pivot":[-0.27,-0.04],"angle":0.78,"paths":[{"commands":[["M",-0.13,0.18],["L",-0.13,-1.25],["L",0.13,-1.65],["L",0.16,-0.91],["C",0.52,-0.57,0.44,-0.12,0.16,0.18],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.16,-0.83],[0.31,-0.44],[0.25,-0.05]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[-0.31,0.16],[-0.31,0.05],[0.29,0.05],[0.38,0.16],[0.29,0.28],[-0.24,0.28]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.115,0.28],[0.115,0.28],[0.14,0.9],[0.05,1.03],[-0.14,0.91]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.19,0.89],[0.16,0.89],[0.18,1.03],[-0.02,1.15],[-0.2,1.02]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.12,0.48],[0.12,0.48]],"fill":false,"stroke":true,"lineWidth":0.045}]},{"pivot":[0.27,0.04],"angle":0.78,"paths":[{"commands":[["M",-0.13,0.18],["L",-0.13,-1.25],["L",0.13,-1.65],["L",0.16,-0.91],["C",0.52,-0.57,0.44,-0.12,0.16,0.18],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.16,-0.83],[0.31,-0.44],[0.25,-0.05]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[-0.31,0.16],[-0.31,0.05],[0.29,0.05],[0.38,0.16],[0.29,0.28],[-0.24,0.28]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.115,0.28],[0.115,0.28],[0.14,0.9],[0.05,1.03],[-0.14,0.91]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.19,0.89],[0.16,0.89],[0.18,1.03],[-0.02,1.15],[-0.2,1.02]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.12,0.48],[0.12,0.48]],"fill":false,"stroke":true,"lineWidth":0.045}]}]},"toolbox": {"origin":[0,0],"paths":[{"points":[[-0.46,-0.68],[-0.46,-1.02],[-0.34,-1.14],[0.34,-1.14],[0.46,-1.02],[0.46,-0.68],[0.29,-0.68],[0.29,-0.96],[-0.29,-0.96],[-0.29,-0.68]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.03,-0.68],[1.03,-0.68],[1.16,-0.47],[1.12,0.83],[0.98,0.96],[-0.98,0.96],[-1.12,0.83],[-1.16,-0.47]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.12,-0.23],[1.12,-0.23]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.79,-0.4],[-0.56,-0.4],[-0.56,0.04],[-0.79,0.04]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.56,-0.4],[0.79,-0.4],[0.79,0.04],[0.56,0.04]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.78,0.26],[-0.78,0.64],[0.78,0.64],[0.78,0.26]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"toolbox-wrench": {"origin":[0,0],"paths":[{"points":[[-0.12,0.92],[-0.12,-0.23],[-0.44,-0.48],[-0.5,-0.82],[-0.33,-1.07],[-0.18,-0.67],[0.18,-0.67],[0.33,-1.07],[0.5,-0.82],[0.44,-0.48],[0.12,-0.23],[0.12,0.92],[0,1.09]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.08,-0.18],[0.08,-0.18]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0,"y":0.76,"radius":0.075}]},"magical-wand": {"origin":[0,0],"paths":[{"points":[[-0.09,0.98],[-0.09,-0.55],[0.09,-0.55],[0.09,0.98],[0,1.1]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.21,-0.55],[0.21,-0.55],[0.16,-0.43],[-0.16,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.0,-1.5],[0.1469,-1.1823],[0.4945,-1.1407],[0.2378,-0.9027],[0.3056,-0.5593],[0.0,-0.73],[-0.3056,-0.5593],[-0.2378,-0.9027],[-0.4945,-1.1407],[-0.1469,-1.1823]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.0,-1.2],[0.0617,-1.0649],[0.2092,-1.048],[0.0999,-0.9476],[0.1293,-0.802],[0.0,-0.875],[-0.1293,-0.802],[-0.0999,-0.9476],[-0.2092,-1.048],[-0.0617,-1.0649]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"magical-wand-1": {"origin":[0,0],"paths":[{"commands":[["M",-0.43,-0.78],["C",-0.87,-0.5,-0.63,-0.24,-0.14,-0.53],["L",0,-0.59],["L",0.14,-0.53],["C",0.63,-0.24,0.87,-0.5,0.43,-0.78],["L",0.24,-0.63],["L",0,-0.59],["L",-0.24,-0.63],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.14,-0.49],[-0.38,-0.09],[-0.38,-0.31],[-0.56,-0.21],[-0.24,-0.56]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.14,-0.49],[0.38,-0.09],[0.38,-0.31],[0.56,-0.21],[0.24,-0.56]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},"magical-wand-2": {"origin":[0,0],"paths":[{"points":[[-0.55,-0.99],[-0.73,-1.21],[-0.55,-1.43],[-0.5,-1.18]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.55,-0.99],[0.73,-1.21],[0.55,-1.43],[0.5,-1.18]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0,"y":-0.98,"radius":0.64}]},"magical-wand-3": {"origin":[0,0],"paths":[{"commands":[["M",-0.62,-0.86],["C",-0.91,-0.99,-1.05,-0.9,-1.13,-0.72],["L",-0.93,-0.75],["L",-0.96,-0.58],["L",-0.74,-0.7],["L",-0.71,-0.51],["C",-0.55,-0.56,-0.52,-0.69,-0.62,-0.86],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",0.62,-0.86],["C",0.91,-0.99,1.05,-0.9,1.13,-0.72],["L",0.93,-0.75],["L",0.96,-0.58],["L",0.74,-0.7],["L",0.71,-0.51],["C",0.55,-0.56,0.52,-0.69,0.62,-0.86],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045}]},"magical-wand-4": {"origin":[0,0],"paths":[{"commands":[["M",-0.44,-1.39],["C",-0.75,-1.78,-0.24,-1.83,0,-1.57],["C",0.24,-1.83,0.75,-1.78,0.44,-1.39]],"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0,"y":0.34,"radius":0.11},{"x":0,"y":0.74,"radius":0.11}]},
+"gacha-capsule": {"origin":[0,0],"paths":[{"points":[[1.0,0.0],[0.99144,0.13053],[0.96593,0.25882],[0.92388,0.38268],[0.86603,0.5],[0.79335,0.60876],[0.70711,0.70711],[0.60876,0.79335],[0.5,0.86603],[0.38268,0.92388],[0.25882,0.96593],[0.13053,0.99144],[0.0,1.0],[-0.13053,0.99144],[-0.25882,0.96593],[-0.38268,0.92388],[-0.5,0.86603],[-0.60876,0.79335],[-0.70711,0.70711],[-0.79335,0.60876],[-0.86603,0.5],[-0.92388,0.38268],[-0.96593,0.25882],[-0.99144,0.13053],[-1.0,0.0],[-0.99144,-0.13053],[-0.96593,-0.25882],[-0.92388,-0.38268],[-0.86603,-0.5],[-0.79335,-0.60876],[-0.70711,-0.70711],[-0.60876,-0.79335],[-0.5,-0.86603],[-0.38268,-0.92388],[-0.25882,-0.96593],[-0.13053,-0.99144],[-0.0,-1.0],[0.13053,-0.99144],[0.25882,-0.96593],[0.38268,-0.92388],[0.5,-0.86603],[0.60876,-0.79335],[0.70711,-0.70711],[0.79335,-0.60876],[0.86603,-0.5],[0.92388,-0.38268],[0.96593,-0.25882],[0.99144,-0.13053]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-1,0],[1,0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.07}]},
+"role-dealer": {"origin": [0, 0], "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]},
+"role-tank": {"origin": [0, 0], "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]},
+"role-support": {"origin": [0, 0], "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]},
+"role-controller": {"origin": [0, 0], "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]},
+"role-sniper": {"origin": [0, 0], "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]},
+"role-assassin": {"origin": [0, 0], "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]},
+"role-pair-assassin-controller": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]}]},
+"role-pair-assassin-dealer": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}]},
+"role-pair-assassin-sniper": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]}]},
+"role-pair-assassin-support": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-assassin-tank": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-controller-dealer": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}]},
+"role-pair-controller-sniper": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]}]},
+"role-pair-controller-support": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-controller-tank": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-dealer-sniper": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]}]},
+"role-pair-dealer-support": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-dealer-tank": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-sniper-support": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-sniper-tank": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-support-tank": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]}]},
+"sun": {"paths": [{"commands": [["M", 0, -2.95], ["L", 0.48, -2.55], ["L", 0.48, 0.65], ["L", -0.48, 0.65], ["L", -0.48, -2.55], ["Z"]], "fill": true, "stroke": true, "fillColor": "#9c6e2a", "lineWidth": 0.1}, {"commands": [["M", 0, -2.65], ["L", 0, 0.48]], "stroke": true, "lineWidth": 0.15}, {"commands": [["M", -1, 0.5], ["L", -0.82, 0.82], ["L", -0.3, 0.78], ["L", 0, 0.9], ["L", 0.3, 0.78], ["L", 0.82, 0.82], ["L", 1, 0.5], ["L", 0.42000000000000004, 0.55], ["L", 0, 0.35], ["L", -0.42000000000000004, 0.55], ["Z"]], "fill": true, "stroke": true, "fillColor": "#dba94b", "lineWidth": 0.075}, {"commands": [["A", 0, 0.6, 0.19, 0, 6.283185307179586]], "fill": true, "stroke": false, "fillColor": "#fff0a3"}, {"commands": [["M", -0.25, 0.6], ["L", -0.34, 0.6], ["M", 0.25, 0.6], ["L", 0.34, 0.6], ["M", 0, 0.35], ["L", 0, 0.26], ["M", 0, 0.85], ["L", 0, 0.94]], "lineWidth": 0.04}, {"points": [[-0.15, 0.83], [0.15, 0.83], [0.13, 1.48], [-0.13, 1.48]], "closed": true, "fill": true, "fillColor": "#775c36"}, {"points": [[-0.14, 0.94], [0.14, 1.01]]}, {"points": [[-0.14, 1.0699999999999998], [0.14, 1.1400000000000001]]}, {"points": [[-0.14, 1.2], [0.14, 1.27]]}, {"points": [[-0.14, 1.33], [0.14, 1.4]]}, {"points": [[-0.18, 1.48], [0.18, 1.48], [0.16, 1.59], [-0.16, 1.59]], "closed": true, "fill": true, "fillColor": "#775c36"}], "origin": [0, -0.68]},
+"dark": {"paths": [{"commands": [["M", 0, -3.1], ["L", 0.5, -2.35], ["L", 0.35, -1.45], ["L", 0.53, -1.1], ["L", 0.32, -0.9200000000000002], ["L", 0.34, 0.6], ["L", -0.34, 0.6], ["L", -0.32, -0.9200000000000002], ["L", -0.53, -1.1], ["L", -0.35, -1.45], ["L", -0.5, -2.35], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292035", "lineWidth": 0.1}, {"commands": [["M", 0, -2.8], ["L", -0.13, -1.7], ["L", 0.12, -1.05], ["L", 0, 0.48]], "stroke": true, "lineWidth": 0.08499999999999999}, {"commands": [["M", -0.9399999999999998, 0.25], ["L", -0.6, 0.8], ["L", 0, 0.65], ["L", 0.6, 0.8], ["L", 0.9399999999999998, 0.25], ["L", 0.5, 0.4600000000000001], ["L", 0, 0.42000000000000004], ["L", -0.5, 0.4600000000000001], ["Z"]], "fill": true, "stroke": true, "fillColor": "#493057", "lineWidth": 0.075}, {"points": [[-0.15, 0.83], [0.15, 0.83], [0.13, 1.48], [-0.13, 1.48]], "closed": true, "fill": true, "fillColor": "#49324f"}, {"points": [[-0.14, 0.94], [0.14, 1.01]]}, {"points": [[-0.14, 1.0699999999999998], [0.14, 1.1400000000000001]]}, {"points": [[-0.14, 1.2], [0.14, 1.27]]}, {"points": [[-0.14, 1.33], [0.14, 1.4]]}, {"points": [[-0.18, 1.48], [0.18, 1.48], [0.16, 1.59], [-0.16, 1.59]], "closed": true, "fill": true, "fillColor": "#49324f"}], "origin": [0, -0.755]},
+"pistol": {"paths": [{"commands": [["M", -1.55, -0.52], ["L", 1.15, -0.52], ["L", 1.37, -0.32], ["L", 1.37, 0.029999999999999995], ["L", -1.55, 0.029999999999999995], ["Z"]], "fill": true, "stroke": true, "fillColor": "#66616b", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.3, 0.029999999999999995], ["L", 0.91, 0.029999999999999995], ["L", 0.76, 0.23], ["L", -0.38, 0.23], ["L", -0.61, 1.27], ["L", -1.27, 1.27], ["L", -1.04, 0.2], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.46, 0.22], ["L", 0.34, 0.22], ["L", 0.22, 0.64], ["L", -0.5400000000000001, 0.64], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.28, 0.32], ["L", 0.11999999999999998, 0.32], ["L", 0.05, 0.51], ["L", -0.31, 0.51]], "stroke": true, "lineWidth": 0.04}, {"commands": [["M", -1.32, -0.37], ["L", 0.9599999999999999, -0.37]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -1.16, -0.28], ["L", -1.1, -0.07]], "stroke": true, "lineWidth": 0.04666666666666666}, {"commands": [["M", -0.9899999999999999, -0.28], ["L", -0.93, -0.07]], "stroke": true, "lineWidth": 0.04666666666666666}, {"commands": [["M", -0.8199999999999998, -0.28], ["L", -0.76, -0.07]], "stroke": true, "lineWidth": 0.04666666666666666}, {"commands": [["M", -1.0800000000000003, 1.12], ["L", -0.7, 1.12]], "stroke": true, "lineWidth": 0.06666666666666667}], "origin": [-0.08999999999999997, 0.375]},
+"shotgun": {"paths": [{"commands": [["M", 0.55, -0.23999999999999996], ["L", 2.65, -0.23999999999999996], ["L", 2.65, -0.05], ["L", 0.55, -0.05], ["Z"]], "fill": true, "stroke": true, "fillColor": "#66616b", "lineWidth": 0.05333333333333334}, {"commands": [["M", 2.52, -0.29], ["L", 2.77, -0.29], ["L", 2.77, 0.02], ["L", 2.52, 0.02], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.15, -0.39], ["L", 0.75, -0.39], ["L", 0.89, -0.2], ["L", 0.7099999999999999, 0.3], ["L", -0.93, 0.3], ["L", -1.15, 0.09], ["Z"]], "fill": true, "stroke": true, "fillColor": "#66616b", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.15, -0.21], ["L", -1.4199999999999997, -0.21], ["L", -2.15, -0.38], ["L", -2.58, -0.38], ["L", -2.58, 0.56], ["L", -2.12, 0.56], ["L", -1.55, 0.17], ["L", -1.1, 0.14], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -2.4, -0.23], ["L", -2.4, 0.39]], "stroke": true, "lineWidth": 0.1}, {"commands": [["M", -0.72, 0.3], ["L", -0.26, 0.3], ["L", -0.49, 1.02], ["L", -0.99, 1.02], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.25, 0.3], ["L", 0.34, 0.3], ["L", 0.2, 0.64], ["L", -0.34, 0.64], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.13, 0.4], ["L", 0.2, 0.4], ["L", 0.11999999999999998, 0.5400000000000001], ["L", -0.19, 0.5400000000000001]], "stroke": true, "lineWidth": 0.03666666666666667}, {"commands": [["M", -0.95, -0.23999999999999996], ["L", 0.59, -0.23999999999999996]], "stroke": true, "lineWidth": 0.056666666666666664}, {"commands": [["M", 0.8, -0.11999999999999998], ["L", 1.95, -0.11999999999999998], ["L", 1.95, 0.4], ["L", 0.8, 0.4], ["Z"]], "fill": true, "stroke": true, "fillColor": "#59525e", "lineWidth": 0.05333333333333334}, {"commands": [["M", 0.97, 0], ["L", 0.97, 0.26]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.14, 0], ["L", 1.14, 0.26]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.31, 0], ["L", 1.31, 0.26]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.48, 0], ["L", 1.48, 0.26]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.65, 0], ["L", 1.65, 0.26]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 0.78, 0.18], ["L", 2.25, 0.18]], "stroke": true, "lineWidth": 0.1}], "origin": [0.09499999999999997, 0.315]},
+"sniper": {"paths": [{"commands": [["M", 0.55, -0.23999999999999996], ["L", 3.1, -0.23999999999999996], ["L", 3.1, -0.05], ["L", 0.55, -0.05], ["Z"]], "fill": true, "stroke": true, "fillColor": "#547c98", "lineWidth": 0.05333333333333334}, {"commands": [["M", 2.97, -0.29], ["L", 3.22, -0.29], ["L", 3.22, 0.02], ["L", 2.97, 0.02], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.15, -0.39], ["L", 0.75, -0.39], ["L", 0.89, -0.2], ["L", 0.7099999999999999, 0.3], ["L", -0.93, 0.3], ["L", -1.15, 0.09], ["Z"]], "fill": true, "stroke": true, "fillColor": "#547c98", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.15, -0.21], ["L", -1.4199999999999997, -0.21], ["L", -2.15, -0.38], ["L", -2.58, -0.38], ["L", -2.58, 0.56], ["L", -2.12, 0.56], ["L", -1.55, 0.17], ["L", -1.1, 0.14], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -2.4, -0.23], ["L", -2.4, 0.39]], "stroke": true, "lineWidth": 0.1}, {"commands": [["M", -0.72, 0.3], ["L", -0.26, 0.3], ["L", -0.49, 1.02], ["L", -0.99, 1.02], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.25, 0.3], ["L", 0.34, 0.3], ["L", 0.2, 0.64], ["L", -0.34, 0.64], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.13, 0.4], ["L", 0.2, 0.4], ["L", 0.11999999999999998, 0.5400000000000001], ["L", -0.19, 0.5400000000000001]], "stroke": true, "lineWidth": 0.03666666666666667}, {"commands": [["M", -0.95, -0.23999999999999996], ["L", 0.59, -0.23999999999999996]], "stroke": true, "lineWidth": 0.056666666666666664}, {"commands": [["M", 0.1, 0.3], ["L", 0.55, 0.3], ["L", 0.45, 0.85], ["L", -0.02, 0.85], ["Z"]], "fill": true, "stroke": true, "fillColor": "#36516b", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.55, -0.42], ["L", -0.55, -0.62], ["L", 0.25, -0.62], ["L", 0.25, -0.42]], "stroke": true, "lineWidth": 0.06666666666666667}, {"commands": [["M", -1.03, -0.85], ["L", 0.69, -0.85], ["L", 0.69, -0.56], ["L", -1.03, -0.56], ["Z"]], "fill": true, "stroke": true, "fillColor": "#3a607a", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.16, -0.9599999999999999], ["L", -0.85, -0.9599999999999999], ["L", -0.85, -0.46], ["L", -1.16, -0.46], ["Z"]], "fill": true, "stroke": true, "fillColor": "#547c98", "lineWidth": 0.05333333333333334}, {"commands": [["M", 0.5, -1], ["L", 0.94, -1], ["L", 0.94, -0.42], ["L", 0.5, -0.42], ["Z"]], "fill": true, "stroke": true, "fillColor": "#547c98", "lineWidth": 0.05333333333333334}, {"commands": [["M", 0.78, -0.87], ["L", 0.78, -0.55]], "stroke": true, "lineWidth": 0.1}], "origin": [0.32000000000000006, 0.010000000000000009]},
+"bow": {"paths": [{"commands": [["M", -0.2, -2.18], ["C", 0.12, -1.94, 0.43, -1.75, 0.58, -1.25], ["C", 0.72, -0.76, 0.53, -0.46, 0.44, -0.23], ["L", 0.34, -0.23], ["C", 0.35, -0.65, 0.54, -0.78, 0.42, -1.27], ["C", 0.3, -1.74, 0.02, -1.93, -0.2, -2.18], ["Z"]], "fill": true}, {"commands": [["M", -0.2, 2.18], ["C", 0.12, 1.94, 0.43, 1.75, 0.58, 1.25], ["C", 0.72, 0.76, 0.53, 0.46, 0.44, 0.23], ["L", 0.34, 0.23], ["C", 0.35, 0.65, 0.54, 0.78, 0.42, 1.27], ["C", 0.3, 1.74, 0.02, 1.93, -0.2, 2.18], ["Z"]], "fill": true}, {"points": [[0.32, -0.25], [0.48, -0.25], [0.48, 0.25], [0.32, 0.25]], "closed": true, "fill": true}, {"points": [[0.34, -0.12], [0.46, -0.12]]}, {"points": [[0.34, 0.12], [0.46, 0.12]]}], "string": {"start": [-0.2, -2.18], "end": [-0.2, 2.18], "restX": -0.2, "pullX": -1.1}, "origin": [0.21492187499999996, 0]},
+"harpoon": {"paths": [{"points": [[-2.4, -0.09], [1.14, -0.09], [1.14, -0.29], [2.55, 0], [1.14, 0.29], [1.14, 0.09], [-2.4, 0.09]], "closed": true, "fill": true}, {"points": [[-2.53, -0.17], [-2.28, -0.17], [-2.28, 0.17], [-2.53, 0.17]], "closed": true, "fill": true}, {"points": [[1.34, 0.07], [0.81, 0.68], [0.61, 0.46], [0.95, 0.12]], "closed": true, "fill": true}, {"points": [[1.24, 0], [2.12, 0]]}, {"points": [[-1.06, -0.15], [-0.22, -0.15], [-0.16, 0.15], [-1.12, 0.15]], "closed": true, "fill": true, "fillColor": "#70513d"}, {"points": [[-0.98, -0.14], [-1.04, 0.14]]}, {"points": [[-0.82, -0.14], [-0.88, 0.14]]}, {"points": [[-0.6599999999999999, -0.14], [-0.72, 0.14]]}, {"points": [[-0.5, -0.14], [-0.56, 0.14]]}, {"points": [[-0.33999999999999997, -0.14], [-0.4, 0.14]]}], "origin": [0.010000000000000009, 0.19500000000000003]},
+"wrench": {"paths": [{"commands": [["M", -1.12, -0.43], ["L", -0.76, -0.43], ["L", -0.57, -0.22], ["L", 0.57, -0.22], ["L", 0.76, -0.43], ["L", 1.12, -0.43], ["L", 1.23, -0.22], ["L", 0.86, -0.22], ["L", 0.74, 0], ["L", 0.86, 0.22], ["L", 1.23, 0.22], ["L", 1.12, 0.43], ["L", 0.76, 0.43], ["L", 0.57, 0.22], ["L", -0.57, 0.22], ["L", -0.76, 0.43], ["L", -1.12, 0.43], ["L", -1.23, 0.22], ["L", -0.86, 0.22], ["L", -0.74, 0], ["L", -0.86, -0.22], ["L", -1.23, -0.22], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(105,137,56,.96)", "lineWidth": 0.03663003663003663}, {"commands": [["M", -0.5, -0.08], ["L", 0.5, -0.08], ["L", 0.5, 0.08], ["L", -0.5, 0.08], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(12,16,14,.55)", "lineWidth": 0.016483516483516484}, {"commands": [["M", -0.45, -0.14], ["L", 0.45, -0.14]], "stroke": true, "lineWidth": 0.020146520146520148}], "origin": [0, 0]},
+"gear": {"paths": [{"commands": [["M", 0.87, 0], ["L", 0.996917333733128, 0.07845909572784494], ["L", 0.9767658813208723, 0.21430915306505077], ["L", 0.8325380920870217, 0.2525476692113822], ["L", 0.8037751932848195, 0.3329345861576281], ["L", 0.8910065241883679, 0.45399049973954675], ["L", 0.8204014435255135, 0.5717879602276122], ["L", 0.6725190944255811, 0.5519221572223716], ["L", 0.6151828996322964, 0.6151828996322962], ["L", 0.6494480483301835, 0.760405965600031], ["L", 0.5391383229110004, 0.8422172337162864], ["L", 0.41011516103861806, 0.7672714999830689], ["L", 0.33293458615762817, 0.8037751932848195], ["L", 0.30901699437494745, 0.9510565162951535], ["L", 0.1757962799343547, 0.9844265680898916], ["L", 0.08527491208671786, 0.8658107122048112], ["L", 5.327213576290987e-17, 0.87], ["L", -0.07845909572784487, 0.996917333733128], ["L", -0.21430915306505058, 0.9767658813208725], ["L", -0.2525476692113821, 0.8325380920870218], ["L", -0.3329345861576281, 0.8037751932848195], ["L", -0.45399049973954675, 0.8910065241883679], ["L", -0.5717879602276121, 0.8204014435255137], ["L", -0.5519221572223715, 0.6725190944255813], ["L", -0.6151828996322962, 0.6151828996322964], ["L", -0.7604059656000308, 0.6494480483301838], ["L", -0.8422172337162864, 0.5391383229110004], ["L", -0.7672714999830689, 0.41011516103861817], ["L", -0.8037751932848195, 0.3329345861576282], ["L", -0.9510565162951535, 0.3090169943749475], ["L", -0.9844265680898916, 0.17579627993435473], ["L", -0.8658107122048112, 0.08527491208671792], ["L", -0.87, 1.0654427152581974e-16], ["L", -0.9969173337331282, -0.07845909572784437], ["L", -0.9767658813208723, -0.2143091530650509], ["L", -0.8325380920870218, -0.252547669211382], ["L", -0.8037751932848195, -0.332934586157628], ["L", -0.8910065241883681, -0.45399049973954625], ["L", -0.8204014435255135, -0.5717879602276125], ["L", -0.6725190944255813, -0.5519221572223714], ["L", -0.6151828996322964, -0.6151828996322962], ["L", -0.6494480483301841, -0.7604059656000305], ["L", -0.5391383229110001, -0.8422172337162867], ["L", -0.4101151610386182, -0.7672714999830689], ["L", -0.3329345861576286, -0.8037751932848193], ["L", -0.30901699437494756, -0.9510565162951535], ["L", -0.1757962799343548, -0.9844265680898916], ["L", -0.08527491208671759, -0.8658107122048113], ["L", -1.598164072887296e-16, -0.87], ["L", 0.07845909572784432, -0.9969173337331282], ["L", 0.21430915306505088, -0.9767658813208723], ["L", 0.252547669211382, -0.8325380920870218], ["L", 0.3329345861576283, -0.8037751932848194], ["L", 0.4539904997395466, -0.891006524188368], ["L", 0.571787960227612, -0.8204014435255138], ["L", 0.5519221572223717, -0.6725190944255811], ["L", 0.6151828996322962, -0.6151828996322964], ["L", 0.7604059656000305, -0.6494480483301841], ["L", 0.8422172337162867, -0.5391383229110002], ["L", 0.7672714999830688, -0.4101151610386182], ["L", 0.8037751932848193, -0.33293458615762866], ["L", 0.9510565162951535, -0.3090169943749476], ["L", 0.9844265680898916, -0.17579627993435484], ["L", 0.8658107122048113, -0.08527491208671764], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgb(64,57,17)", "lineWidth": 0.04}, {"commands": [["A", 0, 0, 0.73, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(18,24,25,.96)", "lineWidth": 0.024}, {"commands": [["M", -0.04364592461617385, -0.1951794898661211], ["L", -0.06389338665397004, -0.6368026657779364], ["L", 0.06389338665397011, -0.6368026657779364], ["L", 0.04364592461617387, -0.1951794898661211], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["M", 0.14720743421366136, -0.1353882244223277], ["L", 0.5195405924343593, -0.3737346288651279], ["L", 0.5834339790883294, -0.26306803691280867], ["L", 0.19085335882983523, -0.059791265443793436], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["M", 0.19085335882983523, 0.05979126544379339], ["L", 0.5834339790883294, 0.2630680369128085], ["L", 0.5195405924343595, 0.37373462886512776], ["L", 0.14720743421366136, 0.13538822442232765], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["M", 0.04364592461617387, 0.1951794898661211], ["L", 0.06389338665397011, 0.6368026657779364], ["L", -0.06389338665397004, 0.6368026657779364], ["L", -0.04364592461617385, 0.1951794898661211], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["M", -0.14720743421366125, 0.13538822442232779], ["L", -0.5195405924343592, 0.3737346288651281], ["L", -0.5834339790883294, 0.2630680369128088], ["L", -0.19085335882983517, 0.05979126544379345], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["M", -0.19085335882983523, -0.0597912654437934], ["L", -0.5834339790883294, -0.2630680369128086], ["L", -0.5195405924343593, -0.37373462886512804], ["L", -0.1472074342136613, -0.13538822442232776], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["A", 3.551475717527324e-17, -0.58, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["A", 0.5022947341949744, -0.29, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["A", 0.5022947341949745, 0.28999999999999987, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["A", 3.551475717527324e-17, 0.58, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["A", -0.5022947341949743, 0.2900000000000002, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["A", -0.5022947341949744, -0.2900000000000001, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["M", 0.19052558883257653, 0.10999999999999999], ["L", 1.3471114790620886e-17, 0.22], ["L", -0.19052558883257645, 0.11000000000000007], ["L", -0.19052558883257653, -0.10999999999999995], ["L", -4.041334437186265e-17, -0.22], ["L", 0.19052558883257653, -0.10999999999999993], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgb(64,57,17)", "lineWidth": 0.03}, {"commands": [["A", 0, 0, 0.075, 0, 6.283185307179586]], "fill": true, "stroke": false, "fillColor": "#fff7c2"}], "origin": [-1.1102230246251565e-16, -1.1102230246251565e-16]},
+"sun-blessed": {"paths": [{"commands": [["M", 0, -2.95], ["L", 0.48, -2.55], ["L", 0.48, 0.65], ["L", -0.48, 0.65], ["L", -0.48, -2.55], ["Z"]], "fill": true, "stroke": true, "fillColor": "#195a77", "lineWidth": 0.1}, {"commands": [["M", 0, -2.65], ["L", 0, 0.48]], "stroke": true, "lineWidth": 0.15}, {"commands": [["M", -1, 0.5], ["L", -0.82, 0.82], ["L", -0.3, 0.78], ["L", 0, 0.9], ["L", 0.3, 0.78], ["L", 0.82, 0.82], ["L", 1, 0.5], ["L", 0.42000000000000004, 0.55], ["L", 0, 0.35], ["L", -0.42000000000000004, 0.55], ["Z"]], "fill": true, "stroke": true, "fillColor": "#248dbc", "lineWidth": 0.075}, {"commands": [["A", 0, 0.6, 0.19, 0, 6.283185307179586]], "fill": true, "stroke": false, "fillColor": "#8be7ff"}, {"commands": [["M", -0.25, 0.6], ["L", -0.34, 0.6], ["M", 0.25, 0.6], ["L", 0.34, 0.6], ["M", 0, 0.35], ["L", 0, 0.26], ["M", 0, 0.85], ["L", 0, 0.94]], "lineWidth": 0.04}, {"points": [[-0.15, 0.83], [0.15, 0.83], [0.13, 1.48], [-0.13, 1.48]], "closed": true, "fill": true, "fillColor": "#245c75"}, {"points": [[-0.14, 0.94], [0.14, 1.01]]}, {"points": [[-0.14, 1.0699999999999998], [0.14, 1.1400000000000001]]}, {"points": [[-0.14, 1.2], [0.14, 1.27]]}, {"points": [[-0.14, 1.33], [0.14, 1.4]]}, {"points": [[-0.18, 1.48], [0.18, 1.48], [0.16, 1.59], [-0.16, 1.59]], "closed": true, "fill": true, "fillColor": "#245c75"}], "origin": [0, -0.68]},
+"frost-scythe": {"paths": [{"points": [[-0.1, -2.06], [0.1, -2.06], [0.09, 1.86], [0, 2.06], [-0.09, 1.86]], "closed": true, "fill": true, "fillColor": "#293e60", "stroke": true}, {"commands": [["M", -0.26, -2.18], ["L", 0.18, -2.61], ["L", 0.41, -2.33], ["L", 0.91, -2.43], ["L", 1.06, -2.15], ["L", 1.59, -2.01], ["L", 1.67, -1.72], ["L", 2.09, -1.43], ["L", 2.75, -0.56], ["C", 1.91, -1.23, 0.73, -1.71, -0.19, -1.56], ["L", -0.3, -1.77], ["Z"]], "fill": true, "fillColor": "#426e9c"}, {"points": [[0.13, -2.39], [0.4, -1.88], [1.61, -1.77], [2.75, -0.56]], "lineWidth": 0.035}, {"points": [[-0.24, -1.96], [0, -2.21], [0.24, -1.96], [0, -1.68]], "closed": true, "fill": true, "fillColor": "#8ab9de", "stroke": true}, {"points": [[0, -2.06], [0.1, -1.96], [0, -1.79], [-0.1, -1.96]], "closed": true, "fill": true, "fillColor": "#b9dcf0", "stroke": false}, {"points": [[0, -1.6], [0, 1.66]], "lineWidth": 0.035}, {"points": [[-0.16, 1.66], [0, 2.1], [0.16, 1.66], [0, 1.46]], "closed": true, "fill": true, "fillColor": "#6595bb", "stroke": true}], "origin": [0, 0]},
+"chain-scythe-right": {"paths": [{"points": [[-0.09, -1.5], [0.09, -1.5], [0.08, 1.26], [-0.08, 1.26]], "closed": true, "fill": true, "fillColor": "#20585d"}, {"points": [[-0.18, -1.57], [0.65, -1.57], [1.46, -1.23], [1.77, -0.57], [1.72, -0.13], [1.46, -0.73], [0.52, -1.13], [-0.18, -1.13]], "closed": true, "fill": true, "fillColor": "#2d8186"}, {"points": [[-0.15, -1.64], [0.15, -1.64], [0.15, -1.1], [-0.15, -1.1]], "closed": true, "fill": true, "fillColor": "#368a90"}, {"points": [[-0.12, 1.13], [0.12, 1.13], [0.12, 1.3], [-0.12, 1.3]], "closed": true, "fill": true, "fillColor": "#368a90"}, {"commands": [["M", -0.16, -1.05], ["C", -0.22, -1.06, -0.23, -0.97, -0.14, -0.9299999999999999], ["L", 0.12, -0.8], ["C", 0.21, -0.76, 0.23, -0.85, 0.14, -0.89], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", -0.16, -0.5700000000000001], ["C", -0.22, -0.5800000000000001, -0.23, -0.49, -0.14, -0.45], ["L", 0.12, -0.32], ["C", 0.21, -0.28, 0.23, -0.37, 0.14, -0.41000000000000003], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", -0.16, -0.09000000000000004], ["C", -0.22, -0.10000000000000003, -0.23, -0.010000000000000037, -0.14, 0.02999999999999997], ["L", 0.12, 0.15999999999999998], ["C", 0.21, 0.19999999999999996, 0.23, 0.10999999999999996, 0.14, 0.06999999999999997], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", -0.16, 0.38999999999999996], ["C", -0.22, 0.37999999999999995, -0.23, 0.47, -0.14, 0.51], ["L", 0.12, 0.6399999999999999], ["C", 0.21, 0.6799999999999999, 0.23, 0.59, 0.14, 0.5499999999999999], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", -0.16, 0.8699999999999999], ["C", -0.22, 0.8599999999999999, -0.23, 0.95, -0.14, 0.99], ["L", 0.12, 1.1199999999999999], ["C", 0.21, 1.16, 0.23, 1.0699999999999998, 0.14, 1.03], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}], "origin": [0, 0]},
+"chain-scythe-left": {"paths": [{"points": [[0.09, -1.5], [-0.09, -1.5], [-0.08, 1.26], [0.08, 1.26]], "closed": true, "fill": true, "fillColor": "#20585d"}, {"points": [[0.18, -1.57], [-0.65, -1.57], [-1.46, -1.23], [-1.77, -0.57], [-1.72, -0.13], [-1.46, -0.73], [-0.52, -1.13], [0.18, -1.13]], "closed": true, "fill": true, "fillColor": "#2d8186"}, {"points": [[0.15, -1.64], [-0.15, -1.64], [-0.15, -1.1], [0.15, -1.1]], "closed": true, "fill": true, "fillColor": "#368a90"}, {"points": [[0.12, 1.13], [-0.12, 1.13], [-0.12, 1.3], [0.12, 1.3]], "closed": true, "fill": true, "fillColor": "#368a90"}, {"commands": [["M", 0.16, -1.05], ["C", 0.22, -1.06, 0.23, -0.97, 0.14, -0.9299999999999999], ["L", -0.12, -0.8], ["C", -0.21, -0.76, -0.23, -0.85, -0.14, -0.89], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", 0.16, -0.5700000000000001], ["C", 0.22, -0.5800000000000001, 0.23, -0.49, 0.14, -0.45], ["L", -0.12, -0.32], ["C", -0.21, -0.28, -0.23, -0.37, -0.14, -0.41000000000000003], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", 0.16, -0.09000000000000004], ["C", 0.22, -0.10000000000000003, 0.23, -0.010000000000000037, 0.14, 0.02999999999999997], ["L", -0.12, 0.15999999999999998], ["C", -0.21, 0.19999999999999996, -0.23, 0.10999999999999996, -0.14, 0.06999999999999997], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", 0.16, 0.38999999999999996], ["C", 0.22, 0.37999999999999995, 0.23, 0.47, 0.14, 0.51], ["L", -0.12, 0.6399999999999999], ["C", -0.21, 0.6799999999999999, -0.23, 0.59, -0.14, 0.5499999999999999], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", 0.16, 0.8699999999999999], ["C", 0.22, 0.8599999999999999, 0.23, 0.95, 0.14, 0.99], ["L", -0.12, 1.1199999999999999], ["C", -0.21, 1.16, -0.23, 1.0699999999999998, -0.14, 1.03], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}], "origin": [0, 0]},
+"small-wrench": {"paths": [{"commands": [["M", -0.85, -0.17], ["L", 0.45, -0.17], ["L", 0.68, -0.43], ["L", 1.07, -0.43], ["L", 1.22, -0.2], ["L", 0.86, -0.2], ["L", 0.71, 0], ["L", 0.86, 0.2], ["L", 1.22, 0.2], ["L", 1.07, 0.43], ["L", 0.68, 0.43], ["L", 0.45, 0.17], ["L", -0.85, 0.17], ["C", -1.21, 0.17, -1.21, -0.17, -0.85, -0.17], ["Z"]], "fill": true, "fillColor": "rgba(105,137,56,.96)"}, {"points": [[-0.65, -0.065], [0.34, -0.065]], "lineWidth": 0.035}, {"commands": [["A", -0.94, 0, 0.085, 0, 6.283185307179586]], "stroke": true, "lineWidth": 0.035}], "origin": [0.050000000000000044, 0]},
+"melon-slice": {"paths": [{"commands": [["M", -1.65, -0.55], ["L", 1.65, -0.55], ["C", 1.31, 1.16, -1.31, 1.16, -1.65, -0.55], ["Z"]], "fill": true, "fillColor": "#285841"}, {"commands": [["M", -1.47, -0.5], ["L", 1.47, -0.5], ["C", 1.15, 0.92, -1.15, 0.92, -1.47, -0.5], ["Z"]], "fill": true, "fillColor": "#6b9956", "stroke": false}, {"commands": [["M", -1.29, -0.45], ["L", 1.29, -0.45], ["C", 1, 0.7, -1, 0.7, -1.29, -0.45], ["Z"]], "fill": true, "fillColor": "#9dbd68", "stroke": false}, {"points": [[-0.68, -0.29], [-0.58, -0.13], [-0.64, 0.01], [-0.74, -0.15]], "closed": true, "fill": true, "fillColor": "#405c35", "stroke": false}, {"points": [[-0.05, -0.23], [0.05, -0.05], [0, 0.1], [-0.1, -0.05]], "closed": true, "fill": true, "fillColor": "#405c35", "stroke": false}, {"points": [[0.64, -0.29], [0.74, -0.15], [0.64, 0.01], [0.58, -0.13]], "closed": true, "fill": true, "fillColor": "#405c35", "stroke": false}, {"commands": [["M", -1.38, -0.34], ["C", -1.09, 0.87, 1.09, 0.87, 1.38, -0.34]], "lineWidth": 0.03}], "origin": [0, 0.09124999999999994]},
+"melon-slush": {"paths": [{"commands": [["M", -1.46, -0.31], ["L", 1.46, -0.31], ["L", 1.08, 0.61], ["C", 0.61, 0.93, -0.61, 0.93, -1.08, 0.61], ["Z"]], "fill": true, "fillColor": "#4e8c6b"}, {"points": [[-0.15, 0.81], [0.15, 0.81], [0.18, 1.03], [-0.18, 1.03]], "closed": true, "fill": true, "fillColor": "#3c735b", "stroke": true}, {"points": [[-0.65, 1.01], [0.65, 1.01], [0.7, 1.15], [-0.7, 1.15]], "closed": true, "fill": true, "fillColor": "#4e8c6b", "stroke": true}, {"commands": [["M", -1.33, -0.34], ["C", -1.29, -0.82, -0.76, -0.96, -0.64, -1.33], ["C", -0.34, -1.63, -0.15, -1.31, 0.04, -1.56], ["C", 0.34, -1.48, 0.51, -1.16, 0.76, -1.15], ["C", 1.1, -1.02, 1.25, -0.77, 1.33, -0.34], ["Z"]], "fill": true, "fillColor": "#d4f0de"}, {"points": [[-0.85, -0.63], [-0.57, -1.13], [-0.12, -0.89], [-0.34, -0.45]], "closed": true, "fill": true, "fillColor": "#a5d89e", "stroke": true}, {"points": [[0.11, -1.05], [0.47, -1.32], [0.88, -0.79], [0.5, -0.54]], "closed": true, "fill": true, "fillColor": "#a5d89e", "stroke": true}, {"points": [[-0.85, -0.63], [-0.34, -0.45]], "lineWidth": 0.035}, {"points": [[0.11, -1.05], [0.5, -0.54]], "lineWidth": 0.035}, {"points": [[-1.18, -0.1], [1.18, -0.1]], "lineWidth": 0.035}, {"commands": [["M", -0.78, 0.13], ["C", -0.41, 0.44, 0.41, 0.44, 0.78, 0.13]], "lineWidth": 0.035}], "origin": [0, -0.20500000000000007]},
+"snow-crystal": {"paths": [{"points": [[0.36, -0.09], [1.46, -0.09], [1.72, 0], [1.46, 0.09], [0.36, 0.09]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.76, -0.02], [1.04, -0.37], [1.02, -0.56], [0.87, -0.48], [0.57, -0.1]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.76, 0.02], [1.04, 0.37], [1.02, 0.56], [0.87, 0.48], [0.57, 0.1]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.2579, 0.2668], [0.8079, 1.2194], [0.86, 1.4896], [0.6521, 1.3094], [0.1021, 0.3568]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.3973, 0.6482], [0.8404, 0.7157], [0.995, 0.6033], [0.8507, 0.5134], [0.3716, 0.4436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.3627, 0.6682], [0.1996, 1.0857], [0.025, 1.1633], [0.0193, 0.9934], [0.1984, 0.5436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.1021, 0.3568], [-0.6521, 1.3094], [-0.86, 1.4896], [-0.8079, 1.2194], [-0.2579, 0.2668]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.3627, 0.6682], [-0.1996, 1.0857], [-0.025, 1.1633], [-0.0193, 0.9934], [-0.1984, 0.5436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.3973, 0.6482], [-0.8404, 0.7157], [-0.995, 0.6033], [-0.8507, 0.5134], [-0.3716, 0.4436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.36, 0.09], [-1.46, 0.09], [-1.72, 0], [-1.46, -0.09], [-0.36, -0.09]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.76, 0.02], [-1.04, 0.37], [-1.02, 0.56], [-0.87, 0.48], [-0.57, 0.1]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.76, -0.02], [-1.04, -0.37], [-1.02, -0.56], [-0.87, -0.48], [-0.57, -0.1]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.2579, -0.2668], [-0.8079, -1.2194], [-0.86, -1.4896], [-0.6521, -1.3094], [-0.1021, -0.3568]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.3973, -0.6482], [-0.8404, -0.7157], [-0.995, -0.6033], [-0.8507, -0.5134], [-0.3716, -0.4436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.3627, -0.6682], [-0.1996, -1.0857], [-0.025, -1.1633], [-0.0193, -0.9934], [-0.1984, -0.5436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.1021, -0.3568], [0.6521, -1.3094], [0.86, -1.4896], [0.8079, -1.2194], [0.2579, -0.2668]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.3627, -0.6682], [0.1996, -1.0857], [0.025, -1.1633], [0.0193, -0.9934], [0.1984, -0.5436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.3973, -0.6482], [0.8404, -0.7157], [0.995, -0.6033], [0.8507, -0.5134], [0.3716, -0.4436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.4, 0], [0.2, 0.3464], [-0.2, 0.3464], [-0.4, 0], [-0.2, -0.3464], [0.2, -0.3464]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.22, 0], [0.11, 0.1905], [-0.11, 0.1905], [-0.22, 0], [-0.11, -0.1905], [0.11, -0.1905]], "closed": true, "fill": true, "fillColor": "#497c9b"}], "origin": [0, 0]},
+"electronic-shotgun": {"paths": [{"points": [[-1.25, -0.74], [0.87, -0.74], [0.94, -0.66], [0.94, 0.2], [0.8, 0.3], [-1.23, 0.3], [-1.48, 0.04], [-1.48, -0.45]], "closed": true, "fill": true, "fillColor": "#873b23"}, {"points": [[0.94, -0.66], [1.53, -0.66], [1.53, 0.2], [0.94, 0.2]], "closed": true, "fill": true, "fillColor": "#46261e"}, {"points": [[1.28, -0.47], [1.28, 0.01]], "lineWidth": 0.035}, {"points": [[-1.02, 0.3], [-0.38, 0.3], [-0.56, 1.28], [-1.25, 1.28]], "closed": true, "fill": true, "fillColor": "#5c3024"}, {"points": [[-0.26, 0.36], [0.5, 0.36], [0.44, 0.8], [-0.33, 0.8]], "closed": true, "lineWidth": 0.055}, {"points": [[-0.04, 0.34], [-0.05, 0.57], [0.13, 0.64]], "lineWidth": 0.045}, {"points": [[-1.18, -0.5], [-0.29, -0.5], [-0.29, -0.08], [-1.18, -0.08]], "closed": true, "fill": true, "fillColor": "#54291e"}, {"points": [[-1.02, -0.29], [-0.45, -0.29]], "lineWidth": 0.035}, {"points": [[0.02, -0.5], [0.02, -0.09]], "lineWidth": 0.035}, {"points": [[0.26, -0.5], [0.26, -0.09]], "lineWidth": 0.035}, {"points": [[0.5, -0.5], [0.5, -0.09]], "lineWidth": 0.035}, {"points": [[-1.25, -0.85], [-0.78, -0.85], [-0.78, -0.74], [-1.25, -0.74]], "closed": true, "fill": true, "fillColor": "#873b23"}, {"points": [[-1.04, 1.02], [-0.7, 1.02]], "lineWidth": 0.035}], "origin": [0.025000000000000022, 0.21500000000000002]},
+"spellbook": {"paths": [{"points": [[-1.48, -1.07], [-0.12, -0.88], [0, -0.67], [0.12, -0.88], [1.48, -1.07], [1.48, 0.91], [0.16, 1.1], [0, 0.97], [-0.16, 1.1], [-1.48, 0.91]], "closed": true, "fill": true, "fillColor": "#362450"}, {"points": [[-1.3, -0.9], [-0.15, -0.73], [0, -0.57], [0, 0.78], [-0.16, 0.9], [-1.3, 0.73]], "closed": true, "fill": true, "fillColor": "#8062a3"}, {"points": [[1.3, -0.9], [0.15, -0.73], [0, -0.57], [0, 0.78], [0.16, 0.9], [1.3, 0.73]], "closed": true, "fill": true, "fillColor": "#8062a3"}, {"points": [[0, -0.57], [0, 0.8]], "lineWidth": 0.045}, {"points": [[-1.05, -0.48], [-0.35, -0.36]], "lineWidth": 0.025}, {"points": [[0.35, -0.36], [1.05, -0.48]], "lineWidth": 0.025}, {"points": [[-1.05, -0.18], [-0.35, -0.06]], "lineWidth": 0.025}, {"points": [[0.35, -0.06], [1.05, -0.18]], "lineWidth": 0.025}, {"points": [[-1.05, 0.12], [-0.35, 0.24]], "lineWidth": 0.025}, {"points": [[0.35, 0.24], [1.05, 0.12]], "lineWidth": 0.025}, {"points": [[-1.05, 0.42], [-0.35, 0.54]], "lineWidth": 0.025}, {"points": [[0.35, 0.54], [1.05, 0.42]], "lineWidth": 0.025}, {"points": [[0, 0.9], [0.18, 1.05], [0.18, 1.45], [0, 1.31], [-0.18, 1.45], [-0.18, 1.05]], "closed": true, "fill": true, "fillColor": "#503570"}], "leaf": {"left": -1.3, "right": 1.3, "top": -0.9, "bottom": 0.73, "color": "#8062a3"}, "origin": [0, 0.18999999999999995]},
+"moon-crescent": {"origin": [0, 0], "paths": [{"commands": [["M", 1.63, 0], ["C", 1.63, 0.9002241424999999, 0.9002241424999999, 1.63, 0, 1.63], ["C", -0.9002241424999999, 1.63, -1.63, 0.9002241424999999, -1.63, 0], ["C", -1.63, -0.9002241424999999, -0.9002241424999999, -1.63, 0, -1.63], ["C", 0.9002241424999999, -1.63, 1.63, -0.9002241424999999, 1.63, 0], ["Z"], ["M", 1.6, 0], ["C", 1.6, -0.563330445, 1.143330445, -1.02, 0.58, -1.02], ["C", 0.016669555000000003, -1.02, -0.44000000000000006, -0.563330445, -0.44000000000000006, 0], ["C", -0.44000000000000006, 0.563330445, 0.016669555000000003, 1.02, 0.58, 1.02], ["C", 1.143330445, 1.02, 1.6, 0.563330445, 1.6, 0], ["Z"]], "fill": true, "fillColor": "#4e6a8c", "lineWidth": 0.055}, {"commands": [["M", 0.05, -1.44], ["C", -1.21, -1.43, -1.85, 0.46, -0.64, 1.3]], "lineWidth": 0.04}, {"commands": [["M", 0.12, -1.12], ["C", -0.98, -0.77, -1.02, 0.67, -0.14, 1.11]], "lineWidth": 0.045}, {"points": [[-1.49, 0], [-1.16, -0.15], [-0.91, 0], [-1.16, 0.15], [-1.49, 0]], "lineWidth": 0.05}, {"commands": [["M", -0.86, -1.13], ["L", -0.78, -0.9], ["L", -0.55, -0.94]], "lineWidth": 0.04}, {"commands": [["M", -0.86, 1.13], ["L", -0.78, 0.9], ["L", -0.55, 0.94]], "lineWidth": 0.04}]},
+"front-fist": {"paths": [{"points": [[-0.57, 0.43], [-0.84, 0.08], [-0.82, -0.46], [-0.65, -0.82], [-0.32, -1.02], [0.05, -1.07], [0.4, -0.96], [0.64, -0.73], [0.71, -0.4], [0.88, -0.15], [0.86, 0.23], [0.57, 0.48], [0.43, 0.86], [-0.44, 0.86]], "closed": true, "fill": true, "fillColor": "#702e38"}, {"commands": [["M", -0.62, -0.03], ["C", -0.34, 0.1, 0.22, 0.05, 0.45, -0.14], ["L", 0.47, -0.54]], "lineWidth": 0.035}, {"commands": [["M", 0.79, -0.13], ["C", 0.48, -0.22, 0.36, 0.02, 0.41, 0.26], ["L", 0.6, 0.44]], "lineWidth": 0.035}, {"points": [[-0.29, -0.62], [-0.28, -0.16]], "lineWidth": 0.035}, {"points": [[0.05, -0.64], [0.07, -0.13]], "lineWidth": 0.035}, {"points": [[-0.48, 0.57], [0.48, 0.57], [0.43, 0.94], [-0.43, 0.94]], "closed": true, "fill": true, "fillColor": "#49232c"}, {"points": [[-0.4, 0.77], [0.4, 0.77]], "lineWidth": 0.035}], "origin": [0.020000000000000018, -0.06500000000000006]},
+"shoe-sole": {"paths": [{"commands": [["M", -0.58, -1.22], ["C", -0.92, -1.02, -0.94, -0.56, -0.77, -0.21], ["L", -0.5, 0.39], ["L", -0.48, 0.96], ["C", -0.27, 1.24, 0.28, 1.24, 0.48, 0.96], ["L", 0.49, 0.38], ["L", 0.77, -0.2], ["C", 0.98, -0.64, 0.85, -1.08, 0.55, -1.24], ["C", 0.2, -1.42, -0.24, -1.4, -0.58, -1.22], ["Z"]], "fill": true, "fillColor": "#542b34"}, {"points": [[-0.58, -1.06], [-0.11, -1.15], [-0.1, -0.68], [-0.63, -0.62]], "closed": true, "fill": true, "fillColor": "#7b3d49"}, {"points": [[0.11, -1.15], [0.58, -1.06], [0.63, -0.62], [0.1, -0.68]], "closed": true, "fill": true, "fillColor": "#7b3d49"}, {"points": [[-0.65, -0.43], [-0.13, -0.46], [-0.1, -0.05], [-0.48, 0.07]], "closed": true, "fill": true, "fillColor": "#7b3d49"}, {"points": [[0.13, -0.46], [0.65, -0.43], [0.48, 0.07], [0.1, -0.05]], "closed": true, "fill": true, "fillColor": "#7b3d49"}, {"points": [[-0.36, 0.55], [0.36, 0.55], [0.35, 0.9], [0.2, 1.01], [-0.2, 1.01], [-0.35, 0.9]], "closed": true, "fill": true, "fillColor": "#7b3d49"}, {"points": [[-0.36, 0.26], [0, 0.41], [0.36, 0.26]], "lineWidth": 0.035}], "origin": [-0.0007697211371527346, -0.09770446777343744]},
+"puzzle-cube": {"paths": [{"points": [[-3.469446951953614e-18, -1.29587352], [0.38058666666666663, -1.096553146666667], [0, -0.8954646311111114], [-0.38058666666666663, -1.096553146666667]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4266666666666667, -1.0724201866666667], [0.8072533333333333, -0.8730998133333334], [0.42666666666666664, -0.6700290755555558], [0.04608000000000001, -0.8711175911111112]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8533333333333333, -0.8489668533333333], [1.2339200000000001, -0.6496464799999999], [0.8533333333333335, -0.44459352], [0.47274666666666676, -0.6456820355555557]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4266666666666667, -1.0724201866666667], [-0.046080000000000065, -0.8711175911111114], [-0.42666666666666664, -0.6700290755555557], [-0.8072533333333333, -0.8730998133333334]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0, -0.8467446311111112], [0.38058666666666663, -0.6454420355555558], [0, -0.44237129777777795], [-0.38058666666666663, -0.6454420355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.42666666666666664, -0.6210690755555556], [0.8072533333333335, -0.41976648000000005], [0.42666666666666675, -0.21471352000000005], [0.046080000000000065, -0.41778425777777783]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8533333333333333, -0.8489668533333333], [-0.47274666666666676, -0.6456820355555557], [-0.8533333333333334, -0.4445935200000001], [-1.2339200000000001, -0.6496464799999999]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.42666666666666664, -0.6210690755555557], [-0.04608000000000001, -0.4177842577777779], [-0.42666666666666675, -0.21471352000000005], [-0.8072533333333334, -0.41976648000000005]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0, -0.3931712977777778], [0.3805866666666667, -0.18988648000000002], [0, 0.015166479999999982], [-0.3805866666666667, -0.18988648000000002]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.25696, -0.6125599999999999], [-0.8763733333333334, -0.40740000000000004], [-0.8763733333333334, 0.005893333333333195], [-1.2569600000000003, -0.19926666666666668]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, -0.38256000000000007], [-0.44970666666666675, -0.17740000000000003], [-0.4497066666666668, 0.2358933333333333], [-0.8302933333333335, 0.030733333333333224]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, -0.15256000000000003], [-0.023040000000000022, 0.05259999999999999], [-0.023040000000000022, 0.4658933333333332], [-0.4036266666666667, 0.26073333333333326]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.2569600000000003, -0.14922666666666667], [-0.8763733333333334, 0.05593333333333328], [-0.8763733333333334, 0.46922666666666657], [-1.25696, 0.2640666666666666]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333335, 0.08077333333333331], [-0.4497066666666668, 0.2859333333333334], [-0.44970666666666675, 0.6992266666666667], [-0.8302933333333334, 0.4940666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.3107733333333333], [-0.023040000000000026, 0.5159333333333332], [-0.023040000000000022, 0.9292266666666664], [-0.4036266666666667, 0.7240666666666664]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.25696, 0.3141066666666666], [-0.8763733333333334, 0.5192666666666667], [-0.8763733333333334, 0.93256], [-1.25696, 0.7273999999999999]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, 0.5441066666666667], [-0.44970666666666675, 0.7492666666666666], [-0.44970666666666675, 1.16256], [-0.8302933333333334, 0.9574]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.7741066666666665], [-0.023040000000000026, 0.9792666666666665], [-0.023040000000000022, 1.3925599999999998], [-0.4036266666666667, 1.1873999999999998]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.052599999999999994], [0.40362666666666663, -0.15256], [0.40362666666666663, 0.2607333333333333], [0.023039999999999998, 0.4658933333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, -0.1774], [0.8302933333333332, -0.38255999999999996], [0.8302933333333333, 0.03073333333333328], [0.4497066666666667, 0.23589333333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333333, -0.4074], [1.25696, -0.6125599999999999], [1.2569600000000003, -0.19926666666666668], [0.8763733333333333, 0.0058933333333332505]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.5159333333333332], [0.40362666666666663, 0.31077333333333335], [0.4036266666666667, 0.7240666666666666], [0.023039999999999998, 0.9292266666666664]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.2859333333333334], [0.8302933333333333, 0.08077333333333336], [0.8302933333333333, 0.49406666666666665], [0.4497066666666667, 0.6992266666666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, 0.05593333333333328], [1.2569600000000003, -0.14922666666666667], [1.25696, 0.2640666666666666], [0.8763733333333332, 0.46922666666666657]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.9792666666666665], [0.4036266666666666, 0.7741066666666666], [0.40362666666666663, 1.1874], [0.023039999999999998, 1.3925599999999998]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.7492666666666667], [0.8302933333333333, 0.5441066666666666], [0.8302933333333333, 0.9573999999999999], [0.4497066666666667, 1.16256]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333332, 0.5192666666666667], [1.25696, 0.3141066666666666], [1.25696, 0.7273999999999999], [0.8763733333333333, 0.93256]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}], "origin": [0, 0.0483432399999999]},
+"simple-shield": {"paths": [{"points": [[-1.72, -0.7788], [-1.45, -1.0266], [1.45, -1.0266], [1.72, -0.7788], [1.72, 0.7788], [1.45, 1.0266], [-1.45, 1.0266], [-1.72, 0.7788]], "closed": true, "fill": true, "fillColor": "#694524"}, {"points": [[-1.43, -0.6843999999999999], [1.43, -0.6843999999999999], [1.43, 0.6843999999999999], [-1.43, 0.6843999999999999], [-1.43, -0.6843999999999999]], "lineWidth": 0.035}, {"points": [[-0.23, -0.44839999999999997], [0.23, -0.44839999999999997], [0.32, 0], [0.23, 0.44839999999999997], [-0.23, 0.44839999999999997], [-0.32, 0]], "closed": true, "fill": true, "fillColor": "#986738"}, {"points": [[-1.62, 0], [-1.1, 0]], "lineWidth": 0.035}, {"points": [[1.1, 0], [1.62, 0]], "lineWidth": 0.035}], "origin": [0, 0]},
+"spirit-shield": {"paths": [{"commands": [["M", -1.15, -0.98], ["L", 0, -1.2], ["L", 1.15, -0.98], ["L", 1.05, 0.34], ["C", 0.8, 0.95, 0.3, 1.24, 0, 1.48], ["C", -0.3, 1.24, -0.8, 0.95, -1.05, 0.34], ["Z"]], "fill": true, "fillColor": "#34495d"}, {"points": [[-0.87, -0.75], [0, -0.92], [0.87, -0.75], [0.78, 0.28], [0, 1.14], [-0.78, 0.28], [-0.87, -0.75]], "lineWidth": 0.035}, {"points": [[0, -0.55], [0.36, -0.12], [0, 0.63], [-0.36, -0.12]], "closed": true, "fill": true, "fillColor": "#536b83"}], "origin": [0, 0.14]},
+"spirit-goggles": {"paths": [{"points": [[-1.6, -0.17], [-1.27, -0.17], [-1.27, 0.2], [-1.6, 0.2]], "closed": true, "fill": true, "fillColor": "#34495d"}, {"points": [[1.27, -0.17], [1.6, -0.17], [1.6, 0.2], [1.27, 0.2]], "closed": true, "fill": true, "fillColor": "#34495d"}, {"points": [[-1.3599999999999999, -0.48], [-0.37000000000000005, -0.48], [-0.19000000000000006, -0.27], [-0.28, 0.31], [-0.5, 0.48], [-1.1800000000000002, 0.48], [-1.37, 0.25], [-1.37, -0.24]], "closed": true, "fill": true, "fillColor": "#34495d"}, {"points": [[0.20000000000000007, -0.48], [1.19, -0.48], [1.37, -0.27], [1.28, 0.31], [1.06, 0.48], [0.38, 0.48], [0.19000000000000006, 0.25], [0.19000000000000006, -0.24]], "closed": true, "fill": true, "fillColor": "#34495d"}, {"points": [[-0.22, -0.12], [0, -0.25], [0.22, -0.12]], "lineWidth": 0.035}, {"points": [[-1.1800000000000002, -0.27], [-0.5, -0.27], [-0.4, -0.13], [-0.47000000000000003, 0.22], [-1.08, 0.25], [-1.1800000000000002, 0.1], [-1.1800000000000002, -0.27]], "lineWidth": 0.035}, {"points": [[0.38, -0.27], [1.06, -0.27], [1.1600000000000001, -0.13], [1.09, 0.22], [0.48000000000000004, 0.25], [0.38, 0.1], [0.38, -0.27]], "lineWidth": 0.035}], "origin": [0, 0]},
+"frying-pan": {"paths": [{"points": [[-0.14, 0.63], [0.14, 0.63], [0.22, 2.01], [-0.22, 2.01]], "closed": true, "fill": true, "fillColor": "#674a32"}, {"commands": [["A", 0, -0.19, 0.95, 0, 6.283185307179586]], "fill": true, "fillColor": "#4c4740"}, {"commands": [["A", 0, -0.19, 0.78, 0, 6.283185307179586]], "fill": false}, {"points": [[-0.11, 1.8], [0.11, 1.8]], "lineWidth": 0.035}], "origin": [0, 0.43499999999999994]},
+"loaded-pan": {"paths": [{"points": [[-0.14, 0.63], [0.14, 0.63], [0.22, 2.01], [-0.22, 2.01]], "closed": true, "fill": true, "fillColor": "#674a32"}, {"commands": [["A", 0, -0.19, 0.95, 0, 6.283185307179586]], "fill": true, "fillColor": "#4c4740"}, {"commands": [["A", 0, -0.19, 0.78, 0, 6.283185307179586]], "fill": false}, {"points": [[-0.11, 1.8], [0.11, 1.8]], "lineWidth": 0.035}, {"points": [[-0.62, -0.56], [-0.11, -0.72], [0.05, -0.29], [-0.48, -0.09]], "closed": true, "fill": true, "fillColor": "#bd8850"}, {"points": [[0.13, -0.68], [0.62, -0.43], [0.36, -0.05], [-0.01, -0.27]], "closed": true, "fill": true, "fillColor": "#8f723b"}, {"points": [[-0.39, 0.13], [0.17, -0.07], [0.41, 0.35], [-0.19, 0.51]], "closed": true, "fill": true, "fillColor": "#d7a96d"}, {"points": [[-0.46, -0.44], [-0.2, -0.51]], "lineWidth": 0.035}, {"points": [[0.14, 0.16], [0.25, 0.29]], "lineWidth": 0.035}], "origin": [0, 0.43499999999999994]},
+"cooked-meal": {"paths": [{"commands": [["M", -1.52, 0.04], ["C", -1.45, -0.74, 1.45, -0.74, 1.52, 0.04], ["C", 1.41, 0.83, -1.41, 0.83, -1.52, 0.04], ["Z"]], "fill": true, "fillColor": "#cbb8a0"}, {"commands": [["M", -1.26, 0.02], ["C", -1.19, -0.48, 1.19, -0.48, 1.26, 0.02], ["C", 1.11, 0.5, -1.11, 0.5, -1.26, 0.02], ["Z"]], "lineWidth": 0.035}, {"commands": [["M", -0.64, -0.44], ["C", -0.49, -0.67, 0.08, -0.69, 0.42, -0.42], ["L", 0.58, -0.03], ["C", 0.37, 0.21, -0.24, 0.25, -0.66, -0.02], ["Z"]], "fill": true, "fillColor": "#976347"}, {"commands": [["M", -0.45, -0.34], ["L", 0.09, -0.07], ["M", -0.22, -0.46], ["L", 0.28, -0.2]], "lineWidth": 0.035}, {"commands": [["M", 0.39, -0.25], ["C", 0.5, -0.71, 0.91, -0.76, 0.95, -0.4], ["C", 0.86, -0.24, 0.67, -0.16, 0.39, -0.25], ["Z"]], "fill": true, "fillColor": "#647850"}, {"commands": [["M", 0.59, -0.17], ["C", 1.1, -0.5, 1.28, -0.16, 0.99, 0.07], ["C", 0.82, 0.11, 0.7, 0, 0.59, -0.17], ["Z"]], "fill": true, "fillColor": "#73865a"}, {"commands": [["A", -0.78, 0.15, 0.14, 0, 6.283185307179586]], "fill": true, "fillColor": "#b98c4f"}, {"commands": [["A", -0.4, 0.32, 0.12, 0, 6.283185307179586]], "fill": true, "fillColor": "#b98c4f"}, {"commands": [["A", 0.02, 0.32, 0.09, 0, 6.283185307179586]], "fill": true, "fillColor": "#b98c4f"}], "origin": [0, -0.002285156250000031]},
+"tailor-scissors": {"origin": [0, -0.33], "parts": [{"pivot": [0, 0], "angle": 0.36, "pulseAngle": -0.31, "scaleX": -1, "paths": [{"points": [[-0.055, -2.15], [-0.17, -1.77], [-0.29, -0.58], [-0.15, 0.13], [0.08, 0.13], [0.08, -0.25]], "closed": true, "fill": true, "fillColor": "#9b8d9f", "lineWidth": 0.05}, {"points": [[-0.08, -1.48], [-0.11, -0.5]], "lineWidth": 0.028}, {"points": [[-0.08, 0.05], [0.15, 0.05], [0.5, 0.55], [0.27, 0.68], [0.1, 0.34]], "closed": true, "fill": true, "fillColor": "#58415e", "lineWidth": 0.05}, {"commands": [["M", 0.25549999999999995, 0.43000000000000005], ["L", 0.6845, 0.43000000000000005], ["L", 0.86, 0.662], ["L", 0.86, 1.358], ["L", 0.6845, 1.5899999999999999], ["L", 0.25549999999999995, 1.5899999999999999], ["L", 0.07999999999999996, 1.358], ["L", 0.07999999999999996, 0.662], ["Z"], ["M", 0.20999999999999996, 0.746], ["L", 0.20999999999999996, 1.274], ["L", 0.32699999999999996, 1.45], ["L", 0.613, 1.45], ["L", 0.73, 1.274], ["L", 0.73, 0.746], ["L", 0.613, 0.5700000000000001], ["L", 0.32699999999999996, 0.5700000000000001], ["Z"]], "fill": true, "fillColor": "#58415e", "lineWidth": 0.05}]}, {"pivot": [0, 0], "angle": -0.36, "pulseAngle": 0.31, "paths": [{"points": [[-0.055, -2.15], [-0.17, -1.77], [-0.29, -0.58], [-0.15, 0.13], [0.08, 0.13], [0.08, -0.25]], "closed": true, "fill": true, "fillColor": "#9b8d9f", "lineWidth": 0.05}, {"points": [[-0.08, -1.48], [-0.11, -0.5]], "lineWidth": 0.028}, {"points": [[-0.08, 0.05], [0.15, 0.05], [0.5, 0.55], [0.27, 0.68], [0.1, 0.34]], "closed": true, "fill": true, "fillColor": "#58415e", "lineWidth": 0.05}, {"commands": [["M", 0.27599999999999997, 0.5], ["L", 0.5840000000000001, 0.5], ["L", 0.71, 0.668], ["L", 0.71, 1.1720000000000002], ["L", 0.5840000000000001, 1.34], ["L", 0.27599999999999997, 1.34], ["L", 0.14999999999999997, 1.1720000000000002], ["L", 0.14999999999999997, 0.668], ["Z"], ["M", 0.26, 0.746], ["L", 0.26, 1.094], ["L", 0.33649999999999997, 1.21], ["L", 0.5235, 1.21], ["L", 0.6, 1.094], ["L", 0.6, 0.746], ["L", 0.5235, 0.6300000000000001], ["L", 0.33649999999999997, 0.6300000000000001], ["Z"]], "fill": true, "fillColor": "#58415e", "lineWidth": 0.05}]}], "paths": [{"commands": [["A", 0, 0.035, 0.125, 0, 6.283185307179586]], "fill": true, "fillColor": "#c1afc8", "lineWidth": 0.045}, {"points": [[-0.05, 0.035], [0.05, 0.035]], "lineWidth": 0.025}]},
+"puzzle-cube-cross": {"paths": [{"points": [[-3.469446951953614e-18, -1.29587352], [0.38058666666666663, -1.096553146666667], [0, -0.8954646311111114], [-0.38058666666666663, -1.096553146666667]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4266666666666667, -1.0724201866666667], [0.8072533333333333, -0.8730998133333334], [0.42666666666666664, -0.6700290755555558], [0.04608000000000001, -0.8711175911111112]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8533333333333333, -0.8489668533333333], [1.2339200000000001, -0.6496464799999999], [0.8533333333333335, -0.44459352], [0.47274666666666676, -0.6456820355555557]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4266666666666667, -1.0724201866666667], [-0.046080000000000065, -0.8711175911111114], [-0.42666666666666664, -0.6700290755555557], [-0.8072533333333333, -0.8730998133333334]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.8467446311111112], [0.38058666666666663, -0.6454420355555558], [0, -0.44237129777777795], [-0.38058666666666663, -0.6454420355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.42666666666666664, -0.6210690755555556], [0.8072533333333335, -0.41976648000000005], [0.42666666666666675, -0.21471352000000005], [0.046080000000000065, -0.41778425777777783]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8533333333333333, -0.8489668533333333], [-0.47274666666666676, -0.6456820355555557], [-0.8533333333333334, -0.4445935200000001], [-1.2339200000000001, -0.6496464799999999]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.42666666666666664, -0.6210690755555557], [-0.04608000000000001, -0.4177842577777779], [-0.42666666666666675, -0.21471352000000005], [-0.8072533333333334, -0.41976648000000005]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.3931712977777778], [0.3805866666666667, -0.18988648000000002], [0, 0.015166479999999982], [-0.3805866666666667, -0.18988648000000002]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.25696, -0.6125599999999999], [-0.8763733333333334, -0.40740000000000004], [-0.8763733333333334, 0.005893333333333195], [-1.2569600000000003, -0.19926666666666668]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, -0.38256000000000007], [-0.44970666666666675, -0.17740000000000003], [-0.4497066666666668, 0.2358933333333333], [-0.8302933333333335, 0.030733333333333224]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, -0.15256000000000003], [-0.023040000000000022, 0.05259999999999999], [-0.023040000000000022, 0.4658933333333332], [-0.4036266666666667, 0.26073333333333326]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.2569600000000003, -0.14922666666666667], [-0.8763733333333334, 0.05593333333333328], [-0.8763733333333334, 0.46922666666666657], [-1.25696, 0.2640666666666666]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333335, 0.08077333333333331], [-0.4497066666666668, 0.2859333333333334], [-0.44970666666666675, 0.6992266666666667], [-0.8302933333333334, 0.4940666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.3107733333333333], [-0.023040000000000026, 0.5159333333333332], [-0.023040000000000022, 0.9292266666666664], [-0.4036266666666667, 0.7240666666666664]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.25696, 0.3141066666666666], [-0.8763733333333334, 0.5192666666666667], [-0.8763733333333334, 0.93256], [-1.25696, 0.7273999999999999]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, 0.5441066666666667], [-0.44970666666666675, 0.7492666666666666], [-0.44970666666666675, 1.16256], [-0.8302933333333334, 0.9574]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.7741066666666665], [-0.023040000000000026, 0.9792666666666665], [-0.023040000000000022, 1.3925599999999998], [-0.4036266666666667, 1.1873999999999998]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.052599999999999994], [0.40362666666666663, -0.15256], [0.40362666666666663, 0.2607333333333333], [0.023039999999999998, 0.4658933333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, -0.1774], [0.8302933333333332, -0.38255999999999996], [0.8302933333333333, 0.03073333333333328], [0.4497066666666667, 0.23589333333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333333, -0.4074], [1.25696, -0.6125599999999999], [1.2569600000000003, -0.19926666666666668], [0.8763733333333333, 0.0058933333333332505]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.5159333333333332], [0.40362666666666663, 0.31077333333333335], [0.4036266666666667, 0.7240666666666666], [0.023039999999999998, 0.9292266666666664]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.2859333333333334], [0.8302933333333333, 0.08077333333333336], [0.8302933333333333, 0.49406666666666665], [0.4497066666666667, 0.6992266666666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, 0.05593333333333328], [1.2569600000000003, -0.14922666666666667], [1.25696, 0.2640666666666666], [0.8763733333333332, 0.46922666666666657]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.9792666666666665], [0.4036266666666666, 0.7741066666666666], [0.40362666666666663, 1.1874], [0.023039999999999998, 1.3925599999999998]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.7492666666666667], [0.8302933333333333, 0.5441066666666666], [0.8302933333333333, 0.9573999999999999], [0.4497066666666667, 1.16256]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333332, 0.5192666666666667], [1.25696, 0.3141066666666666], [1.25696, 0.7273999999999999], [0.8763733333333333, 0.93256]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}], "origin": [0, 0.0483432399999999]},
+"puzzle-cube-f2l": {"paths": [{"points": [[-3.469446951953614e-18, -1.29587352], [0.38058666666666663, -1.096553146666667], [0, -0.8954646311111114], [-0.38058666666666663, -1.096553146666667]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4266666666666667, -1.0724201866666667], [0.8072533333333333, -0.8730998133333334], [0.42666666666666664, -0.6700290755555558], [0.04608000000000001, -0.8711175911111112]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8533333333333333, -0.8489668533333333], [1.2339200000000001, -0.6496464799999999], [0.8533333333333335, -0.44459352], [0.47274666666666676, -0.6456820355555557]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4266666666666667, -1.0724201866666667], [-0.046080000000000065, -0.8711175911111114], [-0.42666666666666664, -0.6700290755555557], [-0.8072533333333333, -0.8730998133333334]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.8467446311111112], [0.38058666666666663, -0.6454420355555558], [0, -0.44237129777777795], [-0.38058666666666663, -0.6454420355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.42666666666666664, -0.6210690755555556], [0.8072533333333335, -0.41976648000000005], [0.42666666666666675, -0.21471352000000005], [0.046080000000000065, -0.41778425777777783]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8533333333333333, -0.8489668533333333], [-0.47274666666666676, -0.6456820355555557], [-0.8533333333333334, -0.4445935200000001], [-1.2339200000000001, -0.6496464799999999]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.42666666666666664, -0.6210690755555557], [-0.04608000000000001, -0.4177842577777779], [-0.42666666666666675, -0.21471352000000005], [-0.8072533333333334, -0.41976648000000005]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.3931712977777778], [0.3805866666666667, -0.18988648000000002], [0, 0.015166479999999982], [-0.3805866666666667, -0.18988648000000002]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.25696, -0.6125599999999999], [-0.8763733333333334, -0.40740000000000004], [-0.8763733333333334, 0.005893333333333195], [-1.2569600000000003, -0.19926666666666668]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, -0.38256000000000007], [-0.44970666666666675, -0.17740000000000003], [-0.4497066666666668, 0.2358933333333333], [-0.8302933333333335, 0.030733333333333224]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, -0.15256000000000003], [-0.023040000000000022, 0.05259999999999999], [-0.023040000000000022, 0.4658933333333332], [-0.4036266666666667, 0.26073333333333326]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.2569600000000003, -0.14922666666666667], [-0.8763733333333334, 0.05593333333333328], [-0.8763733333333334, 0.46922666666666657], [-1.25696, 0.2640666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333335, 0.08077333333333331], [-0.4497066666666668, 0.2859333333333334], [-0.44970666666666675, 0.6992266666666667], [-0.8302933333333334, 0.4940666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.3107733333333333], [-0.023040000000000026, 0.5159333333333332], [-0.023040000000000022, 0.9292266666666664], [-0.4036266666666667, 0.7240666666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.25696, 0.3141066666666666], [-0.8763733333333334, 0.5192666666666667], [-0.8763733333333334, 0.93256], [-1.25696, 0.7273999999999999]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, 0.5441066666666667], [-0.44970666666666675, 0.7492666666666666], [-0.44970666666666675, 1.16256], [-0.8302933333333334, 0.9574]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.7741066666666665], [-0.023040000000000026, 0.9792666666666665], [-0.023040000000000022, 1.3925599999999998], [-0.4036266666666667, 1.1873999999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.052599999999999994], [0.40362666666666663, -0.15256], [0.40362666666666663, 0.2607333333333333], [0.023039999999999998, 0.4658933333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, -0.1774], [0.8302933333333332, -0.38255999999999996], [0.8302933333333333, 0.03073333333333328], [0.4497066666666667, 0.23589333333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333333, -0.4074], [1.25696, -0.6125599999999999], [1.2569600000000003, -0.19926666666666668], [0.8763733333333333, 0.0058933333333332505]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.5159333333333332], [0.40362666666666663, 0.31077333333333335], [0.4036266666666667, 0.7240666666666666], [0.023039999999999998, 0.9292266666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.2859333333333334], [0.8302933333333333, 0.08077333333333336], [0.8302933333333333, 0.49406666666666665], [0.4497066666666667, 0.6992266666666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, 0.05593333333333328], [1.2569600000000003, -0.14922666666666667], [1.25696, 0.2640666666666666], [0.8763733333333332, 0.46922666666666657]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.9792666666666665], [0.4036266666666666, 0.7741066666666666], [0.40362666666666663, 1.1874], [0.023039999999999998, 1.3925599999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.7492666666666667], [0.8302933333333333, 0.5441066666666666], [0.8302933333333333, 0.9573999999999999], [0.4497066666666667, 1.16256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333332, 0.5192666666666667], [1.25696, 0.3141066666666666], [1.25696, 0.7273999999999999], [0.8763733333333333, 0.93256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}], "origin": [0, 0.0483432399999999]},
+"puzzle-cube-oll": {"paths": [{"points": [[-3.469446951953614e-18, -1.29587352], [0.38058666666666663, -1.096553146666667], [0, -0.8954646311111114], [-0.38058666666666663, -1.096553146666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4266666666666667, -1.0724201866666667], [0.8072533333333333, -0.8730998133333334], [0.42666666666666664, -0.6700290755555558], [0.04608000000000001, -0.8711175911111112]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8533333333333333, -0.8489668533333333], [1.2339200000000001, -0.6496464799999999], [0.8533333333333335, -0.44459352], [0.47274666666666676, -0.6456820355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4266666666666667, -1.0724201866666667], [-0.046080000000000065, -0.8711175911111114], [-0.42666666666666664, -0.6700290755555557], [-0.8072533333333333, -0.8730998133333334]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.8467446311111112], [0.38058666666666663, -0.6454420355555558], [0, -0.44237129777777795], [-0.38058666666666663, -0.6454420355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.42666666666666664, -0.6210690755555556], [0.8072533333333335, -0.41976648000000005], [0.42666666666666675, -0.21471352000000005], [0.046080000000000065, -0.41778425777777783]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8533333333333333, -0.8489668533333333], [-0.47274666666666676, -0.6456820355555557], [-0.8533333333333334, -0.4445935200000001], [-1.2339200000000001, -0.6496464799999999]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.42666666666666664, -0.6210690755555557], [-0.04608000000000001, -0.4177842577777779], [-0.42666666666666675, -0.21471352000000005], [-0.8072533333333334, -0.41976648000000005]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.3931712977777778], [0.3805866666666667, -0.18988648000000002], [0, 0.015166479999999982], [-0.3805866666666667, -0.18988648000000002]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.25696, -0.6125599999999999], [-0.8763733333333334, -0.40740000000000004], [-0.8763733333333334, 0.005893333333333195], [-1.2569600000000003, -0.19926666666666668]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, -0.38256000000000007], [-0.44970666666666675, -0.17740000000000003], [-0.4497066666666668, 0.2358933333333333], [-0.8302933333333335, 0.030733333333333224]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, -0.15256000000000003], [-0.023040000000000022, 0.05259999999999999], [-0.023040000000000022, 0.4658933333333332], [-0.4036266666666667, 0.26073333333333326]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.2569600000000003, -0.14922666666666667], [-0.8763733333333334, 0.05593333333333328], [-0.8763733333333334, 0.46922666666666657], [-1.25696, 0.2640666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333335, 0.08077333333333331], [-0.4497066666666668, 0.2859333333333334], [-0.44970666666666675, 0.6992266666666667], [-0.8302933333333334, 0.4940666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.3107733333333333], [-0.023040000000000026, 0.5159333333333332], [-0.023040000000000022, 0.9292266666666664], [-0.4036266666666667, 0.7240666666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.25696, 0.3141066666666666], [-0.8763733333333334, 0.5192666666666667], [-0.8763733333333334, 0.93256], [-1.25696, 0.7273999999999999]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, 0.5441066666666667], [-0.44970666666666675, 0.7492666666666666], [-0.44970666666666675, 1.16256], [-0.8302933333333334, 0.9574]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.7741066666666665], [-0.023040000000000026, 0.9792666666666665], [-0.023040000000000022, 1.3925599999999998], [-0.4036266666666667, 1.1873999999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.052599999999999994], [0.40362666666666663, -0.15256], [0.40362666666666663, 0.2607333333333333], [0.023039999999999998, 0.4658933333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, -0.1774], [0.8302933333333332, -0.38255999999999996], [0.8302933333333333, 0.03073333333333328], [0.4497066666666667, 0.23589333333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333333, -0.4074], [1.25696, -0.6125599999999999], [1.2569600000000003, -0.19926666666666668], [0.8763733333333333, 0.0058933333333332505]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.5159333333333332], [0.40362666666666663, 0.31077333333333335], [0.4036266666666667, 0.7240666666666666], [0.023039999999999998, 0.9292266666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.2859333333333334], [0.8302933333333333, 0.08077333333333336], [0.8302933333333333, 0.49406666666666665], [0.4497066666666667, 0.6992266666666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, 0.05593333333333328], [1.2569600000000003, -0.14922666666666667], [1.25696, 0.2640666666666666], [0.8763733333333332, 0.46922666666666657]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.9792666666666665], [0.4036266666666666, 0.7741066666666666], [0.40362666666666663, 1.1874], [0.023039999999999998, 1.3925599999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.7492666666666667], [0.8302933333333333, 0.5441066666666666], [0.8302933333333333, 0.9573999999999999], [0.4497066666666667, 1.16256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333332, 0.5192666666666667], [1.25696, 0.3141066666666666], [1.25696, 0.7273999999999999], [0.8763733333333333, 0.93256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}], "origin": [0, 0.0483432399999999]},
+"puzzle-cube-pll": {"paths": [{"points": [[-3.469446951953614e-18, -1.29587352], [0.38058666666666663, -1.096553146666667], [0, -0.8954646311111114], [-0.38058666666666663, -1.096553146666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4266666666666667, -1.0724201866666667], [0.8072533333333333, -0.8730998133333334], [0.42666666666666664, -0.6700290755555558], [0.04608000000000001, -0.8711175911111112]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8533333333333333, -0.8489668533333333], [1.2339200000000001, -0.6496464799999999], [0.8533333333333335, -0.44459352], [0.47274666666666676, -0.6456820355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4266666666666667, -1.0724201866666667], [-0.046080000000000065, -0.8711175911111114], [-0.42666666666666664, -0.6700290755555557], [-0.8072533333333333, -0.8730998133333334]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.8467446311111112], [0.38058666666666663, -0.6454420355555558], [0, -0.44237129777777795], [-0.38058666666666663, -0.6454420355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.42666666666666664, -0.6210690755555556], [0.8072533333333335, -0.41976648000000005], [0.42666666666666675, -0.21471352000000005], [0.046080000000000065, -0.41778425777777783]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8533333333333333, -0.8489668533333333], [-0.47274666666666676, -0.6456820355555557], [-0.8533333333333334, -0.4445935200000001], [-1.2339200000000001, -0.6496464799999999]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.42666666666666664, -0.6210690755555557], [-0.04608000000000001, -0.4177842577777779], [-0.42666666666666675, -0.21471352000000005], [-0.8072533333333334, -0.41976648000000005]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.3931712977777778], [0.3805866666666667, -0.18988648000000002], [0, 0.015166479999999982], [-0.3805866666666667, -0.18988648000000002]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.25696, -0.6125599999999999], [-0.8763733333333334, -0.40740000000000004], [-0.8763733333333334, 0.005893333333333195], [-1.2569600000000003, -0.19926666666666668]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, -0.38256000000000007], [-0.44970666666666675, -0.17740000000000003], [-0.4497066666666668, 0.2358933333333333], [-0.8302933333333335, 0.030733333333333224]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, -0.15256000000000003], [-0.023040000000000022, 0.05259999999999999], [-0.023040000000000022, 0.4658933333333332], [-0.4036266666666667, 0.26073333333333326]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.2569600000000003, -0.14922666666666667], [-0.8763733333333334, 0.05593333333333328], [-0.8763733333333334, 0.46922666666666657], [-1.25696, 0.2640666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333335, 0.08077333333333331], [-0.4497066666666668, 0.2859333333333334], [-0.44970666666666675, 0.6992266666666667], [-0.8302933333333334, 0.4940666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.3107733333333333], [-0.023040000000000026, 0.5159333333333332], [-0.023040000000000022, 0.9292266666666664], [-0.4036266666666667, 0.7240666666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.25696, 0.3141066666666666], [-0.8763733333333334, 0.5192666666666667], [-0.8763733333333334, 0.93256], [-1.25696, 0.7273999999999999]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, 0.5441066666666667], [-0.44970666666666675, 0.7492666666666666], [-0.44970666666666675, 1.16256], [-0.8302933333333334, 0.9574]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.7741066666666665], [-0.023040000000000026, 0.9792666666666665], [-0.023040000000000022, 1.3925599999999998], [-0.4036266666666667, 1.1873999999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.052599999999999994], [0.40362666666666663, -0.15256], [0.40362666666666663, 0.2607333333333333], [0.023039999999999998, 0.4658933333333332]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, -0.1774], [0.8302933333333332, -0.38255999999999996], [0.8302933333333333, 0.03073333333333328], [0.4497066666666667, 0.23589333333333332]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, -0.4074], [1.25696, -0.6125599999999999], [1.2569600000000003, -0.19926666666666668], [0.8763733333333333, 0.0058933333333332505]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.5159333333333332], [0.40362666666666663, 0.31077333333333335], [0.4036266666666667, 0.7240666666666666], [0.023039999999999998, 0.9292266666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.2859333333333334], [0.8302933333333333, 0.08077333333333336], [0.8302933333333333, 0.49406666666666665], [0.4497066666666667, 0.6992266666666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, 0.05593333333333328], [1.2569600000000003, -0.14922666666666667], [1.25696, 0.2640666666666666], [0.8763733333333332, 0.46922666666666657]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.9792666666666665], [0.4036266666666666, 0.7741066666666666], [0.40362666666666663, 1.1874], [0.023039999999999998, 1.3925599999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.7492666666666667], [0.8302933333333333, 0.5441066666666666], [0.8302933333333333, 0.9573999999999999], [0.4497066666666667, 1.16256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333332, 0.5192666666666667], [1.25696, 0.3141066666666666], [1.25696, 0.7273999999999999], [0.8763733333333333, 0.93256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}], "origin": [0, 0.0483432399999999]},
+"workshop-hammer": {"origin": [0, 0.16], "paths": [{"points": [[-0.15, -0.98], [0.19, -0.98], [0.23, 1.71], [0.11, 1.94], [-0.14, 1.94], [-0.25, 1.71]], "closed": true, "fill": true, "fillColor": "#32556b", "lineWidth": 0.055}, {"points": [[-1.43, -1.56], [-0.8, -1.56], [-0.8, -0.55], [-1.43, -0.55]], "closed": true, "fill": true, "fillColor": "#628096", "lineWidth": 0.055}, {"points": [[-0.86, -1.38], [0.24, -1.53], [0.72, -1.42], [1.16, -1.07], [1.48, -0.31], [1.1, -0.56], [0.75, -0.98], [0.25, -0.91], [-0.86, -0.71]], "closed": true, "fill": true, "fillColor": "#3b627a", "lineWidth": 0.055}, {"points": [[0.66, -1.38], [1.19, -1.15], [1.5, -0.54], [1.22, -0.75], [0.85, -1.02]], "closed": true, "fill": true, "fillColor": "#294c61", "lineWidth": 0.055}, {"points": [[-0.29, -1.38], [0.18, -1.38], [0.24, -0.76], [-0.29, -0.76]], "closed": true, "fill": true, "fillColor": "#234054", "lineWidth": 0.055}, {"points": [[-1.27, -1.37], [-1.27, -0.73]], "lineWidth": 0.045}, {"points": [[-0.22, 0.57], [0.21, 0.57], [0.23, 1.69], [0.11, 1.83], [-0.13, 1.83], [-0.24, 1.69]], "closed": true, "fill": true, "fillColor": "#233e53", "lineWidth": 0.055}, {"points": [[-0.16, 0.89], [0.16, 0.89]], "lineWidth": 0.04}, {"points": [[-0.16, 1.16], [0.16, 1.16]], "lineWidth": 0.04}, {"points": [[-0.16, 1.43], [0.16, 1.43]], "lineWidth": 0.04}]},
+"workshop-nail": {"paths": [{"points": [[-0.13, -1.32], [0.13, -1.32], [0.14, 1.5], [0, 1.94], [-0.14, 1.5]], "closed": true, "fill": true, "fillColor": "#285774"}, {"points": [[-0.59, -1.59], [0.59, -1.59], [0.66, -1.29], [-0.66, -1.29]], "closed": true, "fill": true, "fillColor": "#254d68"}, {"points": [[0, -0.86], [0, 1.32]], "lineWidth": 0.035}], "origin": [0, 0.17499999999999993]},
+"artists-brush": {"paths": [{"points": [[-0.12, -0.71], [0.12, -0.71], [0.17, 1.55], [0, 1.88], [-0.17, 1.55]], "closed": true, "fill": true, "fillColor": "#385c19"}, {"points": [[-0.24, -1.04], [0.24, -1.04], [0.2, -0.65], [-0.2, -0.65]], "closed": true, "fill": true, "fillColor": "#294916"}, {"commands": [["M", -0.23, -1], ["C", -0.56, -1.53, -0.34, -1.99, 0, -2.22], ["C", 0.35, -1.94, 0.48, -1.49, 0.23, -1], ["Z"]], "fill": true, "fillColor": "#244015"}, {"commands": [["M", 0, -2.02], ["C", -0.16, -1.64, -0.18, -1.4, -0.09, -1.2]], "lineWidth": 0.035}, {"points": [[0.12, -1.24], [0.17, -1.59]], "lineWidth": 0.035}, {"points": [[-0.08, 0.89], [0.09, 0.89]], "lineWidth": 0.035}], "origin": [-0.01653489289460358, -0.17000000000000015]},
+"chocolate-pistols": {"origin": [0, 0.12], "parts": [{"pivot": [-0.19, -0.25], "paths": [{"points": [[-1.31, -0.38], [-1.13, -0.57], [0.89, -0.57], [1.32, -0.3], [1.32, -0.01], [-1.31, -0.01]], "closed": true, "fill": true, "fillColor": "#956775", "lineWidth": 0.05}, {"points": [[-1.13, -0.01], [1.05, -0.01], [0.79, 0.22], [-0.1, 0.22], [-0.19, 0.51], [-0.23, 1.13], [-0.74, 1.13], [-0.98, 0.94], [-0.79, 0.22], [-1.13, 0.22]], "closed": true, "fill": true, "fillColor": "#523442", "lineWidth": 0.05}, {"commands": [["M", -0.11, 0.22], ["L", 0.54, 0.22], ["L", 0.45, 0.69], ["L", -0.23, 0.69], ["M", 0.09, 0.26], ["L", 0.01, 0.47]], "lineWidth": 0.06}, {"points": [[-0.15, -0.42], [0.34, -0.42], [0.34, -0.15], [-0.15, -0.15]], "closed": true, "fill": true, "fillColor": "#4b303e", "lineWidth": 0.05}, {"points": [[-1.06, -0.33], [-0.97, -0.12]], "lineWidth": 0.035}, {"points": [[-0.86, -0.41], [-0.73, -0.13]], "lineWidth": 0.035}, {"points": [[-0.66, -0.4], [-0.52, -0.13]], "lineWidth": 0.035}, {"points": [[1.1, -0.25], [1.1, -0.09]], "lineWidth": 0.05}, {"points": [[-0.67, 0.53], [-0.36, 0.53]], "lineWidth": 0.045}, {"points": [[-0.7, 0.78], [-0.39, 0.78]], "lineWidth": 0.045}, {"points": [[0.92, -0.59], [1.05, -0.59], [1.05, -0.48], [0.92, -0.48]], "closed": true, "fill": true, "fillColor": "#74505e", "lineWidth": 0.05}]}, {"pivot": [0.19, 0.25], "paths": [{"points": [[-1.31, -0.38], [-1.13, -0.57], [0.89, -0.57], [1.32, -0.3], [1.32, -0.01], [-1.31, -0.01]], "closed": true, "fill": true, "fillColor": "#956775", "lineWidth": 0.05}, {"points": [[-1.13, -0.01], [1.05, -0.01], [0.79, 0.22], [-0.1, 0.22], [-0.19, 0.51], [-0.23, 1.13], [-0.74, 1.13], [-0.98, 0.94], [-0.79, 0.22], [-1.13, 0.22]], "closed": true, "fill": true, "fillColor": "#523442", "lineWidth": 0.05}, {"commands": [["M", -0.11, 0.22], ["L", 0.54, 0.22], ["L", 0.45, 0.69], ["L", -0.23, 0.69], ["M", 0.09, 0.26], ["L", 0.01, 0.47]], "lineWidth": 0.06}, {"points": [[-0.15, -0.42], [0.34, -0.42], [0.34, -0.15], [-0.15, -0.15]], "closed": true, "fill": true, "fillColor": "#4b303e", "lineWidth": 0.05}, {"points": [[-1.06, -0.33], [-0.97, -0.12]], "lineWidth": 0.035}, {"points": [[-0.86, -0.41], [-0.73, -0.13]], "lineWidth": 0.035}, {"points": [[-0.66, -0.4], [-0.52, -0.13]], "lineWidth": 0.035}, {"points": [[1.1, -0.25], [1.1, -0.09]], "lineWidth": 0.05}, {"points": [[-0.67, 0.53], [-0.36, 0.53]], "lineWidth": 0.045}, {"points": [[-0.7, 0.78], [-0.39, 0.78]], "lineWidth": 0.045}, {"points": [[0.92, -0.59], [1.05, -0.59], [1.05, -0.48], [0.92, -0.48]], "closed": true, "fill": true, "fillColor": "#74505e", "lineWidth": 0.05}]}]},
+"chocolate-bazooka": {"origin": [0, 0.12], "paths": [{"points": [[-1.55, -0.4], [1.3, -0.4], [1.3, 0.4], [-1.55, 0.4]], "closed": true, "fill": true, "fillColor": "#66515b", "lineWidth": 0.055}, {"points": [[-1.82, -0.58], [-1.4, -0.58], [-1.4, 0.58], [-1.82, 0.58]], "closed": true, "fill": true, "fillColor": "#a27d87", "lineWidth": 0.055}, {"points": [[1.28, -0.62], [1.74, -0.62], [1.88, -0.44], [1.88, 0.44], [1.74, 0.62], [1.28, 0.62]], "closed": true, "fill": true, "fillColor": "#a27d87", "lineWidth": 0.055}, {"points": [[-0.74, 0.4], [-0.26, 0.4], [-0.43, 1.22], [-0.89, 1.22]], "closed": true, "fill": true, "fillColor": "#372d36", "lineWidth": 0.055}, {"points": [[0.52, 0.4], [0.86, 0.4], [0.83, 0.91], [0.5, 0.91]], "closed": true, "fill": true, "fillColor": "#493944", "lineWidth": 0.055}, {"points": [[-0.59, -0.4], [-0.59, -0.74], [0.35, -0.74], [0.35, -0.4]], "closed": true, "fill": true, "fillColor": "#493944", "lineWidth": 0.055}, {"points": [[-1.22, -0.18], [1.1, -0.18]], "lineWidth": 0.04}, {"points": [[-1.65, -0.37], [-1.65, 0.37]], "lineWidth": 0.07}, {"points": [[1.55, -0.4], [1.55, 0.4]], "lineWidth": 0.075}, {"points": [[-0.71, 0.64], [-0.4, 0.64]], "lineWidth": 0.05}, {"points": [[-0.78, 0.87], [-0.46, 0.87]], "lineWidth": 0.05}, {"points": [[0.4, 0.4], [0.32, 0.77], [-0.27, 0.77]], "lineWidth": 0.05}]},
+"chocolate-bomb": {"origin": [0, -0.12], "paths": [{"points": [[-0.85, -1.04], [0.85, -1.04], [1.06, -0.83], [1.06, 0.86], [0.85, 1.07], [-0.85, 1.07], [-1.06, 0.86], [-1.06, -0.83]], "closed": true, "fill": true, "fillColor": "#47303b", "lineWidth": 0.055}, {"points": [[-0.88, -0.88], [0.88, -0.88], [0.88, 0.32], [-0.88, 0.32]], "closed": true, "fill": true, "fillColor": "#76505b", "lineWidth": 0.055}, {"points": [[-1.06, 0.32], [-0.7, 0.2], [-0.34, 0.38], [0, 0.2], [0.35, 0.38], [0.7, 0.2], [1.06, 0.32], [1.06, 0.86], [0.85, 1.07], [-0.85, 1.07], [-1.06, 0.86]], "closed": true, "fill": true, "fillColor": "#ab7d86", "lineWidth": 0.055}, {"points": [[0, -0.85], [0, 0.22]], "lineWidth": 0.045}, {"points": [[-0.86, -0.3], [0.86, -0.3]], "lineWidth": 0.045}, {"commands": [["M", 0, -1.04], ["C", -0.12, -1.43, 0.38, -1.64, 0.58, -1.31]], "lineWidth": 0.095}, {"points": [[-0.27, 0.58], [0, 0.4], [0.27, 0.58], [0, 0.78]], "closed": true, "fill": true, "fillColor": "#61414d", "lineWidth": 0.055}]},
+"dodge-slip": {"origin": [0, 0], "paths": [{"commands": [["M", -1.29, -0.68], ["C", -1.81, 0.13, -1.25, 1.35, -0.24, 1.44], ["C", -0.9, 1.04, -1.06, 0.07, -0.72, -0.58], ["Z"]], "fill": true, "fillColor": "#916570"}, {"commands": [["M", 1.29, 0.68], ["C", 1.81, -0.13, 1.25, -1.35, 0.24, -1.44], ["C", 0.9, -1.04, 1.06, -0.07, 0.72, 0.58], ["Z"]], "fill": true, "fillColor": "#916570"}, {"points": [[-1.54, -0.97], [-0.87, -1.27]], "lineWidth": 0.07}, {"points": [[1.54, 0.97], [0.87, 1.27]], "lineWidth": 0.07}, {"points": [[-0.13, -0.61], [0.34, -0.12], [0.13, 0.61], [-0.34, 0.12]], "closed": true, "fill": true, "fillColor": "#b7808b", "lineWidth": 0.05}]},
+"demon-trident": {"origin": [0, -0.15], "paths": [{"points": [[-0.1, -1.68], [0.1, -1.68], [0.12, 1.9], [0, 2.13], [-0.12, 1.9]], "closed": true, "fill": true, "fillColor": "#583140", "lineWidth": 0.05}, {"points": [[0, -2.82], [0.26, -2.26], [0.13, -2.35], [0.13, -1.34], [0.43, -1.53], [0.62, -1.77], [0.65, -2.29], [0.53, -2.14], [0.7, -2.73], [1.02, -2.26], [0.89, -2.31], [0.88, -1.65], [0.61, -1.2], [0.22, -0.98], [-0.22, -0.98], [-0.61, -1.2], [-0.88, -1.65], [-0.89, -2.31], [-1.02, -2.26], [-0.7, -2.73], [-0.53, -2.14], [-0.65, -2.29], [-0.62, -1.77], [-0.43, -1.53], [-0.13, -1.34], [-0.13, -2.35], [-0.26, -2.26]], "closed": true, "fill": true, "fillColor": "#926070", "lineWidth": 0.05}, {"points": [[-0.21, -1.05], [0, -1.3], [0.21, -1.05], [0, -0.79]], "closed": true, "fill": true, "fillColor": "#bb8292", "lineWidth": 0.05}, {"points": [[0, -0.6], [0, 1.61]], "lineWidth": 0.03}, {"points": [[-0.19, 1.7], [0.19, 1.7], [0.14, 1.97], [0, 2.13], [-0.14, 1.97]], "closed": true, "fill": true, "fillColor": "#926070", "lineWidth": 0.05}]},
+"maid-broom": {"origin": [0, 0], "paths": [{"points": [[-0.08, -2.2], [0.08, -2.2], [0.1, 0.58], [-0.1, 0.58]], "closed": true, "fill": true, "fillColor": "#644253", "lineWidth": 0.05}, {"points": [[-0.17, 0.43], [0.17, 0.43], [0.21, 0.76], [-0.21, 0.76]], "closed": true, "fill": true, "fillColor": "#a97b95", "lineWidth": 0.05}, {"points": [[-0.24, 0.68], [0.24, 0.68], [0.52, 1.02], [0.76, 1.94], [0.51, 2.13], [0.29, 2.02], [0, 2.15], [-0.29, 2.02], [-0.51, 2.13], [-0.76, 1.94], [-0.52, 1.02]], "closed": true, "fill": true, "fillColor": "#9b6b84", "lineWidth": 0.05}, {"points": [[-0.48, 0.99], [0.48, 0.99], [0.53, 1.2], [-0.53, 1.2]], "closed": true, "fill": true, "fillColor": "#563548", "lineWidth": 0.05}, {"points": [[-0.32, 1.32], [-0.49, 1.94]], "lineWidth": 0.03}, {"points": [[-0.12, 1.3], [-0.21, 1.99]], "lineWidth": 0.03}, {"points": [[0.12, 1.3], [0.21, 1.99]], "lineWidth": 0.03}, {"points": [[0.32, 1.32], [0.49, 1.94]], "lineWidth": 0.03}, {"points": [[-0.12, -2.21], [0.12, -2.21], [0.12, -2.06], [-0.12, -2.06]], "closed": true, "fill": true, "fillColor": "#9b6b84", "lineWidth": 0.05}]},
+"marshmallow-skewer": {"origin": [0, 0], "paths": [{"points": [[-0.075, -1.6], [0.075, -1.6], [0.095, 1.47], [-0.095, 1.47]], "closed": true, "fill": true, "fillColor": "#796144", "lineWidth": 0.045}, {"points": [[-0.055, -3], [0, -3.38], [0.055, -3]], "closed": true, "fill": true, "fillColor": "#796144", "lineWidth": 0.045}, {"commands": [["M", -0.72, -2.83], ["C", -0.62, -3.04, 0.53, -3.04, 0.72, -2.84], ["C", 0.86, -2.67, 0.82, -1.9, 0.64, -1.72], ["C", 0.4, -1.5, -0.45, -1.52, -0.67, -1.73], ["C", -0.84, -1.9, -0.89, -2.6, -0.72, -2.83], ["Z"]], "fill": true, "fillColor": "#eadbc2", "lineWidth": 0.055}, {"commands": [["M", -0.71, -2.81], ["C", -0.46, -2.61, 0.47, -2.61, 0.72, -2.83]], "lineWidth": 0.04}, {"commands": [["M", 0.6, -2.65], ["C", 0.69, -2.35, 0.65, -1.95, 0.54, -1.79]], "lineWidth": 0.035}, {"points": [[-0.13, 0.78], [0.13, 0.78], [0.19, 1.12], [0.19, 1.96], [0.11, 2.18], [-0.11, 2.18], [-0.19, 1.96], [-0.19, 1.12]], "closed": true, "fill": true, "fillColor": "#67533b", "lineWidth": 0.045}, {"points": [[-0.19, 1.27], [0.19, 1.27]], "lineWidth": 0.035}, {"points": [[-0.19, 1.7], [0.19, 1.7]], "lineWidth": 0.035}]},
+"forge-hammer": {"origin": [0, 0], "paths": [{"points": [[-0.12, -2], [0.12, -2], [0.16, 1.67], [0.09, 1.88], [-0.09, 1.88], [-0.16, 1.67]], "closed": true, "fill": true, "fillColor": "#424247", "lineWidth": 0.045}, {"points": [[-1.27, -2.24], [-0.66, -2.65], [0.64, -2.65], [0.64, -2.76], [1.16, -2.76], [1.29, -2.63], [1.29, -1.64], [1.16, -1.5], [0.64, -1.5], [0.64, -1.61], [-0.66, -1.61], [-1.27, -1.96]], "closed": true, "fill": true, "fillColor": "#68686d", "lineWidth": 0.055}, {"points": [[0.64, -2.65], [0.64, -1.61]], "lineWidth": 0.045}, {"points": [[-0.22, -2.48], [0.22, -2.48], [0.22, -1.73], [-0.22, -1.73]], "closed": true, "fill": true, "fillColor": "#4a4a50", "lineWidth": 0.035}, {"points": [[-0.16, 0.5], [0.16, 0.5], [0.18, 1.53], [-0.18, 1.53]], "closed": true, "fill": true, "fillColor": "#36363b", "lineWidth": 0.04}, {"points": [[-0.18, 0.8], [0.18, 0.8]], "lineWidth": 0.03}, {"points": [[-0.18, 1.2], [0.18, 1.2]], "lineWidth": 0.03}]},
+"forge-hammer-mirrored": {"origin": [0, 0], "parts": [{"scaleX": -1, "paths": [{"points": [[-0.1125, -1.2], [0.1125, -1.2], [0.15, 0.9], [0.1, 1.12], [-0.1, 1.12], [-0.15, 0.9]], "lineWidth": 0.04, "closed": true, "fill": true, "fillColor": "#424247"}, {"points": [[-0.7, -1.592], [-0.62, -1.704], [0.62, -1.704], [0.7, -1.592], [0.7, -1.158], [0.62, -1.046], [-0.62, -1.046], [-0.7, -1.158]], "lineWidth": 0.05, "closed": true, "fill": true, "fillColor": "#68686d"}, {"points": [[-0.49, -1.704], [-0.49, -1.046]], "lineWidth": 0.035}, {"points": [[0.49, -1.704], [0.49, -1.046]], "lineWidth": 0.035}, {"points": [[-0.15, -1.662], [0.15, -1.662], [0.15, -1.088], [-0.15, -1.088]], "lineWidth": 0.035, "closed": true, "fill": true, "fillColor": "#4a4a50"}, {"points": [[-0.15, 0.1], [0.15, 0.1], [0.2, 0.82], [0.1375, 1.04], [-0.1375, 1.04], [-0.2, 0.82]], "lineWidth": 0.04, "closed": true, "fill": true, "fillColor": "#36363b"}, {"points": [[-0.175, 0.4], [0.175, 0.4]], "lineWidth": 0.03}, {"points": [[-0.1875, 0.75], [0.1875, 0.75]], "lineWidth": 0.03}]}]}
 });
 /* 모든 월드 무기: 공용 형상 목록·계열 팔레트·조건·투명도·회전·사용 모션. */
 const ModeGearPresentationService=Object.freeze({
@@ -137066,17 +127316,36 @@ const ModeGearPresentationService=Object.freeze({
   deathState:{liveSamples:new WeakMap(),pendingSamples:new WeakMap(),remnants:new Map()},
   DEATH_HOLD_MS:160,DEATH_FADE_MS:1600,
   configs(entity){return entity?.kind==='summon'?(entity.summonSpec?.worldEffectModules||EMPTY_RUNTIME_ITEMS):(entity?.character?.worldEffectModules||EMPTY_RUNTIME_ITEMS);},
+  definition(entity,config){
+    return config.formationKey?CircleFormationService.weaponDefinition(entity,config):WEAPON_IMAGE_DEFS[config.style];
+  },
   sampleWeapons(entity,alpha,now){
     const images=[];
     for(const config of this.configs(entity)){
       if(config.renderType!=='weaponImage'||!this.matches(entity,config.conditions,now,config.conditionTarget))continue;
+      if(config.formationKey&&!this.definition(entity,config))continue;
       images.push(this.sampleImage(entity,config,now));
     }
     return {entity:{radius:entity.radius,character:{color:entity.character?.color}},images,alpha,x:entity.x,y:entity.y,sampledAt:now};
   },
+  movementFacing:new WeakMap(),
+  facingAngle(entity,config){
+    if(config.facing!=='movement')return 0;
+    const x=Number(entity.x)||0,y=Number(entity.y)||0;
+    const previous=this.movementFacing.get(entity);
+    let angle=previous?.angle??(Number.isFinite(entity.lastMovementInputAngle)?entity.lastMovementInputAngle:0);
+    const dx=previous?x-previous.x:0,dy=previous?y-previous.y:0;
+    if(Math.hypot(dx,dy)>.001)angle=Math.atan2(dy,dx);
+    else {
+      const movement=MovementAbilityService.state(entity,config.facingMovementStateKey);
+      if(movement&&Number.isFinite(movement.angle))angle=movement.angle;
+    }
+    this.movementFacing.set(entity,{x,y,angle});
+    return angle;
+  },
   sampleImage(entity,config,now){
     const pose=this.weaponPose(entity,config,now);
-    return {config,sample:{pose:{pulse:pose.pulse,pull:pose.pull},partPoses:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>{const p=this.weaponPose(entity,m,now);return {pulse:p.pulse,pull:p.pull};}),spin:config.rotationStateKey?this.rotation(entity,config,Number(config.rotationMs)||300,now):0,alpha:this.imageAlpha(entity,config,now),activeColor:this.activeColor(entity,config,now),tintAmount:this.activityTint(entity,config,now)?.amount??0,sparkActive:!!config.sparkConditions&&this.matches(entity,config.sparkConditions,now,config.conditionTarget)}};
+    return {config,sample:{facingAngle:this.facingAngle(entity,config),definition:config.formationKey?this.definition(entity,config):undefined,pose:{pulse:pose.pulse,pull:pose.pull},partSpins:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>m.rotationStateKey?this.rotation(entity,m,Number(m.rotationMs)||300,now):0),partPoses:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>{const p=this.weaponPose(entity,m,now);return {pulse:p.pulse,pull:p.pull};}),spin:config.rotationStateKey?this.rotation(entity,config,Number(config.rotationMs)||300,now):0,alpha:this.imageAlpha(entity,config,now),activeColor:this.activeColor(entity,config,now),tintAmount:this.activityTint(entity,config,now)?.amount??0,sparkActive:!!config.sparkConditions&&this.matches(entity,config.sparkConditions,now,config.conditionTarget)}};
   },
   captureDeath(entity,now=performance.now()){
     if(!entity)return false;
@@ -137114,6 +127383,7 @@ const ModeGearPresentationService=Object.freeze({
     let signature='',color=entity.character?.color;
     for(const config of configs){
       if(config.renderType!=='weaponImage'||!this.matches(entity,config.conditions,now,config.conditionTarget))continue;
+      if(config.formationKey&&!this.definition(entity,config))continue;
       signature+=`${config.style}:${config.color}:${config.empowered===true}|`;color=config.color||color;
     }
     let previous=this.weaponImages.get(entity);
@@ -137167,6 +127437,11 @@ const ModeGearPresentationService=Object.freeze({
   activityTint(entity,config,now){
     let latest=-Infinity,tint=null;
     for(const activity of config.activityColors||EMPTY_RUNTIME_ITEMS){
+      if(activity.untilProperty){
+        const remaining=Number(entity?.[activity.untilProperty]||0)-now;
+        if(remaining>0)return {color:activity.color,amount:Math.min(1,remaining/Math.max(1,Number(activity.fadeMs)||1))};
+        continue;
+      }
       if(activity.conditions){if(this.matches(entity,activity.conditions,now,config.conditionTarget))return {color:activity.color,amount:1};continue;}
       const at=ModeStateService.state(entity,activity.stateKey)?.changedAt,duration=Number(activity.duration||600);
       if(at!==undefined&&now>=at&&now-at<duration&&at>=latest){
@@ -137212,7 +127487,7 @@ const ModeGearPresentationService=Object.freeze({
     }
   },
   drawImage(ctx,entity,config,alpha,now=performance.now(),sample=null){
-    const definition=WEAPON_IMAGE_DEFS[config.style];if(!definition)return false;
+    const definition=sample?.definition||this.definition(entity,config);if(!definition)return false;
     const size=Math.max(12,Number(entity.radius)||20)*(Number(config.scale)||1.5);
     const pose=sample?.pose||this.weaponPose(entity,config,now),motion=config.motion||{};
     const spin=sample?.spin??(config.rotationStateKey?this.rotation(entity,config,Number(config.rotationMs)||300,now):0);
@@ -137220,7 +127495,7 @@ const ModeGearPresentationService=Object.freeze({
     const reaction=sample?0:this.reaction(entity,now);
     ctx.save();ctx.globalAlpha=alpha*(reaction>0?Math.min(1,this.imageAlpha(entity,config,now)+reaction*2):sample?.alpha??this.imageAlpha(entity,config,now));
     ctx.translate(Number(config.x||0),Number(config.y||0));
-    ctx.rotate(Number(config.angle||0)+spin+Number(motion.rotation||0)*pose.pulse+Number(motion.chargeRotation||0)*pose.pull);
+    ctx.rotate(Number(config.angle||0)+(sample?.facingAngle??this.facingAngle(entity,config))+spin+Number(motion.rotation||0)*pose.pulse+Number(motion.chargeRotation||0)*pose.pull);
     ctx.translate(Number(motion.travelX||0)*size*pose.pulse,Number(motion.travelY||0)*size*pose.pulse);
     if(reaction>0)ctx.scale(1+reaction,1+reaction);
     ctx.translate(-Number(definition.origin?.[0]||0)*size,-Number(definition.origin?.[1]||0)*size);
@@ -137234,7 +127509,8 @@ const ModeGearPresentationService=Object.freeze({
       ctx.translate(Number(part.pivot?.[0]||0)*size,Number(part.pivot?.[1]||0)*size);
       const partMotion=config.partMotions?.[partIndex];
       const partPose=sample?.partPoses?.[partIndex]||(partMotion?this.weaponPose(entity,partMotion,now):pose);
-      ctx.rotate(Number(part.angle||0)+Number(part.pulseAngle||0)*partPose.pulse+Number(partMotion?.rotation||0)*partPose.pulse);
+      const partSpin=sample?.partSpins?.[partIndex]??(partMotion?.rotationStateKey?this.rotation(entity,partMotion,Number(partMotion.rotationMs)||300,now):0);
+      ctx.rotate(Number(part.angle||0)+partSpin+Number(part.pulseAngle||0)*partPose.pulse+Number(partMotion?.rotation||0)*partPose.pulse);
       if(partMotion)ctx.translate(Number(partMotion.travelX||0)*size*partPose.pulse,Number(partMotion.travelY||0)*size*partPose.pulse);
       ctx.scale(Number(part.scaleX??1),Number(part.scaleY??1));
       for(const path of part.paths||EMPTY_RUNTIME_ITEMS){this.path(ctx,path,size);ctx.fillStyle=this.pathFill(path.fillColor,palette,config);ctx.strokeStyle=palette.edge;ctx.lineWidth=Math.min(path.fill?1.8:1.35,path.lineWidth?Math.max(.7,path.lineWidth*size):Math.max(1.3,size*.055));if(path.fill)ctx.fill();if(path.stroke!==false)ctx.stroke();}
@@ -137271,6 +127547,13 @@ const ModeGearPresentationService=Object.freeze({
 
 
 const TrainingWorldDrawService=Object.freeze({
+  drawProjectileOwnerLink(ctx,projectile,visual,style,viewer,alpha=1){
+    if(!ctx||style?.showLink!==true||!projectile?.source||EntityService.owner(projectile.source)!==viewer)return false;
+    ctx.save();ctx.beginPath();ctx.moveTo(projectile.source.x,projectile.source.y);ctx.lineTo(visual.x,visual.y);
+    ctx.strokeStyle=`rgba(${projectile.renderRgb},${alpha*(Number.isFinite(Number(style.linkAlpha))?Math.max(0,Number(style.linkAlpha)):.2)})`;
+    ctx.lineWidth=Math.max(.5,Number(style.linkWidth)||1.5);ctx.setLineDash(Array.isArray(style.linkDash)?style.linkDash:[5,4]);ctx.stroke();ctx.restore();return true;
+  },
+
   emptyOptions:Object.freeze({}),
   previewRgbCache:new Map(),
   previewRgb(value){
@@ -138519,8 +128802,10 @@ const RuliRulerPresentationService=Object.freeze({
         startDistance,
         distance+strikeWidth/2
       );
+    const travelProgress=f.animateOutline===true?Math.min(1,Math.max(0,progress)/Math.max(.001,Number(f.travelFraction)||.45)):1;
+    const animatedEnd=startDistance+(endDistance-startDistance)*travelProgress;
     const outlineLength=
-      Math.max(1,endDistance-startDistance);
+      Math.max(1,animatedEnd-startDistance);
     const outlineCenterDistance=
       startDistance+outlineLength/2;
 
@@ -138544,7 +128829,7 @@ const RuliRulerPresentationService=Object.freeze({
     // 강한 눈금도 캐릭터 테두리 안쪽은 그리지 않는다.
     const nx=-dirY,ny=dirX;
     const edgeOffset=strikeLength/2;
-    const rulerEnd=Math.max(startDistance,distance+strikeWidth/2);
+    const rulerEnd=animatedEnd;
     for(const mark of this.ticks(strikeWidth,rulerEnd)){
       if(mark.distance+1e-6<startDistance)continue;
       const tick=mark.major?this.config.majorLength:this.config.minorLength;
@@ -138567,7 +128852,8 @@ const RuliRulerPresentationService=Object.freeze({
       ctx.stroke();
     }
 
-    // 기존 확대 연출의 타격 네모 자체는 남기되, 처음부터 실제 크기로 고정한다.
+    if(f.animateOutline===true&&travelProgress<1)return;
+    // Fill only the actual end-of-range strike rectangle.
     ctx.save();
     ctx.translate(tx,ty);
     ctx.rotate(angle);
@@ -139227,8 +129513,7 @@ const Training={
       screen.style.removeProperty('display');
     });
 
-    const settingsPanel=document.getElementById('duels-display-settings-panel');
-    if(settingsPanel)settingsPanel.hidden=true;
+    PanelController.toggle('settings',false);
 
     const select=document.getElementById('scr-select');
     OnlineChatService.syncVisibility();
@@ -139421,6 +129706,7 @@ const Training={
     return this.start();
   },
   stopSessionOnly(){
+    PanelController.toggle('settings',false);
     CameraFovService.reset();this.active=false;cancelAnimationFrame(this.raf);this.raf=0;this.closePanels();PointerHoldInputService.releaseAll();
     EntityService.clear();DynamicWallService.clearAll();ProjectileService.clear();SimulationScheduleService.clear();EffectSpawnService.clearAll();this.keys.clear();this.bots.length=0;this.dummies.length=0;
     this.player=null;
@@ -139762,6 +130048,7 @@ const Training={
     this.syncHud();
   },
   exit(){
+    PanelController.toggle('settings',false);
     CharacterCommandInputService.reset();
     CameraFovService.reset();
     this.active=false;
@@ -139912,7 +130199,7 @@ const Training={
 
     return total;
   },
-  mouseWorld(cameraState=null){
+  mouseWorld(cameraState=null,{allowOutsideWorld=false}={}){
     const canvas=this.canvas||
       document.getElementById('gameCanvas');
     const rect=canvas.getBoundingClientRect();
@@ -139961,6 +130248,7 @@ const Training={
       cam.y+
       canvas.height/2+
       (canvasY-canvas.height/2)/zoom;
+    if(allowOutsideWorld){out.x=rawX;out.y=rawY;return out;}
     const worldWidth=WorldBoundsService.width();
     const worldHeight=WorldBoundsService.height();
     const outsideWorld=
@@ -140525,6 +130813,7 @@ const Training={
       ShieldService.update(entity,now);
 
       if(entity.character?.reactiveEquipment)ReactiveEquipmentService.update(entity,now);
+      if(entity.character?.ideaModules)IdeaModuleService.update(entity,now);
       ProgressStateService.updateIdleRepair(entity,now);
 
       if(entity!==this.player)ChargedAttackService.update(entity,now);
@@ -141971,6 +132260,7 @@ const Training={
       }
 
 
+      TrainingWorldDrawService.drawProjectileOwnerLink(ctx,b,visual,style,this.player,alpha);
       const execution=b.volley?.execution||null;
       const useTrap=style?.shape==='trap';
       const useDiamond=
@@ -142109,6 +132399,7 @@ const Training={
       ){
         continue;
       }
+      if(f.type==='pathCarrier'){if(!f.summonStateKey)PathCarrierService.draw(ctx,f,now);continue;}
       if(f.animationState&&(!f.type||f.type==='effectShape')){
         const alpha=Math.max(0,1-progress);
         const scale=Number(f.scale)||1;
@@ -143414,388 +133705,7 @@ const Training={
       }
 
       if(f.type==='annularDoubleSweep'){
-        ctx.save();
-
-        const hasAnnularClip=
-          Array.isArray(f.points)&&
-          f.points.length>=3;
-        const applyAnnularClip=()=>{
-          if(!hasAnnularClip)return;
-          ctx.beginPath();
-          ctx.moveTo(
-            Number(f.points[0]?.x)||0,
-            Number(f.points[0]?.y)||0
-          );
-          for(
-            let pointIndex=1;
-            pointIndex<f.points.length;
-            pointIndex++
-          ){
-            ctx.lineTo(
-              Number(f.points[pointIndex]?.x)||0,
-              Number(f.points[pointIndex]?.y)||0
-            );
-          }
-          ctx.closePath();
-          ctx.clip();
-        };
-        applyAnnularClip();
-
-        // 기존 듀얼즈 shape.annularDoubleSweep와 동일한 시각 수식.
-        // Duels 3에서는 f.dur가 총 지속시간(ms)이므로 공통 progress를 사용한다.
-        const legacyAlpha=1-progress;
-        const sweepFraction=
-          Math.max(
-            .001,
-            Math.min(
-              .999,
-              Number(f.sweepFraction)||.55
-            )
-          );
-        const sweep=
-          Math.min(
-            1,
-            progress/sweepFraction
-          );
-        const fade=
-          progress>sweepFraction
-            ?Math.pow(
-              1-
-              (
-                progress-sweepFraction
-              )/
-              (
-                1-sweepFraction
-              ),
-              Number(f.fadePower)||1.5
-            )
-            :1;
-
-        // 회전 공격은 진행 중 기본 공격과 같은 선명도를 유지하고,
-        // sweep 완료 뒤에만 fade 곡선으로 사라진다. 수명 alpha와 fade를
-        // 중복 곱해 공격 중간부터 과도하게 흐려지는 현상을 만들지 않는다.
-        const visualAlpha=
-          (f.lifetimeAlpha===true?legacyAlpha:1)*
-          (progress>sweepFraction?fade:1);
-
-        const outer=
-          Math.max(
-            1,
-            Number(f.outer)||
-            Number(f.r)||
-            60
-          );
-        const inner=
-          Math.max(
-            0,
-            Number(f.inner)||0
-          );
-        const angle=
-          (Number.isFinite(Number(f.angle))
-            ?Number(f.angle)
-            :-Math.PI/2)+
-          (Number(f.startAngleOffset)||0);
-        const span=
-          Number.isFinite(Number(f.halfAngle))
-            ?Number(f.halfAngle)
-            :(
-              Number.isFinite(Number(f.span))
-                ?Number(f.span)
-                :Math.PI
-            );
-        const hitColor=
-          ColorService.rgbString(
-            f.hitColor||
-            (
-              f.empow
-                ?(
-                  f.empoweredColor||
-                  '255,160,40'
-                )
-                :(
-                  f.color||
-                  '180,180,200'
-                )
-            ),
-            '180,180,200'
-          );
-        const safeColor=
-          ColorService.rgbString(
-            f.safeColor,
-            '80,80,100'
-          );
-
-        const sweepCount=Math.max(
-          1,
-          Math.floor(Number(f.sweepCount)||2)
-        );
-        const clockwise=
-          String(f.sweepDirection||'clockwise')!==
-          'counterclockwise';
-
-        for(let index=0;index<sweepCount;index++){
-          const converge=
-            f.converge===true;
-
-          // 기본(Tau): 서로 반대편 시작점에서 같은 방향으로 sweep.
-          // sweepCount:1은 하나의 회전 공격이 지정 span 전체를 순회한다.
-          // converge: 지정된 최종 부채꼴의 양 끝에서 중앙을 향해 각각 sweep.
-          const finalStart=
-            angle-span;
-          const finalEnd=
-            angle+span;
-          const startAngle=
-            converge
-              ?(
-                index===0
-                  ?finalStart
-                  :finalEnd
-              )
-              :angle+index*(Math.PI*2/sweepCount);
-          const signedSweep=
-            span*sweep*(clockwise?1:-1);
-          const endAngle=
-            converge
-              ?(
-                index===0
-                  ?finalStart+span*sweep
-                  :finalEnd-span*sweep
-              )
-              :startAngle+signedSweep;
-          const counterClockwise=
-            converge
-              ?index===1
-              :!clockwise;
-
-          if(inner>0){
-            ctx.beginPath();
-            ctx.moveTo(f.x,f.y);
-            ctx.arc(
-              f.x,
-              f.y,
-              inner,
-              startAngle,
-              endAngle,
-              counterClockwise
-            );
-            ctx.closePath();
-            ctx.fillStyle=
-              `rgba(${safeColor},${visualAlpha*Math.max(0,Number(f.safeFillAlpha)||.1)})`;
-            ctx.fill();
-            ctx.setLineDash(
-              Array.isArray(f.safeDash)
-                ?f.safeDash
-                :[5,4]
-            );
-            ctx.strokeStyle=
-              `rgba(${safeColor},${visualAlpha*Math.max(0,Number(f.safeStrokeAlpha)||.55)})`;
-            ctx.lineWidth=
-              Math.max(
-                .5,
-                Number(f.safeLineWidth)||1.5
-              );
-            ctx.stroke();
-            ctx.setLineDash([]);
-          }
-
-          const hitFillAlpha=
-            visualAlpha*
-            Math.max(
-              0,
-              Number(f.fillAlpha)||.28
-            );
-          const hitStrokeAlpha=
-            visualAlpha*
-            Math.max(
-              0,
-              Number(f.strokeAlpha)||.95
-            );
-          const visibleLineWidth=
-            Math.max(
-              .5,
-              Number(f.lineWidth)||2.5
-            );
-
-          if(inner<=0&&f.edgeLine===false){
-            /*
-              중심까지 닫는 sector path는 fill 경계에 방사형 seam을 만들 수 있다.
-              중심이 0인 edge-less sweep은 두꺼운 원호 stroke로 면을 채워
-              시작/끝 방사선을 path 자체에서 제거한다.
-            */
-            ctx.save();
-            ctx.lineCap='butt';
-            ctx.beginPath();
-            ctx.arc(
-              f.x,
-              f.y,
-              outer*.5,
-              startAngle,
-              endAngle,
-              counterClockwise
-            );
-            ctx.strokeStyle=
-              `rgba(${hitColor},${hitFillAlpha})`;
-            ctx.lineWidth=outer;
-            ctx.stroke();
-            ctx.restore();
-
-            ctx.beginPath();
-            ctx.arc(
-              f.x,
-              f.y,
-              outer,
-              startAngle,
-              endAngle,
-              counterClockwise
-            );
-            ctx.strokeStyle=
-              `rgba(${hitColor},${hitStrokeAlpha})`;
-            ctx.lineWidth=visibleLineWidth;
-            if(!hasAnnularClip||f.clipMaskOnly===true)ctx.stroke();
-          }else{
-            ctx.beginPath();
-            ctx.arc(
-              f.x,
-              f.y,
-              outer,
-              startAngle,
-              endAngle,
-              counterClockwise
-            );
-            if(inner>0){
-              ctx.arc(
-                f.x,
-                f.y,
-                inner,
-                endAngle,
-                startAngle,
-                !counterClockwise
-              );
-            }else{
-              ctx.lineTo(f.x,f.y);
-            }
-            ctx.closePath();
-            ctx.fillStyle=
-              `rgba(${hitColor},${hitFillAlpha})`;
-            ctx.fill();
-            ctx.strokeStyle=
-              `rgba(${hitColor},${hitStrokeAlpha})`;
-            ctx.lineWidth=visibleLineWidth;
-            if(f.edgeLine===false){
-              ctx.beginPath();
-              ctx.arc(
-                f.x,
-                f.y,
-                outer,
-                startAngle,
-                endAngle,
-                counterClockwise
-              );
-              if(!hasAnnularClip||f.clipMaskOnly===true)ctx.stroke();
-              if(inner>0){
-                ctx.beginPath();
-                ctx.arc(
-                  f.x,
-                  f.y,
-                  inner,
-                  startAngle,
-                  endAngle,
-                  counterClockwise
-                );
-                if(!hasAnnularClip||f.clipMaskOnly===true)ctx.stroke();
-              }
-            }else if(!hasAnnularClip){
-              ctx.stroke();
-            }
-          }
-
-          if(f.edgeLine===true&&Math.abs(endAngle-startAngle)>1e-5){
-            const edgeColor=ColorService.rgbString(f.edgeColor,'255,255,255');
-            const edgeAlpha=Math.max(0,Math.min(1,Number.isFinite(Number(f.edgeAlpha))?Number(f.edgeAlpha):.75));
-            const edgeLineWidth=Math.max(.5,Number(f.edgeLineWidth)||2.5);
-            ctx.beginPath();
-            ctx.moveTo(
-              f.x+Math.cos(endAngle)*inner,
-              f.y+Math.sin(endAngle)*inner
-            );
-            ctx.lineTo(
-              f.x+Math.cos(endAngle)*outer,
-              f.y+Math.sin(endAngle)*outer
-            );
-            ctx.strokeStyle=`rgba(${edgeColor},${visualAlpha*edgeAlpha})`;
-            ctx.lineWidth=edgeLineWidth;
-            ctx.setLineDash([]);
-            ctx.stroke();
-          }
-
-
-
-        }
-
-        /*
-          clipToAttackArea가 있는 회전 공격은 완성된 polygon 윤곽을 시작 프레임부터
-          미리 그리지 않는다. 스야 arcSweep과 동일하게 현재 sweep 각도만큼의 geometry를
-          다시 만들고 그 polygon을 stroke해 외곽선과 벽 절단면이 애니메이션 진행과 함께
-          생성되도록 한다.
-        */
-        if(hasAnnularClip&&sweep>0&&f.clipMaskOnly!==true){
-          // clip 마스크 바깥에서 현재 geometry 윤곽을 그려 벽 절단선이 반쪽으로 잘리지 않게 한다.
-          ctx.restore();
-          ctx.save();
-          for(let index=0;index<sweepCount;index++){
-            const converge=f.converge===true;
-            const finalStart=angle-span;
-            const finalEnd=angle+span;
-            const startAngle=
-              converge
-                ?(index===0?finalStart:finalEnd)
-                :angle+index*(Math.PI*2/sweepCount);
-            const signedSweep=span*sweep*(clockwise?1:-1);
-            const endAngle=
-              converge
-                ?(index===0?finalStart+span*sweep:finalEnd-span*sweep)
-                :startAngle+signedSweep;
-            const counterClockwise=converge?index===1:!clockwise;
-            const currentPoints=
-              ProgressiveClippedAreaOutlinePresentationService
-                .annularSweepPoints(
-                  f,
-                  startAngle,
-                  endAngle,
-                  outer,
-                  inner,
-                  counterClockwise
-                );
-            ProgressiveClippedAreaOutlinePresentationService.strokePolygon(
-              ctx,
-              currentPoints,
-              {
-                color:hitColor,
-                alpha:visualAlpha*Math.max(0,Number(f.strokeAlpha)||.95),
-                lineWidth:Math.max(.5,Number(f.lineWidth)||2.5)
-              }
-            );
-          }
-        }
-
-        const integratedCuts=Array.isArray(f.wallCutSegments)?f.wallCutSegments:[];
-        if(integratedCuts.length){
-          ctx.setLineDash([]);
-          ctx.beginPath();
-          for(const segment of integratedCuts){
-            const ax=Number(segment?.ax),ay=Number(segment?.ay),bx=Number(segment?.bx),by=Number(segment?.by);
-            if(![ax,ay,bx,by].every(Number.isFinite))continue;
-            ctx.moveTo(ax,ay);
-            ctx.lineTo(bx,by);
-          }
-          ctx.strokeStyle=`rgba(${hitColor},${visualAlpha*Math.max(0,Math.min(1,Number(f.strokeAlpha)||.95))})`;
-          ctx.lineWidth=Math.max(.5,Number(f.lineWidth)||2.5);
-          ctx.lineCap='round';
-          ctx.lineJoin='round';
-          ctx.stroke();
-        }
-        ctx.restore();
-
+        AnnularSweepPresentationService.draw(ctx,f,now);
         continue;
       }
       if(f.type==='contractingChargeCircle'){
@@ -144907,6 +134817,10 @@ const Training={
       );
     }
 
+    // Public charge aim indicators are world-space, independent of owner-only previews.
+    for(const entity of EntityService.items.values()){
+      ArcGaugePresentationService.drawChargeAimLine(ctx,entity,now);
+    }
     ModeGearPresentationService.drawDeathRemnants(ctx,now);
     for(const e of EntityService.items.values()){
       if(!e.alive||e.hidden)continue;
@@ -147016,6 +136930,7 @@ GameEvents.on('entity-defeated',event=>{
 
 
     GameEvents.on('projectile-fired',event=>{
+      ArcGaugePresentationService.captureChargeShot(event);
       if(!Training.active)return;
       if(event?.source!==Training.player)return;
       if(
@@ -147359,6 +137274,7 @@ GameEvents.on('entity-defeated',event=>{
             ...(counterModule?.presentation||{}),
             color:
               counterChargeColor||
+              AttackPresentationColorService.variant(context.source,context.attack)||
               counterModule?.presentation?.color||
               null
           }
@@ -147375,7 +137291,7 @@ GameEvents.on('entity-defeated',event=>{
         if(counterModule?.presentation?.fireEffect!==false){
           Presentation.counterFire(
             context.source,
-            counterModule?.presentation?.fireColor||null
+            counterModule?.presentation?.fireColor||AttackPresentationColorService.variant(context.source,context.attack)||null
           );
         }
 
@@ -151929,6 +141845,7 @@ const OnlineDebugControlSyncService={
         return CommandFeatureService.runRepair(target);
 
       case 'equipment-equip':{
+        if(target.character?.ideaModules)return IdeaModuleService.grant(target,String(data.value||''),performance.now());
         const config=ReactiveEquipmentService.config(target);if(!config)return false;
         const value=String(data.value||'');
         const item=config.items.find(entry=>entry.value===value);
@@ -152849,6 +142766,12 @@ const DebugPanel={
       );
       section.appendChild(stamina.row);
 
+      const ideaModules=target.character?.ideaModules;
+      if(ideaModules){
+        const modules=this.row('발명 모듈 활성화','선택한 모듈을 영구 추가');
+        for(const entry of ideaModules.items){modules.controls.appendChild(this.button(entry.name,()=>{OnlineDebugControlSyncService.perform('equipment-equip',target,{value:entry.value});this.render();},ModeStateService.current(target,entry.stateKey,'inactive')==='active'?'active':''));}
+        section.appendChild(modules.row);
+      }
       const equipment=target.character?.reactiveEquipment;
       if(equipment){
         const weapons=this.row('발명품 활성화','선택한 무기를 완성하고 즉시 장착');
@@ -154292,10 +144215,18 @@ document.getElementById('mobile-debug-button')?.addEventListener('click',event=>
   if(!DebugAccessService.canUse())return;
   GameInputResetService.releaseAll();
   DebugPanel.toggle();
-});
+});// Capture Escape before chat/debug inputs, and keep panel controls native.
+window.addEventListener('keydown',event=>PanelController.handleGameplayKeydown(event),{capture:true});
+for(const type of ['mousedown','click','contextmenu','wheel'])window.addEventListener(type,event=>{
+  if(PanelController.capturesGameInput()&&!PanelController.panel('settings').contains(event.target)){
+    event.preventDefault();event.stopImmediatePropagation();
+  }
+},{capture:true,passive:false});
+
 
 window.addEventListener('keydown',event=>{
   SoundService.unlock();
+  if(PanelController.capturesGameInput())return;
 
   if(DebugMapEditorService.active){
     if(event.code==='Escape'){
@@ -154375,14 +144306,6 @@ window.addEventListener('keydown',event=>{
     if(!event.repeat)Training.use('counter');
   }
 
-  if(event.code==='Escape'){
-    const opened=['training-settings-panel','training-char-panel','training-aug-panel'].some(id=>document.getElementById(id));
-    if(opened){
-      event.preventDefault();
-      Training.closePanels();
-      Training.buildHud();
-    }
-  }
 });
 
 document.getElementById('chat-input')?.addEventListener('input',()=>{
@@ -154427,6 +144350,7 @@ window.addEventListener('contextmenu',()=>{
 
 window.addEventListener('keyup',event=>{
   Training.keys.delete(event.code);
+  if(PanelController.capturesGameInput())return;
   if(DebugMapEditorService.active){
     if(
       ['KeyW','KeyA','KeyS','KeyD','Space']
@@ -154575,6 +144499,7 @@ document.addEventListener('visibilitychange',()=>{
 
 window.addEventListener('pagehide',()=>{
   GameInputResetService.releaseAll();
+  if(RoomService.localPid)RoomService.leave({silent:true});
 });
 
 document.addEventListener('pointerdown',event=>{
@@ -154975,3 +144900,7 @@ GameEvents.on('damage-applied',event=>ReactiveEquipmentService.damage(event));
 GameEvents.on('projectile-redirected',event=>ProjectileRedirectSyncService.broadcast(event.projectile));
 GameEvents.on('projectile-wall-relayed',event=>ProjectileRedirectSyncService.relay(event));
 GameEvents.on('damage-avoided',event=>ReactiveEquipmentService.damage(event));
+
+GameEvents.on('damage-applied',event=>IdeaModuleService.hit(event));
+GameEvents.on('source-damage-confirmed',event=>IdeaModuleService.hit(event));
+GameEvents.on('attack-fired',event=>IdeaModuleService.attack(event));

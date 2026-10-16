@@ -92,6 +92,7 @@ const Presentation=Object.freeze({
 
     EffectSpawnService.spawn({
       type:'healPulse',
+      color:entity.character?.healPresentation?.color||null,
       x:Number(entity.x)||0,
       y:Number(entity.y)||0,
       r:0,

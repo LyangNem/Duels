@@ -2,7 +2,7 @@
 
 const WeightedCircleAttackDeliveryService=Object.freeze({
   execute({
-    source,attack,execution,model,circles=[],impactCircleForTarget=null,
+    source,attack,execution,model,circles=[],distanceFalloff=null,distanceOrigin=null,impactCircleForTarget=null,
     statusStageForTarget=null,statusConfig=null,now=performance.now()
   }={}){
     if(!source||!attack||!execution||!model||!Array.isArray(circles)||!circles.length)return 0;
@@ -10,6 +10,15 @@ const WeightedCircleAttackDeliveryService=Object.freeze({
     const executionBaseDamage=Number.isFinite(Number(execution?.sourceBaseDamageSnapshot))
       ?Math.max(0,Number(execution.sourceBaseDamageSnapshot))
       :Math.max(0,Number(source.baseDamage)||0);
+    const origin=distanceOrigin||source;
+    const baseDamageForCircle=distanceFalloff?circle=>{
+      const minimum=Math.min(executionBaseDamage,Math.max(0,Number(distanceFalloff.minBaseDamage)||0));
+      const distance=Math.hypot((Number(circle.x)||0)-(Number(origin.x)||0),(Number(circle.y)||0)-(Number(origin.y)||0));
+      const progress=Math.max(0,Math.min(1,distance/Math.max(1,Number(distanceFalloff.maxDistance)||1)));
+      const raw=executionBaseDamage+(minimum-executionBaseDamage)*progress;
+      const step=Math.max(0,Number(distanceFalloff.step)||0);
+      return step>0?Math.max(minimum,Math.min(executionBaseDamage,Math.ceil((raw-1e-9)/step)*step)):raw;
+    }:null;
     let hitCount=0;
     for(const target of EntityService.items.values()){
       if(!target||target===source||!target.alive||target.hidden||!RelationService.canTarget(source,target,{},attack))continue;
@@ -29,7 +38,9 @@ const WeightedCircleAttackDeliveryService=Object.freeze({
       };
       const result=AttackHitTriggerService.damage({
         source,target,attack,execution,impact,
-        amountOverride:executionBaseDamage*Math.max(0,Number(attack.damageRatio)||0)*sourceDamageMultiplier*multiplier
+        amountOverride:(baseDamageForCircle
+          ?Math.max(0,Number(model.multiplierForTarget?.(point.x,point.y,Math.max(0,Number(target.radius)||0),baseDamageForCircle))||0)
+          :executionBaseDamage*multiplier)*Math.max(0,Number(attack.damageRatio)||0)*sourceDamageMultiplier
       });
       if(!result?.hit)continue;
       const deliveryModule={

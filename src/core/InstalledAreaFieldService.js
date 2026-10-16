@@ -439,6 +439,11 @@ const InstalledAreaFieldService=Object.freeze({
   ){
     if(!module||!target)return false;
 
+    if(module.type==='health.start-natural-regen'){
+      if(!EntitySimulationAuthorityService.isLocal(target)||target.kind!=='player')return false;
+      return NaturalHealthRegenActivityService.startNow(target,now)!==false;
+    }
+
     if(module.type==='resource.restore'){
       return ResourceRestoreEffectService.apply({
         source,target,module,defaultRecipient:'target',presentationDefault:'zone',reason:'field.resource.restore',now

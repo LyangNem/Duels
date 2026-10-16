@@ -1,19 +1,6 @@
-
-
-/*
- * 기존 호출부 호환용. 실제 선딜 중단의 단일 진실원천은
- * AttackWindupService다.
- */
+/* 위치 이동은 선딜을 유지하고 기절/빙결/무력화/수면만 공용 선딜 취소 경로로 전달한다. */
 const ForcedMovementWindupInterruptService=Object.freeze({
-  interrupt(
-    entity,
-    reason='forced-movement',
-    options={}
-  ){
-    return AttackWindupService.interrupt(
-      entity,
-      reason,
-      options
-    );
+  interrupt(entity,reason='forced-movement',options={}){
+    return AttackWindupService.statusInterrupts(reason)?AttackWindupService.interrupt(entity,reason,options):false;
   }
 });

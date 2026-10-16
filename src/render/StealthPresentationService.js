@@ -88,12 +88,20 @@ const StealthPresentationService=Object.freeze({
       viewer===target||
       !this.active(target,now)
     )return false;
-    return RelationService.relation(viewer,target)!=='ally';
+    return RelationService.relation(viewer,target)!=='ally'&&
+      this.fadeRatio(target,now)>=1&&!this.exposedByAnyEnemy(target,now);
   },
   state(viewer,target,now=performance.now()){
     if(!this.active(target,now))return {active:false,alpha:1,hostile:false,detected:false,revealed:false,hideWorldUi:false};
     if(this.hiddenFromDeadSpectator(viewer,target,now)){
       return {active:true,alpha:0,hostile:true,detected:false,revealed:false,hideWorldUi:true,hiddenFromSpectator:true};
+    }
+    if(Training.spectating===true&&viewer?.alive===false&&
+      viewer!==target&&RelationService.relation(viewer,target)!=='ally'){
+      const detected=this.detectedByAnyEnemy(target,now);
+      const revealed=this.temporarilyRevealed(target,now);
+      return {active:true,alpha:detected?1:Math.max(1-this.fadeRatio(target,now),revealed?this.revealAlpha(target,now):0),
+        hostile:true,detected:detected||revealed,revealed,hideWorldUi:!(detected||revealed)};
     }
     const hostile=viewer&&viewer!==target&&RelationService.relation(viewer,target)==='enemy';
     const fade=this.fadeRatio(target,now);

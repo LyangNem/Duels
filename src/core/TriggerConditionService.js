@@ -36,6 +36,37 @@ const TriggerConditionService=Object.freeze({
     const source=context.source||context.entity||null;
     const now=Number(context.now)||performance.now();
 
+    if(condition.type==='condition.any')return (condition.conditions||EMPTY_RUNTIME_ITEMS).some(item=>this.matches(item,context));
+    if(condition.type==='target.health-ratio-lt-source'){
+      const target=context.target;
+      const snapshot=context.targetHealthSnapshots?.[String(target?.id||'')];
+      const health=snapshot?.health??target?.health;
+      const maximum=snapshot?.maxHealth??target?.maxHealth;
+      return !!source&&!!target&&Number(source.maxHealth)>0&&Number(maximum)>0&&
+        Math.max(0,Number(health)||0)/maximum<Math.max(0,Number(source.health)||0)/source.maxHealth;
+    }
+    if(condition.type==='target.health-lt-source'){
+      return !!source&&!!context.target&&Number(context.target.health)<Number(source.health);
+    }
+    if(condition.type==='target.matches-state-target'){
+      const state=TimedActionStateService.state(source,String(condition.stateKey||''),now);
+      return !!state&&String(state.data?.targetEntityId||'')===String(context.target?.id||'')&&!!context.target?.id;
+    }
+    if(condition.type==='target.exists-in-range'){
+      if(!source?.alive)return false;
+      const range=Math.max(0,Number(condition.range)||0);
+      for(const target of EntityService.items.values()){
+        if(!target?.alive||context.targetHealthSnapshots?.[String(target.id)]?.alive===false||target.hidden||target===source||RelationService.relation(source,target)!=='enemy')continue;
+        if(Math.hypot(target.x-source.x,target.y-source.y)>range)continue;
+        if(!ProjectileHomingTargetVisibilityService.canPerceive(source,target,now))continue;
+        if(condition.requireLineOfSight&&WorldGeometryService.segmentBlocked(source.x,source.y,target.x,target.y,0))continue;
+        if((condition.conditions||EMPTY_RUNTIME_ITEMS).every(item=>this.matches(item,{...context,source,target,now})))return true;
+      }
+      return false;
+    }
+    if(condition.type==='formation.nonempty'){
+      return context.network===true&&context.senderHandled===true||CircleFormationService.circleCount(source)>0;
+    }
     if(condition.type==='input.slot'){
       return context.inputSlot===condition.slot;
     }
@@ -427,6 +458,14 @@ const TriggerConditionService=Object.freeze({
     }
     if(condition.type==='resource.is'){
       return String(context.resource||'')===String(condition.resource||'');
+    }
+    if(condition.type==='buff.absent-source'){
+      return !source||(source.buffs?.get(String(condition.stat||''))||EMPTY_RUNTIME_ITEMS)
+        .every(item=>item.end<=now||item.sourceId!==condition.sourceId);
+    }
+    if(condition.type==='buff.active'&&condition.sourceIds){
+      return !!source&&(source.buffs?.get(String(condition.stat||''))||EMPTY_RUNTIME_ITEMS)
+        .some(item=>item.end>now&&condition.sourceIds.includes(item.sourceId)&&item.value!==0);
     }
     if(condition.type==='buff.active'){
       return !!source&&BuffService.resolve(

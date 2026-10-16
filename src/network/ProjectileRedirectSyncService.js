@@ -4,7 +4,7 @@ const ProjectileRedirectSyncService=Object.freeze({
   if(Training.sessionMode!=='online'||!OnlineDuelService.active)return;
   RoomService.sendGameplay({type:'duel-projectile-redirect',roundToken:OnlineDuelService.roundToken,
    projectileOwnerPid:OnlineParticipantEntityService.pid(p.source),projectileKey:p.networkKey,
-   revision:p.redirectRevision,x:p.x,y:p.y,angle:p.angle,vx:p.vx,vy:p.vy,travel:p.travel,
+   relayPresentation:p.relayPresentation||null,revision:p.redirectRevision,x:p.x,y:p.y,angle:p.angle,vx:p.vx,vy:p.vy,travel:p.travel,
    redirectCount:p.redirectCount||0,ended:p.redirectEnded===true,hitIds:Array.from(p.hitIds||[]),
    maxTravelDistance:p.maxTravelDistance,rangeBounceBase:p.rangeBounceBase,rangeBounceCount:p.rangeBounceCount||0,
    wallRedirectCount:p.wallRedirectCount||0,hitRedirectCount:p.hitRedirectCount||0,fadeResetTravel:p.fadeResetTravel||0});

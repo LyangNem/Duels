@@ -10,7 +10,7 @@
     "role": 4
   },
   "stats": {
-    "maxHealth": 1000,
+    "maxHealth": 1200,
     "speed": 4,
     "radius": 20,
     "baseDamage": 100,
@@ -278,7 +278,7 @@
     "fryingPan": {
       "id": "attack.dira.frying-pan",
       "damageRatio": 1,
-      "cost": 150,
+      "cost": 100,
       "cd": 300,
       "attackDelayGroup": "dira-lmb",
       "attackDelay": 300,
@@ -286,7 +286,7 @@
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 20,
+          "speed": 27,
           "radius": 16,
           "hitRadius": 16
         },
@@ -349,7 +349,7 @@
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 20,
+          "speed": 27,
           "radius": 12,
           "hitRadius": 12,
           "collisionTargets": true,
@@ -390,7 +390,7 @@
             "ally"
           ]
         },
-        {"type": "resource.restore", "when": "on-hit", "resource": "stamina", "recipient": "source", "amount": 150,
+        {"type": "resource.restore", "when": "on-hit", "resource": "stamina", "recipient": "source", "amount": 100,
           "targetRelations": ["ally"], "oncePerExecution": true, "conditions": [{"type": "cooking.own-stove"}]},
         {
           "type": "cooking.consume-ingredient",
@@ -408,7 +408,7 @@
     "meal": {
       "id": "attack.dira.meal",
       "damageRatio": 0,
-      "cost": 150,
+      "cost": 100,
       "cd": 300,
       "attackDelayGroup": "dira-lmb",
       "attackDelay": 300,
@@ -417,7 +417,7 @@
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 20,
+          "speed": 27,
           "radius": 15,
           "hitRadius": 15,
           "collisionTargets": true,

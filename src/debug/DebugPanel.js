@@ -741,6 +741,12 @@ const DebugPanel={
       );
       section.appendChild(stamina.row);
 
+      const ideaModules=target.character?.ideaModules;
+      if(ideaModules){
+        const modules=this.row('발명 모듈 활성화','선택한 모듈을 영구 추가');
+        for(const entry of ideaModules.items){modules.controls.appendChild(this.button(entry.name,()=>{OnlineDebugControlSyncService.perform('equipment-equip',target,{value:entry.value});this.render();},ModeStateService.current(target,entry.stateKey,'inactive')==='active'?'active':''));}
+        section.appendChild(modules.row);
+      }
       const equipment=target.character?.reactiveEquipment;
       if(equipment){
         const weapons=this.row('발명품 활성화','선택한 무기를 완성하고 즉시 장착');

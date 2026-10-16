@@ -1,0 +1,31 @@
+/* Actual shared panel and capture/bubble keyboard handlers, without a browser/WebRTC session. */
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..'),nodes=new Map(),listeners=[];let syncs=0,renders=0,releases=0,commands=0,chatCloses=0,actions=0;
+class Element{
+ constructor(id){this.id=id;this.hidden=true;this.children=[];this.parentNode=null;const classes=new Set();this.classList={add:x=>classes.add(x),remove:x=>classes.delete(x),contains:x=>classes.has(x)};nodes.set(id,this)}
+ get nextSibling(){const list=this.parentNode?.children||[];return list[list.indexOf(this)+1]||null}
+ appendChild(node){return this.insertBefore(node,null)}
+ insertBefore(node,next){if(node.parentNode){const list=node.parentNode.children;list.splice(list.indexOf(node),1)}node.parentNode=this;const at=next?this.children.indexOf(next):-1;this.children.splice(at<0?this.children.length:at,0,node);return node}
+ contains(node){return node===this||this.children.some(child=>child.contains(node))}
+ focus(){document.activeElement=this}blur(){document.activeElement=null}
+}
+const body=new Element('body'),lobby=new Element('scr-lobby'),panel=new Element('duels-display-settings-panel'),input=new Element('input'),after=new Element('after'),canvas=new Element('canvas');input.value=42;body.appendChild(lobby);lobby.appendChild(panel);lobby.appendChild(after);panel.appendChild(input);body.appendChild(canvas);
+const document={body,activeElement:null,getElementById:id=>nodes.get(id)||null};
+const Training={active:true,sessionMode:'online',keys:new Set(['KeyW','ShiftLeft']),player:{},closePanels(){},releaseInput(){},dodge(){actions++},use(){actions++}};
+const c=vm.createContext({console,document,window:{addEventListener(type,fn,options){listeners.push({type,fn,capture:options===true||options?.capture===true})}},Training,DisplaySettings:{syncUi(){syncs++}},ProfileSettingsUI:{render(){renders++},setPickerOpen(){}},PointerHoldInputService:{releaseAll(){releases++}},DragPathInputService:{clearAll(){}},SoundService:{unlock(){}},DebugMapEditorService:{active:false,stop(){this.active=false}},DebugPanel:{capturesGameInput:()=>false,isTypingTarget:()=>false},DebugAccessService:{canUse:()=>false},CharacterCommandInputService:{close(){commands++},handleKeydown:()=>false},OnlineChatService:{openState:true,close(){this.openState=false;chatCloses++},handleKeydown:()=>false}});
+for(const [file,name] of [['src/input/GameInputResetService.js','GameInputResetService'],['src/core/PanelController.js','PanelController']])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8')+`;globalThis.${name}=${name};`,c);
+for(const file of ['src/core/initialization-406.js','src/core/initialization-411.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),c);
+function dispatch(type,code,target=canvas,repeat=false){const event={code,key:code,target,repeat,defaultPrevented:false,stopped:false,preventDefault(){this.defaultPrevented=true},stopPropagation(){},stopImmediatePropagation(){this.stopped=true}};for(const capture of [true,false])for(const l of listeners)if(l.type===type&&l.capture===capture&&!event.stopped)l.fn(event);return event}
+let e=dispatch('keydown','Escape');assert.equal(e.defaultPrevented,true);assert.equal(panel.hidden,true);assert.equal(chatCloses,1);assert.equal(syncs,0);e=dispatch('keydown','Escape');assert.equal(e.defaultPrevented,true);assert.equal(panel.hidden,false);assert.equal(panel.parentNode,body);assert.equal(panel.classList.contains('duels-settings-ingame'),true);assert.equal(Training.keys.size,0);assert.equal(releases,1);assert.equal(chatCloses,1);assert.equal(commands,1);assert.equal(syncs,1);assert.equal(renders,1);assert.equal(input.value,42);
+dispatch('keydown','Escape',panel,true);assert.equal(panel.hidden,false);assert.equal(releases,1);
+for(const key of ['KeyW','Space','ShiftLeft'])assert.equal(dispatch('keydown',key,canvas).defaultPrevented,true);assert.equal(actions,0);assert.equal(Training.keys.size,0);
+assert.equal(dispatch('keydown','ArrowRight',input).defaultPrevented,false);assert.equal(dispatch('keydown','Space',input).defaultPrevented,false);assert.equal(actions,0);
+assert.equal(dispatch('mousedown','',canvas).defaultPrevented,true);assert.equal(dispatch('click','',canvas).defaultPrevented,true);assert.equal(dispatch('click','',input).defaultPrevented,false);assert.equal(dispatch('wheel','',canvas).defaultPrevented,true);assert.equal(dispatch('mousedown','',input).defaultPrevented,false);assert.equal(dispatch('wheel','',input).defaultPrevented,false);
+dispatch('keydown','Escape',input);assert.equal(panel.hidden,true);assert.equal(panel.parentNode,lobby);assert.equal(panel.nextSibling,after);assert.equal(panel.classList.contains('duels-settings-ingame'),false);assert.equal(input.value,42);
+dispatch('keydown','Space');assert.equal(actions,1);assert.equal(Training.keys.has('Space'),true);
+Training.spectating=true;dispatch('keydown','Escape');assert.equal(panel.hidden,false);c.PanelController.toggle('settings',false);assert.equal(panel.hidden,true);assert.equal(panel.parentNode,lobby);
+Training.active=false;c.PanelController.toggle('settings',true);assert.equal(panel.parentNode,lobby);assert.equal(panel.classList.contains('duels-settings-ingame'),false);assert.equal(c.PanelController.capturesGameInput(),false);assert.equal(dispatch('keydown','Escape',input).defaultPrevented,false);
+c.PanelController.closeAll();assert.equal(panel.hidden,true);assert.equal(input.value,42);
+console.log('PASS same main-settings DOM above hidden lobby; ESC toggle/repeat/chat/spectating; keyboard/mouse shield; native controls; restore/close/main behavior');
+
+c.RoomService={localPid:'P2',duelPhase:'between'};for(const phase of ['room','selection','augment','between','playing','round-result','match-result']){c.RoomService.duelPhase=phase;assert.equal(dispatch('keydown','Escape').defaultPrevented,true);assert.equal(panel.hidden,false);assert.equal(panel.parentNode,body);dispatch('keydown','Escape',input);assert.equal(panel.hidden,true);assert.equal(panel.parentNode,lobby)};c.RoomService.localPid=null;assert.equal(dispatch('keydown','Escape').defaultPrevented,false);console.log('PASS ESC shared settings in room and every match phase without Training.active');

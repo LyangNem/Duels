@@ -9,13 +9,6 @@
     stats: {maxHealth: 1300, speed: 4.25, radius: 20, baseDamage: 100, difficulty: 6},
     desc: "{v:descriptionValues.comboHits}번의 평타를 모두 적중시키며 채운 스킬로 한방에 적을 처형하는 캐릭터",
     tagPersistentActionStateKeys: ["cyien-gyeok"],
-    killRewardProgress: {
-      excludeTargetKinds: ["summon"],
-      stateKey: "cyien-gyeok",
-      operation: "set-max",
-      max: 8,
-      presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
-    },
     conditionalTargetLinks: [
       {
         relation: "enemy",
@@ -28,8 +21,31 @@
         visibility: "owner"
       }
     ],
+    worldEffectModules: [
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "paired-daggers",
+    "angle": 3.141592653589793,
+    "idleAlpha": 0.45,"activityStateKey":"cyien-dagger-block","useHoldMs":120,"useFadeMs":530,
+    "activityColors": [{"stateKey":"cyien-dagger-block","duration":650,"fadeMs":450,"color":{"$ref":"accentColor"}}],
+    "scale": 1.65,
+    "partMotions": [
+      {
+        "rotationStateKey": "cyien-back-dagger",
+        "rotationMs": 350,
+        "rotationRadians": -6.283185307179586
+      },
+      {
+        "rotationStateKey": "cyien-front-dagger",
+        "rotationMs": 350,
+        "rotationRadians": -6.283185307179586
+      }
+    ]
+  }
+],
     tooltipSkills: [
-      {key: "ALWAYS", name: "격의 차이", attack: "rmbCharged", showCost: false, text: "적 처치 또는 격 최대치 시 절격 활성화"},
+      {key: "ALWAYS", name: "격의 차이", attack: "rmbCharged", showCost: false, text: "격 최대치 시 절격 활성화"},
       {
         key: "LMB",
         name: "양손 단검",
@@ -93,8 +109,9 @@
             durationFrames: 12,
             clipToAttackArea: true,
             replaceAutoAreaEffect: true
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "cyien-front-dagger", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbSecond: {
@@ -135,8 +152,9 @@
             durationFrames: 12,
             clipToAttackArea: true,
             replaceAutoAreaEffect: true
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "on-delivery", "stateKey": "cyien-back-dagger", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       lmbBack: {
@@ -178,8 +196,9 @@
             clipToAttackArea: true,
             replaceAutoAreaEffect: true,
             scaleWithAttackRange: true
-          }
-        ],
+          },
+{"type": "effect.spawn", "when": "on-hit", "renderType": "weaponImageEcho", "position": "source", "target": "source", "duration": 650, "expansion": 0.55, "imageAlpha": 1, "oncePerExecution": true}
+],
         tags: ["평타"]
       },
       rmb: {
@@ -223,6 +242,7 @@
             wallPolicy: "block",
             duration: 150,
             onBlock: {
+              modes: [{type: "mode.toggle", stateKey: "cyien-dagger-block", values: ["a", "b"]}],
               progress: {
                 stateKey: "cyien-gyeok",
                 operation: "add",
@@ -232,8 +252,10 @@
               }
             },
             visualState: {effectStateKey: "cyien-parry", duration: 150, syncToGuardDuration: true, color: "168,213,255"}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-back-dagger", "values": ["a", "b"], "step": 1},
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-front-dagger", "values": ["a", "b"], "step": 1}
+],
         tags: ["스킬"]
       },
       rmbCharged: {
@@ -291,8 +313,10 @@
               pathPresentation: {color: "168,213,255", width: 57.2, duration: 200},
               stopAfterFirstContact: false
             }
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-back-dagger", "values": ["a", "b"], "step": 1},
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-front-dagger", "values": ["a", "b"], "step": 1}
+],
         tags: ["스킬"]
       },
       counter: {
@@ -359,12 +383,14 @@
             when: "on-hit",
             stateKey: "cyien-gyeok",
             operation: "add",
-            amount: 2,
+            amount: 1,
             max: characterValue("attacks.lmb.modules.1.max"),
             oncePerExecution: true,
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-back-dagger", "values": ["a", "b"], "step": 1},
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "cyien-front-dagger", "values": ["a", "b"], "step": 1}
+],
         tags: ["반격"]
       }
     },

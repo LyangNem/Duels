@@ -11,7 +11,7 @@
   },
   "stats": {
     "maxHealth": 1000,
-    "speed": 4,
+    "speed": 3.5,
     "radius": 20,
     "baseDamage": 150,
     "difficulty": 5
@@ -47,10 +47,10 @@
   "attacks": {
     "lmb": {
       "id": "attack.cherity.lmb",
-      "damageRatio": 1,
+      "damageRatio": 0.6666666666666666,
       "cost": 0,
       "cd": 600,
-      "range": 1400,
+      "range": Infinity,
       "cameraAimOffset": {
         "maxDistance": 400,
         "minProgress": 1
@@ -66,7 +66,8 @@
           "from": {
             "$ref": "attacks.lmb.damageRatio"
           },
-          "to": 6
+          "to": 6,
+          "step": 0.6666666666666666
         },
         "projectileSpeed": {
           "from": 18,
@@ -77,6 +78,7 @@
           "type": "bind"
         },
         "preview": true,
+        "aimLine": {"teamColor": true, "lineWidth": 1.5, "alpha": 0.65, "fadeDuration": 300, "hideDuringStealth": true},
         "gauge": {
           "layers": 2,
           "overflowColor": "#d88999",
@@ -94,6 +96,16 @@
           "type": "projectile.pierce",
           "targets": false,
           "walls": false
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "cherity-rifle-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -201,6 +213,22 @@
           "tags": [
             "이동기"
           ]
+        },
+        {
+          "type": "mode.set",
+          "when": "after-attack",
+          "stateKey": "cherity-weapon-image",
+          "value": "smoke"
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "cherity-image-life",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -276,6 +304,22 @@
             },
             "visibility": "all"
           }
+        },
+        {
+          "type": "mode.set",
+          "when": "after-attack",
+          "stateKey": "cherity-weapon-image",
+          "value": "smoke"
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "cherity-image-life",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -447,5 +491,49 @@
         ]
       }
     }
-  }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "cherity-bolt-rifle",
+      "scale": 1.5,
+      "angle": -0.6,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "cherity-weapon-image",
+          "initial": "rifle",
+          "expiresAfterMs": 800,
+          "ageStateKey": "cherity-image-life",
+          "expiredValue": "rifle",
+          "value": "rifle"
+        }
+      ],
+      "rotationStateKey": "cherity-rifle-motion",
+      "rotationMs": 300,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "smoke-canister",
+      "scale": 1.7,
+      "angle": -0.55,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "cherity-weapon-image",
+          "initial": "rifle",
+          "expiresAfterMs": 800,
+          "ageStateKey": "cherity-image-life",
+          "expiredValue": "rifle",
+          "value": "smoke"
+        }
+      ],
+      "rotationStateKey": "cherity-image-life",
+      "rotationMs": 400,
+      "rotationRadians": -6.283185307179586
+    }
+  ]
 }

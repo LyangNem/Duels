@@ -1072,7 +1072,8 @@ const AugmentService=Object.freeze({
         )*
         damageMultiplier,
       cost:
-        Math.max(0,Number(spec.cost)||0)*
+        Math.max(0,spec.formationCost&&typeof CircleFormationService!=='undefined'
+          ?CircleFormationService.attackCost(entity,spec):Number(spec.cost)||0)*
         costMultiplier,
       range:
         Math.max(

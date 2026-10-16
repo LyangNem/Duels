@@ -131,6 +131,45 @@ const AttackPreviewService=Object.freeze({
         ProgressScaledAttackService.resolve(source,attack),
         performance.now()
       );
+    const selection=(preparedAttack.modules||[]).find(module=>module.type==='attack.select'&&module.telegraph===true&&Array.isArray(module.selectedValues));
+    if(selection){
+      const parts=Array.isArray(preview.parts)?preview.parts:[];
+      const children=preview._selectionPreviews||(preview._selectionPreviews=[]);
+      parts.length=0;
+      let index=0;
+      for(const value of selection.selectedValues){
+        const item=selection.choices.find(choice=>choice.value===value);
+        const selectedAttack=item?AbilityService.attackById(source.character,item.attackId):null;
+        if(!selectedAttack||item.preview===false)continue;
+        const child=this.fromAttack(source,selectedAttack,angle,until,children[index]||null,options);
+        children[index++]=child;
+        if(child.parts?.length){for(const part of child.parts)parts.push(part);}else parts.push(child);
+      }
+      children.length=index;
+      preview.type='circle';preview.range=0;preview.angle=angle;preview.until=until;preview.parts=parts;
+      preview.points=Array.isArray(preview.points)?preview.points:[];preview.points.length=0;
+      return preview;
+    }
+    const reflectedMovement=(preparedAttack.modules||EMPTY_RUNTIME_ITEMS).find(module=>module.type==='movement.move'&&module.reflectWalls===true);
+    if(reflectedMovement&&preparedAttack.previewGeometry?.shape==='rect'){
+      const segments=MovementAbilityService.reflectedPath(source,reflectedMovement,angle,
+        Number(reflectedMovement.distance)||0,preview._reflectionSegments||(preview._reflectionSegments=[]));
+      const parts=Array.isArray(preview.parts)?preview.parts:[];
+      let write=0;
+      for(const segment of segments){
+        if(segment.distance<=1e-6)continue;
+        const part=parts[write]||(parts[write]={});
+        Object.assign(part,{type:'rect',anchorX:segment.fromX,anchorY:segment.fromY,
+          angle:segment.angle,range:segment.distance,halfWidth:Number(preparedAttack.previewGeometry.halfWidth)||0,
+          halfAngle:0,wallPolicy:'ignore',projectile:false,endChord:false});
+        if(Array.isArray(part.points))part.points.length=0;
+        write++;
+      }
+      parts.length=write;preview.parts=parts;preview.type='circle';preview.range=0;
+      preview.angle=angle;preview.until=until;
+      if(Array.isArray(preview.points))preview.points.length=0;
+      return preview;
+    }
     const targetProjectile=AttackModuleService.module(preparedAttack,'delivery.projectile');
     if(targetProjectile?.targetPoint===true&&targetProjectile.targetPreview&&options?.targetPoint){
       let point={x:Number(options.targetPoint.x),y:Number(options.targetPoint.y)};
@@ -673,7 +712,7 @@ const AttackPreviewService=Object.freeze({
               fallbackRange,
               wallCollisionPadding
             )
-            :fallbackRange;
+            :Number.isFinite(fallbackRange)?fallbackRange:WorldGeometryService.boundaryRayDistance(anchorX,anchorY,partAngle,Infinity,wallCollisionPadding);
         if(impactModule?.previewStopAtFirstEnemy===true&&pierce?.targets!==true){
           const probe={...source,x:anchorX,y:anchorY};
           part.range=HitScanGeometryService.firstEnemyRange(probe,{range:part.range,halfWidth:projectileRadius,stopAtFirstEnemy:true},partAngle);
@@ -780,7 +819,7 @@ const AttackPreviewService=Object.freeze({
             fallbackRange,
             wallCollisionPadding
           )
-          :fallbackRange;
+          :Number.isFinite(fallbackRange)?fallbackRange:WorldGeometryService.boundaryRayDistance(Number(source.x)||0,Number(source.y)||0,angle,Infinity,wallCollisionPadding);
       if(Array.isArray(preview.points)){
         preview.points.length=0;
       }
@@ -829,7 +868,7 @@ const AttackPreviewService=Object.freeze({
       return false;
     }
 
-    const attack=
+    const attack=tracking.preparedAttack||
       AbilityService.attackById(
         source.character,
         String(tracking.attackId||'')

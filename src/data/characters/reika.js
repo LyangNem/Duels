@@ -103,7 +103,7 @@
           "stateKey": "reika-gaho",
           "operation": "add",
           "amountFrom": "healthDamage",
-          "amountScale": 0.04,
+          "amountScale": 0.06,
           "max": 200,
           "presentation": {
             "type": "arc-gauge",
@@ -124,7 +124,7 @@
       "type": "state.progress-rate",
       "stateKey": "reika-gaho",
       "max": 200,
-      "ratePerSecond": 2.5,
+      "ratePerSecond": 2.875,
       "whenMode": {
         "stateKey": "reika-mode",
         "value": "normal",
@@ -174,7 +174,7 @@
       "damageRatio": 1,
       "cost": 150,
       "cd": 560,
-      "range": 275,
+      "range": 300,
       "modules": [
         {
           "type": "delivery.area",
@@ -662,7 +662,7 @@
       "damageRatio": 0,
       "cost": 0,
       "cd": 300,
-      "range": 275,
+      "range": 300,
       "previewGeometry": {
         "shape": "rect",
         "range": {
@@ -690,9 +690,9 @@
           "presentation": {
             "type": "dash-line",
             "color": "255,122,0",
-            "width": 12,
-            "alpha": 0.65,
-            "duration": 250,
+            "width": 7,
+            "alpha": 0.45,
+            "duration": 200,
             "colorVariants": [
               {
                 "color": "56,189,248",
@@ -737,7 +737,7 @@
       "damageRatio": 2,
       "cost": 0,
       "cd": 0,
-      "range": 275,
+      "range": 300,
       "modules": [
         {
           "type": "delivery.area",
@@ -879,8 +879,17 @@
           {
             "type": "combat.can-act"
           },
-          {"type": "state.progress-gte", "stateKey": "reika-gaho", "value": 100},
-          {"type": "state.mode-is", "stateKey": "reika-mode", "value": "normal", "initial": "normal"}
+          {
+            "type": "state.progress-gte",
+            "stateKey": "reika-gaho",
+            "value": 100
+          },
+          {
+            "type": "state.mode-is",
+            "stateKey": "reika-mode",
+            "value": "normal",
+            "initial": "normal"
+          }
         ],
         "modules": [
           {

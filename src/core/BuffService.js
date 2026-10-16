@@ -273,6 +273,10 @@ const BuffService=Object.freeze({
     stats.regenPercentPerSec+=regenPercent;
     stats.staminaRegenAdditive+=staminaRegen;
     stats.staminaCostMult*=Math.max(0,1+staminaCost);
+    stats.staminaCostScale=1;
+    for(const item of this.live(entity,'staminaCostScale',now)){
+      stats.staminaCostScale*=Math.max(.1,Math.min(1,Number(item.value)||1));
+    }
     // attackRate는 공격 딜레이의 직접 증감률이다. +0.35는 딜레이 -35%, -0.15는 딜레이 +15%.
     stats.attackSpeedMult*=
       1/Math.max(.10,1-attackRate);

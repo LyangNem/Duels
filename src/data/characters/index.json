@@ -248,6 +248,18 @@
     {
       "before": ",\n  hab: ",
       "path": "src/data/characters/hab.js"
+    },
+    {
+      "before": ",\n  huri: ",
+      "path": "src/data/characters/huri.js"
+    },
+    {
+      "before": ",\n  lena: ",
+      "path": "src/data/characters/lena.js"
+    },
+    {
+      "before": ",\n  latis: ",
+      "path": "src/data/characters/latis.js"
     }
   ],
   "suffix": ",\n});"

@@ -11,6 +11,7 @@ const BuffStatusPresentation=Object.freeze({
     attackRate:Object.freeze({label:'ATK SPD',rgb:'255,70,70'}),
     projectileSpeed:Object.freeze({label:'BULLET SPD',rgb:'255,70,70'}),
     staminaRegen:Object.freeze({label:'STAM REGEN',rgb:'255,155,50'}),
+    staminaCostScale:Object.freeze({label:'STAM COST',rgb:'181,217,255'}),
     staminaCost:Object.freeze({label:'STAM COST',rgb:'255,175,70'}),
     dodgeDistance:Object.freeze({label:'DODGE DIS',rgb:'190,230,255'}),
     dodgeSpeed:Object.freeze({label:'DODGE SPD',rgb:'190,230,255'}),
@@ -63,6 +64,11 @@ const BuffStatusPresentation=Object.freeze({
   },
 
   value(entity,type,now){
+    if(type==='staminaCostScale'){
+      let scale=1;
+      for(const item of BuffService.live(entity,type,now))scale*=Math.max(.1,Math.min(1,Number(item.value)||1));
+      return scale-1;
+    }
     const buffValue=BuffService.resolve(
       entity,
       type,

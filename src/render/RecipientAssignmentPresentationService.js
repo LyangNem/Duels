@@ -3,7 +3,7 @@
 
 
 const RecipientAssignmentPresentationService=Object.freeze({
-  assignments(target){
+  assignments(target,includeConditional=false){
     if(!target)return [];
 
     const result=[];
@@ -52,6 +52,19 @@ const RecipientAssignmentPresentationService=Object.freeze({
       });
     }
 
+    if(includeConditional){
+      const owner=Training.player;
+      if(owner?.alive&&!owner.hidden&&EntitySimulationAuthorityService.isLocal(owner)){
+        for(const config of owner.character?.conditionalTargetMarkers||EMPTY_RUNTIME_ITEMS){
+          if(config.visibility!=='owner')continue;
+          if(RelationService.relation(owner,target)!==String(config.relation||'enemy'))continue;
+          if(Number.isFinite(config.range)&&Math.hypot(target.x-owner.x,target.y-owner.y)>Math.max(0,Number(config.range)||0))continue;
+          if(!ProjectileHomingTargetVisibilityService.canPerceive(owner,target))continue;
+          if(!(config.conditions||EMPTY_RUNTIME_ITEMS).every(condition=>TriggerConditionService.matches(condition,{source:owner,target})))continue;
+          result.push({owner,presentation:config});
+        }
+      }
+    }
     return result;
   },
   markerColor(assignment){
@@ -76,7 +89,7 @@ const RecipientAssignmentPresentationService=Object.freeze({
   ){
     if(!ctx||!target)return false;
 
-    const assignments=this.assignments(target);
+    const assignments=this.assignments(target,true);
     if(!assignments.length)return false;
 
     for(
@@ -84,6 +97,22 @@ const RecipientAssignmentPresentationService=Object.freeze({
       index<assignments.length;
       index++
     ){
+      const assignment=assignments[index];
+      const marker=assignment.presentation?.marker;
+      if(marker?.shape==='weapon-icon'&&WEAPON_IMAGE_DEFS[marker.style]){
+        ctx.save();
+        ctx.translate(Number(bx)+Number(barWidth)+8+index*16,Number(by)+2.5);
+        ctx.fillStyle=this.markerColor(assignment);
+        ctx.strokeStyle=ColorService.brighten(this.markerColor(assignment),.65);
+        ctx.lineWidth=.8;
+        for(const path of WEAPON_IMAGE_DEFS[marker.style].paths||EMPTY_RUNTIME_ITEMS){
+          ModeGearPresentationService.path(ctx,path,5);
+          if(path.fill)ctx.fill();
+          ctx.stroke();
+        }
+        ctx.restore();
+        continue;
+      }
       EnvelopeIconPresentationService.draw(
         ctx,
         Number(bx)+Number(barWidth)+8+index*16,

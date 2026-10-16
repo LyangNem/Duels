@@ -21,6 +21,29 @@ const RoomConnectionService={
     if(migrating)OnlineDuelService.stop({returnToRoom:false});
     if(mode==='join')RoomUI.setJoinStatus(message,'err');else RoomUI.showLobby(message);
   },
+  watchChannel(connection,current,onLost){
+    let ended=false,lastAt=Date.now(),lastPoll=lastAt,timer=0;
+    const stop=()=>{if(ended)return;ended=true;this.cancel(timer);};
+    const lost=()=>{if(ended)return;stop();if(current())onLost();};
+    const poll=()=>{
+      if(ended||!current()){stop();return;}
+      const now=Date.now();if(now-lastPoll>15000)lastAt=now;lastPoll=now;
+      if(connection.open){
+        if(now-lastAt>90000){lost();return;}
+        NetworkPayloadCodec.send(connection,{type:'room-ping'});
+      }
+      timer=this.later(poll,5000);
+    };
+    connection.on('data',raw=>{
+      if(ended||!current())return;
+      const payload=NetworkPayloadCodec.decode(raw);if(!payload||typeof payload!=='object')return;
+      lastAt=Date.now();
+      if(payload.type==='room-ping')NetworkPayloadCodec.send(connection,{type:'room-pong'});
+      if(payload.type==='room-leave')lost();
+    });
+    connection.on('close',stop);connection.on('error',stop);
+    timer=this.later(poll,5000);return stop;
+  },
   watchSignaling(room,peer,token){
     peer.on('disconnected',()=>{
       if(!this.valid(room,token,peer)||peer.destroyed)return;

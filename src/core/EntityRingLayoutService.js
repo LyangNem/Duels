@@ -333,6 +333,10 @@ const EntityRingLayoutService=Object.freeze({
           );
         }
       }
+      if(moduleVisible&&module.outlineRing===true&&!moduleFull){
+        const width=Math.max(.1,Number(module.completePulseLineWidth)||this.WIDTHS.flash);
+        takeOuter(Number(module.completePulseRadius)||this.nextRadius(gaugeRadius,gaugeWidth,width),width);
+      }
     }
 
     return {

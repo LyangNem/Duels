@@ -15,6 +15,18 @@
       resources: ["stamina"],
       color: "#6e97ff"
     },
+    worldEffectModules: [
+  {
+    "type": "effect.spawn",
+    "renderType": "weaponImage",
+    "style": "temporal-dagger",
+    "scale": 1.8,
+    "angle": 0.6,
+    "rotationStateKey": "yui-dagger-spin",
+    "rotationMs": 350,
+    "rotationRadians": -6.283185307179586
+  }
+],
     tooltipSkills: [
       {key: "LMB", name: "텔레포트 단검", attack: "lmb", text: "전방 부채꼴 베기. 적중 시 조준 방향으로 순간이동 ({damage})"},
       {key: "RMB", name: "공간 역행", attack: "rmb", text: "{rewindSeconds}초 전의 위치로 되돌아가며 해당 시점으로 스테미나 복원"},
@@ -69,8 +81,9 @@
             resolveOverlapOnEnd: true,
             tags: ["이동기"],
             presentation: {type: "dash-line", color: "110,151,255", width: 6, alpha: 0.4, duration: 167}
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "yui-dagger-spin", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       rmb: {
@@ -80,7 +93,9 @@
         cd: 500,
         range: 0,
         effectsOnly: true,
-        modules: [],
+        modules: [
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "yui-dagger-spin", "values": ["a", "b"], "step": -1}
+],
         tags: ["스킬"]
       },
       counter: {
@@ -125,8 +140,9 @@
               pathPresentation: {width: 40, duration: 200},
               stopAfterFirstContact: false
             }
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "yui-dagger-spin", "values": ["a", "b"], "step": 1}
+],
         tags: ["반격"]
       }
     },

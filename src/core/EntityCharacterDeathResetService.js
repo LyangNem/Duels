@@ -4,6 +4,13 @@ const EntityCharacterDeathResetService=Object.freeze({
   reset(entity,now=performance.now(),options={}){
     if(!entity)return false;
 
+    // Only the local player owns the command editor.
+    if(
+      typeof Training!=='undefined'&&
+      entity===Training.player&&
+      typeof CharacterCommandInputService!=='undefined'
+    )CharacterCommandInputService.close();
+
     const preserveReplacementState=
       options?.preserveReplacementState===true;
 

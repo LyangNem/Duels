@@ -548,6 +548,7 @@ const SummonDeployService=Object.freeze({
 
     this.dropCarry(owner,stateKey,0,now);
     state.active=false;
+    if(spec.pathCarrier===true)state.pathCarrierEnded=true;
     state.health=0;
     state.leashBreakAt=0;
     state.nextHealthDecayAt=0;
@@ -2026,6 +2027,7 @@ const SummonDeployService=Object.freeze({
 
       result.push({
         stateKey:state.stateKey,
+        ...(spec.pathCarrier===true?{pathCarrierSequence:Number(state.pathCarrierSequence)||0,pathCarrierEnded:state.pathCarrierEnded===true}:{}),
         active:state.active===true,
         health:
           entity
@@ -2075,6 +2077,7 @@ const SummonDeployService=Object.freeze({
             Math.max(0,Number(entity.healthRegenPolicy.idle)||0)*
             Math.max(0,CombatStatsService.current(entity,now).regenDelayMult)
           ),
+        modeStates:entity?ModeStateService.serialize(entity,now):[],
         combatSnapshot:
           entity
             ?NetworkCombatSnapshotService
@@ -2118,6 +2121,12 @@ const SummonDeployService=Object.freeze({
         state
       );
       if(!spec||!state)continue;
+      if(spec.pathCarrier===true){
+        const incoming=Number(snapshot.pathCarrierSequence)||0,current=Number(state.pathCarrierSequence)||0;
+        // Late route/health snapshots cannot resurrect a destroyed or replaced carrier.
+        if(incoming<current||(incoming===current&&state.pathCarrierEnded&&snapshot.active===true))continue;
+        state.pathCarrierSequence=incoming;state.pathCarrierEnded=snapshot.pathCarrierEnded===true||snapshot.active!==true;
+      }
 
       state.health=Math.max(
         0,
@@ -2211,6 +2220,7 @@ const SummonDeployService=Object.freeze({
                 Number(snapshot.naturalRegenReadyRemaining)||0
               );
 
+          if(Array.isArray(snapshot.modeStates))ModeStateService.applyRemote(entity,snapshot.modeStates,now);
           if(snapshot.combatSnapshot){
             NetworkCombatSnapshotService
               .apply(

@@ -1,11 +1,11 @@
-/* 실제 캐릭터 데이터와 공통 조건/무기/표시/충돌/복제 서비스 회귀. 실기기 WebRTC 대체 아님. */
+/* 이전 반응형 장비 fixture와 공통 조건/무기/표시/충돌/복제 서비스 회귀. 실기기 WebRTC 대체 아님. */
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),assert=require('node:assert/strict');
-const root=path.resolve(__dirname,'..');let clock=1000,passed=0,walls=[],damage=[];
+const root=path.resolve(__dirname,'..');const legacyReflector=JSON.parse(fs.readFileSync(path.join(root,'tools/fixtures/geopin-reflector.json'),'utf8'));let clock=1000,passed=0,walls=[],damage=[];
 const c=vm.createContext({console,Map,Set,WeakMap,WeakSet,Math,performance:{now:()=>clock},EMPTY_RUNTIME_ITEMS:[],EMPTY_AUGMENT_EFFECTS:[]});
 function load(file,name){vm.runInContext(fs.readFileSync(path.join(root,file),'utf8')+`;globalThis.${name}=${name};`,c)}
 function test(name,fn){walls=[];damage=[];clock=1000;fn();passed++;console.log('PASS '+name)}
 for(const n of ['characterValue','characterCount','characterSum','characterProduct','freezeCharacterData','CHARACTER_RULES'])load('src/data/'+n+'.js',n);
-c.CHARACTER_DATA={geopin:vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/geopin.js'),'utf8')+')',c)};
+c.CHARACTER_DATA={geopin:vm.runInContext('('+fs.readFileSync(path.join(root,'tools/fixtures/geopin-legacy.json'),'utf8')+')',c)};
 load('src/data/CharacterDataService.js','CharacterDataService');const ch=c.CharacterDataService.compile('geopin');
 const items=new Map();c.EntityService={items,owner:e=>e};
 c.RelationService={relation:(a,b)=>a===b?'self':a?.teamId===b?.teamId?'ally':'enemy'};
@@ -460,7 +460,7 @@ test('타우 적중 추격: 투사체 상태가 정리되어도 실제 적중 ca
  assert.deepEqual(moves,[300]);c.AttackModuleService.onHit(e,target,attack,{execution},0,{phase:'outbound',projectile:carrier});assert.deepEqual(moves,[300]);
 });
 test('체리티 실제 저격/차징 태그: 거리500 이상 정밀·벽 뒤는 충격 우선',()=>{
- const cherity=JSON.parse(fs.readFileSync(path.join(root,'src/data/characters/cherity.js'),'utf8'));
+ const cherity=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/cherity.js'),'utf8')+')',c);
  const t=vm.createContext({GAME_DATA:{characters:{cherity},ranges:[{maxInclusive:Infinity,tag:'장거리'}]},COMBAT_STATUS_DEFS:{bind:{label:'속박'},neutralize:{label:'무력화'}},COMBAT_BUFF_DEFS:{},attackTagCache:new WeakMap(),attackTagMetadataCache:new WeakMap()});
  vm.runInContext(fs.readFileSync(path.join(root,'src/core/TagService.js'),'utf8')+';globalThis.tags=TagService;',t);
  const old=c.TagService;c.TagService=t.tags;
@@ -629,3 +629,88 @@ test('저회 확정은 다음 프레임/event listener 없이 즉시 누적·누
 console.log(`PASS ${passed} Geopin regression groups`);
 
 test('지속피해 장판 생성 광역피해·저회는 장판조건/비피해장판과 탄환직격 제외',()=>{for(const linked of [false,true]){const e=reset(),a=enemy(),burst={id:'burst',modules:[]},field={type:'field.area',duration:3000,interval:500,damageOnTrigger:true};if(linked)a.character={attacks:{carrier:{modules:[{type:'projectile.impact',attackIds:['burst'],field}]}}};else burst.modules=[{type:'delivery.area'},field];assert.equal(r.damage({source:a,target:e,attack:burst,amount:100,impact:{type:'area'},now:clock}),true);r.flush(e);assert.equal(progress(e,0),1);assert.equal(progress(e,6),0);assert.equal(r.justDodge(e,{source:a,attack:burst,impact:{type:'area'}},clock+500),true);assert.equal(progress(e,0),2);const p=reset();r.damage({source:a,target:p,attack:burst,amount:100,impact:{type:'projectile'},now:clock});r.flush(p);assert.equal(progress(p,0),0);field.damageOnTrigger=false;const q=reset();r.damage({source:a,target:q,attack:burst,amount:100,impact:{type:'area'},now:clock});r.flush(q);assert.equal(progress(q,0),0);}});
+
+test('현재 모듈 평타: 기본탄 대체/220끝 적150 한 번·넉백60복구/미적중만 끝탄/정밀벽후속 합성',()=>{
+ const raw=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/geopin.js'),'utf8')+')',c),current=c.CharacterDataService.compile('geopin',{geopin:raw});
+ load('src/combat/AttackFeatureTransformService.js','AttackFeatureTransformService');
+ const e=reset();e.character=current;c.ModeStateService.set(e,'geopin-module-punch','active');c.ModeStateService.set(e,'geopin-module-sniper','active');c.ModeStateService.set(e,'geopin-module-wall','active');
+ const attack=c.AttackFeatureTransformService.prepare(e,current.attacks.lmb),m=attack.modules.find(m=>m.renderType==='progressRect');assert.equal(attack.modules.some(m=>m.type==='delivery.projectile'),false);
+ const motions=[],shots=[];c.MovementService={knockback:(target,angle,distance)=>{motions.push({target,angle,distance});return true}};
+ c.TriggeredAttackService={execute:(source,attack,angle)=>shots.push({attack,angle})};c.AugmentService={prepareAttack:(source,a)=>c.AttackFeatureTransformService.prepare(source,a)};
+ c.TriggerModuleService.matches=()=>true;c.CCService={has:()=>false};
+ const make=()=>({...m,x:e.x,y:e.y,angle:0,dur:m.duration,sourceEntityId:e.id,animationState:{attack:current.attacks.punch,execution:c.AttackExecutionService.create(e,current.attacks.punch,0)}});
+ for(const position of [315,320,325,340]){
+  items.clear();items.set(e.id,e);const target=enemy('boundary',{x:position,radius:20});damage=[];motions.length=0;shots.length=0;const fx=make();c.EffectSpawnService.applyProgressiveDamage(fx,0,1);c.EffectSpawnService.applyProgressiveDamage(fx,1,1);
+  assert.equal(damage.length,1);assert.equal(damage[0].attack.damageRatio*current.baseDamage,150);assert.equal(motions.length,1);assert.equal(motions[0].distance,60);assert.equal(motions[0].angle,0);assert.equal(shots.length,0);
+ }
+ items.clear();items.set(e.id,e);shots.length=0;const fx=make();c.EffectSpawnService.applyProgressiveDamage(fx,0,1);c.EffectSpawnService.applyProgressiveDamage(fx,1,1);assert.equal(shots.length,1);assert.equal(shots[0].attack.range,600);assert.equal(shots[0].attack.modules[0].origin.x,320);assert.ok(shots[0].attack.modules.some(m=>m.type==='projectile.wall-relay'));assert.equal(shots[0].attack.damageRatio*current.baseDamage,150);
+});
+
+test('현재 근거리 압력 자체의 반사장치/벽뒤 전달·1회만·원격 권위·적 선접촉 우선',()=>{
+ const raw=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/geopin.js'),'utf8')+')',c),current=c.CharacterDataService.compile('geopin',{geopin:raw});
+ const make=e=>{const a=c.AttackFeatureTransformService.prepare(e,current.attacks.lmb),m=a.modules.find(m=>m.renderType==='progressRect');return {...m,x:e.x,y:e.y,angle:0,dur:m.duration,sourceEntityId:e.id,animationState:{attack:current.attacks.punch,execution:c.AttackExecutionService.create(e,current.attacks.punch,0)}}};
+ function setup(){walls=[];damage=[];const e=reset();e.character=current;c.ModeStateService.set(e,'geopin-module-punch','active');c.ModeStateService.set(e,'geopin-module-wall','active');return e}
+ const shots=[];c.TriggeredAttackService={execute:(source,attack,angle)=>shots.push({source,attack,angle})};c.AugmentService={prepareAttack:(source,a)=>c.AttackFeatureTransformService.prepare(source,a)};
+ let e=setup();enemy('far-target',{x:600,y:520});const device=entity('reflector',{kind:'summon',ownerId:e.id,x:250,radius:26,summonSpec:legacyReflector});let fx=make(e);c.EffectSpawnService.applyProgressiveDamage(fx,0,1);c.EffectSpawnService.applyProgressiveDamage(fx,1,1);assert.equal(shots.length,1);assert.equal(shots[0].attack.modules[0].origin.x,224);assert.equal(shots[0].attack.modules[0].speed,current.attacks.punchRubber.modules[0].speed);assert.equal(shots[0].attack.range,496);assert.equal(c.ModeStateService.state(device,'reflector-spin').turns,1);assert.equal(fx.animationState.deliveryInteractionResolved,true);assert.equal(damage.length,0);
+ shots.length=0;e=setup();walls=[{x:220,y:400,w:40,h:200}];enemy('behind-wall',{x:300,y:500});fx=make(e);c.EffectSpawnService.applyProgressiveDamage(fx,0,1);c.EffectSpawnService.applyProgressiveDamage(fx,1,1);assert.equal(damage.length,1);assert.equal(damage[0].attack.damageRatio*current.baseDamage,150);assert.equal(shots.length,1);assert.equal(fx.animationState.deliveryInteractionResolved,true);
+ shots.length=0;e=setup();enemy('closer',{x:150});enemy('farther',{x:600});entity('reflector',{kind:'summon',ownerId:e.id,x:250,radius:26,summonSpec:legacyReflector});fx=make(e);c.EffectSpawnService.applyProgressiveDamage(fx,0,1);assert.equal(damage.length,1);assert.equal(shots.length,0);
+ shots.length=0;e=setup();e.local=false;enemy('far-target',{x:600});entity('reflector',{kind:'summon',ownerId:e.id,x:250,radius:26,summonSpec:legacyReflector});fx=make(e);c.EffectSpawnService.applyProgressiveDamage(fx,0,1);assert.equal(shots.length,0);assert.equal(fx.animationState.deliveryInteractionResolved,true);
+});
+
+test('근거리 실제 spawnAttackEffect→initAnimation→150피해·넉백60복구 및 원격',()=>{
+ const raw=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/geopin.js'),'utf8')+')',c),current=c.CharacterDataService.compile('geopin',{geopin:raw});
+ load('src/core/MovementService.js','MovementService');c.ForcedMovementWindupInterruptService={interrupt(){}};c.DebugMapService.movementWalls=()=>walls;c.OnlinePresentationSyncService={shouldSend:()=>false};c.Training.fx=[];c.Training.active=true;c.Training.sessionMode='training';c.OnlineDuelService={active:false};
+ const e=reset();e.character=current;c.ModeStateService.set(e,'geopin-module-punch','active');const spec=c.AttackFeatureTransformService.prepare(e,current.attacks.lmb),module=spec.modules.find(m=>m.renderType==='progressRect');
+ const target=enemy('real-pressure',{x:240,y:500}),execution=c.AttackExecutionService.create(e,spec,0);
+ const oldSpec={...spec,modules:spec.modules.filter(m=>m.type!=='movement.knockback')};
+ const broken=c.AttackModuleService.spawnAttackEffect(e,oldSpec,0,execution,module);assert.ok(broken);assert.equal(broken.animationState.attack.id,spec.id);c.EffectSpawnService.applyProgressiveDamage(broken,0,1);assert.equal(target.forcedMotion,undefined);assert.equal(damage.length,1);
+ damage=[];const fixed=c.AttackModuleService.spawnAttackEffect(e,spec,0,c.AttackExecutionService.create(e,spec,0),module);assert.ok(fixed);assert.equal(fixed.animationState.attack.id,spec.id);c.EffectSpawnService.applyProgressiveDamage(fixed,0,1);assert.equal(damage.length,1);assert.equal(damage[0].attack.damageRatio*current.baseDamage,150);assert.equal(target.forcedMotion.distance,60);assert.equal(target.forcedMotion.directionX,1);c.MovementService.updateForced(target,clock,1);assert.equal(target.x,252);c.EffectSpawnService.applyProgressiveDamage(fixed,1,1);assert.equal(damage.length,1);assert.equal(target.forcedMotion.traveled,12);
+ const snapshot=c.EffectSpawnService.presentationSnapshot(fixed,clock);target.forcedMotion=null;target.x=240;damage=[];c.Training.sessionMode='online';c.OnlineDuelService.active=true;e.local=false;const replay=c.EffectSpawnService.spawn(c.EffectSpawnService.restorePresentationSnapshot(snapshot,clock),{source:e});assert.equal(replay.animationState.attack.id,current.attacks.punch.id);c.EffectSpawnService.applyProgressiveDamage(replay,0,1);assert.equal(damage.length,1);assert.equal(target.forcedMotion.distance,60);c.Training.sessionMode='training';c.OnlineDuelService.active=false;e.local=true;
+ c.ModeStateService.set(e,'geopin-module-punch','inactive');const base=c.AttackFeatureTransformService.prepare(e,current.attacks.lmb);assert.equal(base.modules.some(m=>m.type==='movement.knockback'),false);assert.equal(current.attacks.punchRubber.modules.some(m=>m.type==='movement.knockback'),false);
+});
+
+test('근거리 실제 벽접촉: 파츠없는 반사탄/50%속도/안전원점·벽뒤전달 병행·적접촉/원격 제외',()=>{
+ const raw=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/geopin.js'),'utf8')+')',c),current=c.CharacterDataService.compile('geopin',{geopin:raw});
+ function setup(relay=false){const e=reset();e.character=current;c.Training.sessionMode='training';c.Training.fx=[];c.ModeStateService.set(e,'geopin-module-punch','active');if(relay)c.ModeStateService.set(e,'geopin-module-wall','active');return e}
+ function fire(e){const a=c.AttackFeatureTransformService.prepare(e,current.attacks.lmb),m=a.modules.find(m=>m.renderType==='progressRect');const fx=c.AttackModuleService.spawnAttackEffect(e,a,0,c.AttackExecutionService.create(e,a,0),m);c.EffectSpawnService.applyProgressiveDamage(fx,0,1);c.EffectSpawnService.applyProgressiveDamage(fx,1,1);return fx}
+ const shots=[];c.TriggeredAttackService={execute:(source,attack,angle)=>shots.push({source,attack,angle})};c.AugmentService={prepareAttack:(source,a)=>c.AttackFeatureTransformService.prepare(source,a)};
+ let e=setup();walls=[{x:220,y:400,w:40,h:200}];let fx=fire(e);assert.equal(shots.length,1);const bullet=shots[0],delivery=bullet.attack.modules.find(m=>m.type==='delivery.projectile');assert.ok(Math.cos(bullet.angle)<-.99);assert.equal(delivery.speed,current.attacks.punchRubber.modules[0].speed*.5);assert.equal(delivery.origin.x,203);assert.equal(bullet.attack.range,483);assert.equal(c.WorldGeometryService.segmentBlocked(203,500,180,500,15),false);assert.equal(fx.animationState.deliveryInteractionResolved,true);assert.equal(damage.length,0);
+ shots.length=0;damage=[];e=setup(true);walls=[{x:220,y:400,w:40,h:200}];enemy('wall-target',{x:300});fire(e);assert.equal(shots.length,1);assert.equal(damage.length,1);assert.equal(damage[0].attack.damageRatio*current.baseDamage,150);
+ shots.length=0;damage=[];e=setup();walls=[{x:220,y:400,w:40,h:200}];enemy('front-target',{x:150});fire(e);assert.equal(shots.length,0);assert.equal(damage.length,1);
+ shots.length=0;damage=[];e=setup();e.local=false;walls=[{x:220,y:400,w:40,h:200}];const a=c.AttackFeatureTransformService.prepare(e,current.attacks.lmb),m=a.modules.find(m=>m.renderType==='progressRect');const received=c.EffectSpawnService.spawn({...m,x:e.x,y:e.y,angle:0,sourceEntityId:e.id},{source:e});c.EffectSpawnService.applyProgressiveDamage(received,0,1);assert.equal(shots.length,0);assert.equal(received.animationState.deliveryInteractionResolved,true);
+});
+
+test('근거리 실제 FX 맵4변/모서리 반사: 실제 탄환1회/속도절반/범위보존/외곽안전위치',()=>{
+ const raw=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/geopin.js'),'utf8')+')',c),current=c.CharacterDataService.compile('geopin',{geopin:raw});
+ const shots=[];c.TriggeredAttackService={execute:(source,attack,angle)=>shots.push({source,attack,angle})};
+ for(const [x,y,angle] of [[1900,500,0],[100,500,Math.PI],[500,100,-Math.PI/2],[500,1900,Math.PI/2],[1900,1900,Math.PI/4]]){
+  const e=reset();e.x=x;e.y=y;e.character=current;c.Training.fx=[];c.ModeStateService.set(e,'geopin-module-punch','active');shots.length=0;
+  const a=c.AttackFeatureTransformService.prepare(e,current.attacks.lmb),m=a.modules.find(m=>m.renderType==='progressRect');const fx=c.AttackModuleService.spawnAttackEffect(e,a,angle,c.AttackExecutionService.create(e,a,angle),m);
+  c.EffectSpawnService.applyProgressiveDamage(fx,0,1);c.EffectSpawnService.applyProgressiveDamage(fx,1,1);assert.equal(shots.length,1);
+  const shot=shots[0],delivery=shot.attack.modules.find(m=>m.type==='delivery.projectile');assert.equal(delivery.speed,current.attacks.punchRubber.modules[0].speed*.5);assert.ok(Math.cos(shot.angle-angle)<-.99);assert.ok(delivery.origin.x>=15&&delivery.origin.x<=1985&&delivery.origin.y>=15&&delivery.origin.y<=1985);assert.ok(shot.attack.range>400&&shot.attack.range<650);assert.equal(fx.animationState.deliveryInteractionResolved,true);
+ }
+ const e=reset();e.character=current;assert.equal(c.ProjectileRedirectService.pressureContact(e,current.attacks.punchRubber,0,{x:100,y:500},250,50),null);
+});
+
+test('현재 벽뒤 모듈 실제 relay 패킷→수신→벽너머150피해: 장착선언 검증/지연모드/중복·위조 차단',()=>{
+ const raw=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/geopin.js'),'utf8')+')',c),current=c.CharacterDataService.compile('geopin',{geopin:raw});
+ const source=reset();source.id='P2';source.character=current;items.clear();items.set(source.id,source);const target=enemy('P1',{x:300,y:500,maxHealth:1000,health:1000,local:false});walls=[{x:220,y:400,w:40,h:200}];
+ load('src/core/ResourceValueService.js','ResourceValueService');load('src/combat/HealthService.js','HealthService');c.NaturalHealthRegenActivityService={mark(){}};c.AugmentEffectModuleService={runTrigger(){}};
+ c.AttackHitTriggerService={damage:ctx=>{if(ctx.target.local===false)return {hit:true,authoritative:false,amount:0};const result=c.HealthService.damage(ctx.target,ctx.source.character.baseDamage*ctx.attack.damageRatio,clock);return {...result,hit:result.applied,authoritative:true}}};
+ c.ModeStateService.set(source,'geopin-module-wall','active');const attack=c.AttackFeatureTransformService.prepare(source,current.attacks.lmb);assert.ok(attack.modules.some(m=>m.type==='projectile.wall-relay'));
+ let packet=null;c.RoomService={sendGameplay:value=>{if(value.type==='duel-projectile-relay')packet=value}};c.OnlineParticipantEntityService={pid:e=>e.id,entity:id=>items.get(id)};c.Training.sessionMode='online';c.OnlineDuelService={active:true,roundToken:42};c.GameEvents.on('projectile-wall-relayed',event=>c.ProjectileRedirectSyncService.relay(event));
+ const p={source,attack,angle:0,x:205,y:500,prevX:170,prevY:500,vx:32,vy:0,radius:15,travel:100,hitIds:new Set(),networkKey:'wall-shot299'};assert.equal(c.ProjectileRedirectService.wall(p,false),true);assert.equal(packet.type,'duel-projectile-relay');assert.equal(target.health,1000);assert.equal(packet.point.x,262);
+ // The peer may not have received the module state yet. Validate the declared option, not its transient mode.
+ source.local=false;target.local=true;source.actionState.clear();source._wallRelayKeys=new Set();assert.equal(Object.values(current.attacks).some(a=>(a.modules||[]).some(m=>m.type==='projectile.wall-relay'&&m.attackId===packet.attackId)),false);assert.equal(c.ProjectileRedirectService.declaredRelay(current,packet.attackId),true);
+ c.MatchModeService={DUEL:'duel'};load('src/network/OnlineDuelService.js','OnlineDuelService');Object.assign(c.OnlineDuelService,{active:true,localPid:'P1',remotePids:['P2'],roundToken:42,remotePlayers:new Map([['P2',source]])});c.Training.remotePlayers=new Map([['P2',source]]);
+ assert.equal(c.OnlineDuelService.receive('P2',packet),true);assert.equal(target.health,850);assert.equal(c.OnlineDuelService.receive('P2',packet),false);assert.equal(target.health,850);assert.equal(c.OnlineDuelService.receive('P2',{...packet,key:'wrong',attackId:current.attacks.counter.id}),false);assert.equal(c.OnlineDuelService.receive('P2',{...packet,key:'spoof',ownerPid:'P1'}),false);assert.equal(target.health,850);
+ c.Training.sessionMode='training';c.OnlineDuelService.active=false;
+});
+
+test('현재 고무탄 첫 벽만50%감속·반복벽/원격복제/압력반사탄 추가벽 감속없음',()=>{
+ const raw=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/geopin.js'),'utf8')+')',c),current=c.CharacterDataService.compile('geopin',{geopin:raw});const e=reset();e.character=current;walls=[];
+ const speed=current.attacks.lmb.modules[0].speed,p=projectile(e,current.attacks.lmb,{x:15,prevX:30,radius:15,vx:-speed,angle:Math.PI});
+ for(let i=0;i<4;i++){p.x=i%2?1985:15;p.vx=(i%2?1:-1)*Math.abs(p.vx);p.vy=0;p.angle=i%2?0:Math.PI;assert.equal(c.ProjectileRedirectService.wall(p,true),true);assert.ok(Math.abs(Math.hypot(p.vx,p.vy)-speed*.5)<1e-9)}
+ const mirror=projectile(e,current.attacks.lmb,{radius:15});assert.equal(c.ProjectileRedirectService.apply(mirror,{revision:4,x:p.x,y:p.y,angle:p.angle,vx:p.vx,vy:p.vy,travel:p.travel,redirectCount:p.redirectCount,wallRedirectCount:p.wallRedirectCount}),true);mirror.x=15;mirror.angle=Math.PI;mirror.vx=-speed*.5;mirror.vy=0;assert.equal(c.ProjectileRedirectService.wall(mirror,true),true);assert.ok(Math.abs(Math.hypot(mirror.vx,mirror.vy)-speed*.5)<1e-9);
+ const shots=[];c.TriggeredAttackService={execute:(source,attack,angle)=>shots.push({attack,angle})};e.x=1900;e.y=500;c.ModeStateService.set(e,'geopin-module-punch','active');const attack=c.AttackFeatureTransformService.prepare(e,current.attacks.lmb),module=attack.modules.find(m=>m.renderType==='progressRect');const fx=c.AttackModuleService.spawnAttackEffect(e,attack,0,c.AttackExecutionService.create(e,attack,0),module);c.EffectSpawnService.applyProgressiveDamage(fx,0,1);assert.equal(shots.length,1);const outgoing=shots[0].attack,delivery=outgoing.modules.find(m=>m.type==='delivery.projectile');assert.equal(delivery.speed,speed*.5);const second=projectile(e,outgoing,{x:15,prevX:30,radius:15,vx:-delivery.speed,angle:Math.PI});c.ProjectileRedirectService.wall(second,true);assert.ok(Math.abs(Math.hypot(second.vx,second.vy)-speed*.5)<1e-9);
+});

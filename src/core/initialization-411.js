@@ -2,6 +2,7 @@
 
 window.addEventListener('keyup',event=>{
   Training.keys.delete(event.code);
+  if(PanelController.capturesGameInput())return;
   if(DebugMapEditorService.active){
     if(
       ['KeyW','KeyA','KeyS','KeyD','Space']

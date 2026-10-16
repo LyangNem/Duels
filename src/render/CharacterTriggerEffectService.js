@@ -3,6 +3,11 @@
 const CharacterTriggerEffectService=Object.freeze({
   run(entity,event,context={}){
     if(!entity)return context;
+    // Damage can make a target satisfy a passive condition during this same hit.
+    // Confirmed target snapshots are read for this event without mutating remote mirrors.
+    if(event==='damage-dealt'&&entity.alive&&entity.character?.passiveBuffs?.length){
+      CharacterPassiveBuffService.sync(entity,{targetHealthSnapshots:context.targetHealthSnapshots});
+    }
 
     const shared={
       ...context,
@@ -111,7 +116,7 @@ const CharacterTriggerEffectService=Object.freeze({
           const restored=ResourceRestoreEffectService.apply({
             source:entity,
             target:recipient,
-            module:{...module,recipient:'target'},
+            module:{...module,recipient:'target',...(module.amountFrom?{amount:Math.max(0,Number(shared[module.amountFrom])||0)*(Number(module.amountScale)||0)}:{})},
             presentationDefault:'default',
             reason:'resource.restore',
             now:shared.now
@@ -130,6 +135,10 @@ const CharacterTriggerEffectService=Object.freeze({
           continue;
         }
 
+        if(module.type==='modifier.remove'){
+          BuffService.remove(entity,String(module.stat||''),String(module.sourceId||''));
+          continue;
+        }
         if(module.type==='modifier.set'){
           if(!COMBAT_BUFF_DEFS[module.stat])continue;
 

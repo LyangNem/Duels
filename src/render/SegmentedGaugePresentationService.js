@@ -70,7 +70,7 @@ const SegmentedGaugePresentationService=Object.freeze({
             )
           )
           :(
-            mode==='count'
+            mode==='mask'?((Math.floor(Number(value)||0)&(2**index))?1:0):mode==='count'
               ?(
                 index<
                 Math.max(

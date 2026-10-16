@@ -201,7 +201,18 @@ const CharacterSortService=Object.freeze({
         if(type==='projectile.impact'&&projectile){
           const ids=[...(module.attackIds||[])];
           for(const values of Object.values(module.reasonAttackIds||{}))ids.push(...values);
-          for(const id of ids){const extent=linkedRange(id);if(extent>0)maximum=Math.max(maximum,travel+extent);}
+          for(const id of ids){
+            const extent=linkedRange(id);if(extent<=0)continue;
+            const linked=this.attackById(combat,id);
+            if(module.broadcastLinked===true&&Number.isFinite(Number(module.angleOffset))&&
+              linked?.modules?.some(m=>m.type==='delivery.projectile')){
+              const scatter=linked.modules.find(m=>m.type==='pattern.scatter');
+              const halfSpread=Number(module.randomSpread)||Number(scatter?.spread)/2||0;
+              const separation=Math.max(0,Math.acos(Math.cos(Number(module.angleOffset)))-halfSpread);
+              const end=Number.isFinite(travel+extent)?Math.sqrt(Math.max(0,travel*travel+extent*extent+2*travel*extent*Math.cos(separation))):Infinity;
+              maximum=Math.max(maximum,travel,extent,end);
+            }else maximum=Math.max(maximum,travel+extent);
+          }
           const field=module.field;
           if(field?.damageOnTrigger!==false&&field?.attackId&&Number(this.attackById(combat,field.attackId)?.damageRatio)>0&&this.enemyRangeModule(field)){
             maximum=Math.max(maximum,field.anchorMode==='projectile-path'?travel:travel+this.geometryRange(field,variant));

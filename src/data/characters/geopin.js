@@ -6,326 +6,202 @@
   "color": "#e6ca3b",
   "classification": {
     "style": 6,
-    "range": 0,
+    "range": 3,
     "role": 1
   },
   "stats": {
-    "maxHealth": 1100,
-    "speed": 4.5,
+    "maxHealth": 900,
+    "speed": 3.75,
     "radius": 20,
     "baseDamage": 100,
     "difficulty": 4
   },
-  "desc": "상대의 공격과 움직임을 분석해 상황에 맞는 발명품으로 대응하는 캐릭터",
-  "reactiveEquipment": {
-    "stateKey": "geopin-weapon",
-    "initial": "rubber",
-    "longDistance": 350,
-    "closeDistance": 350,
-    "approachWindow": 350,
-    "approachDelta": 100,
-    "approachNear": 350,
-    "restrictedStatuses": [
-      "stun",
-      "neutralize",
-      "freeze",
-      "bind",
-      "sleep"
-    ],
+  "desc": "적과 공격에서 아이디어를 얻고 상황에 맞는 모듈을 추가하는 캐릭터",
+  "ideaModules": {
+    "stateKey": "geopin-idea",
+    "range": 350,
+    "closeDistance": {
+      "$ref": "ideaModules.range"
+    },
+    "hitGain": 0.1,
+    "presencePerSecond": 0.2,
+    "attackGain": 0.1,
+    "threshold": 1,
+    "rotationStateKey": "geopin-modules-gear",
     "items": [
       {
-        "value": "recoil",
-        "name": "과반동 발사기",
-        "stateKey": "geopin-invent-jump",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "field"
-            }
-          ]
-        }
-      },
-      {
         "value": "wall",
-        "name": "충격 전달기",
-        "stateKey": "geopin-invent-wall",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "behindWall"
-            }
-          ]
-        }
-      },
-      {
-        "value": "laser",
-        "name": "고회전 발사기",
-        "stateKey": "geopin-invent-laser",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "blocked"
-            }
-          ]
-        }
-      },
-      {
-        "value": "chain",
-        "name": "전이 발사기",
-        "stateKey": "geopin-invent-chain",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "summon"
-            }
-          ]
-        }
+        "name": "충격 전달 모듈",
+        "stateKey": "geopin-module-wall",
+        "situation": "behindWall"
       },
       {
         "value": "punch",
-        "name": "이중 충격기",
-        "stateKey": "geopin-invent-punch",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "approach"
-            }
-          ]
-        }
-      },
-      {
-        "value": "jump",
-        "name": "충격 도약기",
-        "stateKey": "geopin-invent-recoil",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "restricted"
-            }
-          ]
-        }
+        "name": "이중 충격 모듈",
+        "stateKey": "geopin-module-punch",
+        "situation": "close"
       },
       {
         "value": "sniper",
-        "name": "정밀 발사기",
-        "stateKey": "geopin-invent-sniper",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "far"
-            }
-          ]
-        }
-      },
-      {
-        "value": "bomb",
-        "name": "폭발형 발사기",
-        "stateKey": "geopin-invent-bomb",
-        "required": 3,
-        "trigger": {
-          "type": "trigger",
-          "event": "equipment.situation",
-          "conditions": [
-            {
-              "type": "situation.flag",
-              "flag": "close"
-            }
-          ]
-        }
+        "name": "정밀 발사 모듈",
+        "stateKey": "geopin-module-sniper",
+        "situation": "far"
       }
     ],
-    "inputSlot": "lmb",
-    "approachTargetKinds": [
-      "player",
-      "trainingBot",
+    "countStateKey": "geopin-module-count",
+    "situationRange": 650,
+    "presencePerEnemy": true,
+    "excludedEntityKinds": [
       "summon"
-    ],
-    "initialName": "고무탄 발사기",
-    "restrictedAttackTags": [
-      "stun",
-      "neutralize",
-      "freeze",
-      "bind",
-      "sleep"
-    ],
-    "distanceImpactTypes": [
-      "direct",
-      "projectile",
-      "area",
-      "effect-animation"
-    ],
-    "distanceExcludedAttackTags": [
-      "상태 피해",
-      "덫 발동",
-      "stun",
-      "neutralize",
-      "freeze",
-      "bind",
-      "slow",
-      "sleep",
-      "끌어오기"
-    ],
-    "approachSpeedRatio": 1.2,
-    "farExclusive": true,
-    "fieldTrigger": "damage"
+    ]
   },
   "worldEffectModules": [
     {
       "type": "effect.spawn",
       "renderType": "weaponImage",
-      "style": "gear",
-      "color": "#e6ca3b",
-      "scale": 2.5,
-      "rotationStateKey": "geopin-weapon",
+      "style": "rubber-launcher",
+      "scale": 2.1,
+      "angle": -0.45,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "geopin-shot-image",
       "rotationMs": 350,
-      "idleAlpha": 0.2,
-      "useHoldMs": 350,
-      "useFadeMs": 500
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "rubber-muzzle",
+      "scale": 2.1,
+      "angle": -0.45,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "geopin-shot-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "geopin-module-punch",
+          "initial": "inactive",
+          "value": "inactive"
+        }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "rubber-module-punch",
+      "scale": 2.1,
+      "angle": -0.45,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "geopin-shot-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "geopin-module-punch",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "rubber-module-sniper",
+      "scale": 2.1,
+      "angle": -0.45,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "geopin-shot-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "geopin-module-sniper",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "rubber-module-wall",
+      "scale": 2.1,
+      "angle": -0.45,
+      "idleAlpha": 0.4,
+      "rotationStateKey": "geopin-shot-image",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586,
+      "conditions": [
+        {
+          "type": "state.mode-is",
+          "stateKey": "geopin-module-wall",
+          "initial": "inactive",
+          "value": "active"
+        }
+      ]
     }
   ],
   "worldGaugeModules": [
     {
-      "type": "gauge.equipment-bank",
+      "type": "range.circle",
       "visibility": "owner",
-      "radius": 11,
-      "x": 58,
-      "y": -30,
-      "gap": 29,
-      "color": "#e6ca3b",
-      "idleAlpha": 0.35,
-      "holdMs": 500,
-      "fadeMs": 500,
-      "columns": 3,
-      "activeColor": "#fff5a3"
-    },
-    {
-      "type": "range.equipment-thresholds",
-      "visibility": "owner",
-      "color": "#e6ca3b",
-      "alpha": 0.4,
+      "range": {
+        "$ref": "ideaModules.range"
+      },
+      "alpha": 0.35,
       "dash": [
-        6,
-        6
-      ],
-      "lineWidth": 1.5
-    }
-  ],
-  "tooltipSkills": [
-    {
-      "key": "ALWAYS",
-      "name": "발명",
-      "text": "각 조건이 3회 발생하면 발명품 제작. 이후 같은 조건 발생 시 자동 장착"
+        5,
+        5
+      ]
     },
     {
-      "key": "LMB",
-      "name": "발명품",
-      "attack": "lmb",
-      "text": "장착한 발명품으로 공격"
-    },
-    {
-      "key": "RMB",
-      "name": "다른 무기!",
-      "attack": "rmb",
-      "text": "이전 발명품으로 전환"
-    },
-    {
-      "key": "RMB HOLD",
-      "name": "애정 발명품",
-      "attack": "rmb",
-      "text": "벽에 튕겨 적을 향하는 기본 고무탄 발사기로 전환"
-    },
-    {
-      "key": "L-Shift",
-      "name": "위험 속 깨달음",
-      "attack": "counter",
-      "text": "마지막 조건의 발명품을 즉시 제작하고 주변에 피해 ({damage})"
-    },
-    {
-      "key": "WEAPON",
-      "name": "과반동 발사기",
-      "text": "지속 장판 피격 시 충전. 고무탄을 발사하며 뒤로 반동 이동 ({damage})",
-      "attack": "recoil",
-      "showCost": false
-    },
-    {
-      "key": "WEAPON",
-      "name": "충격 전달기",
-      "text": "벽 뒤 적에게 피격 시 충전. 벽에 맞힌 고무탄이 벽 너머를 공격 ({damage}/{linkedDamage})",
-      "attack": "wall",
-      "showCost": false,
-      "linkedAttack": "wallBurst"
-    },
-    {
-      "key": "WEAPON",
-      "name": "고회전 발사기",
-      "text": "공격이 방어에 막히면 충전. 고무탄 2발 연사 ({damage})",
-      "attack": "laser",
-      "showCost": false
-    },
-    {
-      "key": "WEAPON",
-      "name": "전이 발사기",
-      "text": "소환수에게 피격 시 충전. 적중 시 튕기는 고무탄 발사 ({damage})",
-      "attack": "chain",
-      "showCost": false
-    },
-    {
-      "key": "WEAPON",
-      "name": "이중 충격기",
-      "text": "적이 빠르게 접근하면 충전. 전방에 피해 및 강한 넉백. 빗나가면 끝에서 고무탄 발사 ({damage}/{linkedDamage})",
-      "attack": "punch",
-      "showCost": false,
-      "linkedAttack": "punchRubber"
-    },
-    {
-      "key": "WEAPON",
-      "name": "충격 도약기",
-      "text": "CC기로 이동을 제한당하면 충전. 주변에 피해를 주며 뒤로 점프 ({damage})",
-      "attack": "jump",
-      "showCost": false
-    },
-    {
-      "key": "WEAPON",
-      "name": "정밀 발사기",
-      "text": "다른 조건 없이 일정 거리 밖의 적에게 피격 시 충전. 빠르고 긴 사거리의 고무탄 발사 ({damage})",
-      "attack": "sniper",
-      "showCost": false
-    },
-    {
-      "key": "WEAPON",
-      "name": "폭발형 발사기",
-      "text": "다른 조건 없이 일정 거리 이내의 적에게 피격 시 충전. 적중 시 또는 사거리 끝에서 폭발 ({damage})",
-      "attack": "bomb",
-      "showCost": false,
-      "linkedAttack": "explosion"
+      "type": "gauge.segmented",
+      "valueMode": "mask",
+      "valueRef": {
+        "type": "mode-match-mask",
+        "modes": [
+          {
+            "stateKey": "geopin-module-punch",
+            "initial": "inactive",
+            "value": "active"
+          },
+          {
+            "stateKey": "geopin-module-sniper",
+            "initial": "inactive",
+            "value": "active"
+          },
+          {
+            "stateKey": "geopin-module-wall",
+            "initial": "inactive",
+            "value": "active"
+          }
+        ]
+      },
+      "height": 4,
+      "gap": 2,
+      "segments": [
+        {
+          "value": "punch",
+          "color": {
+            "$ref": "color"
+          }
+        },
+        {
+          "value": "sniper",
+          "color": {
+            "$ref": "color"
+          }
+        },
+        {
+          "value": "wall",
+          "color": {
+            "$ref": "color"
+          }
+        }
+      ]
     }
   ],
   "attacks": {
@@ -338,171 +214,7 @@
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 32.643,
-          "radius": 15
-        },
-        {
-          "type": "projectile.redirect",
-          "on": [
-            "wall"
-          ],
-          "searchRadius": 0,
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "jump": {
-      "id": "attack.geopin.jump",
-      "damageRatio": 2.5,
-      "cost": 150,
-      "cd": 350,
-      "range": 110,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "shape": "circle",
-          "range": 110,
-          "wallPolicy": "block"
-        },
-        {
-          "type": "trajectory.arc",
-          "height": 55,
-          "screenLiftRatio": 0.55,
-          "apexScale": 1,
-          "apexAlpha": 1,
-          "apexStrokeAlpha": 1
-        },
-        {
-          "type": "movement.move",
-          "when": "after-attack",
-          "direction": "opposite-aim",
-          "distance": 220,
-          "duration": 200,
-          "replaceActive": true,
-          "blocksAction": true,
-          "collision": {
-            "passWalls": true,
-            "passEnemies": true
-          },
-          "resolveOverlapOnEnd": true,
-          "presentation": false,
-          "tags": [
-            "이동기"
-          ],
-          "buffs": [
-            {
-              "type": "evasionInvulnerable",
-              "value": 1,
-              "duration": "movement"
-            }
-          ]
-        }
-      ],
-      "tags": [
-        "평타"
-      ],
-      "previewGeometry": {
-        "shape": "circle",
-        "range": 110,
-        "wallPolicy": "block"
-      }
-    },
-    "wall": {
-      "id": "attack.geopin.wall",
-      "damageRatio": 1.5,
-      "cost": 150,
-      "cd": 350,
-      "range": 650,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 30.0,
-          "radius": 15
-        },
-        {
-          "type": "projectile.wall-relay",
-          "attackId": "attack.geopin.wallBurst"
-        },
-        {
-          "type": "projectile.redirect",
-          "searchRadius": 0,
-          "on": [
-            "wall"
-          ],
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "wallBurst": {
-      "id": "attack.geopin.wallBurst",
-      "damageRatio": 2.5,
-      "cost": 0,
-      "cd": 0,
-      "range": 200,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "shape": "rect",
-          "range": 200,
-          "halfWidth": 45,
-          "wallPolicy": "ignore"
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "laser": {
-      "id": "attack.geopin.laser",
-      "damageRatio": 1.5,
-      "cost": 200,
-      "cd": 350,
-      "range": 650,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 32.643,
-          "radius": 15
-        },
-        {
-          "type": "delivery.delayed-projectile-volley",
-          "count": 2,
-          "delay": 0,
-          "interval": 100,
-          "aimMode": "locked"
-        },
-        {
-          "type": "projectile.redirect",
-          "on": [
-            "wall"
-          ],
-          "searchRadius": 0,
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "chain": {
-      "id": "attack.geopin.chain",
-      "damageRatio": 1.5,
-      "cost": 150,
-      "cd": 350,
-      "range": 850,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 28.07686607142857,
+          "speed": 22.850099999999998,
           "radius": 15
         },
         {
@@ -523,7 +235,118 @@
           "rangeGrowthOn": [
             "hit"
           ],
-          "wallSpeedMultiplier": 0.5
+          "wallSpeedMultiplier": 0.5,
+          "hitSpeedMultiplier": 0.5,
+          "wallSpeedOnce": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "geopin-shot-image",
+          "values": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "tags": [
+        "평타"
+      ],
+      "projectileFamily": "rubber",
+      "attackFeatureTransform": {
+        "type": "mode-modules",
+        "options": [
+          {
+            "stateKey": "geopin-module-sniper",
+            "initial": "inactive",
+            "value": "active",
+            "specOverrides": {
+              "range": 850
+            },
+            "moduleOverrides": [
+              {
+                "type": "delivery.projectile",
+                "values": {
+                  "speed": 36.28395
+                }
+              }
+            ]
+          },
+          {
+            "stateKey": "geopin-module-wall",
+            "initial": "inactive",
+            "value": "active",
+            "modules": [
+              {
+                "type": "projectile.wall-relay",
+                "attackId": "attack.geopin.wallBurst"
+              }
+            ]
+          },
+          {
+            "stateKey": "geopin-module-punch",
+            "initial": "inactive",
+            "value": "active",
+            "modules": [
+              {
+                "type": "effect.spawn",
+                "when": "after-attack",
+                "renderType": "progressRect",
+                "position": "source",
+                "range": 220,
+                "halfWidth": 50,
+                "growthSpeed": 13.464,
+                "travelSpeed": 12240,
+                "animation": true,
+                "clipToAttackArea": true,
+                "color": "#e6ca3b",
+                "strokeColor": "#e6ca3b",
+                "fillAlpha": 0.18,
+                "strokeAlpha": 0.9,
+                "lineWidth": 2.5,
+                "endCap": true,
+                "duration": 220,
+                "damage": {
+                  "attackId": "attack.geopin.punch",
+                  "hitMode": "progressive-rect",
+                  "module": {
+                    "type": "delivery.area",
+                    "shape": "rect",
+                    "range": 220,
+                    "halfWidth": 50,
+                    "wallPolicy": "block"
+                  },
+                  "missAttackId": "attack.geopin.punchRubber",
+                  "interactionAttackId": "attack.geopin.punchRubber"
+                }
+              },
+              {
+                "$ref": "attacks.punch.modules.1"
+              }
+            ],
+            "removeTypes": [
+              "delivery.projectile",
+              "projectile.pierce",
+              "projectile.redirect",
+              "projectile.wall-relay"
+            ]
+          }
+        ]
+      }
+    },
+    "wallBurst": {
+      "id": "attack.geopin.wallBurst",
+      "damageRatio": 1.5,
+      "cost": 0,
+      "cd": 0,
+      "range": 200,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "rect",
+          "range": 200,
+          "halfWidth": 45,
+          "wallPolicy": "ignore"
         }
       ],
       "tags": [
@@ -532,17 +355,17 @@
     },
     "punch": {
       "id": "attack.geopin.punch",
-      "damageRatio": 2.5,
-      "cost": 150,
-      "cd": 350,
-      "range": 250,
+      "damageRatio": 1.5,
+      "cost": 0,
+      "cd": 0,
+      "range": 220,
       "modules": [
         {
           "type": "effect.spawn",
           "when": "after-attack",
           "renderType": "progressRect",
           "position": "source",
-          "range": 250,
+          "range": 220,
           "halfWidth": 50,
           "growthSpeed": 13.464,
           "travelSpeed": 12240,
@@ -561,18 +384,19 @@
             "module": {
               "type": "delivery.area",
               "shape": "rect",
-              "range": 250,
+              "range": 220,
               "halfWidth": 50,
               "wallPolicy": "block"
             },
-            "missAttackId": "attack.geopin.punchRubber"
+            "missAttackId": "attack.geopin.punchRubber",
+            "interactionAttackId": "attack.geopin.punchRubber"
           }
         },
         {
           "type": "movement.knockback",
           "target": "hit-target",
           "direction": "attack",
-          "distance": 180,
+          "distance": 60,
           "speed": 12,
           "when": "on-hit"
         }
@@ -582,167 +406,10 @@
       ],
       "previewGeometry": {
         "shape": "rect",
-        "range": 250,
+        "range": 220,
         "halfWidth": 50,
         "wallPolicy": "block"
       }
-    },
-    "recoil": {
-      "id": "attack.geopin.recoil",
-      "damageRatio": 2.5,
-      "cost": 200,
-      "cd": 350,
-      "range": 650,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 32.643,
-          "radius": 15
-        },
-        {
-          "type": "movement.move",
-          "when": "after-attack",
-          "direction": "opposite-aim",
-          "distance": 200,
-          "duration": 140,
-          "motionMode": "knockback",
-          "collision": {
-            "passWalls": false,
-            "passEnemies": false
-          },
-          "presentation": false
-        },
-        {
-          "type": "projectile.redirect",
-          "searchRadius": 0,
-          "on": [
-            "wall"
-          ],
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "sniper": {
-      "id": "attack.geopin.sniper",
-      "damageRatio": 1.5,
-      "cost": 200,
-      "cd": 350,
-      "range": 850,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 51.83421428571428,
-          "radius": 15
-        },
-        {
-          "type": "projectile.redirect",
-          "searchRadius": 0,
-          "on": [
-            "wall"
-          ],
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "bomb": {
-      "id": "attack.geopin.bomb",
-      "damageRatio": 1.5,
-      "cost": 200,
-      "cd": 350,
-      "range": 250,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 27.5,
-          "radius": 15,
-          "collisionTargets": true
-        },
-        {
-          "type": "projectile.impact",
-          "attackIds": [
-            "attack.geopin.explosion"
-          ],
-          "shareHitTargets": true
-        },
-        {
-          "type": "projectile.redirect",
-          "searchRadius": 0,
-          "on": [
-            "wall"
-          ],
-          "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
-        },
-        {
-          "type": "hit.once-per-execution"
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "explosion": {
-      "id": "attack.geopin.explosion",
-      "damageRatio": 1.5,
-      "cost": 0,
-      "cd": 0,
-      "range": 110,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "shape": "circle",
-          "range": 110,
-          "wallPolicy": "block"
-        },
-        {
-          "type": "hit.once-per-execution"
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "rmb": {
-      "id": "attack.geopin.rmb",
-      "damageRatio": 0.0,
-      "cost": 0,
-      "cd": 250,
-      "range": 0,
-      "modules": [],
-      "tags": [
-        "스킬"
-      ],
-      "effectsOnly": true
-    },
-    "counter": {
-      "id": "attack.geopin.counter",
-      "damageRatio": 2.5,
-      "cost": 0,
-      "cd": 350,
-      "range": 220,
-      "modules": [
-        {
-          "type": "equipment.discover",
-          "when": "after-attack"
-        },
-        {
-          "type": "delivery.area",
-          "shape": "circle",
-          "range": 220,
-          "wallPolicy": "block"
-        }
-      ],
-      "tags": [
-        "반격"
-      ]
     },
     "punchRubber": {
       "id": "attack.geopin.punchRubber",
@@ -753,21 +420,110 @@
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 32.643,
+          "speed": 22.850099999999998,
           "radius": 15
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": true,
+          "walls": false
         },
         {
           "type": "projectile.redirect",
           "on": [
-            "wall"
+            "wall",
+            "hit"
           ],
+          "maxRedirects": 0,
           "searchRadius": 0,
           "maxWallRedirects": 0,
-          "wallSpeedMultiplier": 0.5
+          "rangeGrowthRatio": 0.4,
+          "rangeGrowthOn": [
+            "hit"
+          ],
+          "wallSpeedMultiplier": 0.5,
+          "hitSpeedMultiplier": 0.5,
+          "wallSpeedOnce": true
         }
       ],
       "tags": [
         "평타"
+      ],
+      "projectileFamily": "rubber",
+      "attackFeatureTransform": {
+        "type": "mode-modules",
+        "options": [
+          {
+            "stateKey": "geopin-module-sniper",
+            "initial": "inactive",
+            "value": "active",
+            "specOverrides": {
+              "range": 600
+            },
+            "moduleOverrides": [
+              {
+                "type": "delivery.projectile",
+                "values": {
+                  "speed": 36.28395
+                }
+              }
+            ]
+          },
+          {
+            "stateKey": "geopin-module-wall",
+            "initial": "inactive",
+            "value": "active",
+            "modules": [
+              {
+                "type": "projectile.wall-relay",
+                "attackId": "attack.geopin.wallBurst"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "counter": {
+      "id": "attack.geopin.counter",
+      "damageRatio": 1.5,
+      "cost": 0,
+      "cd": 350,
+      "range": 220,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 220,
+          "wallPolicy": "block"
+        },
+        {
+          "type": "state.progress",
+          "when": "after-attack",
+          "stateKey": "geopin-idea",
+          "operation": "add",
+          "amount": 0.5,
+          "max": 1,
+          "presentation": {
+            "type": "arc-gauge",
+            "color": "#e6ca3b",
+            "maxChargeFlash": true
+          }
+        }
+      ],
+      "tags": [
+        "반격"
+      ]
+    },
+    "rmb": {
+      "id": "attack.geopin.rmb",
+      "damageRatio": 0,
+      "cost": 0,
+      "cd": 300,
+      "range": 0,
+      "effectsOnly": true,
+      "modules": [],
+      "tags": [
+        "스킬"
       ]
     }
   },
@@ -796,97 +552,7 @@
         ],
         "modules": [
           {
-            "type": "action.attack",
-            "alternates": [
-              {
-                "attackId": "attack.geopin.jump",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "jump"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.wall",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "wall"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.laser",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "laser"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.chain",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "chain"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.punch",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "punch"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.recoil",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "recoil"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.sniper",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "sniper"
-                  }
-                ]
-              },
-              {
-                "attackId": "attack.geopin.bomb",
-                "conditions": [
-                  {
-                    "type": "state.mode-is",
-                    "stateKey": "geopin-weapon",
-                    "initial": "rubber",
-                    "value": "bomb"
-                  }
-                ]
-              }
-            ]
+            "type": "action.attack"
           }
         ]
       }
@@ -895,6 +561,9 @@
       "id": "ability.geopin.rmb",
       "input": "rmb",
       "attackId": "attack.geopin.rmb",
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -911,34 +580,38 @@
           },
           {
             "type": "combat.can-act"
+          },
+          {
+            "type": "cooldowns.ready",
+            "attackIds": [
+              "attack.geopin.rmb"
+            ]
+          },
+          {
+            "type": "state.absent",
+            "stateKey": "drag:geopin:rmb"
           }
         ],
         "modules": [
           {
-            "type": "action.attack"
-          },
-          {
-            "type": "equipment.select",
-            "operation": "previous",
-            "requireExecuted": true
+            "type": "input.drag-path",
+            "operation": "start",
+            "stateKey": "drag:geopin:rmb",
+            "distanceMode": "world",
+            "pathOrigin": "pointer",
+            "sampleInterval": 8,
+            "previewPath": true,
+            "previewLivePointer": true,
+            "previewColor": "230,202,59",
+            "cost": {
+              "perDistance": 0.7
+            }
           }
         ]
       },
-      "inputPolicy": {
-        "repeatWhileHeld": false,
-        "tapHoldSplit": true,
-        "holdThresholdMs": 200,
-        "holdGauge": true,
-        "holdGaugeTimerOnly": true,
-        "holdGaugeStateKey": "charge:geopin-rmb-mode",
-        "deferTapUntilRelease": true,
-        "holdGaugeRetainMs": 500,
-        "holdGaugeRequireAvailable": true,
-        "cancelUnavailableHold": true
-      },
-      "holdTrigger": {
+      "releaseTrigger": {
         "type": "trigger",
-        "event": "input.hold",
+        "event": "input.release",
         "conditions": [
           {
             "type": "input.slot",
@@ -946,22 +619,47 @@
           },
           {
             "type": "entity.alive"
-          },
-          {
-            "type": "combat.can-act"
-          },
-          {
-            "type": "state.mode-is",
-            "stateKey": "geopin-weapon",
-            "value": "rubber",
-            "initial": "rubber",
-            "invert": true
           }
         ],
         "modules": [
           {
-            "type": "equipment.select",
-            "value": "rubber"
+            "type": "input.drag-path",
+            "operation": "release",
+            "stateKey": "drag:geopin:rmb",
+            "minimumPoints": 2,
+            "capturePointer": true
+          },
+          {
+            "type": "action.attack"
+          },
+          {
+            "type": "movement.path-carrier",
+            "pathSource": "drag-path",
+            "speed": 1200,
+            "radius": 25,
+            "pickupRange": 45,
+            "targetRelations": [
+              "self",
+              "ally"
+            ],
+            "color": {
+              "$ref": "color"
+            },
+            "name": "버터",
+            "collision": {
+              "passWalls": true,
+              "passEnemies": true
+            },
+            "pathOrigin": "pointer",
+            "summonStateKey": "butter",
+            "riderCollision": {
+              "$ref": "abilities.rmb.releaseTrigger.modules.2.collision"
+            }
+          },
+          {
+            "type": "input.drag-path",
+            "operation": "clear",
+            "stateKey": "drag:geopin:rmb"
           }
         ]
       }
@@ -1012,5 +710,97 @@
         ]
       }
     }
-  }
+  },
+  "tooltipSkills": [
+    {
+      "key": "ALWAYS",
+      "name": "발명",
+      "showCost": false,
+      "text": "적 타격 또는 주변 공격에서 아이디어 10% 획득. 주변 적 한 명당 초당 20% 획득. 아이디어 100%마다 상황에 맞는 모듈 추가"
+    },
+    {
+      "key": "LMB",
+      "name": "고무탄 발사기",
+      "attack": "lmb",
+      "text": "적과 벽에 튕겨 적을 향하는 고무탄. 튕기면 탄속 감소 ({damage})"
+    },
+    {
+      "key": "RMB DRAG",
+      "name": "도우미 로봇",
+      "attack": "rmb",
+      "text": "버터의 이동경로를 지정",
+      "costRef": {
+        "ability": "rmb",
+        "trigger": "trigger",
+        "module": "input.drag-path",
+        "format": "per-distance",
+        "property": "cost.perDistance"
+      }
+    },
+    {
+      "key": "L-Shift",
+      "name": "위험 속 깨달음",
+      "attack": "counter",
+      "text": "주변에 피해를 주며 아이디어 50% 획득 ({damage})"
+    },
+    {
+      "key": "MODULE",
+      "section": "WEAPON",
+      "name": "이중 충격 모듈",
+      "attack": "punch",
+      "linkedAttack": "punchRubber",
+      "showCost": false,
+      "text": "근거리 적이 있으면 제작. 전방 압력으로 피해 및 넉백. 빗나가면 끝에서 고무탄 발사 ({damage}/{linkedDamage})"
+    },
+    {
+      "key": "MODULE",
+      "section": "WEAPON",
+      "name": "정밀 발사 모듈",
+      "showCost": false,
+      "text": "원거리 적이 있으면 제작. 고무탄 사거리 및 탄속 증가"
+    },
+    {
+      "key": "MODULE",
+      "section": "WEAPON",
+      "name": "충격 전달 모듈",
+      "attack": "wallBurst",
+      "showCost": false,
+      "text": "벽 뒤 적이 있으면 제작. 벽에 맞힌 고무탄이 벽 너머를 공격 ({damage})"
+    }
+  ],
+  "summons": {
+    "butter": {
+      "id": "summon.geopin.butter",
+      "name": "버터",
+      "maxHealth": 400,
+      "radius": 25,
+      "speed": 0,
+      "baseDamage": 0,
+      "respawnDelay": 0,
+      "healthRegen": false,
+      "pathCarrier": true,
+      "tags": [
+        "소환수"
+      ],
+      "ai": {
+        "enabled": false
+      },
+      "protectRidersFromProjectiles": true
+    }
+  },
+  "summonSpecs": [
+    {
+      "stateKey": "butter",
+      "stats": [
+        {
+          "key": "HEALTH",
+          "text": "{maxHealth}"
+        },
+        {
+          "key": "ABILITY",
+          "text": "경로를 이동하며 이동경로의 아군을 운반"
+        }
+      ]
+    }
+  ]
 }

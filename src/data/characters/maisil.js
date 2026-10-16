@@ -13,7 +13,7 @@
     "speed": 4.25,
     "radius": 20,
     "baseDamage": 150,
-    "difficulty": 4
+    "difficulty": 1
   },
   "desc": "가위로 정확한 중앙 타격을 노리며 전투하는 캐릭터",
   "tooltipSkills": [

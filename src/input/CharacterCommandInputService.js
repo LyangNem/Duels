@@ -16,6 +16,7 @@ const CharacterCommandInputService={
   available(){
     return (
       Training.active&&
+      Training.player?.alive===true&&
       !Training.spectating&&
       CommandFeatureService.isCharacter(
         Training.player
@@ -47,16 +48,15 @@ const CharacterCommandInputService={
 
   close(){
     this.openState=false;
+    this.buffer='';
+    this.clearResult();
 
     GameInputResetService.releaseAll();
     return true;
   },
 
   reset(){
-    this.close();
-    this.buffer='';
-    this.clearResult();
-    return true;
+    return this.close();
   },
 
   appendCode(code){
@@ -119,6 +119,7 @@ const CharacterCommandInputService={
   },
 
   submit(){
+    if(!this.available()){this.close();return false;}
     if(!this.openState)return false;
 
     const command=
@@ -130,23 +131,18 @@ const CharacterCommandInputService={
       );
 
     this.close();
-    this.showResult(
-      command||'/',
-      result.status||(
-        result.ok===true
-          ?'ok'
-          :'error'
-      )
-    );
+
 
     return result.ok===true;
   },
 
   capturesGameInput(){
+    if(this.openState&&!this.available())this.close();
     return this.openState===true;
   },
 
   handleKeydown(event){
+    if(this.openState&&!this.available())this.close();
     if(this.openState){
       event.preventDefault();
       event.stopPropagation();
@@ -190,6 +186,10 @@ const CharacterCommandInputService={
   visibleText(
     now=performance.now()
   ){
+    if(!this.available()){
+      if(this.openState||this.buffer||this.resultText)this.close();
+      return null;
+    }
     if(this.openState){
       return {
         text:String(this.buffer||'/'),

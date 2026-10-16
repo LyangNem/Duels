@@ -31,8 +31,8 @@ function carrier(s,a=ch.attacks.counterArrow){return{source:s,attack:a,behavior:
 const originalMovement=c.MovementAbilityService;
 c.MovementAbilityService={...originalMovement,applyBuffs(){},clearBuffs(){},spawnEffects:()=>[],broadcastEffects(){}};
 c.AttackService={canUse:(e,a)=>e.stamina>=a.cost,execute:(s,a,angle)=>c.TriggeredAttackService.execute(s,a,angle)};
-test('62명 순수 데이터·중복 없는 적색·체력/매우빠름/칭호 및 공통 반격 CC',()=>{
- assert.equal(Object.keys(c.CHARACTER_DATA).length,62);assert.equal(ch.maxHealth,1100);assert.equal(ch.speed,4.5);assert.equal(ch.moveLabel,'매우 빠름');assert.equal(ch.title,'토끼 궁수');assert.equal(ch.classification.style,3);assert.equal(ch.classification.role,2);
+test('65명 순수 데이터·중복 없는 적색·체력/매우빠름/칭호 및 공통 반격 CC',()=>{
+ assert.equal(Object.keys(c.CHARACTER_DATA).length,65);assert.equal(ch.maxHealth,1100);assert.equal(ch.speed,4.5);assert.equal(ch.moveLabel,'매우 빠름');assert.equal(ch.title,'토끼 궁수');assert.equal(ch.classification.style,3);assert.equal(ch.classification.role,2);
  for(const raw of Object.values(c.CHARACTER_DATA))if(raw.id!=='siro')assert.notEqual(String(raw.color).toLowerCase(),ch.color);
  assert.ok(Object.isFrozen(ch));const m=ch.abilities.counter.trigger.modules[0];assert.equal(c.CounterModuleService.validate(m),true);assert.equal(c.CounterModuleService.referencedCc(entity(),m).status,'burn');
 });
@@ -58,7 +58,7 @@ test('비용 부족한 단계는 무소모·미발사·해제 정리 / 취소 �
 });
 test('공통 차징 확장은 기존 체리티 사거리/피해/탄속/관통을 보존',()=>{
  const old=c.CharacterDataService.compile('cherity').attacks.lmb;const spec=c.ChargedAttackService.dynamicSpec(old,2);
- assert.equal(spec.range,1400);assert.equal(spec.damageRatio,6);assert.equal(spec.modules.find(m=>m.type==='delivery.projectile').speed,53);assert.equal(spec.modules.find(m=>m.type==='projectile.pierce').walls,true);
+ assert.equal(spec.range,Infinity);assert.equal(spec.damageRatio,6);assert.equal(spec.modules.find(m=>m.type==='delivery.projectile').speed,53);assert.equal(spec.modules.find(m=>m.type==='projectile.pierce').walls,true);
  assert.equal(old.modules.some(m=>m.type==='pattern.scatter'),false);
 });
 test('백드래프트: 충돌 전용 본체·실제 착탄 중심 폭발 1회·넉백/화염 연결',()=>{

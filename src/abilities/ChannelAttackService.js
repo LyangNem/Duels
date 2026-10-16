@@ -303,7 +303,7 @@ const ChannelAttackService=Object.freeze({
       if(
         state?.kind!==this.KIND||
         state.phase!=='charging'||
-        state.interruptOnForcedMovement===false
+        (state.interruptOnForcedMovement===false&&!AttackWindupService.statusInterrupts(reason))
       ){
         continue;
       }

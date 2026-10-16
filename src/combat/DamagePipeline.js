@@ -88,11 +88,14 @@ const DamagePipeline=Object.freeze({
     }
 
     if(impact?.contactOnly===true){
-      return {
+      const contact={
         applied:false,
         hit:true,
         amount:0,
         contactOnly:true,
+        confirmContact:impact.confirmContact===true,
+        healthDamage:0,
+        shieldDamage:0,
         source,
         target,
         attack,
@@ -100,6 +103,8 @@ const DamagePipeline=Object.freeze({
         impact,
         now
       };
+      if(contact.confirmContact)NetworkHitAuthorityService.notify(contact);
+      return contact;
     }
 
     AugmentService.update(source,now);

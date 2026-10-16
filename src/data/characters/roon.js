@@ -238,6 +238,7 @@
         },
         {
           "type": "projectile.impact",
+          "requireSuccessfulHit": true,
           "sourceRelocate": {
             "reasons": [
               "target"

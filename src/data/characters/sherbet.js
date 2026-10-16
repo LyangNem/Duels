@@ -49,6 +49,12 @@
               "min": 250,
               "max": 300,
               "activeOnly": true
+            },
+            {
+              "type": "state.timed-data-equals",
+              "stateKey": "sherbet-overcool-window",
+              "key": "decided",
+              "value": false
             }
           ]
         }
@@ -70,7 +76,7 @@
       "name": "과냉각",
       "attack": "lmb",
       "costText": "스테미나 150",
-      "text": "선딜레이 후 피해. 게이지가 채워지기 직전에 재사용 시 전방의 적을 과냉각시켜 빙결 (100/200)"
+      "text": "선딜레이 후 피해. 두 번째 클릭의 타이밍이 맞으면 과냉각시켜 빙결. 일찍 누르면 즉시 일반 공격 (100/200)"
     },
     {
       "key": "RMB",
@@ -104,7 +110,8 @@
           "retainCompleteMs": 500,
           "data": {
             "choice": "normal",
-            "result": "failed"
+            "result": "failed",
+            "decided": false
           },
           "captureAngle": true,
           "resolveDataKey": "choice",
@@ -560,7 +567,8 @@
             "stateKey": "sherbet-overcool-window",
             "data": {
               "choice": "success",
-              "result": "success"
+              "result": "success",
+              "decided": true
             },
             "stopOnHandled": true,
             "conditions": [
@@ -570,8 +578,39 @@
                 "min": 250,
                 "max": 300,
                 "activeOnly": true
+              },
+              {
+                "type": "state.timed-data-equals",
+                "stateKey": "sherbet-overcool-window",
+                "key": "decided",
+                "value": false
               }
             ]
+          },
+          {
+            "type": "state.window",
+            "operation": "select",
+            "stateKey": "sherbet-overcool-window",
+            "stopOnHandled": true,
+            "conditions": [
+              {
+                "type": "state.exists",
+                "stateKey": "sherbet-overcool-window",
+                "activeOnly": true
+              },
+              {
+                "type": "state.timed-data-equals",
+                "stateKey": "sherbet-overcool-window",
+                "key": "decided",
+                "value": false
+              }
+            ],
+            "data": {
+              "choice": "normal",
+              "result": "failed",
+              "decided": true
+            },
+            "resolveImmediately": true
           },
           {
             "type": "state.window",

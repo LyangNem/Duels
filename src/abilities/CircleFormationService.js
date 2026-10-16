@@ -48,6 +48,58 @@ const CircleFormationService=Object.freeze({
     return state;
   },
 
+
+  templateCircles(entity){
+    const state=this.state(entity,false);
+    if(!state)return this.EMPTY;
+    return this.isLocalEntity(entity)?state.circles:state.remoteCircles;
+  },
+  circleCount(entity){return this.templateCircles(entity).length;},
+  attackCost(entity,attack){return Math.max(0,Number(attack.formationCost?.perCircle)||0)*this.circleCount(entity);},
+  view(){
+    const canvas=Training.canvas||GAME_DATA.canvas||{};
+    const cam=Training.cameraState||{x:0,y:0};
+    const zoom=Math.max(.01,(Training.spectatorZoom?.()||1)*(typeof CameraFovService!=='undefined'?CameraFovService.scale(performance.now()):1));
+    return {x:(Number(cam.x)||0)+(Number(canvas.width)||0)/2,y:(Number(cam.y)||0)+(Number(canvas.height)||0)/2,zoom,width:Number(canvas.width)||0,height:Number(canvas.height)||0};
+  },
+  editingScale(entity){return Math.max(.01,Number(this.config(entity)?.editingScale)||1);},
+  templateBounds(entity){
+    const view=this.view(),scale=this.editingScale(entity);
+    return {x:view.width>0?view.width/2/scale:Infinity,y:view.height>0?view.height/2/scale:Infinity};
+  },
+  constrainCenter(entity,point){
+    if(!this.config(entity)?.constrainCentersToView)return {...point};
+    const bounds=this.templateBounds(entity);
+    return {...point,x:Math.max(-bounds.x,Math.min(bounds.x,point.x)),y:Math.max(-bounds.y,Math.min(bounds.y,point.y))};
+  },
+  templatePointer(entity){
+    const point=this.pointerFor(entity),view=this.view();
+    const scale=this.editingScale(entity);
+    return this.constrainCenter(entity,{x:(point.x-view.x)*view.zoom/scale,y:(point.y-view.y)*view.zoom/scale});
+  },
+  displayTemplate(circles,entity=Training.player){
+    const view=this.view(),scale=this.editingScale(entity);
+    return this.cloneCircles(circles).map(c=>({...c,x:view.x+c.x*scale/view.zoom,y:view.y+c.y*scale/view.zoom,r:c.r*scale/view.zoom,templateScale:scale/view.zoom}));
+  },
+  boundsCenter(circles){
+    if(!circles.length)return {x:0,y:0};
+    return {
+      x:(Math.min(...circles.map(c=>c.x-c.r))+Math.max(...circles.map(c=>c.x+c.r)))/2,
+      y:(Math.min(...circles.map(c=>c.y-c.r))+Math.max(...circles.map(c=>c.y+c.r)))/2
+    };
+  },
+  revealProgress(start,end,now){
+    return Math.max(0,Math.min(1,(now-start)/Math.max(1,end-start)));
+  },
+  castTemplate(entity,pointer){
+    const list=this.templateCircles(entity);
+    if(!list.length)return [];
+    const zoom=this.view().zoom,scale=Math.max(.01,Number(this.config(entity)?.castingScale)||1);
+    const center=this.boundsCenter(list);
+    const relative=list.map(c=>({dx:(c.x-center.x)*scale/zoom,dy:(c.y-center.y)*scale/zoom,r:c.r*scale/zoom,order:c.order,templateScale:scale/zoom}));
+    return this.cloneRelative(relative,pointer.x,pointer.y,`${entity.id}:template`);
+  },
+
   pointerFor(entity,fallback=null){
     if(
       fallback&&
@@ -60,11 +112,11 @@ const CircleFormationService=Object.freeze({
       this.isLocalEntity(entity)&&
       Training.active
     ){
-      const point=Training.mouseWorld();
-      return {
-        x:Number(point.x)||0,
-        y:Number(point.y)||0
-      };
+      const point=Training.mouseWorld(null,{allowOutsideWorld:true});
+      const cam=Training.cameraState||{},canvas=Training.canvas||GAME_DATA.canvas||{};
+      const fov=typeof CameraFovService!=='undefined'?Math.max(.01,CameraFovService.scale(performance.now())):1;
+      const cx=(Number(cam.x)||0)+(Number(canvas.width)||0)/2,cy=(Number(cam.y)||0)+(Number(canvas.height)||0)/2;
+      return {x:cx+((Number(point.x)||0)-cx)/fov,y:cy+((Number(point.y)||0)-cy)/fov};
     }
     const remote=entity?._remoteAimTargetPoint;
     if(
@@ -87,6 +139,7 @@ const CircleFormationService=Object.freeze({
       x:Number(circle?.x)||0,
       y:Number(circle?.y)||0,
       r:Math.max(0,Number(circle?.r)||0),
+      templateScale:Math.max(.001,Number(circle?.templateScale)||1),
       order:Math.max(0,Number(circle?.order)||index+1)
     };
   },
@@ -106,6 +159,7 @@ const CircleFormationService=Object.freeze({
       dx:circle.x-cx,
       dy:circle.y-cy,
       r:circle.r,
+      templateScale:circle.templateScale,
       order:Number(circle.order)||index+1
     }));
   },
@@ -119,6 +173,7 @@ const CircleFormationService=Object.freeze({
         x:Number(cx)+(Number(circle?.dx)||0),
         y:Number(cy)+(Number(circle?.dy)||0),
         r:Math.max(0,Number(circle?.r)||0),
+        templateScale:Math.max(.001,Number(circle?.templateScale)||1),
         order:Number(circle?.order)||index+1
       }));
   },
@@ -175,7 +230,7 @@ const CircleFormationService=Object.freeze({
   isMinimum(entity,circle){
     return Math.abs(
       (Number(circle?.r)||0)-
-      this.minRadius(entity)
+      this.minRadius(entity)*(Number(circle?.templateScale)||1)
     )<=Math.max(
       .01,
       Number(
@@ -645,6 +700,8 @@ const CircleFormationService=Object.freeze({
 
     return {
       sourceIds,
+      sourceContributionByCircle,
+      stackBySource:Number(this.config(entity)?.amplifier?.durationPerSource)>0,
       minimumIds,
       containedSources,
       stageByCircle,
@@ -909,7 +966,8 @@ const CircleFormationService=Object.freeze({
     const multiplierForTarget=(
       x,
       y,
-      radius=0
+      radius=0,
+      baseDamageForCircle=null
     )=>{
       const targetCircle={
         x:Number(x)||0,
@@ -928,9 +986,8 @@ const CircleFormationService=Object.freeze({
         ){
           best=Math.max(
             best,
-            circleMultiplierById.get(
-              String(circle.id)
-            )??1
+            (circleMultiplierById.get(String(circle.id))??1)*
+            (baseDamageForCircle?baseDamageForCircle(circle):1)
           );
         }
       }
@@ -945,12 +1002,8 @@ const CircleFormationService=Object.freeze({
         ){
           best=Math.max(
             best,
-            crossMultiplierByPair.get(
-              this.pairKey(
-                relation.a,
-                relation.b
-              )
-            )??this.config(entity).damage.intersectionBase
+            (crossMultiplierByPair.get(this.pairKey(relation.a,relation.b))??this.config(entity).damage.intersectionBase)*
+            (baseDamageForCircle?Math.max(baseDamageForCircle(relation.a),baseDamageForCircle(relation.b)):1)
           );
         }
       }
@@ -1150,16 +1203,11 @@ const CircleFormationService=Object.freeze({
       !state||
       !config||
       !attack||
-      state.circles.length>=this.maxCount(entity)
+      !entity.alive
     )return false;
+    if(state.circles.length>=this.maxCount(entity)){state.limitPreview={circle:{...circle},endAt:now+400};return false;}
 
-    if(
-      !this.commitUtility(
-        entity,
-        attack,
-        now
-      )
-    )return false;
+    if(!entity.alive||CombatStatsService.current(entity,now).canAct!==true)return false;
 
     const minRadius=
       Math.max(0,Number(config.minRadius)||0);
@@ -1172,12 +1220,13 @@ const CircleFormationService=Object.freeze({
       )
     );
 
+    const center=this.constrainCenter(entity,{x:Number(circle?.x)||0,y:Number(circle?.y)||0});
     state.circleOrder++;
     state.circles.push({
       id:
         `${String(entity.id)}:${String(state.formationKey)}:${state.circleOrder}`,
-      x:Number(circle?.x)||0,
-      y:Number(circle?.y)||0,
+      x:center.x,
+      y:center.y,
       r:radius,
       order:state.circleOrder
     });
@@ -1223,333 +1272,43 @@ const CircleFormationService=Object.freeze({
   },
 
   press(entity,slot,now=performance.now()){
-    const config=this.config(entity);
-    const state=this.state(entity);
-    if(
-      !config||
-      !state||
-      !entity?.alive||
-      CombatStatsService.current(entity,now)
-        .canAct!==true
-    )return false;
-
-    const pointer=this.pointerFor(entity);
-
-    if(
-      String(slot)===
-      String(config.circle?.input||'')
-    ){
-      const cast=state.activation;
-      if(cast?.phase==='input'){
-        this.cancelActivation(
-          entity,
-          'cross-input-remove'
-        );
-
-        if(
-          this.removeAtPointer(
-            entity,
-            pointer
-          )
-        ){
-          this.commitUtility(
-            entity,
-            this.utilityAttack(
-              entity,
-              'remove'
-            ),
-            now
-          );
-        }
-
-        state.circleInput={
-          mode:'consumed'
-        };
-        return true;
-      }
-
-      if(cast){
-        state.circleInput={
-          mode:'consumed'
-        };
-        return true;
-      }
-
-      const picked=this.circleAtPointer(
-        state.circles,
-        pointer
-      );
-      state.circleInput={
-        mode:'pending',
-        startAt:now,
-        start:{...pointer},
-        last:{...pointer},
-        createStart:null,
-        circle:picked||null,
-        preview:null,
-        moved:false,
-        dragIntent:false,
-        dragStarted:false,
-        holdOrigin:{...pointer},
-        limitBlocked:
-          state.circles.length>=
-          this.maxCount(entity)
-      };
+    const config=this.config(entity),state=this.state(entity);
+    if(!config||!state||!entity.alive||CombatStatsService.current(entity,now).canAct!==true)return false;
+    if(slot===config.circle.input){
+      if(state.activation||entity.counterWindup)return false;
+      const pointer=this.templatePointer(entity),circle=this.circleAtPointer(state.circles,pointer);
+      state.circleInput={mode:'pending',startAt:now,start:{...pointer},last:{...pointer},circle,
+        selectedIds:this.connectedIds(entity,new Set(circle?[String(circle.id)]:[]),state.circles),preview:null};
       return true;
     }
-
-    if(
-      String(slot)===
-      String(config.activation?.input||'')
-    ){
-      const existing=state.activation;
-
-      if(existing?.phase==='input'){
-        if(existing.held)return true;
-
-        const previous=
-          this.cancelActivation(
-            entity,
-            'same-input-recast'
-          );
-        const saved=
-          state.lastFormation.length
-            ?state.lastFormation
-            :previous?.previousFormation||[];
-
-        const spellbook=
-          this.utilityAttack(
-            entity,
-            'spellbook'
-          );
-
-        if(
-          saved.length&&
-          this.commitUtility(
-            entity,
-            spellbook,
-            now
-          )
-        ){
-          const restored=
-            this.cloneRelative(
-              saved,
-              pointer.x,
-              pointer.y,
-              `${entity.id}:spellbook`
-            ).slice(
-              0,
-              this.maxCount(entity)
-            );
-          state.circles=restored;
-          state.circleOrder=Math.max(
-            state.circleOrder,
-            ...restored.map(
-              circle=>Number(circle.order)||0
-            ),
-            0
-          );
-        }
-        return true;
-      }
-
-      if(existing)return true;
-
-      return this.beginActivation(
-        entity,
-        pointer,
-        {
-          held:true,
-          now
-        }
-      );
-    }
-
+    if(slot===config.activation.input)return this.beginActivation(entity,this.pointerFor(entity),{now});
     return false;
   },
 
-  release(
-    entity,
-    slot,
-    triggerRelease=true,
-    now=performance.now()
-  ){
-    const config=this.config(entity);
-    const state=this.state(entity,false);
-    if(!config||!state)return false;
-
-    if(
-      String(slot)===
-      String(config.circle?.input||'')
-    ){
-      const input=state.circleInput;
-      state.circleInput=null;
-
-      if(!triggerRelease){
-        return true;
-      }
-
-      if(
-        !input||
-        input.mode==='consumed'
-      )return true;
-
-      if(input.mode==='move'){
-        return true;
-      }
-
-      let creation=null;
-
-      if(
-        input.mode==='create'&&
-        input.preview
-      ){
-        creation={...input.preview};
-      }else if(input.mode==='pending'){
-        creation={
-          x:Number(input.start.x)||0,
-          y:Number(input.start.y)||0,
-          r:this.minRadius(entity)
-        };
-      }
-
-      if(creation){
-        if(
-          state.circles.length>=
-          this.maxCount(entity)
-        ){
-          state.limitPreview={
-            ...creation,
-            endAt:now+280
-          };
-          return true;
-        }
-
-        this.placeCircle(
-          entity,
-          creation,
-          now
-        );
-      }
-      return true;
-    }
-
-    if(
-      String(slot)===
-      String(config.activation?.input||'')
-    ){
-      const cast=state.activation;
-      if(!cast)return true;
-
-      if(!triggerRelease){
-        this.cancelActivation(
-          entity,
-          'input-reset'
-        );
-        return true;
-      }
-
-      cast.held=false;
-
-      if(cast.phase==='move'){
-        this.finishGroupMove(
-          entity,
-          now
-        );
-      }
-      return true;
-    }
-
-    return false;
-  },
-
-  beginActivation(
-    entity,
-    pointer,
-    {
-      held=false,
-      now=performance.now()
-    }={}
-  ){
-    const state=this.state(entity);
-    const config=this.config(entity);
+  release(entity,slot,triggerRelease=true,now=performance.now()){
+    const state=this.state(entity,false),config=this.config(entity);
     if(!state||!config)return false;
+    if(slot===config.activation.input)return true;
+    if(slot!==config.circle.input)return false;
+    if(triggerRelease)this.updateCircleInput(entity,state,now);
+    const input=state.circleInput;state.circleInput=null;
+    if(!triggerRelease||!input||!entity.alive||CombatStatsService.current(entity,now).canAct!==true)return true;
+    if(input.mode==='create'&&input.preview)this.placeCircle(entity,input.preview,now);
+    else if(input.mode==='pending'&&input.circle)this.removeAtPointer(entity,input.start);
+    return true;
+  },
 
-    if(state.activation)return false;
-
-    const lmbAttack=
-      this.utilityAttack(entity,'lmb');
-    if(!lmbAttack)return false;
-
-    const prepared=
-      AugmentService.prepareAttack(
-        entity,
-        ProgressScaledAttackService.resolve(
-          entity,
-          lmbAttack
-        ),
-        now
-      );
-
-    if(
-      !entity.alive||
-      CombatStatsService.current(entity,now)
-        .canAct!==true||
-      !AttackService.cooldownReady(
-        entity,
-        prepared,
-        now
-      )
-    )return false;
-
-    const currentCircles=
-      this.cloneCircles(
-        state.circles,
-        'activation-current'
-      );
-    const hasSavedFormation=
-      Array.isArray(state.lastFormation)&&
-      state.lastFormation.length>0;
-    if(
-      !currentCircles.length&&
-      !hasSavedFormation
-    )return false;
-
-    const picked=this.circlesAtPointer(
-      state.circles,
-      pointer
-    );
-    const selectedIds=this.connectedIds(
-      entity,
-      new Set(
-        picked.map(circle=>String(circle.id))
-      ),
-      state.circles
-    );
-    const inputWindow=Math.max(
-      1,
-      Number(
-        config.activation?.inputWindowMs
-      )||200
-    );
-
-    state.activation={
-      phase:'input',
-      startedAt:now,
-      inputUntil:now+inputWindow,
-      held:held===true,
-      pointer:{...pointer},
-      selectedIds,
-      activationCircles:currentCircles,
-      previousFormation:
-        state.lastFormation.map(
-          item=>({...item})
-        ),
-      moveLast:{...pointer},
-      holdOrigin:{...pointer},
-      moveStarted:false
-    };
-
+  beginActivation(entity,pointer,{now=performance.now()}={}){
+    const state=this.state(entity),config=this.config(entity),base=this.utilityAttack(entity,'lmb');
+    if(!state||!config||!base||!state.circles.length||state.activation||entity.counterWindup)return false;
+    const prepared=AugmentService.prepareAttack(entity,{...base,cost:this.attackCost(entity,base)},now);
+    if(!entity.alive||CombatStatsService.current(entity,now).canAct!==true||!AttackService.cooldownReady(entity,prepared,now)||!StaminaService.canSpend(entity,prepared.cost,now))return false;
+    if(!StaminaService.spend(entity,prepared.cost,now))return false;
+    state.circleInput=null;
+    state.activation={preparedAttack:prepared,resourcePrepaid:true,phase:'reveal',startedAt:now,revealStartedAt:now,
+      revealUntil:now+Math.max(0,Number(config.activation.revealMs)||0),
+      activationCircles:this.castTemplate(entity,pointer),pointer:{...pointer},held:false};
+    state.revealStartedAt=now;state.revealUntil=state.activation.revealUntil;
     return true;
   },
 
@@ -1681,229 +1440,37 @@ const CircleFormationService=Object.freeze({
   },
 
   updateCircleInput(entity,state,now){
-    const input=state.circleInput;
-    const config=this.circleConfig(entity);
-    if(
-      !input||
-      input.mode==='consumed'||
-      !config
-    )return false;
-
-    const pointer=this.pointerFor(entity);
-
+    const input=state.circleInput,config=this.circleConfig(entity);
+    if(!input||!config)return false;
+    if(CombatStatsService.current(entity,now).canAct!==true){state.circleInput=null;return false;}
+    const pointer=this.templatePointer(entity),elapsed=now-input.startAt;
     if(input.mode==='pending'){
-      const distance=Math.hypot(
-        pointer.x-input.start.x,
-        pointer.y-input.start.y
-      );
-      const intentDistance=Math.max(
-        0,
-        Number(config.dragIntentDistance)||5
-      );
-      const startDistance=Math.max(
-        intentDistance,
-        Number(config.dragStartDistance)||12
-      );
-
-      if(distance>=intentDistance){
-        input.dragIntent=true;
-      }
-
-      if(distance>=startDistance){
-        const holdMs=Math.max(
-          1,
-          Number(config.moveHoldMs)||150
-        );
-
-        if(now-input.startAt<holdMs){
-          input.mode='create';
-          input.createStart={...input.start};
-        }else if(input.circle){
-          input.mode='move';
-          input.last={...input.start};
-          input.holdOrigin={...input.start};
-          input.dragStarted=true;
-          input.moved=true;
-        }
-      }
+      if(input.circle&&elapsed>=Math.max(1,Number(config.moveHoldMs)||150)){
+        input.mode='move';input.last={...input.start};
+      }else if(Math.hypot(pointer.x-input.start.x,pointer.y-input.start.y)>=Math.max(1,Number(config.dragStartDistance)||12))input.mode='create';
     }
-
     if(input.mode==='create'){
-      const origin=
-        input.createStart||
-        input.start;
-      const distance=Math.hypot(
-        pointer.x-origin.x,
-        pointer.y-origin.y
-      );
-      const minRadius=Math.max(
-        0,
-        Number(config.minRadius)||0
-      );
-      const maxRadius=this.maxRadius(entity,now);
-      const radius=Math.max(
-        minRadius,
-        Math.min(maxRadius,distance/2)
-      );
-
-      input.preview={
-        x:(origin.x+pointer.x)/2,
-        y:(origin.y+pointer.y)/2,
-        r:radius
-      };
+      const radius=Math.max(this.minRadius(entity),Math.min(this.maxRadius(entity,now),Math.hypot(pointer.x-input.start.x,pointer.y-input.start.y)/2));
+      input.preview={x:(pointer.x+input.start.x)/2,y:(pointer.y+input.start.y)/2,r:radius};
+    }else if(input.mode==='move'){
+      let dx=pointer.x-input.last.x,dy=pointer.y-input.last.y;
+      const selected=state.circles.filter(c=>input.selectedIds.has(String(c.id)));
+      if(this.config(entity)?.constrainCentersToView&&selected.length){
+        const bounds=this.templateBounds(entity);
+        dx=Math.max(-bounds.x-Math.min(...selected.map(c=>c.x)),Math.min(bounds.x-Math.max(...selected.map(c=>c.x)),dx));
+        dy=Math.max(-bounds.y-Math.min(...selected.map(c=>c.y)),Math.min(bounds.y-Math.max(...selected.map(c=>c.y)),dy));
+      }
+      for(const circle of selected){circle.x+=dx;circle.y+=dy;}
       input.last={...pointer};
-      return true;
     }
-
-    if(
-      input.mode==='move'&&
-      input.circle
-    ){
-      const deadzone=Math.max(
-        0,
-        Number(config.holdMoveDeadzone)||10
-      );
-      const origin=input.holdOrigin||input.start;
-
-      if(
-        !input.dragStarted&&
-        Math.hypot(
-          pointer.x-origin.x,
-          pointer.y-origin.y
-        )>=deadzone
-      ){
-        input.dragStarted=true;
-      }
-
-      if(input.dragStarted){
-        const dx=pointer.x-input.last.x;
-        const dy=pointer.y-input.last.y;
-        const distance=Math.hypot(dx,dy);
-        const factor=
-          distance<.35
-            ?1
-            :Math.min(
-              .58,
-              .22+distance/180
-            );
-        const mx=dx*factor;
-        const my=dy*factor;
-
-        if(Math.abs(mx)+Math.abs(my)>.001){
-          input.circle.x+=mx;
-          input.circle.y+=my;
-          input.last={
-            x:input.last.x+mx,
-            y:input.last.y+my
-          };
-          input.moved=true;
-        }
-      }
-      return true;
-    }
-
-    return false;
+    return true;
   },
 
   updateActivation(entity,state,now){
     const cast=state.activation;
-    const config=this.config(entity);
-    if(!cast||!config)return false;
-
-    if(
-      cast.phase==='input'&&
-      now>=cast.inputUntil
-    ){
-      if(cast.held){
-        if(!cast.selectedIds?.size){
-          this.cancelActivation(
-            entity,
-            'hold-outside-circle'
-          );
-          return false;
-        }
-
-        cast.phase='move';
-        cast.moveLast={...cast.pointer};
-        cast.holdOrigin={...cast.pointer};
-        cast.moveStarted=false;
-      }else{
-        this.beginReveal(
-          entity,
-          cast,
-          now
-        );
-      }
-    }
-
-    if(cast.phase==='move'){
-      const pointer=this.pointerFor(entity);
-      const deadzone=Math.max(
-        0,
-        Number(
-          config.activation?.holdMoveDeadzone
-        )||10
-      );
-      const origin=
-        cast.holdOrigin||
-        cast.pointer;
-
-      if(
-        !cast.moveStarted&&
-        Math.hypot(
-          pointer.x-origin.x,
-          pointer.y-origin.y
-        )>=deadzone
-      ){
-        cast.moveStarted=true;
-      }
-
-      if(cast.moveStarted){
-        const dx=pointer.x-cast.moveLast.x;
-        const dy=pointer.y-cast.moveLast.y;
-        const distance=Math.hypot(dx,dy);
-        const factor=
-          distance<.35
-            ?1
-            :Math.min(
-              .58,
-              .22+distance/180
-            );
-        const mx=dx*factor;
-        const my=dy*factor;
-
-        if(Math.abs(mx)+Math.abs(my)>.001){
-          for(const circle of state.circles){
-            if(
-              cast.selectedIds.has(
-                String(circle.id)
-              )
-            ){
-              circle.x+=mx;
-              circle.y+=my;
-            }
-          }
-          cast.moveLast={
-            x:cast.moveLast.x+mx,
-            y:cast.moveLast.y+my
-          };
-        }
-      }
-      return true;
-    }
-
-    if(
-      cast.phase==='reveal'&&
-      now>=cast.revealUntil
-    ){
-      this.resolveActivation(
-        entity,
-        cast,
-        now
-      );
-      return true;
-    }
-
+    if(!cast)return false;
+    if(!entity.alive){this.cancelActivation(entity,'dead');return false;}
+    if(now>=cast.revealUntil)this.resolveActivation(entity,cast,now);
     return true;
   },
 
@@ -1914,6 +1481,7 @@ const CircleFormationService=Object.freeze({
     if(!entity?.alive){
       if(!state.clearedForDeath){
         state.circles.length=0;
+        state.remoteCircles.length=0;state.remotePreview=null;state.remoteManifestPreview=[];
         state.circleInput=null;
         state.activation=null;
         state.revealStartedAt=0;
@@ -1928,6 +1496,9 @@ const CircleFormationService=Object.freeze({
 
     state.clearedForDeath=false;
 
+    if(this.isLocalEntity(entity)&&this.config(entity)?.constrainCentersToView){
+      for(const circle of state.circles)Object.assign(circle,this.constrainCenter(entity,circle));
+    }
     this.updateCircleInput(
       entity,
       state,
@@ -1974,8 +1545,8 @@ const CircleFormationService=Object.freeze({
 
     if(!circles.length)return false;
 
-    const attack=
-      this.utilityAttack(entity,'lmb');
+    const base=this.utilityAttack(entity,'lmb');
+    const attack=cast.preparedAttack||(base?{...base,cost:this.attackCost(entity,base)}:null);
     if(!attack)return false;
 
     const pointerCenter={
@@ -2005,7 +1576,8 @@ const CircleFormationService=Object.freeze({
       AttackService.execute(
         entity,
         attack,
-        angle
+        angle,
+        {preparedSpec:cast.resourcePrepaid===true,resourcePrepaid:cast.resourcePrepaid===true,completedWindup:true}
       );
 
     if(!executed){
@@ -2021,7 +1593,6 @@ const CircleFormationService=Object.freeze({
 
     state.lastFormation=
       this.snapshotRelative(circles);
-    state.circles.length=0;
     this.createBurst(
       entity,
       circles,
@@ -2073,6 +1644,13 @@ const CircleFormationService=Object.freeze({
     if(!state)return [];
 
     const sourceMode=String(module?.source||'placed');
+    if(sourceMode==='template'){
+      if(state.pendingManifest?.source==='last'){
+        const list=this.cloneCircles(state.pendingManifest.circles);state.pendingManifest=null;return list;
+      }
+      return this.castTemplate(entity,this.pointerFor(entity,execution?.targetPoint));
+    }
+
     if(
       sourceMode==='pending'&&state.pendingManifest?.circles?.length
     ){
@@ -2172,6 +1750,7 @@ const CircleFormationService=Object.freeze({
       Number(target?.radius)||0
     );
     let stage=0;
+    const sources=new Map();
 
     for(const circle of model.list){
       if(
@@ -2181,6 +1760,9 @@ const CircleFormationService=Object.freeze({
         )<=
         radius+circle.r
       ){
+        if(model.amplifier.stackBySource){
+          for(const [sourceId,weight] of model.amplifier.sourceContributionByCircle.get(String(circle.id))||[])sources.set(sourceId,Math.max(sources.get(sourceId)||0,Number(weight)||0));
+        }
         stage=Math.max(
           stage,
           Number(
@@ -2192,12 +1774,16 @@ const CircleFormationService=Object.freeze({
         );
       }
     }
-    return stage;
+    return model.amplifier.stackBySource?[...sources.values()].reduce((sum,weight)=>sum+weight,0):stage;
   },
 
   amplifierStatusConfig(entity){
     const config=this.config(entity)?.amplifier||{};
     const duration=Math.max(0,Number(config.duration)||0);
+    if(Number(config.durationPerSource)>0&&config.status){
+      return {sourceId:`${String(entity?.id||'source')}:formation-amplifier`,
+        stages:Array.from({length:Math.max(1,Number(config.maxStage)||1)},(_,index)=>({stage:index+1,status:String(config.status),duration:(index+1)*Number(config.durationPerSource)}))};
+    }
     return {
       sourceId:`${String(entity?.id||'source')}:formation-amplifier`,
       duration,
@@ -2229,6 +1815,8 @@ const CircleFormationService=Object.freeze({
       execution,
       model,
       circles,
+      distanceFalloff:this.config(entity).damage?.distanceFalloff||null,
+      distanceOrigin:execution.formationSourcePoint||entity,
       impactCircleForTarget:target=>this.strongestImpactCircle(model,target)||circles[0],
       statusStageForTarget:target=>this.amplifierStageForTarget(model,target),
       statusConfig:this.amplifierStatusConfig(entity),
@@ -2252,6 +1840,7 @@ const CircleFormationService=Object.freeze({
       );
     if(!circles.length)return false;
 
+    execution.formationSourcePoint={x:Number(entity.x)||0,y:Number(entity.y)||0};
     this.applyManifestDamage(
       entity,
       attack,
@@ -2269,7 +1858,7 @@ const CircleFormationService=Object.freeze({
       }
 
       if(
-        ['last','current'].includes(
+        ['last','current','template'].includes(
           String(module.source||'')
         )
       ){
@@ -2349,7 +1938,7 @@ const CircleFormationService=Object.freeze({
         attackId:String(attack?.id||''),
         angle:Number(angle)||0,
         executionSequence:Math.max(0,Math.floor(Number(executionSequence)||0)),
-        snapshot:{circles:this.cloneCircles(circles,'network-manifest')}
+        snapshot:{circles:this.cloneCircles(circles,'network-manifest'),damageOrigin:{x:Number(entity.x)||0,y:Number(entity.y)||0}}
       }
     );
   },
@@ -2404,6 +1993,10 @@ const CircleFormationService=Object.freeze({
       'remote-manifest'
     );
     if(!circles.length)return false;
+    const origin=payload?.snapshot?.damageOrigin;
+    execution.formationSourcePoint=origin&&Number.isFinite(Number(origin.x))&&Number.isFinite(Number(origin.y))
+      ?{x:Number(origin.x),y:Number(origin.y)}
+      :{x:Number(entity.x)||0,y:Number(entity.y)||0};
 
     this.applyManifestDamage(
       entity,
@@ -2481,10 +2074,10 @@ const CircleFormationService=Object.freeze({
             )
           )
           :0,
-      circles:this.cloneCircles(
-        state.circles,
-        'state'
-      )
+      manifestPreview:state.activation?.phase==='reveal'?this.cloneCircles(state.activation.activationCircles,'manifest-preview'):[],
+      placementSpace:'camera',
+      preview:state.circleInput?.mode==='create'?{...state.circleInput.preview}:null,
+      circles:this.cloneCircles(state.circles,'state')
     };
   },
 
@@ -2506,6 +2099,8 @@ const CircleFormationService=Object.freeze({
       return false;
     }
 
+    state.remoteManifestPreview=this.cloneCircles(snapshot.manifestPreview||[],'remote-preview');
+    state.remotePreview=snapshot.preview?this.cloneCircle(snapshot.preview):null;
     state.remoteCircles=
       this.cloneCircles(
         snapshot.circles,
@@ -2991,7 +2586,7 @@ const CircleFormationService=Object.freeze({
         if(item.amplifyLevel>0){
           icons.push({
             type:'solo',
-            label:[
+            label:this.config(entity).amplifier.durationPerSource?String(item.amplifyLevel):[
               '',
               'I',
               'II',
@@ -3223,7 +2818,7 @@ const CircleFormationService=Object.freeze({
 
     const circleInput=state.circleInput;
     if(
-      circleInput?.mode==='pending'&&
+      (circleInput?.mode==='pending'||circleInput?.mode==='move')&&
       circleInput.circle
     ){
       const holdMs=Math.max(
@@ -3461,360 +3056,66 @@ const CircleFormationService=Object.freeze({
     );
   },
 
-  draw(
-    ctx,
-    runtime,
-    now=performance.now()
-  ){
-    if(!ctx||!runtime)return false;
-    let drawn=false;
-
+  weaponDefinition(entity,config){
+    const state=this.state(entity,false);if(!state)return null;
+    const preview=this.isLocalEntity(entity)?state.circleInput?.preview:state.remotePreview;
+    const templates=this.templateCircles(entity);
+    const circles=[...templates,...(preview&&templates.length<this.maxCount(entity)?[preview]:[])];
+    if(!circles.length)return null;
+    const key=circles.map(c=>`${c.x},${c.y},${c.r}`).join('|');
+    if(state.weaponDefinitionKey===key)return state.weaponDefinition;
+    const minX=Math.min(...circles.map(c=>c.x-c.r)),maxX=Math.max(...circles.map(c=>c.x+c.r));
+    const minY=Math.min(...circles.map(c=>c.y-c.r)),maxY=Math.max(...circles.map(c=>c.y+c.r));
+    const scale=2/Math.max(1,maxX-minX,maxY-minY),cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+    const definition={origin:[0,0],paths:[],rings:[]};
+    for(const circle of circles){const x=(circle.x-cx)*scale,y=(circle.y-cy)*scale,r=circle.r*scale;
+      definition.rings.push({x,y,radius:r},{x,y,radius:r*.85});}
+    state.weaponDefinitionKey=key;state.weaponDefinition=definition;
+    return definition;
+  },
+  drawEditingPreview(ctx,entity,circle,invalid,now){
+    const preview={...circle,id:'preview'};
+    return this.drawSet(ctx,entity,this.displayTemplate([preview],entity),.48,{
+      hideRoleIcons:false,extraInvalidIds:invalid?new Set(['preview']):null
+    });
+  },
+  drawReveal(ctx,entity,circles,progress,now){
+    const presentation=this.activationConfig(entity)?.presentation||{};
+    const color=TeamColorPresentationService.colorForEntity(entity,entity.color);
+    for(const circle of circles)AnnularSweepPresentationService.draw(ctx,{...presentation,x:circle.x,y:circle.y,r:circle.r,hitColor:color,start:now,dur:1},now,{sweepProgress:progress});
+    return circles.length>0;
+  },
+  drawWeapon(ctx,entity,config,alpha=1,now=performance.now()){
+    return ModeGearPresentationService.drawImage(ctx,entity,config,alpha,now);
+  },
+  draw(ctx,runtime,now=performance.now()){
+    if(!ctx||!runtime)return false;let drawn=false;
     for(const entity of EntityService.items.values()){
-      if(
-        !entity?.alive||
-        entity.hidden||
-        !this.config(entity)
-      )continue;
-
-      const state=this.state(entity);
-      if(!state)continue;
-
+      if(!entity.alive||entity.hidden||!this.config(entity))continue;
+      const state=this.state(entity);if(!state)continue;
       if(this.isLocalEntity(entity)){
         const input=state.circleInput;
-        const revealActive=
-          state.activation?.phase==='reveal';
-        const revealMs=Math.max(
-          1,
-          Number(
-            this.config(entity)
-              ?.activation?.revealMs
-          )||1
-        );
-        const revealProgress=
-          revealActive
-            ?Math.max(
-              0,
-              Math.min(
-                1,
-                (
-                  1-
-                  (
-                    Math.max(
-                      0,
-                      state.revealUntil-now
-                    )/
-                    revealMs
-                  )
-                )*2
-              )
-            )
-            :1;
-        const creatingPreview=
-          input?.mode==='create'&&
-          !!input.preview;
-        const alpha=
-          revealActive
-            ?1
-            :.48;
-
-        if(
-          state.circles.length&&
-          !creatingPreview
-        ){
-          drawn=
-            this.drawSet(
-              ctx,
-              entity,
-              state.circles,
-              alpha,
-              {
-                hideRoleIcons:revealActive,
-                revealProgress,
-                teamOutline:revealActive
-              }
-            )||drawn;
+        const hasPreview=input?.mode==='create'&&input.preview;
+        const templates=[...state.circles,...(hasPreview?[{...input.preview,id:'preview'}]:[])];
+        const invalidPreview=hasPreview&&state.circles.length>=this.maxCount(entity);
+        if(templates.length)drawn=this.drawSet(ctx,entity,this.displayTemplate(templates,entity),.48,{hideRoleIcons:false,extraInvalidIds:invalidPreview?new Set(['preview']):null})||drawn;
+        if(state.limitPreview&&now<state.limitPreview.endAt)drawn=this.drawEditingPreview(ctx,entity,state.limitPreview.circle,true,now)||drawn;
+        if(state.activation?.phase==='reveal'&&now<state.activation.revealUntil)drawn=this.drawReveal(ctx,entity,state.activation.activationCircles,this.revealProgress(state.activation.revealStartedAt,state.activation.revealUntil,now),now)||drawn;
+        if(input?.circle&&(input.mode==='pending'||input.mode==='move')){
+          const progress=Math.min(1,(now-input.startAt)/Math.max(1,this.circleConfig(entity).moveHoldMs));
+          this.drawHoldGauge(ctx,entity,progress,now);
+          for(const circle of this.displayTemplate(state.circles,entity))this.drawHoldGauge(ctx,circle,progress,now);
         }
-
-        if(
-          creatingPreview
-        ){
-          const preview={
-            id:'formation-preview',
-            x:input.preview.x,
-            y:input.preview.y,
-            r:input.preview.r,
-            order:Number.MAX_SAFE_INTEGER
-          };
-          const previewSet=[
-            ...this.cloneCircles(
-              state.circles,
-              'preview-base'
-            ),
-            preview
-          ];
-          const previewGraph=
-            this.graph(
-              entity,
-              previewSet
-            );
-          const previewInvalidIds=
-            new Set();
-
-          if(input.limitBlocked){
-            previewInvalidIds.add(
-              String(preview.id)
-            );
-          }
-
-          for(const relation of previewGraph.rels){
-            if(
-              relation.type!=='invalidContain'
-            )continue;
-
-            if(
-              String(relation.a.id)===
-                String(preview.id)||
-              String(relation.b.id)===
-                String(preview.id)
-            ){
-              previewInvalidIds.add(
-                String(preview.id)
-              );
-            }
-          }
-
-          drawn=
-            this.drawSet(
-              ctx,
-              entity,
-              previewSet,
-              .48,
-              {
-                extraInvalidIds:
-                  previewInvalidIds
-              }
-            )||drawn;
-        }
-
-        if(
-          state.limitPreview&&
-          now<state.limitPreview.endAt
-        ){
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(
-            state.limitPreview.x,
-            state.limitPreview.y,
-            state.limitPreview.r,
-            0,
-            Math.PI*2
-          );
-          ctx.strokeStyle='rgba(255,72,82,.98)';
-          ctx.fillStyle='rgba(230,55,65,.22)';
-          ctx.lineWidth=4;
-          ctx.setLineDash([8,5]);
-          ctx.fill();
-          ctx.stroke();
-          ctx.restore();
-        }
-
-        if(
-          input?.mode==='pending'&&
-          input.circle
-        ){
-          const config=this.circleConfig(entity);
-          const progress=
-            Math.max(
-              0,
-              Math.min(
-                1,
-                (
-                  now-input.startAt
-                )/
-                Math.max(
-                  1,
-                  Number(config.moveHoldMs)||150
-                )
-              )
-            );
-          this.drawHoldGauge(
-            ctx,
-            entity,
-            progress,
-            now
-          );
-          this.drawHoldGauge(
-            ctx,
-            input.circle,
-            progress,
-            now
-          );
-        }
-
-        const cast=state.activation;
-        if(cast?.phase==='input'){
-          const progress=
-            Math.max(
-              0,
-              Math.min(
-                1,
-                (
-                  now-cast.startedAt
-                )/
-                Math.max(
-                  1,
-                  cast.inputUntil-cast.startedAt
-                )
-              )
-            );
-          this.drawHoldGauge(
-            ctx,
-            entity,
-            progress,
-            now
-          );
-          for(const circle of state.circles){
-            if(
-              cast.selectedIds.has(
-                String(circle.id)
-              )
-            ){
-              this.drawHoldGauge(
-                ctx,
-                circle,
-                progress,
-                now
-              );
-            }
-          }
-        }else if(cast?.phase==='move'){
-          this.drawHoldGauge(
-            ctx,
-            entity,
-            1,
-            now
-          );
-          for(const circle of state.circles){
-            if(
-              cast.selectedIds.has(
-                String(circle.id)
-              )
-            ){
-              this.drawHoldGauge(
-                ctx,
-                circle,
-                1,
-                now
-              );
-            }
-          }
-        }
-
-        this.drawCounterPreview(
-          ctx,
-          entity,
-          now
-        );
-      }else if(state.remoteCircles.length){
-        const localEntity=Training.player;
-        const allied=
-          !!localEntity&&
-          RelationService.relation(
-            localEntity,
-            entity
-          )==='ally';
-        const revealing=
-          state.remoteRevealUntil>now;
-
-        if(allied||revealing){
-          const revealMs=Math.max(
-            1,
-            Number(
-              this.config(entity)
-                ?.activation?.revealMs
-            )||1
-          );
-          const revealProgress=
-            revealing
-              ?Math.max(
-                0,
-                Math.min(
-                  1,
-                  (
-                    1-
-                    (
-                      Math.max(
-                        0,
-                        state.remoteRevealUntil-now
-                      )/
-                      revealMs
-                    )
-                  )*2
-                )
-              )
-              :1;
-
-          drawn=
-            this.drawSet(
-              ctx,
-              entity,
-              state.remoteCircles,
-              revealing?1:.48,
-              {
-                hideRoleIcons:true,
-                revealProgress,
-                teamOutline:revealing
-              }
-            )||drawn;
-        }
+        this.drawCounterPreview(ctx,entity,now);
       }
-
-      if(
-        state.burst&&
-        now<state.burst.endAt
-      ){
-        const alpha=
-          Math.max(
-            0,
-            (
-              state.burst.endAt-now
-            )/
-            Math.max(
-              1,
-              state.burst.duration
-            )
-          );
-        drawn=
-          this.drawSet(
-            ctx,
-            entity,
-            state.burst.circles,
-            alpha,
-            {
-              manifest:true,
-              hideRoleIcons:true,
-              amplifierSegments:
-                state.burst.amplifierSegments,
-              manifestProgress:
-                Math.max(
-                  0,
-                  Math.min(
-                    1,
-                    (
-                      now-
-                      Number(state.burst.startedAt)
-                    )/
-                    Math.max(
-                      1,
-                      Number(state.burst.duration)||1
-                    )
-                  )
-                )
-            }
-          )||drawn;
+      if(!this.isLocalEntity(entity)&&state.remoteRevealUntil>now&&state.remoteManifestPreview?.length){
+        drawn=this.drawReveal(ctx,entity,state.remoteManifestPreview,this.revealProgress(state.remoteRevealStartedAt,state.remoteRevealUntil,now),now)||drawn;
+      }
+      if(state.burst&&now<state.burst.endAt){
+        const progress=Math.min(1,(now-state.burst.startedAt)/state.burst.duration);
+        drawn=this.drawSet(ctx,entity,state.burst.circles,1-progress,{manifest:true,hideRoleIcons:true,amplifierSegments:state.burst.amplifierSegments,manifestProgress:progress})||drawn;
       }
     }
-
     return drawn;
   }
 });

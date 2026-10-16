@@ -13,7 +13,6 @@ const EntityDodgeService=Object.freeze({
     const now=performance.now();
     const activeMovement=
       MovementAbilityService.active(entity);
-    if(activeMovement)return false;
     if(
       !sequenceContinuation&&
       !AugmentDodgeSequenceService.ready(entity,now)
@@ -138,6 +137,9 @@ const EntityDodgeService=Object.freeze({
       entity,
       now
     );
+
+    // During an ability movement, dodge adds protection only; the ability remains the sole movement owner.
+    if(activeMovement)return true;
 
     const len=Math.hypot(dx,dy);
     if(len<=.01)return true;

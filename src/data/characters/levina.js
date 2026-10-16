@@ -403,7 +403,9 @@
           "strokeAlpha": 0.95,
           "lineWidth": 2.5,
           "durationFrames": 14,
-          "animation": true
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true
         },
         {
           "type": "movement.move",
@@ -469,7 +471,9 @@
           "strokeAlpha": 0.95,
           "lineWidth": 2.5,
           "durationFrames": 14,
-          "animation": true
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true
         }
       ],
       "tags": [

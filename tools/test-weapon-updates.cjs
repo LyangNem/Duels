@@ -42,6 +42,7 @@ function bleeding(t){t.statuses.set('bleed',[{end:clock+1000}]);return t}
 
 for(const [p,n]of [['src/abilities/AbilityService.js','AbilityService'],['src/abilities/AbilityModuleService.js','AbilityModuleService'],['src/core/ProgressStateService.js','ProgressStateService'],['src/core/RuntimeValueReferenceProviders.js','RuntimeValueReferenceProviders'],['src/core/RuntimeValueReferenceService.js','RuntimeValueReferenceService'],['src/data/WEAPON_IMAGE_DEFS.js','WEAPON_IMAGE_DEFS'],['src/render/ModeGearPresentationService.js','ModeGearPresentationService']])load(p,n);
 load('src/core/InstalledAreaFieldService.js','InstalledAreaFieldService');
+load('src/abilities/CircleFormationService.js','CircleFormationService');
 const intu=c.CharacterDataService.compile('intu'),siro=c.CharacterDataService.compile('siro'),reika=c.CharacterDataService.compile('reika'),phase=c.CharacterDataService.compile('phase');
 function gun(extra={}){const e=entity({character:intu,baseDamage:intu.baseDamage,...extra});c.ProgressStateService.apply(e,{stateKey:'intu-ammo',operation:'set',value:7,max:12,initial:12});return e}
 function fire(e,a){c.TriggeredAttackService.execute(e,a,0)}
@@ -54,9 +55,9 @@ test('헤브 출혈 타격마다 공통 이펙트·비출혈/DOT 제외·대상 
 test('헤브 반격 무력화 넉백·출혈 제거·무기 모션 및3종 재타격 구성',()=>{const e=entity(),t=entity({id:'enemy',teamId:'B'}),a=ch.attacks.counter;burns=[];moves=[];c.AttackModuleService.onHit(e,t,a,{execution:c.AttackExecutionService.create(e,a,0)},0,{type:'projectile'});assert.equal(burns.length,0);assert.equal(moves.length,1);assert.equal(moves[0].distance,84);assert.equal(a.modules[0].expireAtRange,false);assert.equal(a.modules[0].rehitInterval,undefined);assert.equal(c.CounterModuleService.referencedCc(e,ch.abilities.counter.trigger.modules[0]).type,'movement.neutralize-knockback')});
 test('페이즈 낮은 체력 설명은 ALWAYS 한 곳·전투 모듈 유지',()=>{assert.equal(phase.tooltipSkills[0].key,'ALWAYS');assert.equal(phase.tooltipSkills.filter(x=>x.text.includes('체력이 낮을수록')).length,1);assert.ok(!phase.tooltipSkills.find(x=>x.key==='LMB').text.includes('체력'));assert.equal(phase.passiveBuffs.length,2)});
 test('레이카 동일 검 형상·가호 색/글로우·회전 동일',()=>{const e=entity({character:reika}),configs=reika.worldEffectModules;function active(){return configs.filter(x=>c.TriggerModuleService.matches({type:'trigger',event:'presentation.draw',conditions:x.conditions},'presentation.draw',{source:e,now:clock}))}assert.equal(active().length,1);assert.equal(active()[0].color,'#ff7a00');c.ModeStateService.set(e,'reika-mode','blessed','normal');assert.equal(active().length,1);assert.equal(active()[0].color,'#38bdf8');assert.equal(active()[0].empowered,undefined);assert.equal(active()[0].glow,5);assert.equal(active()[0].rotationStateKey,'reika-sword-rotation')});
-test('시로 활 차징 시위0→최대·해제·발사 모션 / 헤브 작살 모션',()=>{const e=entity({character:siro}),config=siro.worldEffectModules[0];assert.equal(c.ModeGearPresentationService.weaponPose(e,config,clock).pull,0);e.actionState.set('charge:primary',{kind:c.ChargedAttackService.KIND,attackId:siro.attacks.lmb.id,startedAt:clock,angle:0});clock+=400;assert.equal(c.ModeGearPresentationService.weaponPose(e,config,clock).pull,.5);clock+=400;assert.equal(c.ModeGearPresentationService.weaponPose(e,config,clock).pull,1);e.actionState.delete('charge:primary');fire(e,siro.attacks.lmb);clock+=177;assert.ok(c.ModeGearPresentationService.weaponPose(e,config,clock).pulse>.9);assert.equal(c.ModeGearPresentationService.weaponPose(e,config,clock).pull,0);const h=entity(),cfg=ch.worldEffectModules[0];fire(h,ch.attacks.lmb);clock+=202;assert.ok(c.ModeGearPresentationService.weaponPose(h,cfg,clock).pulse>.9)});
+test('시로 활 차징 시위 고정·발사 모션 / 헤브 작살 모션',()=>{const e=entity({character:siro}),config=siro.worldEffectModules[0];assert.equal(c.ModeGearPresentationService.weaponPose(e,config,clock).pull,0);e.actionState.set('charge:primary',{kind:c.ChargedAttackService.KIND,attackId:siro.attacks.lmb.id,startedAt:clock,angle:0});clock+=400;assert.equal(c.ModeGearPresentationService.weaponPose(e,config,clock).pull,0);clock+=400;assert.equal(c.ModeGearPresentationService.weaponPose(e,config,clock).pull,0);e.actionState.delete('charge:primary');fire(e,siro.attacks.lmb);clock+=177;assert.ok(c.ModeGearPresentationService.weaponPose(e,config,clock).pulse>.9);assert.equal(c.ModeGearPresentationService.weaponPose(e,config,clock).pull,0);const h=entity(),cfg=ch.worldEffectModules[0];fire(h,ch.attacks.lmb);clock+=202;assert.ok(c.ModeGearPresentationService.weaponPose(h,cfg,clock).pulse>.9)});
 function canvasStub(){const styles=[],ops=[];const target={styles,ops,save(){},restore(){},beginPath(){},closePath(){},moveTo(...x){ops.push(['move',...x])},lineTo(...x){ops.push(['line',...x])},bezierCurveTo(...x){ops.push(['curve',...x])},arc(...x){ops.push(['arc',...x])},scale(...v){ops.push(['scale',...v])},stroke(){styles.push(this.strokeStyle)},fill(){styles.push(this.fillStyle)},rotate(){},translate(){}};return target}
-test('실제 활/작살/가호 검 렌더 경로 정상·시위 차징 형상 변화',()=>{for(const character of [siro,ch,reika]){const e=entity({character}),ctx=canvasStub();assert.equal(c.ModeGearPresentationService.drawBehind(ctx,e,1,clock),true);assert.ok(ctx.ops.length>5)}const e=entity({character:siro}),a=canvasStub(),b=canvasStub(),cfg=siro.worldEffectModules[0];c.ModeGearPresentationService.drawImage(a,e,cfg,1,clock);e.actionState.set('charge:primary',{kind:c.ChargedAttackService.KIND,attackId:siro.attacks.lmb.id,startedAt:clock-800,angle:0});c.ModeGearPresentationService.drawImage(b,e,cfg,1,clock);assert.notDeepEqual(b.ops,a.ops);const r=entity({character:reika}),ctx=canvasStub();c.ModeStateService.set(r,'reika-mode','blessed','normal');c.ModeGearPresentationService.drawBehind(ctx,r,1,clock);assert.ok(ctx.styles.includes(c.ColorService.brighten('#38bdf8',.65)))});
+test('실제 활/작살/가호 검 렌더 경로 정상·차징 중 시위 형상 고정',()=>{for(const character of [siro,ch,reika]){const e=entity({character}),ctx=canvasStub();assert.equal(c.ModeGearPresentationService.drawBehind(ctx,e,1,clock),true);assert.ok(ctx.ops.length>5)}const e=entity({character:siro}),a=canvasStub(),b=canvasStub(),cfg=siro.worldEffectModules[0];c.ModeGearPresentationService.drawImage(a,e,cfg,1,clock);e.actionState.set('charge:primary',{kind:c.ChargedAttackService.KIND,attackId:siro.attacks.lmb.id,startedAt:clock-800,angle:0});c.ModeGearPresentationService.drawImage(b,e,cfg,1,clock);assert.deepEqual(b.ops,a.ops);const r=entity({character:reika}),ctx=canvasStub();c.ModeStateService.set(r,'reika-mode','blessed','normal');c.ModeGearPresentationService.drawBehind(ctx,r,1,clock);assert.ok(ctx.styles.includes(c.ColorService.brighten('#38bdf8',.65)))});
 
 
 load('src/core/TimedActionStateService.js','TimedActionStateService');
@@ -471,7 +472,7 @@ test('리안 백업 무제한/LIFO/6초 만료·300ms 재사용',()=>{const ch=c
 test('메이실/타우 실제 치명타 적중에도 무기 잔향 없음',()=>{for(const [name,key] of [['maisil','lmbCritical'],['tau','lmbCharged']]){const ch=c.CharacterDataService.compile(name),e=entity({character:ch,id:name}),t=entity({teamId:'B'}),a=ch.attacks[key],old=c.EffectSpawnService;let captured=[];c.EffectSpawnService={...old,spawn:x=>{captured.push(x);return x},shouldPresentAttack:()=>true};const ex=c.AttackExecutionService.create(e,a,0);c.AttackModuleService.onHit(e,t,a,{execution:ex},0);assert.equal(captured.filter(x=>x.type==='weaponImageEcho').length,0);assert.equal(ch.attacks.lmb.modules.some(m=>m.renderType==='weaponImageEcho'),false);c.EffectSpawnService=old;}});
 test('리안 공격 알파/복원·방어 파랑·우클릭 완전회전·원격 복원',()=>{const ch=c.CharacterDataService.compile('lian'),e=entity({character:ch}),cfg=ch.worldEffectModules[0],svc=c.ModeGearPresentationService;assert.equal(svc.imageAlpha(e,cfg,clock),1);c.AttackModuleService.onDelivery(e,ch.attacks.lmb,0,c.AttackExecutionService.create(e,ch.attacks.lmb,0));assert.equal(svc.imageAlpha(e,cfg,clock),1);assert.equal(svc.imageAlpha(e,cfg,clock+500),1);c.ModeStateService.toggle(e,{stateKey:'lian-shield-block',values:['a','b']});assert.equal(svc.activeColor(e,cfg,clock),'#8ed9ff');c.AttackModuleService.afterAttack(e,ch.attacks.rmb,0,c.AttackExecutionService.create(e,ch.attacks.rmb,0));assert.equal(c.ModeStateService.state(e,'lian-shield-rotation').turns,0);assert.equal(cfg.rotationRadians,Math.PI*2);const peer=entity({character:ch});c.ModeStateService.applyRemote(peer,JSON.parse(JSON.stringify(c.ModeStateService.serialize(e,clock))),clock);assert.equal(svc.activeColor(peer,cfg,clock),'#8ed9ff');});
 test('큐리 평타 고정 잔향·반격 한바퀴·공식 별도 미세모션',()=>{const ch=c.CharacterDataService.compile('quri'),e=entity({character:ch}),a=ch.attacks.lmb,old=c.EffectSpawnService;let captured=[];c.EffectSpawnService={...old,spawn:x=>{captured.push(x);return x},shouldPresentAttack:()=>true};c.AttackModuleService.afterAttack(e,a,0,c.AttackExecutionService.create(e,a,0));assert.ok(captured.some(x=>x.type==='weaponImageEcho'));assert.equal(c.ModeStateService.state(e,'quri-cube-motion'),null);assert.equal(ch.formulaSequence.inputMotion.stateKey,'quri-cube-input-motion');c.AttackModuleService.onDelivery(e,ch.attacks.counter,0,c.AttackExecutionService.create(e,ch.attacks.counter,0));assert.equal(c.ModeStateService.state(e,'quri-cube-motion').turns,1);assert.equal(ch.worldEffectModules[0].rotationRadians,Math.PI*2);c.EffectSpawnService=old;});
-test('카논 회복: 소환수/봇 제외 후 같은 실행의 플레이어 타격은 회복',()=>{const ch=c.CharacterDataService.compile('kanon');for(const key of ['lmb','lmbStopped','lmbStoppedSecond']){const e=entity({character:ch,stamina:0}),a=ch.attacks[key],ex=c.AttackExecutionService.create(e,a,0);for(const kind of ['summon','trainingBot']){c.AttackModuleService.onHit(e,entity({id:kind,kind,teamId:'B'}),a,{execution:ex},0);assert.equal(e.stamina,0);}c.AttackModuleService.onHit(e,entity({id:'player',kind:'player',teamId:'B'}),a,{execution:ex},0);assert.equal(e.stamina,100);}});
+test('카논 회복: 소환수/봇 제외 후 같은 실행의 플레이어 타격은 회복',()=>{const ch=c.CharacterDataService.compile('kanon');for(const key of ['lmb','lmbStopped','lmbStoppedSecond']){const e=entity({character:ch,stamina:0}),a=ch.attacks[key],ex=c.AttackExecutionService.create(e,a,0);for(const kind of ['summon','trainingBot']){c.AttackModuleService.onHit(e,entity({id:kind,kind,teamId:'B'}),a,{execution:ex},0);assert.equal(e.stamina,0);}c.AttackModuleService.onHit(e,entity({id:'player',kind:'player',teamId:'B'}),a,{execution:ex},0);assert.equal(e.stamina,70);}});
 load('src/abilities/FormulaSequenceConfigService.js','FormulaSequenceConfigService');
 test('공식 처리 실제 핸들러: 허용 입력만 미세모션·회피 차단/원거리 제외·재생 중복 없음',()=>{const ch=c.CharacterDataService.compile('quri');for(const result of [{handled:true},{handled:true,blockedByDodge:true},{handled:false}]){const e=entity({character:ch}),old=c.FormulaSequenceService;c.FormulaSequenceService={input:()=>result};const context={source:e,targetPoint:{x:e.x,y:e.y},now:clock};c.AbilityModuleService.handlers['formula.sequence-input'](context,()=>{},{});assert.equal(!!c.ModeStateService.state(e,'quri-cube-input-motion'),result.handled&&!result.blockedByDodge);c.FormulaSequenceService=old;}});
 load('src/combat/AttackGuardService.js','AttackGuardService');
@@ -495,7 +496,7 @@ test('가위 모든 여닫기 단계에서 손잡이 외곽 비겹침',()=>{cons
 test('클레아 원형 외곽/열린 안쪽·달 절삭면·기존 모드색/회전 렌더',()=>{const d=c.WEAPON_IMAGE_DEFS['moon-crescent'];assert.deepEqual(Array.from(d.paths[0].commands[0]),['M',1.63,0]);assert.equal(d.paths[0].commands.filter(x=>x[0]==='Z').length,2);const e=entity({character:c.CharacterDataService.compile('clea')});assert.equal(c.ModeGearPresentationService.drawImage(canvasStub(),e,e.character.worldEffectModules[0],1,clock),true);});
 console.log('PASS '+passed+' weapon update regression groups (current138 final)');
 test('클레아 이전 공용회전 복원·대기열 제거·원격 동일',()=>{const ch=c.CharacterDataService.compile('clea'),e=entity({character:ch}),cfg=ch.worldEffectModules[0],svc=c.ModeGearPresentationService,a=ch.attacks.lmb;assert.equal(cfg.rotationMode,undefined);c.AttackModuleService.onDelivery(e,a,0,c.AttackExecutionService.create(e,a,0));clock+=100;c.AttackModuleService.onDelivery(e,a,0,c.AttackExecutionService.create(e,a,0));assert.equal(svc.rotation(e,cfg,300,clock),Math.PI*2);assert.equal(svc.rotation(e,cfg,300,clock+300),Math.PI*4);assert.equal(c.ModeStateService.state(e,cfg.rotationStateKey).rotationQueueMs,undefined);const peer=entity({character:ch});c.ModeStateService.applyRemote(peer,JSON.parse(JSON.stringify(c.ModeStateService.serialize(e,clock))),clock);assert.equal(svc.rotation(e,cfg,300,clock+150),svc.rotation(peer,cfg,300,clock+150));});
-test('전체 무기 형상 중심 유한·기본위치 중앙·복수 낫 상대배치 중심 보존',()=>{for(const d of Object.values(c.WEAPON_IMAGE_DEFS)){assert.equal(d.origin.length,2);assert.ok(d.origin.every(Number.isFinite));}for(const name of Object.keys(c.CHARACTER_DATA)){const ch=c.CharacterDataService.compile(name);for(const cfg of ch.worldEffectModules||[]){if(cfg.renderType!=='weaponImage'||name==='tau')continue;assert.equal(Number(cfg.x)||0,0,name);assert.equal(Number(cfg.y)||0,0,name);const ctx=canvasStub(),translations=[];ctx.translate=(...v)=>translations.push(v);c.ModeGearPresentationService.drawImage(ctx,entity({character:ch}),cfg,1,clock);assert.deepEqual(translations[0],[0,0]);const d=c.WEAPON_IMAGE_DEFS[cfg.style],size=20*(cfg.scale||1.5);assert.ok(translations.some(v=>Math.abs(v[0]+d.origin[0]*size)<1e-9&&Math.abs(v[1]+d.origin[1]*size)<1e-9));}for(const summon of Object.values(ch.summons||{}))for(const cfg of summon.worldEffectModules||[]){assert.equal(Number(cfg.x)||0,0);assert.equal(Number(cfg.y)||0,0);}}const tau=c.CharacterDataService.compile('tau').worldEffectModules;assert.equal(tau[0].x+tau[1].x,0);assert.equal(tau[0].y+tau[1].y,0);});
+test('전체 무기 형상 중심 유한·기본위치 중앙·복수 낫 상대배치 중심 보존',()=>{for(const d of Object.values(c.WEAPON_IMAGE_DEFS)){assert.equal(d.origin.length,2);assert.ok(d.origin.every(Number.isFinite));}for(const name of Object.keys(c.CHARACTER_DATA)){const ch=c.CharacterDataService.compile(name);for(const cfg of ch.worldEffectModules||[]){if(cfg.renderType!=='weaponImage'||name==='tau')continue;assert.equal(Number(cfg.x)||0,0,name);assert.equal(Number(cfg.y)||0,0,name);const ctx=canvasStub(),translations=[];ctx.translate=(...v)=>translations.push(v);const actor=entity({character:ch});if(cfg.formationKey)c.CircleFormationService.state(actor).circles=[{id:'template',x:0,y:0,r:68,order:1}];c.ModeGearPresentationService.drawImage(ctx,actor,cfg,1,clock);assert.deepEqual(translations[0],[0,0]);const d=c.ModeGearPresentationService.definition(actor,cfg),size=20*(cfg.scale||1.5);assert.ok(translations.some(v=>Math.abs(v[0]+d.origin[0]*size)<1e-9&&Math.abs(v[1]+d.origin[1]*size)<1e-9));}for(const summon of Object.values(ch.summons||{}))for(const cfg of summon.worldEffectModules||[]){assert.equal(Number(cfg.x)||0,0);assert.equal(Number(cfg.y)||0,0);}}const tau=c.CharacterDataService.compile('tau').worldEffectModules;assert.equal(tau[0].x+tau[1].x,0);assert.equal(tau[0].y+tau[1].y,0);});
 test('루뷰 현대망치/못 같은 배율 및 길이·하츠 실제 공격만 붓 회전·산탄 중복없음',()=>{const ru=c.CharacterDataService.compile('ruvu');assert.equal(ru.worldEffectModules[0].scale,ru.worldEffectModules[1].scale);const ch=c.CharacterDataService.compile('hatsuhats'),e=entity({character:ch}),cfg=ch.worldEffectModules[0];assert.equal(cfg.style,'artists-brush');assert.equal(c.ModeStateService.state(e,cfg.rotationStateKey),null);const a=ch.attacks.lmb,ex=c.AttackExecutionService.create(e,a,0);for(let n=0;n<6;n++)c.AttackModuleService.onDelivery(e,a,0,ex);assert.equal(c.ModeStateService.state(e,cfg.rotationStateKey).turns,1);const ca=ch.attacks.counter;c.AttackModuleService.onDelivery(e,ca,0,c.AttackExecutionService.create(e,ca,0));assert.equal(c.ModeStateService.state(e,cfg.rotationStateKey).turns,2);assert.ok(c.ModeGearPresentationService.rotation(e,cfg,360,clock+100)>0);});
 console.log('PASS '+passed+' weapon update regression groups (current139 final)');
 test('루뷰 실제 평타/반격마다 망치 한바퀴·못 정지·선딜 전 회전없음',()=>{const ch=c.CharacterDataService.compile('ruvu'),e=entity({character:ch});for(const cfg of ch.worldEffectModules){assert.equal(cfg.motion,undefined);assert.ok(Math.abs(c.ModeGearPresentationService.rotation(e,cfg,400,clock))<1e-9);}for(const key of ['lmb','counter']){const a=ch.attacks[key],ex=c.AttackExecutionService.create(e,a,0);c.AttackModuleService.onDelivery(e,a,0,ex);c.AttackModuleService.onDelivery(e,a,0,ex);}assert.equal(c.ModeGearPresentationService.rotation(e,ch.worldEffectModules[0],400,clock+400),-Math.PI*4);assert.equal(ch.worldEffectModules[1].rotationStateKey,undefined);});
@@ -539,7 +540,7 @@ test('디라 음식 원격 afterAttack에서 자기섭취 호/아군투척·원�
 console.log('PASS '+passed+' weapon update regression groups (current152 final)');
 
 test('라임 반격 착탄범위 공용 무력화넉백·방향/거리/기존장판 유지',()=>{const ch=c.CharacterDataService.compile('lime'),e=entity({character:ch}),a=ch.attacks.stickyField,target=entity({id:'lime-enemy',teamId:'B',x:450,y:500}),old=c.NeutralizingKnockbackService;let calls=[];c.NeutralizingKnockbackService={start:args=>{calls.push(args);return true;}};const ex=c.AttackExecutionService.create(e,a,0);c.AttackExecutionService.setImpactOrigin(ex,{mode:'point',x:400,y:500});c.AttackModuleService.onHit(e,target,a,{execution:ex},0,{type:'area',origin:{x:400,y:500}});assert.equal(calls.length,1);assert.equal(calls[0].target,target);assert.equal(calls[0].distance,55);assert.equal(calls[0].speed,8);assert.equal(calls[0].angle,0);assert.equal(a.modules[2].type,'field.area');assert.equal(a.modules[2].duration,4000);c.NeutralizingKnockbackService=old;});
-test('전체62명 반격의 실제 타격/대체 공격: 이동제한CC 또는 무력화넉백',()=>{const valid=m=>m?.type==='movement.neutralize-knockback'||m?.type==='movement.pull'||m?.type==='status.apply'&&['stun','bind','freeze','sleep','neutralize','discharge'].includes(m.status);let checked=0;for(const id of Object.keys(c.CHARACTER_DATA)){const ch=c.CharacterDataService.compile(id),roots=new Map();for(const ab of Object.values(ch.abilities)){const walk=o=>{if(!o||typeof o!=='object')return;if(o.type==='counter.execute'){const ref=Object.values(ch.attacks).find(a=>a.id===o.ccRefAttackId),cc=ref?.modules.find(valid)||o.cc;roots.set(ab.attackId,cc);if(o.alternateWhen)roots.set(o.alternateWhen.attackId,o.alternateWhen.cc||cc);}for(const v of Object.values(o))walk(v);};walk(ab);}for(const [key,a]of Object.entries(ch.attacks)){if(!(a.tags||[]).includes('반격')||!(a.damageRatio>0)||a.effectsOnly)continue;const p=a.modules.find(m=>/delivery.*projectile/.test(m.type));if(p?.damageOnTravel===false)continue;assert.ok(a.modules.some(valid)||valid(roots.get(a.id)),id+':'+key);checked++;}}assert.ok(checked>=60);});
+test('전체62명 반격의 실제 타격/대체 공격: 이동제한CC 또는 무력화넉백',()=>{const valid=m=>m?.type==='movement.neutralize-knockback'||m?.type==='movement.pull'||m?.type==='status.apply'&&['stun','bind','freeze','sleep','neutralize','discharge'].includes(m.status);let checked=0;for(const id of Object.keys(c.CHARACTER_DATA)){const ch=c.CharacterDataService.compile(id),roots=new Map();for(const ab of Object.values(ch.abilities)){const walk=o=>{if(!o||typeof o!=='object')return;if(o.type==='counter.execute'){const ref=Object.values(ch.attacks).find(a=>a.id===o.ccRefAttackId),cc=ref?.modules.find(valid)||o.cc;roots.set(ab.attackId,cc);if(o.alternateWhen)roots.set(o.alternateWhen.attackId,o.alternateWhen.cc||cc);}for(const v of Object.values(o))walk(v);};walk(ab);}for(const [key,a]of Object.entries(ch.attacks)){if(!(a.tags||[]).includes('반격')||!(a.damageRatio>0)||a.effectsOnly)continue;const p=a.modules.find(m=>/delivery.*projectile/.test(m.type));if(p?.damageOnTravel===false)continue;if(roots.has(a.id)&&roots.get(a.id)===null){assert.ok(!a.modules.some(m=>m.type.includes('knockback')),id+':explicit-no-cc');checked++;continue;}assert.ok(a.modules.some(valid)||valid(roots.get(a.id)),id+':'+key);checked++;}}assert.ok(checked>=60);});
 test('보완5개 연결반격 실제 onHit 공용무력화넉백 호출·장판 반복',()=>{const old=c.NeutralizingKnockbackService;let calls=[];c.NeutralizingKnockbackService={start:args=>{calls.push(args);return true;}};for(const [id,key,repeat]of [['maisil','counterReturn',true],['sherina','counterEchoTick',true],['lime','stickyTick',true],['quri','counterExplosion',false],['xianelli','counterDagger',false]]){const ch=c.CharacterDataService.compile(id),e=entity({character:ch}),target=entity({id:'policy-enemy',teamId:'B',x:450,y:500}),a=ch.attacks[key],ex=c.AttackExecutionService.create(e,a,0);const before=calls.length;c.AttackModuleService.onHit(e,target,a,{execution:ex},0,{type:'area',origin:{x:400,y:500}});assert.equal(calls.length,before+1,id);assert.equal(a.modules.find(m=>m.type==='movement.neutralize-knockback').oncePerExecution,!repeat);}c.NeutralizingKnockbackService=old;});
 test('타다타 비둔화 대상은 무력화넉백/둔화 대상은 기존속박·참조 유지',()=>{const ch=c.CharacterDataService.compile('tadta'),a=ch.attacks.counter,e=entity({character:ch}),old=c.NeutralizingKnockbackService;let calls=[];c.NeutralizingKnockbackService={start:args=>{calls.push(args);return true;}};const plain=entity({id:'tadta-plain',teamId:'B'});c.AttackModuleService.onHit(e,plain,a,{execution:c.AttackExecutionService.create(e,a,0)},0,{type:'area'});assert.equal(calls.length,1);const slowed=entity({id:'tadta-slow',teamId:'B'});slowed.statuses.set('slow',[{end:clock+3000}]);c.AttackModuleService.onHit(e,slowed,a,{execution:c.AttackExecutionService.create(e,a,0)},0,{type:'area'});assert.equal(calls.length,1);assert.equal(burns.at(-1).type,'bind');assert.equal(ch.abilities.counter.trigger.modules[0].cc.duration,1000);c.NeutralizingKnockbackService=old;});
 console.log('PASS '+passed+' weapon update regression groups (current157 final)');
@@ -549,3 +550,235 @@ console.log('PASS '+passed+' weapon update regression groups (current158 final)'
 test('펠루나 평타스킬반격7종시계회전/15%축소/3단계색 참조·코녕발동전링 제거',()=>{const ch=c.CharacterDataService.compile('peluna'),cfg=ch.worldEffectModules[0],e=entity({character:ch}),svc=c.ModeGearPresentationService;assert.equal(cfg.scale,1.7);assert.equal(cfg.motionStateKey,undefined);for(const key of ['lmb','lmbStage1','lmbStage2','lmbStage3','rmb','counter','counterStage3']){const a=ch.attacks[key];c.AttackModuleService.onDelivery(e,a,0,c.AttackExecutionService.create(e,a,0));}assert.equal(c.ModeStateService.state(e,cfg.rotationStateKey).turns,7);assert.equal(cfg.rotationRadians,Math.PI*2);for(const value of [0,6000,6001,9000]){c.ProgressStateService.apply(e,{stateKey:'peluna-forge-time',operation:'set',value,max:9000});assert.equal(svc.activeColor(e,cfg,clock),value>6000?ch.attacks.lmbStage3.modules[0].hitColor:null);}const k=c.CharacterDataService.compile('konyeong');assert.equal(k.abilities.rmb.trigger.modules.some(m=>m.type==='effect.spawn'&&m.renderType==='areaCircle'),false);assert.ok(k.abilities.rmb.trigger.modules.some(m=>m.type==='timing.delay'&&m.duration===300));});
 test('펠루나 교차2망치 반대회전·동일단계색·원격',()=>{const ch=c.CharacterDataService.compile('peluna'),e=entity({character:ch}),[a,b]=ch.worldEffectModules,svc=c.ModeGearPresentationService;assert.equal(ch.worldEffectModules.length,2);assert.equal(a.angle,.55);assert.equal(b.angle,-.85);assert.equal(a.rotationRadians,-b.rotationRadians);assert.equal(a.scale,b.scale);const atk=ch.attacks.rmb;c.AttackModuleService.onDelivery(e,atk,0,c.AttackExecutionService.create(e,atk,0));for(const dt of [100,200,400])assert.equal(svc.rotation(e,a,400,clock+dt),-svc.rotation(e,b,400,clock+dt));c.ProgressStateService.apply(e,{stateKey:'peluna-forge-time',operation:'set',value:9000,max:9000});assert.equal(svc.activeColor(e,a,clock),svc.activeColor(e,b,clock));const peer=entity({character:ch});c.ModeStateService.applyRemote(peer,JSON.parse(JSON.stringify(c.ModeStateService.serialize(e,clock))),clock);assert.equal(svc.rotation(peer,b,400,clock+100),svc.rotation(e,b,400,clock+100));});
 test('펠루나 추가망치 공용parts 좌우반전·기존반대회전 유지',()=>{const ch=c.CharacterDataService.compile('peluna'),[a,b]=ch.worldEffectModules,d=c.WEAPON_IMAGE_DEFS[b.style];assert.equal(a.style,'forge-hammer');assert.equal(b.style,'forge-hammer-mirrored');assert.equal(d.parts[0].scaleX,-1);assert.notDeepEqual(d.parts[0].paths,c.WEAPON_IMAGE_DEFS[a.style].paths);const bounds=paths=>paths.flatMap(p=>p.points||[]).reduce((v,p)=>Math.max(v,Math.abs(p[0]),Math.abs(p[1])),0);assert.ok(bounds(d.parts[0].paths)<bounds(c.WEAPON_IMAGE_DEFS[a.style].paths)*.7);assert.equal(a.rotationRadians,-b.rotationRadians);});
+
+c.DamageResourceLayerService={spawnTransitionEffect:()=>true};
+test('신규 쌍단검·공구함·성장 마법봉 공용 형상/현재색/렌더',()=>{
+ for(const id of ['cyien','miaruky','meramona']){
+  const character=c.CharacterDataService.compile(id),e=entity({character}),ctx=canvasStub();
+  const images=c.ModeGearPresentationService.sampleWeapons(e,1,clock).images;
+  assert.equal(images.length,1,id);assert.ok(c.WEAPON_IMAGE_DEFS[images[0].config.style]);
+  assert.equal(c.ModeGearPresentationService.drawBehind(ctx,e,1,clock),true);assert.ok(ctx.ops.length>8);
+ }
+});
+test('미아루키 설치 숨김/회수 복원·원거리 발사800ms/재발사 갱신·상대 동일',()=>{
+ const ch=c.CharacterDataService.compile('miaruky'),e=entity({character:ch}),svc=c.ModeGearPresentationService;
+ const style=(x,now)=>Array.from(svc.sampleWeapons(x,1,now).images,v=>v.config.style);
+ assert.deepEqual(style(e,clock),['toolbox']);
+ const state=c.SummonDeployService.state(e,'toolbox',true);state.active=true;assert.equal(style(e,clock).length,0);
+ state.active=false;assert.deepEqual(style(e,clock),['toolbox']);
+ fire(e,ch.attacks.lmbRanged);assert.deepEqual(style(e,clock),['toolbox-wrench']);
+ assert.deepEqual(style(e,clock+799),['toolbox-wrench']);assert.deepEqual(style(e,clock+800),['toolbox']);
+ clock+=400;fire(e,ch.attacks.lmbRanged);assert.deepEqual(style(e,clock+799),['toolbox-wrench']);assert.deepEqual(style(e,clock+800),['toolbox']);
+ const peer=entity({character:ch,local:false});c.ModeStateService.applyRemote(peer,JSON.parse(JSON.stringify(c.ModeStateService.serialize(e,clock))),clock);
+ for(const elapsed of [0,799,800,1000])assert.deepEqual(style(peer,clock+elapsed),style(e,clock+elapsed));
+ state.active=true;assert.equal(style(e,clock).length,0);state.active=false;
+ clock+=800;fire(e,ch.attacks.lmbMelee);assert.deepEqual(style(e,clock),['toolbox']);
+});
+test('메라모나0~4 영구/임시 단계 장식 합산·상대 복원·임시 종료 되돌림',()=>{
+ const ch=c.CharacterDataService.compile('meramona'),e=entity({character:ch}),svc=c.ModeGearPresentationService;
+ for(const permanent of [0,1,2,3,4])for(const temporary of [0,1]){
+  c.ProgressStateService.apply(e,{stateKey:'meramona-stage',operation:'set',value:permanent,max:4});
+  c.ProgressStateService.apply(e,{stateKey:'meramona-temp-stage',operation:'set',value:temporary,max:1});
+  const imgs=svc.sampleWeapons(e,1,clock).images;assert.equal(imgs.length,1+Math.min(4,permanent+temporary));
+  const peer=entity({character:ch,local:false});c.ProgressStateService.applyRemote(peer,JSON.parse(JSON.stringify(c.ProgressStateService.serialize(e))));
+  assert.deepEqual(svc.sampleWeapons(peer,1,clock).images.map(x=>x.config.style),imgs.map(x=>x.config.style));
+  const ctx=canvasStub();assert.equal(svc.drawBehind(ctx,e,1,clock),true);
+ }
+ c.ProgressStateService.apply(e,{stateKey:'meramona-stage',operation:'set',value:0,max:4});c.ProgressStateService.apply(e,{stateKey:'meramona-temp-stage',operation:'set',value:0,max:1});
+ assert.equal(svc.sampleWeapons(e,1,clock).images.length,1);
+ fire(e,ch.attacks.lmb);assert.ok(svc.weaponPose(e,ch.worldEffectModules[0],clock+168).pulse>.8);
+});
+
+test('사이엔 앞/뒤 독립 반시계 회전·3타 적중 잔향·패리/절격/반격 양쪽 회전',()=>{
+ const ch=c.CharacterDataService.compile('cyien'),e=entity({character:ch}),cfg=ch.worldEffectModules[0],svc=c.ModeGearPresentationService;
+ const turns=()=>cfg.partMotions.map(m=>c.ModeStateService.state(e,m.rotationStateKey)?.turns||0);
+ const deliver=key=>c.AttackModuleService.onDelivery(e,ch.attacks[key],0,c.AttackExecutionService.create(e,ch.attacks[key],0));
+ deliver('lmb');assert.deepEqual(Array.from(turns()),[0,1]);clock+=350;deliver('lmbSecond');assert.deepEqual(Array.from(turns()),[1,1]);
+ const before=Array.from(turns());deliver('lmbBack');assert.deepEqual(Array.from(turns()),before);
+ let effects=[];const old=c.EffectSpawnService;c.EffectSpawnService={...old,spawn:x=>{effects.push(x);return x},shouldPresentAttack:()=>true,presentationSnapshot:x=>x};
+ const a=ch.attacks.lmbBack,ex=c.AttackExecutionService.create(e,a,0);
+ c.AttackModuleService.afterAttack(e,a,0,ex);assert.equal(effects.filter(f=>f.type==='weaponImageEcho').length,0);
+ const target=entity({id:'enemy',teamId:'B'});c.AttackModuleService.onHit(e,target,a,{execution:ex},0);c.AttackModuleService.onHit(e,target,a,{execution:ex},0);
+ assert.equal(effects.filter(f=>f.type==='weaponImageEcho').length,1);assert.deepEqual(Array.from(turns()),before);
+ for(const key of ['rmb','rmbCharged','counter']){const a=ch.attacks[key],ex=c.AttackExecutionService.create(e,a,0);const previous=Array.from(turns());c.AttackModuleService.afterAttack(e,{...a,modules:a.modules.filter(m=>m.type==='mode.toggle')},0,ex);assert.deepEqual(Array.from(turns()),previous.map(n=>n+1));}
+ const image=svc.sampleImage(e,cfg,clock+175);assert.ok(image.sample.partSpins.every(spin=>spin<0));
+ const peer=entity({character:ch,local:false});c.ModeStateService.applyRemote(peer,JSON.parse(JSON.stringify(c.ModeStateService.serialize(e,clock))),clock);
+ assert.deepEqual(Array.from(svc.sampleImage(peer,cfg,clock+175).sample.partSpins),Array.from(image.sample.partSpins));
+ svc.echo(e,clock+175);const snap=svc.weaponEchoes.get(String(e.id)).at(-1).snapshot.images[0].sample;
+ deliver('lmb');assert.deepEqual(Array.from(snap.partSpins),Array.from(image.sample.partSpins));
+ assert.equal(c.WEAPON_IMAGE_DEFS['paired-daggers'].parts[0].angle,c.WEAPON_IMAGE_DEFS['paired-daggers'].parts[1].angle);
+ c.EffectSpawnService=old;
+});
+test('미아루키 완전 회전·설치중 반격도 명시 공구함 잔향·메라모나2.0 확대',()=>{
+ const ch=c.CharacterDataService.compile('miaruky'),e=entity({character:ch}),svc=c.ModeGearPresentationService;
+ for(const cfg of ch.worldEffectModules){assert.equal(cfg.motion,undefined);assert.equal(cfg.rotationRadians,-Math.PI*2);}
+ fire(e,ch.attacks.lmbRanged);const cfg=ch.worldEffectModules[1];assert.ok(svc.rotation(e,cfg,350,clock+175)<0);
+ c.SummonDeployService.state(e,'toolbox',true).active=true;assert.equal(svc.sampleWeapons(e,1,clock).images.length,0);
+ const echo=ch.attacks.counter.modules.find(m=>m.renderType==='weaponImageEcho');assert.equal(echo.imageConfig.style,'toolbox');assert.equal(echo.when,'after-attack');
+ svc.echo(e,clock,echo.duration,echo.expansion,echo.imageAlpha,echo.imageConfig);assert.equal(svc.weaponEchoes.get(String(e.id)).at(-1).snapshot.images[0].config.style,'toolbox');
+ for(const cfg of c.CharacterDataService.compile('meramona').worldEffectModules)assert.equal(cfg.scale,2);
+});
+
+test('사이엔 실제 방어 성공 색 밝아짐/페이드/원격·같은 블록 중복 방지·좌하단',()=>{
+ const ch=c.CharacterDataService.compile('cyien'),e=entity({character:ch}),cfg=ch.worldEffectModules[0],svc=c.ModeGearPresentationService;
+ assert.equal(cfg.angle,Math.PI);const blade=c.WEAPON_IMAGE_DEFS[cfg.style].parts[0];assert.ok(Math.sin(cfg.angle+blade.angle)<0&&Math.cos(cfg.angle+blade.angle)<0);assert.equal(svc.activeColor(e,cfg,clock),null);
+ const guard={source:e,spec:ch.attacks.rmb.modules.find(m=>m.type==='attack.guard'),handledBlockGroups:new Set()};
+ const service={...c.AttackGuardService,resolveBlockFeedback(){}};assert.equal(service.registerBlockOccurrence(guard,'block-1',clock),true);
+ assert.equal(svc.activeColor(e,cfg,clock),ch.accentColor);assert.equal(svc.activityTint(e,cfg,clock).amount,1);
+ assert.ok(svc.activityTint(e,cfg,clock+450).amount<1);assert.equal(svc.activeColor(e,cfg,clock+650),null);
+ assert.equal(service.registerBlockOccurrence(guard,'block-1',clock+200),false);
+ const peer=entity({character:ch,local:false});c.ModeStateService.applyRemote(peer,JSON.parse(JSON.stringify(c.ModeStateService.serialize(e,clock))),clock);
+ assert.equal(svc.activeColor(peer,cfg,clock+150),svc.activeColor(e,cfg,clock+150));
+ const crest=c.WEAPON_IMAGE_DEFS['magical-wand-4'];assert.ok(crest.paths[0].commands.filter(x=>x[0]==='C').length>=2);assert.equal(crest.rings.length,2);
+});
+load('src/world/WorldGeometryService.js','WorldGeometryService');
+load('src/world/AreaGeometryService.js','AreaGeometryService');
+load('src/render/AreaCircleEffectPresentationService.js','AreaCircleEffectPresentationService');
+test('레비나 출발/도착 이펙트 실제 벽 차단 polygon·빈공간/벽뒤 렌더 일치',()=>{
+ const ch=c.CharacterDataService.compile('levina'),e=entity({character:ch,x:400,y:500}),saved=c.DebugMapService,old=c.EffectSpawnService;
+ c.WorldBoundsService={width:()=>2000,height:()=>2000};let walls=[{x:440,y:0,w:20,h:2000}];c.DebugMapService={walls:()=>walls};
+ let captured=[];c.EffectSpawnService={...old,spawn:x=>{captured.push(x);return x},shouldPresentAttack:()=>true,presentationSnapshot:x=>x};
+ for(const key of ['counter','counterArrival']){
+  const a=ch.attacks[key],m=a.modules.find(m=>m.renderType==='areaCircle');assert.equal(m.replaceAutoAreaEffect,true);
+  captured=[];const ex=c.AttackExecutionService.create(e,a,0);c.AttackModuleService.spawnAttackEffect(e,a,0,ex,m);
+  const f=captured[0];assert.ok(f.points.length>20);assert.equal(f.clipWallPolicy,'block');assert.ok(f.points.every(p=>p.x<=440+.001));
+  const ctx=canvasStub();ctx.setLineDash=()=>{};assert.equal(c.AreaCircleEffectPresentationService.draw(ctx,{...f,start:clock,dur:300},clock+50),true);assert.ok(ctx.ops.filter(p=>p[0]==='line').length>20);
+  walls=[];captured=[];c.AttackModuleService.spawnAttackEffect(e,a,0,c.AttackExecutionService.create(e,a,0),m);assert.ok(captured[0].points.some(p=>p.x>500));walls=[{x:440,y:0,w:20,h:2000}];
+ }
+ c.EffectSpawnService=old;c.DebugMapService=saved;
+});
+
+test('사이엔 실제 guard 활성화→피해차단→렌더 색/불투명/복귀',()=>{
+ const ch=c.CharacterDataService.compile('cyien'),e=entity({character:ch}),enemy=entity({id:'foe',teamId:'B'}),cfg=ch.worldEffectModules[0],svc=c.ModeGearPresentationService;
+ c.TagService.hasAttack=(a,t)=>(a.tags||[]).includes(t);
+ const guardService={...c.AttackGuardService,active:new Map(),sweep(){},parryFx(){},resolveBlockFeedback(){}};
+ const m=ch.attacks.rmb.modules.find(m=>m.type==='attack.guard');guardService.activate(e,m,0,clock,c.AttackExecutionService.create(e,ch.attacks.rmb,0));
+ const before=canvasStub();svc.drawImage(before,e,cfg,1,clock);assert.equal(svc.imageAlpha(e,cfg,clock),.45);
+ assert.equal(guardService.blockDamage({source:enemy,target:e,attack:{tags:['히트스캔']},execution:{directionAngle:Math.PI}},clock),true);
+ const after=canvasStub();svc.drawImage(after,e,cfg,1,clock);assert.notDeepEqual(after.styles,before.styles);assert.equal(svc.imageAlpha(e,cfg,clock),1);
+ assert.equal(svc.imageAlpha(e,cfg,clock+650),.45);assert.equal(svc.activeColor(e,cfg,clock+650),null);
+});
+load('src/core/CommandFeatureService.js','CommandFeatureService');
+load('src/combat/AttackFeatureTransformService.js','AttackFeatureTransformService');
+test('가에 모든 기능별 독립 부품·조합/상대·FIX색 종료·변환 평타 회전/스킬반격 잔향',()=>{
+ const ch=c.CharacterDataService.compile('gae'),e=entity({character:ch}),svc=c.ModeGearPresentationService;
+ c.GameplayFeatureStateSyncService={send(){}};c.CommandFeatureService.ensure(e);
+ const features=['laser-dual','laser-wide','laser-range','laser-pierce','laser-instant','knockback','accelerate','electric'];
+ const styles=x=>Array.from(svc.sampleWeapons(x,1,clock).images,v=>v.config.style);
+ assert.equal(styles(e).length,1);
+ for(const f of features){c.CommandFeatureService.setState(e,f,true);assert.equal(styles(e).length,2);c.CommandFeatureService.setState(e,f,false);}
+ for(const f of features)c.CommandFeatureService.setState(e,f,true);assert.equal(styles(e).length,9);
+ const peer=entity({character:ch,local:false});c.ModeStateService.applyRemote(peer,JSON.parse(JSON.stringify(c.ModeStateService.serialize(e,clock))),clock);peer._commandFeatureInitialized=true;assert.deepEqual(styles(peer),styles(e));
+ const a=c.AttackFeatureTransformService.prepare(e,ch.attacks.laser,clock);c.AttackModuleService.onDelivery(e,a,0,c.AttackExecutionService.create(e,a,0));
+ assert.equal(c.ModeStateService.state(e,'gae-laser-image').turns,1);
+ e._commandFixGlowUntil=clock+1000;assert.equal(svc.activeColor(e,ch.worldEffectModules[0],clock),'#8df0ad');assert.equal(svc.activeColor(e,ch.worldEffectModules[0],clock+1000),null);
+ for(const key of ['rmb','counter']){const echo=ch.attacks[key].modules.find(m=>m.renderType==='weaponImageEcho');assert.equal(echo.when,'after-attack');assert.equal(echo.duration,650);}
+ const ctx=canvasStub();assert.equal(svc.drawBehind(ctx,e,1,clock),true);
+});
+test('체리티 평타 저격총·스킬반격800ms 연막탄/상대·나레 발사 회전',()=>{
+ const ch=c.CharacterDataService.compile('cherity'),e=entity({character:ch}),svc=c.ModeGearPresentationService;
+ const style=(x,at)=>svc.sampleWeapons(x,1,at).images[0].config.style;assert.equal(style(e,clock),'cherity-bolt-rifle');fire(e,ch.attacks.lmb);
+ assert.ok(c.ModeStateService.state(e,'cherity-rifle-motion'));
+ for(const key of ['rmb','counter']){
+  const a=ch.attacks[key];c.AttackModuleService.afterAttack(e,{...a,modules:a.modules.filter(m=>m.type==='mode.set'||m.type==='mode.toggle')},0,c.AttackExecutionService.create(e,a,0));
+  assert.equal(style(e,clock+799),'smoke-canister');assert.equal(style(e,clock+800),'cherity-bolt-rifle');
+  const peer=entity({character:ch,local:false});c.ModeStateService.applyRemote(peer,JSON.parse(JSON.stringify(c.ModeStateService.serialize(e,clock))),clock);assert.equal(style(peer,clock+799),'smoke-canister');assert.equal(style(peer,clock+800),'cherity-bolt-rifle');clock+=800;
+ }
+ const n=c.CharacterDataService.compile('nare'),plane=entity({character:n});
+ for(const key of ['lmb','rmb','counter']){const a=n.attacks[key];c.AttackModuleService.afterAttack(plane,{...a,modules:a.modules.filter(m=>m.type==='mode.toggle')},0,c.AttackExecutionService.create(plane,a,0));}
+ assert.equal(c.ModeStateService.state(plane,'nare-plane-image').turns,3);assert.equal(svc.sampleWeapons(plane,1,clock).images[0].config.style,'paper-airplane');
+});
+
+test('체리티 저격총 인투와 실제 길이 동일·가에 기능별 실루엣·DUAL방출구/WIDE구경/RANGE길이/PIERCE렌즈/가속냉각·전체조합',()=>{
+ const cch=c.CharacterDataService.compile('cherity'),ic=c.CharacterDataService.compile('intu'),cc=cch.worldEffectModules[0],ii=ic.worldEffectModules.find(m=>m.style==='sniper');
+ function bounds(d){const pts=[];for(const p of d.paths||[]){pts.push(...p.points||[]);for(const cmd of p.commands||[])for(let j=1;j<cmd.length;j+=2)if(typeof cmd[j]==='number'&&typeof cmd[j+1]==='number')pts.push([cmd[j],cmd[j+1]])}for(const r of d.rings||[])pts.push([r.x-r.radius,r.y-r.radius],[r.x+r.radius,r.y+r.radius]);return {minX:Math.min(...pts.map(p=>p[0])),maxX:Math.max(...pts.map(p=>p[0])),minY:Math.min(...pts.map(p=>p[1])),maxY:Math.max(...pts.map(p=>p[1]))};}
+ const a=bounds(c.WEAPON_IMAGE_DEFS[cc.style]),b=bounds(c.WEAPON_IMAGE_DEFS[ii.style]);assert.ok((a.maxX-a.minX)*cc.scale>(b.maxX-b.minX)*(ii.scale||1.5));
+ const gae=c.CharacterDataService.compile('gae');assert.equal(gae.worldEffectModules[0].style,'laser-emitter');assert.equal(c.WEAPON_IMAGE_DEFS['modular-laser-gun'],undefined);
+ const parts=new Map(Array.from(gae.worldEffectModules.slice(1),cfg=>[cfg.style,c.WEAPON_IMAGE_DEFS[cfg.style]]));
+ const roles=Array.from(parts.values(),d=>d.featureRole);assert.equal(new Set(roles).size,8);
+ const dual=parts.get('laser-dual-module');assert.equal(dual.rings.length,2);assert.ok(dual.rings[0].y*dual.rings[1].y<0);
+ assert.ok(bounds(parts.get('laser-wide-module')).maxY-bounds(parts.get('laser-wide-module')).minY>bounds(c.WEAPON_IMAGE_DEFS['laser-emitter']).maxY-bounds(c.WEAPON_IMAGE_DEFS['laser-emitter']).minY);
+ assert.ok(bounds(parts.get('laser-range-module')).maxX>2);
+ assert.equal(parts.get('laser-pierce-module').paths.filter(p=>p.fill).length,3);
+ assert.ok(bounds(parts.get('laser-instant-module')).maxY>.7);assert.ok(bounds(parts.get('laser-knockback-module')).minX<-1.7);assert.ok(bounds(parts.get('laser-accelerate-module')).minY<-.7);assert.equal(parts.get('laser-electric-module').paths.filter(p=>p.fill).length,3);
+
+});
+test('키네스 무기 이미지와 표시 전용 모드 제거·기존 전투 공격 유지',()=>{
+ const ch=c.CharacterDataService.compile('kines');assert.equal(ch.worldEffectModules,undefined);
+ for(const a of Object.values(ch.attacks))assert.ok(a.modules.every(m=>!String(m.stateKey||'').includes('emblem')&&m.stateKey!=='kines-flame-motion'));
+ assert.ok(ch.attacks.lmb.modules.some(m=>m.stateKey==='kines-fireball'));assert.equal(ch.attacks.protection.range,95);
+ for(const key of ['living-flame','flame-orb','flame-wing','flame-burst-emblem','flame-shield'])assert.equal(c.WEAPON_IMAGE_DEFS[key],undefined);
+});
+test('시아넬리 실제발사 헤브와 동일 던짐·스킬반격회전·유이 역행 시계',()=>{
+ const ch=c.CharacterDataService.compile('xianelli'),e=entity({character:ch}),svc=c.ModeGearPresentationService,cfg=ch.worldEffectModules[0],hab=c.CharacterDataService.compile('hab').worldEffectModules[0];
+ assert.equal(cfg.motionMs,hab.motionMs);assert.deepEqual(JSON.parse(JSON.stringify(cfg.motion)),JSON.parse(JSON.stringify(hab.motion)));
+ c.AttackModuleService.onDelivery(e,ch.attacks.lmb,0,c.AttackExecutionService.create(e,ch.attacks.lmb,0));assert.ok(svc.weaponPose(e,cfg,clock+201).pulse>.9);
+ for(const key of ['rmb','counter']){const a=ch.attacks[key];c.AttackModuleService.afterAttack(e,{...a,modules:a.modules.filter(m=>m.type==='mode.toggle')},0,c.AttackExecutionService.create(e,a,0));}assert.equal(c.ModeStateService.state(e,cfg.rotationStateKey).turns,2);
+ const y=c.CharacterDataService.compile('yui'),p=entity({character:y}),yc=y.worldEffectModules[0];
+ for(const [key,expected] of [['lmb',1],['rmb',0],['counter',1]]){const a=y.attacks[key];c.AttackModuleService.afterAttack(p,{...a,modules:a.modules.filter(m=>m.type==='mode.toggle')},0,c.AttackExecutionService.create(p,a,0));assert.equal(c.ModeStateService.state(p,yc.rotationStateKey).turns,expected);clock+=350;}
+ const a=y.attacks.rmb;c.AttackModuleService.afterAttack(p,a,0,c.AttackExecutionService.create(p,a,0));const state=c.ModeStateService.state(p,yc.rotationStateKey);assert.ok(svc.rotation(p,yc,350,clock+175)>state.previousTurns*(-Math.PI*2));
+});
+load('src/input/PointerHoldInputService.js','PointerHoldInputService');
+test('룰리 클릭 증가/홀드 실제200ms감소·한계무변화에는 모션없음·상대 큐리형 흔들림',()=>{
+ const ch=c.CharacterDataService.compile('ruli'),e=entity({character:ch}),cfg=ch.worldEffectModules[0],svc=c.ModeGearPresentationService;
+ assert.equal(cfg.motion.rotation,.12);assert.equal(cfg.motionMs,260);
+ const step=ch.abilities.rmb.trigger.modules.find(m=>m.type==='state.progress');c.ProgressStateService.apply(e,step);assert.equal(c.ProgressStateService.state(e,'ruli-range-stage').value,2);assert.equal(c.ModeStateService.state(e,cfg.motionStateKey).turns,1);
+ c.ProgressStateService.apply(e,{stateKey:'ruli-range-stage',operation:'set',value:4,max:7});let tick=null;c.setInterval=fn=>{tick=fn;return 1};c.clearInterval=()=>{};
+ const held={held:true};c.PointerHoldInputService.startHoldRepeatProgress(e,ch.abilities.rmb,held);assert.ok(tick);clock+=200;tick();assert.equal(c.ProgressStateService.state(e,'ruli-range-stage').value,3);assert.equal(c.ModeStateService.state(e,cfg.motionStateKey).turns,2);
+ for(let i=0;i<2;i++){clock+=200;tick();}const turns=c.ModeStateService.state(e,cfg.motionStateKey).turns;clock+=200;tick();assert.equal(c.ModeStateService.state(e,cfg.motionStateKey).turns,turns);assert.equal(c.ProgressStateService.state(e,'ruli-range-stage').value,1);
+ const peer=entity({character:ch,local:false});c.ModeStateService.applyRemote(peer,JSON.parse(JSON.stringify(c.ModeStateService.serialize(e,clock))),clock);assert.equal(svc.weaponPose(peer,cfg,clock+40).pulse,svc.weaponPose(e,cfg,clock+40).pulse);
+ held.held=false;tick();assert.equal(held.holdRepeatTimer,null);
+});
+
+test('시아넬리 시계회전·체리티 독립형상/평타 반시계·유이 평반반시계/스킬시계',()=>{
+ const svc=c.ModeGearPresentationService,x=c.CharacterDataService.compile('xianelli'),e=entity({character:x});
+ const m=x.attacks.rmb.modules.find(m=>m.type==='mode.toggle');c.ModeStateService.toggle(e,m);assert.ok(svc.rotation(e,x.worldEffectModules[0],350,clock+175)>0);
+ const ch=c.CharacterDataService.compile('cherity'),p=entity({character:ch}),cfg=ch.worldEffectModules[0],intuCfg=c.CharacterDataService.compile('intu').worldEffectModules.find(m=>m.style==='sniper');assert.notEqual(cfg.style,intuCfg.style);assert.equal(cfg.motion,undefined);fire(p,ch.attacks.lmb);assert.ok(svc.rotation(p,cfg,300,clock+150)<0);
+ const y=c.CharacterDataService.compile('yui');for(const [key,direction]of [['lmb',-1],['counter',-1],['rmb',1]]){const source=entity({character:y}),a=y.attacks[key];c.AttackModuleService.afterAttack(source,{...a,modules:a.modules.filter(m=>m.type==='mode.toggle')},0,c.AttackExecutionService.create(source,a,0));assert.ok(svc.rotation(source,y.worldEffectModules[0],350,clock+175)*direction>0,key);}
+ const dagger=c.WEAPON_IMAGE_DEFS['temporal-dagger'];assert.ok(dagger.paths[0].points);assert.equal(dagger.rings,undefined);assert.deepEqual(Array.from(dagger.paths[1].points,p=>p[0]),[0,0]);
+});
+
+test('양 단검 평행 날몸·일반 그립/가드·원형 손잡이 없음·체리티 일체형 별도 총·가에25%확대',()=>{
+ for(const key of ['throwing-dagger','temporal-dagger']){const d=c.WEAPON_IMAGE_DEFS[key],pts=d.paths[0].points;assert.equal(d.rings,undefined);assert.equal(pts[1][0],pts[2][0]);assert.equal(pts[3][0],pts[4][0]);assert.ok(d.paths.length>=4);}
+ const ch=c.CharacterDataService.compile('cherity');assert.equal(ch.worldEffectModules[0].style,'cherity-bolt-rifle');assert.notEqual(ch.worldEffectModules[0].style,c.CharacterDataService.compile('intu').worldEffectModules.find(m=>m.style==='sniper').style);
+ for(const cfg of c.CharacterDataService.compile('gae').worldEffectModules)assert.equal(cfg.scale,2.125);
+ const pierce=c.WEAPON_IMAGE_DEFS['laser-pierce-module'];assert.equal(pierce.rings,undefined);assert.equal(pierce.featureRole,'penetration-compression-chamber');assert.equal(c.WEAPON_IMAGE_DEFS['laser-instant-module'].featureRole,'pulse-discharge-cell');
+});
+
+test('가에 반격만 원형 벽 clipping·빈공간 대조·무기 잔향 유지',()=>{
+ const ch=c.CharacterDataService.compile('gae'),e=entity({character:ch}),a=ch.attacks.counter,m=a.modules[1],old=c.EffectSpawnService,saved=c.DebugMapService;let walls=[{x:440,y:0,w:20,h:2000}],f;
+ c.DebugMapService={walls:()=>walls};c.EffectSpawnService={...old,spawn:x=>(f=x),shouldPresentAttack:()=>true};
+ c.AttackModuleService.spawnAttackEffect(e,a,0,c.AttackExecutionService.create(e,a,0),m);assert.ok(f.points.length>=24);assert.ok(f.points.every(p=>p.x<=440.001));assert.equal(m.replaceAutoAreaEffect,true);assert.equal(a.modules[0].range,180);assert.equal(a.modules[2].renderType,'weaponImageEcho');assert.equal(a.modules[2].clipToAttackArea,undefined);
+ walls=[];c.AttackModuleService.spawnAttackEffect(e,a,0,null,m);assert.ok(f.points.some(p=>p.x>440));
+ assert.equal(c.CharacterDataService.compile('xianelli').attacks.shunpoHit.modules[1].clipToAttackArea,undefined);
+ assert.equal(c.AttackModuleService.areaEffectRenderTypes,undefined);
+ c.EffectSpawnService=old;c.DebugMapService=saved;
+});
+test('베르 기절범위54 실제렌더:450ms 선명한 채움/밝은윤곽·실제기절/폭발범위 유지',()=>{
+ const ch=c.CharacterDataService.compile('veleu'),e=entity({character:ch}),a=ch.attacks.rmbBoostedImpact,m=a.modules.find(m=>m.geometryFrom),old=c.EffectSpawnService;let f;
+ c.EffectSpawnService={...old,spawn:x=>(f=x),shouldPresentAttack:()=>true};c.AttackModuleService.spawnAttackEffect(e,a,0,null,m);assert.equal(f.r,54);assert.equal(f.dur,450);assert.equal(f.fillAlpha,.16);assert.equal(f.lineWidth,3.5);assert.equal(f.points,undefined);
+ const ctx=canvasStub();ctx.setLineDash=()=>{};c.AreaCircleEffectPresentationService.draw(ctx,{...f,start:1000},1100);assert.ok(ctx.ops.some(p=>p[0]==='arc'&&p[3]===54));assert.ok(ctx.styles.some(s=>s.includes('255,243,160')));assert.equal(ctx.lineWidth,3.5);assert.equal(a.modules[0].range,150);assert.equal(a.modules[1].maxImpactRange,54);assert.equal(a.modules[1].duration,1250);
+ c.EffectSpawnService=old;
+});
+test('나레 평타/반격15·스킬400/112 유지·대물저격총/접이식 자 실제 공용 렌더',()=>{
+ const n=c.CharacterDataService.compile('nare');assert.equal(n.attacks.lmb.modules[0].radius,15);assert.equal(n.attacks.counter.modules[0].radius,15);assert.equal(n.attacks.rmb.cost,400);assert.equal(n.attacks.rmb.modules[0].radius,112);
+ for(const id of ['cherity','ruli']){const ch=c.CharacterDataService.compile(id),e=entity({character:ch}),ctx=canvasStub();assert.equal(c.ModeGearPresentationService.drawBehind(ctx,e,1,clock),true);assert.ok(ctx.ops.length>20);}
+ const ruler=c.WEAPON_IMAGE_DEFS['tape-measure'];assert.equal(ruler.paths.filter(p=>p.fill).length,3);assert.equal(ruler.rings.length,2);
+ const ch=c.CharacterDataService.compile('cherity'),cfg=ch.worldEffectModules[0];assert.equal(cfg.rotationRadians,-Math.PI*2);assert.equal(cfg.rotationMs,300);
+});
+
+test('루네프 빙결 증가전 범위189복구·피해50·판정/이펙트 공통참조 유지',()=>{const ch=c.CharacterDataService.compile('runef'),a=ch.attacks.ice;assert.ok(Math.abs(a.range-189)<1e-9);assert.equal(ch.baseDamage*a.damageRatio,50);assert.equal(a.modules[0].range,a.range);assert.equal(a.modules[2].range,a.range);assert.equal(a.modules[0].halfAngle,.9);assert.equal(a.modules[0].wallPolicy,'block');assert.equal(a.modules[1].duration,1000);});
+
+test('지오핀 파츠8조합 공용 표시: 근거리 장착 시 기본총구 제거·정밀/벽뒤 독립',()=>{
+ const character=c.CharacterDataService.compile('geopin');
+ for(let mask=0;mask<8;mask++){
+  const e=entity({character});for(const [i,key] of ['punch','sniper','wall'].entries())if(mask&(1<<i))c.ModeStateService.set(e,'geopin-module-'+key,'active');
+  const styles=c.ModeGearPresentationService.sampleWeapons(e,1,clock).images.map(x=>x.config.style);
+  assert.equal(styles.includes('rubber-muzzle'),!(mask&1));assert.equal(styles.includes('rubber-module-punch'),!!(mask&1));assert.equal(styles.includes('rubber-module-sniper'),!!(mask&2));assert.equal(styles.includes('rubber-module-wall'),!!(mask&4));
+  assert.ok(styles.includes('rubber-launcher'));
+ }
+});
+
+test('지오핀 버터 경로 지정/소환수 설명·거리 비례 비용 실제 참조',()=>{
+ const character=c.CharacterDataService.compile('geopin');assert.equal(character.summons.butter.maxHealth,400);assert.equal(character.summons.butter.respawnDelay,0);const html=c.CharacterDescriptionService.html(character,{includeCosts:false});assert.ok(html.includes('도우미 로봇'));assert.ok(html.includes('버터의 이동경로를 지정'));assert.ok(html.includes('경로를 이동하며 이동경로의 아군을 운반'));assert.ok(c.CharacterDescriptionService.html(character,{includeCosts:true}).includes('스테미나 0.7/px'));assert.equal(html.includes('반사 장치'),false);assert.equal(html.includes('[SUMMON]'),true);assert.ok(html.includes('버터'));assert.ok(html.includes('400'));assert.equal(character.tooltipSkills.some(s=>s.key==='RMB/RMB'),false);
+});

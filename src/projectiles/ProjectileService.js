@@ -875,6 +875,7 @@ const ProjectileService={
     return true;
   },
   hitTarget(projectile,target,phase='outbound',contactMode='static'){
+    if(contactMode!=='swept-only'&&typeof PathCarrierService!=='undefined')target=PathCarrierService.projectileTarget(projectile,target);
     const returning=projectile.behavior?.returning;
     const hitIds=
       returning?.sharedHitIds===true
@@ -1304,6 +1305,10 @@ const ProjectileService={
     return ordered;
   },
   processTargets(projectile,index,now){
+    for(const [id] of projectile._relayContacts||[]){
+      const target=EntityService.items.get(id),radius=(Number(projectile.radius)||0)+(Number(target?.radius)||0)+.01;
+      if(!target?.alive||(Math.hypot(projectile.x-target.x,projectile.y-target.y)>radius&&Math.hypot(projectile.prevX-target.x,projectile.prevY-target.y)>radius))projectile._relayContacts.delete(id);
+    }
     const returning=projectile.behavior?.returning;
     const policy=projectile.behavior?.collisionPolicy||CollisionPolicyService.normalize({passWalls:projectile.behavior?.pierce?.walls===true,passEnemies:projectile.behavior?.pierce?.targets===true});
     if(
@@ -1313,7 +1318,10 @@ const ProjectileService={
         projectile.projectile?.collisionTargets===true
       )
     ){
-      for(const target of this.contactOrder(projectile)){
+      for(const contactTarget of this.contactOrder(projectile)){
+        const target=typeof PathCarrierService!=='undefined'&&ProjectileCollisionShapeService.hitsTarget(projectile,contactTarget)
+          ?PathCarrierService.projectileTarget(projectile,contactTarget):contactTarget;
+        if(target?.summonSpec?.projectileRelay&&ProjectileRedirectService.relaySummon(projectile,target,now))return false;
         const relation=
           RelationService.relation(
             projectile.source,
@@ -1333,7 +1341,7 @@ const ProjectileService={
             EntityTargetReferenceService.resolve(
               projectile.targetEntityId
             );
-          if(designated!==target)continue;
+          if(designated!==target&&designated!==contactTarget)continue;
         }
 
         if(configuredRelations){
@@ -1392,7 +1400,7 @@ const ProjectileService={
         const overlapsTarget=
           ProjectileCollisionShapeService.hitsTarget(
             projectile,
-            target
+            contactTarget
           );
         const overlapsJustDodgePath=
           relation==='enemy'&&
@@ -1594,7 +1602,7 @@ const ProjectileService={
         }
 
         const endX=projectile.x,endY=projectile.y,endTravel=projectile.travel;
-        const contact=overlapsTarget?ProjectileCollisionShapeService.contactRatio(projectile,target):1;
+        const contact=overlapsTarget?ProjectileCollisionShapeService.contactRatio(projectile,contactTarget):1;
         const segmentLength=Math.hypot(endX-projectile.prevX,endY-projectile.prevY);
         projectile.x=projectile.prevX+(endX-projectile.prevX)*contact;
         projectile.y=projectile.prevY+(endY-projectile.prevY)*contact;

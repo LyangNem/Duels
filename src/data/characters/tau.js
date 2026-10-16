@@ -165,7 +165,8 @@
         {
           "type": "delivery.projectile",
           "speed": 22,
-          "radius": 12
+          "radius": 12,
+          "predictiveConsumeOnContact": false
         },
         {
           "type": "projectile.return",

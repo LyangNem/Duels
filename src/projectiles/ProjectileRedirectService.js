@@ -1,5 +1,8 @@
 /* 벽 반사/적중 연쇄와 벽 반대편 AttackSpec 전달. 공통 투사체 권위 결과 복제. */
 const ProjectileRedirectService=Object.freeze({
+ declaredRelay(character,attackId){
+  return Object.values(character?.attacks||{}).some(attack=>[...(attack.modules||[]),...(attack.attackFeatureTransform?.options||[]).flatMap(option=>option.modules||[])].some(module=>module.type==='projectile.wall-relay'&&module.attackId===attackId));
+ },
  module(p,type){return ProjectileModuleService.module(p?.attack,type)},
  supports(config,event){return Array.isArray(config?.on)?config.on.includes(event):config?.on===event},
  extendRange(p,config,event){
@@ -26,13 +29,14 @@ const ProjectileRedirectService=Object.freeze({
   return best;
  },
  aim(p,target,angle){
+  delete p.relayPresentation;
   if(target){const point=NetworkCollisionPositionService.point(target);angle=Math.atan2(point.y-p.y,point.x-p.x)}
   const speed=Math.hypot(p.vx,p.vy)||Number(p.baseSpeed)||24;
   p.angle=angle;p.vx=Math.cos(angle)*speed;p.vy=Math.sin(angle)*speed;
   p.prevX=p.x;p.prevY=p.y;
   p.redirectRevision=(Number(p.redirectRevision)||0)+1;
  },
- broadcast(p){GameEvents.emit('projectile-redirected',{projectile:p});},
+ broadcast(p){if(p.suppressRedirectBroadcast===true)return;GameEvents.emit('projectile-redirected',{projectile:p});},
  apply(p,snapshot){
   if(!p||!(snapshot.revision>Number(p.networkRedirectRevision||0)))return false;
   for(const k of ['x','y','angle','vx','vy','travel','revision','redirectCount'])if(!Number.isFinite(Number(snapshot[k])))return false;
@@ -40,7 +44,30 @@ const ProjectileRedirectService=Object.freeze({
   for(const k of ['maxTravelDistance','rangeBounceBase','rangeBounceCount','wallRedirectCount','hitRedirectCount','fadeResetTravel'])if(Number.isFinite(Number(snapshot[k])))p[k]=Number(snapshot[k]);
   p.baseSpeed=Math.hypot(p.vx,p.vy);
   p.prevX=p.x;p.prevY=p.y;p.redirectRevision=Number(snapshot.revision);p.networkRedirectRevision=Number(snapshot.revision);p.redirectEnded=snapshot.ended===true;
+  if(snapshot.relayPresentation){const relay=EntityService.items.get(snapshot.relayPresentation.entityId);if(relay)ModeStateService.applyRemote(relay,snapshot.relayPresentation.modeStates,performance.now());}
   for(const id of snapshot.hitIds||[])p.hitIds.add(String(id));return true;
+ },
+ retargetOwned(source,config){
+  if(!source?.alive||!EntitySimulationAuthorityService.isLocal(source))return 0;
+  let changed=0;
+  for(const p of ProjectileService.items){
+   if(p.source!==source||config.family&&p.attack?.projectileFamily!==config.family||!(Math.hypot(p.vx,p.vy)>0)||p.redirectEnded===true)continue;
+   const target=this.nearest(p,config);if(!target)continue;
+   this.aim(p,target,p.angle);this.broadcast(p);changed++;
+  }
+  return changed;
+ },
+ relaySummon(p,target,now=performance.now()){
+  const config=target?.summonSpec?.projectileRelay;
+  if(!config||config.family!==p.attack?.projectileFamily||!EntitySimulationAuthorityService.isLocal(p.source))return false;
+  if(config.ownerOnly===true&&String(target.ownerId)!==String(p.source.id))return false;
+  const contacts=p._relayContacts||(p._relayContacts=new Map());if(contacts.has(target.id))return false;
+  const ratio=Math.max(0,Math.min(1,ProjectileCollisionShapeService.contactRatio(p,target))),oldX=p.x,oldY=p.y;
+  p.x=p.prevX+(oldX-p.prevX)*ratio;p.y=p.prevY+(oldY-p.prevY)*ratio;
+  const next=this.nearest(p,config);if(!next){p.x=oldX;p.y=oldY;return false;}
+  const advanced=Math.hypot(oldX-p.prevX,oldY-p.prevY);
+  p.travel=Math.max(0,(Number(p.travel)||0)-advanced*(1-ratio));
+  contacts.set(target.id,true);this.aim(p,next,p.angle);if(config.rotationStateKey){ModeStateService.toggle(target,{stateKey:config.rotationStateKey,values:['a','b']});p.relayPresentation={entityId:target.id,modeStates:ModeStateService.serialize(target,now)};}this.broadcast(p);return true;
  },
  hit(p,target){
   const config=this.module(p,'projectile.redirect');
@@ -49,7 +76,7 @@ const ProjectileRedirectService=Object.freeze({
   const limit=config.maxRedirects===0?Infinity:Number(config.maxRedirects||0);
   const next=(Number(p.hitRedirectCount)||0)<limit?this.nearest(p,config,target):null;
   if(!next){p.redirectEnded=true;p.redirectRevision=(Number(p.redirectRevision)||0)+1;this.broadcast(p);return false;}
-  p.hitRedirectCount=(Number(p.hitRedirectCount)||0)+1;p.redirectCount=(Number(p.redirectCount)||0)+1;this.aim(p,next,p.angle);this.broadcast(p);return true;
+  p.hitRedirectCount=(Number(p.hitRedirectCount)||0)+1;p.redirectCount=(Number(p.redirectCount)||0)+1;const multiplier=Number(config.hitSpeedMultiplier??1);p.vx*=multiplier;p.vy*=multiplier;this.aim(p,next,p.angle);this.broadcast(p);return true;
  },
   contact(p,boundary=false){
   const pad=Number(p.radius)||0,epsilon=.01;
@@ -120,9 +147,66 @@ const ProjectileRedirectService=Object.freeze({
    if(WorldGeometryService.raycastDistance(p.x,p.y,candidate,2,Number(p.radius)||0)>=2-1e-6)angle=candidate;
   }
   p.wallRedirectCount=(Number(p.wallRedirectCount)||0)+1;p.redirectCount=(Number(p.redirectCount)||0)+1;this.extendRange(p,config,'wall');this.aim(p,null,angle);
-  const speedMultiplier=Math.max(0,Number(config.wallSpeedMultiplier??1));
+  const speedMultiplier=config.wallSpeedOnce===true&&p.wallRedirectCount>1?1:Math.max(0,Number(config.wallSpeedMultiplier??1));
   if(Number.isFinite(speedMultiplier)){p.vx*=speedMultiplier;p.vy*=speedMultiplier;p.baseSpeed=Math.hypot(p.vx,p.vy);}
   if(EntitySimulationAuthorityService.isLocal(p.source))this.broadcast(p);return true;
+ },
+ pressureContact(source,attack,angle,origin,length,halfWidth){
+  const dx=Math.cos(angle),dy=Math.sin(angle);
+  let best=null;
+  for(const target of EntityService.items.values()){
+   const config=target?.summonSpec?.projectileRelay;
+   if(!target.alive||!config||config.family!==attack.projectileFamily||(config.ownerOnly&&String(target.ownerId)!==String(source.id)))continue;
+   const px=target.x-origin.x,py=target.y-origin.y,along=px*dx+py*dy,across=Math.abs(-px*dy+py*dx),radius=Math.max(0,Number(target.radius)||0);
+   const side=Math.max(0,across-halfWidth);if(side>radius)continue;
+   const at=Math.max(0,along-Math.sqrt(Math.max(0,radius*radius-side*side)));
+   if(along+radius<0||at>length||best&&at>=best.length)continue;
+   if(WorldGeometryService.segmentBlocked(origin.x,origin.y,origin.x+dx*at,origin.y+dy*at,0))continue;
+   const point={x:origin.x+dx*at,y:origin.y+dy*at};
+   if(!this.nearest({source,attack,...point,radius:Number(this.module({attack},'delivery.projectile')?.radius)||0,hitIds:new Set()},config))continue;
+   best={length:at,target};
+  }
+  const relay=this.module({attack},'projectile.wall-relay'),redirect=this.module({attack},'projectile.redirect');
+  if(relay||this.supports(redirect,'wall')){
+   const at=WorldGeometryService.raycastDistance(origin.x,origin.y,angle,length,0);
+   if(at<=length&&(!best||at<best.length)){
+    const carrier={source,attack,angle,radius:0,prevX:origin.x,prevY:origin.y,x:origin.x+dx*at,y:origin.y+dy*at};
+    const contact=this.contact(carrier,false);if(contact?.wall)best={length:at,carrier,contact,relay,wallBounce:this.supports(redirect,'wall')};
+   }
+  }
+  if(this.supports(redirect,'wall')){
+   // The map edge is not a wall block. Test the outgoing bullet's center boundary.
+   const radius=Math.max(0,Number(this.module({attack},'delivery.projectile')?.radius)||0);
+   const at=WorldGeometryService.boundaryRayDistance(origin.x,origin.y,angle,length,radius);
+   const carrier={source,attack,angle,radius,prevX:origin.x,prevY:origin.y,x:origin.x+dx*at,y:origin.y+dy*at};
+   const contact=this.contact(carrier,true);
+   if((contact.nx||contact.ny)&&at<=length&&(!best||at<best.length))best={length:at,carrier,contact,boundary:true,wallBounce:true};
+  }
+  return best;
+ },
+ resolvePressureContact(source,attack,angle,origin,range,plan,key){
+  if(!plan)return false;
+  if(plan.contact?.wall||plan.boundary){
+   if(!EntitySimulationAuthorityService.isLocal(source))return true;
+   if(!plan.wallBounce){plan.carrier.networkKey=key;return this.relay(plan.carrier,plan.relay,plan.contact);}
+   const delivery=this.module({attack},'delivery.projectile');if(!delivery)return false;
+   const speed=Math.max(0,Number(delivery.speed)||0);
+   const carrier={...plan.carrier,radius:Math.max(0,Number(delivery.radius)||0),vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,baseSpeed:speed,travel:0,hitIds:new Set(),networkKey:key,suppressRedirectBroadcast:true};
+   // Reuse actual wall normals, seam clearance, visibility-safe homing, relay and bounce slowdown.
+   if(!this.wall(carrier,plan.boundary===true))return false;
+   const outgoing={...attack,range:Math.max(0,Number(attack.range)||0)+range-plan.length-(Number(carrier.travel)||0),modules:attack.modules.map(m=>m.type==='delivery.projectile'?{...m,speed:Math.hypot(carrier.vx,carrier.vy),origin:{type:'point',x:carrier.x,y:carrier.y}}:m.type==='projectile.redirect'&&m.wallSpeedOnce===true?{...m,wallSpeedMultiplier:1}:m)};
+   TriggeredAttackService.execute(source,outgoing,carrier.angle);return true;
+  }
+  const target=plan.target,config=target?.summonSpec?.projectileRelay;if(!target?.alive||!config)return false;
+  const point={x:origin.x+Math.cos(angle)*plan.length,y:origin.y+Math.sin(angle)*plan.length};
+  const carrier={source,attack,...point,radius:Number(this.module({attack},'delivery.projectile')?.radius)||0,hitIds:new Set()};
+  const enemy=this.nearest(carrier,config);if(!enemy)return false;
+  if(!EntitySimulationAuthorityService.isLocal(source))return true;
+  const enemyPoint=NetworkCollisionPositionService.point(enemy),direction=Math.atan2(enemyPoint.y-point.y,enemyPoint.x-point.x);
+  if(config.rotationStateKey)ModeStateService.toggle(target,{stateKey:config.rotationStateKey,values:['a','b']});
+  // A real shared projectile delivery inherits speed and remaining range; the pressure never continues beyond the relay.
+  const outgoing={...attack,range:Math.max(0,Number(attack.range)||0)+range-plan.length,modules:attack.modules.map(m=>m.type==='delivery.projectile'?{...m,origin:{type:'point',...point}}:m)};
+  TriggeredAttackService.execute(source,outgoing,direction);return true;
  },
  fireRelay(source,attack,point,angle,key,sequence=0){
   if(!source||!attack||!key||!Number.isFinite(point?.x)||!Number.isFinite(point?.y)||!Number.isFinite(angle))return false;

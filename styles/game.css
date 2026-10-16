@@ -80,6 +80,8 @@ h1{
   transition:all .15s;text-transform:uppercase;
 }
 .btn:hover{background:#1a2a3a;border-color:#4af;color:#fff}
+.btn.ready-cancel{background:#0a1119;color:#71859a;border-color:#283747;box-shadow:none}
+.btn.ready-cancel:hover{background:#101b26;color:#9aabbb;border-color:#354b60;box-shadow:none}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .btn.big{font-size:16px;padding:14px 40px}
 
@@ -5658,3 +5660,15 @@ html[data-character-card-illustrations="false"] #scr-start-aug .start-aug-char-c
 }
 .room-format-box .room-setting-row[hidden] { display:none!important; }
 #room-game-mode:disabled { opacity:.5; cursor:default; }
+
+/* The existing main settings panel is portaled above the active game. */
+.duels-display-settings-panel.duels-settings-ingame{
+  position:fixed;
+  z-index:24000;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  margin:0;
+  max-height:calc(100dvh - 32px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}

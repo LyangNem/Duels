@@ -50,6 +50,9 @@ const ConditionalTargetLinkPresentationService=Object.freeze({
 
         if(StealthPresentationService.state(viewer,target).hideWorldUi)continue;
 
+        if(config.conditions&&!config.conditions.every(condition=>TriggerConditionService.matches(condition,{source:viewer,target,now:performance.now()})))continue;
+        if(Number.isFinite(config.range)&&Math.hypot(target.x-viewer.x,target.y-viewer.y)>config.range)continue;
+        if(config.requireLineOfSight&&WorldGeometryService.segmentBlocked(viewer.x,viewer.y,target.x,target.y,0))continue;
         const maximum=
           Math.max(
             1,
@@ -72,7 +75,7 @@ const ConditionalTargetLinkPresentationService=Object.freeze({
               Number(config.healthRatioBelow)||0
             )
           );
-        if(!(healthRatio<threshold))continue;
+        if(config.healthRatioBelow!==undefined&&!(healthRatio<threshold))continue;
 
         const dx=
           (Number(target.x)||0)-

@@ -252,6 +252,7 @@ GameEvents.on('entity-defeated',event=>{
 
 
     GameEvents.on('projectile-fired',event=>{
+      ArcGaugePresentationService.captureChargeShot(event);
       if(!Training.active)return;
       if(event?.source!==Training.player)return;
       if(
@@ -595,6 +596,7 @@ GameEvents.on('entity-defeated',event=>{
             ...(counterModule?.presentation||{}),
             color:
               counterChargeColor||
+              AttackPresentationColorService.variant(context.source,context.attack)||
               counterModule?.presentation?.color||
               null
           }
@@ -611,7 +613,7 @@ GameEvents.on('entity-defeated',event=>{
         if(counterModule?.presentation?.fireEffect!==false){
           Presentation.counterFire(
             context.source,
-            counterModule?.presentation?.fireColor||null
+            counterModule?.presentation?.fireColor||AttackPresentationColorService.variant(context.source,context.attack)||null
           );
         }
 

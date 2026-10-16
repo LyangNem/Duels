@@ -435,10 +435,11 @@
             "property": "maxImpactRange"
           },
           "color": "#ffdc00",
-          "fillAlpha": 0.035,
-          "strokeAlpha": 0.95,
-          "lineWidth": 2.5,
-          "duration": 180
+          "fillAlpha": 0.16,
+          "strokeAlpha": 1,
+          "strokeColor": "#fff3a0",
+          "lineWidth": 3.5,
+          "duration": 450
         }
       ],
       "tags": [

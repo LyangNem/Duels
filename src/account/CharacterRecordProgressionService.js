@@ -631,7 +631,9 @@ const CharacterRecordProgressionService={
       Math.round(
         mode===MatchModeService.FFA
           ?(
-              ffaScore?.kind==='loss'
+              ffaScore?.kind==='neutral'
+                ?0
+                :ffaScore?.kind==='loss'
                 ?values.loss*
                   (
                     ffaScore?.multiplier||
@@ -783,17 +785,20 @@ const CharacterRecordProgressionService={
       previousResult?.optimistic||
       null;
 
-    this.setAuthoritativeProgress(
-      progress
-    );
+    // Concurrent round responses may carry an older cumulative snapshot.
+    // Compare server-confirmed play counts, never scores (legitimate losses can lower scores).
+    const acceptedProgress={characterRecords:{...(progress.characterRecords||{})},characterStats:{...(progress.characterStats||{})}};
+    const confirmed=this.authoritativeProgress;
+    for(const [id,stats] of Object.entries(confirmed?.characterStats||{})){
+      if(Number(stats?.plays)>Number(acceptedProgress.characterStats[id]?.plays||0)){
+        acceptedProgress.characterStats[id]={...stats};
+        if(Object.prototype.hasOwnProperty.call(confirmed.characterRecords||{},id))acceptedProgress.characterRecords[id]=confirmed.characterRecords[id];
+      }
+    }
+    this.setAuthoritativeProgress(acceptedProgress);
 
-    account.characterRecords={
-      ...(progress.characterRecords||{})
-    };
-
-    account.characterStats={
-      ...(progress.characterStats||{})
-    };
+    account.characterRecords={...acceptedProgress.characterRecords};
+    account.characterStats={...acceptedProgress.characterStats};
 
     account.recordSettlementPending=false;
 
@@ -805,11 +810,9 @@ const CharacterRecordProgressionService={
         result?.characterId||''
       );
 
-    const after=
-      CharacterRecordService.points(
-        characterId,
-        account
-      );
+    const after=Number.isFinite(Number(result?.after))
+      ?Math.max(0,Number(result.after))
+      :CharacterRecordService.points(characterId,account);
     const serverResult={
       token:Math.max(1,Number(payload?.roundToken)||1),
       characterId,
@@ -885,40 +888,17 @@ const CharacterRecordProgressionService={
     CharacterRecordService.loadAllRankings(true).catch(error=>{
       console.warn('[Duels] ranking refresh failed after settlement',error);
     });
-    const sameAsOptimistic=
-      previousOptimistic&&
-      Number(
-        previousOptimistic.before
-      )===
-        Number(
-          serverResult.before
-        )&&
-      Number(
-        previousOptimistic.after
-      )===
-        Number(
-          serverResult.after
-        )&&
-      Number(
-        previousOptimistic.delta
-      )===
-        Number(
-          serverResult.delta
-        );
-
-    if(
-      previousOptimistic&&
-      !sameAsOptimistic
-    ){
-      this.showRecordCorrection(
-        previousOptimistic.after,
-        serverResult.after,
-        '레코드 서버 정정'
-      );
+    // A shifted account baseline is normal synchronization, not an invalid match.
+    // Compare this round's awarded amount; cumulative snapshots may contain later rounds.
+    if(previousOptimistic&&Number(previousOptimistic.delta)!==serverResult.delta){
+      console.warn('[Duels] record award estimate differs from server',{
+        resultKey,characterId,mode:serverResult.mode,placement:serverResult.placement,
+        estimatedDelta:Number(previousOptimistic.delta)||0,confirmedDelta:serverResult.delta,
+        estimatedBefore:previousOptimistic.before,confirmedBefore:serverResult.before
+      });
+      this.showRecordDelta(serverResult);
     }else if(!previousOptimistic){
-      this.showRecordDelta(
-        serverResult
-      );
+      this.showRecordDelta(serverResult);
     }
 
     return serverResult;

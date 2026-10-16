@@ -40,12 +40,14 @@ const HealthRegenService=Object.freeze({
             entity
           );
         }
+        entity.lastNaturalHealthRegenTickAt=now;
         entity.nextHealthRegenAt=now+policy.tick;
       }
     }
 
     // 틱형 재생 버프는 자연 회복과 별도로 정확한 tickInterval마다 회복한다.
     for(const item of BuffService.live(entity,'regeneration',now)){
+      if(item.data?.localOnly===true&&!EntitySimulationAuthorityService.isLocal(entity))continue;
       const interval=Math.max(
         1,
         Number(item.data?.tickInterval)||250

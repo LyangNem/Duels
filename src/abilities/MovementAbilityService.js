@@ -558,6 +558,7 @@ const MovementAbilityService=Object.freeze({
       lastInputAngle:fixedAngle,
       hasInputDirection:false,
       collision:this.normalizeCollision(module),
+      reflectWalls:module.reflectWalls===true,
       enemyCollisionOvershoot:
         module.collision?.passEnemies===false
           ?(
@@ -585,6 +586,7 @@ const MovementAbilityService=Object.freeze({
         module.deferAttacksUntilEnd===true,
       blocksAction:
         module.blocksAction===true,
+      onEndBeforeMaxDistance:module.onEndBeforeMaxDistance===true,
       onEndAttackIds:
         Array.isArray(module.onEndAttackIds)
           ?module.onEndAttackIds.map(String)
@@ -706,7 +708,10 @@ const MovementAbilityService=Object.freeze({
   },
 
   finish(entity,state,now=performance.now()){
-    if(!entity||!state)return false;
+    if(!entity||!state||state.finished===true)return false;
+    // Contact damage can finish this state from inside the movement update.
+    // Claim completion before callbacks so the outer collision path cannot finish it twice.
+    state.finished=true;
 
     if(state.resolvedMovementPresentation){
       const presentationAuthority=
@@ -756,7 +761,7 @@ const MovementAbilityService=Object.freeze({
       entity.alive&&
       EntitySimulationAuthorityService.isLocal(entity)
     ){
-      for(const attackId of state.onEndAttackIds||[]){
+      for(const attackId of (state.onEndBeforeMaxDistance===true&&state.traveled>=state.distance-1e-6?[]:state.onEndAttackIds)||[]){
         const baseAttack=
           AbilityService.attackById(
             entity.character,
@@ -1100,6 +1105,7 @@ const MovementAbilityService=Object.freeze({
         continue;
       }
 
+      if(effect.damage?.resetHitsOnWallReflection===true)effect.angle=Number(state.angle)||0;
       const bodyContact=
         String(effect?.damage?.hitMode||'')==='body-contact';
       if(pointContact&&!bodyContact){
@@ -1165,7 +1171,60 @@ const MovementAbilityService=Object.freeze({
     return fired;
   },
 
+  // Pure collision trace shared by reflected movement previews and remote contact replay.
+  reflectedPath(entity,module,angle,distance,reuse=[]){
+    const probe=reuse._probe||(reuse._probe=Object.create(entity));
+    if(Object.getPrototypeOf(probe)!==entity)Object.setPrototypeOf(probe,entity);
+    probe.x=Number(entity.x)||0;probe.y=Number(entity.y)||0;
+    const collision=this.normalizeCollision(module);
+    let remaining=Math.max(0,Number(distance)||0),write=0,reflections=0;
+    while(remaining>1e-6){
+      const allowed=CollisionPolicyService.entityTravelDistance(probe,angle,remaining,collision);
+      const part=reuse[write]||(reuse[write]={});
+      Object.assign(part,{fromX:probe.x,fromY:probe.y,angle,distance:allowed,reflection:false});
+      probe.x+=Math.cos(angle)*allowed;probe.y+=Math.sin(angle)*allowed;
+      remaining-=allowed;write++;
+      if(remaining<=1e-6)break;
+      if(reflections++>=8)break;
+      angle=this.reflectedAngle(probe,angle,collision);
+      const escape=CollisionPolicyService.entityTravelDistance(probe,angle,Math.min(.25,remaining),collision);
+      const next=reuse[write]||(reuse[write]={});
+      Object.assign(next,{fromX:probe.x,fromY:probe.y,angle,distance:escape,reflection:true});
+      write++;probe.x+=Math.cos(angle)*escape;probe.y+=Math.sin(angle)*escape;remaining-=escape;
+      if(allowed<=1e-6&&escape<=1e-6)break;
+    }
+    reuse.length=write;
+    return reuse;
+  },
+  resetReflectionDamage(entity,effect,angle){
+    if(effect?.damage?.resetHitsOnWallReflection!==true||!effect.animationState?.attack)return false;
+    const animation=effect.animationState;
+    animation.execution=AttackExecutionService.create(entity,animation.attack,angle,animation.execution?.extraModules||null);
+    effect.angle=angle;
+    return true;
+  },
+  reflectedAngle(entity,angle,collision){
+    const dx=Math.cos(angle),dy=Math.sin(angle),probe=2;
+    let blockedX=false,blockedY=false;
+    const radius=Math.max(0,Number(entity.radius)||0),eps=1e-4;
+    if(typeof WorldBoundsService!=='undefined'){
+      blockedX=(dx<0&&entity.x<=radius+eps)||(dx>0&&entity.x>=WorldBoundsService.width()-radius-eps);
+      blockedY=(dy<0&&entity.y<=radius+eps)||(dy>0&&entity.y>=WorldBoundsService.height()-radius-eps);
+    }
+    if(collision?.passWalls!==true&&typeof DebugMapService!=='undefined')for(const wall of DebugMapService.movementWalls()){
+      const l=wall.x-radius,r=wall.x+wall.w+radius,t=wall.y-radius,b=wall.y+wall.h+radius;
+      if(entity.x<l-eps||entity.x>r+eps||entity.y<t-eps||entity.y>b+eps)continue;
+      if((dx>0&&Math.abs(entity.x-l)<=eps)||(dx<0&&Math.abs(entity.x-r)<=eps))blockedX=true;
+      if((dy>0&&Math.abs(entity.y-t)<=eps)||(dy<0&&Math.abs(entity.y-b)<=eps))blockedY=true;
+    }
+    if(!blockedX&&!blockedY){
+      blockedX=Math.abs(dx)>1e-8&&CollisionPolicyService.entityTravelDistance(entity,dx>0?0:Math.PI,probe,collision)<probe-1e-6;
+      blockedY=Math.abs(dy)>1e-8&&CollisionPolicyService.entityTravelDistance(entity,dy>0?Math.PI/2:-Math.PI/2,probe,collision)<probe-1e-6;
+    }
+    return Math.atan2(blockedY?-dy:dy,blockedX?-dx:dx)+(blockedX||blockedY?0:Math.PI);
+  },
   update(entity,now,dt,movement=null){
+    if(typeof PathCarrierService!=='undefined'&&PathCarrierService.carried(entity))return true;
     if(!entity?.actionState)return false;
 
     let state=null;
@@ -1309,6 +1368,7 @@ const MovementAbilityService=Object.freeze({
     // 진행도 공격이 있으면 프레임 이동을 해당 지점에서 나눈다.
     // 긴 프레임에서도 최고점/중간 발사의 원점과 궤적 높이를 정확히 유지한다.
     let remainingRequested=requested;
+    let reflectionCount=0;
     while(remainingRequested>1e-6){
       let step=remainingRequested;
       for(const item of state.progressAttacks||EMPTY_RUNTIME_ITEMS){
@@ -1326,6 +1386,20 @@ const MovementAbilityService=Object.freeze({
       this.applyPathDamage(entity,state,fromX,fromY,Number(entity.x)||0,Number(entity.y)||0);
       this.applyProgressAttacks(entity,state,now);
       if(travel.enemyCollision===true||allowed+1e-6<step){
+        if(state.reflectWalls&&travel.enemyCollision!==true&&reflectionCount++<8){
+          angle=this.reflectedAngle(entity,angle,state.collision);
+          state.angle=angle;entity.aimAngle=angle;
+          for(const effect of state.pathDamageEffects||EMPTY_RUNTIME_ITEMS)this.resetReflectionDamage(entity,effect,angle);
+          // 접촉면의 부동소수 오차를 피하고 남은 이동량을 반사 방향으로 소비한다.
+          const escape=CollisionPolicyService.entityTravelDistance(entity,angle,
+            Math.min(.25,Math.max(0,remainingRequested-allowed)),state.collision);
+          const contactX=entity.x,contactY=entity.y;
+          entity.x+=Math.cos(angle)*escape;entity.y+=Math.sin(angle)*escape;
+          state.traveled+=escape;
+          this.applyPathDamage(entity,state,contactX,contactY,entity.x,entity.y);
+          remainingRequested=Math.max(0,remainingRequested-allowed-escape);
+          continue;
+        }
         this.finish(entity,state,now);
         return true;
       }

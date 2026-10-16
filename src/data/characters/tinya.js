@@ -5,10 +5,14 @@
     title: "마법진 마법사",
     color: "#92cbd6",
     classification: {style: 5, range: 0, role: 5},
-    stats: {maxHealth: 1200, speed: 3.75, radius: 20, baseDamage: 50, difficulty: 6},
+    stats: {maxHealth: 1200, speed: 3.75, radius: 20, baseDamage: 20, difficulty: 5},
     desc: "얼음 속성 마법진을 그려 공격하는 캐릭터",
     circleFormation: {
       stateKey: "tinya-magic-circles",
+      placementSpace: "camera",
+      editingScale: characterValue("circleFormation.castingScale"),
+      castingScale: 0.75,
+      constrainCentersToView: true,
       color: "146,203,214",
       circle: {
         input: "rmb",
@@ -22,9 +26,9 @@
         holdMoveDeadzone: 10,
         amplifierRadiusTolerance: 1.5
       },
-      activation: {input: "lmb", inputWindowMs: 200, revealMs: 375, holdMoveDeadzone: 10, postEffectCooldownMs: 100},
+      activation: {input: "lmb", inputWindowMs: 0, revealMs: 375, postEffectCooldownMs: 100, presentation: {angle: 0, sweepCount: 1, sweepDirection: "clockwise", startAngleOffset: -1.5707963267948966, span: 6.283185307179586, inner: 0, fillAlpha: 0.2, strokeAlpha: 0.88, lineWidth: 2.5, edgeLine: false}},
       relation: {containAreaRatioMax: 0.55, connectDepthRatioMax: 0.35},
-      amplifier: {duration: 1000, slowFactor: 0.55, maxStage: 3, containedStageWeight: 2},
+      amplifier: {status: "freeze", durationPerSource: 100, maxStage: characterProduct(characterValue("circleFormation.circle.maxCount"), 2), containedStageWeight: 2},
       burstDuration: 440,
       damage: {
         containMultiplier: 2,
@@ -34,11 +38,11 @@
         intersectionContainStep: characterValue("circleFormation.damage.containMultiplier")
       }
     },
+    worldEffectModules: [{type:"effect.spawn",renderType:"weaponImage",style:"formation-template",formationKey:"circleFormation",idleAlpha:0.45,scale:2.5}],
     tooltipSkills: [
-      {key: "LMB", name: "발동", attack: "lmb", text: "현재 구현된 마법진 전체 발동"},
-      {key: "LMB/RMB", name: "마법진 제거", attack: "remove", text: "선택한 마법진 중 가장 최근 마법진 제거"},
-      {key: "LMB/LMB", name: "마법 주문서", attack: "spellbook", text: "가장 최근에 발동한 마법진을 불러옴"},
-      {key: "LMB HOLD", name: "마법진 위치 조정", attack: "lmb", showCost: false, text: "선택한 마법진과 연결된 모든 마법진의 위치 조정"},
+      {key: "LMB", name: "발동", attack: "lmb", costText: "스테미나 {v:attacks.lmb.formationCost.perCircle} × 마법진 수", text: "마우스 위치에서 그린 마법진 전체 발동"},
+      {key: "RMB", name: "마법진 제거", attack: "remove", text: "선택한 마법진 중 가장 최근 마법진 제거"},
+      {key: "RMB HOLD", name: "마법진 위치 조정", attack: "lmb", showCost: false, text: "선택한 마법진과 연결된 모든 마법진의 위치 조정"},
       {
         key: "RMB DRAG",
         name: "마법진",
@@ -47,33 +51,33 @@
         text: "드래그로 마법진을 생성. 마법진의 생성 형태에 따라 추가 효과 적용 ({damage})"
       },
       {
-        key: "RMB INCLUDE", section: "CIRCLE",
+        key: "INCLUDE", section: "CIRCLE",
         name: "",
         showCost: false,
         text: "큰 마법진이 작은 마법진을 완전히 포함하면 작은 마법진의 효과가 {v:circleFormation.damage.containMultiplier}배로 증폭. 일정 크기 이상은 포함 불가"
       },
-      {key: "RMB LINK", section: "CIRCLE", name: "", showCost: false, text: "겹치지 않고 서로 이어진 마법진이 효과를 공유"},
+      {key: "LINK", section: "CIRCLE", name: "", showCost: false, text: "겹치지 않고 서로 이어진 마법진이 효과를 공유"},
       {
-        key: "RMB CROSS", section: "CIRCLE",
+        key: "CROSS", section: "CIRCLE",
         name: "",
         showCost: false,
         text: "마법진이 교차되면 마법진의 피해가 {v:circleFormation.damage.crossMultiplier}배 증가하며 교차지점은 추가로 {v:circleFormation.damage.intersectionMultiplier}배 증가"
       },
       {
-        key: "RMB AMP", section: "CIRCLE",
+        key: "AMP", section: "CIRCLE",
         name: "",
         showCost: false,
-        text: "최소 크기 마법진만 증폭 마법진이 될 수 있음. 직ㆍ간접 연결된 마법진에 증폭 단계에 따라 {v:circleFormation.amplifier.duration|seconds}초 감속ㆍ속박ㆍ빙결"
+        text: "마법진 최소 크기 및 타 마법진의 윤곽선에 배치해 사용. 직간접적으로 연결된 마법진에 증폭 마법진 하나당 {v:circleFormation.amplifier.durationPerSource|seconds}초 빙결. 포함된 증폭 마법진은 지속시간 {v:circleFormation.amplifier.containedStageWeight}배"
       },
-      {key: "RMB HOLD", name: "마법진 수정", attack: "rmb", showCost: false, text: "선택한 마법진의 위치 조정"},
-      {key: "L-Shift", name: "무영창 주문서", attack: "counter", text: "마지막으로 발동한 마법진을 조준 위치에서 재발동. 발동 기록이 없으면 최소 크기 마법진 발동"}
+      {key: "L-Shift", name: "무영창 주문서", attack: "counter", text: "마우스 위치에서 그린 마법진 전체 발동"}
     ],
     attacks: {
       lmb: {
         id: "attack.tinya.lmb",
         damageRatio: 1,
+        formationCost: {formationKey: "circleFormation", perCircle: 50},
         cost: 0,
-        cd: 100,
+        cd: 650,
         attackDelayGroup: "tinya-activation",
         attackDelay: 100,
         range: Infinity,
@@ -84,15 +88,7 @@
             formationKey: "circleFormation",
             source: "pending",
             storeLast: true,
-            consumePlaced: true
-          },
-          {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 84,
-            speed: 10,
-            oncePerExecution: true
+            consumePlaced: false
           }
         ],
         tags: ["평타", "선딜레이"]
@@ -100,7 +96,7 @@
       rmb: {
         id: "attack.tinya.rmb",
         damageRatio: 0,
-        cost: 250,
+        cost: 0,
         cd: 180,
         range: 240,
         effectsOnly: true,
@@ -121,22 +117,10 @@
         modules: [],
         tags: ["스킬"]
       },
-      spellbook: {
-        id: "attack.tinya.spellbook",
-        damageRatio: 0,
-        cost: 600,
-        cd: 0,
-        attackDelayGroup: "tinya-activation",
-        attackDelay: 100,
-        range: Infinity,
-        effectsOnly: true,
-        presentation: {suppressAttackFeedback: true},
-        modules: [],
-        tags: ["스킬"]
-      },
       counter: {
         id: "attack.tinya.counter",
         damageRatio: 1,
+        formationCost: {formationKey: "circleFormation", perCircle: 0},
         cost: 0,
         cd: 550,
         range: Infinity,
@@ -145,18 +129,9 @@
           {
             type: "formation.manifest",
             formationKey: "circleFormation",
-            source: "last",
-            defaultMinimumCircle: true,
+            source: "template",
             storeLast: false,
             consumePlaced: false
-          },
-          {
-            type: "movement.neutralize-knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 84,
-            speed: 10,
-            oncePerExecution: true
           }
         ],
         tags: ["반격"]
@@ -184,7 +159,7 @@
           type: "trigger",
           event: "input.press",
           conditions: [{type: "input.slot", slot: "rmb"}, {type: "entity.alive"}, {type: "combat.can-act"}],
-          modules: [{type: "formation.place-minimum", formationKey: "circleFormation"}]
+          modules: [{type: "formation.remove", formationKey: "circleFormation"}]
         }
       },
       counter: {
@@ -200,7 +175,8 @@
             {type: "ability.pending-ready"},
             {type: "combat.can-act"},
             {type: "source.property.falsy", property: "counterWindup"},
-            {type: "counter.ready"}
+            {type: "counter.ready"},
+            {type: "formation.nonempty", formationKey: "circleFormation"}
           ],
           modules: [
             {
@@ -208,14 +184,7 @@
               windup: 300,
               consumeState: "counter-ready",
               preview: {type: "preview.create", shape: "attack-shape"},
-              cc: {
-                type: "movement.neutralize-knockback",
-                target: "hit-target",
-                direction: "away-from-source",
-                distance: 84,
-                speed: 10,
-                oncePerExecution: true
-              }
+              cc: null
             }
           ]
         }

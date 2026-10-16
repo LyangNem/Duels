@@ -1,6 +1,6 @@
 # 캐릭터 데이터 계약
 
-현재 공식 캐릭터 61명의 데이터는 src/data/characters/<id>.js에 각각 보관한다. 파일 내용은 캐릭터 객체 표현식이며 독립 실행 스크립트나 ESM이 아니다. 조립기가 index.json의 출시 순서로 합쳐 freezeCharacterData를 한 번 적용한다. 기존 characterValue/characterCount/characterSum/characterProduct 참조도 같은 원본 실행 문맥에서 해석한다.
+현재 공식 캐릭터 62명의 데이터는 src/data/characters/<id>.js에 각각 보관한다. 파일 내용은 캐릭터 객체 표현식이며 독립 실행 스크립트나 ESM이 아니다. 조립기가 index.json의 출시 순서로 합쳐 freezeCharacterData를 한 번 적용한다. 기존 characterValue/characterCount/characterSum/characterProduct 참조도 같은 원본 실행 문맥에서 해석한다.
 
 | 필드 | 책임 |
 |---|---|
@@ -410,3 +410,28 @@ character175의 geopin/ReactiveEquipmentService/EquipmentGaugePresentationServic
 ## 진행도 비율/빈 채널 — 3.0.0-character.201
 
 캐릭터 classification.role 데이터만 변경·공용카드/정렬 표시 참조.
+
+
+## 명시적인 반격 CC 제거 (character.256)
+
+사용자가 CC 제거를 지정한 반격은 counter.execute에 cc:null을 명시할 수 있다. 공용 validate는 windup300과 명시 null을 허용하고 finish는 추가 CC 모듈을 전달하지 않는다. cc 누락/잘못된 CC/allowNoCc 우회는 여전히 거부한다. 티냐는 사용자 요청으로 평타·반격 마법진 넉백을 제거했으며 마법진 증폭의 감속/속박/빙결은 유지한다. 다른 반격은 기존 이동제한CC/무력화넉백 규칙을 유지한다.
+
+## 드래그 경로 운반 모듈 — character.294
+
+movement.path-carrier는 Ability release의 input.drag-path release 및 성공한 action.attack 다음에 실행한다. pathSource:drag-path, speed(초당 이동거리), radius, pickupRange(대상 반경과 합산), targetRelations, color, name, collision은 직렬화 가능한 설정이다. 공용 입력 경로/충돌/이펙트 복제를 사용하며 특정 캐릭터 ID를 판별하지 않는다. targetRelations에 self/ally를 지정하면 경로의 자신과 아군 플레이어를 태우고 적·소환수는 제외한다. 각 화면은 EntitySimulationAuthorityService가 허용하는 대상만 이동시킨다. pathCarrier FX가 경로를 갱신하고 종료·사망·삭제·리셋 시 운반 상태를 정리한다. marker와 carrierState는 런타임 전용이며 snapshot에 객체 참조를 넣지 않는다. 기존 summon.carry(소환수가 주인을 따라감)와는 이동 방향 및 대상 선택이 달라 공용 모듈을 추가했다.
+
+## 독립 드래그 시작점과 경로 소환수 — character.295
+
+input.drag-path의 명시적 pathOrigin:pointer는 world 모드에서도 source 좌표를 경로에 넣지 않고 포인터의 첫점부터 수집한다. 미지정/기존 source 동작은 유지한다. movement.path-carrier.pathOrigin:pointer도 전달된 첫점을 시작점으로 사용한다. summonStateKey가 있으면 캐릭터 summons의 동일 키를 공용 SummonDeployService로 생성하며 spec.pathCarrier:true의 generation/ended 상태를 기존 소환수 snapshot에 포함한다. actual Entity의 health/alive 상태로 경로와 운반을 중단하고, 새사용은 원래 최대체력의 새소환수로 시작한다. 별도 파괴후대기 여부는 spec.respawnDelay를 사용한다. 표시/체력/피격은 기존 소환수 경로이고 경로이펙트 몸체를 중복그리지 않는다. summonSpecs.stats는 HEALTH/ABILITY만 선언 가능하며 DEATH는 별도 요구가 없으면 생략한다. 공용 helper-robot 표현은 캐릭터명을 판별하지 않는다.
+
+## 탑승자 충돌 정책과 투사체 보호 — character.296
+
+movement.path-carrier.riderCollision은 운반된 플레이어의 충돌 정책이며 생략하면 carrier.collision을 사용한다. passWalls:true는 공용벽통과 버프와 이동거리 판정을 함께 적용한다. 하차할 때 이 버프를 지우고 공용 위치보정으로 벽 내부 끼임을 해소한다. 경로 소환수의 protectRidersFromProjectiles:true는 단일 비관통 투사체가 탑승자에게 실제접촉하면 같은generation의 살아있는 carrier Entity를 대신 피해대상으로 선택한다. 공격자와 보호소환수가 적 관계일 때만 적용하고 아군지원/범위/관통/반복공격은 제외한다. 기존 player duel-state의 pathCarrierRide는 ownerId/stateKey/sequence만 전달하며 객체 참조를 저장하지 않는다. 소환수 표시에는 기본 공용 몸체를 사용한다.
+
+## 거리 비례 경로 소모와 무제한 길이 — character.297
+
+input.drag-path.cost.perDistance는 실시간 경로거리당 자원 소모량이다. maxDistance를 생략하면 Infinity로 해석하여 별도길이 상한 없이 스테미나 예산으로 그린다. movement.path-carrier의 maxDistance도 생략하면 입력경로의 전체길이를 사용한다. 놓는 순간의 미샘플 경로는 동일 spendSegment로 남은스테미나만큼만 기록하고, 이미 지불된 경로를 보존한다. 고정 AttackSpec 비용은0으로 선언해 선지불한 경로 비용을 다시 차감하지 않는다. tooltipSkills.costRef {ability,trigger,module,format:per-distance,property:cost.perDistance}는 기존 공용 설명 비용 참조로 실제 소모량을 표시한다.
+
+## 아이디어 대상 필터·복수 존재 충전·벽전달 선언 검증 — character.299
+
+ideaModules.presencePerEnemy:true는 범위내 적 개체 수에 비례한 presencePerSecond 충전이다. excludedEntityKinds는 존재/상황 후보 및 타격/공격/투사체/효과 관찰에서 동일하게 제외할 종류 목록이다. 옵션 생략 시 기존충전 동작을 유지한다. 공용 projectile.wall-relay 수신은 현재 모드에서 준비한 결과가 아니라 attacks의 기본modules와 attackFeatureTransform.options[].modules에 선언한 전달목표를 확인한다. 모드 snapshot보다 먼저 온 적중 패킷도 같은 공격ID/owner/실행seq/중복검증을 통과하면 기존 피격자 권위 영역공격을 실행한다. 캐릭터ID 분기 없음.

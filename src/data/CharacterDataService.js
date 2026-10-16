@@ -45,7 +45,12 @@ const CharacterDataService=Object.freeze({
           return values.reduce((result,item)=>operation==='$sum'?result+item:result*item,operation==='$sum'?0:1);
         }
       }
-      if(Array.isArray(value))return Object.freeze(value.map((item,index)=>resolvePath(`${path}.${index}`)));
+      if(Array.isArray(value)){
+        for(let index=0;index<value.length;index++){
+          if(!(index in value))throw new Error(`캐릭터 설정 배열 항목 누락: ${id}.${path}.${index}`);
+        }
+        return Object.freeze(value.map((item,index)=>resolvePath(`${path}.${index}`)));
+      }
       return Object.freeze(Object.fromEntries(Object.keys(value).map(key=>[key,resolvePath(path?`${path}.${key}`:key)])));
     };
     return resolvePath('');

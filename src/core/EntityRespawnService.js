@@ -20,6 +20,7 @@ const EntityRespawnService=Object.freeze({
     entity.healthTrailHealth=entity.maxHealth;
     entity.lastDamageSourcePid=null;
     entity.lastNaturalRegenBlockTime=0;
+    entity.lastNaturalHealthRegenTickAt=null;
     entity.healthTrailDelayUntil=0;
     entity.stamina=entity.maxStamina||0;
     entity.x=Number.isFinite(x)?x:entity.x;

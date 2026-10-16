@@ -12,6 +12,8 @@ const ProjectileTargetFilterService=Object.freeze({
     if(!projectile||!target)return false;
     for(const module of projectile.attack?.modules||[]){
       const type=AttackModuleService.type(module);
+      if(type==='delivery.projectile'&&Array.isArray(module.excludedTargetIds)&&
+        module.excludedTargetIds.includes(String(target.id)))return false;
       const handler=this.handlers.get(type);
       if(typeof handler!=='function')continue;
       if(handler({projectile,target,module})===false)return false;

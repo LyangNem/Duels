@@ -13,6 +13,15 @@ const RuntimeValueReferenceService=Object.freeze({
     const provider=RuntimeValueReferenceProviders.get(String(ref.type||''));
     if(provider)return provider(entity,ref);
 
+    if(ref.type==='buff-duration-remaining'){
+      const now=performance.now();let end=now;
+      if(ref.fullWhen?.length&&ref.fullWhen.every(condition=>TriggerConditionService.matches(condition,{source:entity,target:entity,now})))return 1;
+      for(const buff of BuffService.live(entity,String(ref.stat||''),now)){
+        if(ref.sourceId&&buff.sourceId!==ref.sourceId)continue;
+        end=Math.max(end,Number(buff.end)||now);
+      }
+      return Math.max(0,Math.min(1,(end-now)/Math.max(1,Number(ref.duration)||1)));
+    }
     if(ref.type==='limited-use-buff-remaining'){
       const target=
         ref.target==='owner'
@@ -112,7 +121,7 @@ const RuntimeValueReferenceService=Object.freeze({
       return '';
     }
 
-    if(ref.type==='mode-match-count-ratio'||ref.type==='mode-match-count'){
+    if(ref.type==='mode-match-count-ratio'||ref.type==='mode-match-count'||ref.type==='mode-match-mask'){
       const target=
         ref.target==='owner'
           ?(EntityService.owner(entity)||entity)
@@ -120,16 +129,16 @@ const RuntimeValueReferenceService=Object.freeze({
       const modes=Array.isArray(ref.modes)?ref.modes:[];
       if(!modes.length)return 0;
       let matched=0;
-      for(const mode of modes){
+      for(const [index,mode] of modes.entries()){
         if(
           ModeStateService.current(
             target,
             String(mode?.stateKey||''),
             String(mode?.initial||'')
           )===String(mode?.value||'')
-        )matched+=1;
+        )matched+=ref.type==='mode-match-mask'?2**index:1;
       }
-      return ref.type==='mode-match-count'?matched:Math.max(0,Math.min(1,matched/modes.length));
+      return ref.type==='mode-match-mask'||ref.type==='mode-match-count'?matched:Math.max(0,Math.min(1,matched/modes.length));
     }
 
     if(ref.type==='mode'){

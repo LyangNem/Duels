@@ -15,8 +15,8 @@ c.GAME_DATA={characters:chars,ranges:c.CHARACTER_RULES.ranges,frameMs:1000/60,co
 load('src/data/AUGMENTS.js','AUGMENTS');
 c.AbilityService={attackById:(ch,id)=>Object.values(ch.attacks||{}).find(a=>a.id===id)};
 function walk(v,fn){assert.notEqual(typeof v,'function');if(!v||typeof v!=='object')return;fn(v);for(const x of Object.values(v))walk(x,fn)}
-test('62명 함수 없는 데이터·동결·Trigger·반격 및 공격 참조 검사',()=>{
- assert.equal(Object.keys(chars).length,62);
+test('65명 함수 없는 데이터·동결·Trigger·반격 및 공격 참조 검사',()=>{
+ assert.equal(Object.keys(chars).length,65);assert.equal(chars.yoo,undefined);assert.equal(fs.existsSync(path.join(root,'src/data/characters/yoo.js')),false);
  for(const ch of Object.values(chars)){
   assert.ok(Object.isFrozen(ch));const attacks=Object.values(ch.attacks||{});const ids=new Set(attacks.map(a=>a.id));assert.equal(ids.size,attacks.length,ch.name);
   walk(ch,m=>{if(m.type==='counter.execute'){assert.ok(c.CounterModuleService.validate(m),ch.name);assert.equal(m.allowNoCc,undefined);if(m.ccRefAttackId)assert.ok(c.CounterModuleService.referencedCc({character:ch},m),ch.name)}if(m.type==='attack.execute')assert.ok(ids.has(m.attackId),ch.name+':'+m.attackId)});
@@ -193,24 +193,24 @@ test('시아넬리 3종 원격 착탄:시계차±60초/보정20ms·실제 정지
  assert.ok(fs.readFileSync(path.join(root,'src/network/OnlineDuelService.js'),'utf8').includes('payload.stationaryProjectiles||[],\n        payload.sentAt,\n        performance.now(),\n        delayMs'));
 });
 load('src/abilities/CircleFormationService.js','CircleFormationService');
-test('티냐 반격 설명/미리보기/실제 마지막 발동 마법진 일치·미발동 최소 원·미리보기 비소비',()=>{
+test('티냐 반격 현재 템플릿/마우스 미리보기·빈 템플릿 금지·미리보기 비소비',()=>{
  const ch=chars.tinya,e={id:'tinya-preview',character:ch,local:true,alive:true,actionState:new Map()},service=c.CircleFormationService;
  let mouse={x:500,y:400};c.Training={active:true,sessionMode:'training',mouseWorld:()=>mouse,player:e};
  const state=service.state(e),attack=ch.attacks.counter,module=attack.modules.find(m=>m.type==='formation.manifest');
- e.counterWindup={attack};state.circles=[{id:'placed',x:10,y:20,r:200,order:1}];
- state.lastFormation=[{dx:-50,dy:0,r:70,order:1},{dx:50,dy:0,r:90,order:2}];
- const pending={circles:[{x:5,y:5,r:220}]};state.pendingManifest=pending;
+ e.counterWindup={attack};state.circles=[{id:'a',x:-50,y:0,r:70,order:1},{id:'b',x:50,y:0,r:90,order:2}];
+ const pending={circles:[{x:5,y:5,r:220}],source:'placed'};state.pendingManifest=pending;
  let drawn;const view={...service,drawSet(ctx,entity,circles){drawn=circles;return true}};
  const geometry=list=>Array.from(list,x=>[x.x,x.y,x.r,x.order]);
  for(const point of [{x:500,y:400},{x:700,y:100}]){
   mouse=point;assert.equal(view.drawCounterPreview({},e,1000),true);
   const actual=service.resolveModuleCircles(e,module,{targetPoint:point});
-  assert.deepEqual(geometry(drawn),geometry(actual));assert.equal(actual.length,2);assert.equal(actual[0].x,point.x-50);assert.equal(state.pendingManifest,pending);
+  assert.deepEqual(geometry(drawn),geometry(actual));assert.equal(actual.length,2);assert.equal(actual[0].x,point.x-45);assert.equal((Math.min(...actual.map(c=>c.x-c.r))+Math.max(...actual.map(c=>c.x+c.r)))/2,point.x);assert.equal(state.pendingManifest,pending);
  }
- state.lastFormation=[];view.drawCounterPreview({},e,1000);assert.equal(drawn.length,1);assert.equal(drawn[0].r,ch.circleFormation.circle.minRadius);
- assert.ok(ch.tooltipSkills.find(x=>x.key==='L-Shift').text.includes('마지막으로 발동한'));
+ state.circles=[];assert.equal(service.resolveModuleCircles(e,module,{}).length,0);
+ assert.ok(ch.tooltipSkills.find(x=>x.key==='L-Shift').text.includes('그린 마법진 전체 발동'));
  assert.equal(service.resolveModuleCircles(e,{source:'pending'},{}).length,1);assert.equal(state.pendingManifest,null);
 });
+
 c.EffectSpawnService={...c.EffectSpawnService,shouldPresentAttack:()=>false};
 load('src/combat/DodgeFollowupStateService.js','DodgeFollowupStateService');
 test('카논 이동 회피 공격 제거·제자리 회피 보정/기본 공격 유지',()=>{
@@ -247,5 +247,29 @@ test('카논 제자리 회피 보정:회피 중 키 해제·경계·소비 후 �
  for(const slot of ['rmb','rmbStopped'])assert.equal(ch.attacks[slot].modules.find(x=>x.status==='stun').duration,600);
  c.performance.now=()=>1000;
 });
-test('발명 무기의 유도/벽 관통/일반 투사체/점프는 공통 태그 자동 파생',()=>{c.GAME_DATA.ranges=c.CHARACTER_RULES.ranges;for(const key of ['lmb','chain'])assert.ok(c.TagService.attackTags(chars.geopin.attacks[key]).has('유도'));assert.ok(c.TagService.attackTags(chars.geopin.attacks.wall).has('벽 관통'));assert.ok(c.TagService.attackTags(chars.geopin.attacks.laser).has('일반 투사체'));assert.ok(!c.TagService.attackTags(chars.geopin.attacks.laser).has('레이저 투사체'));assert.ok(c.TagService.attackTags(chars.geopin.attacks.jump).has('이동기'));});
+test('지오핀 모듈 평타 및 벽 전달은 공용 태그 파생',()=>{c.GAME_DATA.ranges=c.CHARACTER_RULES.ranges;assert.ok(c.TagService.attackTags(chars.geopin.attacks.lmb).has('유도'));assert.ok(c.TagService.attackTags(chars.geopin.attacks.wallBurst).has('벽 관통'));assert.equal(chars.geopin.reactiveEquipment,undefined);assert.equal(chars.geopin.stats?.maxHealth||chars.geopin.maxHealth,900);});
 console.log(`PASS ${passed} structure/regression groups / ${Object.keys(chars).length} characters`);
+
+test('캐릭터 배열 빈 슬롯 경로 오류·65명 슬롯/3명 실제 증강 준비 정상',()=>{
+ assert.throws(()=>c.CharacterDataService.resolve('broken',{broken:{modules:[,{type:'mode.toggle'}]}}),/배열 항목 누락.*modules.0/);
+ const saved=c.CombatStatsService,oldRatio=c.AbilityService.damageRatio;c.CombatStatsService={current:()=>({projectileSpeedMult:1})};c.AbilityService.damageRatio=(ch,a)=>a.damageRatio||0;
+ for(const ch of Object.values(chars)){
+  const e=entity();e.character=ch;
+  for(const a of Object.values(ch.attacks||{})){
+   for(let i=0;i<a.modules.length;i++)assert.ok(i in a.modules&&a.modules[i],ch.id+':'+a.id+':'+i);
+   if(['cyien','miaruky','meramona'].includes(ch.id))assert.doesNotThrow(()=>c.AugmentService.prepareAttack(e,a),a.id);
+  }
+ }
+ c.CombatStatsService=saved;c.AbilityService.damageRatio=oldRatio;
+});
+
+test('티냐 실제 증강 준비에서 마법진1/3개 비용100/300·반격0·빈 템플릿 반격 소비 전 차단',()=>{
+ const savedStats=c.CombatStatsService,oldRatio=c.AbilityService.damageRatio,oldAttack=c.AttackService,oldStamina=c.StaminaService,oldAuthority=c.EntitySimulationAuthorityService;
+ c.CombatStatsService={current:()=>({projectileSpeedMult:1,canAct:true})};c.AbilityService.damageRatio=(ch,a)=>a.damageRatio||0;
+ const e=entity();e.id='tinya-cost';e.character=chars.tinya;e.cooldowns=new Map();e.local=true;const state=c.CircleFormationService.state(e);
+ for(const [n,cost]of [[1,50],[3,150]]){state.circles=Array.from({length:n},(_,i)=>({id:String(i),x:i*100,y:0,r:100,order:i+1}));assert.equal(c.AugmentService.prepareAttack(e,chars.tinya.attacks.lmb).cost,cost);assert.equal(c.AugmentService.prepareAttack(e,chars.tinya.attacks.counter).cost,0);}
+ load('src/combat/AttackService.js','AttackService');const service={...c.AttackService,delayReady:()=>true};c.AttackService=service;c.StaminaService={canSpend:(e,n)=>e.stamina>=n};c.EntitySimulationAuthorityService={isLocal:()=>true};
+ state.circles=[];assert.equal(service.canUse(e,chars.tinya.attacks.lmb),false);assert.equal(service.canUse(e,chars.tinya.attacks.counter),false);
+ const before=e.actionState.size;assert.equal(c.CounterModuleService.execute({source:e,attack:chars.tinya.attacks.counter,ability:chars.tinya.abilities.counter},chars.tinya.abilities.counter.trigger.modules[0]),false);assert.equal(e.actionState.size,before);
+ c.CombatStatsService=savedStats;c.AbilityService.damageRatio=oldRatio;c.AttackService=oldAttack;c.StaminaService=oldStamina;c.EntitySimulationAuthorityService=oldAuthority;
+});

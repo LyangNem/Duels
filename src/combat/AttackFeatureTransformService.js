@@ -102,8 +102,10 @@ const AttackFeatureTransformService=Object.freeze({
     if(spec._modeModulesPrepared===true)return spec;
     let modules=[...(spec.modules||[])];
     let rate=1;
+    const specOverrides={};
     for(const option of profile.options||[]){
       if(ModeStateService.current(entity,option.stateKey,option.initial)!==String(option.value))continue;
+      Object.assign(specOverrides,option.specOverrides||{});
       const removeTypes=new Set(option.removeTypes||[]);
       modules=modules.filter(module=>!removeTypes.has(AttackModuleService.type(module)));
       modules=modules.map(module=>{
@@ -113,7 +115,7 @@ const AttackFeatureTransformService=Object.freeze({
       for(const module of option.modules||[])modules.push(Object.freeze({...module}));
       rate*=1+Math.max(0,Number(option.attackRateIncrease)||0);
     }
-    return Object.freeze({...spec,_modeModulesPrepared:true,
+    return Object.freeze({...spec,...specOverrides,_modeModulesPrepared:true,
       cd:Number(spec.cd||0)/rate,attackDelay:Number(spec.attackDelay||0)/rate,
       modules:Object.freeze(modules)});
   },

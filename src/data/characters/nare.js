@@ -7,6 +7,7 @@
     classification: {style: 2, range: 0, role: 2},
     stats: {maxHealth: 1200, speed: 4.25, radius: 20, baseDamage: 150, difficulty: 3},
     desc: "종이 비행기를 타고 압도적인 기동성으로 적을 공격하는 캐릭터",
+    worldEffectModules: [{"type": "effect.spawn", "renderType": "weaponImage", "style": "paper-airplane", "scale": 1.7, "rotationStateKey": "nare-plane-image", "rotationMs": 400, "rotationRadians": -6.283185307179586}],
     tooltipSkills: [
       {
         key: "LMB",
@@ -35,7 +36,7 @@
           {
             type: "delivery.projectile",
             speed: 20,
-            radius: 12,
+            radius: 15,
             collisionTargets: true,
             rehitInterval: 260,
             rangeExtendOnHitRatio: 0.85,
@@ -49,14 +50,15 @@
               targetRelations: ["enemy"]
             }
           },
-          {type: "projectile.pierce", targets: true, walls: true}
-        ],
+          {type: "projectile.pierce", targets: true, walls: true},
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "nare-plane-image", "values": ["a", "b"], "step": 1}
+],
         tags: ["평타"]
       },
       rmb: {
         id: "attack.nare.rmb",
         damageRatio: 1.3333333333333333,
-        cost: 800,
+        cost: 400,
         cd: 1200,
         range: 2200,
         presentation: {color: "#b8dcff"},
@@ -92,8 +94,9 @@
               innerAlpha: 0.36,
               innerStrokeWidth: 2
             }
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "nare-plane-image", "values": ["a", "b"], "step": 1}
+],
         tags: ["스킬"]
       },
       rmbExit: {
@@ -132,7 +135,7 @@
           {
             type: "delivery.projectile",
             speed: 20,
-            radius: 11,
+            radius: 15,
             collisionTargets: true,
             rehitInterval: 260,
             rangeExtendOnHitRatio: 0.85,
@@ -163,8 +166,9 @@
             distance: 84,
             speed: 10,
             oncePerExecution: true
-          }
-        ],
+          },
+{"type": "mode.toggle", "when": "after-attack", "stateKey": "nare-plane-image", "values": ["a", "b"], "step": 1}
+],
         tags: ["반격"]
       }
     },
@@ -208,8 +212,7 @@
               ],
               fallbackConditions: [
                 {type: "state.absent", stateKey: "projectile-ride"},
-                {type: "cooldowns.ready", attackIds: ["attack.nare.rmb"]},
-                {type: "resource.gte", resource: "stamina", value: 1200}
+                {type: "cooldowns.ready", attackIds: ["attack.nare.rmb"]}
               ]
             },
             {

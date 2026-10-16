@@ -30,7 +30,22 @@ const ModeStateService=Object.freeze({
 
     return state;
   },
+  initialize(entity){
+    if(!entity?.actionState||entity.alive===false||
+      (typeof EntitySimulationAuthorityService!=='undefined'&&
+       !EntitySimulationAuthorityService.isLocal(entity)))return false;
+    let changed=false;
+    for(const config of entity.character?.initialModes||[]){
+      const stateKey=String(config.stateKey||'');
+      const values=[...new Set((config.values||[]).map(String))].filter(Boolean);
+      if(!stateKey||!values.length||this.state(entity,stateKey))continue;
+      const index=config.random===true?Math.floor(Math.random()*values.length):0;
+      this.set(entity,stateKey,values[index]);changed=true;
+    }
+    return changed;
+  },
   current(entity,stateKey,initial=''){
+    this.initialize(entity);
     return String(
       this.state(
         entity,
@@ -89,6 +104,7 @@ const ModeStateService=Object.freeze({
     };
   },
   serialize(entity,now=performance.now()){
+    this.initialize(entity);
     const result=[];
     for(const state of entity?.actionState?.values?.()||[]){
       if(state?.kind!==this.KIND)continue;

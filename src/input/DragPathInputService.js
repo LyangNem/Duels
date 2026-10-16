@@ -72,7 +72,7 @@ const DragPathInputService=Object.freeze({
         :'world';
 
     const path=
-      distanceMode==='world'
+      distanceMode==='world'&&module.pathOrigin!=='pointer'
         ?[
           {
             x:Number(source.x)||0,
@@ -634,13 +634,20 @@ const DragPathInputService=Object.freeze({
       }
       return true;
     }
-    const cost=this.desiredCost(state,rawDistance);
-    if(!this.spend(source,state,cost,now))return false;
-    state.totalDistance+=rawDistance;
-    state.lastWorld={x:world.x,y:world.y};
-    state.lastScreen={x:Number(Training?.mouse?.x)||0,y:Number(Training?.mouse?.y)||0};
+    // Use the live sampling budget for the last segment too. Insufficient stamina
+    // shortens this segment while preserving the already paid route for release.
+    const effective=Math.max(0,(Number(state.totalDistance)||0)-(Number(state.rewindOffset)||0));
+    const requested=Number.isFinite(state.maxDistance)?Math.min(rawDistance,Math.max(0,state.maxDistance-effective)):rawDistance;
+    const accepted=this.spendSegment(source,state,requested,now);
+    if(accepted<=.001)return true;
+    const ratio=accepted/rawDistance;
+    const point={x:state.lastWorld.x+(world.x-state.lastWorld.x)*ratio,y:state.lastWorld.y+(world.y-state.lastWorld.y)*ratio};
+    const screen={x:state.lastScreen.x+((Number(Training?.mouse?.x)||0)-state.lastScreen.x)*ratio,y:state.lastScreen.y+((Number(Training?.mouse?.y)||0)-state.lastScreen.y)*ratio};
+    state.totalDistance+=accepted;
+    state.lastWorld=point;
+    state.lastScreen=screen;
     state.lastSampleAt=now;
-    this.appendPoint(state,world,state.lastScreen,rawDistance);
+    this.appendPoint(state,point,screen,accepted);
     this.setProgress(source,state);
     return true;
   },

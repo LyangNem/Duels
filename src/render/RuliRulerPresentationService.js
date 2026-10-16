@@ -403,8 +403,10 @@ const RuliRulerPresentationService=Object.freeze({
         startDistance,
         distance+strikeWidth/2
       );
+    const travelProgress=f.animateOutline===true?Math.min(1,Math.max(0,progress)/Math.max(.001,Number(f.travelFraction)||.45)):1;
+    const animatedEnd=startDistance+(endDistance-startDistance)*travelProgress;
     const outlineLength=
-      Math.max(1,endDistance-startDistance);
+      Math.max(1,animatedEnd-startDistance);
     const outlineCenterDistance=
       startDistance+outlineLength/2;
 
@@ -428,7 +430,7 @@ const RuliRulerPresentationService=Object.freeze({
     // 강한 눈금도 캐릭터 테두리 안쪽은 그리지 않는다.
     const nx=-dirY,ny=dirX;
     const edgeOffset=strikeLength/2;
-    const rulerEnd=Math.max(startDistance,distance+strikeWidth/2);
+    const rulerEnd=animatedEnd;
     for(const mark of this.ticks(strikeWidth,rulerEnd)){
       if(mark.distance+1e-6<startDistance)continue;
       const tick=mark.major?this.config.majorLength:this.config.minorLength;
@@ -451,7 +453,8 @@ const RuliRulerPresentationService=Object.freeze({
       ctx.stroke();
     }
 
-    // 기존 확대 연출의 타격 네모 자체는 남기되, 처음부터 실제 크기로 고정한다.
+    if(f.animateOutline===true&&travelProgress<1)return;
+    // Fill only the actual end-of-range strike rectangle.
     ctx.save();
     ctx.translate(tx,ty);
     ctx.rotate(angle);

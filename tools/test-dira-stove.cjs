@@ -54,15 +54,16 @@ function mode(e){return c.ModeStateService.current(e,'reika-mode','normal');}
 function damageCharge(e,amount){c.CharacterTriggerEffectService.run(e,'damage-dealt',{source:e,target:entity({id:'enemy',teamId:'B'}),attack:ch.attacks.lmbBlessed,amount,healthDamage:amount,now:clock});}
 
 load('src/abilities/CookingService.js','CookingService');
-test('식재료 스토브 적중시에만 source 스테미나150회복·중복/타소환수/원격 제외',()=>{
+test('식재료 스토브 적중시에만 source 스테미나100회복·중복/타소환수/원격 제외',()=>{
  c.ResourceRestoreEffectService={apply({source,module}){if(module.resource==='stamina')source.stamina=Math.min(1000,source.stamina+module.amount);return true;}};
+ assert.equal(ch.attacks.fryingPan.cost,100);assert.equal(ch.attacks.meal.cost,100);
  const e=entity({id:'dira',stamina:100});c.CookingService.state(e,true).ingredients=4;
  const stove=entity({id:'stove',kind:'summon',ownerId:e.id,summonStateKey:'dira-stove'});
  const ex=c.AttackExecutionService.create(e,ch.attacks.ingredient,0);
  const hit=(target,execution=ex)=>c.AttackModuleService.onHit(e,target,ch.attacks.ingredient,{execution},0,{});
- hit(stove);assert.equal(e.stamina,250);hit(stove);assert.equal(e.stamina,250);
- hit(entity({id:'ally'}),c.AttackExecutionService.create(e,ch.attacks.ingredient,0));assert.equal(e.stamina,250);
- hit({...stove,ownerId:'other'},c.AttackExecutionService.create(e,ch.attacks.ingredient,0));assert.equal(e.stamina,250);
+ hit(stove);assert.equal(e.stamina,200);hit(stove);assert.equal(e.stamina,200);
+ hit(entity({id:'ally'}),c.AttackExecutionService.create(e,ch.attacks.ingredient,0));assert.equal(e.stamina,200);
+ hit({...stove,ownerId:'other'},c.AttackExecutionService.create(e,ch.attacks.ingredient,0));assert.equal(e.stamina,200);
  e.stamina=950;hit(stove,c.AttackExecutionService.create(e,ch.attacks.ingredient,0));assert.equal(e.stamina,1000);
  c.Training.sessionMode='online';e.local=false;e.stamina=100;hit(stove,c.AttackExecutionService.create(e,ch.attacks.ingredient,0));assert.equal(e.stamina,100);
 });

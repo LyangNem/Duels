@@ -59,8 +59,10 @@ const MovementService=Object.freeze({
     allowed=Math.max(0,allowed);
     if(ignoreWalls||allowed<=0)return allowed;
 
-    const endX=x+dx*allowed;
-    const endY=y+dy*allowed;
+    // All rectangle entry fractions use this same segment, even after a nearer wall wins.
+    const castDistance=allowed;
+    const endX=x+dx*castDistance;
+    const endY=y+dy*castDistance;
 
     for(const wall of DebugMapService.movementWalls()){
       const entry=WorldGeometryService.segmentRectEntry(
@@ -90,7 +92,7 @@ const MovementService=Object.freeze({
 
       allowed=Math.min(
         allowed,
-        Math.max(0,allowed*entry)
+        Math.max(0,castDistance*entry)
       );
     }
 

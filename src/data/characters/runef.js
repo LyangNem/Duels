@@ -276,7 +276,7 @@
     },
     "ice": {
       "id": "attack.runef.ice",
-      "damageRatio": 2,
+      "damageRatio": 0.5,
       "cost": 0,
       "cd": 500,
       "range": 189,

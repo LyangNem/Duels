@@ -60,17 +60,18 @@ const AttackService=Object.freeze({
     );
     return true;
   },
-  canUse(source,spec){
+  canUse(source,spec,{resourcePrepaid=false,completedWindup=false}={}){
     const now=performance.now();
     if(!source?.alive||!spec)return false;
+    if(spec.formationCost&&EntitySimulationAuthorityService.isLocal(source)&&CircleFormationService.circleCount(source)<=0)return false;
     const stats=CombatStatsService.current(source,now);
     if(
-      !stats.canAct||
+      (!stats.canAct&&(!completedWindup||(typeof AttackWindupService!=='undefined'&&AttackWindupService.hasInterruptingStatus?.(source,now))))||
       (source.cooldowns.get(spec.id)||0)>now||
       !this.delayReady(source,spec,now)
     )return false;
 
-    return StaminaService.canSpend(source,spec.cost,now);
+    return resourcePrepaid||StaminaService.canSpend(source,spec.cost,now);
   },
   targetPointPolicy(spec){
     let hasTargetPoint=false;
@@ -208,7 +209,7 @@ const AttackService=Object.freeze({
 
     let augmentRequestContext=null;
     if(!committed&&!networkReplay&&!freeAttack){
-      if(!this.canUse(source,spec))return false;
+      if(!this.canUse(source,spec,{resourcePrepaid:options.resourcePrepaid===true,completedWindup:options.completedWindup===true}))return false;
       augmentRequestContext=
         AugmentEffectModuleService.runTrigger(
           source,
@@ -226,14 +227,14 @@ const AttackService=Object.freeze({
           ...augmentRequestContext.deferredAttackModules
         ];
       }
-      if(!StaminaService.spend(source,spec.cost,now))return false;
+      if(options.resourcePrepaid!==true&&!StaminaService.spend(source,spec.cost,now))return false;
     }else if(
       !committed&&
       !networkReplay&&
       freeAttack&&
       (
         !source?.alive||
-        CombatStatsService.current(source,now).canAct!==true
+        (CombatStatsService.current(source,now).canAct!==true&&(options.completedWindup!==true||(typeof AttackWindupService!=='undefined'&&AttackWindupService.hasInterruptingStatus?.(source,now))))
       )
     ){
       return false;

@@ -122,13 +122,17 @@ const ChargedAttackService=Object.freeze({
         normalizedProgress,
         Number(attack?.range)||0
       );
-    const damageRatio=full&&Number.isFinite(Number(full.damageRatio))
+    let damageRatio=full&&Number.isFinite(Number(full.damageRatio))
       ?Number(full.damageRatio)
       :this.lerp(
         charge.damageRatio,
         normalizedProgress,
         Number(attack?.damageRatio)||0
       );
+    const damageStep=Number(charge.damageRatio?.step);
+    if(damageStep>0&&Number.isFinite(damageStep)){
+      damageRatio=Math.floor(damageRatio/damageStep+1e-9)*damageStep;
+    }
     const projectileSpeed=this.lerp(
       charge.projectileSpeed,
       normalizedProgress,

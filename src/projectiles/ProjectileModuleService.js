@@ -118,6 +118,10 @@ const ProjectileModuleService=Object.freeze({
       impact:impact
         ?{
           shareHitTargets:impact.shareHitTargets===true,
+          excludeHitTargets:impact.excludeHitTargets===true,
+          broadcastLinked:impact.broadcastLinked===true,
+          angleOffset:Number(impact.angleOffset)||0,
+          randomSpread:Math.max(0,Number(impact.randomSpread)||0),
           snapToRangeEnd:impact.snapToRangeEnd===true,
           oncePerProjectile:impact.oncePerProjectile===true,
           cancelDelayedOnRemove:impact.cancelDelayedOnRemove===true,

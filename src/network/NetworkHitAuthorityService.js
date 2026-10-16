@@ -113,7 +113,7 @@ const NetworkHitAuthorityService={
     if(
       Training.sessionMode!=='online'||
       !OnlineDuelService.active||
-      !(result?.applied||result?.durabilityBlocked===true)||
+      !(result?.applied||result?.durabilityBlocked===true||result?.confirmContact===true)||
       !result?.target||
       CCService.isDotImpact(
         result.impact
@@ -196,6 +196,7 @@ const NetworkHitAuthorityService={
           0,
           Number(result.target.health)||0
         ),
+      targetMaxHealth:Math.max(1,Number(result.target.maxHealth)||1),
       targetAlive:
         result.target.alive!==false,
       defeated:
@@ -535,6 +536,9 @@ const NetworkHitAuthorityService={
             ?payload.targetStatusTypes.filter(type=>typeof type==='string')
             :undefined,
           healthDamage:confirmedAmount,
+          targetHealthSnapshots:Number.isFinite(Number(payload.targetHealth))
+            ?{[String(target.id)]:{health:Math.max(0,Number(payload.targetHealth)||0),maxHealth:Math.max(1,Number(payload.targetMaxHealth??target.maxHealth)||1),alive:payload.targetAlive!==false}}
+            :undefined,
           executionHealthDamage:confirmedAmount,
           prevented:payload.prevented===true,
           defeatPrevented:
@@ -569,6 +573,7 @@ const NetworkHitAuthorityService={
             confirmedDamageContext
           );
           sourceConfirmedTriggers.add(sourceTriggerKey);
+          GameEvents.emit('source-damage-confirmed',confirmedDamageContext);
           if(sourceConfirmedTriggers.size>512){
             sourceConfirmedTriggers.delete(
               sourceConfirmedTriggers.values().next().value
@@ -597,6 +602,11 @@ const NetworkHitAuthorityService={
           // 크리티컬 공격 선택/판정은 이 후처리 경로가 아니므로 영향을 받지 않는다.
           if(payload.durabilityBlocked===true)break;
           const type=AttackModuleService.type(module);
+          if(type==='hit.sequence'&&module.sourceModules){
+            if(module.authority==='source')HitTargetSequenceService.start(sourceEntity,target,attack,execution,Number(payload.directionAngle)||0,module,null);
+            else HitTargetSequenceService.applySourceModules(sourceEntity,target,attack,execution,Number(payload.directionAngle)||0,module);
+            continue;
+          }
           const impactPhase=String(payload.impactPhase||'');
           const moveTargetIsSupported=
             module.target==='hit-target'||
@@ -716,6 +726,7 @@ const NetworkHitAuthorityService={
               data:stateData
             },confirmedNow);
           }else if(sourceEffect){
+            if((module.conditions?.length||module.condition)&&!AttackModuleService.hitConditionMatches(sourceEntity,target,attack,execution,Number(execution?.directionAngle)||Number(payload.directionAngle)||0,module,{targetHealthSnapshots:confirmedDamageContext.targetHealthSnapshots}))continue;
             AttackModuleService.spawnAttackEffect(
               sourceEntity,
               attack,
@@ -965,6 +976,7 @@ const NetworkHitAuthorityService={
                 }
               }
 
+              projectile.hadHit=true;
               ProjectileImpactService.resolve(
                 projectile,
                 'target'
@@ -1024,6 +1036,7 @@ const NetworkHitAuthorityService={
               )
             ){
               const carrier={
+                hadHit:true,
                 source:sourceEntity,
                 attack,
                 x:Number(impactPoint.x),

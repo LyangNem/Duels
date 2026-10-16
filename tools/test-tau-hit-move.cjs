@@ -73,3 +73,67 @@ console.log('PASS Tau boundary contact movement: four edges and corner, no retur
 assert.equal(c.ProjectileModuleService.config({modules:[{type:'projectile.return',returnAtRange:true}]}).returning.returnAtBoundary,true);
 assert.equal(c.ProjectileModuleService.config(a).returning.returnAtRange,true);
 console.log('PASS ordinary range return preserved and boundary override independent');
+
+// Reproduce remote interpolation contact without a target-authoritative hit.
+c.OnlineParticipantEntityService={pid:e=>e?.id,entity:id=>c.EntityService.items.get(id)};
+c.SoundService={play(){}};c.Presentation={damageNumber(){}};c.GAME_DATA.cameraFeedback={strongDamage:500};
+c.JustDodgeService={confirmProjectile:()=>false,canConfirm:()=>false,pointSegmentDistance(x,y,x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1,l=dx*dx+dy*dy,t=l?Math.max(0,Math.min(1,((x-x1)*dx+(y-y1)*dy)/l)):0;return Math.hypot(x-x1-dx*t,y-y1-dy*t)}};
+load('src/projectiles/ProjectileCollisionShapeService.js','ProjectileCollisionShapeService');load('src/projectiles/ProjectileTargetFilterService.js','ProjectileTargetFilterService');
+c.NetworkCollisionPositionService={point:e=>e};
+c.AttackHitTriggerService={damage:context=>c.NetworkHitAuthorityService.prediction(context)};
+c.Training.sessionMode='online';c.Training.player=null;c.OnlineDuelService.active=true;c.OnlineDuelService.roundToken=7;
+function movingContact(predict){
+ const source=entity({id:'tau-player',character:tau,x:100,y:500}),target=entity({id:'moving-enemy',teamId:'B',local:false,x:610,y:500});
+ const attack={...a,modules:a.modules.map(m=>m.type==='delivery.projectile'?{...m,predictiveConsumeOnContact:predict}:m)};
+ const execution=c.AttackExecutionService.create(source,attack,0);
+ const projectile={source,attack,x:582,y:500,prevX:560,prevY:500,angle:0,vx:22,vy:0,radius:12,travel:482,maxTravelDistance:650,behavior:c.ProjectileModuleService.config(attack),volley:{execution,hits:0,total:1,resolved:0},hitIds:new Set(),predictiveConsumeOnContact:predict,networkKey:'tau-shot'};
+ const service={...c.ProjectileService,items:[projectile],contactOrder:()=>[target],finish(){}};
+ assert.equal(service.processTargets(projectile,0,clock),predict?true:null);
+ assert.equal(service.items.length,predict?0:1);assert.equal(source.actionState.get('movement:move'),undefined);
+ return {source,target,projectile,execution,service};
+}
+movingContact(true);const kept=movingContact(a.modules[0].predictiveConsumeOnContact);assert.equal(kept.projectile.hadHit,undefined);
+console.log('PASS Tau old prediction-only contact disappears without move; new attack preserves projectile until confirmation');
+
+// Delayed confirmation can arrive after the shot returns or has already been removed.
+c.EntityService.items=new Map([[kept.source.id,kept.source],[kept.target.id,kept.target]]);c.ProjectileService.items=[];
+c.ProjectileStateService={get:()=>null};
+const packet={roundToken:7,attackerPid:kept.source.id,targetPid:kept.target.id,sourceEntityId:kept.source.id,targetEntityId:kept.target.id,attackId:a.id,executionSequence:kept.execution.sequence,amount:150,impactType:'projectile',impactPhase:'outbound',impactX:578,impactY:500,directionAngle:0,impactMeta:{projectileKey:'tau-shot'}};
+assert.equal(c.NetworkHitAuthorityService.receive(kept.target.id,packet),true);const dash=kept.source.actionState.get('movement:move');assert.ok(dash);assert.equal(dash.distance,478);assert.equal(dash.duration,420);assert.equal(dash.angle,0);
+assert.equal(c.NetworkHitAuthorityService.receive(kept.target.id,packet),true);assert.equal(kept.source.actionState.get('movement:move'),dash);
+console.log('PASS Tau actual delayed hit-confirmed restores movement to impact coordinate after projectile removal; duplicate packet does not restart');
+
+
+// Actual online confirmation and production event bindings, including hidden targets and duplicate packets.
+load('src/core/IdeaModuleService.js','IdeaModuleService');c.ReactiveEquipmentService={damage(){},behindWall:()=>false};c.ProjectileRedirectSyncService={broadcast(){},relay(){}};
+load('src/projectiles/ProjectileHomingTargetVisibilityService.js','ProjectileHomingTargetVisibilityService');
+vm.runInContext(fs.readFileSync(path.join(root,'src/core/initialization-equipment.js'),'utf8'),c);
+const geopin=c.CharacterDataService.compile('geopin');c.StealthPresentationService={active:e=>e.hidden===true,state:()=>({detected:false})};
+function idea(e){return c.ProgressStateService.state(e,geopin.ideaModules.stateKey)?.value||0}
+for(const hidden of [true,false]){
+ const source=entity({id:'geopin-source-'+hidden,character:geopin,x:100,y:500}),target=entity({id:'hidden-target-'+hidden,teamId:'B',local:false,hidden,x:300,y:500});c.EntityService.items=new Map([[source.id,source],[target.id,target]]);c.Training.player=null;const attack=geopin.attacks.lmb,execution=c.AttackExecutionService.create(source,attack,0);
+ const confirmed={roundToken:7,attackerPid:source.id,targetPid:target.id,sourceEntityId:source.id,targetEntityId:target.id,attackId:attack.id,executionSequence:execution.sequence,hitSequence:1,amount:150,displayAmount:0,impactType:'projectile',impactPhase:'outbound'};
+ // Before the fix, receiver-side damage cannot mutate the attacker's remote mirror and hidden presence grants nothing.
+ assert.equal(c.ProjectileHomingTargetVisibilityService.canPerceive(source,target),!hidden);source.local=false;c.GameEvents.emit('damage-applied',{source,target,attack,amount:150,now:clock});assert.equal(idea(source),0);source.local=true;
+ assert.equal(c.NetworkHitAuthorityService.receive(target.id,confirmed),true);assert.equal(idea(source),.1);
+ assert.equal(c.NetworkHitAuthorityService.receive(target.id,confirmed),true);assert.equal(idea(source),.1);
+ assert.equal(c.NetworkHitAuthorityService.receive(target.id,{...confirmed,amount:0,hitSequence:2}),true);assert.equal(idea(source),.1);
+ const next=c.AttackExecutionService.create(source,attack,0);assert.equal(c.NetworkHitAuthorityService.receive(target.id,{...confirmed,executionSequence:next.sequence,hitSequence:3}),true);assert.equal(idea(source),.2);
+ target.kind='summon';const summonHit=c.AttackExecutionService.create(source,attack,0);assert.equal(c.NetworkHitAuthorityService.receive(target.id,{...confirmed,executionSequence:summonHit.sequence,hitSequence:4}),true);assert.equal(idea(source),.2);
+ target.kind='player';source.local=false;const remoteHit=c.AttackExecutionService.create(source,attack,0);assert.equal(c.NetworkHitAuthorityService.receive(target.id,{...confirmed,executionSequence:remoteHit.sequence,hitSequence:5}),true);assert.equal(idea(source),.2);
+}
+console.log('PASS Geopin actual online receive: hidden/visible target grants10% per hit, duplicate/zero damage/summon/remote owner grant0');
+
+// Dodge during every movement adds protection while the existing ability continues.
+{
+load('src/combat/EntityDodgeService.js','EntityDodgeService');c.Training.sessionMode='training';c.OnlineDuelService.active=false;
+c.AugmentService.staminaHealthFallbackRatio=()=>0;c.GAME_DATA.dodge={cost:200,dist:119,speed:20,dur:130,justWindow:80};c.ChannelAttackService={locksAction:()=>false};c.AugmentDodgeSequenceService={ready:()=>true,begin(){},finishSegment(){}};c.NaturalHealthRegenActivityService={mark(){}};c.JustDodgeService.begin=()=>{};c.RecordDodgePresentationService={begin(){}};c.CombatStatsService={current:()=>({dodgeDistanceMult:1,dodgeSpeedMult:1})};let dodgeMotions=0;c.MovementService.startMotion=()=>{dodgeMotions++;return true};
+for(const module of [tau.attacks.rmb.modules.find(m=>m.type==='movement.move'&&m.when==='on-projectile-outbound-hit'),tau.attacks.rmb.modules.find(m=>m.type==='movement.move'&&m.when==='on-projectile-wall-hit'),{type:'movement.move',distance:100,duration:420}]){
+ const source=entity({id:'movement-dodge',character:tau,x:100,y:100});assert.equal(c.MovementAbilityService.start(source,module,0,{runtimeDistance:500}),true);const state=c.MovementAbilityService.state(source);
+ source.stamina=0;assert.equal(c.EntityDodgeService.activate(source,{x:0,y:1}),false);assert.equal(c.MovementAbilityService.state(source),state);source.stamina=1000;const before=dodgeMotions;
+ assert.equal(c.EntityDodgeService.activate(source,{x:0,y:1}),true);assert.equal(source.stamina,800);assert.equal(source.invincibleUntil,clock+80);assert.equal(source.dodgeUntil,clock+130);assert.equal(c.MovementAbilityService.state(source),state);assert.equal(dodgeMotions,before);const oldX=source.x;c.MovementAbilityService.update(source,clock+100,100,null);assert.ok(source.x>oldX);assert.equal(source.y,100);
+}
+const source=entity({id:'tau-serialized',character:tau}),module=tau.attacks.rmb.modules.find(m=>m.type==='movement.move');c.MovementAbilityService.start(source,module,0,{runtimeDistance:300});const snap=c.MovementAbilityService.serialize(source,clock);const remote=entity({id:'remote-dodge',character:tau,local:false});c.Training.sessionMode='online';c.MovementAbilityService.applyRemote(remote,JSON.parse(JSON.stringify(snap)),clock);const state=remote._remoteMovementEffectState;const before=dodgeMotions;assert.equal(c.EntityDodgeService.activate(remote,{x:0,y:1},{spend:false}),true);assert.equal(remote._remoteMovementEffectState,state);assert.equal(dodgeMotions,before);assert.equal(remote.invincibleUntil,clock+80);c.Training.sessionMode='training';
+const normal=entity({id:'normal-dodge',character:tau});assert.equal(c.EntityDodgeService.activate(normal,{x:1,y:0}),true);assert.equal(dodgeMotions,before+1);
+console.log('PASS All movement dodge: protection only; actual movement continues, failed cost preserves move, peer replay retains path, normal dodge still moves');
+}

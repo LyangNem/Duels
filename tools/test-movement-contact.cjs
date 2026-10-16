@@ -1,10 +1,11 @@
 /* 실제 캐릭터 데이터→EffectSpec→원격 이동 접촉 판정 회귀. */
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..');let now=1000,count=0;
-const c=vm.createContext({console,Map,Set,WeakMap,WeakSet,Math,performance:{now:()=>now},GAME_DATA:{frameMs:16},Training:{active:true,sessionMode:'training',fx:[]},OnlineDuelService:{active:false},OnlinePresentationSyncService:{shouldSend:()=>false}});
+const c=vm.createContext({console,Map,Set,WeakMap,WeakSet,Math,performance:{now:()=>now},EMPTY_RUNTIME_ITEMS:[],GAME_DATA:{frameMs:16},Training:{active:true,sessionMode:'training',fx:[]},OnlineDuelService:{active:false},OnlinePresentationSyncService:{shouldSend:()=>false}});
 function load(file,name){vm.runInContext(fs.readFileSync(path.join(root,file),'utf8')+`;globalThis.${name}=${name};`,c)}
 for(const n of ['characterValue','characterCount','characterSum','characterProduct','freezeCharacterData','CHARACTER_RULES'])load('src/data/'+n+'.js',n);
 c.CHARACTER_DATA={};for(const id of ['lime','reika'])c.CHARACTER_DATA[id]=vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/'+id+'.js'),'utf8')+')',c);
+c.CHARACTER_DATA['reflection-regression']={id:'reflection-regression',name:'회귀',color:'#fff',classification:{style:1,range:2,role:1},stats:{maxHealth:1000,baseDamage:100,radius:20,speed:4,difficulty:1},attacks:{assassin:JSON.parse(fs.readFileSync(path.join(root,'tools/fixtures/reflection-attack.json'),'utf8'))}};
 load('src/data/CharacterDataService.js','CharacterDataService');
 c.EntitySimulationAuthorityService={isLocal:e=>e.local!==false};c.RelationService={relation:(s,t)=>s.teamId===t.teamId?'ally':'enemy'};
 c.EntityService={items:new Map(),forEachEnemy(s,fn){for(const t of this.items.values())if(t.alive&&t.teamId!==s.teamId)fn(t)}};
@@ -33,4 +34,45 @@ for(const [id,key] of [['lime','lmb']]){
 }
 // 이동 중 충돌도 렌더 보간점 대신 공통 최신 충돌점을 사용한다.
 const h=setup('lime','lmb');h.target._networkStateReady=true;h.target.netCollisionX=500;h.target.netCollisionY=100;assert.equal(c.CollisionPolicyService.enemyTravelDistance(h.source,0,126),126);count++;
+
+// Reflected contact uses the same wall geometry in local movement and target-authority replay.
+c.TagService={attackTags:a=>new Set(a.tags||[]),derivedModuleTags:()=>[]};
+load('src/combat/AttackExecutionService.js','AttackExecutionService');
+c.DebugMapService={movementWalls:()=>[{x:500,y:0,w:40,h:2000}],walls:()=>[{x:500,y:0,w:40,h:2000}]};
+c.WorldBoundsService={width:()=>2000,height:()=>2000};
+load('src/world/WorldGeometryService.js','WorldGeometryService');load('src/core/MovementService.js','MovementService');
+c.AttackModuleService.onHit=()=>{};
+function reflectedSetup(remote=false){
+ now=1000;hits=[];c.Training.fx=[];c.Training.sessionMode=remote?'online':'training';c.EntityService.items.clear();
+ const ch=c.CharacterDataService.compile('reflection-regression'),attack=ch.attacks.assassin;
+ const source={id:'source',teamId:'a',alive:true,local:!remote,attackSequence:0,character:ch,x:400,y:500,radius:20,actionState:new Map()};
+ const target={id:'target',teamId:'b',alive:true,local:true,x:430,y:500,radius:5};
+ c.EntityService.items.set(source.id,source);c.EntityService.items.set(target.id,target);
+ const movement={kind:c.MovementAbilityService.KIND,stateKey:'movement:reflection',executionSequence:1,
+  startX:400,startY:500,startedAt:1000,endsAt:1500,angle:0,distance:800,speed:1600,traveled:0,
+  duration:500,easing:'linear',collision:{passWalls:false,passEnemies:true},reflectWalls:true,pathDamageEffects:[],damagePathSegments:[]};
+ source.actionState.set(movement.stateKey,movement);
+ const owner=c.AttackModuleService.spawnAttackEffect(source,attack,0,{sequence:1},attack.modules[1]);
+ if(!remote)return{source,target,effect:owner,movement};
+ const spec=c.EffectSpawnService.definitionSnapshot(owner);delete spec.animationState;source.actionState.clear();
+ const effect=c.EffectSpawnService.spawn(spec,{source});return{source,target,effect,movement};
+}
+{
+ const h=reflectedSetup();now=1100;c.MovementAbilityService.update(h.source,now,100);
+ assert.deepEqual(hits,['target','target']);assert.ok(Math.abs(h.source.x-400)<1e-6);
+ const sequence=h.effect.animationState.execution.sequence;
+ now=1120;c.MovementAbilityService.update(h.source,now,20);
+ assert.deepEqual(hits,['target','target']);assert.equal(h.effect.animationState.execution.sequence,sequence);count++;
+}
+{
+ const h=reflectedSetup(true);now=1100;c.EffectSpawnService.applyMovementTrackedDamage(h.effect);
+ assert.deepEqual(hits,['target','target']);const timeline=h.effect.animationState.movementPathTimeline;
+ assert.ok(Math.abs(timeline.currentX-400)<1e-6);assert.equal(timeline.damageDistance,160);
+ now=1120;c.EffectSpawnService.applyMovementTrackedDamage(h.effect);assert.deepEqual(hits,['target','target']);count++;
+}
+{
+ const h=reflectedSetup(true);h.effect.damage.resetHitsOnWallReflection=false;
+ now=1100;c.EffectSpawnService.applyMovementTrackedDamage(h.effect);
+ assert.deepEqual(hits,['target']);count++;
+}
 console.log(`PASS ${count} movement contact regression scenarios`);

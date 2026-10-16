@@ -20,7 +20,8 @@ const StaminaService=Object.freeze({
   },
   multiplier(entity,now=performance.now()){
     if(!entity)return 1;
-    return Math.max(.60,Number(CombatStatsService.current(entity,now).staminaCostMult)||1);
+    const stats=CombatStatsService.current(entity,now);
+    return Math.max(.60,Number(stats.staminaCostMult)||1)*Math.max(.1,Number(stats.staminaCostScale??1)||1);
   },
   cost(entity,amount,now=performance.now()){
     const value=Math.max(0,Number(amount)||0);
