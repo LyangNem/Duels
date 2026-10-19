@@ -125,6 +125,17 @@ const AttackService=Object.freeze({
       clearance
     };
   },
+  resolveAimTargetPoint(source,spec,point){
+    if(!point||!Number.isFinite(Number(point.x))||!Number.isFinite(Number(point.y)))return null;
+    const resolved={x:Number(point.x),y:Number(point.y)};
+    const projectile=AttackModuleService.module(spec,'delivery.projectile');
+    const range=Math.max(0,Number(spec?.range)||0);
+    const dx=resolved.x-source.x,dy=resolved.y-source.y,distance=Math.hypot(dx,dy);
+    if(projectile?.targetPoint===true&&projectile.targetPointClampToAttackRange!==false&&range>0&&distance>range){
+      resolved.x=source.x+dx/distance*range;resolved.y=source.y+dy/distance*range;
+    }
+    return this.resolveTargetPoint(spec,resolved);
+  },
   resolveTargetPoint(spec,point){
     if(
       !point||

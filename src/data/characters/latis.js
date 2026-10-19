@@ -46,7 +46,7 @@
   "attacks": {
     "lmb": {
       "id": "attack.latis.lmb",
-      "damageRatio": 1.0,
+      "damageRatio": 1.3333333333333333,
       "cost": 150,
       "cd": 450,
       "range": 225,

@@ -152,19 +152,19 @@
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.25,
-          "multiplier": 0.8333333333333334
+          "multiplier": 0.7777777777777778
         },
         {
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.5,
-          "multiplier": 0.8
+          "multiplier": 0.7142857142857143
         },
         {
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.75,
-          "multiplier": 0.75
+          "multiplier": 0.6
         },
         {
           "type": "resource.restore",
@@ -289,19 +289,19 @@
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.25,
-          "multiplier": 0.8333333333333334
+          "multiplier": 0.7777777777777778
         },
         {
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.5,
-          "multiplier": 0.8
+          "multiplier": 0.7142857142857143
         },
         {
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.75,
-          "multiplier": 0.75
+          "multiplier": 0.6
         },
         {
           "type": "resource.restore",

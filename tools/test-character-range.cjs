@@ -23,7 +23,7 @@ test('준비 창의 실제 후속 공격 참조 / 순환 참조 종료',()=>{con
 test('착탄 후속 투사체와 폭발의 중첩 도달 범위',()=>{const boom=area('boom',50),b={id:'b',range:300,damageRatio:1,modules:[{type:'delivery.projectile'},{type:'projectile.impact',attackIds:['boom']}]},a={id:'a',range:200,damageRatio:0,modules:[{type:'delivery.projectile'},{type:'projectile.impact',attackIds:['b']}]};assert.equal(sort.attackMaxRange(a,combat(a,b,boom)),550)});
 test('지속 장판 피해는 포함 / 아군 회복 폭발은 제외',()=>{const tick={id:'tick',damageRatio:1,range:0,modules:[]},heal=area('heal',999);heal.modules[0].targetRelations=['ally'];const a={id:'a',range:500,damageRatio:0,modules:[{type:'delivery.projectile'},{type:'projectile.impact',attackIds:['heal'],field:{shape:'circle',range:90,attackId:'tick',damageOnTrigger:true}}]};assert.equal(sort.attackMaxRange(a,combat(a,tick,heal)),590)});
 test('이동 피해는 이동거리+접촉 반경 / 타격 뒤 이동은 제외',()=>{const a={id:'a',range:500,damageRatio:1,modules:[{type:'movement.move',distance:120},{type:'effect.spawn',damage:{hitMode:'body-contact',requireMovementExecution:true,contactRadius:40}}]};assert.equal(sort.attackMaxRange(a),160);assert.equal(sort.basicRange(chars.yui),144)});
-test('실제65명 사거리와 순서 변화 검수',()=>{assert.equal(Object.keys(chars).length,65);const expected={cherity:Infinity,van:220,geopin:650,intu:650,meramona:550,ruli:522,quri:150,raise:192,deltroove:170,reika:300,lime:170,hapupu:240,sherbet:294,terdion:970,kines:900,elin:1204,nyu:210,tinya:Infinity};for(const [id,value] of Object.entries(expected))assert.equal(sort.basicRange(chars[id]),value,id);for(const ch of Object.values(chars))assert.ok(sort.basicRange(ch)>0,ch.id)});
+test('실제66명 사거리와 순서 변화 검수',()=>{assert.equal(Object.keys(chars).length,66);const expected={cherity:Infinity,van:220,geopin:650,intu:650,meramona:550,ruli:522,quri:180,raise:192,deltroove:170,reika:300,lime:170,hapupu:240,sherbet:294,terdion:970,kines:900,elin:1204,nyu:210,tinya:Infinity};for(const [id,value] of Object.entries(expected))assert.equal(sort.basicRange(chars[id]),value,id);for(const ch of Object.values(chars))assert.ok(sort.basicRange(ch)>0,ch.id)});
 test('초기 무기 선택 / 대체 공격의 기본값 제외',()=>{for(const [id,attack] of [['van','attack.van.lmb'],['reika','attack.reika.lmb'],['geopin','attack.geopin.lmb'],['intu','attack.intu.pistol']]){assert.ok(sort.primaryAttacks(chars[id]).some(a=>a.id===attack),id);assert.equal(sort.primaryAttacks(chars[id]).length,id==='intu'?2:1,id)}});
 test('초기 상태와 공간 조건을 구분 / 가호 전용 후속 제외',()=>{
  const base={...area('base',100),tags:['평타']},enhanced={...area('enhanced',500),tags:['평타']},near={...area('near',70),tags:['평타']},wave={...area('wave',900),tags:['평타']};
@@ -37,7 +37,7 @@ test('정렬용 초기 진행도는 공유 서비스로 생성 / 원본 데이�
  assert.equal(sort.basicRange(chars.reika),300);assert.equal(sort.basicRange(chars.geopin),650);
 });
 test('미성장 사거리와 스타일 표시 같은 기준 / 고정 분류 우회',()=>{
- for(const [id,range,tag] of [['meramona',550,'중거리'],['quri',150,'초근거리'],['geopin',650,'중거리'],['ruli',522,'중거리'],['reika',300,'근거리'],['van',220,'근거리']]){
+ for(const [id,range,tag] of [['meramona',550,'중거리'],['quri',180,'근거리'],['geopin',650,'중거리'],['ruli',522,'중거리'],['reika',300,'근거리'],['van',220,'근거리']]){
   assert.equal(sort.basicRange(chars[id]),range,id);assert.equal(sort.distanceTag(chars[id]),tag,id);assert.ok(sort.styleLabel(chars[id]).includes(tag),id);
  }
  for(const ch of Object.values(chars)){
@@ -52,7 +52,7 @@ test('카드 카탈로그도 구형 스타일 문자열보다 공통 분류 사�
 });
 test('직접 조절/차징 평타는 최대 / 성장 범위만 초기',()=>{
  assert.equal(sort.basicRange(chars.raise),192);assert.equal(sort.basicRange(chars.ruli),522);
- assert.equal(sort.basicRange(chars.quri),150);assert.equal(sort.basicRange(chars.meramona),550);assert.equal(sort.basicRange(chars.geopin),650);
+ assert.equal(sort.basicRange(chars.quri),180);assert.equal(sort.basicRange(chars.meramona),550);assert.equal(sort.basicRange(chars.geopin),650);
  assert.equal(sort.distanceTag(chars.raise),'근거리');assert.equal(sort.distanceTag(chars.ruli),'중거리');
  assert.equal(sort.basicRange(chars.hatsuhats),575);
  const scaled={...area('scaled',100),tags:['평타'],progressScale:{range:{from:100,to:600}}};

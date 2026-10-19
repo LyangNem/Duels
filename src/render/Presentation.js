@@ -44,7 +44,10 @@ const Presentation=Object.freeze({
     return true;
   },
 
-  damageNumber(entity,amount,groupKey=''){
+  damageNumber(entity,amount,groupKey='',context=null){
+    if(context?.attack?.presentation?.damageNumberGroup==='execution'){
+      groupKey=`${String(context.source?.id||'')}:${String(context.attack.id||'')}:${Number(context.executionSequence)||0}`;
+    }
     return this.queueNumber(
       entity,
       amount,

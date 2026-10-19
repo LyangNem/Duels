@@ -22,7 +22,7 @@
     "max": 800,
     "segmentSize": 100,
     "intactRegenPerSecond": 25,
-    "repairHits": 5,
+    "repairHits": 4,
     "rotationStateKey": "van-wrench-rotation",
     "rotationMs": 300
   },

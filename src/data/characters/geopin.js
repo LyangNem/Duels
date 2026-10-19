@@ -14,7 +14,7 @@
     "speed": 3.75,
     "radius": 20,
     "baseDamage": 100,
-    "difficulty": 4
+    "difficulty": 2
   },
   "desc": "적과 공격에서 아이디어를 얻고 상황에 맞는 모듈을 추가하는 캐릭터",
   "ideaModules": {

@@ -156,9 +156,9 @@ const CounterModuleService=Object.freeze({
       modules:Object.freeze(modules)
     });
   },
-  targetPointPreviewAttack(windup){
+  targetPointPreviewAttack(windup,source=null){
     const area=windup?.previewTargetPointArea;
-    const point=windup?.targetPoint;
+    const point=source?AttackService.resolveAimTargetPoint(source,windup?.attack,windup?.targetPoint):windup?.targetPoint;
     if(
       !area||
       !point||
@@ -372,7 +372,7 @@ const CounterModuleService=Object.freeze({
     {
       const targetPreviewAttack=
         this.targetPointPreviewAttack(
-          source.counterWindup
+          source.counterWindup,source
         );
       const previewAttack=
         targetPreviewAttack||
@@ -446,7 +446,7 @@ const CounterModuleService=Object.freeze({
     {
       const targetPreviewAttack=
         this.targetPointPreviewAttack(
-          windup
+          windup,source
         );
       const previewAttack=
         targetPreviewAttack||

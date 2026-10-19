@@ -274,14 +274,29 @@ const TargetPointProjectileService=Object.freeze({
 
     const persistent=
       linger.persistent===true;
+    const fuseDuration=ProjectileImpactService.remainingFuse(projectile,now);
     const duration=
+      fuseDuration!==null?fuseDuration:
       persistent
         ?Infinity
         :Math.max(
           GAME_DATA.frameMs,
           Number(linger.duration)||0
         );
-    if(!persistent&&duration<=0)return false;
+    if(!persistent&&duration<=0){
+      // An exhausted fuse removes the linger, never the opt-in landing contact.
+      if(this.arrival(projectile)?.triggerOnLanding===true&&projectile.landingContactResolved!==true){
+        projectile.landingContactResolved=true;
+        if(String(stopReason)!=='target'){
+          const target=this.contactTarget(projectile);
+          if(target)this.triggerTarget(projectile,target);
+        }
+      }
+      if(projectile.behavior?.impact&&!projectile.impactResolved){
+        ProjectileImpactService.resolve(projectile,String(stopReason)==='target-point'?'arrival':String(stopReason));
+      }
+      return false;
+    }
 
     // 비행 중 메후구와 투사체를 연결하던 선은 착탄 즉시 제거.
     this.removeFlightPresentation(projectile);

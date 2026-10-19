@@ -236,6 +236,7 @@ const AttackModuleService=Object.freeze({
           'projectile'
         ),
       damageOnTravel:module.damageOnTravel!==false,
+      collisionMode:String(module.collisionMode||'normal'),
       collisionTargets:
         module.collisionTargets===true,
       targetRelations:
@@ -362,6 +363,7 @@ const AttackModuleService=Object.freeze({
         0,
         Number(module.rehitInterval)||0
       ),
+      boundaryMode:String(module.boundaryMode||''),
       expireAtRange:
         module.expireAtRange!==false,
       rangeExtendOnHitRatio:
@@ -1344,7 +1346,7 @@ const AttackModuleService=Object.freeze({
         // 실시간 조준형 연속 사격의 원격 재생은 최초 action angle로
         // 가짜 탄을 예약하지 않는다. 실제 탄별 각도 패킷이 생성한다.
         if(
-          aimMode==='live-source'&&
+          (aimMode==='live-source'||aimMode==='target-point'||aimMode==='live-target-point')&&
           volley?.execution?.networkReplay===true
         ){
           continue;
@@ -1419,6 +1421,10 @@ const AttackModuleService=Object.freeze({
             aimMode,
             shotIndex:index,
             originPoint:volleyOriginPoint,
+            originOffset:Array.isArray(module.originOffsets)?module.originOffsets[index]:null,
+            originOrientation:String(module.originOrientation||''),
+            originAngle:module.originOrientation==='last-movement'
+              ?MovementService.lastDirectionAngle(source):volleyBaseAngle,
             projectileOverride,
             perpendicularOffset:
               explicitPerpendicular!==null
@@ -1637,6 +1643,10 @@ const AttackModuleService=Object.freeze({
         ...effect.damage,
         attack:spec
       };
+      if(effect.damage.snapshotAttackScalars===true){
+        effect.damage.attackScalars={damageRatio:Number(spec.damageRatio)||0,
+          targetMaxHealthRatio:Number(this.module(spec,'damage.target-max-health-ratio')?.ratio)||0};
+      }
     }
 
     if(
@@ -2095,7 +2105,8 @@ const AttackModuleService=Object.freeze({
   onProjectileShot(source,spec,perpendicularOffset){
     const side=Math.sign(Number(perpendicularOffset)||0);
     for(const module of spec?.modules||EMPTY_RUNTIME_ITEMS){
-      if(module.type==='mode.toggle'&&module.when==='on-projectile-shot'&&Number(module.perpendicularSide)===side)ModeStateService.toggle(source,module);
+      if(module.type==='mode.toggle'&&module.when==='on-projectile-shot'&&
+        (module.perpendicularSide===undefined||Number(module.perpendicularSide)===side))ModeStateService.toggle(source,module);
     }
   },
   onDelivery(source,spec,angle,execution){
@@ -3454,6 +3465,13 @@ const AttackModuleService=Object.freeze({
               target.x-Number(impactCenter.x)
             );
           }
+        }else if(module.direction==='away-from-impact-axis'){
+          const origin=execution?.impactOrigin;
+          const axis=Number.isFinite(origin?.angle)?origin.angle:direction;
+          const x=Number.isFinite(origin?.x)?origin.x:source.x;
+          const y=Number.isFinite(origin?.y)?origin.y:source.y;
+          const side=(target.x-x)*(-Math.sin(axis))+(target.y-y)*Math.cos(axis);
+          direction=axis+(side<0?-Math.PI/2:Math.PI/2);
         }else if(module.direction==='toward-source'){
           direction=Math.atan2(
             source.y-target.y,

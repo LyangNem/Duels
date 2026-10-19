@@ -71,7 +71,8 @@
           "modifierAttack": "anvilEmpower",
           "text": "피해량 {damageIncreasePercent}% 증가"
         }
-      ]
+      ],
+      "text": ""
     },
     {
       "key": "RMB",
@@ -85,7 +86,7 @@
       "name": "인력 망치",
       "attack": "counter",
       "progressAttack": "counter",
-      "text": "주변 적을 끌어당기며 피해. 적중 시 즉시 {maxProgressStages}단계 강화 ({damage})"
+      "text": "주변 적을 끌어당기며 피해. 즉시 {maxProgressStages}단계 강화 ({damage})"
     }
   ],
   "summonSpecs": [
@@ -535,7 +536,7 @@
         {
           "type": "state.progress",
           "stateKey": "peluna-forge-time",
-          "when": "on-hit",
+          "when": "after-attack",
           "operation": "set-max",
           "max": {
             "$ref": "attacks.anvilEmpower.modules.1.max"
@@ -609,7 +610,7 @@
         {
           "type": "state.progress",
           "stateKey": "peluna-forge-time",
-          "when": "on-hit",
+          "when": "after-attack",
           "operation": "set-max",
           "max": {
             "$ref": "attacks.anvilEmpower.modules.1.max"

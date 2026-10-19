@@ -872,7 +872,9 @@
       ],
       "tags": [
         "반격"
-      ]
+      ],
+      "attackDelayGroup": "intu-primary",
+      "attackDelay": 600
     }
   },
   "abilities": {

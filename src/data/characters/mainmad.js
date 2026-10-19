@@ -202,9 +202,6 @@
       "id": "ability.mainmad.lmb",
       "input": "lmb",
       "attackId": "attack.mainmad.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",

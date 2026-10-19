@@ -1,6 +1,6 @@
 # 캐릭터 데이터 계약
 
-현재 공식 캐릭터 62명의 데이터는 src/data/characters/<id>.js에 각각 보관한다. 파일 내용은 캐릭터 객체 표현식이며 독립 실행 스크립트나 ESM이 아니다. 조립기가 index.json의 출시 순서로 합쳐 freezeCharacterData를 한 번 적용한다. 기존 characterValue/characterCount/characterSum/characterProduct 참조도 같은 원본 실행 문맥에서 해석한다.
+현재 공식 캐릭터 66명의 데이터는 src/data/characters/<id>.js에 각각 보관한다. 파일 내용은 캐릭터 객체 표현식이며 독립 실행 스크립트나 ESM이 아니다. 조립기가 index.json의 출시 순서로 합쳐 freezeCharacterData를 한 번 적용한다. 기존 characterValue/characterCount/characterSum/characterProduct 참조도 같은 원본 실행 문맥에서 해석한다.
 
 | 필드 | 책임 |
 |---|---|

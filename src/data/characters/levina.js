@@ -486,9 +486,6 @@
       "id": "ability.levina.lmb",
       "input": "lmb",
       "attackId": "attack.levina.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",

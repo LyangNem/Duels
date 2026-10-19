@@ -12,6 +12,7 @@
 */
 const NetworkHitAuthorityService={
   sequence:0,
+  receivedHitPackets:new Set(),
   confirmations:new Map(),
   targetAuthoritative(target){
     return (
@@ -252,6 +253,13 @@ const NetworkHitAuthorityService={
         Number(OnlineDuelService.roundToken)
     )return false;
 
+    const hitSequence=Math.max(0,Math.floor(Number(payload.hitSequence)||0));
+    if(hitSequence>0){
+      const packetKey=[payload.roundToken,pid,payload.attackerPid,payload.targetPid,payload.attackId,payload.executionSequence,hitSequence].join(':');
+      if(this.receivedHitPackets.has(packetKey))return true;
+      this.receivedHitPackets.add(packetKey);
+      if(this.receivedHitPackets.size>1024)this.receivedHitPackets.delete(this.receivedHitPackets.values().next().value);
+    }
     const key=this.confirmationKey({
       attackerPid:payload.attackerPid,
       targetPid:payload.targetPid,
@@ -359,10 +367,9 @@ const NetworkHitAuthorityService={
       targetEntity&&
       !targetIsLocallyAuthoritative
     ){
-      Presentation.damageNumber(
-        targetEntity,
-        displayAmount
-      );
+      const numberSource=OnlineParticipantEntityService.entity(payload.attackerPid);
+      const numberAttack=numberSource?AbilityService.attackById(numberSource.character,String(payload.attackId||'')):null;
+      Presentation.damageNumber(targetEntity,displayAmount,'',{source:numberSource,attack:numberAttack,executionSequence:payload.executionSequence});
     }
     if(
       displayAmount>0&&
@@ -1076,5 +1083,6 @@ const NetworkHitAuthorityService={
   reset(){
     this.sequence=0;
     this.confirmations.clear();
+    this.receivedHitPackets.clear();
   }
 };

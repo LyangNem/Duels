@@ -260,6 +260,10 @@
     {
       "before": ",\n  latis: ",
       "path": "src/data/characters/latis.js"
+    },
+    {
+      "before": ",\n  kasha: ",
+      "path": "src/data/characters/kasha.js"
     }
   ],
   "suffix": ",\n});"

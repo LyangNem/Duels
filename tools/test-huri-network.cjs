@@ -13,5 +13,5 @@ assert.equal(all[1].run('primary.health'),4500);assert.equal(all[2].run('third.h
 // A hit confirmation must use the victim's new health even while owner mirrors are stale.
 for(const h of all)h.run(`source.health=800;primary.health=4100;primary.maxHealth=5000;third.x=2000;third.y=2000;BuffService.remove(source,'staminaCostScale','character-passive:huri:predator');`);
 a.run(`TriggeredAttackService.execute(source,source.character.attacks.lmb,0)`);flush();
-assert.equal(a.run('source.health'),900);assert.equal(b.run('primary.health'),3950);assert.equal(a.run('primary.health'),4100);
-console.log('PASS 피해 확정 체력 스냅샷: 원격 체력 미러가 이전 값이어도 첫 피식자 타격 최대체력10% 회복');
+assert.equal(a.run('source.health'),850);assert.equal(b.run('primary.health'),3950);assert.equal(a.run('primary.health'),4100);
+console.log('PASS 피해 확정 체력 스냅샷: 원격 체력 미러가 이전 값이어도 첫 피식자 타격 최대체력5% 회복');

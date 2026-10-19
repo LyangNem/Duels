@@ -98,7 +98,7 @@
     },
     "rmb": {
       "id": "attack.hab.rmb",
-      "damageRatio": 1,
+      "damageRatio": 0.75,
       "cost": 500,
       "cd": 400,
       "range": 550,

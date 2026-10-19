@@ -157,10 +157,21 @@ const SimulationScheduleService={
               Number.isFinite(Number(item.originPoint.y))
                 ?item.originPoint
                 :item.source;
-            const spawnX=
-              (Number(originPoint.x)||0)+px;
-            const spawnY=
-              (Number(originPoint.y)||0)+py;
+            const originAngle=item.originOrientation==='last-movement'
+              ?MovementService.lastDirectionAngle(item.source):Number(item.originAngle)||0;
+            const forward=Number(item.originOffset?.forward)||0;
+            const lateral=Number(item.originOffset?.lateral)||0;
+            const spawnX=(Number(originPoint.x)||0)+px+Math.cos(originAngle)*forward-Math.sin(originAngle)*lateral+(Number(item.originOffset?.x)||0);
+            const spawnY=(Number(originPoint.y)||0)+py+Math.sin(originAngle)*forward+Math.cos(originAngle)*lateral+(Number(item.originOffset?.y)||0);
+            let targetPoint=item.aimMode==='live-target-point'
+              ?CounterModuleService.aimTargetPoint(item.source)||item.volley?.execution?.targetPoint
+              :item.aimMode==='target-point'?item.volley?.execution?.targetPoint:null;
+            if(item.aimMode==='live-target-point'&&targetPoint){
+              targetPoint=AttackService.resolveAimTargetPoint(item.source,item.attack,targetPoint);
+            }
+            if(targetPoint&&Number.isFinite(targetPoint.x)&&Number.isFinite(targetPoint.y)){
+              shotAngle=Math.atan2(targetPoint.y-spawnY,targetPoint.x-spawnX);
+            }
 
             ProjectileService.spawn({
               source:item.source,
@@ -174,6 +185,8 @@ const SimulationScheduleService={
                 y:spawnY
               },
               angle:shotAngle,
+              targetPoint:targetPoint?{x:targetPoint.x,y:targetPoint.y}:null,
+              targetDistance:targetPoint?Math.hypot(targetPoint.x-spawnX,targetPoint.y-spawnY):null,
               targetEntityId:
                 item.volley?.execution
                   ?.targetEntityId||'',
@@ -188,7 +201,7 @@ const SimulationScheduleService={
             });
 
             if(
-              item.aimMode==='live-source'&&
+              (item.aimMode==='live-source'||item.aimMode==='target-point'||item.aimMode==='live-target-point')&&
               Training.sessionMode==='online'&&
               OnlineDuelService.active&&
               EntitySimulationAuthorityService.isLocal(
@@ -208,9 +221,10 @@ const SimulationScheduleService={
                       )
                     ),
                   angle:shotAngle,
-                  perpendicularOffset,
-                  sourceX:Number(originPoint.x)||0,
-                  sourceY:Number(originPoint.y)||0
+                  perpendicularOffset:targetPoint?0:perpendicularOffset,
+                  sourceX:targetPoint?spawnX:Number(originPoint.x)||0,
+                  sourceY:targetPoint?spawnY:Number(originPoint.y)||0,
+                  targetPoint
                 });
             }
           }

@@ -14,7 +14,7 @@
     "speed": 4.25,
     "radius": 20,
     "baseDamage": 150,
-    "difficulty": 3
+    "difficulty": 1
   },
   "desc": "공격을 빠르게 이어 강한 넉백과 감전으로 적을 제어하는 캐릭터",
   "tooltipSkills": [

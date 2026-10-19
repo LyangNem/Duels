@@ -824,6 +824,7 @@ const AttackGuardService=Object.freeze({
     );
   },
   resolveProjectile(projectile,index,guard,now){
+    if(projectile?.projectile?.collisionMode==='landing-only'&&!projectile.stationaryArrival)return false;
     if(
       Training.sessionMode==='online'&&
       !EntitySimulationAuthorityService.isLocal(
@@ -880,6 +881,7 @@ const AttackGuardService=Object.freeze({
     }
   },
   intercept(projectile,index,now=performance.now()){
+    if(projectile?.projectile?.collisionMode==='landing-only'&&!projectile.stationaryArrival)return false;
     let nearest=null,nearestContact=null;
     for(const [key,guard] of this.active){
       if(!guard?.source?.alive||guard.expiresAt<=now){

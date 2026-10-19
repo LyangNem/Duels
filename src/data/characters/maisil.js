@@ -9,7 +9,7 @@
     "role": 1
   },
   "stats": {
-    "maxHealth": 1300,
+    "maxHealth": 1200,
     "speed": 4.25,
     "radius": 20,
     "baseDamage": 150,
@@ -153,7 +153,7 @@
           "range": {
             "$ref": "attacks.lmbCritical.range"
           },
-          "halfAngle": 0.16755160819145565,
+          "halfAngle": 0.10053096491487339,
           "wallPolicy": "block"
         },
         {

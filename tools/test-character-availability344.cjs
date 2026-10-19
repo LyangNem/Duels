@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+const {run}=require('./support/runtime-harness.cjs');
+assert.equal(run('Object.keys(GAME_DATA.characters).length'),66);
+assert.equal(run('GAME_DATA.characters.kasha.selectable'),false);
+assert.ok(fs.existsSync(path.join(__dirname,'../src/data/characters/kasha.js')));
+assert.equal(run(`!!WEAPON_IMAGE_DEFS['execution-sword']`),true);
+assert.equal(run('CharacterCardDataService.all().length'),65);
+assert.equal(run(`CharacterCardDataService.all().some(c=>c.id==='kasha')`),false);
+for(const mode of run('CharacterSortService.modes'))assert.equal(run(`CharacterSortService.sorted(${JSON.stringify(mode)}).some(c=>c.id==='kasha')`),false);
+assert.equal(run(`MatchChoiceService.characterIds().includes('kasha')`),false);
+for(let i=0;i<10;i++)assert.equal(run(`MatchChoiceService.characterOptions(100).includes('kasha')`),false);
+assert.equal(run(`CharacterBanUI.sortedCharacters().some(c=>c.id==='kasha')`),false);
+assert.equal(run(`!!CharacterCardDataService.get('kasha')?.combat.attacks.counter`),true);
+run(`Training.selectedCharacterId='kasha';Training.start()`);assert.equal(run('Training.player.character.id'),'kasha');
+console.log('PASS Kasha preserved and runnable; hidden from every sorted selection/ban catalog and random choice pool;65 visible/66 stored');

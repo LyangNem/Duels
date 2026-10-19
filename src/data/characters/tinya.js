@@ -142,7 +142,6 @@
         id: "ability.tinya.lmb",
         input: "lmb",
         attackId: "attack.tinya.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",

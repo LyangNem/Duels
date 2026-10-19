@@ -6,5 +6,7 @@ const AttackVisualStyle=Object.freeze({
   fillAlpha:.25,
   strokeAlpha:.95,
   strokeWidth:2,
-  fadeStart:.70
+  fadeStart:.70,
+  // 수명/공격 진행은 유지하고 사라지기 직전까지 원래 선명도의 35%를 남긴다.
+  fadeOpacity(remaining){return .35+.65*Math.max(0,Math.min(1,Number(remaining)||0));}
 });

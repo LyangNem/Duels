@@ -179,7 +179,7 @@
     },
     "counter": {
       "id": "attack.sherina.counter",
-      "damageRatio": 1.5,
+      "damageRatio": 1.25,
       "cost": 0,
       "cd": 300,
       "range": 798,
@@ -261,7 +261,7 @@
           "targetRelations": [
             "enemy"
           ],
-          "direction": "away-from-impact",
+          "direction": "away-from-impact-axis",
           "distance": 84,
           "speed": 10,
           "oncePerExecution": false
@@ -277,9 +277,6 @@
       "id": "ability.sherina.lmb",
       "input": "lmb",
       "attackId": "attack.sherina.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",

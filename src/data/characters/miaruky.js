@@ -120,8 +120,8 @@
     attacks: {
       lmbMelee: {
         id: "attack.miaruky.lmb.melee",
-        damageRatio: 2,
-        cost: 200,
+        damageRatio: 1.5,
+        cost: 150,
         cd: 450,
         attackDelayGroup: "miaruky-primary",
         attackDelay: 450,
@@ -140,8 +140,8 @@
       },
       lmbRanged: {
         id: "attack.miaruky.lmb.ranged",
-        damageRatio: 1.5,
-        cost: 200,
+        damageRatio: 1,
+        cost: 150,
         cd: 450,
         attackDelayGroup: "miaruky-primary",
         attackDelay: 450,

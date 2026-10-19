@@ -3,7 +3,7 @@
     name: "스야",
     englishName: "Sya",
     title: "안개 속 움직임",
-    color: "#0000ad",
+    color: "#2424c2",
     classification: {style: 1, range: 0, role: 6},
     stats: {maxHealth: 900, speed: 4.5, radius: 20, baseDamage: 250, difficulty: 4},
     desc: "은신으로 기습해 빠르게 쏟아붓고 빠져나오는 캐릭터",
@@ -13,6 +13,20 @@
       rotationStateKey: "sya-weapon-rotation", rotationMs: 350, rotationRadians: 6.283185307179586
     }],
     worldGaugeModules: [
+      {
+        type: "gauge.arc", visibility: "owner",
+        valueRef: {type: "state-duration-remaining", stateKey: "stealth:sya"},
+        conditions: [{type: "state.exists", stateKey: "stealth:sya"}],
+        color: characterValue("color"), completeColor: "#8bbcff",
+        completePulseColor: "#8bbcff", maxChargeFlash: true,
+        completePulseDash: [4, 3], showEmpty: false
+      },
+      {
+        type: "range.circle", visibility: "owner",
+        range: characterSum(characterValue("abilities.rmb.trigger.modules.0.detectRange"), characterValue("stats.radius")),
+        alpha: 0.45, dash: [5, 5],
+        conditions: [{type: "state.exists", stateKey: "stealth:sya"}]
+      },
       {
         type: "gauge.segmented",
         valueMode: "count",
@@ -25,13 +39,13 @@
           stateKey: "stealth:sya:attack-boost",
           fallbackPath: "abilities.rmb.trigger.modules.0.attackBoost.uses"
         },
-        segmentColor: "#0000ad",
+        segmentColor: "#2424c2",
         visibility: "owner",
         height: 4,
         gap: 2,
         activeAlpha: 0.95,
         background: "rgba(10,18,22,0.92)",
-        stroke: "rgba(0,0,173,0.40)",
+        stroke: "rgba(36,36,194,0.40)",
         conditions: [
           {type: "state.exists", stateKey: "stealth:sya:attack-boost"}
         ]
@@ -43,15 +57,15 @@
         key: "RMB RANGED",
         name: "서리안개 은신",
         attack: "rmb",
-        costText: "스테미나 {skillCost}~{stealthMaxStaminaCost}",
-        text: "최대 {stealthDurationSeconds}초 동안 이동속도 {stealthSpeedPercent}% 증가 및 벽 통과. 지속시간동안 스테미나를 소모하며 재사용 시 해제"
+        costText: "초당 스테미나 {v:abilities.rmb.trigger.modules.0.drainPerSecond}",
+        text: "최대 {stealthDurationSeconds}초 동안 이동속도 {stealthSpeedPercent}% 증가 및 은신. 지속시간동안 스테미나를 소모하며 재사용 시 해제"
       },
       {
         key: "RMB MELEE",
         name: "안개 기습",
         attack: "rmb",
         costText: "스테미나 0",
-        text: "은신 중 적이 근접하면 은신을 해제하고 주변 적 {stealthFreezeSeconds}초 빙결. 다음 평타 {stealthBoostCount}회 공격속도 증가"
+        text: "은신 중 적이 근접하면 은신을 해제하고 주변 적 {v:attacks.stealthFreeze.modules.1.steps.0.modules.0.duration|seconds}초 빙결. 다음 평타 {stealthBoostCount}회 공격속도 증가"
       },
       {key: "L-Shift", name: "서리폭풍 베기", attack: "counter", text: "주변 원형 베기. 적중 시 {freezeSeconds}초 빙결 ({damage})"}
     ],
@@ -102,7 +116,7 @@
       rmb: {
         id: "attack.sya.rmb",
         damageRatio: 0,
-        cost: 400,
+        cost: 0,
         cd: 300,
         range: 0,
         effectsOnly: true,
@@ -150,7 +164,7 @@
       },
       counter: {
         id: "attack.sya.counter",
-        damageRatio: 1.2,
+        damageRatio: 1,
         cost: 0,
         cd: 300,
         range: 260,
@@ -225,7 +239,7 @@
               type: "stealth.toggle",
               stateKey: "stealth:sya",
               maxDuration: 4000,
-              drainPerSecond: 100,
+              drainPerSecond: 150,
               speedModifier: 0.3,
               detectDelay: 400,
               detectRange: 80,

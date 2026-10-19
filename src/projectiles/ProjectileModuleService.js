@@ -117,12 +117,21 @@ const ProjectileModuleService=Object.freeze({
       trajectory:trajectory||null,
       impact:impact
         ?{
+          requireSuccessfulHit:impact.requireSuccessfulHit===true,
+          resolveOnGuard:impact.resolveOnGuard===true,
+          reasons:Array.isArray(impact.reasons)
+            ?impact.reasons.map(String)
+            :[],
+          previewAttackIds:Array.isArray(impact.previewAttackIds)
+            ?impact.previewAttackIds.map(String)
+            :undefined,
           shareHitTargets:impact.shareHitTargets===true,
           excludeHitTargets:impact.excludeHitTargets===true,
           broadcastLinked:impact.broadcastLinked===true,
           angleOffset:Number(impact.angleOffset)||0,
           randomSpread:Math.max(0,Number(impact.randomSpread)||0),
           snapToRangeEnd:impact.snapToRangeEnd===true,
+          fuse:impact.fuse?{...impact.fuse}:null,
           oncePerProjectile:impact.oncePerProjectile===true,
           cancelDelayedOnRemove:impact.cancelDelayedOnRemove===true,
           attackIds:Array.isArray(impact.attackIds)

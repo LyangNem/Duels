@@ -514,7 +514,7 @@ const OnlineDuelService={
               ?PlayerProfileService.snapshot()
               :null
           )||
-          AccountState.current;
+          {isGuest:true};
 
         card.dataset.masteryPid=pid||'';
         card._recordAccountData=
@@ -1413,6 +1413,8 @@ charRow.appendChild(card);
         Training.player===player
           ?Training.aimAngle()
           :0,
+      lastMovementInputAngle:player.lastMovementInputAngle!=null&&Number.isFinite(Number(player.lastMovementInputAngle))
+        ?Number(player.lastMovementInputAngle):null,
       aimTargetPoint:
         Training.player===player
           ?{
@@ -1612,6 +1614,7 @@ charRow.appendChild(card);
             )||0
           )
         ),
+      fuseRemaining:ProjectileImpactService.remainingFuse(projectile),
       reason:String(reason||'target'),
       hitTargetIds:projectile.behavior?.impact?.excludeHitTargets===true
         ?[...new Set([...(projectile.volley?.execution?.hitTargets||[]),
@@ -1766,7 +1769,8 @@ charRow.appendChild(card);
     angle=0,
     perpendicularOffset=0,
     sourceX=0,
-    sourceY=0
+    sourceY=0,
+    targetPoint=null
   }={}){
     if(
       !this.active||
@@ -1800,7 +1804,9 @@ charRow.appendChild(card);
       perpendicularOffset:
         Number(perpendicularOffset)||0,
       sourceX:Number(sourceX)||0,
-      sourceY:Number(sourceY)||0
+      sourceY:Number(sourceY)||0,
+      targetPoint:targetPoint&&Number.isFinite(targetPoint.x)&&Number.isFinite(targetPoint.y)
+        ?{x:targetPoint.x,y:targetPoint.y}:null
     });
     return true;
   },
@@ -1891,7 +1897,8 @@ charRow.appendChild(card);
   },
   sendJustDodgeConfirmed(
     startedAt,
-    confirmedAt=performance.now()
+    confirmedAt=performance.now(),
+    cause=null
   ){
     if(
       !this.active||
@@ -1900,6 +1907,7 @@ charRow.appendChild(card);
 
     RoomService.sendGameplay({
       type:'duel-just-dodge-confirmed',
+      cause: cause?.source?{sourcePid:OnlineParticipantEntityService.pid(EntityService.owner(cause.source))||'',attackId:String(cause.attack?.id||'')}:null,
       roundToken:this.roundToken,
       sentAt:Date.now(),
       startedAt:
@@ -1946,6 +1954,10 @@ charRow.appendChild(card);
     }
 
     remote.lastDamageSourcePid=null;
+    const causeSource=OnlineParticipantEntityService.entity(payload.cause?.sourcePid);
+    const cause=causeSource?{source:causeSource,attack:AbilityService.attackById(causeSource.character,String(payload.cause?.attackId||''))}:null;
+    CharacterTriggerEffectService.observe('enemy-just-dodge',remote,
+      {now:performance.now(),cause},String(payload.startedAt??payload.confirmedAt));
     return true;
   },
   sendCounterResolve(angle,attack=null){
@@ -2161,6 +2173,7 @@ charRow.appendChild(card);
           :null;
 
       if(projectile){
+        if(typeof payload.fuseRemaining==='number'&&Number.isFinite(payload.fuseRemaining))projectile.impactFuseRemaining=Math.max(0,payload.fuseRemaining);
         if(projectile.behavior?.impact?.excludeHitTargets===true&&Array.isArray(payload.hitTargetIds)){
           projectile.trajectoryHitAt=projectile.trajectoryHitAt||new Map();
           for(const id of payload.hitTargetIds)projectile.trajectoryHitAt.set(String(id),performance.now());
@@ -2205,11 +2218,11 @@ charRow.appendChild(card);
           confirmedArrival?.linger?.atTarget===true
         ){
           if(!projectile.stationaryArrival){
-            TargetPointProjectileService.beginLinger(
-              projectile,
-              performance.now(),
-              'target'
-            );
+            if(!TargetPointProjectileService.beginLinger(projectile,performance.now(),'target')){
+              ProjectileService.finish(projectile,projectile.hadHit===true,'expired');
+              if(index>=0)ProjectileService.items.splice(index,1);
+              return true;
+            }
           }else{
             projectile.arrivalReason='target';
             projectile.stationaryArrival.arrivalReason='target';
@@ -2280,6 +2293,7 @@ charRow.appendChild(card);
       }
 
       const carrier={
+        impactFuseRemaining:typeof payload.fuseRemaining==='number'&&Number.isFinite(payload.fuseRemaining)?Math.max(0,payload.fuseRemaining):undefined,
         hadHit:reason==='target',
         source:owner,
         attack,
@@ -2307,8 +2321,13 @@ charRow.appendChild(card);
       if(reason==='target'&&delivery?.arrival?.linger?.atTarget===true){
         const restored=ProjectileService.spawn({...carrier,projectile:{...delivery,networkSpawnCompensation:false},
           behavior:ProjectileModuleService.config(attack),angle:Number(payload.angle)||0});
+        restored.impactFuseRemaining=carrier.impactFuseRemaining;
         restored.impactResolved=true;
-        TargetPointProjectileService.beginLinger(restored,performance.now(),'target');
+        if(!TargetPointProjectileService.beginLinger(restored,performance.now(),'target')){
+          ProjectileService.finish(restored,restored.hadHit===true,'expired');
+          const index=ProjectileService.items.indexOf(restored);
+          if(index>=0)ProjectileService.items.splice(index,1);
+        }
       }
       return true;
     }
@@ -2608,6 +2627,9 @@ charRow.appendChild(card);
           Math.cos(angle)*offset;
         const spawnX=sourceX+px;
         const spawnY=sourceY+py;
+        const targetPoint=(delayedVolley?.aimMode==='target-point'||delayedVolley?.aimMode==='live-target-point')&&payload.targetPoint&&
+          Number.isFinite(payload.targetPoint.x)&&Number.isFinite(payload.targetPoint.y)
+          ?{x:payload.targetPoint.x,y:payload.targetPoint.y}:null;
 
         ProjectileService.spawn({
           source:remote,
@@ -2616,6 +2638,8 @@ charRow.appendChild(card);
           volley,
           x:spawnX,
           y:spawnY,
+          targetPoint,
+          targetDistance:targetPoint?Math.hypot(targetPoint.x-spawnX,targetPoint.y-spawnY):null,
           origin:{
             x:spawnX,
             y:spawnY
@@ -2950,6 +2974,9 @@ charRow.appendChild(card);
         );
       if(Number.isFinite(Number(payload.aimAngle))){
         remote._remoteAimAngle=Number(payload.aimAngle);
+      }
+      if(payload.lastMovementInputAngle!=null&&Number.isFinite(Number(payload.lastMovementInputAngle))){
+        remote.lastMovementInputAngle=Number(payload.lastMovementInputAngle);
       }
       if(
         payload.aimTargetPoint&&
@@ -4981,7 +5008,7 @@ this.betweenReadyPids=new Set();
         )
         :(
           RoomService.members.get(ownerPid)?.profile||
-          AccountState.current
+          {isGuest:true}
         );
 
     card.dataset.masteryPid=ownerPid||'';

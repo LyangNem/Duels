@@ -62,9 +62,9 @@ const AnnularSweepPresentationService=Object.freeze({
         // 회전 공격은 진행 중 기본 공격과 같은 선명도를 유지하고,
         // sweep 완료 뒤에만 fade 곡선으로 사라진다. 수명 alpha와 fade를
         // 중복 곱해 공격 중간부터 과도하게 흐려지는 현상을 만들지 않는다.
-        const visualAlpha=sweepProgress!==null?1:
+        const visualAlpha=sweepProgress!==null?1:AttackVisualStyle.fadeOpacity(
           (f.lifetimeAlpha===true?legacyAlpha:1)*
-          (progress>sweepFraction?fade:1);
+          (progress>sweepFraction?fade:1));
 
         const outer=
           Math.max(

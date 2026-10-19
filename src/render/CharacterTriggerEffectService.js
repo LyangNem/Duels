@@ -1,6 +1,24 @@
 
 
 const CharacterTriggerEffectService=Object.freeze({
+  observedEvents:new WeakMap(),
+  observe(event,target,context={},eventKey=''){
+    if(!target)return;
+    for(const entity of EntityService.items.values()){
+      if(!entity?.alive||!EntitySimulationAuthorityService.isLocal(entity)||
+        RelationService.relation(entity,target)!=='enemy'||
+        !entity.character?.triggers?.some(trigger=>trigger.event===event))continue;
+      if(eventKey){
+        let seen=this.observedEvents.get(entity);
+        if(!seen){seen=new Set();this.observedEvents.set(entity,seen);}
+        const key=`${OnlineDuelService.roundToken||0}:${event}:${target.id}:${eventKey}`;
+        if(seen.has(key))continue;
+        seen.add(key);
+        if(seen.size>256)seen.delete(seen.values().next().value);
+      }
+      this.run(entity,event,{...context,source:entity,target});
+    }
+  },
   run(entity,event,context={}){
     if(!entity)return context;
     // Damage can make a target satisfy a passive condition during this same hit.
@@ -66,10 +84,10 @@ const CharacterTriggerEffectService=Object.freeze({
               )
           };
 
-          ProgressStateService.apply(
-            entity,
-            resolved
-          );
+          const apply=()=>ProgressStateService.apply(entity,resolved);
+          const delay=Math.max(0,Number(module.delay)||0);
+          if(delay>0)SimulationScheduleService.scheduleContinuation({source:entity,at:shared.now+delay,continue:apply});
+          else apply();
           continue;
         }
 
@@ -84,9 +102,10 @@ const CharacterTriggerEffectService=Object.freeze({
         }
 
         if(module.type==='effect.spawn'){
-          if(!shared.attack||!shared.target)continue;
+          const attack=module.attackId?AbilityService.attackById(entity.character,module.attackId):shared.attack;
+          if(!attack||!shared.target)continue;
           AttackModuleService.spawnAttackEffect(
-            entity,shared.attack,
+            entity,attack,
             Number(shared.execution?.directionAngle)||0,
             shared.execution||null,module,shared.target
           );

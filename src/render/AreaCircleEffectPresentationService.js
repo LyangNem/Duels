@@ -19,7 +19,7 @@ const AreaCircleEffectPresentationService=Object.freeze({
         )
       )
     );
-    const alpha=1-progress;
+    const alpha=AttackVisualStyle.fadeOpacity(1-progress);
     const points=
       Array.isArray(f.points)
         ?f.points
@@ -152,6 +152,16 @@ const AreaCircleEffectPresentationService=Object.freeze({
       const t=Math.max(0,Math.min(1,(now-Number(f.start||now))/Math.max(1,Number(f.dur)||333)));
       const x=cx+(tx-cx)*t;
       const y=cy+(ty-cy)*t-Math.sin(t*Math.PI)*60;
+      if(f.tokenStyle==='light'){
+        const rgb=ColorService.rgbString(f.color||source?.character?.color,'255,255,125');
+        const size=11+3*Math.sin(t*Math.PI);
+        ctx.save();ctx.shadowColor=`rgb(${rgb})`;ctx.shadowBlur=14;
+        ctx.beginPath();ctx.moveTo(x,y-size);ctx.lineTo(x+size*.28,y-size*.28);ctx.lineTo(x+size,y);
+        ctx.lineTo(x+size*.28,y+size*.28);ctx.lineTo(x,y+size);ctx.lineTo(x-size*.28,y+size*.28);
+        ctx.lineTo(x-size,y);ctx.lineTo(x-size*.28,y-size*.28);ctx.closePath();
+        ctx.fillStyle=`rgba(${rgb},.9)`;ctx.fill();ctx.shadowBlur=0;
+        ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fillStyle='rgba(255,255,245,.95)';ctx.fill();ctx.restore();return true;
+      }
       const pulse=.7+.3*Math.sin(now*.02);
 
       const tokenRgb=

@@ -209,9 +209,6 @@
       "id": "ability.hatsuhats.lmb",
       "input": "lmb",
       "attackId": "attack.hatsuhats.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",

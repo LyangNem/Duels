@@ -192,7 +192,6 @@
         id: "ability.raise.lmb",
         input: "lmb",
         attackId: "attack.raise.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",

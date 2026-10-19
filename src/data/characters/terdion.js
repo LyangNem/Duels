@@ -22,7 +22,7 @@
       "key": "ALWAYS",
       "name": "폭발 주의",
       "showCost": false,
-      "text": "착탄 {v:attacks.lmbExplosion.modules.0.delay|seconds}초 뒤 폭발하며 중심에 가까울수록 피해와 넉백 증가"
+      "text": "비행 중 도화선이 감소하며 착탄 후 남은 시간이 지나면 폭발. 중심에 가까울수록 피해와 넉백 증가"
     },
     {
       "key": "LMB",
@@ -66,9 +66,7 @@
               "atRange": true,
               "atTarget": true,
               "atWall": true,
-              "duration": {
-                "$ref": "attacks.lmbExplosion.modules.0.delay"
-              },
+              "duration": 0,
               "fadeOut": false,
               "triggerOnEnter": false,
               "removeOnTrigger": false,
@@ -89,7 +87,15 @@
             "attack.terdion.lmb-explosion"
           ],
           "oncePerProjectile": true,
-          "cancelDelayedOnRemove": true
+          "cancelDelayedOnRemove": true,
+          "fuse": {
+            "range": {
+              "$ref": "attacks.lmb.range"
+            },
+            "speed": {
+              "$ref": "attacks.lmb.modules.0.speed"
+            }
+          }
         },
         {
           "type": "projectile.presentation",
@@ -126,10 +132,11 @@
           "range": {
             "$ref": "attacks.lmbExplosion.range"
           },
-          "delay": 500,
+          "delay": 0,
           "wallPolicy": "block",
           "color": "35,143,150",
-          "renderType": "areaCircle"
+          "renderType": "areaCircle",
+          "delayFromProjectileFuse": true
         },
         {
           "type": "damage.range-band-multiplier",
@@ -179,9 +186,7 @@
           "range": {
             "$ref": "attacks.lmb.modules.0.radius"
           },
-          "duration": {
-            "$ref": "attacks.lmbExplosion.modules.0.delay"
-          },
+          "duration": 0,
           "fadeOut": false,
           "fillAlpha": 0,
           "strokeAlpha": 0,
@@ -192,7 +197,8 @@
           "remainingArcOffset": 6,
           "remainingArcLineWidth": 3,
           "remainingArcAlpha": 0.95,
-          "stateKey": "projectile-fuse"
+          "stateKey": "projectile-fuse",
+          "durationFromProjectileFuse": true
         }
       ],
       "tags": [
@@ -220,9 +226,7 @@
               "atRange": true,
               "atTarget": true,
               "atWall": true,
-              "duration": {
-                "$ref": "attacks.rmbExplosion.modules.0.delay"
-              },
+              "duration": 0,
               "fadeOut": false,
               "triggerOnEnter": false,
               "removeOnTrigger": false,
@@ -249,7 +253,15 @@
             "attack.terdion.rmb-explosion"
           ],
           "oncePerProjectile": true,
-          "cancelDelayedOnRemove": true
+          "cancelDelayedOnRemove": true,
+          "fuse": {
+            "range": {
+              "$ref": "attacks.rmb.range"
+            },
+            "speed": {
+              "$ref": "attacks.rmb.modules.0.speed"
+            }
+          }
         },
         {
           "type": "projectile.presentation",
@@ -294,10 +306,11 @@
           "range": {
             "$ref": "attacks.rmbExplosion.range"
           },
-          "delay": 500,
+          "delay": 0,
           "wallPolicy": "block",
           "color": "35,143,150",
-          "renderType": "areaCircle"
+          "renderType": "areaCircle",
+          "delayFromProjectileFuse": true
         },
         {
           "type": "damage.range-band-multiplier",
@@ -357,9 +370,7 @@
           "range": {
             "$ref": "attacks.rmb.modules.0.radius"
           },
-          "duration": {
-            "$ref": "attacks.rmbExplosion.modules.0.delay"
-          },
+          "duration": 0,
           "fadeOut": false,
           "fillAlpha": 0,
           "strokeAlpha": 0,
@@ -370,7 +381,8 @@
           "remainingArcOffset": 6,
           "remainingArcLineWidth": 3,
           "remainingArcAlpha": 0.95,
-          "stateKey": "projectile-fuse"
+          "stateKey": "projectile-fuse",
+          "durationFromProjectileFuse": true
         }
       ],
       "tags": [
@@ -396,9 +408,7 @@
               "atRange": true,
               "atTarget": true,
               "atWall": true,
-              "duration": {
-                "$ref": "attacks.counterExplosion.modules.0.delay"
-              },
+              "duration": 0,
               "fadeOut": false,
               "triggerOnEnter": false,
               "removeOnTrigger": false,
@@ -425,7 +435,15 @@
             "attack.terdion.counter-explosion"
           ],
           "oncePerProjectile": true,
-          "cancelDelayedOnRemove": true
+          "cancelDelayedOnRemove": true,
+          "fuse": {
+            "range": {
+              "$ref": "attacks.counter.range"
+            },
+            "speed": {
+              "$ref": "attacks.counter.modules.0.speed"
+            }
+          }
         },
         {
           "type": "delivery.delayed-projectile-volley",
@@ -488,10 +506,11 @@
           "range": {
             "$ref": "attacks.counterExplosion.range"
           },
-          "delay": 500,
+          "delay": 0,
           "wallPolicy": "block",
           "color": "35,143,150",
-          "renderType": "areaCircle"
+          "renderType": "areaCircle",
+          "delayFromProjectileFuse": true
         },
         {
           "type": "damage.range-band-multiplier",
@@ -541,9 +560,7 @@
           "range": {
             "$ref": "attacks.counter.modules.0.radius"
           },
-          "duration": {
-            "$ref": "attacks.counterExplosion.modules.0.delay"
-          },
+          "duration": 0,
           "fadeOut": false,
           "fillAlpha": 0,
           "strokeAlpha": 0,
@@ -554,7 +571,8 @@
           "remainingArcOffset": 6,
           "remainingArcLineWidth": 3,
           "remainingArcAlpha": 0.95,
-          "stateKey": "projectile-fuse"
+          "stateKey": "projectile-fuse",
+          "durationFromProjectileFuse": true
         }
       ],
       "tags": [

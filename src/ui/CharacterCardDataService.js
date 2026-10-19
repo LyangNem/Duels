@@ -8,6 +8,7 @@ const CharacterCardDataService=Object.freeze({
     if(this.list.length)return this.list;
 
     for(const character of ProfileCharacterService.all()){
+      if(character.selectable===false)continue;
       const card=this.get(character.id);
       if(card)this.list.push(card);
     }

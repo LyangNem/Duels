@@ -1,6 +1,31 @@
 
 
 const ProjectileImpactService=Object.freeze({
+  boundaryFieldReason(projectile){
+    const impact=projectile?.behavior?.impact,field=impact?.field;
+    if(!field||field.anchorMode==='projectile-path')return '';
+    for(const reason of ['boundary','range']){
+      if(this.allowsReason(impact,reason)&&this.allowsReason(field,reason))return reason;
+    }
+    return '';
+  },
+  remainingFuse(projectile,now=performance.now()){
+    const fuse=projectile?.behavior?.impact?.fuse;
+    if(!fuse)return null;
+    const total=Math.max(0,Number(fuse.range)||0)/Math.max(.001,Number(fuse.speed)||0)*GAME_DATA.frameMs;
+    if(Number.isFinite(projectile.impactFuseRemaining))return Math.max(0,Math.min(total,projectile.impactFuseRemaining));
+    if(Number(projectile.travel)>=Number(fuse.range)-.001)return 0;
+    const elapsed=Number.isFinite(projectile.createdAt)?Math.max(0,now-projectile.createdAt):
+      Math.max(0,Number(projectile.travel)||0)/Math.max(.001,Number(fuse.speed)||0)*GAME_DATA.frameMs;
+    return Math.max(0,total-elapsed);
+  },
+  allowsReason(impact,reason){
+    const reasons=impact?.reasons;
+    if(!Array.isArray(reasons)||reasons.length===0)return true;
+    // Target-point arrival has both names in existing projectile callers.
+    const canonical=value=>String(value)==='target-point'?'arrival':String(value);
+    return reasons.some(value=>canonical(value)===canonical(reason));
+  },
   cancelPending(source,projectileKey,now=performance.now()){
     const pending=source?._pendingProjectileImpacts;
     const key=String(projectileKey||'');
@@ -54,6 +79,7 @@ const ProjectileImpactService=Object.freeze({
   resolve(projectile,reason='impact'){
     const impact=projectile?.behavior?.impact;
     if(!impact)return false;
+    if(!this.allowsReason(impact,reason))return false;
     if(reason==='target'&&impact.requireSuccessfulHit===true&&projectile.hadHit!==true)return false;
 
     const source=projectile.source;
@@ -87,10 +113,14 @@ const ProjectileImpactService=Object.freeze({
 
     if(!source?.alive)return false;
 
-    const point={
-      x:Number(projectile.x)||0,
-      y:Number(projectile.y)||0
-    };
+    let point={x:Number(projectile.x)||0,y:Number(projectile.y)||0};
+    if(impact.field&&impact.field.anchorMode!=='projectile-path'&&
+      (reason==='boundary'||reason==='wall')){
+      const gap=Math.max(1,Number(projectile.radius)||0);
+      const x=Math.max(gap,Math.min(WorldBoundsService.width()-gap,point.x));
+      const y=Math.max(gap,Math.min(WorldBoundsService.height()-gap,point.y));
+      point=WorldGeometryService.nearestOpenPoint(x,y,gap)||{x,y};
+    }
     const angle=
       Number.isFinite(Number(projectile.angle))
         ?Number(projectile.angle)
@@ -388,6 +418,14 @@ const ProjectileImpactService=Object.freeze({
         );
       }
 
+      const remainingFuse=this.remainingFuse(projectile);
+      if(remainingFuse!==null){
+        if(remainingFuse<=0&&(attack.modules||[]).some(m=>m.durationFromProjectileFuse===true))continue;
+        attack={...attack,modules:(attack.modules||[]).map(module=>({ ...module,
+          ...(module.delayFromProjectileFuse===true?{delay:remainingFuse}:{}),
+          ...(module.durationFromProjectileFuse===true?{duration:remainingFuse}:{})
+        }))};
+      }
       if(impact.broadcastLinked===true){
         const spread=Number(impact.randomSpread)||0;
         // Copy confirmed parent hits, never share the children's accumulating hit sets.
@@ -712,6 +750,7 @@ const ProjectileImpactService=Object.freeze({
             replaceActive:relocate.replaceActive===true,
             blocksAction:relocate.blocksAction===true,
             trajectory:relocate.trajectory||null,
+            evasionUntargetable:relocate.evasionUntargetable===true,
             buffs:Array.isArray(relocate.buffs)?relocate.buffs:[],
             direction:'target-point',
             duration,

@@ -1,6 +1,17 @@
 
 
 const TrainingWorldDrawService=Object.freeze({
+  drawAnchorProjectile(ctx,{x,y,radius,scale=1,rgb,fillRgb=rgb,crossColor,fillAlpha,strokeAlpha,crossAlpha,lineWidth,cross=true}){
+    ctx.beginPath();ctx.arc(x,y,radius*scale,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${fillRgb},${fillAlpha})`;ctx.strokeStyle=`rgba(${rgb},${strokeAlpha})`;
+    ctx.lineWidth=lineWidth;this.drawProjectileOutlineGlow(ctx);ctx.fill();ctx.stroke();
+    if(cross){
+      const half=radius*.5*scale;ctx.strokeStyle=`rgba(${crossColor},${crossAlpha})`;ctx.lineWidth=Math.max(.5,radius/6*scale);
+      ctx.beginPath();ctx.moveTo(x-half,y);ctx.lineTo(x+half,y);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x,y-half);ctx.lineTo(x,y+half);ctx.stroke();
+    }
+  },
+
   drawProjectileOwnerLink(ctx,projectile,visual,style,viewer,alpha=1){
     if(!ctx||style?.showLink!==true||!projectile?.source||EntityService.owner(projectile.source)!==viewer)return false;
     ctx.save();ctx.beginPath();ctx.moveTo(projectile.source.x,projectile.source.y);ctx.lineTo(visual.x,visual.y);

@@ -80,7 +80,7 @@
       rmb: {
         id: "attack.atsuteo.rmb",
         damageRatio: 0,
-        cost: 200,
+        cost: 300,
         cd: 500,
         range: 270,
         effectsOnly: true,

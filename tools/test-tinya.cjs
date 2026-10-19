@@ -3,6 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),asse
 const root=path.resolve(__dirname,'..');let now=1000,mouse={x:0,y:0},zoom=1,executions=[];
 const c=vm.createContext({console,Map,Set,WeakMap,Math,performance:{now:()=>now},EMPTY_RUNTIME_ITEMS:[]});
 function load(p,n){vm.runInContext(fs.readFileSync(path.join(root,p),'utf8')+';globalThis.'+n+'='+n,c)}
+load('src/combat/AttackVisualStyle.js','AttackVisualStyle');
 for(const n of ['characterValue','characterCount','characterSum','characterProduct','freezeCharacterData','CHARACTER_RULES'])load('src/data/'+n+'.js',n);
 c.CHARACTER_DATA={tinya:vm.runInContext('('+fs.readFileSync(path.join(root,'src/data/characters/tinya.js'),'utf8')+')',c)};load('src/data/CharacterDataService.js','CharacterDataService');const ch=c.CharacterDataService.compile('tinya');
 c.GAME_DATA={canvas:{width:1000,height:800}};c.EntitySimulationAuthorityService={isLocal:e=>e.local!==false};c.CombatStatsService={current:()=>({canAct:true,damageMult:1})};c.AugmentService={prepareAttack:(e,a)=>a,attackAdjustmentTotals:()=>({rangeMultiplier:1})};c.ProgressScaledAttackService={resolve:(e,a)=>a};

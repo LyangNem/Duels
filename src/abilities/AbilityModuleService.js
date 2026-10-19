@@ -2167,6 +2167,7 @@ const AbilityModuleService=Object.freeze({
 
       const effect=EffectSpawnService.spawn({
         ...preparedModule,
+        ...(preparedModule.angleMode==='aim'?{angle:effectAngle}:{}),
         key:windupEffectKey,
         x:
           baseEffectX-
@@ -2182,7 +2183,7 @@ const AbilityModuleService=Object.freeze({
         sourceEntityId:context.source?.id||null
       },context);
       if(effect){
-        context.executed=true;
+        if(module.presentationOnly!==true)context.executed=true;
 
         if(
           windupEffect&&

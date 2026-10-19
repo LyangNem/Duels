@@ -332,9 +332,6 @@
       "id": "ability.cherity.lmb",
       "input": "lmb",
       "attackId": "attack.cherity.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",

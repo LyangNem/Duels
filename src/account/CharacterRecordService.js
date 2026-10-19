@@ -38,15 +38,15 @@ const CharacterRecordService=Object.freeze({
     return characters;
   },
   refreshTopPlayerBadges(root=document){
-    const account=AccountState.current;
-    const accountId=String(
-      account?.firebaseUid||
-      account?.accountId||
-      ''
-    ).trim();
-    const enabled=!!accountId&&!account?.isGuest;
-
     for(const card of root.querySelectorAll?.('.char-card[data-id]')||[]){
+      const ownerPid=String(card.dataset.masteryPid||'');
+      const account=ownerPid
+        ?(ownerPid===String(RoomService.localPid||'')
+          ?AccountState.current
+          :RoomService.members.get(ownerPid)?.profile)
+        :(card._recordAccountData||AccountState.current);
+      const accountId=String(account?.firebaseUid||account?.accountId||'').trim();
+      const enabled=!!accountId&&!account?.isGuest;
       const characterId=card.dataset.id;
       const topAccountId=String(
         this.allRankingState.characters?.[characterId]?.[0]?.accountId||
@@ -215,6 +215,7 @@ const CharacterRecordService=Object.freeze({
     account=AccountState.current
   ){
     if(!card||!characterId)return;
+    card._recordAccountData=account;
 
     // 기본 카드에는 레코드 텍스트를 표시하지 않는다.
     card.querySelector(':scope > .char-mastery')?.remove();
@@ -260,6 +261,7 @@ const CharacterRecordService=Object.freeze({
       characterId,
       points
     );
+    this.refreshTopPlayerBadges({querySelectorAll:()=>[card]});
   },
   applyHudIconStyle(
     icon,

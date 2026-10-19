@@ -3,6 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),asse
 const root=path.resolve(__dirname,'..');let passed=0;
 const c=vm.createContext({console,Map,Set,WeakMap,WeakSet,Math,performance:{now:()=>1000},EMPTY_RUNTIME_ITEMS:[],EMPTY_AUGMENT_EFFECTS:[],attackTagMetadataCache:new WeakMap(),attackTagCache:new WeakMap()});
 function load(file,name){vm.runInContext(fs.readFileSync(path.join(root,file),'utf8')+`;globalThis.${name}=${name};`,c)}
+load('src/combat/AttackVisualStyle.js','AttackVisualStyle');
 function test(name,fn){fn();passed++;console.log('PASS '+name)}
 for(const name of ['characterValue','characterCount','characterSum','characterProduct','freezeCharacterData','CHARACTER_RULES','STATUS_EFFECT_RULES'])load('src/data/'+name+'.js',name);
 const index=JSON.parse(fs.readFileSync(path.join(root,'src/data/characters/index.json'),'utf8'));c.CHARACTER_DATA={};
@@ -16,7 +17,7 @@ load('src/data/AUGMENTS.js','AUGMENTS');
 c.AbilityService={attackById:(ch,id)=>Object.values(ch.attacks||{}).find(a=>a.id===id)};
 function walk(v,fn){assert.notEqual(typeof v,'function');if(!v||typeof v!=='object')return;fn(v);for(const x of Object.values(v))walk(x,fn)}
 test('65명 함수 없는 데이터·동결·Trigger·반격 및 공격 참조 검사',()=>{
- assert.equal(Object.keys(chars).length,65);assert.equal(chars.yoo,undefined);assert.equal(fs.existsSync(path.join(root,'src/data/characters/yoo.js')),false);
+ assert.equal(Object.keys(chars).length,66);assert.equal(chars.yoo,undefined);assert.equal(fs.existsSync(path.join(root,'src/data/characters/yoo.js')),false);
  for(const ch of Object.values(chars)){
   assert.ok(Object.isFrozen(ch));const attacks=Object.values(ch.attacks||{});const ids=new Set(attacks.map(a=>a.id));assert.equal(ids.size,attacks.length,ch.name);
   walk(ch,m=>{if(m.type==='counter.execute'){assert.ok(c.CounterModuleService.validate(m),ch.name);assert.equal(m.allowNoCc,undefined);if(m.ccRefAttackId)assert.ok(c.CounterModuleService.referencedCc({character:ch},m),ch.name)}if(m.type==='attack.execute')assert.ok(ids.has(m.attackId),ch.name+':'+m.attackId)});
@@ -39,22 +40,22 @@ test('충전 반격 1·2중첩·제거 최대 스테미나 및 소환수 상속 
 });
 test('회복 비율 감소 하한은 -100%',()=>{const e=entity();c.BuffService.set(e,'regenPercent',-2,'test');assert.equal(c.BuffService.resolve(e,'regenPercent'),-1)});
 c.EntitySimulationAuthorityService={isLocal:e=>e.local!==false};const fx=[];c.EffectSpawnService={spawn:e=>{fx.push(e);return e},presentationSnapshot:e=>e};c.OnlinePresentationSyncService={send(){}};
-test('반 파괴 후 시간 복구 없음·5회 적중 복구·초당25 재생',()=>{
+test('반 파괴 후 시간 복구 없음·4회 적중 복구·초당25 재생',()=>{
  const e=entity();e.character=chars.van;e.radius=20;const key=e.character.combatIdleProgressRepair.stateKey,repair=e.character.combatIdleProgressRepair.progressStateKey;
  e.actionState.set(key,{kind:'progress-state',stateKey:key,value:0,max:800});
  c.ProgressStateService.updateIdleRepair(e,6000);c.ProgressStateService.updateIdleRepair(e,60000);
  assert.equal(e.actionState.get(key).value,0);assert.equal(e.actionState.get(repair).value,0);assert.equal(fx.length,0);
- for(let hit=1;hit<=5;hit++){
-  c.ProgressStateService.apply(e,{stateKey:repair,max:5,amount:1});
+ for(let hit=1;hit<=4;hit++){
+  c.ProgressStateService.apply(e,{stateKey:repair,max:4,amount:1});
   c.ProgressStateService.updateIdleRepair(e,60000+hit);
-  assert.equal(e.actionState.get(key).value,hit<5?0:800);
+  assert.equal(e.actionState.get(key).value,hit<4?0:800);
  }
  assert.equal(fx.length,1);assert.equal(e.actionState.get(repair).value,0);
  c.ProgressStateService.updateIdleRepair(e,61000);assert.equal(fx.length,1);
  e.actionState.get(key).value=400;c.ProgressStateService.updateIdleRepair(e,62000);assert.equal(e.actionState.get(key).value,425);
  e.actionState.get(key).value=0;c.ProgressStateService.updateIdleRepair(e,100000);assert.equal(e.actionState.get(key).value,0);assert.equal(e.actionState.get(repair).value,0);
 });
-test('반 실제 적중 Trigger·DOT/소환수 제외·4회 유지·5회 복구·재파괴 초기화',()=>{
+test('반 실제 적중 Trigger·DOT/소환수 제외·3회 유지·4회 복구·재파괴 초기화',()=>{
  const h=vm.createContext({performance:{now:()=>1000},ProgressStateService:c.ProgressStateService,EntitySimulationAuthorityService:{isLocal:()=>true},CCService:{isDotImpact:i=>i?.dot===true},RuntimeValueReferenceService:{resolve:(e,r)=>e.actionState.get(r.stateKey)?.value??r.initial??0}});
  for(const [file,name]of [['src/core/TriggerConditionService.js','TriggerConditionService'],['src/core/TriggerModuleService.js','TriggerModuleService'],['src/combat/ProgressHitTargetPolicy.js','ProgressHitTargetPolicy'],['src/render/CharacterTriggerEffectService.js','CharacterTriggerEffectService']])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8')+`;globalThis.${name}=${name};`,h);
  const e=entity();e.character=chars.van;const key=chars.van.wrenchDurability.stateKey,repair=chars.van.wrenchDurability.repairProgressStateKey;
@@ -62,8 +63,8 @@ test('반 실제 적중 Trigger·DOT/소환수 제외·4회 유지·5회 복구�
  const hit=(target={kind:'player'},impact={})=>h.CharacterTriggerEffectService.run(e,'damage-dealt',{source:e,target,impact,amount:100});
  hit();assert.equal(e.actionState.has(repair),false);e.actionState.get(key).value=0;
  hit({kind:'summon'});hit({kind:'player'},{dot:true});assert.equal(e.actionState.has(repair),false);
- for(let i=1;i<=4;i++){hit();c.ProgressStateService.updateIdleRepair(e,1000+i);assert.equal(e.actionState.get(key).value,0);assert.equal(e.actionState.get(repair).value,i)}
- c.ProgressStateService.updateIdleRepair(e,90000);assert.equal(e.actionState.get(repair).value,4);
+ for(let i=1;i<=3;i++){hit();c.ProgressStateService.updateIdleRepair(e,1000+i);assert.equal(e.actionState.get(key).value,0);assert.equal(e.actionState.get(repair).value,i)}
+ c.ProgressStateService.updateIdleRepair(e,90000);assert.equal(e.actionState.get(repair).value,3);
  hit();c.ProgressStateService.updateIdleRepair(e,90001);assert.equal(e.actionState.get(key).value,800);assert.equal(e.actionState.get(repair).value,0);
  e.actionState.get(key).value=0;hit();c.ProgressStateService.updateIdleRepair(e,91000);assert.equal(e.actionState.get(repair).value,1);assert.equal(e.actionState.get(key).value,0);
 });

@@ -70,6 +70,7 @@
             collisionTargets: true,
             stateKey: "nare-rmb-plane",
             rehitInterval: 1000,
+            boundaryMode: "remove",
             expireAtRange: false
           },
           {type: "projectile.pierce", targets: true, walls: true},

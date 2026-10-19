@@ -1871,7 +1871,7 @@ function freezeCharacterData(value){
 const CHARACTER_RULES=freezeCharacterData({
   weaponPresentation: {transientMs: 800},
   styles: {"1": "파워형", "2": "기동형", "3": "지속전투형", "4": "차징형", "5": "조건형", "6": "반격형", "7": "성장형", "8": "범위장악형", "9": "행동제약형"},
-  moveLabels: {"latis":"빠름", "lena":"빠름", "huri":"빠름", "hab":"느림", "siro":"매우 빠름", "geopin":"느림", "shubi":"보통", "ruvu":"보통", "miaruky":"느림", "mainmad":"빠름", "mehugu":"보통", "lian":"빠름", "tau":"빠름", "veleu":"매우 빠름", "elin":"느림", "nsonya":"매우 빠름", "maisil":"빠름", "erapabi":"빠름", "reika":"느림", "shairaz":"느림", "phase":"보통", "kan":"매우 빠름", "cherity":"매우 느림", "konyeong":"빠름", "herjang":"보통", "hatsuhats":"보통", "prill":"보통", "dazbin":"빠름", "yui":"빠름", "peluna":"빠름", "sherina":"느림", "sya":"매우 빠름", "runef":"보통", "roon":"빠름", "intu":"빠름", "meramona":"보통", "tadta":"매우 느림", "nanamnang":"느림", "raise":"빠름", "levina":"매우 빠름", "ki":"빠름", "sor":"보통", "jerry":"느림", "ruli":"보통", "lete":"빠름", "clea":"빠름", "shello":"빠름", "tinya":"느림", "lime":"보통", "quri":"보통", "hapupu":"매우 빠름", "atsuteo":"보통", "nare":"빠름", "kines":"보통", "ezrail":"보통", "nyu":"매우 빠름", "gae":"느림", "cyien":"빠름", "kanon":"빠름", "deltroove":"빠름", "xianelli":"빠름", "ban":"빠름", "sherbet":"보통", "dira":"보통"},
+  moveLabels: {"kasha":"느림", "latis":"빠름", "lena":"빠름", "huri":"빠름", "hab":"느림", "siro":"매우 빠름", "geopin":"느림", "shubi":"보통", "ruvu":"보통", "miaruky":"느림", "mainmad":"빠름", "mehugu":"보통", "lian":"빠름", "tau":"빠름", "veleu":"매우 빠름", "elin":"느림", "nsonya":"매우 빠름", "maisil":"빠름", "erapabi":"빠름", "reika":"느림", "shairaz":"느림", "phase":"보통", "kan":"매우 빠름", "cherity":"매우 느림", "konyeong":"빠름", "herjang":"보통", "hatsuhats":"보통", "prill":"보통", "dazbin":"빠름", "yui":"빠름", "peluna":"빠름", "sherina":"느림", "sya":"매우 빠름", "runef":"보통", "roon":"빠름", "intu":"빠름", "meramona":"보통", "tadta":"매우 느림", "nanamnang":"느림", "raise":"빠름", "levina":"매우 빠름", "ki":"빠름", "sor":"보통", "jerry":"느림", "ruli":"보통", "lete":"빠름", "clea":"빠름", "shello":"빠름", "tinya":"느림", "lime":"보통", "quri":"보통", "hapupu":"매우 빠름", "atsuteo":"보통", "nare":"빠름", "kines":"보통", "ezrail":"보통", "nyu":"매우 빠름", "gae":"느림", "cyien":"빠름", "kanon":"빠름", "deltroove":"빠름", "xianelli":"빠름", "ban":"빠름", "sherbet":"보통", "dira":"보통"},
   roles: {"1": "딜러", "2": "저격수", "3": "탱커", "4": "서포터", "5": "컨트롤러", "6": "암살자"},
   ranges: [
     {id: 1, maxInclusive: 150, tag: "초근거리"},
@@ -1899,7 +1899,7 @@ const CHARACTER_RULES=freezeCharacterData({
 });
 
 
-/* ===== 캐릭터별 단일 원본: 시작 (58명) ===== */
+/* ===== 캐릭터별 단일 원본: 시작 (66명) ===== */
 const CHARACTER_DATA=freezeCharacterData({
   // 슈비: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   shubi: {
@@ -2749,8 +2749,8 @@ const CHARACTER_DATA=freezeCharacterData({
     attacks: {
       lmbMelee: {
         id: "attack.miaruky.lmb.melee",
-        damageRatio: 2,
-        cost: 200,
+        damageRatio: 1.5,
+        cost: 150,
         cd: 450,
         attackDelayGroup: "miaruky-primary",
         attackDelay: 450,
@@ -2769,8 +2769,8 @@ const CHARACTER_DATA=freezeCharacterData({
       },
       lmbRanged: {
         id: "attack.miaruky.lmb.ranged",
-        damageRatio: 1.5,
-        cost: 200,
+        damageRatio: 1,
+        cost: 150,
         cd: 450,
         attackDelayGroup: "miaruky-primary",
         attackDelay: 450,
@@ -3149,9 +3149,6 @@ const CHARACTER_DATA=freezeCharacterData({
       "id": "ability.mainmad.lmb",
       "input": "lmb",
       "attackId": "attack.mainmad.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -3504,7 +3501,6 @@ const CHARACTER_DATA=freezeCharacterData({
         id: "ability.mehugu.lmb",
         input: "lmb",
         attackId: "attack.mehugu.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",
@@ -6675,7 +6671,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "role": 1
   },
   "stats": {
-    "maxHealth": 1300,
+    "maxHealth": 1200,
     "speed": 4.25,
     "radius": 20,
     "baseDamage": 150,
@@ -6819,7 +6815,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "range": {
             "$ref": "attacks.lmbCritical.range"
           },
-          "halfAngle": 0.16755160819145565,
+          "halfAngle": 0.10053096491487339,
           "wallPolicy": "block"
         },
         {
@@ -7893,7 +7889,8 @@ const CHARACTER_DATA=freezeCharacterData({
                 "value": 1,
                 "duration": "movement"
               }
-            ]
+            ],
+            "evasionUntargetable": true
           }
         },
         {
@@ -7946,7 +7943,8 @@ const CHARACTER_DATA=freezeCharacterData({
               "value": 1,
               "duration": "movement"
             }
-          ]
+          ],
+          "evasionUntargetable": true
         },
         {
           "type": "mode.set",
@@ -9524,9 +9522,6 @@ const CHARACTER_DATA=freezeCharacterData({
       "id": "ability.cherity.lmb",
       "input": "lmb",
       "attackId": "attack.cherity.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -10952,9 +10947,6 @@ const CHARACTER_DATA=freezeCharacterData({
       "id": "ability.hatsuhats.lmb",
       "input": "lmb",
       "attackId": "attack.hatsuhats.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -12010,435 +12002,730 @@ const CHARACTER_DATA=freezeCharacterData({
 },
   // 다즈빈: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   dazbin: {
-    id: "dazbin",
-    name: "다즈빈",
-    englishName: "Dazbin",
-    title: "견습 마법사",
-    color: "#3355ff",
-    classification: {style: 8, range: 0, role: 5},
-    stats: {maxHealth: 1000, speed: 3.75, radius: 20, baseDamage: 300, difficulty: 2},
-    desc: "물의 정령과 파동으로 적을 압박하는 캐릭터",
-    tooltipSkills: [
-      {key: "LMB", name: "물의 정령", attack: "lmb", text: "물의 정령이 가장 가까운 적을 향해 유도 ({damage})"},
-      {
-        key: "RMB",
-        name: "파동 구체",
-        attack: "rmb",
-        text: "벽과 적을 관통하는 파동 구체. 범위 내 적에게 {fieldIntervalSeconds}초마다 피해 및 감속 ({damage})"
-      },
-      {key: "L-Shift", name: "강한 파도", attack: "counter", text: "벽과 적을 관통하는 거대한 파도. 적에게 피해, 경로의 모든 투사체 제거 ({damage})"}
-    ],
-    attacks: {
-      lmb: {
-        id: "attack.dazbin.lmb",
-        damageRatio: 1,
-        cost: 350,
-        cd: 380,
-        range: 650,
-        modules: [
-          {
-            type: "delivery.projectile",
-            speed: 16.9,
-            radius: 10,
-            homing: {startTravelRatio: 0.3, maxTurnPerFrame: 0.03, preserveTurnRadius: true, targetRelations: ["enemy"]}
-          }
-        ],
-        tags: ["평타"]
-      },
-      rmb: {
-        id: "attack.dazbin.rmb",
-        damageRatio: 0.3333333333333333,
-        cost: 700,
-        cd: 400,
-        range: 820,
-        modules: [
-          {
-            type: "delivery.range-projectile",
-            speed: 7,
-            radius: 150,
-            rehitInterval: 500,
-            proximitySpeed: {active: 2, targetRelations: ["enemy"]},
-            contactStatus: {status: "slow", duration: 120, targetRelations: ["enemy"]}
-          },
-          {type: "projectile.pierce", targets: true, walls: true},
-          {
-            type: "projectile.presentation",
-            kind: "range-projectile",
-            style: {
-              fillAlpha: 0.2,
-              strokeColor: "#508cff",
-              strokeAlpha: 0.9,
-              strokeWidth: 3,
-              innerColor: "#8fc2ff",
-              innerScale: 0.55,
-              innerAlpha: 0.5,
-              innerStrokeWidth: 2
-            }
-          }
-        ],
-        tags: ["스킬"]
-      },
-      counter: {
-        id: "attack.dazbin.counter",
-        damageRatio: 0.6666666666666666,
-        cost: 0,
-        cd: 300,
-        range: 4000,
-        modules: [
-          {
-            type: "effect.spawn",
-            when: "after-attack",
-            renderType: "progressRect",
-            position: "source",
-            rangeMode: "world-edge",
-            range: characterValue("attacks.counter.range"),
-            halfWidth: 240,
-            growthSpeed: 1,
-            travelSpeed: 1800,
-            animation: true,
-            color: "51,85,255",
-            strokeColor: "125,211,252",
-            fillAlpha: 0.22,
-            strokeAlpha: 0.92,
-            lineWidth: 3,
-            endCap: true,
-            endCapColor: "224,242,254",
-            endCapAlpha: 0.95,
-            endCapLineWidth: 6,
-            centerLine: true,
-            centerColor: "186,230,253",
-            centerAlpha: 0.4,
-            centerLineWidth: 2,
-            duration: 1100,
-            damage: {
-              attackId: "attack.dazbin.counter",
-              hitMode: "progressive-rect",
-              projectileClear: {targetRelations: ["self", "ally", "enemy", "neutral"]},
-              module: {type: "delivery.area", shape: "rect", range: 4000, halfWidth: 240, wallPolicy: "ignore"}
-            }
-          }
-        ],
-        tags: ["반격"]
-      }
+  "id": "dazbin",
+  "name": "다즈빈",
+  "englishName": "Dazbin",
+  "title": "견습 마법사",
+  "color": "#3355ff",
+  "classification": {
+    "style": 8,
+    "range": 0,
+    "role": 5
+  },
+  "stats": {
+    "maxHealth": 1000,
+    "speed": 3.75,
+    "radius": 20,
+    "baseDamage": 300,
+    "difficulty": 2
+  },
+  "desc": "물의 정령과 파동으로 적을 압박하는 캐릭터",
+  "tooltipSkills": [
+    {
+      "key": "LMB",
+      "name": "물의 정령",
+      "attack": "lmb",
+      "text": "물의 정령이 가장 가까운 적을 향해 유도 ({damage})"
     },
-    abilities: {
-      lmb: {
-        id: "ability.dazbin.lmb",
-        input: "lmb",
-        attackId: "attack.dazbin.lmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "lmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
-            {type: "cooldowns.ready", attackIds: ["attack.dazbin.lmb"]},
-            {type: "resource.gte", resource: "stamina", value: 300}
-          ],
-          modules: [{type: "action.attack"}]
+    {
+      "key": "RMB",
+      "name": "파동 구체",
+      "attack": "rmb",
+      "text": "벽과 적을 관통하는 파동 구체. 범위 내 적에게 {fieldIntervalSeconds}초마다 피해 및 감속 ({damage})"
+    },
+    {
+      "key": "L-Shift",
+      "name": "강한 파도",
+      "attack": "counter",
+      "text": "벽과 적을 관통하는 거대한 파도. 적에게 피해, 경로의 모든 투사체 제거 ({damage})"
+    }
+  ],
+  "attacks": {
+    "lmb": {
+      "id": "attack.dazbin.lmb",
+      "damageRatio": 1,
+      "cost": 350,
+      "cd": 380,
+      "range": 650,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 16.9,
+          "radius": 10,
+          "homing": {
+            "startTravelRatio": 0.3,
+            "maxTurnPerFrame": 0.03,
+            "preserveTurnRadius": true,
+            "targetRelations": [
+              "enemy"
+            ]
+          }
         }
-      },
-      rmb: {
-        id: "ability.dazbin.rmb",
-        input: "rmb",
-        attackId: "attack.dazbin.rmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "rmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
-            {type: "cooldowns.ready", attackIds: ["attack.dazbin.rmb"]},
-            {type: "resource.gte", resource: "stamina", value: 600}
-          ],
-          modules: [{type: "action.attack"}]
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "rmb": {
+      "id": "attack.dazbin.rmb",
+      "damageRatio": 0.3333333333333333,
+      "cost": 700,
+      "cd": 400,
+      "range": 820,
+      "modules": [
+        {
+          "type": "delivery.range-projectile",
+          "speed": 7,
+          "radius": 180,
+          "rehitInterval": 500,
+          "proximitySpeed": {
+            "active": 2,
+            "targetRelations": [
+              "enemy"
+            ]
+          },
+          "contactStatus": {
+            "status": "slow",
+            "duration": 120,
+            "targetRelations": [
+              "enemy"
+            ]
+          }
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": true,
+          "walls": true
+        },
+        {
+          "type": "projectile.presentation",
+          "kind": "range-projectile",
+          "style": {
+            "fillAlpha": 0.2,
+            "strokeColor": "#508cff",
+            "strokeAlpha": 0.9,
+            "strokeWidth": 3,
+            "innerColor": "#8fc2ff",
+            "innerScale": 0.55,
+            "innerAlpha": 0.5,
+            "innerStrokeWidth": 2
+          }
         }
-      },
-      counter: {
-        id: "ability.dazbin.counter",
-        input: "counter",
-        attackId: "attack.dazbin.counter",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "counter"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
-            {type: "source.property.falsy", property: "counterWindup"},
-            {type: "counter.ready"}
-          ],
-          modules: [
-            {
-              type: "counter.execute",
-              windup: 300,
-              consumeState: "counter-ready",
-              preview: {type: "preview.create", shape: "attack-shape"},
-              cc: {
-                type: "movement.neutralize-knockback",
-                target: "hit-target",
-                direction: "away-from-impact",
-                distance: 84,
-                speed: 10,
-                oncePerExecution: true
-              }
+      ],
+      "tags": [
+        "스킬"
+      ]
+    },
+    "counter": {
+      "id": "attack.dazbin.counter",
+      "damageRatio": 0.6666666666666666,
+      "cost": 0,
+      "cd": 300,
+      "range": 4000,
+      "modules": [
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "progressRect",
+          "position": "source",
+          "rangeMode": "world-edge",
+          "range": {
+            "$ref": "attacks.counter.range"
+          },
+          "halfWidth": 240,
+          "growthSpeed": 1,
+          "travelSpeed": 1800,
+          "animation": true,
+          "color": "51,85,255",
+          "strokeColor": "125,211,252",
+          "fillAlpha": 0.22,
+          "strokeAlpha": 0.92,
+          "lineWidth": 3,
+          "endCap": true,
+          "endCapColor": "224,242,254",
+          "endCapAlpha": 0.95,
+          "endCapLineWidth": 6,
+          "centerLine": true,
+          "centerColor": "186,230,253",
+          "centerAlpha": 0.4,
+          "centerLineWidth": 2,
+          "duration": 1100,
+          "damage": {
+            "attackId": "attack.dazbin.counter",
+            "hitMode": "progressive-rect",
+            "projectileClear": {
+              "targetRelations": [
+                "self",
+                "ally",
+                "enemy",
+                "neutral"
+              ]
+            },
+            "module": {
+              "type": "delivery.area",
+              "shape": "rect",
+              "range": 4000,
+              "halfWidth": 240,
+              "wallPolicy": "ignore"
             }
-          ]
+          }
         }
-      }
+      ],
+      "tags": [
+        "반격"
+      ]
     }
   },
+  "abilities": {
+    "lmb": {
+      "id": "ability.dazbin.lmb",
+      "input": "lmb",
+      "attackId": "attack.dazbin.lmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "lmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "cooldowns.ready",
+            "attackIds": [
+              "attack.dazbin.lmb"
+            ]
+          },
+          {
+            "type": "resource.gte",
+            "resource": "stamina",
+            "value": 300
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          }
+        ]
+      }
+    },
+    "rmb": {
+      "id": "ability.dazbin.rmb",
+      "input": "rmb",
+      "attackId": "attack.dazbin.rmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "cooldowns.ready",
+            "attackIds": [
+              "attack.dazbin.rmb"
+            ]
+          },
+          {
+            "type": "resource.gte",
+            "resource": "stamina",
+            "value": 600
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          }
+        ]
+      }
+    },
+    "counter": {
+      "id": "ability.dazbin.counter",
+      "input": "counter",
+      "attackId": "attack.dazbin.counter",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "counter"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "source.property.falsy",
+            "property": "counterWindup"
+          },
+          {
+            "type": "counter.ready"
+          }
+        ],
+        "modules": [
+          {
+            "type": "counter.execute",
+            "windup": 300,
+            "consumeState": "counter-ready",
+            "preview": {
+              "type": "preview.create",
+              "shape": "attack-shape"
+            },
+            "cc": {
+              "type": "movement.neutralize-knockback",
+              "target": "hit-target",
+              "direction": "away-from-impact",
+              "distance": 84,
+              "speed": 10,
+              "oncePerExecution": true
+            }
+          }
+        ]
+      }
+    }
+  }
+},
   // 유이: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   yui: {
-    id: "yui",
-    name: "유이",
-    englishName: "Yui",
-    title: "무감정 소녀",
-    color: "#6e97ff",
-    classification: {style: 2, range: 0, role: 6},
-    stats: {maxHealth: 900, speed: 4.25, radius: 20, baseDamage: 300, difficulty: 6},
-    desc: "무한히 스테미나를 복원하며 텔레포트로 적에게 혼란을 주는 캐릭터",
-    temporalMemory: {
-      stateKey: "yui-rewind",
-      sampleInterval: 30,
-      maxDuration: 3500,
-      rewindTime: 3000,
-      resources: ["stamina"],
-      color: "#6e97ff"
-    },
-    worldEffectModules: [
-  {
-    "type": "effect.spawn",
-    "renderType": "weaponImage",
-    "style": "temporal-dagger",
-    "scale": 1.8,
-    "angle": 0.6,
-    "rotationStateKey": "yui-dagger-spin",
-    "rotationMs": 350,
-    "rotationRadians": -6.283185307179586
-  }
-],
-    tooltipSkills: [
-      {key: "LMB", name: "텔레포트 단검", attack: "lmb", text: "전방 부채꼴 베기. 적중 시 조준 방향으로 순간이동 ({damage})"},
-      {key: "RMB", name: "공간 역행", attack: "rmb", text: "{rewindSeconds}초 전의 위치로 되돌아가며 해당 시점으로 스테미나 복원"},
-      {key: "L-Shift", name: "순간이동 베기", attack: "counter", text: "전방으로 순간이동하며 경로상 적 피해 ({damage})"}
+  "id": "yui",
+  "name": "유이",
+  "englishName": "Yui",
+  "title": "무감정 소녀",
+  "color": "#6e97ff",
+  "classification": {
+    "style": 2,
+    "range": 0,
+    "role": 6
+  },
+  "stats": {
+    "maxHealth": 900,
+    "speed": 4.25,
+    "radius": 20,
+    "baseDamage": 300,
+    "difficulty": 6
+  },
+  "desc": "무한히 스테미나를 복원하며 텔레포트로 적에게 혼란을 주는 캐릭터",
+  "temporalMemory": {
+    "stateKey": "yui-rewind",
+    "sampleInterval": 30,
+    "maxDuration": 3500,
+    "rewindTime": 3000,
+    "resources": [
+      "stamina"
     ],
-    attacks: {
-      lmb: {
-        id: "attack.yui.lmb",
-        damageRatio: 1,
-        cost: 200,
-        cd: 400,
-        range: 144,
-        modules: [
-          {
-            type: "delivery.area",
-            contactType: "melee",
-            shape: "sector",
-            range: characterValue("attacks.lmb.range"),
-            halfAngle: 1.0471975511965976,
-            wallPolicy: "block"
-          },
-          {
-            type: "effect.spawn",
-            renderType: "arcSweep",
-            range: characterValue("attacks.lmb.range"),
-            halfAngle: characterValue("attacks.lmb.modules.0.halfAngle"),
-            animateSweep: true,
-            sweepSpeed: 6.6666667,
-            sweepDirection: "counterclockwise",
-            edgeLine: true,
-            edgeColor: "255,255,255",
-            edgeAlpha: 0.95,
-            edgeLineWidth: 2.5,
-            color: "110,151,255",
-            fillAlpha: 0.22,
-            strokeAlpha: 0.9,
-            lineWidth: 2,
-            durationFrames: 25,
-            clipToAttackArea: true,
-            replaceAutoAreaEffect: true,
-            scaleWithAttackRange: true
-          },
-          {
-            type: "movement.move",
-            when: "on-hit",
-            target: "attack-direction",
-            distance: 192,
-            duration: 1,
-            oncePerExecution: true,
-            replaceActive: true,
-            collision: {passWalls: true, passEnemies: true},
-            resolveOverlapOnEnd: true,
-            tags: ["이동기"],
-            presentation: {type: "dash-line", color: "110,151,255", width: 6, alpha: 0.4, duration: 167}
-          },
-{"type": "mode.toggle", "when": "after-attack", "stateKey": "yui-dagger-spin", "values": ["a", "b"], "step": 1}
-],
-        tags: ["평타"]
-      },
-      rmb: {
-        id: "attack.yui.rmb",
-        damageRatio: 0,
-        cost: 600,
-        cd: 500,
-        range: 0,
-        effectsOnly: true,
-        modules: [
-{"type": "mode.toggle", "when": "after-attack", "stateKey": "yui-dagger-spin", "values": ["a", "b"], "step": -1}
-],
-        tags: ["스킬"]
-      },
-      counter: {
-        id: "attack.yui.counter",
-        damageRatio: 1,
-        cost: 0,
-        cd: 300,
-        range: 320,
-        effectsOnly: false,
-        previewGeometry: {shape: "rect", range: characterValue("attacks.counter.range"), halfWidth: 40, wallPolicy: "ignore"},
-        modules: [
-          {
-            type: "movement.move",
-            speedMultiplier: 1.35,
-            direction: "attack",
-            distance: characterValue("attacks.counter.range"),
-            duration: 1,
-            replaceActive: true,
-            collision: {passWalls: true, passEnemies: true},
-            resolveOverlapOnEnd: true,
-            tags: ["이동기"]
-          },
-          {
-            type: "effect.spawn",
-            when: "after-attack",
-            renderType: "effectShape",
-            visible: false,
-            duration: 16.6667,
-            animation: {
-              mode: "forward",
-              distance: characterValue("attacks.counter.range"),
-              easing: "linear",
-              clipByMovementCollision: true
-            },
-            damage: {
-              attackId: "attack.yui.counter",
-              requireMovementExecution: true,
-              movementStateKey: "movement:move",
-              oncePerExecution: true,
-              hitMode: "body-contact",
-              contactRadius: 40,
-              pathPresentation: {width: 40, duration: 200},
-              stopAfterFirstContact: false
-            }
-          },
-{"type": "mode.toggle", "when": "after-attack", "stateKey": "yui-dagger-spin", "values": ["a", "b"], "step": 1}
-],
-        tags: ["반격"]
-      }
+    "color": "#6e97ff"
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "temporal-dagger",
+      "scale": 1.8,
+      "angle": 0.6,
+      "rotationStateKey": "yui-dagger-spin",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    }
+  ],
+  "tooltipSkills": [
+    {
+      "key": "LMB",
+      "name": "텔레포트 단검",
+      "attack": "lmb",
+      "text": "전방 부채꼴 베기. 적중 시 조준 방향으로 순간이동 ({damage})"
     },
-    abilities: {
-      lmb: {
-        id: "ability.yui.lmb",
-        input: "lmb",
-        attackId: "attack.yui.lmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "lmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
-            {type: "cooldowns.ready", attackIds: ["attack.yui.lmb"]},
-            {type: "resource.gte", resource: "stamina", value: characterValue("attacks.lmb.cost")}
+    {
+      "key": "RMB",
+      "name": "공간 역행",
+      "attack": "rmb",
+      "text": "{rewindSeconds}초 전의 위치로 되돌아가며 해당 시점으로 스테미나 복원"
+    },
+    {
+      "key": "L-Shift",
+      "name": "순간이동 베기",
+      "attack": "counter",
+      "text": "전방으로 순간이동하며 경로상 적 피해 ({damage})"
+    }
+  ],
+  "attacks": {
+    "lmb": {
+      "id": "attack.yui.lmb",
+      "damageRatio": 1,
+      "cost": 250,
+      "cd": 400,
+      "range": 144,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "contactType": "melee",
+          "shape": "sector",
+          "range": {
+            "$ref": "attacks.lmb.range"
+          },
+          "halfAngle": 1.0471975511965976,
+          "wallPolicy": "block"
+        },
+        {
+          "type": "effect.spawn",
+          "renderType": "arcSweep",
+          "range": {
+            "$ref": "attacks.lmb.range"
+          },
+          "halfAngle": {
+            "$ref": "attacks.lmb.modules.0.halfAngle"
+          },
+          "animateSweep": true,
+          "sweepSpeed": 6.6666667,
+          "sweepDirection": "counterclockwise",
+          "edgeLine": true,
+          "edgeColor": "255,255,255",
+          "edgeAlpha": 0.95,
+          "edgeLineWidth": 2.5,
+          "color": "110,151,255",
+          "fillAlpha": 0.22,
+          "strokeAlpha": 0.9,
+          "lineWidth": 2,
+          "durationFrames": 25,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true,
+          "scaleWithAttackRange": true
+        },
+        {
+          "type": "movement.move",
+          "when": "on-hit",
+          "target": "attack-direction",
+          "distance": 192,
+          "duration": 1,
+          "oncePerExecution": true,
+          "replaceActive": true,
+          "collision": {
+            "passWalls": true,
+            "passEnemies": true
+          },
+          "resolveOverlapOnEnd": true,
+          "tags": [
+            "이동기"
           ],
-          modules: [{type: "action.attack"}]
+          "presentation": {
+            "type": "dash-line",
+            "color": "110,151,255",
+            "width": 6,
+            "alpha": 0.4,
+            "duration": 167
+          }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "yui-dagger-spin",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
-      },
-      rmb: {
-        id: "ability.yui.rmb",
-        input: "rmb",
-        attackId: "attack.yui.rmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "rmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
-            {type: "cooldowns.ready", attackIds: ["attack.yui.rmb"]},
-            {type: "resource.gte", resource: "stamina", value: characterValue("attacks.rmb.cost")}
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "rmb": {
+      "id": "attack.yui.rmb",
+      "damageRatio": 0,
+      "cost": 600,
+      "cd": 500,
+      "range": 0,
+      "effectsOnly": true,
+      "modules": [
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "yui-dagger-spin",
+          "values": [
+            "a",
+            "b"
           ],
-          modules: [
-            {type: "context.temporal-snapshot", rewindTime: 3000},
-            {type: "action.attack"},
-            {
-              type: "movement.move",
-              requireExecuted: true,
-              stateKey: "movement:move",
-              direction: "target-point",
-              replaceActive: true,
-              duration: 1,
-              collision: {passWalls: true, passEnemies: true},
-              resolveOverlapOnEnd: true,
-              tags: ["이동기"]
+          "step": -1
+        }
+      ],
+      "tags": [
+        "스킬"
+      ]
+    },
+    "counter": {
+      "id": "attack.yui.counter",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 300,
+      "range": 320,
+      "effectsOnly": false,
+      "previewGeometry": {
+        "shape": "rect",
+        "range": {
+          "$ref": "attacks.counter.range"
+        },
+        "halfWidth": 40,
+        "wallPolicy": "ignore"
+      },
+      "modules": [
+        {
+          "type": "movement.move",
+          "speedMultiplier": 1.35,
+          "direction": "attack",
+          "distance": {
+            "$ref": "attacks.counter.range"
+          },
+          "duration": 1,
+          "replaceActive": true,
+          "collision": {
+            "passWalls": true,
+            "passEnemies": true
+          },
+          "resolveOverlapOnEnd": true,
+          "tags": [
+            "이동기"
+          ]
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "effectShape",
+          "visible": false,
+          "duration": 16.6667,
+          "animation": {
+            "mode": "forward",
+            "distance": {
+              "$ref": "attacks.counter.range"
             },
-            {type: "resource.restore-snapshot", resource: "stamina", requireExecuted: true},
-            {
-              type: "effect.spawn",
-              requireExecuted: true,
-              position: "rewind-path",
-              renderType: "temporalRewind",
-              durationFrames: 18,
-              ringColor: "180,210,255",
-              fillColor: "69,122,255",
-              strokeColor: "130,170,255"
-            }
-          ]
-        }
-      },
-      counter: {
-        id: "ability.yui.counter",
-        input: "counter",
-        attackId: "attack.yui.counter",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "counter"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
-            {type: "source.property.falsy", property: "counterWindup"},
-            {type: "counter.ready"}
+            "easing": "linear",
+            "clipByMovementCollision": true
+          },
+          "damage": {
+            "attackId": "attack.yui.counter",
+            "requireMovementExecution": true,
+            "movementStateKey": "movement:move",
+            "oncePerExecution": true,
+            "hitMode": "body-contact",
+            "contactRadius": 40,
+            "pathPresentation": {
+              "width": 40,
+              "duration": 200
+            },
+            "stopAfterFirstContact": false
+          }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "yui-dagger-spin",
+          "values": [
+            "a",
+            "b"
           ],
-          modules: [
-            {
-              type: "counter.execute",
-              windup: 300,
-              consumeState: "counter-ready",
-              preview: {type: "preview.create", shape: "attack-shape"},
-              cc: {
-                type: "movement.neutralize-knockback",
-                target: "hit-target",
-                direction: "attack",
-                distance: 84,
-                speed: 10,
-                oncePerExecution: true
-              }
-            }
-          ]
+          "step": 1
         }
-      }
+      ],
+      "tags": [
+        "반격"
+      ]
     }
   },
+  "abilities": {
+    "lmb": {
+      "id": "ability.yui.lmb",
+      "input": "lmb",
+      "attackId": "attack.yui.lmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "lmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "cooldowns.ready",
+            "attackIds": [
+              "attack.yui.lmb"
+            ]
+          },
+          {
+            "type": "resource.gte",
+            "resource": "stamina",
+            "value": {
+              "$ref": "attacks.lmb.cost"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          }
+        ]
+      }
+    },
+    "rmb": {
+      "id": "ability.yui.rmb",
+      "input": "rmb",
+      "attackId": "attack.yui.rmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "cooldowns.ready",
+            "attackIds": [
+              "attack.yui.rmb"
+            ]
+          },
+          {
+            "type": "resource.gte",
+            "resource": "stamina",
+            "value": {
+              "$ref": "attacks.rmb.cost"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "type": "context.temporal-snapshot",
+            "rewindTime": 3000
+          },
+          {
+            "type": "action.attack"
+          },
+          {
+            "type": "movement.move",
+            "requireExecuted": true,
+            "stateKey": "movement:move",
+            "direction": "target-point",
+            "replaceActive": true,
+            "duration": 1,
+            "collision": {
+              "passWalls": true,
+              "passEnemies": true
+            },
+            "resolveOverlapOnEnd": true,
+            "tags": [
+              "이동기"
+            ]
+          },
+          {
+            "type": "resource.restore-snapshot",
+            "resource": "stamina",
+            "requireExecuted": true
+          },
+          {
+            "type": "effect.spawn",
+            "requireExecuted": true,
+            "position": "rewind-path",
+            "renderType": "temporalRewind",
+            "durationFrames": 18,
+            "ringColor": "180,210,255",
+            "fillColor": "69,122,255",
+            "strokeColor": "130,170,255"
+          }
+        ]
+      }
+    },
+    "counter": {
+      "id": "ability.yui.counter",
+      "input": "counter",
+      "attackId": "attack.yui.counter",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "counter"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "source.property.falsy",
+            "property": "counterWindup"
+          },
+          {
+            "type": "counter.ready"
+          }
+        ],
+        "modules": [
+          {
+            "type": "counter.execute",
+            "windup": 300,
+            "consumeState": "counter-ready",
+            "preview": {
+              "type": "preview.create",
+              "shape": "attack-shape"
+            },
+            "cc": {
+              "type": "movement.neutralize-knockback",
+              "target": "hit-target",
+              "direction": "attack",
+              "distance": 84,
+              "speed": 10,
+              "oncePerExecution": true
+            }
+          }
+        ]
+      }
+    }
+  }
+},
   // 펠루나: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   peluna: {
   "id": "peluna",
@@ -12513,7 +12800,8 @@ const CHARACTER_DATA=freezeCharacterData({
           "modifierAttack": "anvilEmpower",
           "text": "피해량 {damageIncreasePercent}% 증가"
         }
-      ]
+      ],
+      "text": ""
     },
     {
       "key": "RMB",
@@ -12527,7 +12815,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "name": "인력 망치",
       "attack": "counter",
       "progressAttack": "counter",
-      "text": "주변 적을 끌어당기며 피해. 적중 시 즉시 {maxProgressStages}단계 강화 ({damage})"
+      "text": "주변 적을 끌어당기며 피해. 즉시 {maxProgressStages}단계 강화 ({damage})"
     }
   ],
   "summonSpecs": [
@@ -12977,7 +13265,7 @@ const CHARACTER_DATA=freezeCharacterData({
         {
           "type": "state.progress",
           "stateKey": "peluna-forge-time",
-          "when": "on-hit",
+          "when": "after-attack",
           "operation": "set-max",
           "max": {
             "$ref": "attacks.anvilEmpower.modules.1.max"
@@ -13051,7 +13339,7 @@ const CHARACTER_DATA=freezeCharacterData({
         {
           "type": "state.progress",
           "stateKey": "peluna-forge-time",
-          "when": "on-hit",
+          "when": "after-attack",
           "operation": "set-max",
           "max": {
             "$ref": "attacks.anvilEmpower.modules.1.max"
@@ -13491,7 +13779,7 @@ const CHARACTER_DATA=freezeCharacterData({
     },
     "counter": {
       "id": "attack.sherina.counter",
-      "damageRatio": 1.5,
+      "damageRatio": 1.25,
       "cost": 0,
       "cd": 300,
       "range": 798,
@@ -13573,7 +13861,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "targetRelations": [
             "enemy"
           ],
-          "direction": "away-from-impact",
+          "direction": "away-from-impact-axis",
           "distance": 84,
           "speed": 10,
           "oncePerExecution": false
@@ -13589,9 +13877,6 @@ const CHARACTER_DATA=freezeCharacterData({
       "id": "ability.sherina.lmb",
       "input": "lmb",
       "attackId": "attack.sherina.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -13764,7 +14049,7 @@ const CHARACTER_DATA=freezeCharacterData({
     name: "스야",
     englishName: "Sya",
     title: "안개 속 움직임",
-    color: "#0000ad",
+    color: "#2424c2",
     classification: {style: 1, range: 0, role: 6},
     stats: {maxHealth: 900, speed: 4.5, radius: 20, baseDamage: 250, difficulty: 4},
     desc: "은신으로 기습해 빠르게 쏟아붓고 빠져나오는 캐릭터",
@@ -13774,6 +14059,20 @@ const CHARACTER_DATA=freezeCharacterData({
       rotationStateKey: "sya-weapon-rotation", rotationMs: 350, rotationRadians: 6.283185307179586
     }],
     worldGaugeModules: [
+      {
+        type: "gauge.arc", visibility: "owner",
+        valueRef: {type: "state-duration-remaining", stateKey: "stealth:sya"},
+        conditions: [{type: "state.exists", stateKey: "stealth:sya"}],
+        color: characterValue("color"), completeColor: "#8bbcff",
+        completePulseColor: "#8bbcff", maxChargeFlash: true,
+        completePulseDash: [4, 3], showEmpty: false
+      },
+      {
+        type: "range.circle", visibility: "owner",
+        range: characterSum(characterValue("abilities.rmb.trigger.modules.0.detectRange"), characterValue("stats.radius")),
+        alpha: 0.45, dash: [5, 5],
+        conditions: [{type: "state.exists", stateKey: "stealth:sya"}]
+      },
       {
         type: "gauge.segmented",
         valueMode: "count",
@@ -13786,13 +14085,13 @@ const CHARACTER_DATA=freezeCharacterData({
           stateKey: "stealth:sya:attack-boost",
           fallbackPath: "abilities.rmb.trigger.modules.0.attackBoost.uses"
         },
-        segmentColor: "#0000ad",
+        segmentColor: "#2424c2",
         visibility: "owner",
         height: 4,
         gap: 2,
         activeAlpha: 0.95,
         background: "rgba(10,18,22,0.92)",
-        stroke: "rgba(0,0,173,0.40)",
+        stroke: "rgba(36,36,194,0.40)",
         conditions: [
           {type: "state.exists", stateKey: "stealth:sya:attack-boost"}
         ]
@@ -13804,15 +14103,15 @@ const CHARACTER_DATA=freezeCharacterData({
         key: "RMB RANGED",
         name: "서리안개 은신",
         attack: "rmb",
-        costText: "스테미나 {skillCost}~{stealthMaxStaminaCost}",
-        text: "최대 {stealthDurationSeconds}초 동안 이동속도 {stealthSpeedPercent}% 증가 및 벽 통과. 지속시간동안 스테미나를 소모하며 재사용 시 해제"
+        costText: "초당 스테미나 {v:abilities.rmb.trigger.modules.0.drainPerSecond}",
+        text: "최대 {stealthDurationSeconds}초 동안 이동속도 {stealthSpeedPercent}% 증가 및 은신. 지속시간동안 스테미나를 소모하며 재사용 시 해제"
       },
       {
         key: "RMB MELEE",
         name: "안개 기습",
         attack: "rmb",
         costText: "스테미나 0",
-        text: "은신 중 적이 근접하면 은신을 해제하고 주변 적 {stealthFreezeSeconds}초 빙결. 다음 평타 {stealthBoostCount}회 공격속도 증가"
+        text: "은신 중 적이 근접하면 은신을 해제하고 주변 적 {v:attacks.stealthFreeze.modules.1.steps.0.modules.0.duration|seconds}초 빙결. 다음 평타 {stealthBoostCount}회 공격속도 증가"
       },
       {key: "L-Shift", name: "서리폭풍 베기", attack: "counter", text: "주변 원형 베기. 적중 시 {freezeSeconds}초 빙결 ({damage})"}
     ],
@@ -13863,7 +14162,7 @@ const CHARACTER_DATA=freezeCharacterData({
       rmb: {
         id: "attack.sya.rmb",
         damageRatio: 0,
-        cost: 400,
+        cost: 0,
         cd: 300,
         range: 0,
         effectsOnly: true,
@@ -13911,7 +14210,7 @@ const CHARACTER_DATA=freezeCharacterData({
       },
       counter: {
         id: "attack.sya.counter",
-        damageRatio: 1.2,
+        damageRatio: 1,
         cost: 0,
         cd: 300,
         range: 260,
@@ -13986,7 +14285,7 @@ const CHARACTER_DATA=freezeCharacterData({
               type: "stealth.toggle",
               stateKey: "stealth:sya",
               maxDuration: 4000,
-              drainPerSecond: 100,
+              drainPerSecond: 150,
               speedModifier: 0.3,
               detectDelay: 400,
               detectRange: 80,
@@ -16148,7 +16447,9 @@ const CHARACTER_DATA=freezeCharacterData({
       ],
       "tags": [
         "반격"
-      ]
+      ],
+      "attackDelayGroup": "intu-primary",
+      "attackDelay": 600
     }
   },
   "abilities": {
@@ -16450,588 +16751,935 @@ const CHARACTER_DATA=freezeCharacterData({
 },
   // 메라 모나: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   meramona: {
-    id: "meramona",
-    name: "메라 모나",
-    englishName: "Mera Mona",
-    title: "마법 소녀",
-    color: "#ff21da",
-    classification: {style: 7, range: 0, role: 1},
-    stats: {maxHealth: 1000, speed: 4, radius: 20, baseDamage: 150, difficulty: 3},
-    desc: "정의를 수호하며 단계적으로 성장하는 마법소녀 캐릭터",
-    tagPersistentActionStateKeys: ["meramona-stage", "meramona-hit-stack"],
-    worldGaugeModules: [
-      {
-        type: "gauge.segmented",
-        valueMode: "count",
-        valueRef: {type: "progress-sum", stateKeys: ["meramona-stage", "meramona-temp-stage"], max: 4},
-        segments: [
-          {value: 1, color: "#ff21da"},
-          {value: 2, color: "#ff21da"},
-          {value: 3, color: "#ff21da"},
-          {value: 4, color: "#ff21da"}
+  "id": "meramona",
+  "name": "메라 모나",
+  "englishName": "Mera Mona",
+  "title": "마법 소녀",
+  "color": "#ff21da",
+  "classification": {
+    "style": 7,
+    "range": 0,
+    "role": 1
+  },
+  "stats": {
+    "maxHealth": 1000,
+    "speed": 4,
+    "radius": 20,
+    "baseDamage": 150,
+    "difficulty": 3
+  },
+  "desc": "정의를 수호하며 단계적으로 성장하는 마법소녀 캐릭터",
+  "tagPersistentActionStateKeys": [
+    "meramona-stage",
+    "meramona-hit-stack"
+  ],
+  "worldGaugeModules": [
+    {
+      "type": "gauge.segmented",
+      "valueMode": "count",
+      "valueRef": {
+        "type": "progress-sum",
+        "stateKeys": [
+          "meramona-stage",
+          "meramona-temp-stage"
         ],
-        height: 4,
-        gap: 2
-      }
-    ],
-    worldEffectModules: [
-  {
-    "type": "effect.spawn",
-    "renderType": "weaponImage",
-    "style": "magical-wand",
-    "scale": 2.0,
-    "angle": 0.4,
-    "motionStateKey": "meramona-wand-motion",
-    "motionMs": 400,
-    "motion": {
-      "rotation": -0.35,
-      "travelY": -0.12
+        "max": 4
+      },
+      "segments": [
+        {
+          "value": 1,
+          "color": "#ff21da"
+        },
+        {
+          "value": 2,
+          "color": "#ff21da"
+        },
+        {
+          "value": 3,
+          "color": "#ff21da"
+        },
+        {
+          "value": 4,
+          "color": "#ff21da"
+        }
+      ],
+      "height": 4,
+      "gap": 2
     }
-  },
-  {
-    "type": "effect.spawn",
-    "renderType": "weaponImage",
-    "style": "magical-wand-1",
-    "scale": 2.0,
-    "angle": 0.4,
-    "motionStateKey": "meramona-wand-motion",
-    "motionMs": 400,
-    "motion": {
-      "rotation": -0.35,
-      "travelY": -0.12
-    },
-    "conditions": [
-      {
-        "type": "state.progress-sum-gte",
-        "stateKeys": [
-          "meramona-stage",
-          "meramona-temp-stage"
-        ],
-        "value": 1
-      }
-    ]
-  },
-  {
-    "type": "effect.spawn",
-    "renderType": "weaponImage",
-    "style": "magical-wand-2",
-    "scale": 2.0,
-    "angle": 0.4,
-    "motionStateKey": "meramona-wand-motion",
-    "motionMs": 400,
-    "motion": {
-      "rotation": -0.35,
-      "travelY": -0.12
-    },
-    "conditions": [
-      {
-        "type": "state.progress-sum-gte",
-        "stateKeys": [
-          "meramona-stage",
-          "meramona-temp-stage"
-        ],
-        "value": 2
-      }
-    ]
-  },
-  {
-    "type": "effect.spawn",
-    "renderType": "weaponImage",
-    "style": "magical-wand-3",
-    "scale": 2.0,
-    "angle": 0.4,
-    "motionStateKey": "meramona-wand-motion",
-    "motionMs": 400,
-    "motion": {
-      "rotation": -0.35,
-      "travelY": -0.12
-    },
-    "conditions": [
-      {
-        "type": "state.progress-sum-gte",
-        "stateKeys": [
-          "meramona-stage",
-          "meramona-temp-stage"
-        ],
-        "value": 3
-      }
-    ]
-  },
-  {
-    "type": "effect.spawn",
-    "renderType": "weaponImage",
-    "style": "magical-wand-4",
-    "scale": 2.0,
-    "angle": 0.4,
-    "motionStateKey": "meramona-wand-motion",
-    "motionMs": 400,
-    "motion": {
-      "rotation": -0.35,
-      "travelY": -0.12
-    },
-    "conditions": [
-      {
-        "type": "state.progress-sum-gte",
-        "stateKeys": [
-          "meramona-stage",
-          "meramona-temp-stage"
-        ],
-        "value": 4
-      }
-    ]
-  }
-],
-    tooltipSkills: [
-      {
-        key: "ALWAYS",
-        name: "더욱 진심으로",
-        attack: "rmb",
-        showCost: false,
-        text: "평타 {v:attacks.lmb.modules.2.max}회 적중 시 변신 활성화"
-      },
-      {key: "LMB", name: "정의의 이름으로!", attack: "lmb", text: "레이저 투사체 발사 ({damage})"},
-      {
-        key: "RMB",
-        name: "변신!",
-        attack: "rmb",
-        text: "{delaySeconds}초 무적 후 다음 단계로 변신하며 주변 적에게 피해 및 넉백 ({linkedDamage})",
-        linkedAttack: "emerge"
-      },
-      {
-        inlineStages: [
-          {key: "RMB I", attack: "lmbStage1", text: "평타 사거리 증가"},
-          {key: "RMB II", attack: "lmbStage1", text: "이동속도 증가"},
-          {key: "RMB III", attack: "lmbStage3", text: "평타 공격속도 증가"},
-          {key: "RMB IV", attack: "lmbStage4", text: "평타 탄속 즉발"}
-        ]
-      },
-      {
-        key: "L-Shift",
-        name: "지지않아!",
-        attack: "counter",
-        text: "정의의 에너지 방출. 적중 여부와 관계없이 {progressDecaySeconds}초간 임시 단계 1단계 상승 ({damage})"
-      }
-    ],
-    attacks: {
-      lmb: {
-        id: "attack.meramona.lmb",
-        damageRatio: 1,
-        cost: 200,
-        cd: 350,
-        range: 550,
-        modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 24},
-          {
-            type: "projectile.presentation",
-            kind: "projectile-style",
-            style: {
-              type: "laser-bolt",
-              radius: characterValue("attacks.lmb.modules.0.radius"),
-              strokeColor: "255,33,218",
-              fillColor: "255,136,238"
-            }
-          },
-          {
-            type: "state.progress",
-            when: "on-hit",
-            stateKey: "meramona-hit-stack",
-            operation: "add",
-            amount: 1,
-            max: 2,
-            oncePerExecution: true,
-            presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          },
-{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
-],
-        tags: ["평타"]
-      },
-      lmbStage1: {
-        id: "attack.meramona.lmb-stage1",
-        damageRatio: 1,
-        cost: 200,
-        cd: 350,
-        range: 900,
-        modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 24},
-          {
-            type: "projectile.presentation",
-            kind: "projectile-style",
-            style: {
-              type: "laser-bolt",
-              radius: characterValue("attacks.lmbStage1.modules.0.radius"),
-              strokeColor: "255,33,218",
-              fillColor: "255,136,238"
-            }
-          },
-          {
-            type: "state.progress",
-            when: "on-hit",
-            stateKey: "meramona-hit-stack",
-            operation: "add",
-            amount: 1,
-            max: characterValue("attacks.lmb.modules.2.max"),
-            oncePerExecution: true,
-            presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          },
-{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
-],
-        tags: ["평타"]
-      },
-      lmbStage3: {
-        id: "attack.meramona.lmb-stage3",
-        damageRatio: 1,
-        cost: 200,
-        cd: 350,
-        range: 900,
-        modules: [
-          {type: "delivery.projectile", speed: 32.2, radius: 24},
-          {
-            type: "projectile.presentation",
-            kind: "projectile-style",
-            style: {
-              type: "laser-bolt",
-              radius: characterValue("attacks.lmbStage3.modules.0.radius"),
-              strokeColor: "255,33,218",
-              fillColor: "255,136,238"
-            }
-          },
-          {
-            type: "state.progress",
-            when: "on-hit",
-            stateKey: "meramona-hit-stack",
-            operation: "add",
-            amount: 1,
-            max: characterValue("attacks.lmb.modules.2.max"),
-            oncePerExecution: true,
-            presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          },
-{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
-],
-        tags: ["평타"]
-      },
-      lmbStage4: {
-        id: "attack.meramona.lmb-stage4",
-        damageRatio: 1,
-        cost: 200,
-        cd: 350,
-        range: 900,
-        modules: [
-          {
-            type: "delivery.area",
-            shape: "rect",
-            range: characterValue("attacks.lmbStage4.range"),
-            halfWidth: 24,
-            wallPolicy: "block",
-            projectileClassification: "instant-laser"
-          },
-          {
-            type: "effect.spawn",
-            renderType: "beamLine",
-            range: characterValue("attacks.lmbStage4.range"),
-            halfWidth: characterValue("attacks.lmbStage4.modules.0.halfWidth"),
-            nonHitAuraHalfWidth: 30,
-            color: "255,33,218",
-            coreColor: "255,255,255",
-            fillAlpha: 0.34,
-            strokeAlpha: 0.9,
-            coreAlpha: 0.82,
-            coreWidthRatio: 0.16,
-            lineWidth: 3,
-            glowAlpha: 0.065,
-            glowWidthRatio: 2.8,
-            midGlowAlpha: 0.11,
-            midGlowWidthRatio: 1.65,
-            flareAlpha: 0.36,
-            flareRadiusRatio: 1.15,
-            pulseSpeed: 0.018,
-            friendlyViewerAlphaScale: 0.5,
-            duration: 72,
-            followSource: true,
-            replaceAutoAreaEffect: true,
-            scaleWithAttackRange: true,
-            clipToAttackArea: true
-          },
-          {
-            type: "state.progress",
-            when: "on-hit",
-            stateKey: "meramona-hit-stack",
-            operation: "add",
-            amount: 1,
-            max: characterValue("attacks.lmb.modules.2.max"),
-            oncePerExecution: true,
-            presentation: {type: "arc-gauge", color: "#ff21da", lineWidth: 3.5, lineCap: "round", maxChargeFlash: true}
-          },
-{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
-],
-        tags: ["평타"]
-      },
-      rmb: {
-        id: "attack.meramona.rmb",
-        damageRatio: 0,
-        cost: 400,
-        cd: 500,
-        range: 170,
-        effectsOnly: true,
-        modules: [
-{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
-],
-        tags: ["스킬", "선딜레이"]
-      },
-      emerge: {
-        id: "attack.meramona.emerge",
-        damageRatio: 1,
-        cost: 0,
-        cd: 0,
-        range: 170,
-        modules: [
-          {type: "delivery.area", shape: "circle", range: characterValue("attacks.emerge.range"), wallPolicy: "block"},
-          {
-            type: "effect.spawn",
-            when: "after-attack",
-            renderType: "areaCircle",
-            position: "source",
-            range: characterValue("attacks.emerge.range"),
-            r: 0,
-            maxR: characterValue("attacks.emerge.range"),
-            color: "255,33,218",
-            fillAlpha: 0.12,
-            strokeAlpha: 0.95,
-            lineWidth: 3,
-            durationFrames: 16,
-            animation: true,
-            clipToAttackArea: true,
-            replaceAutoAreaEffect: true
-          },
-          {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 140,
-            speed: 10,
-            oncePerExecution: true
-          },
-{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
-],
-        tags: ["스킬"]
-      },
-      counter: {
-        id: "attack.meramona.counter",
-        damageRatio: 1,
-        cost: 0,
-        cd: 400,
-        range: 200,
-        modules: [
-          {type: "delivery.area", shape: "circle", range: characterValue("attacks.counter.range"), wallPolicy: "block"},
-          {
-            type: "effect.spawn",
-            when: "after-attack",
-            renderType: "areaCircle",
-            position: "source",
-            range: characterValue("attacks.counter.range"),
-            r: 0,
-            maxR: characterValue("attacks.counter.range"),
-            color: "255,33,218",
-            fillAlpha: 0.1,
-            strokeAlpha: 0.9,
-            lineWidth: 2.5,
-            durationFrames: 22,
-            animation: true,
-            clipToAttackArea: true,
-            replaceAutoAreaEffect: true
-          },
-          {
-            type: "state.progress",
-            when: "after-attack",
-            stateKey: "meramona-temp-stage",
-            operation: "add",
-            amount: 1,
-            max: 4,
-            oncePerExecution: false,
-            decay: {delay: 4000, rate: 100000}
-          },
-          {
-            type: "modifier.set",
-            when: "on-hit",
-            stat: "speed",
-            value: 0.25,
-            duration: 4000,
-            sourceId: "meramona:stage-speed",
-            recipient: "source",
-            conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 2}]
-          },
-          {
-            type: "modifier.set",
-            when: "on-hit",
-            stat: "attackRate",
-            value: 0.5,
-            duration: 4000,
-            sourceId: "meramona:stage-attack-rate",
-            recipient: "source",
-            conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 3}]
-          },
-{"type": "mode.toggle", "when": "on-delivery", "stateKey": "meramona-wand-motion", "values": ["a", "b"], "step": 1}
-],
-        tags: ["반격"]
+  ],
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "magical-wand",
+      "scale": 2,
+      "angle": 0.4,
+      "motionStateKey": "meramona-wand-motion",
+      "motionMs": 400,
+      "motion": {
+        "rotation": -0.35,
+        "travelY": -0.12
       }
     },
-    abilities: {
-      lmb: {
-        id: "ability.meramona.lmb",
-        input: "lmb",
-        attackId: "attack.meramona.lmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "lmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"}
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "magical-wand-1",
+      "scale": 2,
+      "angle": 0.4,
+      "motionStateKey": "meramona-wand-motion",
+      "motionMs": 400,
+      "motion": {
+        "rotation": -0.35,
+        "travelY": -0.12
+      },
+      "conditions": [
+        {
+          "type": "state.progress-sum-gte",
+          "stateKeys": [
+            "meramona-stage",
+            "meramona-temp-stage"
           ],
-          modules: [
-            {
-              type: "action.attack",
-              alternates: [
-                {
-                  attackId: "attack.meramona.lmb-stage4",
-                  conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 4}]
-                },
-                {
-                  attackId: "attack.meramona.lmb-stage3",
-                  conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 3}]
-                },
-                {
-                  attackId: "attack.meramona.lmb-stage1",
-                  conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 1}]
-                }
-              ]
-            }
-          ]
+          "value": 1
         }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "magical-wand-2",
+      "scale": 2,
+      "angle": 0.4,
+      "motionStateKey": "meramona-wand-motion",
+      "motionMs": 400,
+      "motion": {
+        "rotation": -0.35,
+        "travelY": -0.12
       },
-      rmb: {
-        id: "ability.meramona.rmb",
-        input: "rmb",
-        attackId: "attack.meramona.rmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "rmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
-            {
-              type: "state.progress-gte",
-              stateKey: "meramona-hit-stack",
-              value: characterValue("attacks.lmb.modules.2.max")
-            }
+      "conditions": [
+        {
+          "type": "state.progress-sum-gte",
+          "stateKeys": [
+            "meramona-stage",
+            "meramona-temp-stage"
           ],
-          modules: [
-            {type: "action.attack"},
-            {
-              type: "effect.spawn",
-              requireExecuted: true,
-              renderType: "annularDoubleSweep",
-              position: "source",
-              angleMode: "absolute",
-              angle: 0,
-              r: 170,
-              inner: 0,
-              span: 6.283185307179586,
-              sweepCount: 1,
-              sweepDirection: "clockwise",
-              startAngleOffset: -1.5707963267948966,
-              sweepFraction: 0.75,
-              fadePower: 1.35,
-              hitColor: "255,33,218",
-              fillAlpha: 0.2,
-              strokeAlpha: 0.88,
-              lineWidth: 2.5,
-              edgeLine: false,
-              duration: 600,
-              animation: true,
-              followSource: true,
-              scaleWithAttackRange: true,
-              rangeScaleAttackId: "attack.meramona.emerge",
-              clipAttackId: "attack.meramona.emerge",
-              clipToAttackArea: true
-            },
-            {type: "state.progress", stateKey: "meramona-hit-stack", operation: "reset", requireExecuted: true},
-            {
-              type: "state.progress",
-              stateKey: "meramona-stage",
-              operation: "add",
-              amount: 1,
-              max: 4,
-              requireExecuted: true,
-              thresholdModifiers: [
-                {threshold: 2, stat: "speed", value: 0.25, sourceId: "meramona:stage-speed"},
-                {threshold: 3, stat: "attackRate", value: 0.5, sourceId: "meramona:stage-attack-rate"}
-              ]
-            },
-            {
-              type: "status.apply",
-              target: "self",
-              status: "bind",
-              duration: 600,
-              sourceId: "ability.meramona.rmb:transform-bind",
-              requireExecuted: true
-            },
-            {
-              type: "modifier.set",
-              stat: "invulnerable",
-              value: 1,
-              duration: 600,
-              sourceId: "ability.meramona.rmb:transform-invulnerable",
-              requireExecuted: true
-            },
-            {type: "timing.delay", duration: 600, requireExecuted: true},
-            {type: "action.trigger-attack", attackId: "attack.meramona.emerge", requireExecuted: true}
-          ]
+          "value": 2
         }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "magical-wand-3",
+      "scale": 2,
+      "angle": 0.4,
+      "motionStateKey": "meramona-wand-motion",
+      "motionMs": 400,
+      "motion": {
+        "rotation": -0.35,
+        "travelY": -0.12
       },
-      counter: {
-        id: "ability.meramona.counter",
-        input: "counter",
-        attackId: "attack.meramona.counter",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "counter"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
-            {type: "source.property.falsy", property: "counterWindup"},
-            {type: "counter.ready"}
+      "conditions": [
+        {
+          "type": "state.progress-sum-gte",
+          "stateKeys": [
+            "meramona-stage",
+            "meramona-temp-stage"
           ],
-          modules: [
+          "value": 3
+        }
+      ]
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "magical-wand-4",
+      "scale": 2,
+      "angle": 0.4,
+      "motionStateKey": "meramona-wand-motion",
+      "motionMs": 400,
+      "motion": {
+        "rotation": -0.35,
+        "travelY": -0.12
+      },
+      "conditions": [
+        {
+          "type": "state.progress-sum-gte",
+          "stateKeys": [
+            "meramona-stage",
+            "meramona-temp-stage"
+          ],
+          "value": 4
+        }
+      ]
+    }
+  ],
+  "tooltipSkills": [
+    {
+      "key": "ALWAYS",
+      "name": "더욱 진심으로",
+      "attack": "rmb",
+      "showCost": false,
+      "text": "평타 {v:attacks.lmb.modules.2.max}회 적중 시 변신 활성화"
+    },
+    {
+      "key": "LMB",
+      "name": "정의의 이름으로!",
+      "attack": "lmb",
+      "text": "레이저 투사체 발사 ({damage})"
+    },
+    {
+      "key": "RMB",
+      "name": "변신!",
+      "attack": "rmb",
+      "text": "{delaySeconds}초 무적 후 다음 단계로 변신하며 주변 적에게 피해 및 넉백 ({linkedDamage})",
+      "linkedAttack": "emerge"
+    },
+    {
+      "inlineStages": [
+        {
+          "key": "RMB I",
+          "attack": "lmbStage1",
+          "text": "평타 사거리 증가"
+        },
+        {
+          "key": "RMB II",
+          "attack": "lmbStage1",
+          "text": "이동속도 증가"
+        },
+        {
+          "key": "RMB III",
+          "attack": "lmbStage3",
+          "text": "평타 공격속도 증가"
+        },
+        {
+          "key": "RMB IV",
+          "attack": "lmbStage4",
+          "text": "평타 탄속 즉발"
+        }
+      ]
+    },
+    {
+      "key": "L-Shift",
+      "name": "지지않아!",
+      "attack": "counter",
+      "text": "정의의 에너지 방출. 적중 여부와 관계없이 {progressDecaySeconds}초간 임시 단계 1단계 상승 ({damage})"
+    }
+  ],
+  "attacks": {
+    "lmb": {
+      "id": "attack.meramona.lmb",
+      "damageRatio": 1,
+      "cost": 300,
+      "cd": 350,
+      "range": 550,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 32.2,
+          "radius": 24
+        },
+        {
+          "type": "projectile.presentation",
+          "kind": "projectile-style",
+          "style": {
+            "type": "laser-bolt",
+            "radius": {
+              "$ref": "attacks.lmb.modules.0.radius"
+            },
+            "strokeColor": "255,33,218",
+            "fillColor": "255,136,238"
+          }
+        },
+        {
+          "type": "state.progress",
+          "when": "on-hit",
+          "stateKey": "meramona-hit-stack",
+          "operation": "add",
+          "amount": 1,
+          "max": 2,
+          "oncePerExecution": true,
+          "presentation": {
+            "type": "arc-gauge",
+            "color": "#ff21da",
+            "lineWidth": 3.5,
+            "lineCap": "round",
+            "maxChargeFlash": true
+          }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "meramona-wand-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "lmbStage1": {
+      "id": "attack.meramona.lmb-stage1",
+      "damageRatio": 1,
+      "cost": 300,
+      "cd": 350,
+      "range": 900,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 32.2,
+          "radius": 24
+        },
+        {
+          "type": "projectile.presentation",
+          "kind": "projectile-style",
+          "style": {
+            "type": "laser-bolt",
+            "radius": {
+              "$ref": "attacks.lmbStage1.modules.0.radius"
+            },
+            "strokeColor": "255,33,218",
+            "fillColor": "255,136,238"
+          }
+        },
+        {
+          "type": "state.progress",
+          "when": "on-hit",
+          "stateKey": "meramona-hit-stack",
+          "operation": "add",
+          "amount": 1,
+          "max": {
+            "$ref": "attacks.lmb.modules.2.max"
+          },
+          "oncePerExecution": true,
+          "presentation": {
+            "type": "arc-gauge",
+            "color": "#ff21da",
+            "lineWidth": 3.5,
+            "lineCap": "round",
+            "maxChargeFlash": true
+          }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "meramona-wand-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "lmbStage3": {
+      "id": "attack.meramona.lmb-stage3",
+      "damageRatio": 1,
+      "cost": 300,
+      "cd": 350,
+      "range": 900,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 32.2,
+          "radius": 24
+        },
+        {
+          "type": "projectile.presentation",
+          "kind": "projectile-style",
+          "style": {
+            "type": "laser-bolt",
+            "radius": {
+              "$ref": "attacks.lmbStage3.modules.0.radius"
+            },
+            "strokeColor": "255,33,218",
+            "fillColor": "255,136,238"
+          }
+        },
+        {
+          "type": "state.progress",
+          "when": "on-hit",
+          "stateKey": "meramona-hit-stack",
+          "operation": "add",
+          "amount": 1,
+          "max": {
+            "$ref": "attacks.lmb.modules.2.max"
+          },
+          "oncePerExecution": true,
+          "presentation": {
+            "type": "arc-gauge",
+            "color": "#ff21da",
+            "lineWidth": 3.5,
+            "lineCap": "round",
+            "maxChargeFlash": true
+          }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "meramona-wand-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "lmbStage4": {
+      "id": "attack.meramona.lmb-stage4",
+      "damageRatio": 1,
+      "cost": 300,
+      "cd": 350,
+      "range": 900,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "rect",
+          "range": {
+            "$ref": "attacks.lmbStage4.range"
+          },
+          "halfWidth": 24,
+          "wallPolicy": "block",
+          "projectileClassification": "instant-laser"
+        },
+        {
+          "type": "effect.spawn",
+          "renderType": "beamLine",
+          "range": {
+            "$ref": "attacks.lmbStage4.range"
+          },
+          "halfWidth": {
+            "$ref": "attacks.lmbStage4.modules.0.halfWidth"
+          },
+          "nonHitAuraHalfWidth": 30,
+          "color": "255,33,218",
+          "coreColor": "255,255,255",
+          "fillAlpha": 0.34,
+          "strokeAlpha": 0.9,
+          "coreAlpha": 0.82,
+          "coreWidthRatio": 0.16,
+          "lineWidth": 3,
+          "glowAlpha": 0.065,
+          "glowWidthRatio": 2.8,
+          "midGlowAlpha": 0.11,
+          "midGlowWidthRatio": 1.65,
+          "flareAlpha": 0.36,
+          "flareRadiusRatio": 1.15,
+          "pulseSpeed": 0.018,
+          "friendlyViewerAlphaScale": 0.5,
+          "duration": 72,
+          "followSource": true,
+          "replaceAutoAreaEffect": true,
+          "scaleWithAttackRange": true,
+          "clipToAttackArea": true
+        },
+        {
+          "type": "state.progress",
+          "when": "on-hit",
+          "stateKey": "meramona-hit-stack",
+          "operation": "add",
+          "amount": 1,
+          "max": {
+            "$ref": "attacks.lmb.modules.2.max"
+          },
+          "oncePerExecution": true,
+          "presentation": {
+            "type": "arc-gauge",
+            "color": "#ff21da",
+            "lineWidth": 3.5,
+            "lineCap": "round",
+            "maxChargeFlash": true
+          }
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "meramona-wand-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "rmb": {
+      "id": "attack.meramona.rmb",
+      "damageRatio": 0,
+      "cost": 0,
+      "cd": 500,
+      "range": 170,
+      "effectsOnly": true,
+      "modules": [
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "meramona-wand-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        }
+      ],
+      "tags": [
+        "스킬",
+        "선딜레이"
+      ]
+    },
+    "emerge": {
+      "id": "attack.meramona.emerge",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 0,
+      "range": 170,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": {
+            "$ref": "attacks.emerge.range"
+          },
+          "wallPolicy": "block"
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "areaCircle",
+          "position": "source",
+          "range": {
+            "$ref": "attacks.emerge.range"
+          },
+          "r": 0,
+          "maxR": {
+            "$ref": "attacks.emerge.range"
+          },
+          "color": "255,33,218",
+          "fillAlpha": 0.12,
+          "strokeAlpha": 0.95,
+          "lineWidth": 3,
+          "durationFrames": 16,
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true
+        },
+        {
+          "type": "movement.knockback",
+          "target": "hit-target",
+          "direction": "away-from-source",
+          "distance": 140,
+          "speed": 10,
+          "oncePerExecution": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "meramona-wand-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        }
+      ],
+      "tags": [
+        "스킬"
+      ]
+    },
+    "counter": {
+      "id": "attack.meramona.counter",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 400,
+      "range": 200,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": {
+            "$ref": "attacks.counter.range"
+          },
+          "wallPolicy": "block"
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "areaCircle",
+          "position": "source",
+          "range": {
+            "$ref": "attacks.counter.range"
+          },
+          "r": 0,
+          "maxR": {
+            "$ref": "attacks.counter.range"
+          },
+          "color": "255,33,218",
+          "fillAlpha": 0.1,
+          "strokeAlpha": 0.9,
+          "lineWidth": 2.5,
+          "durationFrames": 22,
+          "animation": true,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true
+        },
+        {
+          "type": "state.progress",
+          "when": "after-attack",
+          "stateKey": "meramona-temp-stage",
+          "operation": "add",
+          "amount": 1,
+          "max": 4,
+          "oncePerExecution": false,
+          "decay": {
+            "delay": 4000,
+            "rate": 100000
+          }
+        },
+        {
+          "type": "modifier.set",
+          "when": "on-hit",
+          "stat": "speed",
+          "value": 0.25,
+          "duration": 4000,
+          "sourceId": "meramona:stage-speed",
+          "recipient": "source",
+          "conditions": [
             {
-              type: "counter.execute",
-              windup: 300,
-              consumeState: "counter-ready",
-              preview: {type: "preview.create", shape: "attack-shape"},
-              onFinishModules: [
-                {type: "modifier.set", stat: "speed", value: 0.25, duration: 4000, sourceId: "meramona:stage-speed",
-                  conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 2}]},
-                {type: "modifier.set", stat: "attackRate", value: 0.5, duration: 4000, sourceId: "meramona:stage-attack-rate",
-                  conditions: [{type: "state.progress-sum-gte", stateKeys: ["meramona-stage", "meramona-temp-stage"], value: 3}]}
+              "type": "state.progress-sum-gte",
+              "stateKeys": [
+                "meramona-stage",
+                "meramona-temp-stage"
               ],
-              cc: {
-                type: "movement.neutralize-knockback",
-                target: "hit-target",
-                direction: "away-from-source",
-                distance: 84,
-                speed: 10,
-                oncePerExecution: true
-              }
+              "value": 2
             }
           ]
+        },
+        {
+          "type": "modifier.set",
+          "when": "on-hit",
+          "stat": "attackRate",
+          "value": 0.5,
+          "duration": 4000,
+          "sourceId": "meramona:stage-attack-rate",
+          "recipient": "source",
+          "conditions": [
+            {
+              "type": "state.progress-sum-gte",
+              "stateKeys": [
+                "meramona-stage",
+                "meramona-temp-stage"
+              ],
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-delivery",
+          "stateKey": "meramona-wand-motion",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
         }
-      }
+      ],
+      "tags": [
+        "반격"
+      ]
     }
   },
+  "abilities": {
+    "lmb": {
+      "id": "ability.meramona.lmb",
+      "input": "lmb",
+      "attackId": "attack.meramona.lmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "lmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack",
+            "alternates": [
+              {
+                "attackId": "attack.meramona.lmb-stage4",
+                "conditions": [
+                  {
+                    "type": "state.progress-sum-gte",
+                    "stateKeys": [
+                      "meramona-stage",
+                      "meramona-temp-stage"
+                    ],
+                    "value": 4
+                  }
+                ]
+              },
+              {
+                "attackId": "attack.meramona.lmb-stage3",
+                "conditions": [
+                  {
+                    "type": "state.progress-sum-gte",
+                    "stateKeys": [
+                      "meramona-stage",
+                      "meramona-temp-stage"
+                    ],
+                    "value": 3
+                  }
+                ]
+              },
+              {
+                "attackId": "attack.meramona.lmb-stage1",
+                "conditions": [
+                  {
+                    "type": "state.progress-sum-gte",
+                    "stateKeys": [
+                      "meramona-stage",
+                      "meramona-temp-stage"
+                    ],
+                    "value": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "rmb": {
+      "id": "ability.meramona.rmb",
+      "input": "rmb",
+      "attackId": "attack.meramona.rmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "state.progress-gte",
+            "stateKey": "meramona-hit-stack",
+            "value": {
+              "$ref": "attacks.lmb.modules.2.max"
+            }
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          },
+          {
+            "type": "effect.spawn",
+            "requireExecuted": true,
+            "renderType": "annularDoubleSweep",
+            "position": "source",
+            "angleMode": "absolute",
+            "angle": 0,
+            "r": 170,
+            "inner": 0,
+            "span": 6.283185307179586,
+            "sweepCount": 1,
+            "sweepDirection": "clockwise",
+            "startAngleOffset": -1.5707963267948966,
+            "sweepFraction": 0.75,
+            "fadePower": 1.35,
+            "hitColor": "255,33,218",
+            "fillAlpha": 0.2,
+            "strokeAlpha": 0.88,
+            "lineWidth": 2.5,
+            "edgeLine": false,
+            "duration": 600,
+            "animation": true,
+            "followSource": true,
+            "scaleWithAttackRange": true,
+            "rangeScaleAttackId": "attack.meramona.emerge",
+            "clipAttackId": "attack.meramona.emerge",
+            "clipToAttackArea": true
+          },
+          {
+            "type": "state.progress",
+            "stateKey": "meramona-hit-stack",
+            "operation": "reset",
+            "requireExecuted": true
+          },
+          {
+            "type": "state.progress",
+            "stateKey": "meramona-stage",
+            "operation": "add",
+            "amount": 1,
+            "max": 4,
+            "requireExecuted": true,
+            "thresholdModifiers": [
+              {
+                "threshold": 2,
+                "stat": "speed",
+                "value": 0.25,
+                "sourceId": "meramona:stage-speed"
+              },
+              {
+                "threshold": 3,
+                "stat": "attackRate",
+                "value": 0.5,
+                "sourceId": "meramona:stage-attack-rate"
+              }
+            ]
+          },
+          {
+            "type": "status.apply",
+            "target": "self",
+            "status": "bind",
+            "duration": 600,
+            "sourceId": "ability.meramona.rmb:transform-bind",
+            "requireExecuted": true
+          },
+          {
+            "type": "modifier.set",
+            "stat": "invulnerable",
+            "value": 1,
+            "duration": 600,
+            "sourceId": "ability.meramona.rmb:transform-invulnerable",
+            "requireExecuted": true
+          },
+          {
+            "type": "timing.delay",
+            "duration": 600,
+            "requireExecuted": true
+          },
+          {
+            "type": "action.trigger-attack",
+            "attackId": "attack.meramona.emerge",
+            "requireExecuted": true
+          }
+        ]
+      }
+    },
+    "counter": {
+      "id": "ability.meramona.counter",
+      "input": "counter",
+      "attackId": "attack.meramona.counter",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "counter"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "source.property.falsy",
+            "property": "counterWindup"
+          },
+          {
+            "type": "counter.ready"
+          }
+        ],
+        "modules": [
+          {
+            "type": "counter.execute",
+            "windup": 300,
+            "consumeState": "counter-ready",
+            "preview": {
+              "type": "preview.create",
+              "shape": "attack-shape"
+            },
+            "onFinishModules": [
+              {
+                "type": "modifier.set",
+                "stat": "speed",
+                "value": 0.25,
+                "duration": 4000,
+                "sourceId": "meramona:stage-speed",
+                "conditions": [
+                  {
+                    "type": "state.progress-sum-gte",
+                    "stateKeys": [
+                      "meramona-stage",
+                      "meramona-temp-stage"
+                    ],
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "type": "modifier.set",
+                "stat": "attackRate",
+                "value": 0.5,
+                "duration": 4000,
+                "sourceId": "meramona:stage-attack-rate",
+                "conditions": [
+                  {
+                    "type": "state.progress-sum-gte",
+                    "stateKeys": [
+                      "meramona-stage",
+                      "meramona-temp-stage"
+                    ],
+                    "value": 3
+                  }
+                ]
+              }
+            ],
+            "cc": {
+              "type": "movement.neutralize-knockback",
+              "target": "hit-target",
+              "direction": "away-from-source",
+              "distance": 84,
+              "speed": 10,
+              "oncePerExecution": true
+            }
+          }
+        ]
+      }
+    }
+  }
+},
   // 타다타: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   tadta: {
   "id": "tadta",
@@ -17665,7 +18313,6 @@ const CHARACTER_DATA=freezeCharacterData({
         id: "ability.nanamnang.lmb",
         input: "lmb",
         attackId: "attack.nanamnang.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",
@@ -17928,7 +18575,6 @@ const CHARACTER_DATA=freezeCharacterData({
         id: "ability.raise.lmb",
         input: "lmb",
         attackId: "attack.raise.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",
@@ -18484,9 +19130,6 @@ const CHARACTER_DATA=freezeCharacterData({
       "id": "ability.levina.lmb",
       "input": "lmb",
       "attackId": "attack.levina.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -18676,7 +19319,7 @@ const CHARACTER_DATA=freezeCharacterData({
         name: "손기술",
         attack: "lmb",
         detailAttack: "lmbFinal",
-        text: "{attackSequenceCount}연타 근거리 공격. 3타 적중 시 코인을 얻어 체력 및 스테미나 {v:attacks.lmbFinal.modules.2.maxResourceRatio|percent}% 회복 ({damage}/{detailDamage})"
+        text: "{attackSequenceCount}연타 근거리 공격 ({damage}/{detailDamage})"
       },
       {
         key: "RMB",
@@ -18787,10 +19430,6 @@ const CHARACTER_DATA=freezeCharacterData({
             clipToAttackArea: true,
             replaceAutoAreaEffect: true
           }
-,
-          {type:"resource.restore",when:"on-hit",resource:"health",recipient:"source",maxResourceRatio:0.2,delay:333,oncePerExecution:true},
-          {type:"resource.restore",when:"on-hit",resource:"stamina",recipient:"source",maxResourceRatio:0.2,delay:333,oncePerExecution:true},
-          {type:"effect.spawn",when:"on-hit",renderType:"areaCircle",position:"hit-target",travelToken:true,target:"source",color:"255,165,0",duration:333,oncePerExecution:true}
         ],
         tags: ["평타"]
       },
@@ -18808,7 +19447,7 @@ const CHARACTER_DATA=freezeCharacterData({
             reactiveEquipmentEntry: false,
             anchorMode: "target-point",
             shape: "circle",
-            range: 347,
+            range: 399.05,
             clampToAttackRange: true,
             duration: 2500,
             armDelay: 500,
@@ -18867,7 +19506,7 @@ const CHARACTER_DATA=freezeCharacterData({
         damageRatio: 10,
         cost: 300,
         cd: 0,
-        range: 347,
+        range: 399.05,
         justDodgeWindowExtension: 30,
         modules: [
           {
@@ -18928,7 +19567,7 @@ const CHARACTER_DATA=freezeCharacterData({
             when: "after-attack",
             renderType: "areaCircle",
             position: "attack-center",
-            range: 347,
+            range: 399.05,
             r: 347,
             duration: 500,
             forecastStrike: true,
@@ -18942,7 +19581,7 @@ const CHARACTER_DATA=freezeCharacterData({
             when: "after-attack",
             renderType: "areaCircle",
             position: "attack-center",
-            range: 347,
+            range: 399.05,
             r: 347,
             duration: 500,
             startDelay: 500,
@@ -19053,7 +19692,6 @@ const CHARACTER_DATA=freezeCharacterData({
         id: "ability.ki.lmb",
         input: "lmb",
         attackId: "attack.ki.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",
@@ -20711,19 +21349,19 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.25,
-          "multiplier": 0.8333333333333334
+          "multiplier": 0.7777777777777778
         },
         {
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.5,
-          "multiplier": 0.8
+          "multiplier": 0.7142857142857143
         },
         {
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.75,
-          "multiplier": 0.75
+          "multiplier": 0.6
         },
         {
           "type": "resource.restore",
@@ -20848,19 +21486,19 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.25,
-          "multiplier": 0.8333333333333334
+          "multiplier": 0.7777777777777778
         },
         {
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.5,
-          "multiplier": 0.8
+          "multiplier": 0.7142857142857143
         },
         {
           "type": "damage.range-band-multiplier",
           "mode": "radial",
           "thresholdRatio": 0.75,
-          "multiplier": 0.75
+          "multiplier": 0.6
         },
         {
           "type": "resource.restore",
@@ -21428,294 +22066,447 @@ const CHARACTER_DATA=freezeCharacterData({
 },
   // 셸로: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   shello: {
-    id: "shello",
-    name: "셸로",
-    englishName: "Shello",
-    title: "히어로 지망생",
-    color: "#522a50",
-    classification: {style: 6, range: 0, role: 3},
-    stats: {maxHealth: 1500, speed: 4.25, radius: 20, baseDamage: 150, difficulty: 1},
-    desc: "날카롭게 개조한 방패로 공격을 패리하는 캐릭터",
-    counterReadyPresentation: {color: "255,215,0", kindColors: {parry: "255,118,32"}},
-    debugCounterModes: [
-      {flag: "counterActive", label: "반격 활성화", kind: "normal"},
-      {flag: "counterParryActive", label: "패리 반격 활성화", kind: "parry"}
-    ],
-    tooltipSkills: [
-      {key: "LMB", name: "방패 베기", attack: "lmb", text: "방패의 옆면으로 휘둘러 베어냄 ({damage})"},
-      {key: "RMB", name: "방어자세", attack: "rmb", text: "방패를 내세워 찰나동안 모든 공격을 방어. 방어 성공 시 패리 반격기 활성화"},
-      {key: "RMB/L-Shift", name: "쉴드 어택", attack: "counterParry", text: "방패를 먼저 날리고 적중 시 이동 ({damage})"},
-      {key: "L-Shift", name: "스피닝", attack: "counter", text: "방패를 날려 주변을 회전 (타당 {damage})"}
-    ],
-    attacks: {
-      lmb: {
-        id: "attack.shello.lmb",
-        koDirectionMode: "attack-direction",
-        suppressProjectileFireSound: true,
-        impactOrigin: "source",
-        damageRatio: 1,
-        cost: 150,
-        cd: 420,
-        range: 205.5,
-        modules: [
-          {
-            type: "delivery.range-projectile",
-            speed: 0,
-            radius: 48,
-            wallCollisionMode: "center",
-            orbit: {
-              anchor: "origin",
-              radiusMode: "nearest-enemy",
-              minRadius: 0,
-              maxRadius: 157.5,
-              startAngleOffset: -1.413716694115407,
-              totalAngle: 2.827433388230814,
-              duration: 180
-            }
-          },
-          {type: "projectile.pierce", targets: true, walls: false},
-          {type: "projectile.collision", wall: "clamp"},
-          {
-            type: "projectile.presentation",
-            kind: "range-projectile",
-            style: {
-              renderReachability: "orbit-center-clamp",
-              fillAlpha: 0.2,
-              strokeColor: "#522a50",
-              strokeAlpha: 0.92,
-              strokeWidth: 3,
-              innerColor: "#8a5686",
-              innerScale: 0.58,
-              innerAlpha: 0.48,
-              innerStrokeWidth: 2
-            }
-          }
-        ],
-        tags: ["평타"]
-      },
-      rmb: {
-        id: "attack.shello.rmb",
-        damageRatio: 0,
-        cost: 300,
-        cd: 650,
-        range: 92,
-        effectsOnly: true,
-        modules: [
-          {
-            type: "delivery.area",
-            shape: "sector",
-            range: characterValue("attacks.rmb.range"),
-            halfAngle: 1.319468914507713,
-            wallPolicy: "block"
-          },
-          {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 42,
-            speed: 10,
-            oncePerExecution: true
-          },
-          {
-            type: "effect.spawn",
-            stateKey: "shello-guard",
-            renderType: "shieldSwing",
-            range: characterValue("attacks.rmb.range"),
-            halfAngle: characterValue("attacks.rmb.modules.0.halfAngle"),
-            color: "82,42,80",
-            duration: 200,
-            clipToAttackArea: true,
-            replaceAutoAreaEffect: true,
-            scaleWithAttackRange: true
-          },
-          {
-            type: "attack.guard",
-            stateKey: "shello-guard",
-            shape: "sector",
-            range: characterValue("attacks.rmb.range"),
-            halfAngle: 1.319468914507713,
-            wallPolicy: "block",
-            duration: 200,
-            onBlock: {counterWindow: 5000, counterKind: "parry"},
-            visualState: {effectStateKey: "shello-guard", duration: 200, syncToGuardDuration: true, color: "255,118,32"}
-          }
-        ],
-        tags: ["스킬"]
-      },
-      counter: {
-        id: "attack.shello.counter",
-        koDirectionMode: "attack-direction",
-        suppressProjectileFireSound: true,
-        impactOrigin: "source",
-        damageRatio: 0.6666666666666666,
-        cost: 0,
-        cd: 550,
-        range: 205.5,
-        previewGeometry: {shape: "circle", range: characterValue("attacks.counter.range"), wallPolicy: "ignore"},
-        modules: [
-          {
-            type: "delivery.range-projectile",
-            speed: 0,
-            radius: 48,
-            wallCollisionMode: "center",
-            orbit: {
-              anchor: "source",
-              minRadius: 0,
-              maxRadius: 157.5,
-              startAngleOffset: 0,
-              angularSpeed: 0.025132741228718346,
-              growDuration: 250,
-              holdDuration: 500,
-              shrinkDuration: 250,
-              resetHitEachRevolution: true
-            }
-          },
-          {type: "projectile.pierce", targets: true, walls: false},
-          {type: "projectile.collision", wall: "clamp"},
-          {
-            type: "projectile.presentation",
-            kind: "range-projectile",
-            style: {
-              renderReachability: "orbit-center-clamp",
-              fillAlpha: 0.2,
-              strokeColor: "#522a50",
-              strokeAlpha: 0.94,
-              strokeWidth: 3,
-              innerColor: "#8a5686",
-              innerScale: 0.58,
-              innerAlpha: 0.5,
-              innerStrokeWidth: 2
-            }
-          }
-        ],
-        tags: ["반격"]
-      },
-      counterParry: {
-        id: "attack.shello.counter-parry",
-        koDirectionMode: "attack-direction",
-        impactOrigin: "source",
-        damageRatio: 0.6666666666666666,
-        cost: 0,
-        cd: 550,
-        range: 552.75,
-        previewGeometry: {shape: "rect", range: characterValue("attacks.counterParry.range"), halfWidth: 48, wallPolicy: "ignore"},
-        modules: [
-          {type: "delivery.range-projectile", speed: 19.64, radius: 48, wallCollisionMode: "center"},
-          {type: "projectile.pierce", targets: false, walls: true},
-          {
-            type: "projectile.presentation",
-            kind: "range-projectile",
-            style: {
-              fillAlpha: 0.2,
-              strokeColor: "#522a50",
-              strokeAlpha: 0.94,
-              strokeWidth: 3,
-              innerColor: "#8a5686",
-              innerScale: 0.58,
-              innerAlpha: 0.5,
-              innerStrokeWidth: 2
-            }
-          },
-          {
-            type: "movement.move",
-            when: "on-hit",
-            target: "hit-target",
-            duration: 308.2,
-            replaceActive: true,
-            collision: {passWalls: true, passEnemies: true},
-            oncePerExecution: true,
-            tags: ["이동기"],
-            presentation: {
-              type: "dash-line",
-              color: "82,42,80",
-              width: 7,
-              alpha: 0.45,
-              duration: characterValue("attacks.counterParry.modules.3.duration")
-            }
-          }
-        ],
-        tags: ["반격"]
-      }
-    },
-    abilities: {
-      lmb: {
-        id: "ability.shello.lmb",
-        input: "lmb",
-        attackId: "attack.shello.lmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "lmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"}
-          ],
-          modules: [{type: "action.attack"}]
-        }
-      },
-      rmb: {
-        id: "ability.shello.rmb",
-        input: "rmb",
-        attackId: "attack.shello.rmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "rmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"}
-          ],
-          modules: [{type: "action.attack"}]
-        }
-      },
-      counter: {
-        id: "ability.shello.counter",
-        input: "counter",
-        attackId: "attack.shello.counter",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "counter"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
-            {type: "source.property.falsy", property: "counterWindup"},
-            {type: "counter.ready"}
-          ],
-          modules: [
-            {
-              type: "counter.execute",
-              windup: 300,
-              consumeState: "counter-ready",
-              alternateWhen: {
-                attackId: "attack.shello.counter-parry",
-                counterKind: "parry",
-                cc: {
-                  type: "movement.neutralize-knockback",
-                  target: "hit-target",
-                  direction: "away-from-impact",
-                  distance: 84,
-                  speed: 10,
-                  oncePerExecution: true
-                }
-              },
-              preview: {type: "preview.create", shape: "attack-shape"},
-              cc: {
-                type: "movement.neutralize-knockback",
-                target: "hit-target",
-                direction: "away-from-impact",
-                distance: 84,
-                speed: 10
-              }
-            }
-          ]
-        }
-      }
+  "id": "shello",
+  "name": "셸로",
+  "englishName": "Shello",
+  "title": "히어로 지망생",
+  "color": "#522a50",
+  "classification": {
+    "style": 6,
+    "range": 0,
+    "role": 3
+  },
+  "stats": {
+    "maxHealth": 1500,
+    "speed": 4.25,
+    "radius": 20,
+    "baseDamage": 150,
+    "difficulty": 1
+  },
+  "desc": "날카롭게 개조한 방패로 공격을 패리하는 캐릭터",
+  "counterReadyPresentation": {
+    "color": "255,215,0",
+    "kindColors": {
+      "parry": "255,118,32"
     }
   },
+  "debugCounterModes": [
+    {
+      "flag": "counterActive",
+      "label": "반격 활성화",
+      "kind": "normal"
+    },
+    {
+      "flag": "counterParryActive",
+      "label": "패리 반격 활성화",
+      "kind": "parry"
+    }
+  ],
+  "tooltipSkills": [
+    {
+      "key": "LMB",
+      "name": "방패 베기",
+      "attack": "lmb",
+      "text": "방패의 옆면으로 휘둘러 베어냄 ({damage})"
+    },
+    {
+      "key": "RMB",
+      "name": "방어자세",
+      "attack": "rmb",
+      "text": "방패를 내세워 찰나동안 모든 공격을 방어. 방어 성공 시 패리 반격기 활성화"
+    },
+    {
+      "key": "RMB/L-Shift",
+      "name": "쉴드 어택",
+      "attack": "counterParry",
+      "text": "방패를 먼저 날리고 적중 시 이동 ({damage})"
+    },
+    {
+      "key": "L-Shift",
+      "name": "스피닝",
+      "attack": "counter",
+      "text": "방패를 날려 주변을 회전 (타당 {damage})"
+    }
+  ],
+  "attacks": {
+    "lmb": {
+      "id": "attack.shello.lmb",
+      "koDirectionMode": "attack-direction",
+      "suppressProjectileFireSound": true,
+      "impactOrigin": "source",
+      "damageRatio": 1,
+      "cost": 150,
+      "cd": 420,
+      "range": 205.5,
+      "modules": [
+        {
+          "type": "delivery.range-projectile",
+          "speed": 0,
+          "radius": 48,
+          "wallCollisionMode": "center",
+          "orbit": {
+            "anchor": "origin",
+            "radiusMode": "nearest-enemy",
+            "minRadius": 0,
+            "maxRadius": 157.5,
+            "startAngleOffset": -1.413716694115407,
+            "totalAngle": 2.827433388230814,
+            "duration": 180
+          }
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": true,
+          "walls": false
+        },
+        {
+          "type": "projectile.collision",
+          "wall": "clamp"
+        },
+        {
+          "type": "projectile.presentation",
+          "kind": "range-projectile",
+          "style": {
+            "renderReachability": "orbit-center-clamp",
+            "fillAlpha": 0.2,
+            "strokeColor": "#522a50",
+            "strokeAlpha": 0.92,
+            "strokeWidth": 3,
+            "innerColor": "#8a5686",
+            "innerScale": 0.58,
+            "innerAlpha": 0.48,
+            "innerStrokeWidth": 2
+          }
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "rmb": {
+      "id": "attack.shello.rmb",
+      "damageRatio": 0,
+      "cost": 200,
+      "cd": 650,
+      "range": 92,
+      "effectsOnly": true,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "sector",
+          "range": {
+            "$ref": "attacks.rmb.range"
+          },
+          "halfAngle": 1.319468914507713,
+          "wallPolicy": "block"
+        },
+        {
+          "type": "movement.knockback",
+          "target": "hit-target",
+          "direction": "away-from-source",
+          "distance": 42,
+          "speed": 10,
+          "oncePerExecution": true
+        },
+        {
+          "type": "effect.spawn",
+          "stateKey": "shello-guard",
+          "renderType": "shieldSwing",
+          "range": {
+            "$ref": "attacks.rmb.range"
+          },
+          "halfAngle": {
+            "$ref": "attacks.rmb.modules.0.halfAngle"
+          },
+          "color": "82,42,80",
+          "duration": 200,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true,
+          "scaleWithAttackRange": true
+        },
+        {
+          "type": "attack.guard",
+          "stateKey": "shello-guard",
+          "shape": "sector",
+          "range": {
+            "$ref": "attacks.rmb.range"
+          },
+          "halfAngle": 1.319468914507713,
+          "wallPolicy": "block",
+          "duration": 300,
+          "onBlock": {
+            "counterWindow": 5000,
+            "counterKind": "parry"
+          },
+          "visualState": {
+            "effectStateKey": "shello-guard",
+            "duration": 300,
+            "syncToGuardDuration": true,
+            "color": "255,118,32"
+          }
+        }
+      ],
+      "tags": [
+        "스킬"
+      ]
+    },
+    "counter": {
+      "id": "attack.shello.counter",
+      "koDirectionMode": "attack-direction",
+      "suppressProjectileFireSound": true,
+      "impactOrigin": "source",
+      "damageRatio": 0.6666666666666666,
+      "cost": 0,
+      "cd": 550,
+      "range": 205.5,
+      "previewGeometry": {
+        "shape": "circle",
+        "range": {
+          "$ref": "attacks.counter.range"
+        },
+        "wallPolicy": "ignore"
+      },
+      "modules": [
+        {
+          "type": "delivery.range-projectile",
+          "speed": 0,
+          "radius": 48,
+          "wallCollisionMode": "center",
+          "orbit": {
+            "anchor": "source",
+            "minRadius": 0,
+            "maxRadius": 157.5,
+            "startAngleOffset": 0,
+            "angularSpeed": 0.025132741228718346,
+            "growDuration": 250,
+            "holdDuration": 500,
+            "shrinkDuration": 250,
+            "resetHitEachRevolution": true
+          }
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": true,
+          "walls": false
+        },
+        {
+          "type": "projectile.collision",
+          "wall": "clamp"
+        },
+        {
+          "type": "projectile.presentation",
+          "kind": "range-projectile",
+          "style": {
+            "renderReachability": "orbit-center-clamp",
+            "fillAlpha": 0.2,
+            "strokeColor": "#522a50",
+            "strokeAlpha": 0.94,
+            "strokeWidth": 3,
+            "innerColor": "#8a5686",
+            "innerScale": 0.58,
+            "innerAlpha": 0.5,
+            "innerStrokeWidth": 2
+          }
+        }
+      ],
+      "tags": [
+        "반격"
+      ]
+    },
+    "counterParry": {
+      "id": "attack.shello.counter-parry",
+      "koDirectionMode": "attack-direction",
+      "impactOrigin": "source",
+      "damageRatio": 0.6666666666666666,
+      "cost": 0,
+      "cd": 550,
+      "range": 552.75,
+      "previewGeometry": {
+        "shape": "rect",
+        "range": {
+          "$ref": "attacks.counterParry.range"
+        },
+        "halfWidth": 48,
+        "wallPolicy": "ignore"
+      },
+      "modules": [
+        {
+          "type": "delivery.range-projectile",
+          "speed": 19.64,
+          "radius": 48,
+          "wallCollisionMode": "center"
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": false,
+          "walls": true
+        },
+        {
+          "type": "projectile.presentation",
+          "kind": "range-projectile",
+          "style": {
+            "fillAlpha": 0.2,
+            "strokeColor": "#522a50",
+            "strokeAlpha": 0.94,
+            "strokeWidth": 3,
+            "innerColor": "#8a5686",
+            "innerScale": 0.58,
+            "innerAlpha": 0.5,
+            "innerStrokeWidth": 2
+          }
+        },
+        {
+          "type": "movement.move",
+          "when": "on-hit",
+          "target": "hit-target",
+          "duration": 308.2,
+          "replaceActive": true,
+          "collision": {
+            "passWalls": true,
+            "passEnemies": true
+          },
+          "oncePerExecution": true,
+          "tags": [
+            "이동기"
+          ],
+          "presentation": {
+            "type": "dash-line",
+            "color": "82,42,80",
+            "width": 7,
+            "alpha": 0.45,
+            "duration": {
+              "$ref": "attacks.counterParry.modules.3.duration"
+            }
+          }
+        }
+      ],
+      "tags": [
+        "반격"
+      ]
+    }
+  },
+  "abilities": {
+    "lmb": {
+      "id": "ability.shello.lmb",
+      "input": "lmb",
+      "attackId": "attack.shello.lmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "lmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          }
+        ]
+      }
+    },
+    "rmb": {
+      "id": "ability.shello.rmb",
+      "input": "rmb",
+      "attackId": "attack.shello.rmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          }
+        ]
+      }
+    },
+    "counter": {
+      "id": "ability.shello.counter",
+      "input": "counter",
+      "attackId": "attack.shello.counter",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "counter"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "source.property.falsy",
+            "property": "counterWindup"
+          },
+          {
+            "type": "counter.ready"
+          }
+        ],
+        "modules": [
+          {
+            "type": "counter.execute",
+            "windup": 300,
+            "consumeState": "counter-ready",
+            "alternateWhen": {
+              "attackId": "attack.shello.counter-parry",
+              "counterKind": "parry",
+              "cc": {
+                "type": "movement.neutralize-knockback",
+                "target": "hit-target",
+                "direction": "away-from-impact",
+                "distance": 84,
+                "speed": 10,
+                "oncePerExecution": true
+              }
+            },
+            "preview": {
+              "type": "preview.create",
+              "shape": "attack-shape"
+            },
+            "cc": {
+              "type": "movement.neutralize-knockback",
+              "target": "hit-target",
+              "direction": "away-from-impact",
+              "distance": 84,
+              "speed": 10
+            }
+          }
+        ]
+      }
+    }
+  }
+},
   // 티냐: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   tinya: {
     id: "tinya",
@@ -21861,7 +22652,6 @@ const CHARACTER_DATA=freezeCharacterData({
         id: "ability.tinya.lmb",
         input: "lmb",
         attackId: "attack.tinya.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",
@@ -23239,7 +24029,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "damageRatio": 1,
       "cost": 300,
       "cd": 900,
-      "range": 150,
+      "range": 180,
       "progressScale": {
         "rangeBasis": "initial",
         "stateKey": "quri-cube-stage",
@@ -23248,10 +24038,8 @@ const CHARACTER_DATA=freezeCharacterData({
           "to": 4
         },
         "range": {
-          "from": {
-            "$ref": "attacks.lmb.range"
-          },
-          "to": 300
+          "from": 180,
+          "to": 360
         },
         "damageRatio": {
           "from": {
@@ -23263,12 +24051,8 @@ const CHARACTER_DATA=freezeCharacterData({
           {
             "type": "delivery.area",
             "property": "range",
-            "from": {
-              "$ref": "attacks.lmb.progressScale.range.from"
-            },
-            "to": {
-              "$ref": "attacks.lmb.progressScale.range.to"
-            }
+            "from": 180,
+            "to": 360
           },
           {
             "type": "movement.knockback",
@@ -23419,9 +24203,6 @@ const CHARACTER_DATA=freezeCharacterData({
       "id": "ability.quri.lmb",
       "input": "lmb",
       "attackId": "attack.quri.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -23536,268 +24317,421 @@ const CHARACTER_DATA=freezeCharacterData({
 },
   // 하푸푸: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   hapupu: {
-    id: "hapupu",
-    name: "하푸푸",
-    englishName: "Hapupu",
-    title: "영원한 친구",
-    color: "#ffe6f7",
-    classification: {style: 9, range: 0, role: 6},
-    stats: {maxHealth: 1100, speed: 4.5, radius: 20, baseDamage: 100, difficulty: 4},
-    desc: "누군가의 상상 속 친구 캐릭터",
-    tooltipSkills: [
-      {
-        key: "LMB",
-        name: "네가 술래!",
-        attack: "lmb",
-        text: "적을 밀치며 피해 및 넉백, 술래 표식 {v:attacks.lmb.modules.2.amount}중첩. 최대 {markMaxStacks}중첩. 적과 일정 거리 이상 멀어질 시 표식 폭발 ({damage}/{markMinBurstDamage}~{markMaxBurstDamage})"
-      },
-      {
-        key: "RMB",
-        name: "나 잡아봐라!",
-        attack: "rmb",
-        costText: "초당 스테미나 {sustainDrainPerSecond}",
-        text: "이동속도 {sustainSpeedPercent}% 증가 및 벽 통과. 사용 도중 스테미나를 소모하며 재사용 시 해제"
-      },
-      {key: "L-Shift", name: "잡은 줄 알았지?!", attack: "counter", text: "적을 강하게 밀쳐내며 피해. 적중한 적의 술래 표식 폭발 ({damage})"}
-    ],
-    attacks: {
-      lmb: {
-        id: "attack.hapupu.lmb",
-        damageRatio: 1,
-        cost: 200,
-        cd: 500,
-        range: 90,
-        presentation: {color: "#ffe6f7"},
-        modules: [
-          {
-            type: "delivery.area",
-            shape: "circle",
-            range: characterValue("attacks.lmb.range"),
-            centerMode: "live-aim-point",
-            centerMaxRange: 150,
-            centerPointResolve: "none",
-            previewAtCenter: true,
-            contactType: "melee",
-            wallPolicy: "ignore",
-            targetRelations: ["enemy"],
-            applyHitEffects: true
-          },
-          {
-            type: "movement.knockback",
-            target: "hit-target",
-            direction: "away-from-source",
-            distance: 47.25,
-            speed: 10,
-            oncePerExecution: false
-          },
-          {
-            type: "stack.mark",
-            when: "on-hit",
-            stateKey: "hapupu-tag",
-            operation: "add",
-            amount: 1,
-            max: 5,
-            duration: 0,
-            breakDistance: 450,
-            burstOnExpire: false,
-            burstAttackId: "attack.hapupu.tag-burst",
-            oncePerExecution: false,
-            burstDamage: {mode: "progressive-total", first: 200, step: 50},
-            presentation: {
-              gauge: {
-                type: "segmented-gauge",
-                height: 4,
-                gap: 2,
-                valueMode: "count",
-                activeAlpha: 0.96,
-                background: "rgba(20,12,18,.9)",
-                stroke: "rgba(255,230,247,.4)",
-                segments: [
-                  {value: 1, color: "#ffe6f7"},
-                  {value: 2, color: "#ffe6f7"},
-                  {value: 3, color: "#ffe6f7"},
-                  {value: 4, color: "#ffe6f7"},
-                  {value: 5, color: "#ffe6f7"}
-                ]
-              },
-              rangeRing: {color: "#ffe6f7", alpha: 0.48, lineWidth: 1.8, dash: [7, 7]}
-            }
-          }
-        ],
-        tags: ["평타"]
-      },
-      tagBurst: {
-        id: "attack.hapupu.tag-burst",
-        damageRatio: 1,
-        cost: 0,
-        cd: 0,
-        range: 160,
-        presentation: {color: "#ffe6f7"},
-        modules: [
-          {
-            type: "delivery.area",
-            shape: "circle",
-            range: characterValue("attacks.tagBurst.range"),
-            centerMode: "live-aim-point",
-            centerMaxRange: 99999,
-            centerPointResolve: "none",
-            centerPreferExecutionTargetPoint: true,
-            wallPolicy: "block",
-            targetRelations: ["enemy"],
-            renderType: "areaCircle"
-          }
-        ],
-        tags: ["평타"]
-      },
-      rmb: {
-        id: "attack.hapupu.rmb",
-        effectsOnly: true,
-        damageRatio: 0,
-        cost: 0,
-        cd: 0,
-        range: 0,
-        presentation: {color: "#ffe6f7"},
-        modules: [],
-        tags: ["스킬"]
-      },
-      counter: {
-        id: "attack.hapupu.counter",
-        damageRatio: 2,
-        cost: 0,
-        cd: 500,
-        range: 120,
-        presentation: {color: "#ffe6f7"},
-        modules: [
-          {
-            type: "delivery.area",
-            shape: "circle",
-            range: characterValue("attacks.counter.range"),
-            centerMode: "live-aim-point",
-            centerMaxRange: 150,
-            centerPointResolve: "none",
-            previewAtCenter: true,
-            contactType: "melee",
-            wallPolicy: "ignore",
-            targetRelations: ["enemy"],
-            applyHitEffects: true
-          },
-          {
-            type: "stack.mark",
-            when: "on-hit",
-            stateKey: "hapupu-tag",
-            operation: "burst",
-            amount: 0,
-            max: characterValue("attacks.lmb.modules.2.max"),
-            duration: 5000,
-            breakDistance: 450,
-            burstAttackId: "attack.hapupu.tag-burst",
-            oncePerExecution: false,
-            burstDamage: {mode: "progressive-total", first: 200, step: 50},
-            presentation: {
-              gauge: {
-                type: "segmented-gauge",
-                height: 4,
-                gap: 2,
-                valueMode: "count",
-                activeAlpha: 0.96,
-                background: "rgba(20,12,18,.9)",
-                stroke: "rgba(255,230,247,.4)",
-                segments: [
-                  {value: 1, color: "#ffe6f7"},
-                  {value: 2, color: "#ffe6f7"},
-                  {value: 3, color: "#ffe6f7"},
-                  {value: 4, color: "#ffe6f7"},
-                  {value: 5, color: "#ffe6f7"}
-                ]
-              },
-              rangeRing: {color: "#ffe6f7", alpha: 0.48, lineWidth: 1.8, dash: [7, 7]}
-            }
-          }
-        ],
-        tags: ["반격"]
-      }
+  "id": "hapupu",
+  "name": "하푸푸",
+  "englishName": "Hapupu",
+  "title": "영원한 친구",
+  "color": "#ffe6f7",
+  "classification": {
+    "style": 9,
+    "range": 0,
+    "role": 6
+  },
+  "stats": {
+    "maxHealth": 1000,
+    "speed": 4.5,
+    "radius": 20,
+    "baseDamage": 100,
+    "difficulty": 4
+  },
+  "desc": "누군가의 상상 속 친구 캐릭터",
+  "tooltipSkills": [
+    {
+      "key": "LMB",
+      "name": "네가 술래!",
+      "attack": "lmb",
+      "text": "적을 밀치며 피해 및 넉백, 술래 표식 {v:attacks.lmb.modules.2.amount}중첩. 최대 {markMaxStacks}중첩. 적과 일정 거리 이상 멀어질 시 표식 폭발 ({damage}/{markMinBurstDamage}~{markMaxBurstDamage})"
     },
-    abilities: {
-      lmb: {
-        id: "ability.hapupu.lmb",
-        input: "lmb",
-        attackId: "attack.hapupu.lmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "lmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"}
-          ],
-          modules: [{type: "action.attack"}]
-        }
+    {
+      "key": "RMB",
+      "name": "나 잡아봐라!",
+      "attack": "rmb",
+      "costText": "초당 스테미나 {sustainDrainPerSecond}",
+      "text": "이동속도 {sustainSpeedPercent}% 증가 및 벽 통과. 사용 도중 스테미나를 소모하며 재사용 시 해제"
+    },
+    {
+      "key": "L-Shift",
+      "name": "잡은 줄 알았지?!",
+      "attack": "counter",
+      "text": "적을 강하게 밀쳐내며 피해. 적중한 적의 술래 표식 폭발 ({damage})"
+    }
+  ],
+  "attacks": {
+    "lmb": {
+      "id": "attack.hapupu.lmb",
+      "damageRatio": 1,
+      "cost": 200,
+      "cd": 500,
+      "range": 90,
+      "presentation": {
+        "color": "#ffe6f7"
       },
-      rmb: {
-        id: "ability.hapupu.rmb",
-        input: "rmb",
-        attackId: "attack.hapupu.rmb",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "rmb"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"}
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": {
+            "$ref": "attacks.lmb.range"
+          },
+          "centerMode": "live-aim-point",
+          "centerMaxRange": 150,
+          "centerPointResolve": "none",
+          "previewAtCenter": true,
+          "contactType": "melee",
+          "wallPolicy": "ignore",
+          "targetRelations": [
+            "enemy"
           ],
-          modules: [
-            {
-              type: "sustain.toggle",
-              stateKey: "hapupu-catch-me",
-              maxDuration: 0,
-              resource: "stamina",
-              activationCost: 0,
-              drainPerSecond: 400,
-              cooldownAttackId: "attack.hapupu.rmb",
-              cooldownOnStop: 500,
-              buffs: [{type: "speed", value: 0.45, tags: ["이동속도 증가"]}, {type: "wallPass", value: 1, tags: ["벽 통과"]}]
+          "applyHitEffects": true
+        },
+        {
+          "type": "movement.knockback",
+          "target": "hit-target",
+          "direction": "away-from-source",
+          "distance": 47.25,
+          "speed": 10,
+          "oncePerExecution": false
+        },
+        {
+          "type": "stack.mark",
+          "when": "on-hit",
+          "stateKey": "hapupu-tag",
+          "operation": "add",
+          "amount": 1,
+          "max": 5,
+          "duration": 0,
+          "breakDistance": 450,
+          "burstOnExpire": false,
+          "burstAttackId": "attack.hapupu.tag-burst",
+          "oncePerExecution": false,
+          "burstDamage": {
+            "mode": "progressive-total",
+            "first": 200,
+            "step": 50
+          },
+          "presentation": {
+            "gauge": {
+              "type": "segmented-gauge",
+              "height": 4,
+              "gap": 2,
+              "valueMode": "count",
+              "activeAlpha": 0.96,
+              "background": "rgba(20,12,18,.9)",
+              "stroke": "rgba(255,230,247,.4)",
+              "segments": [
+                {
+                  "value": 1,
+                  "color": "#ffe6f7"
+                },
+                {
+                  "value": 2,
+                  "color": "#ffe6f7"
+                },
+                {
+                  "value": 3,
+                  "color": "#ffe6f7"
+                },
+                {
+                  "value": 4,
+                  "color": "#ffe6f7"
+                },
+                {
+                  "value": 5,
+                  "color": "#ffe6f7"
+                }
+              ]
+            },
+            "rangeRing": {
+              "color": "#ffe6f7",
+              "alpha": 0.48,
+              "lineWidth": 1.8,
+              "dash": [
+                7,
+                7
+              ]
             }
-          ]
+          }
         }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "tagBurst": {
+      "id": "attack.hapupu.tag-burst",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 0,
+      "range": 160,
+      "presentation": {
+        "color": "#ffe6f7"
       },
-      counter: {
-        id: "ability.hapupu.counter",
-        input: "counter",
-        attackId: "attack.hapupu.counter",
-        trigger: {
-          type: "trigger",
-          event: "input.press",
-          conditions: [
-            {type: "input.slot", slot: "counter"},
-            {type: "entity.alive"},
-            {type: "ability.pending-ready"},
-            {type: "combat.can-act"},
-            {type: "source.property.falsy", property: "counterWindup"},
-            {type: "counter.ready"}
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": {
+            "$ref": "attacks.tagBurst.range"
+          },
+          "centerMode": "live-aim-point",
+          "centerMaxRange": 99999,
+          "centerPointResolve": "none",
+          "centerPreferExecutionTargetPoint": true,
+          "wallPolicy": "block",
+          "targetRelations": [
+            "enemy"
           ],
-          modules: [
-            {
-              type: "counter.execute",
-              windup: 300,
-              consumeState: "counter-ready",
-              targetPointMode: "aim-point",
-              preview: {type: "preview.create", shape: "attack-shape"},
-              cc: {
-                type: "movement.neutralize-knockback",
-                target: "hit-target",
-                direction: "away-from-source",
-                distance: 84,
-                speed: 14,
-                oncePerExecution: false
-              }
-            }
-          ]
+          "renderType": "areaCircle"
         }
-      }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "rmb": {
+      "id": "attack.hapupu.rmb",
+      "effectsOnly": true,
+      "damageRatio": 0,
+      "cost": 0,
+      "cd": 0,
+      "range": 0,
+      "presentation": {
+        "color": "#ffe6f7"
+      },
+      "modules": [],
+      "tags": [
+        "스킬"
+      ]
+    },
+    "counter": {
+      "id": "attack.hapupu.counter",
+      "damageRatio": 2,
+      "cost": 0,
+      "cd": 500,
+      "range": 120,
+      "presentation": {
+        "color": "#ffe6f7"
+      },
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": {
+            "$ref": "attacks.counter.range"
+          },
+          "centerMode": "live-aim-point",
+          "centerMaxRange": 150,
+          "centerPointResolve": "none",
+          "previewAtCenter": true,
+          "contactType": "melee",
+          "wallPolicy": "ignore",
+          "targetRelations": [
+            "enemy"
+          ],
+          "applyHitEffects": true
+        },
+        {
+          "type": "stack.mark",
+          "when": "on-hit",
+          "stateKey": "hapupu-tag",
+          "operation": "burst",
+          "amount": 0,
+          "max": {
+            "$ref": "attacks.lmb.modules.2.max"
+          },
+          "duration": 5000,
+          "breakDistance": 450,
+          "burstAttackId": "attack.hapupu.tag-burst",
+          "oncePerExecution": false,
+          "burstDamage": {
+            "mode": "progressive-total",
+            "first": 200,
+            "step": 50
+          },
+          "presentation": {
+            "gauge": {
+              "type": "segmented-gauge",
+              "height": 4,
+              "gap": 2,
+              "valueMode": "count",
+              "activeAlpha": 0.96,
+              "background": "rgba(20,12,18,.9)",
+              "stroke": "rgba(255,230,247,.4)",
+              "segments": [
+                {
+                  "value": 1,
+                  "color": "#ffe6f7"
+                },
+                {
+                  "value": 2,
+                  "color": "#ffe6f7"
+                },
+                {
+                  "value": 3,
+                  "color": "#ffe6f7"
+                },
+                {
+                  "value": 4,
+                  "color": "#ffe6f7"
+                },
+                {
+                  "value": 5,
+                  "color": "#ffe6f7"
+                }
+              ]
+            },
+            "rangeRing": {
+              "color": "#ffe6f7",
+              "alpha": 0.48,
+              "lineWidth": 1.8,
+              "dash": [
+                7,
+                7
+              ]
+            }
+          }
+        }
+      ],
+      "tags": [
+        "반격"
+      ]
     }
   },
+  "abilities": {
+    "lmb": {
+      "id": "ability.hapupu.lmb",
+      "input": "lmb",
+      "attackId": "attack.hapupu.lmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "lmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          }
+        ]
+      }
+    },
+    "rmb": {
+      "id": "ability.hapupu.rmb",
+      "input": "rmb",
+      "attackId": "attack.hapupu.rmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "sustain.toggle",
+            "stateKey": "hapupu-catch-me",
+            "maxDuration": 0,
+            "resource": "stamina",
+            "activationCost": 0,
+            "drainPerSecond": 400,
+            "cooldownAttackId": "attack.hapupu.rmb",
+            "cooldownOnStop": 500,
+            "buffs": [
+              {
+                "type": "speed",
+                "value": 0.45,
+                "tags": [
+                  "이동속도 증가"
+                ]
+              },
+              {
+                "type": "wallPass",
+                "value": 1,
+                "tags": [
+                  "벽 통과"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "counter": {
+      "id": "ability.hapupu.counter",
+      "input": "counter",
+      "attackId": "attack.hapupu.counter",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "counter"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "source.property.falsy",
+            "property": "counterWindup"
+          },
+          {
+            "type": "counter.ready"
+          }
+        ],
+        "modules": [
+          {
+            "type": "counter.execute",
+            "windup": 300,
+            "consumeState": "counter-ready",
+            "targetPointMode": "aim-point",
+            "preview": {
+              "type": "preview.create",
+              "shape": "attack-shape"
+            },
+            "cc": {
+              "type": "movement.neutralize-knockback",
+              "target": "hit-target",
+              "direction": "away-from-source",
+              "distance": 84,
+              "speed": 14,
+              "oncePerExecution": false
+            }
+          }
+        ]
+      }
+    }
+  }
+},
   // 아츠테오: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
   atsuteo: {
     id: "atsuteo",
@@ -23881,7 +24815,7 @@ const CHARACTER_DATA=freezeCharacterData({
       rmb: {
         id: "attack.atsuteo.rmb",
         damageRatio: 0,
-        cost: 200,
+        cost: 300,
         cd: 500,
         range: 270,
         effectsOnly: true,
@@ -24144,6 +25078,7 @@ const CHARACTER_DATA=freezeCharacterData({
             collisionTargets: true,
             stateKey: "nare-rmb-plane",
             rehitInterval: 1000,
+            boundaryMode: "remove",
             expireAtRange: false
           },
           {type: "projectile.pierce", targets: true, walls: true},
@@ -26402,7 +27337,7 @@ const CHARACTER_DATA=freezeCharacterData({
             when: "on-hit",
             operation: "add",
             amount: 1,
-            max: 8,
+            max: 12,
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
           {
@@ -26425,7 +27360,7 @@ const CHARACTER_DATA=freezeCharacterData({
       },
       lmbSecond: {
         id: "attack.cyien.lmb-second",
-        damageRatio: 1.5,
+        damageRatio: 1,
         cost: 0,
         cd: 0,
         range: 120,
@@ -26488,7 +27423,7 @@ const CHARACTER_DATA=freezeCharacterData({
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
-            amount: 2,
+            amount: 4,
             max: characterValue("attacks.lmb.modules.1.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
@@ -26556,7 +27491,7 @@ const CHARACTER_DATA=freezeCharacterData({
                 stateKey: "cyien-gyeok",
                 operation: "add",
                 amount: 1,
-                max: 8,
+                max: 12,
                 presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
               }
             },
@@ -26582,7 +27517,7 @@ const CHARACTER_DATA=freezeCharacterData({
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
-            amount: 4,
+            amount: characterValue("attacks.lmb.modules.1.max", 0.5),
             max: characterValue("attacks.lmb.modules.1.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
@@ -26708,7 +27643,6 @@ const CHARACTER_DATA=freezeCharacterData({
         id: "ability.cyien.lmb",
         input: "lmb",
         attackId: "attack.cyien.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",
@@ -26934,7 +27868,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "when": "on-hit",
           "resource": "stamina",
           "recipient": "source",
-          "amount": 70,
+          "amount": 60,
           "oncePerExecution": true,
           "excludeTargetKinds": [
             "summon",
@@ -26998,7 +27932,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "when": "on-hit",
           "resource": "stamina",
           "recipient": "source",
-          "amount": 70,
+          "amount": 60,
           "oncePerExecution": true,
           "excludeTargetKinds": [
             "summon",
@@ -27057,7 +27991,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "when": "on-hit",
           "resource": "stamina",
           "recipient": "source",
-          "amount": 70,
+          "amount": 60,
           "oncePerExecution": true,
           "excludeTargetKinds": [
             "summon",
@@ -27512,7 +28446,6 @@ const CHARACTER_DATA=freezeCharacterData({
         id: "ability.deltroove.lmb",
         input: "lmb",
         attackId: "attack.deltroove.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",
@@ -28253,7 +29186,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "max": 800,
     "segmentSize": 100,
     "intactRegenPerSecond": 25,
-    "repairHits": 5,
+    "repairHits": 4,
     "rotationStateKey": "van-wrench-rotation",
     "rotationMs": 300
   },
@@ -30269,7 +31202,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "key": "ALWAYS",
       "name": "폭발 주의",
       "showCost": false,
-      "text": "착탄 {v:attacks.lmbExplosion.modules.0.delay|seconds}초 뒤 폭발하며 중심에 가까울수록 피해와 넉백 증가"
+      "text": "비행 중 도화선이 감소하며 착탄 후 남은 시간이 지나면 폭발. 중심에 가까울수록 피해와 넉백 증가"
     },
     {
       "key": "LMB",
@@ -30313,9 +31246,7 @@ const CHARACTER_DATA=freezeCharacterData({
               "atRange": true,
               "atTarget": true,
               "atWall": true,
-              "duration": {
-                "$ref": "attacks.lmbExplosion.modules.0.delay"
-              },
+              "duration": 0,
               "fadeOut": false,
               "triggerOnEnter": false,
               "removeOnTrigger": false,
@@ -30336,7 +31267,15 @@ const CHARACTER_DATA=freezeCharacterData({
             "attack.terdion.lmb-explosion"
           ],
           "oncePerProjectile": true,
-          "cancelDelayedOnRemove": true
+          "cancelDelayedOnRemove": true,
+          "fuse": {
+            "range": {
+              "$ref": "attacks.lmb.range"
+            },
+            "speed": {
+              "$ref": "attacks.lmb.modules.0.speed"
+            }
+          }
         },
         {
           "type": "projectile.presentation",
@@ -30373,10 +31312,11 @@ const CHARACTER_DATA=freezeCharacterData({
           "range": {
             "$ref": "attacks.lmbExplosion.range"
           },
-          "delay": 500,
+          "delay": 0,
           "wallPolicy": "block",
           "color": "35,143,150",
-          "renderType": "areaCircle"
+          "renderType": "areaCircle",
+          "delayFromProjectileFuse": true
         },
         {
           "type": "damage.range-band-multiplier",
@@ -30426,9 +31366,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "range": {
             "$ref": "attacks.lmb.modules.0.radius"
           },
-          "duration": {
-            "$ref": "attacks.lmbExplosion.modules.0.delay"
-          },
+          "duration": 0,
           "fadeOut": false,
           "fillAlpha": 0,
           "strokeAlpha": 0,
@@ -30439,7 +31377,8 @@ const CHARACTER_DATA=freezeCharacterData({
           "remainingArcOffset": 6,
           "remainingArcLineWidth": 3,
           "remainingArcAlpha": 0.95,
-          "stateKey": "projectile-fuse"
+          "stateKey": "projectile-fuse",
+          "durationFromProjectileFuse": true
         }
       ],
       "tags": [
@@ -30467,9 +31406,7 @@ const CHARACTER_DATA=freezeCharacterData({
               "atRange": true,
               "atTarget": true,
               "atWall": true,
-              "duration": {
-                "$ref": "attacks.rmbExplosion.modules.0.delay"
-              },
+              "duration": 0,
               "fadeOut": false,
               "triggerOnEnter": false,
               "removeOnTrigger": false,
@@ -30496,7 +31433,15 @@ const CHARACTER_DATA=freezeCharacterData({
             "attack.terdion.rmb-explosion"
           ],
           "oncePerProjectile": true,
-          "cancelDelayedOnRemove": true
+          "cancelDelayedOnRemove": true,
+          "fuse": {
+            "range": {
+              "$ref": "attacks.rmb.range"
+            },
+            "speed": {
+              "$ref": "attacks.rmb.modules.0.speed"
+            }
+          }
         },
         {
           "type": "projectile.presentation",
@@ -30541,10 +31486,11 @@ const CHARACTER_DATA=freezeCharacterData({
           "range": {
             "$ref": "attacks.rmbExplosion.range"
           },
-          "delay": 500,
+          "delay": 0,
           "wallPolicy": "block",
           "color": "35,143,150",
-          "renderType": "areaCircle"
+          "renderType": "areaCircle",
+          "delayFromProjectileFuse": true
         },
         {
           "type": "damage.range-band-multiplier",
@@ -30604,9 +31550,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "range": {
             "$ref": "attacks.rmb.modules.0.radius"
           },
-          "duration": {
-            "$ref": "attacks.rmbExplosion.modules.0.delay"
-          },
+          "duration": 0,
           "fadeOut": false,
           "fillAlpha": 0,
           "strokeAlpha": 0,
@@ -30617,7 +31561,8 @@ const CHARACTER_DATA=freezeCharacterData({
           "remainingArcOffset": 6,
           "remainingArcLineWidth": 3,
           "remainingArcAlpha": 0.95,
-          "stateKey": "projectile-fuse"
+          "stateKey": "projectile-fuse",
+          "durationFromProjectileFuse": true
         }
       ],
       "tags": [
@@ -30643,9 +31588,7 @@ const CHARACTER_DATA=freezeCharacterData({
               "atRange": true,
               "atTarget": true,
               "atWall": true,
-              "duration": {
-                "$ref": "attacks.counterExplosion.modules.0.delay"
-              },
+              "duration": 0,
               "fadeOut": false,
               "triggerOnEnter": false,
               "removeOnTrigger": false,
@@ -30672,7 +31615,15 @@ const CHARACTER_DATA=freezeCharacterData({
             "attack.terdion.counter-explosion"
           ],
           "oncePerProjectile": true,
-          "cancelDelayedOnRemove": true
+          "cancelDelayedOnRemove": true,
+          "fuse": {
+            "range": {
+              "$ref": "attacks.counter.range"
+            },
+            "speed": {
+              "$ref": "attacks.counter.modules.0.speed"
+            }
+          }
         },
         {
           "type": "delivery.delayed-projectile-volley",
@@ -30735,10 +31686,11 @@ const CHARACTER_DATA=freezeCharacterData({
           "range": {
             "$ref": "attacks.counterExplosion.range"
           },
-          "delay": 500,
+          "delay": 0,
           "wallPolicy": "block",
           "color": "35,143,150",
-          "renderType": "areaCircle"
+          "renderType": "areaCircle",
+          "delayFromProjectileFuse": true
         },
         {
           "type": "damage.range-band-multiplier",
@@ -30788,9 +31740,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "range": {
             "$ref": "attacks.counter.modules.0.radius"
           },
-          "duration": {
-            "$ref": "attacks.counterExplosion.modules.0.delay"
-          },
+          "duration": 0,
           "fadeOut": false,
           "fillAlpha": 0,
           "strokeAlpha": 0,
@@ -30801,7 +31751,8 @@ const CHARACTER_DATA=freezeCharacterData({
           "remainingArcOffset": 6,
           "remainingArcLineWidth": 3,
           "remainingArcAlpha": 0.95,
-          "stateKey": "projectile-fuse"
+          "stateKey": "projectile-fuse",
+          "durationFromProjectileFuse": true
         }
       ],
       "tags": [
@@ -30930,7 +31881,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "speed": 3.75,
     "radius": 20,
     "baseDamage": 100,
-    "difficulty": 4
+    "difficulty": 2
   },
   "desc": "적과 공격에서 아이디어를 얻고 상황에 맞는 모듈을 추가하는 캐릭터",
   "ideaModules": {
@@ -32358,9 +33309,6 @@ const CHARACTER_DATA=freezeCharacterData({
       "id": "ability.siro.lmb",
       "input": "lmb",
       "attackId": "attack.siro.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -32622,7 +33570,7 @@ const CHARACTER_DATA=freezeCharacterData({
     },
     "rmb": {
       "id": "attack.hab.rmb",
-      "damageRatio": 1,
+      "damageRatio": 0.75,
       "cost": 500,
       "cd": 400,
       "range": 550,
@@ -33046,7 +33994,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "id": "attack.huri.rmb",
       "damageRatio": 0,
       "effectsOnly": true,
-      "cost": 400,
+      "cost": 600,
       "cd": 2500,
       "range": 0,
       "modules": [
@@ -33727,7 +34675,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "resource.restore",
           "resource": "health",
           "recipient": "source",
-          "maxResourceRatio": 0.1
+          "maxResourceRatio": 0.05
         }
       ]
     }
@@ -33930,7 +34878,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "speed": 4.25,
     "radius": 20,
     "baseDamage": 150,
-    "difficulty": 3
+    "difficulty": 1
   },
   "desc": "공격을 빠르게 이어 강한 넉백과 감전으로 적을 제어하는 캐릭터",
   "tooltipSkills": [
@@ -34696,7 +35644,7 @@ const CHARACTER_DATA=freezeCharacterData({
   "attacks": {
     "lmb": {
       "id": "attack.latis.lmb",
-      "damageRatio": 1.0,
+      "damageRatio": 1.3333333333333333,
       "cost": 150,
       "cd": 450,
       "range": 225,
@@ -35043,6 +35991,858 @@ const CHARACTER_DATA=freezeCharacterData({
       ]
     }
   ]
+},
+  kasha: {
+  "id": "kasha",
+  "name": "카샤",
+  "englishName": "Kasha",
+  "title": "심판의 집행자",
+  "color": "#FFFF7D",
+  "classification": {
+    "style": 6,
+    "range": 2,
+    "role": 1
+  },
+  "stats": {
+    "maxHealth": 1300,
+    "speed": 3.75,
+    "radius": 20,
+    "baseDamage": 150,
+    "difficulty": 4
+  },
+  "desc": "회피의 대가를 심판의 무게로 쌓아 거대한 집행검으로 응징하는 캐릭터",
+  "passives": [
+    {
+      "type": "state.progress-rate",
+      "stateKey": "kasha-judgment",
+      "max": 10,
+      "initial": 0,
+      "ratePerSecond": 0,
+      "presentation": {
+        "type": "segmented-gauge",
+        "height": 4,
+        "gap": 2,
+        "valueMode": "count",
+        "activeAlpha": 0.95,
+        "background": "rgba(10,18,22,0.92)",
+        "stroke": "#FFFF7D",
+        "segments": [
+          {
+            "value": 1,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 2,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 3,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 4,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 5,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 6,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 7,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 8,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 9,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 10,
+            "color": "#FFFF7D"
+          }
+        ]
+      }
+    }
+  ],
+  "triggers": [
+    {
+      "id": "kasha-enemy-dodge",
+      "type": "trigger",
+      "event": "enemy-just-dodge",
+      "modules": [
+        {
+          "type": "effect.spawn",
+          "attackId": "attack.kasha.judgment-reward",
+          "renderType": "areaCircle",
+          "position": "hit-target",
+          "target": "source",
+          "travelToken": true,
+          "tokenStyle": "light",
+          "followSource": false,
+          "color": "#FFFF7D",
+          "duration": 333,
+          "fadeOut": false
+        },
+        {
+          "type": "state.progress",
+          "stateKey": "kasha-judgment",
+          "operation": "add",
+          "amount": 1,
+          "max": 10,
+          "presentation": {
+            "type": "segmented-gauge",
+            "height": 4,
+            "gap": 2,
+            "valueMode": "count",
+            "activeAlpha": 0.95,
+            "background": "rgba(10,18,22,0.92)",
+            "stroke": "#FFFF7D",
+            "segments": [
+              {
+                "value": 1,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 2,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 3,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 4,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 5,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 6,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 7,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 8,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 9,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 10,
+                "color": "#FFFF7D"
+              }
+            ]
+          },
+          "delay": 333
+        }
+      ],
+      "conditions": [
+        {
+          "type": "cause.source-is-self"
+        }
+      ]
+    },
+    {
+      "id": "kasha-own-dodge",
+      "type": "trigger",
+      "event": "just-dodge",
+      "modules": [
+        {
+          "type": "effect.spawn",
+          "attackId": "attack.kasha.judgment-reward",
+          "renderType": "areaCircle",
+          "position": "source",
+          "target": "source",
+          "travelToken": true,
+          "tokenStyle": "light",
+          "followSource": true,
+          "color": "#FFFF7D",
+          "duration": 333,
+          "fadeOut": false
+        },
+        {
+          "type": "state.progress",
+          "stateKey": "kasha-judgment",
+          "operation": "add",
+          "amount": 1,
+          "max": 10,
+          "presentation": {
+            "type": "segmented-gauge",
+            "height": 4,
+            "gap": 2,
+            "valueMode": "count",
+            "activeAlpha": 0.95,
+            "background": "rgba(10,18,22,0.92)",
+            "stroke": "#FFFF7D",
+            "segments": [
+              {
+                "value": 1,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 2,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 3,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 4,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 5,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 6,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 7,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 8,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 9,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 10,
+                "color": "#FFFF7D"
+              }
+            ]
+          },
+          "delay": 333
+        }
+      ]
+    }
+  ],
+  "tooltipSkills": [
+    {
+      "key": "ALWAYS",
+      "name": "심판의 저울",
+      "showCost": false,
+      "text": "상대가 자신의 공격을 저스트 회피하거나 자신이 공격을 저스트 회피하면 빛을 획득하여 심판의 무게 1 추가. 최대 {v:passives.0.max}"
+    },
+    {
+      "key": "LMB",
+      "name": "집행검",
+      "attack": "lmb",
+      "text": "정의의 의지로 만든 검을 휘둘러 피해 ({damage})"
+    },
+    {
+      "key": "RMB",
+      "name": "죄의 무게",
+      "attack": "rmb",
+      "text": "0.7초 준비 후 심판의 무게를 모두 소모하여 전방 220도를 베어 무게당 적 최대 체력의 8% 피해 및 매우 강한 넉백. 준비와 공격 중 속박"
+    },
+    {
+      "key": "L-Shift",
+      "name": "삼중 집행",
+      "attack": "counter",
+      "text": "마지막 이동 방향의 뒤편에 집행검 3자루를 소환하여 지정 지점으로 순차 투척. 착탄 지점에 피해 (타당 {linkedDamage})",
+      "linkedAttack": "counterImpact"
+    }
+  ],
+  "attacks": {
+    "lmb": {
+      "id": "attack.kasha.lmb",
+      "damageRatio": 1,
+      "cost": 150,
+      "cd": 500,
+      "range": 275,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "sector",
+          "range": {
+            "$ref": "attacks.lmb.range"
+          },
+          "halfAngle": 1.2,
+          "wallPolicy": "block",
+          "contactType": "melee"
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "arcSweep",
+          "position": "source",
+          "range": {
+            "$ref": "attacks.lmb.range"
+          },
+          "halfAngle": 1.2,
+          "animateSweep": true,
+          "sweepDirection": "counterclockwise",
+          "sweepSpeed": 1.7,
+          "animation": true,
+          "color": "#FFFF7D",
+          "fillAlpha": 0.18,
+          "strokeAlpha": 0.9,
+          "duration": 300,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "kasha-sword-spin",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        }
+      ],
+      "tags": [
+        "평타"
+      ]
+    },
+    "rmb": {
+      "id": "attack.kasha.rmb",
+      "damageRatio": 0,
+      "cost": 600,
+      "cd": 1800,
+      "range": 900,
+      "previewGeometry": {
+        "type": "delivery.area",
+        "shape": "sector",
+        "range": 900,
+        "halfAngle": 1.9198621771937625,
+        "wallPolicy": "ignore",
+        "contactType": "melee"
+      },
+      "progressScale": {
+        "stateKey": "kasha-judgment",
+        "valueRange": {
+          "from": 0,
+          "to": 10
+        },
+        "moduleValues": [
+          {
+            "type": "damage.target-max-health-ratio",
+            "property": "ratio",
+            "from": 0,
+            "to": 0.8
+          }
+        ]
+      },
+      "modules": [
+        {
+          "type": "damage.target-max-health-ratio",
+          "ratio": 0
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "arcSweep",
+          "position": "source",
+          "range": {
+            "$ref": "attacks.rmb.range"
+          },
+          "halfAngle": 1.9198621771937625,
+          "animateSweep": true,
+          "sweepDirection": "counterclockwise",
+          "sweepSpeed": 1,
+          "animation": true,
+          "color": "#FF4646",
+          "fillAlpha": 0.16,
+          "strokeAlpha": 0.9,
+          "lineWidth": 3,
+          "duration": 400,
+          "clipToAttackArea": false,
+          "replaceAutoAreaEffect": true,
+          "edgeLine": false,
+          "damage": {
+            "attackId": "attack.kasha.rmb",
+            "hitMode": "arc-sweep",
+            "module": {
+              "type": "delivery.area",
+              "shape": "sector",
+              "range": 900,
+              "halfAngle": 1.9198621771937625,
+              "wallPolicy": "ignore",
+              "contactType": "melee"
+            },
+            "oncePerExecution": true,
+            "snapshotAttackScalars": true
+          }
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "kasha-swing",
+          "duration": 400
+        },
+        {
+          "type": "state.progress",
+          "when": "after-attack",
+          "stateKey": "kasha-judgment",
+          "operation": "reset"
+        },
+        {
+          "type": "mode.toggle",
+          "when": "after-attack",
+          "stateKey": "kasha-sword-spin",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        },
+        {
+          "type": "movement.knockback",
+          "when": "on-hit",
+          "target": "hit-target",
+          "direction": "attack",
+          "distance": 350,
+          "speed": 22
+        }
+      ],
+      "tags": [
+        "스킬",
+        "선딜레이"
+      ],
+      "previewStyle": {
+        "strokeColor": "255,70,70",
+        "fillColor": "255,55,55",
+        "strokeAlpha": 0.95,
+        "fillAlpha": 0.13
+      }
+    },
+    "counter": {
+      "id": "attack.kasha.counter",
+      "damageRatio": 0,
+      "cost": 0,
+      "cd": 0,
+      "range": 850,
+      "modules": [
+        {
+          "type": "delivery.projectile",
+          "speed": 25,
+          "radius": 18,
+          "targetPoint": true,
+          "targetPointClampToAttackRange": true,
+          "targetPointResolve": "nearest-open",
+          "damageOnTravel": false,
+          "collisionTargets": false,
+          "arrival": {
+            "passWallsInFlight": true
+          },
+          "collisionMode": "landing-only"
+        },
+        {
+          "type": "projectile.presentation",
+          "kind": "weapon-projectile",
+          "style": {
+            "type": "anchor-cross",
+            "radius": 18,
+            "fillAlpha": 0.28,
+            "strokeWidth": 2,
+            "showLink": false
+          }
+        },
+        {
+          "type": "delivery.delayed-projectile-volley",
+          "count": 3,
+          "interval": 180,
+          "aimMode": "live-target-point",
+          "originOffsets": [
+            {
+              "forward": -95,
+              "lateral": -70
+            },
+            {
+              "forward": -130,
+              "lateral": 0
+            },
+            {
+              "forward": -95,
+              "lateral": 70
+            }
+          ],
+          "originOrientation": "last-movement"
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "kasha-counter-1",
+          "duration": 180
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "kasha-counter-2",
+          "duration": 360
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": true,
+          "walls": true
+        },
+        {
+          "type": "projectile.impact",
+          "reasons": [
+            "arrival",
+            "target-point",
+            "range",
+            "boundary",
+            "wall"
+          ],
+          "attackIds": [
+            "attack.kasha.counter-impact"
+          ],
+          "oncePerProjectile": true
+        },
+        {
+          "type": "mode.toggle",
+          "when": "on-projectile-shot",
+          "stateKey": "kasha-sword-spin",
+          "values": [
+            "a",
+            "b"
+          ],
+          "step": 1
+        }
+      ],
+      "tags": [
+        "반격"
+      ]
+    },
+    "rmbPreview": {
+      "id": "attack.kasha.rmbPreview",
+      "damageRatio": 0,
+      "cost": 0,
+      "cd": 0,
+      "range": 900,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "sector",
+          "range": 900,
+          "halfAngle": 1.9198621771937625,
+          "wallPolicy": "ignore",
+          "contactType": "melee"
+        }
+      ],
+      "tags": [
+        "스킬"
+      ]
+    },
+    "counterImpact": {
+      "id": "attack.kasha.counter-impact",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 0,
+      "range": 100,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 100,
+          "wallPolicy": "block"
+        },
+        {
+          "type": "movement.neutralize-knockback",
+          "target": "hit-target",
+          "direction": "away-from-impact",
+          "distance": 100,
+          "speed": 14
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "presentation": {
+        "damageNumberGroup": "execution"
+      }
+    },
+    "judgmentReward": {
+      "id": "attack.kasha.judgment-reward",
+      "damageRatio": 0,
+      "cost": 0,
+      "cd": 0,
+      "range": 0,
+      "effectsOnly": true,
+      "modules": [],
+      "tags": []
+    }
+  },
+  "abilities": {
+    "lmb": {
+      "id": "ability.kasha.lmb",
+      "input": "lmb",
+      "attackId": "attack.kasha.lmb",
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "lmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          }
+        ],
+        "modules": [
+          {
+            "type": "action.attack"
+          }
+        ]
+      }
+    },
+    "rmb": {
+      "id": "ability.kasha.rmb",
+      "input": "rmb",
+      "attackId": "attack.kasha.rmb",
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      },
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "rmb"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "cooldowns.ready",
+            "attackIds": [
+              "attack.kasha.rmb"
+            ]
+          },
+          {
+            "type": "resource.can-spend-stamina",
+            "value": {
+              "$ref": "attacks.rmb.cost"
+            }
+          },
+          {
+            "type": "state.absent",
+            "stateKey": "kasha-swing",
+            "activeOnly": true
+          },
+          {
+            "type": "state.progress-gte",
+            "stateKey": "kasha-judgment",
+            "value": 1
+          }
+        ],
+        "modules": [
+          {
+            "type": "state.window",
+            "stateKey": "kasha-preparing",
+            "duration": 700
+          },
+          {
+            "type": "status.apply",
+            "status": "bind",
+            "target": "source",
+            "duration": 1100,
+            "sourceId": "ability:kasha:judgment-root"
+          },
+          {
+            "type": "preview.create",
+            "shape": "attack-shape",
+            "duration": 700,
+            "followSource": true
+          },
+          {
+            "type": "effect.spawn",
+            "presentationOnly": true,
+            "renderType": "arcSweep",
+            "position": "source",
+            "range": 900,
+            "halfAngle": 1.9198621771937625,
+            "sweepDirection": "counterclockwise",
+            "animateSweep": false,
+            "duration": 700,
+            "color": "#FF4646",
+            "fillAlpha": 0.035,
+            "strokeAlpha": 0.65,
+            "lineWidth": 2,
+            "clipToAttackArea": false,
+            "followSource": true,
+            "angleMode": "aim"
+          },
+          {
+            "type": "timing.delay",
+            "duration": 700
+          },
+          {
+            "type": "action.attack"
+          }
+        ]
+      }
+    },
+    "counter": {
+      "id": "ability.kasha.counter",
+      "input": "counter",
+      "attackId": "attack.kasha.counter",
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      },
+      "trigger": {
+        "type": "trigger",
+        "event": "input.press",
+        "conditions": [
+          {
+            "type": "input.slot",
+            "slot": "counter"
+          },
+          {
+            "type": "entity.alive"
+          },
+          {
+            "type": "ability.pending-ready"
+          },
+          {
+            "type": "combat.can-act"
+          },
+          {
+            "type": "source.property.falsy",
+            "property": "counterWindup"
+          },
+          {
+            "type": "counter.ready"
+          }
+        ],
+        "modules": [
+          {
+            "type": "counter.execute",
+            "windup": 300,
+            "consumeState": "counter-ready",
+            "targetPointMode": "aim-point",
+            "preview": {
+              "type": "preview.create",
+              "hideAttackShape": true,
+              "targetPointArea": {
+                "shape": "circle",
+                "range": 100,
+                "wallPolicy": "block"
+              }
+            },
+            "ccRefAttackId": "attack.kasha.counter-impact"
+          }
+        ]
+      }
+    }
+  },
+  "worldEffectModules": [
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponImage",
+      "style": "execution-sword",
+      "scale": 1.8,
+      "angle": 0.7,
+      "rotationStateKey": "kasha-sword-spin",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponProjectile",
+      "x": -95,
+      "y": -70,
+      "conditions": [
+        {
+          "type": "condition.any",
+          "conditions": [
+            {
+              "type": "source.property.truthy",
+              "property": "counterWindup"
+            }
+          ]
+        }
+      ],
+      "offsetOrientation": "last-movement",
+      "attackId": "attack.kasha.counter"
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponProjectile",
+      "x": -130,
+      "y": 0,
+      "conditions": [
+        {
+          "type": "condition.any",
+          "conditions": [
+            {
+              "type": "source.property.truthy",
+              "property": "counterWindup"
+            },
+            {
+              "type": "state.exists",
+              "stateKey": "kasha-counter-1",
+              "activeOnly": true
+            }
+          ]
+        }
+      ],
+      "offsetOrientation": "last-movement",
+      "attackId": "attack.kasha.counter"
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponProjectile",
+      "x": -95,
+      "y": 70,
+      "conditions": [
+        {
+          "type": "condition.any",
+          "conditions": [
+            {
+              "type": "source.property.truthy",
+              "property": "counterWindup"
+            },
+            {
+              "type": "state.exists",
+              "stateKey": "kasha-counter-2",
+              "activeOnly": true
+            }
+          ]
+        }
+      ],
+      "offsetOrientation": "last-movement",
+      "attackId": "attack.kasha.counter"
+    }
+  ],
+  "selectable": false
 },
 });
 /* ===== 캐릭터별 단일 원본: 끝 ===== */
@@ -36207,6 +38007,7 @@ const CharacterCardDataService=Object.freeze({
     if(this.list.length)return this.list;
 
     for(const character of ProfileCharacterService.all()){
+      if(character.selectable===false)continue;
       const card=this.get(character.id);
       if(card)this.list.push(card);
     }
@@ -37108,15 +38909,15 @@ const CharacterRecordService=Object.freeze({
     return characters;
   },
   refreshTopPlayerBadges(root=document){
-    const account=AccountState.current;
-    const accountId=String(
-      account?.firebaseUid||
-      account?.accountId||
-      ''
-    ).trim();
-    const enabled=!!accountId&&!account?.isGuest;
-
     for(const card of root.querySelectorAll?.('.char-card[data-id]')||[]){
+      const ownerPid=String(card.dataset.masteryPid||'');
+      const account=ownerPid
+        ?(ownerPid===String(RoomService.localPid||'')
+          ?AccountState.current
+          :RoomService.members.get(ownerPid)?.profile)
+        :(card._recordAccountData||AccountState.current);
+      const accountId=String(account?.firebaseUid||account?.accountId||'').trim();
+      const enabled=!!accountId&&!account?.isGuest;
       const characterId=card.dataset.id;
       const topAccountId=String(
         this.allRankingState.characters?.[characterId]?.[0]?.accountId||
@@ -37285,6 +39086,7 @@ const CharacterRecordService=Object.freeze({
     account=AccountState.current
   ){
     if(!card||!characterId)return;
+    card._recordAccountData=account;
 
     // 기본 카드에는 레코드 텍스트를 표시하지 않는다.
     card.querySelector(':scope > .char-mastery')?.remove();
@@ -37330,6 +39132,7 @@ const CharacterRecordService=Object.freeze({
       characterId,
       points
     );
+    this.refreshTopPlayerBadges({querySelectorAll:()=>[card]});
   },
   applyHudIconStyle(
     icon,
@@ -39338,6 +41141,7 @@ const PlayerProfileService=Object.freeze({
 
     return {
       accountId:String(account?.accountId||'guest'),
+      firebaseUid:String(account?.firebaseUid||''),
       displayName:String(account?.displayName||'게스트').trim().slice(0,24)||'게스트',
       isGuest:!!account?.isGuest,
       mainCharacterId,
@@ -40285,6 +42089,9 @@ const EntityService={
 /* 행동 상태가 대상 지정 가능 여부를 제어하는 공통 정책이다. 캐릭터 이름을 검사하지 않는다. */
 const ActionStateCombatPolicyService=Object.freeze({
   isEvasionUntargetable(entity,now=performance.now()){
+    if(entity?._remoteMovementAbilityActive===true&&
+      entity._remoteMovementEffectState?.evasionUntargetable===true&&
+      Number(entity._remoteMovementEffectState.endsAt)>now)return true;
     if(
       entity&&
       typeof BuffService!=='undefined'&&
@@ -40314,6 +42121,7 @@ const ActionStateCombatPolicyService=Object.freeze({
     return this.blocksAttackInteraction(entity,policy);
   }
 });
+
 
 const RelationService=Object.freeze({
   relation(a,b){
@@ -44640,7 +46448,8 @@ const BuffStatusPresentation=Object.freeze({
   stealthDetected(entity,now){
     return (
       this.value(entity,'stealth',now)!==0&&
-      StealthPresentationService.exposedByAnyEnemy(entity,now)
+      (StealthPresentationService.fadeRatio(entity,now)<1||
+       StealthPresentationService.exposedByAnyEnemy(entity,now))
     );
   },
 
@@ -46197,6 +48006,7 @@ const TriggerConditionService=Object.freeze({
     const source=context.source||context.entity||null;
     const now=Number(context.now)||performance.now();
 
+    if(condition.type==='cause.source-is-self')return !!source&&!!context.cause?.source&&EntityService.owner(context.cause.source)===EntityService.owner(source);
     if(condition.type==='condition.any')return (condition.conditions||EMPTY_RUNTIME_ITEMS).some(item=>this.matches(item,context));
     if(condition.type==='target.health-ratio-lt-source'){
       const target=context.target;
@@ -46260,7 +48070,8 @@ const TriggerConditionService=Object.freeze({
       return !!source&&CombatStatsService.current(source,now).canUseDodge===true;
     }
     if(condition.type==='combat.dodging'){
-      return !!source&&Math.max(0,Number(source.dodgeUntil)||0)>now;
+      const entity=condition.entity==='target'?context.target:source;
+      return !!entity&&Math.max(0,Number(entity.dodgeUntil)||0)>now;
     }
     if(condition.type==='combat.not-dodging'){
       return !!source&&Math.max(0,Number(source.dodgeUntil)||0)<=now;
@@ -46975,6 +48786,24 @@ const ProgressHitTargetPolicy=Object.freeze({
 });
 
 const CharacterTriggerEffectService=Object.freeze({
+  observedEvents:new WeakMap(),
+  observe(event,target,context={},eventKey=''){
+    if(!target)return;
+    for(const entity of EntityService.items.values()){
+      if(!entity?.alive||!EntitySimulationAuthorityService.isLocal(entity)||
+        RelationService.relation(entity,target)!=='enemy'||
+        !entity.character?.triggers?.some(trigger=>trigger.event===event))continue;
+      if(eventKey){
+        let seen=this.observedEvents.get(entity);
+        if(!seen){seen=new Set();this.observedEvents.set(entity,seen);}
+        const key=`${OnlineDuelService.roundToken||0}:${event}:${target.id}:${eventKey}`;
+        if(seen.has(key))continue;
+        seen.add(key);
+        if(seen.size>256)seen.delete(seen.values().next().value);
+      }
+      this.run(entity,event,{...context,source:entity,target});
+    }
+  },
   run(entity,event,context={}){
     if(!entity)return context;
     // Damage can make a target satisfy a passive condition during this same hit.
@@ -47040,10 +48869,10 @@ const CharacterTriggerEffectService=Object.freeze({
               )
           };
 
-          ProgressStateService.apply(
-            entity,
-            resolved
-          );
+          const apply=()=>ProgressStateService.apply(entity,resolved);
+          const delay=Math.max(0,Number(module.delay)||0);
+          if(delay>0)SimulationScheduleService.scheduleContinuation({source:entity,at:shared.now+delay,continue:apply});
+          else apply();
           continue;
         }
 
@@ -47058,9 +48887,10 @@ const CharacterTriggerEffectService=Object.freeze({
         }
 
         if(module.type==='effect.spawn'){
-          if(!shared.attack||!shared.target)continue;
+          const attack=module.attackId?AbilityService.attackById(entity.character,module.attackId):shared.attack;
+          if(!attack||!shared.target)continue;
           AttackModuleService.spawnAttackEffect(
-            entity,shared.attack,
+            entity,attack,
             Number(shared.execution?.directionAngle)||0,
             shared.execution||null,module,shared.target
           );
@@ -47141,6 +48971,7 @@ const CharacterTriggerEffectService=Object.freeze({
     return shared;
   }
 });
+
 
 const AugmentEffectModuleService=Object.freeze({
   executionAggregateIds:new WeakMap(),
@@ -49361,7 +51192,9 @@ GameEvents.on(
         .isLocal(target)
     )return;
 
-    CharacterTriggerEffectService.run(target,'just-dodge',{source:target,target,now:Number(event?.now)||performance.now()});
+    CharacterTriggerEffectService.observe('enemy-just-dodge',target,
+      {now:Number(event?.now)||performance.now(),cause:event?.cause},String(event?.startedAt??event?.now));
+    CharacterTriggerEffectService.run(target,'just-dodge',{source:target,target,cause:event?.cause,now:Number(event?.now)||performance.now()});
 
     AugmentEffectModuleService.runTrigger(
       target,
@@ -49376,6 +51209,7 @@ GameEvents.on(
     );
   }
 );
+
 
 GameEvents.on(
   'dodge-started',
@@ -49959,10 +51793,21 @@ const SimulationScheduleService={
               Number.isFinite(Number(item.originPoint.y))
                 ?item.originPoint
                 :item.source;
-            const spawnX=
-              (Number(originPoint.x)||0)+px;
-            const spawnY=
-              (Number(originPoint.y)||0)+py;
+            const originAngle=item.originOrientation==='last-movement'
+              ?MovementService.lastDirectionAngle(item.source):Number(item.originAngle)||0;
+            const forward=Number(item.originOffset?.forward)||0;
+            const lateral=Number(item.originOffset?.lateral)||0;
+            const spawnX=(Number(originPoint.x)||0)+px+Math.cos(originAngle)*forward-Math.sin(originAngle)*lateral+(Number(item.originOffset?.x)||0);
+            const spawnY=(Number(originPoint.y)||0)+py+Math.sin(originAngle)*forward+Math.cos(originAngle)*lateral+(Number(item.originOffset?.y)||0);
+            let targetPoint=item.aimMode==='live-target-point'
+              ?CounterModuleService.aimTargetPoint(item.source)||item.volley?.execution?.targetPoint
+              :item.aimMode==='target-point'?item.volley?.execution?.targetPoint:null;
+            if(item.aimMode==='live-target-point'&&targetPoint){
+              targetPoint=AttackService.resolveAimTargetPoint(item.source,item.attack,targetPoint);
+            }
+            if(targetPoint&&Number.isFinite(targetPoint.x)&&Number.isFinite(targetPoint.y)){
+              shotAngle=Math.atan2(targetPoint.y-spawnY,targetPoint.x-spawnX);
+            }
 
             ProjectileService.spawn({
               source:item.source,
@@ -49976,6 +51821,8 @@ const SimulationScheduleService={
                 y:spawnY
               },
               angle:shotAngle,
+              targetPoint:targetPoint?{x:targetPoint.x,y:targetPoint.y}:null,
+              targetDistance:targetPoint?Math.hypot(targetPoint.x-spawnX,targetPoint.y-spawnY):null,
               targetEntityId:
                 item.volley?.execution
                   ?.targetEntityId||'',
@@ -49990,7 +51837,7 @@ const SimulationScheduleService={
             });
 
             if(
-              item.aimMode==='live-source'&&
+              (item.aimMode==='live-source'||item.aimMode==='target-point'||item.aimMode==='live-target-point')&&
               Training.sessionMode==='online'&&
               OnlineDuelService.active&&
               EntitySimulationAuthorityService.isLocal(
@@ -50010,9 +51857,10 @@ const SimulationScheduleService={
                       )
                     ),
                   angle:shotAngle,
-                  perpendicularOffset,
-                  sourceX:Number(originPoint.x)||0,
-                  sourceY:Number(originPoint.y)||0
+                  perpendicularOffset:targetPoint?0:perpendicularOffset,
+                  sourceX:targetPoint?spawnX:Number(originPoint.x)||0,
+                  sourceY:targetPoint?spawnY:Number(originPoint.y)||0,
+                  targetPoint
                 });
             }
           }
@@ -50032,6 +51880,7 @@ const SimulationScheduleService={
     this.items.length=write;
   }
 };
+
 
 
 
@@ -52309,6 +54158,10 @@ const ForcedMovementWindupInterruptService=Object.freeze({
 
 
 const MovementService=Object.freeze({
+  lastDirectionAngle(entity,fallback=0){
+    return entity?.lastMovementInputAngle!=null&&Number.isFinite(Number(entity.lastMovementInputAngle))
+      ?Number(entity.lastMovementInputAngle):Number(fallback)||0;
+  },
   collides(x,y,radius){
     if(
       x-radius<0||
@@ -53022,6 +54875,7 @@ const MovementService=Object.freeze({
 });
 
 
+
 /* effect.spawn: 모든 게임 월드 시각 이펙트의 단일 생성 진입점.
    animation:true이면 같은 animationState를 렌더 좌표와 피해 판정이 공유한다. */
 /* 이동 방식과 무관한 '이동기 사용 중' 공통 상태 판정.
@@ -53340,12 +55194,19 @@ const EffectSpawnService=Object.freeze({
     };
     const damage=effect.damage;
     if(damage&&source){
-      const attack=
+      let attack=
         damage.attack||
         (damage.attackId&&source.character
           ?AbilityService.attackById(source.character,damage.attackId)
           :null);
       if(attack){
+        if(damage.snapshotAttackScalars===true&&damage.attackScalars){
+          const scalars=damage.attackScalars;
+          attack={...attack,
+            damageRatio:Number.isFinite(scalars.damageRatio)?Math.max(0,scalars.damageRatio):attack.damageRatio,
+            modules:(attack.modules||[]).map(module=>module.type==='damage.target-max-health-ratio'&&Number.isFinite(scalars.targetMaxHealthRatio)
+              ?{...module,ratio:Math.max(0,scalars.targetMaxHealthRatio)}:module)};
+        }
         effect.animationState.attack=attack;
         effect.animationState.execution=
           AttackExecutionService.create(
@@ -55353,7 +57214,7 @@ const InstalledAreaFieldService=Object.freeze({
       // Field hit effects use the current field centre, even after its owner moves.
       if(!state.execution)state.execution=AttackExecutionService.create(source,state.attack,Number(area?.angle)||0);
       if(state.execution&&area?.center){
-        state.execution.impactOrigin={mode:'point',x:Number(area.center.x)||0,y:Number(area.center.y)||0};
+        state.execution.impactOrigin={mode:'point',x:Number(area.center.x)||0,y:Number(area.center.y)||0,angle:Number(area.angle)||0};
       }
 
       const result=
@@ -59162,6 +61023,7 @@ const MovementAbilityService=Object.freeze({
         entity.kind==='summon',
       effects:[...(module.effects||[])],
       buffTypes:[],
+      evasionUntargetable:module.evasionUntargetable===true,
       trajectory:
         options.trajectory||
         module.trajectory||
@@ -59412,6 +61274,7 @@ const MovementAbilityService=Object.freeze({
 
     return {
       active:!!state,
+      evasionUntargetable:state?.evasionUntargetable===true,
       stateKey:state?state.stateKey:null,
       remaining:state?Math.max(0,state.endsAt-now):0,
       elapsed:state?Math.max(0,now-state.startedAt):0,
@@ -59467,6 +61330,7 @@ const MovementAbilityService=Object.freeze({
 
     return {
       stateKey:String(payload.stateKey||'movement:move'),
+      evasionUntargetable:payload.evasionUntargetable===true,
       startedAt:now-elapsed,
       duration,
       executionSequence:
@@ -68190,7 +70054,7 @@ const OnlineDuelService={
               ?PlayerProfileService.snapshot()
               :null
           )||
-          AccountState.current;
+          {isGuest:true};
 
         card.dataset.masteryPid=pid||'';
         card._recordAccountData=
@@ -69089,6 +70953,8 @@ charRow.appendChild(card);
         Training.player===player
           ?Training.aimAngle()
           :0,
+      lastMovementInputAngle:player.lastMovementInputAngle!=null&&Number.isFinite(Number(player.lastMovementInputAngle))
+        ?Number(player.lastMovementInputAngle):null,
       aimTargetPoint:
         Training.player===player
           ?{
@@ -69288,6 +71154,7 @@ charRow.appendChild(card);
             )||0
           )
         ),
+      fuseRemaining:ProjectileImpactService.remainingFuse(projectile),
       reason:String(reason||'target'),
       hitTargetIds:projectile.behavior?.impact?.excludeHitTargets===true
         ?[...new Set([...(projectile.volley?.execution?.hitTargets||[]),
@@ -69442,7 +71309,8 @@ charRow.appendChild(card);
     angle=0,
     perpendicularOffset=0,
     sourceX=0,
-    sourceY=0
+    sourceY=0,
+    targetPoint=null
   }={}){
     if(
       !this.active||
@@ -69476,7 +71344,9 @@ charRow.appendChild(card);
       perpendicularOffset:
         Number(perpendicularOffset)||0,
       sourceX:Number(sourceX)||0,
-      sourceY:Number(sourceY)||0
+      sourceY:Number(sourceY)||0,
+      targetPoint:targetPoint&&Number.isFinite(targetPoint.x)&&Number.isFinite(targetPoint.y)
+        ?{x:targetPoint.x,y:targetPoint.y}:null
     });
     return true;
   },
@@ -69567,7 +71437,8 @@ charRow.appendChild(card);
   },
   sendJustDodgeConfirmed(
     startedAt,
-    confirmedAt=performance.now()
+    confirmedAt=performance.now(),
+    cause=null
   ){
     if(
       !this.active||
@@ -69576,6 +71447,7 @@ charRow.appendChild(card);
 
     RoomService.sendGameplay({
       type:'duel-just-dodge-confirmed',
+      cause: cause?.source?{sourcePid:OnlineParticipantEntityService.pid(EntityService.owner(cause.source))||'',attackId:String(cause.attack?.id||'')}:null,
       roundToken:this.roundToken,
       sentAt:Date.now(),
       startedAt:
@@ -69622,6 +71494,10 @@ charRow.appendChild(card);
     }
 
     remote.lastDamageSourcePid=null;
+    const causeSource=OnlineParticipantEntityService.entity(payload.cause?.sourcePid);
+    const cause=causeSource?{source:causeSource,attack:AbilityService.attackById(causeSource.character,String(payload.cause?.attackId||''))}:null;
+    CharacterTriggerEffectService.observe('enemy-just-dodge',remote,
+      {now:performance.now(),cause},String(payload.startedAt??payload.confirmedAt));
     return true;
   },
   sendCounterResolve(angle,attack=null){
@@ -69837,6 +71713,7 @@ charRow.appendChild(card);
           :null;
 
       if(projectile){
+        if(typeof payload.fuseRemaining==='number'&&Number.isFinite(payload.fuseRemaining))projectile.impactFuseRemaining=Math.max(0,payload.fuseRemaining);
         if(projectile.behavior?.impact?.excludeHitTargets===true&&Array.isArray(payload.hitTargetIds)){
           projectile.trajectoryHitAt=projectile.trajectoryHitAt||new Map();
           for(const id of payload.hitTargetIds)projectile.trajectoryHitAt.set(String(id),performance.now());
@@ -69881,11 +71758,11 @@ charRow.appendChild(card);
           confirmedArrival?.linger?.atTarget===true
         ){
           if(!projectile.stationaryArrival){
-            TargetPointProjectileService.beginLinger(
-              projectile,
-              performance.now(),
-              'target'
-            );
+            if(!TargetPointProjectileService.beginLinger(projectile,performance.now(),'target')){
+              ProjectileService.finish(projectile,projectile.hadHit===true,'expired');
+              if(index>=0)ProjectileService.items.splice(index,1);
+              return true;
+            }
           }else{
             projectile.arrivalReason='target';
             projectile.stationaryArrival.arrivalReason='target';
@@ -69956,6 +71833,7 @@ charRow.appendChild(card);
       }
 
       const carrier={
+        impactFuseRemaining:typeof payload.fuseRemaining==='number'&&Number.isFinite(payload.fuseRemaining)?Math.max(0,payload.fuseRemaining):undefined,
         hadHit:reason==='target',
         source:owner,
         attack,
@@ -69983,8 +71861,13 @@ charRow.appendChild(card);
       if(reason==='target'&&delivery?.arrival?.linger?.atTarget===true){
         const restored=ProjectileService.spawn({...carrier,projectile:{...delivery,networkSpawnCompensation:false},
           behavior:ProjectileModuleService.config(attack),angle:Number(payload.angle)||0});
+        restored.impactFuseRemaining=carrier.impactFuseRemaining;
         restored.impactResolved=true;
-        TargetPointProjectileService.beginLinger(restored,performance.now(),'target');
+        if(!TargetPointProjectileService.beginLinger(restored,performance.now(),'target')){
+          ProjectileService.finish(restored,restored.hadHit===true,'expired');
+          const index=ProjectileService.items.indexOf(restored);
+          if(index>=0)ProjectileService.items.splice(index,1);
+        }
       }
       return true;
     }
@@ -70284,6 +72167,9 @@ charRow.appendChild(card);
           Math.cos(angle)*offset;
         const spawnX=sourceX+px;
         const spawnY=sourceY+py;
+        const targetPoint=(delayedVolley?.aimMode==='target-point'||delayedVolley?.aimMode==='live-target-point')&&payload.targetPoint&&
+          Number.isFinite(payload.targetPoint.x)&&Number.isFinite(payload.targetPoint.y)
+          ?{x:payload.targetPoint.x,y:payload.targetPoint.y}:null;
 
         ProjectileService.spawn({
           source:remote,
@@ -70292,6 +72178,8 @@ charRow.appendChild(card);
           volley,
           x:spawnX,
           y:spawnY,
+          targetPoint,
+          targetDistance:targetPoint?Math.hypot(targetPoint.x-spawnX,targetPoint.y-spawnY):null,
           origin:{
             x:spawnX,
             y:spawnY
@@ -70626,6 +72514,9 @@ charRow.appendChild(card);
         );
       if(Number.isFinite(Number(payload.aimAngle))){
         remote._remoteAimAngle=Number(payload.aimAngle);
+      }
+      if(payload.lastMovementInputAngle!=null&&Number.isFinite(Number(payload.lastMovementInputAngle))){
+        remote.lastMovementInputAngle=Number(payload.lastMovementInputAngle);
       }
       if(
         payload.aimTargetPoint&&
@@ -72657,7 +74548,7 @@ this.betweenReadyPids=new Set();
         )
         :(
           RoomService.members.get(ownerPid)?.profile||
-          AccountState.current
+          {isGuest:true}
         );
 
     card.dataset.masteryPid=ownerPid||'';
@@ -75653,7 +77544,8 @@ const JustDodgeService=Object.freeze({
       OnlineDuelService
         .sendJustDodgeConfirmed(
           startedAt,
-          now
+          now,
+          cause
         );
     }
 
@@ -75964,6 +77856,7 @@ const ImpactDirectionService=Object.freeze({
 */
 const NetworkHitAuthorityService={
   sequence:0,
+  receivedHitPackets:new Set(),
   confirmations:new Map(),
   targetAuthoritative(target){
     return (
@@ -76204,6 +78097,13 @@ const NetworkHitAuthorityService={
         Number(OnlineDuelService.roundToken)
     )return false;
 
+    const hitSequence=Math.max(0,Math.floor(Number(payload.hitSequence)||0));
+    if(hitSequence>0){
+      const packetKey=[payload.roundToken,pid,payload.attackerPid,payload.targetPid,payload.attackId,payload.executionSequence,hitSequence].join(':');
+      if(this.receivedHitPackets.has(packetKey))return true;
+      this.receivedHitPackets.add(packetKey);
+      if(this.receivedHitPackets.size>1024)this.receivedHitPackets.delete(this.receivedHitPackets.values().next().value);
+    }
     const key=this.confirmationKey({
       attackerPid:payload.attackerPid,
       targetPid:payload.targetPid,
@@ -76311,10 +78211,9 @@ const NetworkHitAuthorityService={
       targetEntity&&
       !targetIsLocallyAuthoritative
     ){
-      Presentation.damageNumber(
-        targetEntity,
-        displayAmount
-      );
+      const numberSource=OnlineParticipantEntityService.entity(payload.attackerPid);
+      const numberAttack=numberSource?AbilityService.attackById(numberSource.character,String(payload.attackId||'')):null;
+      Presentation.damageNumber(targetEntity,displayAmount,'',{source:numberSource,attack:numberAttack,executionSequence:payload.executionSequence});
     }
     if(
       displayAmount>0&&
@@ -77028,6 +78927,7 @@ const NetworkHitAuthorityService={
   reset(){
     this.sequence=0;
     this.confirmations.clear();
+    this.receivedHitPackets.clear();
   }
 };
 
@@ -79825,6 +81725,7 @@ const AttackModuleService=Object.freeze({
           'projectile'
         ),
       damageOnTravel:module.damageOnTravel!==false,
+      collisionMode:String(module.collisionMode||'normal'),
       collisionTargets:
         module.collisionTargets===true,
       targetRelations:
@@ -79951,6 +81852,7 @@ const AttackModuleService=Object.freeze({
         0,
         Number(module.rehitInterval)||0
       ),
+      boundaryMode:String(module.boundaryMode||''),
       expireAtRange:
         module.expireAtRange!==false,
       rangeExtendOnHitRatio:
@@ -80933,7 +82835,7 @@ const AttackModuleService=Object.freeze({
         // 실시간 조준형 연속 사격의 원격 재생은 최초 action angle로
         // 가짜 탄을 예약하지 않는다. 실제 탄별 각도 패킷이 생성한다.
         if(
-          aimMode==='live-source'&&
+          (aimMode==='live-source'||aimMode==='target-point'||aimMode==='live-target-point')&&
           volley?.execution?.networkReplay===true
         ){
           continue;
@@ -81008,6 +82910,10 @@ const AttackModuleService=Object.freeze({
             aimMode,
             shotIndex:index,
             originPoint:volleyOriginPoint,
+            originOffset:Array.isArray(module.originOffsets)?module.originOffsets[index]:null,
+            originOrientation:String(module.originOrientation||''),
+            originAngle:module.originOrientation==='last-movement'
+              ?MovementService.lastDirectionAngle(source):volleyBaseAngle,
             projectileOverride,
             perpendicularOffset:
               explicitPerpendicular!==null
@@ -81226,6 +83132,10 @@ const AttackModuleService=Object.freeze({
         ...effect.damage,
         attack:spec
       };
+      if(effect.damage.snapshotAttackScalars===true){
+        effect.damage.attackScalars={damageRatio:Number(spec.damageRatio)||0,
+          targetMaxHealthRatio:Number(this.module(spec,'damage.target-max-health-ratio')?.ratio)||0};
+      }
     }
 
     if(
@@ -81684,7 +83594,8 @@ const AttackModuleService=Object.freeze({
   onProjectileShot(source,spec,perpendicularOffset){
     const side=Math.sign(Number(perpendicularOffset)||0);
     for(const module of spec?.modules||EMPTY_RUNTIME_ITEMS){
-      if(module.type==='mode.toggle'&&module.when==='on-projectile-shot'&&Number(module.perpendicularSide)===side)ModeStateService.toggle(source,module);
+      if(module.type==='mode.toggle'&&module.when==='on-projectile-shot'&&
+        (module.perpendicularSide===undefined||Number(module.perpendicularSide)===side))ModeStateService.toggle(source,module);
     }
   },
   onDelivery(source,spec,angle,execution){
@@ -83043,6 +84954,13 @@ const AttackModuleService=Object.freeze({
               target.x-Number(impactCenter.x)
             );
           }
+        }else if(module.direction==='away-from-impact-axis'){
+          const origin=execution?.impactOrigin;
+          const axis=Number.isFinite(origin?.angle)?origin.angle:direction;
+          const x=Number.isFinite(origin?.x)?origin.x:source.x;
+          const y=Number.isFinite(origin?.y)?origin.y:source.y;
+          const side=(target.x-x)*(-Math.sin(axis))+(target.y-y)*Math.cos(axis);
+          direction=axis+(side<0?-Math.PI/2:Math.PI/2);
         }else if(module.direction==='toward-source'){
           direction=Math.atan2(
             source.y-target.y,
@@ -83603,6 +85521,7 @@ const AttackModuleService=Object.freeze({
   }
 });
 
+
 const ProgressScaledAttackService=Object.freeze({
   stateValue(source,config){
     const stateKey=String(config?.stateKey||'');
@@ -84111,6 +86030,17 @@ const AttackService=Object.freeze({
         ),
       clearance
     };
+  },
+  resolveAimTargetPoint(source,spec,point){
+    if(!point||!Number.isFinite(Number(point.x))||!Number.isFinite(Number(point.y)))return null;
+    const resolved={x:Number(point.x),y:Number(point.y)};
+    const projectile=AttackModuleService.module(spec,'delivery.projectile');
+    const range=Math.max(0,Number(spec?.range)||0);
+    const dx=resolved.x-source.x,dy=resolved.y-source.y,distance=Math.hypot(dx,dy);
+    if(projectile?.targetPoint===true&&projectile.targetPointClampToAttackRange!==false&&range>0&&distance>range){
+      resolved.x=source.x+dx/distance*range;resolved.y=source.y+dy/distance*range;
+    }
+    return this.resolveTargetPoint(spec,resolved);
   },
   resolveTargetPoint(spec,point){
     if(
@@ -85971,9 +87901,9 @@ const CounterModuleService=Object.freeze({
       modules:Object.freeze(modules)
     });
   },
-  targetPointPreviewAttack(windup){
+  targetPointPreviewAttack(windup,source=null){
     const area=windup?.previewTargetPointArea;
-    const point=windup?.targetPoint;
+    const point=source?AttackService.resolveAimTargetPoint(source,windup?.attack,windup?.targetPoint):windup?.targetPoint;
     if(
       !area||
       !point||
@@ -86187,7 +88117,7 @@ const CounterModuleService=Object.freeze({
     {
       const targetPreviewAttack=
         this.targetPointPreviewAttack(
-          source.counterWindup
+          source.counterWindup,source
         );
       const previewAttack=
         targetPreviewAttack||
@@ -86261,7 +88191,7 @@ const CounterModuleService=Object.freeze({
     {
       const targetPreviewAttack=
         this.targetPointPreviewAttack(
-          windup
+          windup,source
         );
       const previewAttack=
         targetPreviewAttack||
@@ -95909,6 +97839,13 @@ const RuntimeValueReferenceService=Object.freeze({
       );
     }
 
+    if(ref.type==='state-duration-remaining'){
+      const state=entity.actionState?.get(String(ref.stateKey||''));
+      const start=Number(state?.startedAt),end=Number(state?.expiresAt);
+      if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)return 0;
+      return Math.max(0,Math.min(1,(end-performance.now())/(end-start)));
+    }
+
     if(ref.type==='timed-action-remaining'){
       const target=
         ref.target==='owner'
@@ -103116,6 +105053,7 @@ const AbilityModuleService=Object.freeze({
 
       const effect=EffectSpawnService.spawn({
         ...preparedModule,
+        ...(preparedModule.angleMode==='aim'?{angle:effectAngle}:{}),
         key:windupEffectKey,
         x:
           baseEffectX-
@@ -103131,7 +105069,7 @@ const AbilityModuleService=Object.freeze({
         sourceEntityId:context.source?.id||null
       },context);
       if(effect){
-        context.executed=true;
+        if(module.presentationOnly!==true)context.executed=true;
 
         if(
           windupEffect&&
@@ -106218,12 +108156,21 @@ const ProjectileModuleService=Object.freeze({
       trajectory:trajectory||null,
       impact:impact
         ?{
+          requireSuccessfulHit:impact.requireSuccessfulHit===true,
+          resolveOnGuard:impact.resolveOnGuard===true,
+          reasons:Array.isArray(impact.reasons)
+            ?impact.reasons.map(String)
+            :[],
+          previewAttackIds:Array.isArray(impact.previewAttackIds)
+            ?impact.previewAttackIds.map(String)
+            :undefined,
           shareHitTargets:impact.shareHitTargets===true,
           excludeHitTargets:impact.excludeHitTargets===true,
           broadcastLinked:impact.broadcastLinked===true,
           angleOffset:Number(impact.angleOffset)||0,
           randomSpread:Math.max(0,Number(impact.randomSpread)||0),
           snapToRangeEnd:impact.snapToRangeEnd===true,
+          fuse:impact.fuse?{...impact.fuse}:null,
           oncePerProjectile:impact.oncePerProjectile===true,
           cancelDelayedOnRemove:impact.cancelDelayedOnRemove===true,
           attackIds:Array.isArray(impact.attackIds)
@@ -108300,14 +110247,29 @@ const TargetPointProjectileService=Object.freeze({
 
     const persistent=
       linger.persistent===true;
+    const fuseDuration=ProjectileImpactService.remainingFuse(projectile,now);
     const duration=
+      fuseDuration!==null?fuseDuration:
       persistent
         ?Infinity
         :Math.max(
           GAME_DATA.frameMs,
           Number(linger.duration)||0
         );
-    if(!persistent&&duration<=0)return false;
+    if(!persistent&&duration<=0){
+      // An exhausted fuse removes the linger, never the opt-in landing contact.
+      if(this.arrival(projectile)?.triggerOnLanding===true&&projectile.landingContactResolved!==true){
+        projectile.landingContactResolved=true;
+        if(String(stopReason)!=='target'){
+          const target=this.contactTarget(projectile);
+          if(target)this.triggerTarget(projectile,target);
+        }
+      }
+      if(projectile.behavior?.impact&&!projectile.impactResolved){
+        ProjectileImpactService.resolve(projectile,String(stopReason)==='target-point'?'arrival':String(stopReason));
+      }
+      return false;
+    }
 
     // 비행 중 메후구와 투사체를 연결하던 선은 착탄 즉시 제거.
     this.removeFlightPresentation(projectile);
@@ -109748,6 +111710,7 @@ const AttackGuardService=Object.freeze({
     );
   },
   resolveProjectile(projectile,index,guard,now){
+    if(projectile?.projectile?.collisionMode==='landing-only'&&!projectile.stationaryArrival)return false;
     if(
       Training.sessionMode==='online'&&
       !EntitySimulationAuthorityService.isLocal(
@@ -109804,6 +111767,7 @@ const AttackGuardService=Object.freeze({
     }
   },
   intercept(projectile,index,now=performance.now()){
+    if(projectile?.projectile?.collisionMode==='landing-only'&&!projectile.stationaryArrival)return false;
     let nearest=null,nearestContact=null;
     for(const [key,guard] of this.active){
       if(!guard?.source?.alive||guard.expiresAt<=now){
@@ -109851,7 +111815,33 @@ const AttackGuardService=Object.freeze({
   }
 });
 
+
 const ProjectileImpactService=Object.freeze({
+  boundaryFieldReason(projectile){
+    const impact=projectile?.behavior?.impact,field=impact?.field;
+    if(!field||field.anchorMode==='projectile-path')return '';
+    for(const reason of ['boundary','range']){
+      if(this.allowsReason(impact,reason)&&this.allowsReason(field,reason))return reason;
+    }
+    return '';
+  },
+  remainingFuse(projectile,now=performance.now()){
+    const fuse=projectile?.behavior?.impact?.fuse;
+    if(!fuse)return null;
+    const total=Math.max(0,Number(fuse.range)||0)/Math.max(.001,Number(fuse.speed)||0)*GAME_DATA.frameMs;
+    if(Number.isFinite(projectile.impactFuseRemaining))return Math.max(0,Math.min(total,projectile.impactFuseRemaining));
+    if(Number(projectile.travel)>=Number(fuse.range)-.001)return 0;
+    const elapsed=Number.isFinite(projectile.createdAt)?Math.max(0,now-projectile.createdAt):
+      Math.max(0,Number(projectile.travel)||0)/Math.max(.001,Number(fuse.speed)||0)*GAME_DATA.frameMs;
+    return Math.max(0,total-elapsed);
+  },
+  allowsReason(impact,reason){
+    const reasons=impact?.reasons;
+    if(!Array.isArray(reasons)||reasons.length===0)return true;
+    // Target-point arrival has both names in existing projectile callers.
+    const canonical=value=>String(value)==='target-point'?'arrival':String(value);
+    return reasons.some(value=>canonical(value)===canonical(reason));
+  },
   cancelPending(source,projectileKey,now=performance.now()){
     const pending=source?._pendingProjectileImpacts;
     const key=String(projectileKey||'');
@@ -109905,6 +111895,7 @@ const ProjectileImpactService=Object.freeze({
   resolve(projectile,reason='impact'){
     const impact=projectile?.behavior?.impact;
     if(!impact)return false;
+    if(!this.allowsReason(impact,reason))return false;
     if(reason==='target'&&impact.requireSuccessfulHit===true&&projectile.hadHit!==true)return false;
 
     const source=projectile.source;
@@ -109938,10 +111929,14 @@ const ProjectileImpactService=Object.freeze({
 
     if(!source?.alive)return false;
 
-    const point={
-      x:Number(projectile.x)||0,
-      y:Number(projectile.y)||0
-    };
+    let point={x:Number(projectile.x)||0,y:Number(projectile.y)||0};
+    if(impact.field&&impact.field.anchorMode!=='projectile-path'&&
+      (reason==='boundary'||reason==='wall')){
+      const gap=Math.max(1,Number(projectile.radius)||0);
+      const x=Math.max(gap,Math.min(WorldBoundsService.width()-gap,point.x));
+      const y=Math.max(gap,Math.min(WorldBoundsService.height()-gap,point.y));
+      point=WorldGeometryService.nearestOpenPoint(x,y,gap)||{x,y};
+    }
     const angle=
       Number.isFinite(Number(projectile.angle))
         ?Number(projectile.angle)
@@ -110239,6 +112234,14 @@ const ProjectileImpactService=Object.freeze({
         );
       }
 
+      const remainingFuse=this.remainingFuse(projectile);
+      if(remainingFuse!==null){
+        if(remainingFuse<=0&&(attack.modules||[]).some(m=>m.durationFromProjectileFuse===true))continue;
+        attack={...attack,modules:(attack.modules||[]).map(module=>({ ...module,
+          ...(module.delayFromProjectileFuse===true?{delay:remainingFuse}:{}),
+          ...(module.durationFromProjectileFuse===true?{duration:remainingFuse}:{})
+        }))};
+      }
       if(impact.broadcastLinked===true){
         const spread=Number(impact.randomSpread)||0;
         // Copy confirmed parent hits, never share the children's accumulating hit sets.
@@ -110563,6 +112566,7 @@ const ProjectileImpactService=Object.freeze({
             replaceActive:relocate.replaceActive===true,
             blocksAction:relocate.blocksAction===true,
             trajectory:relocate.trajectory||null,
+            evasionUntargetable:relocate.evasionUntargetable===true,
             buffs:Array.isArray(relocate.buffs)?relocate.buffs:[],
             direction:'target-point',
             duration,
@@ -115295,13 +117299,14 @@ const ProjectileService={
     // 원격 검은 표시와 피격 판정 모두 같은 프레임의 권위 궤도를 사용한다.
     RemoteProjectileHomingPresentationBufferService.syncCollision(projectile,now);
 
+    const boundaryFieldReason=ProjectileImpactService.boundaryFieldReason(projectile);
     let targetsProcessed=false;
     if(!orbitActive&&projectile.followSource!==true){
       const sx=projectile.prevX,sy=projectile.prevY;
       const dx=projectile.x-sx,dy=projectile.y-sy,length=Math.hypot(dx,dy);
       if(length>1e-8){
         const angle=Math.atan2(dy,dx);
-        const distance=passWallsInFlight
+        const distance=policy.passWalls&&!boundaryFieldReason?length:passWallsInFlight
           ?WorldGeometryService.boundaryRayDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile))
           :WorldGeometryService.raycastDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile));
         const allowed=Math.min(length,distance);
@@ -115311,7 +117316,7 @@ const ProjectileService={
         const result=this.processTargets(projectile,index,now);
         if(result!==null)return result;
         // Ordinary flying shots resolve the earliest wall even when one fast step also crosses the map edge.
-        if(allowed<length-1e-6&&!returning&&!TargetPointProjectileService.arrival(projectile)&&!projectile.behavior?.waypoint){
+        if(!policy.passWalls&&allowed<length-1e-6&&!returning&&!TargetPointProjectileService.arrival(projectile)&&!projectile.behavior?.waypoint){
           const boundaryDistance=WorldGeometryService.boundaryRayDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile));
           const boundary=boundaryDistance<=allowed+1e-6;
           this.handleWallCollision(projectile,index,{forceBlock:boundary,boundary});
@@ -115322,7 +117327,33 @@ const ProjectileService={
       }
     }
 
-    if(!this.insideBounds(projectile)){
+    if(!this.insideBounds(projectile)&&boundaryFieldReason){
+      // Placeable impact fields terminate at the playable edge, even on piercing carriers.
+      const dx=projectile.x-projectile.prevX,dy=projectile.y-projectile.prevY,length=Math.hypot(dx,dy);
+      if(length>1e-8){
+        const distance=WorldGeometryService.boundaryRayDistance(projectile.prevX,projectile.prevY,Math.atan2(dy,dx),length,this.wallCollisionPadding(projectile));
+        projectile.x=projectile.prevX+dx*distance/length;projectile.y=projectile.prevY+dy*distance/length;
+        projectile.travel-=length-distance;
+      }
+      this.clampToBounds(projectile);
+      const gap=Math.max(1,this.wallCollisionPadding(projectile));
+      const x=Math.max(gap,Math.min(WorldBoundsService.width()-gap,projectile.x));
+      const y=Math.max(gap,Math.min(WorldBoundsService.height()-gap,projectile.y));
+      const open=WorldGeometryService.nearestOpenPoint(x,y,gap);
+      projectile.x=open?.x??x;projectile.y=open?.y??y;
+      ProjectileImpactService.resolve(projectile,boundaryFieldReason);
+      if(TargetPointProjectileService.beginLinger(projectile,now,boundaryFieldReason))return false;
+      this.finish(projectile,projectile.hadHit===true);
+      this.items.splice(index,1);
+      return true;
+    }
+    if(!this.insideBounds(projectile)&&policy.passWalls&&
+      (projectile.projectile?.boundaryMode==='remove'||projectile.expireAtRange===false||!Number.isFinite(Number(projectile.attack?.range)))){
+      this.finish(projectile,projectile.hadHit===true,'boundary-exit');
+      this.items.splice(index,1);
+      return true;
+    }
+    if(!this.insideBounds(projectile)&&!policy.passWalls){
       const dx=projectile.x-projectile.prevX,dy=projectile.y-projectile.prevY,length=Math.hypot(dx,dy);
       if(length>1e-8){
         const distance=WorldGeometryService.boundaryRayDistance(projectile.prevX,projectile.prevY,Math.atan2(dy,dx),length,this.wallCollisionPadding(projectile));
@@ -115552,7 +117583,7 @@ const ProjectileService={
     const expired=
       projectile.travel>=expiryDistance||
       (
-        !orbitActive&&
+        !orbitActive&&!policy.passWalls&&
         (
           projectile.x<0||
           projectile.y<0||
@@ -115665,7 +117696,7 @@ const ProjectileService={
       projectile.x+=dx/distance*step;
       projectile.y+=dy/distance*step;
       projectile.angle=Math.atan2(dy,dx);
-      this.clampToBounds(projectile);
+      if(projectile.behavior?.collisionPolicy?.passWalls!==true)this.clampToBounds(projectile);
     }
 
     if(AttackGuardService.intercept(projectile,index,performance.now()))return true;
@@ -116196,8 +118227,8 @@ const ProjectileVisualPositionService=Object.freeze({
       result.x=Number(projectile.x)||0;
       result.y=Number(projectile.y)||0;
       result.scale=1;
-      result.alpha=alpha;
-      result.strokeAlpha=alpha;
+      result.alpha=AttackVisualStyle.fadeOpacity(alpha);
+      result.strokeAlpha=AttackVisualStyle.fadeOpacity(alpha);
       result.progress=1;
       result.apex=0;
       result.lift=0;
@@ -116312,7 +118343,9 @@ const AttackVisualStyle=Object.freeze({
   fillAlpha:.25,
   strokeAlpha:.95,
   strokeWidth:2,
-  fadeStart:.70
+  fadeStart:.70,
+  // 수명/공격 진행은 유지하고 사라지기 직전까지 원래 선명도의 35%를 남긴다.
+  fadeOpacity(remaining){return .35+.65*Math.max(0,Math.min(1,Number(remaining)||0));}
 });
 
 
@@ -117023,7 +119056,10 @@ const Presentation=Object.freeze({
     return true;
   },
 
-  damageNumber(entity,amount,groupKey=''){
+  damageNumber(entity,amount,groupKey='',context=null){
+    if(context?.attack?.presentation?.damageNumberGroup==='execution'){
+      groupKey=`${String(context.source?.id||'')}:${String(context.attack.id||'')}:${Number(context.executionSequence)||0}`;
+    }
     return this.queueNumber(
       entity,
       amount,
@@ -117423,9 +119459,9 @@ const WeightedCircleAttackDeliveryService=Object.freeze({
         // 회전 공격은 진행 중 기본 공격과 같은 선명도를 유지하고,
         // sweep 완료 뒤에만 fade 곡선으로 사라진다. 수명 alpha와 fade를
         // 중복 곱해 공격 중간부터 과도하게 흐려지는 현상을 만들지 않는다.
-        const visualAlpha=sweepProgress!==null?1:
+        const visualAlpha=sweepProgress!==null?1:AttackVisualStyle.fadeOpacity(
           (f.lifetimeAlpha===true?legacyAlpha:1)*
-          (progress>sweepFraction?fade:1);
+          (progress>sweepFraction?fade:1));
 
         const outer=
           Math.max(
@@ -121413,10 +123449,8 @@ const PointerHoldInputService=Object.freeze({
 
     for(const slot of ['lmb','rmb']){
       if(
-        CircleFormationService.handlesInput(
-          source,
-          slot
-        )
+        CircleFormationService.handlesInput(source,slot)&&
+        !(slot==='lmb'&&CircleFormationService.config(source)?.activation?.input===slot)
       )continue;
 
       const current=this.state[slot];
@@ -123551,7 +125585,7 @@ const AreaCircleEffectPresentationService=Object.freeze({
         )
       )
     );
-    const alpha=1-progress;
+    const alpha=AttackVisualStyle.fadeOpacity(1-progress);
     const points=
       Array.isArray(f.points)
         ?f.points
@@ -123684,6 +125718,16 @@ const AreaCircleEffectPresentationService=Object.freeze({
       const t=Math.max(0,Math.min(1,(now-Number(f.start||now))/Math.max(1,Number(f.dur)||333)));
       const x=cx+(tx-cx)*t;
       const y=cy+(ty-cy)*t-Math.sin(t*Math.PI)*60;
+      if(f.tokenStyle==='light'){
+        const rgb=ColorService.rgbString(f.color||source?.character?.color,'255,255,125');
+        const size=11+3*Math.sin(t*Math.PI);
+        ctx.save();ctx.shadowColor=`rgb(${rgb})`;ctx.shadowBlur=14;
+        ctx.beginPath();ctx.moveTo(x,y-size);ctx.lineTo(x+size*.28,y-size*.28);ctx.lineTo(x+size,y);
+        ctx.lineTo(x+size*.28,y+size*.28);ctx.lineTo(x,y+size);ctx.lineTo(x-size*.28,y+size*.28);
+        ctx.lineTo(x-size,y);ctx.lineTo(x-size*.28,y-size*.28);ctx.closePath();
+        ctx.fillStyle=`rgba(${rgb},.9)`;ctx.fill();ctx.shadowBlur=0;
+        ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fillStyle='rgba(255,255,245,.95)';ctx.fill();ctx.restore();return true;
+      }
       const pulse=.7+.3*Math.sin(now*.02);
 
       const tokenRgb=
@@ -127195,7 +129239,7 @@ const VanWrenchDurabilityPresentationService=Object.freeze({
   }
 });
 /* 공용 순수 무기 형상·관절·기준점. */
-const WEAPON_IMAGE_DEFS=freezeCharacterData({"fishing-rod":{"origin":[0,0],"paths":[{"points":[[-0.14,1.3],[0.14,1.3],[0.1,-0.15],[0.05,-1.4],[-0.08,-2.05],[-0.14,-2.22],[-0.09,-1.35],[-0.1,-0.15]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.1,0.55],[0.1,0.55]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.04},{"commands":[["M",-0.14,-2.22],["C",0.5,-1.85,0.82,-1.1,0.68,-0.32]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[0.68,-0.4],[0.83,-0.2],[0.68,0.05],[0.53,-0.2]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.04}],"rings":[{"x":-0.22,"y":0.78,"radius":0.2},{"x":-0.22,"y":0.78,"radius":0.065}]},"lemon-board":{"origin":[0,0],"paths":[{"points":[[-0.48,-1.45],[-0.65,-1.2],[-0.65,1.2],[-0.48,1.45],[0.48,1.45],[0.65,1.2],[0.65,-1.2],[0.48,-1.45]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[-0.42,-0.95],[0.42,-0.95]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.05},{"points":[[-0.42,0.95],[0.42,0.95]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.05}],"rings":[{"x":0,"y":0,"radius":0.25}]},
+const WEAPON_IMAGE_DEFS=freezeCharacterData({"execution-sword":{"origin":[0,0],"paths":[{"points":[[0,-2],[-0.22,-1.55],[-0.22,-0.22],[-0.8,-0.22],[-1.15,0],[-0.8,0.22],[-0.22,0.22],[-0.22,0.85],[0,1.2],[0.22,0.85],[0.22,0.22],[0.8,0.22],[1.15,0],[0.8,-0.22],[0.22,-0.22],[0.22,-1.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0,-1.65],[0,-0.35]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[0,-0.3],[0.3,0],[0,0.3],[-0.3,0]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.04},{"points":[[-0.8,0],[-0.35,0]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[0.35,0],[0.8,0]],"fill":false,"stroke":true,"lineWidth":0.035}]},"fishing-rod":{"origin":[0,0],"paths":[{"points":[[-0.14,1.3],[0.14,1.3],[0.1,-0.15],[0.05,-1.4],[-0.08,-2.05],[-0.14,-2.22],[-0.09,-1.35],[-0.1,-0.15]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.1,0.55],[0.1,0.55]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.04},{"commands":[["M",-0.14,-2.22],["C",0.5,-1.85,0.82,-1.1,0.68,-0.32]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[0.68,-0.4],[0.83,-0.2],[0.68,0.05],[0.53,-0.2]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.04}],"rings":[{"x":-0.22,"y":0.78,"radius":0.2},{"x":-0.22,"y":0.78,"radius":0.065}]},"lemon-board":{"origin":[0,0],"paths":[{"points":[[-0.48,-1.45],[-0.65,-1.2],[-0.65,1.2],[-0.48,1.45],[0.48,1.45],[0.65,1.2],[0.65,-1.2],[0.48,-1.45]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[-0.42,-0.95],[0.42,-0.95]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.05},{"points":[[-0.42,0.95],[0.42,0.95]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.05}],"rings":[{"x":0,"y":0,"radius":0.25}]},
 "adrenaline-potion":{"origin": [0, 0], "paths": [{"points": [[-0.3, -1.1], [0.3, -1.1], [0.3, -0.6], [0.66, -0.24], [0.7, 0.72], [0.48, 1], [-0.48, 1], [-0.7, 0.72], [-0.66, -0.24], [-0.3, -0.6]], "closed": true, "fill": true}, {"points": [[-0.38, -1.16], [0.38, -1.16], [0.38, -0.91], [-0.38, -0.91]], "closed": true, "fill": true}, {"points": [[-0.5, 0.3], [0.5, 0.3]], "stroke": true}]},
 "wolf-claw":{"origin": [0, 0], "paths": [{"commands": [["M", -0.21999999999999997, -0.88], ["C", -0.48, -0.38, -0.6799999999999999, 0.28, -1.02, 1.12], ["C", -0.99, 0.42, -0.78, -0.38, -0.21999999999999997, -0.88], ["Z"]], "closed": true, "fill": true}, {"commands": [["M", 0.38, -1.04], ["C", 0.12, -0.54, -0.08, 0.12, -0.42, 0.96], ["C", -0.39, 0.26, -0.18, -0.54, 0.38, -1.04], ["Z"]], "closed": true, "fill": true}, {"commands": [["M", 0.98, -0.88], ["C", 0.72, -0.38, 0.52, 0.28, 0.18, 1.12], ["C", 0.20999999999999996, 0.42, 0.42, -0.38, 0.98, -0.88], ["Z"]], "closed": true, "fill": true}]},
 "rubber-launcher":{"origin": [0.025, -0.22], "paths": [{"points": [[-1.25, -0.74], [0.87, -0.74], [0.94, -0.66], [0.94, 0.2], [0.8, 0.3], [-1.23, 0.3], [-1.48, 0.04], [-1.48, -0.45]], "closed": true, "fill": true, "fillColor": "#873b23"}, {"points": [[-1.18, -0.5], [-0.29, -0.5], [-0.29, -0.08], [-1.18, -0.08]], "closed": true, "fill": true, "fillColor": "#54291e"}, {"points": [[-1.02, -0.29], [-0.45, -0.29]], "lineWidth": 0.035}, {"points": [[0.02, -0.5], [0.02, -0.09]], "lineWidth": 0.035}, {"points": [[0.26, -0.5], [0.26, -0.09]], "lineWidth": 0.035}, {"points": [[0.5, -0.5], [0.5, -0.09]], "lineWidth": 0.035}, {"points": [[-1.02, -0.74], [-0.38, -0.74], [-0.56, -1.72], [-1.25, -1.72]], "closed": true, "fill": true, "fillColor": "#5c3024"}, {"points": [[-0.26, -0.8], [0.5, -0.8], [0.44, -1.24], [-0.33, -1.24]], "closed": true, "lineWidth": 0.055}, {"points": [[-0.04, -0.78], [-0.05, -1.01], [0.13, -1.08]], "lineWidth": 0.045}, {"points": [[-1.04, -1.46], [-0.7, -1.46]], "lineWidth": 0.035}, {"points": [[-1.23, 0.3], [0.8, 0.3], [0.68, 0.44], [-1.08, 0.44]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.045, "fillColor": "#54291e"}]},"rubber-muzzle":{"origin": [0.025, -0.22], "paths": [{"points": [[0.94, -0.66], [1.53, -0.66], [1.53, 0.2], [0.94, 0.2]], "closed": true, "fill": true, "fillColor": "#46261e"}, {"points": [[1.28, -0.47], [1.28, 0.01]], "lineWidth": 0.035}]},"rubber-module-punch":{"origin": [0.025, -0.22], "paths": [{"points": [[0.94, -0.66], [1.57, -0.66], [1.76, -0.48], [1.76, 0.04], [1.57, 0.22], [0.94, 0.22]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#5c3024"}, {"points": [[1.46, -0.53], [1.6, -0.4], [1.6, -0.04], [1.46, 0.09]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#46261e"}, {"points": [[1.09, -0.54], [1.09, 0.1]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}, {"points": [[1.2, -0.38], [1.34, -0.38]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}, {"points": [[1.2, -0.06], [1.34, -0.06]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}]},"rubber-module-sniper":{"origin": [0.025, -0.22], "paths": [{"points": [[-0.16, 0.3], [1.06, 0.3], [1.3, 0.5], [1.17, 0.8], [-0.08, 0.8], [-0.27, 0.6]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.045, "fillColor": "#46261e"}, {"points": [[0.02, 0.38], [0.83, 0.38], [1.05, 0.52], [0.97, 0.69], [0.02, 0.69]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.045, "fillColor": "#873b23"}, {"points": [[0.17, 0.54], [0.68, 0.54]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.045}, {"points": [[0.41, 0.42], [0.41, 0.66]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.045}, {"points": [[1.06, 0.42], [1.2, 0.51]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.045}]},"rubber-module-wall":{"origin": [0.025, -0.22], "paths": [{"points": [[-2.07, -0.505], [-1.48, -0.505], [-1.48, 0.095], [-2.07, 0.095], [-2.13, 0.035], [-2.13, -0.445]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#5c3024"}, {"points": [[-1.64, -0.505], [-1.48, -0.505], [-1.48, 0.095], [-1.64, 0.095]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#46261e"}, {"points": [[-2.02, -0.305], [-1.77, -0.305], [-1.77, -0.105], [-2.02, -0.105]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#54291e"}, {"points": [[-1.92, -0.305], [-1.92, -0.105]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}]},
@@ -127300,7 +129344,7 @@ const ModeGearPresentationService=Object.freeze({
     const id=String(entity.id),list=this.weaponEchoes.get(id)||[],live=[];
     for(const echo of list){const t=(now-echo.start)/echo.duration;if(t>=1)continue;live.push(echo);if(t<0)continue;
       ctx.save();ctx.translate(echo.snapshot.x-entity.x,echo.snapshot.y-entity.y);ctx.scale(1+echo.expansion*t,1+echo.expansion*t);
-      for(const image of echo.snapshot.images)this.drawImage(ctx,echo.snapshot.entity,image.config,alpha*.55*Math.pow(1-t,1.3),now,image.sample);
+      for(const image of echo.snapshot.images)this.drawImage(ctx,echo.snapshot.entity,image.config,alpha*.55*AttackVisualStyle.fadeOpacity(Math.pow(1-t,1.3)),now,image.sample);
       ctx.restore();
     }
     if(live.length)this.weaponEchoes.set(id,live);else this.weaponEchoes.delete(id);
@@ -127330,6 +129374,8 @@ const ModeGearPresentationService=Object.freeze({
   },
   movementFacing:new WeakMap(),
   facingAngle(entity,config){
+    if(config.facing==='aim')return entity===Training.player
+      ?Training.aimAngle():Number(entity._remoteAimAngle??entity.aimAngle)||0;
     if(config.facing!=='movement')return 0;
     const x=Number(entity.x)||0,y=Number(entity.y)||0;
     const previous=this.movementFacing.get(entity);
@@ -127343,9 +129389,15 @@ const ModeGearPresentationService=Object.freeze({
     this.movementFacing.set(entity,{x,y,angle});
     return angle;
   },
+  imageOffset(entity,config,sample=null){
+    const angle=config.offsetOrientation==='last-movement'
+      ?(sample?.offsetAngle??MovementService.lastDirectionAngle(entity)):0;
+    const x=Number(config.x)||0,y=Number(config.y)||0;
+    return {x:Math.cos(angle)*x-Math.sin(angle)*y,y:Math.sin(angle)*x+Math.cos(angle)*y};
+  },
   sampleImage(entity,config,now){
     const pose=this.weaponPose(entity,config,now);
-    return {config,sample:{facingAngle:this.facingAngle(entity,config),definition:config.formationKey?this.definition(entity,config):undefined,pose:{pulse:pose.pulse,pull:pose.pull},partSpins:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>m.rotationStateKey?this.rotation(entity,m,Number(m.rotationMs)||300,now):0),partPoses:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>{const p=this.weaponPose(entity,m,now);return {pulse:p.pulse,pull:p.pull};}),spin:config.rotationStateKey?this.rotation(entity,config,Number(config.rotationMs)||300,now):0,alpha:this.imageAlpha(entity,config,now),activeColor:this.activeColor(entity,config,now),tintAmount:this.activityTint(entity,config,now)?.amount??0,sparkActive:!!config.sparkConditions&&this.matches(entity,config.sparkConditions,now,config.conditionTarget)}};
+    return {config,sample:{offsetAngle:config.offsetOrientation==='last-movement'?MovementService.lastDirectionAngle(entity):0,facingAngle:this.facingAngle(entity,config),definition:config.formationKey?this.definition(entity,config):undefined,pose:{pulse:pose.pulse,pull:pose.pull},partSpins:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>m.rotationStateKey?this.rotation(entity,m,Number(m.rotationMs)||300,now):0),partPoses:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>{const p=this.weaponPose(entity,m,now);return {pulse:p.pulse,pull:p.pull};}),spin:config.rotationStateKey?this.rotation(entity,config,Number(config.rotationMs)||300,now):0,alpha:this.imageAlpha(entity,config,now),activeColor:this.activeColor(entity,config,now),tintAmount:this.activityTint(entity,config,now)?.amount??0,sparkActive:!!config.sparkConditions&&this.matches(entity,config.sparkConditions,now,config.conditionTarget)}};
   },
   captureDeath(entity,now=performance.now()){
     if(!entity)return false;
@@ -127494,7 +129546,8 @@ const ModeGearPresentationService=Object.freeze({
     const palette=this.palette(entity,config,now,sample?.activeColor,sample?.tintAmount);
     const reaction=sample?0:this.reaction(entity,now);
     ctx.save();ctx.globalAlpha=alpha*(reaction>0?Math.min(1,this.imageAlpha(entity,config,now)+reaction*2):sample?.alpha??this.imageAlpha(entity,config,now));
-    ctx.translate(Number(config.x||0),Number(config.y||0));
+    const offset=this.imageOffset(entity,config,sample);
+    ctx.translate(offset.x,offset.y);
     ctx.rotate(Number(config.angle||0)+(sample?.facingAngle??this.facingAngle(entity,config))+spin+Number(motion.rotation||0)*pose.pulse+Number(motion.chargeRotation||0)*pose.pull);
     ctx.translate(Number(motion.travelX||0)*size*pose.pulse,Number(motion.travelY||0)*size*pose.pulse);
     if(reaction>0)ctx.scale(1+reaction,1+reaction);
@@ -127541,12 +129594,36 @@ const ModeGearPresentationService=Object.freeze({
     this.drawEchoes(ctx,entity,alpha,now);
     this.deathState.liveSamples.set(entity,this.sampleWeapons(entity,alpha,now));
     for(const config of configs){if(config.type==='effect.spawn'&&config.renderType==='weaponImage'&&this.matches(entity,config.conditions,now,config.conditionTarget))drawn=this.drawImage(ctx,entity,config,alpha,now)||drawn;}
+    for(const config of configs){
+      if(config.type!=='effect.spawn'||config.renderType!=='weaponProjectile'||!this.matches(entity,config.conditions,now,config.conditionTarget))continue;
+      const attack=AbilityService.attackById(entity.character,config.attackId);
+      const module=AttackModuleService.module(attack,'projectile.presentation');
+      const style=module?.style;if(module?.kind!=='weapon-projectile'||style?.type!=='anchor-cross')continue;
+      const offset=this.imageOffset(entity,config),rgb=ColorService.rgbString(entity.character?.color||entity.color);
+      const radius=Math.max(1,Number(style.radius)||16);
+      const pulse=(Number(style.pulseMin)||.7)+((Number(style.pulseMax)||1)-(Number(style.pulseMin)||.7))*(.5+.5*Math.sin(now*(Number(style.pulseSpeed)||.014)));
+      ctx.save();TrainingWorldDrawService.drawAnchorProjectile(ctx,{x:offset.x,y:offset.y,radius,rgb,
+        crossColor:ColorService.rgbString(ColorService.brighten(entity.character?.color||entity.color)),
+        fillAlpha:alpha*(Number(style.fillAlpha)||.28),strokeAlpha:alpha*pulse,crossAlpha:alpha*.85,
+        lineWidth:Math.max(1,Number(style.strokeWidth)||3)});ctx.restore();drawn=true;
+    }
     return drawn;
   }
 });
 
 
 const TrainingWorldDrawService=Object.freeze({
+  drawAnchorProjectile(ctx,{x,y,radius,scale=1,rgb,fillRgb=rgb,crossColor,fillAlpha,strokeAlpha,crossAlpha,lineWidth,cross=true}){
+    ctx.beginPath();ctx.arc(x,y,radius*scale,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${fillRgb},${fillAlpha})`;ctx.strokeStyle=`rgba(${rgb},${strokeAlpha})`;
+    ctx.lineWidth=lineWidth;this.drawProjectileOutlineGlow(ctx);ctx.fill();ctx.stroke();
+    if(cross){
+      const half=radius*.5*scale;ctx.strokeStyle=`rgba(${crossColor},${crossAlpha})`;ctx.lineWidth=Math.max(.5,radius/6*scale);
+      ctx.beginPath();ctx.moveTo(x-half,y);ctx.lineTo(x+half,y);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x,y-half);ctx.lineTo(x,y+half);ctx.stroke();
+    }
+  },
+
   drawProjectileOwnerLink(ctx,projectile,visual,style,viewer,alpha=1){
     if(!ctx||style?.showLink!==true||!projectile?.source||EntityService.owner(projectile.source)!==viewer)return false;
     ctx.save();ctx.beginPath();ctx.moveTo(projectile.source.x,projectile.source.y);ctx.lineTo(visual.x,visual.y);
@@ -131735,7 +133812,7 @@ const Training={
           :b.renderRgb;
       const rangeFade=travelRatio<AttackVisualStyle.fadeStart
         ?1
-        :Math.max(0,1-(travelRatio-AttackVisualStyle.fadeStart)/(1-AttackVisualStyle.fadeStart));
+        :AttackVisualStyle.fadeOpacity(1-(travelRatio-AttackVisualStyle.fadeStart)/(1-AttackVisualStyle.fadeStart));
       const alpha=
         (b.persistent?.88:rangeFade)*
         visual.alpha;
@@ -132101,7 +134178,7 @@ const Training={
       if(style?.kind==='range-projectile'){
         const echoes=ProjectileVisualPositionService.afterimages(b,visual,style.afterimage,now);
         for(const echo of echoes){
-          const life=Math.max(0,1-(now-echo.at)/Math.max(1,Number(style.afterimage?.duration)||200));
+          const life=AttackVisualStyle.fadeOpacity(1-(now-echo.at)/Math.max(1,Number(style.afterimage?.duration)||200));
           if(now===echo.at)continue;
           ctx.save();
           ctx.beginPath();
@@ -132186,32 +134263,15 @@ const Training={
 
         ctx.save();
 
-        ctx.beginPath();
-        ctx.arc(visual.x,visual.y,radius*visual.scale,0,Math.PI*2);
-        ctx.fillStyle=`rgba(${b.renderRgb},${returningAlpha*(Number(style.fillAlpha)||.28)})`;
-        ctx.strokeStyle=`rgba(${ColorService.rgbString(style.strokeColor,b.renderRgb)},${returningStrokeAlpha*pulse})`;
-        ctx.lineWidth=Math.max(1,Number(style.strokeWidth)||3);
-        TrainingWorldDrawService.drawProjectileOutlineGlow(ctx);
-        ctx.fill();
-        ctx.stroke();
-
-        if(!stationaryNumbered){
-          const half=radius*.5;
-          const paletteColor=AttackPresentationColorService.variant(b.source,b.attack,{presentation:style});
-          const crossColor=ColorService.rgbString(ColorService.brighten(paletteColor||b.source?.character?.color||b.source?.color||b.renderRgb));
-          ctx.strokeStyle=`rgba(${crossColor},${returningStrokeAlpha*.85})`;
-          ctx.lineWidth=Math.max(.5,radius/6*visual.scale);
-
-          ctx.beginPath();
-          ctx.moveTo(visual.x-half*visual.scale,visual.y);
-          ctx.lineTo(visual.x+half*visual.scale,visual.y);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(visual.x,visual.y-half*visual.scale);
-          ctx.lineTo(visual.x,visual.y+half*visual.scale);
-          ctx.stroke();
-        }
+        const paletteColor=AttackPresentationColorService.variant(b.source,b.attack,{presentation:style});
+        const crossColor=ColorService.rgbString(ColorService.brighten(paletteColor||b.source?.character?.color||b.source?.color||b.renderRgb));
+        TrainingWorldDrawService.drawAnchorProjectile(ctx,{
+          x:visual.x,y:visual.y,radius,scale:visual.scale,
+          rgb:ColorService.rgbString(style.strokeColor,b.renderRgb),fillRgb:b.renderRgb,crossColor,
+          fillAlpha:returningAlpha*(Number(style.fillAlpha)||.28),
+          strokeAlpha:returningStrokeAlpha*pulse,crossAlpha:returningStrokeAlpha*.85,
+          lineWidth:Math.max(1,Number(style.strokeWidth)||3),cross:!stationaryNumbered
+        });
 
         if(stationaryNumbered){
           const ordinal=
@@ -132401,7 +134461,7 @@ const Training={
       }
       if(f.type==='pathCarrier'){if(!f.summonStateKey)PathCarrierService.draw(ctx,f,now);continue;}
       if(f.animationState&&(!f.type||f.type==='effectShape')){
-        const alpha=Math.max(0,1-progress);
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const scale=Number(f.scale)||1;
         ctx.save();
         ctx.translate(Number(f.x)||0,Number(f.y)||0);
@@ -132423,7 +134483,7 @@ const Training={
       }
 
       if(f.type==='temporalRewind'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const ring=ColorService.rgbString(f.ringColor||f.color,'180,210,255');
         const fill=ColorService.rgbString(f.fillColor,'69,122,255');
         const stroke=ColorService.rgbString(f.strokeColor,'130,170,255');
@@ -132438,7 +134498,7 @@ const Training={
       }
 
       if(f.type==='arcSweep'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const rgb=ColorService.rgbString(
           f.color,
           '200,216,240'
@@ -132656,7 +134716,7 @@ const Training={
         let offset=0;
         let a=f.holdVisibleUntilEnd===true
           ?(now<f.start+f.dur?1:0)
-          :Math.max(0,1-progress);
+          :AttackVisualStyle.fadeOpacity(1-progress);
         let length=f.fullLength===true
           ?range
           :range*Math.min(1,progress*growthSpeed);
@@ -132675,12 +134735,12 @@ const Training={
               // 페이드아웃 잔향은 마지막 형태를 유지한 채 투명도만 감소한다.
               offset=0;
               length=range;
-              a=1-fadeProgress;
+              a=AttackVisualStyle.fadeOpacity(1-fadeProgress);
             }else{
               // 기존 progressRect 사용처의 축소 종료 연출은 그대로 유지한다.
               offset=range*fadeProgress;
               length=range*(1-fadeProgress);
-              a=1-fadeProgress;
+              a=AttackVisualStyle.fadeOpacity(1-fadeProgress);
             }
           }
         }
@@ -132837,7 +134897,7 @@ const Training={
       }
 
       if(f.type==='shieldSwing'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const rgb=ColorService.rgbString(
           f.color,
           '255,119,0'
@@ -132900,7 +134960,7 @@ const Training={
         continue;
       }
       if(f.type==='shieldDash'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const rr=Math.max(0,Number(f.range)||0)*progress;
         const angle=Number(f.angle)||0;
         const ex=f.x+Math.cos(angle)*rr;
@@ -132921,7 +134981,7 @@ const Training={
       }
 
       if(f.type==='taperedArea'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const angle=Number(f.angle)||0;
         const range=Math.max(0,Number(f.range)||0);
         const startHalfWidth=Math.max(
@@ -133000,7 +135060,7 @@ const Training={
       }
 
       if(f.type==='beamLine'){
-        const baseAlpha=Math.max(0,1-progress);
+        const baseAlpha=AttackVisualStyle.fadeOpacity(1-progress);
         const beamSource=
           EntityService.items.get(
             String(f.sourceEntityId||'')
@@ -133198,7 +135258,7 @@ const Training={
       }
 
       if(f.type==='shieldUppercut'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const angle=Number(f.angle)||0;
         const len=Math.max(0,Number(f.range)||0);
         const halfWidth=Math.max(0,Number(f.halfWidth)||0);
@@ -133222,7 +135282,7 @@ const Training={
       }
 
       if(f.type==='parry'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const radius=Math.max(1,Number(f.maxRadius)||40)*progress;
         ctx.save();
 
@@ -133262,7 +135322,7 @@ const Training={
       }
 
       if(f.type==='backup'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const rgb=ColorService.rgbString(f.color,'255,119,0');
         ctx.save();
         ctx.beginPath();
@@ -133373,7 +135433,7 @@ const Training={
           );
         const lifeAlpha=
           f.fadeOut===true
-            ?baseAlpha*(1-progress)
+            ?baseAlpha*AttackVisualStyle.fadeOpacity(1-progress)
             :baseAlpha;
         const pulse=
           .65+.35*Math.sin(now*.006);
@@ -133410,7 +135470,7 @@ const Training={
         );
         const alpha=
           f.fadeOut===true
-            ?baseAlpha*(1-progress)
+            ?baseAlpha*AttackVisualStyle.fadeOpacity(1-progress)
             :baseAlpha;
         const rgb=ColorService.rgbString(f.color,'255,119,0');
         ctx.save();
@@ -133481,11 +135541,11 @@ const Training={
         }
 
         const lifeAlpha=f.fadeOut===true
-          ?Math.max(0,1-progress)
+          ?AttackVisualStyle.fadeOpacity(1-progress)
           :(
             progress<.9
               ?1
-              :Math.max(0,(1-progress)/.1)
+              :AttackVisualStyle.fadeOpacity((1-progress)/.1)
           );
         const rgb=ColorService.rgbString(
           f.color||source.color,
@@ -133548,7 +135608,7 @@ const Training={
         const lifeAlpha=
           progress<.9
             ?1
-            :Math.max(0,(1-progress)/.1);
+            :AttackVisualStyle.fadeOpacity((1-progress)/.1);
         const pulse=.78+.22*Math.sin(now*.012);
         const rgb=ColorService.rgbString(
           f.color,
@@ -133592,11 +135652,11 @@ const Training={
       }
 
       if(f.type==='dmgNum'){
-        ctx.save();ctx.globalAlpha=1-progress;ctx.fillStyle=f.col||'#ff6060';ctx.font=`bold ${f.size||19}px Pretendard`;ctx.textAlign='center';ctx.fillText(f.text,f.x,f.y-progress*22);ctx.restore();continue;
+        ctx.save();ctx.globalAlpha=AttackVisualStyle.fadeOpacity(1-progress);ctx.fillStyle=f.col||'#ff6060';ctx.font=`bold ${f.size||19}px Pretendard`;ctx.textAlign='center';ctx.fillText(f.text,f.x,f.y-progress*22);ctx.restore();continue;
       }
       if(f.type==='justDodgeText'){
         ctx.save();
-        ctx.globalAlpha=1-progress;
+        ctx.globalAlpha=AttackVisualStyle.fadeOpacity(1-progress);
         ctx.font='bold 20px Pretendard';
         ctx.textAlign='center';
         const gradient=ctx.createLinearGradient(f.x-34,f.y,f.x+34,f.y);
@@ -133610,7 +135670,7 @@ const Training={
       }
       if(f.type==='koImpact'){
         ctx.save();
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
 
         const radius=20+progress*115;
         ctx.beginPath();
@@ -133680,7 +135740,7 @@ const Training={
       }
 
       if(f.type==='healPulse'){
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const radius=Math.max(1,Number(f.maxR)||32);
         const rgb=ColorService.rgbString(
           f.color||f.col||f.strokeColor,
@@ -133712,7 +135772,7 @@ const Training={
         const radius=Math.max(4,40*(1-progress));
         const strokeColor=ColorService.rgbString(f.color,'150,150,160');
         const fillColor=ColorService.rgbString(f.fillColor,'100,100,110');
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         ctx.save();
         ctx.beginPath();
         ctx.arc(f.x,f.y,radius,0,Math.PI*2);
@@ -133738,7 +135798,7 @@ const Training={
         const radius=Math.max(4,Math.max(0,Number(f.range)||Number(f.maxR)||0)*(1-progress));
         const color=ColorService.rgbString(f.color,'255,180,80');
         const outerColor=ColorService.rgbString(f.outerColor,'200,200,210');
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const outerRadius=Math.max(0,Number(f.range)||Number(f.maxR)||0);
         ctx.beginPath();
         ctx.arc(f.x,f.y,radius,0,Math.PI*2);
@@ -133760,7 +135820,7 @@ const Training={
         const endRadius=Number.isFinite(Number(f.maxR))?Math.max(startRadius,Number(f.maxR)):42;
         const radius=startRadius+(endRadius-startRadius)*progress;
         const rgb=ColorService.rgbString(f.color,'255,215,80');
-        const alpha=(1-progress)*Math.max(0,Math.min(1,Number.isFinite(Number(f.strokeAlpha))?Number(f.strokeAlpha):1));
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress)*Math.max(0,Math.min(1,Number.isFinite(Number(f.strokeAlpha))?Number(f.strokeAlpha):1));
         ctx.beginPath();
         ctx.arc(f.x,f.y,radius,0,Math.PI*2);
         ctx.strokeStyle=`rgba(${rgb},${alpha})`;
@@ -133769,7 +135829,7 @@ const Training={
         continue;
       }
       if(f.type==='areaWallCutOutline'){
-        const alpha=Math.max(0,Math.min(1,1-progress));
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const segments=Array.isArray(f.segments)?f.segments:[];
         if(segments.length){
           const rgb=ColorService.rgbString(f.color,'255,255,255');
@@ -133795,14 +135855,14 @@ const Training={
         continue;
       }
       if(f.type==='botDrill'){
-        const alpha=1-progress,cos=Math.cos(f.angle),sin=Math.sin(f.angle),w=f.width;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress),cos=Math.cos(f.angle),sin=Math.sin(f.angle),w=f.width;
         ctx.beginPath();ctx.moveTo(f.x-sin*(-w),f.y+cos*(-w));ctx.lineTo(f.x+cos*f.len-sin*(-w),f.y+sin*f.len+cos*(-w));ctx.lineTo(f.x+cos*f.len-sin*w,f.y+sin*f.len+cos*w);ctx.lineTo(f.x-sin*w,f.y+cos*w);ctx.closePath();
         const fillAlpha=Math.max(0,Math.min(1,Number.isFinite(Number(f.fillAlpha))?Number(f.fillAlpha):AttackVisualStyle.fillAlpha));
         const strokeAlpha=Math.max(0,Math.min(1,Number.isFinite(Number(f.strokeAlpha))?Number(f.strokeAlpha):AttackVisualStyle.strokeAlpha));
         ctx.fillStyle=`rgba(${f.color},${alpha*fillAlpha})`;ctx.fill();ctx.strokeStyle=`rgba(${f.color},${alpha*strokeAlpha})`;ctx.lineWidth=AttackVisualStyle.strokeWidth;ctx.stroke();continue;
       }
       if(f.type==='botSwing'){
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const points=Array.isArray(f.points)?f.points:[];
         ctx.beginPath();
         if(points.length>=3){
@@ -133838,7 +135898,7 @@ const Training={
       }
       if(f.type==='underMove'){
         const variant=String(f.variant||'pulse');
-        const lifeAlpha=variant==='pulse'?1-progress:Math.min(1,(1-progress)*2.2);
+        const lifeAlpha=AttackVisualStyle.fadeOpacity(variant==='pulse'?1-progress:Math.min(1,(1-progress)*2.2));
         const pulse=.78+.22*Math.sin(now/120);
         const baseRange=Math.max(1,Number(f.range)||33);
         const radius=variant==='pulse'?baseRange*progress:baseRange;
@@ -133879,7 +135939,7 @@ const Training={
           growthSpeed:Number.isFinite(Number(f.growthSpeed))?Number(f.growthSpeed):2.2,
           outlineSegments:Math.max(8,Math.floor(Number(f.outlineSegments)||96))
         };
-        const alpha=Math.max(0,Math.min(1,1-progress));
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const maxR=Math.max(0,Number(f.range)||Number(f.maxR)||0);
         const tipRatio=Math.max(0,Math.min(1,Number(f.tipRatio??style.tipRatio)));
         const tipR=maxR*tipRatio;
@@ -133936,7 +135996,7 @@ const Training={
 
       if(f.type==='slowZoneAppear'){
         const pulse=.5+.5*Math.sin(now*.004);
-        const alpha=Math.max(0,Math.min(1,1-progress));
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const radius=Math.max(
           1,
           Number(f.r)||Number(f.range)||150
@@ -134119,7 +136179,7 @@ const Training={
               )
             )
           );
-        const alpha=Math.max(0,Math.min(1,1-rulerProgress));
+        const alpha=AttackVisualStyle.fadeOpacity(1-rulerProgress);
         RuliRulerPresentationService.drawStrike(
           ctx,
           f,
@@ -134608,7 +136668,7 @@ const Training={
       }
 
       if(f.type==='effectShape'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const rgb=ColorService.rgbString(
           f.color||f.strokeColor,
           '200,216,240'
@@ -134735,7 +136795,7 @@ const Training={
         const cx=entity?.x??f.x;
         const cy=entity?.y??f.y;
         const radius=Math.max(34,(f.maxR||f.r||30)+12);
-        const alpha=.95*(1-progress);
+        const alpha=.95*AttackVisualStyle.fadeOpacity(1-progress);
         const rgb=ColorService.rgbString(
           f.color||f.col||f.strokeColor,
           '255,215,0'
@@ -134760,7 +136820,7 @@ const Training={
 
       if(f.type==='counter'){
         const color=ColorService.rgbString(f.color);
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
 
         ctx.save();
         ctx.beginPath();
@@ -134779,7 +136839,7 @@ const Training={
       }
 
       if(f.type==='dash-line'){
-        const alpha=(1-progress)*(Number(f.alpha)||.4);
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress)*(Number(f.alpha)||.4);
 
         ctx.save();
         ctx.beginPath();
@@ -136762,7 +138822,7 @@ GameEvents.on('entity-defeated',event=>{
         },
         event.now||performance.now()
       );
-      Presentation.damageNumber(target,amount);
+      Presentation.damageNumber(target,amount,'',{source,attack:event.attack,executionSequence:event.execution?.sequence});
       SoundService.play('hit');
 
       const hitRing=

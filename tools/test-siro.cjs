@@ -32,7 +32,7 @@ const originalMovement=c.MovementAbilityService;
 c.MovementAbilityService={...originalMovement,applyBuffs(){},clearBuffs(){},spawnEffects:()=>[],broadcastEffects(){}};
 c.AttackService={canUse:(e,a)=>e.stamina>=a.cost,execute:(s,a,angle)=>c.TriggeredAttackService.execute(s,a,angle)};
 test('65명 순수 데이터·중복 없는 적색·체력/매우빠름/칭호 및 공통 반격 CC',()=>{
- assert.equal(Object.keys(c.CHARACTER_DATA).length,65);assert.equal(ch.maxHealth,1100);assert.equal(ch.speed,4.5);assert.equal(ch.moveLabel,'매우 빠름');assert.equal(ch.title,'토끼 궁수');assert.equal(ch.classification.style,3);assert.equal(ch.classification.role,2);
+ assert.equal(Object.keys(c.CHARACTER_DATA).length,66);assert.equal(ch.maxHealth,1100);assert.equal(ch.speed,4.5);assert.equal(ch.moveLabel,'매우 빠름');assert.equal(ch.title,'토끼 궁수');assert.equal(ch.classification.style,3);assert.equal(ch.classification.role,2);
  for(const raw of Object.values(c.CHARACTER_DATA))if(raw.id!=='siro')assert.notEqual(String(raw.color).toLowerCase(),ch.color);
  assert.ok(Object.isFrozen(ch));const m=ch.abilities.counter.trigger.modules[0];assert.equal(c.CounterModuleService.validate(m),true);assert.equal(c.CounterModuleService.referencedCc(entity(),m).status,'burn');
 });

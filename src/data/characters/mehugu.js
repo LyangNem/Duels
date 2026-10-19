@@ -204,7 +204,6 @@
         id: "ability.mehugu.lmb",
         input: "lmb",
         attackId: "attack.mehugu.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",

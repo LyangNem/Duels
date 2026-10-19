@@ -126,7 +126,7 @@
           "when": "on-hit",
           "resource": "stamina",
           "recipient": "source",
-          "amount": 70,
+          "amount": 60,
           "oncePerExecution": true,
           "excludeTargetKinds": [
             "summon",
@@ -190,7 +190,7 @@
           "when": "on-hit",
           "resource": "stamina",
           "recipient": "source",
-          "amount": 70,
+          "amount": 60,
           "oncePerExecution": true,
           "excludeTargetKinds": [
             "summon",
@@ -249,7 +249,7 @@
           "when": "on-hit",
           "resource": "stamina",
           "recipient": "source",
-          "amount": 70,
+          "amount": 60,
           "oncePerExecution": true,
           "excludeTargetKinds": [
             "summon",

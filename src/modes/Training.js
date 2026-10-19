@@ -2809,7 +2809,7 @@ const Training={
           :b.renderRgb;
       const rangeFade=travelRatio<AttackVisualStyle.fadeStart
         ?1
-        :Math.max(0,1-(travelRatio-AttackVisualStyle.fadeStart)/(1-AttackVisualStyle.fadeStart));
+        :AttackVisualStyle.fadeOpacity(1-(travelRatio-AttackVisualStyle.fadeStart)/(1-AttackVisualStyle.fadeStart));
       const alpha=
         (b.persistent?.88:rangeFade)*
         visual.alpha;
@@ -3175,7 +3175,7 @@ const Training={
       if(style?.kind==='range-projectile'){
         const echoes=ProjectileVisualPositionService.afterimages(b,visual,style.afterimage,now);
         for(const echo of echoes){
-          const life=Math.max(0,1-(now-echo.at)/Math.max(1,Number(style.afterimage?.duration)||200));
+          const life=AttackVisualStyle.fadeOpacity(1-(now-echo.at)/Math.max(1,Number(style.afterimage?.duration)||200));
           if(now===echo.at)continue;
           ctx.save();
           ctx.beginPath();
@@ -3260,32 +3260,15 @@ const Training={
 
         ctx.save();
 
-        ctx.beginPath();
-        ctx.arc(visual.x,visual.y,radius*visual.scale,0,Math.PI*2);
-        ctx.fillStyle=`rgba(${b.renderRgb},${returningAlpha*(Number(style.fillAlpha)||.28)})`;
-        ctx.strokeStyle=`rgba(${ColorService.rgbString(style.strokeColor,b.renderRgb)},${returningStrokeAlpha*pulse})`;
-        ctx.lineWidth=Math.max(1,Number(style.strokeWidth)||3);
-        TrainingWorldDrawService.drawProjectileOutlineGlow(ctx);
-        ctx.fill();
-        ctx.stroke();
-
-        if(!stationaryNumbered){
-          const half=radius*.5;
-          const paletteColor=AttackPresentationColorService.variant(b.source,b.attack,{presentation:style});
-          const crossColor=ColorService.rgbString(ColorService.brighten(paletteColor||b.source?.character?.color||b.source?.color||b.renderRgb));
-          ctx.strokeStyle=`rgba(${crossColor},${returningStrokeAlpha*.85})`;
-          ctx.lineWidth=Math.max(.5,radius/6*visual.scale);
-
-          ctx.beginPath();
-          ctx.moveTo(visual.x-half*visual.scale,visual.y);
-          ctx.lineTo(visual.x+half*visual.scale,visual.y);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(visual.x,visual.y-half*visual.scale);
-          ctx.lineTo(visual.x,visual.y+half*visual.scale);
-          ctx.stroke();
-        }
+        const paletteColor=AttackPresentationColorService.variant(b.source,b.attack,{presentation:style});
+        const crossColor=ColorService.rgbString(ColorService.brighten(paletteColor||b.source?.character?.color||b.source?.color||b.renderRgb));
+        TrainingWorldDrawService.drawAnchorProjectile(ctx,{
+          x:visual.x,y:visual.y,radius,scale:visual.scale,
+          rgb:ColorService.rgbString(style.strokeColor,b.renderRgb),fillRgb:b.renderRgb,crossColor,
+          fillAlpha:returningAlpha*(Number(style.fillAlpha)||.28),
+          strokeAlpha:returningStrokeAlpha*pulse,crossAlpha:returningStrokeAlpha*.85,
+          lineWidth:Math.max(1,Number(style.strokeWidth)||3),cross:!stationaryNumbered
+        });
 
         if(stationaryNumbered){
           const ordinal=
@@ -3475,7 +3458,7 @@ const Training={
       }
       if(f.type==='pathCarrier'){if(!f.summonStateKey)PathCarrierService.draw(ctx,f,now);continue;}
       if(f.animationState&&(!f.type||f.type==='effectShape')){
-        const alpha=Math.max(0,1-progress);
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const scale=Number(f.scale)||1;
         ctx.save();
         ctx.translate(Number(f.x)||0,Number(f.y)||0);
@@ -3497,7 +3480,7 @@ const Training={
       }
 
       if(f.type==='temporalRewind'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const ring=ColorService.rgbString(f.ringColor||f.color,'180,210,255');
         const fill=ColorService.rgbString(f.fillColor,'69,122,255');
         const stroke=ColorService.rgbString(f.strokeColor,'130,170,255');
@@ -3512,7 +3495,7 @@ const Training={
       }
 
       if(f.type==='arcSweep'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const rgb=ColorService.rgbString(
           f.color,
           '200,216,240'
@@ -3730,7 +3713,7 @@ const Training={
         let offset=0;
         let a=f.holdVisibleUntilEnd===true
           ?(now<f.start+f.dur?1:0)
-          :Math.max(0,1-progress);
+          :AttackVisualStyle.fadeOpacity(1-progress);
         let length=f.fullLength===true
           ?range
           :range*Math.min(1,progress*growthSpeed);
@@ -3749,12 +3732,12 @@ const Training={
               // 페이드아웃 잔향은 마지막 형태를 유지한 채 투명도만 감소한다.
               offset=0;
               length=range;
-              a=1-fadeProgress;
+              a=AttackVisualStyle.fadeOpacity(1-fadeProgress);
             }else{
               // 기존 progressRect 사용처의 축소 종료 연출은 그대로 유지한다.
               offset=range*fadeProgress;
               length=range*(1-fadeProgress);
-              a=1-fadeProgress;
+              a=AttackVisualStyle.fadeOpacity(1-fadeProgress);
             }
           }
         }
@@ -3911,7 +3894,7 @@ const Training={
       }
 
       if(f.type==='shieldSwing'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const rgb=ColorService.rgbString(
           f.color,
           '255,119,0'
@@ -3974,7 +3957,7 @@ const Training={
         continue;
       }
       if(f.type==='shieldDash'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const rr=Math.max(0,Number(f.range)||0)*progress;
         const angle=Number(f.angle)||0;
         const ex=f.x+Math.cos(angle)*rr;
@@ -3995,7 +3978,7 @@ const Training={
       }
 
       if(f.type==='taperedArea'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const angle=Number(f.angle)||0;
         const range=Math.max(0,Number(f.range)||0);
         const startHalfWidth=Math.max(
@@ -4074,7 +4057,7 @@ const Training={
       }
 
       if(f.type==='beamLine'){
-        const baseAlpha=Math.max(0,1-progress);
+        const baseAlpha=AttackVisualStyle.fadeOpacity(1-progress);
         const beamSource=
           EntityService.items.get(
             String(f.sourceEntityId||'')
@@ -4272,7 +4255,7 @@ const Training={
       }
 
       if(f.type==='shieldUppercut'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const angle=Number(f.angle)||0;
         const len=Math.max(0,Number(f.range)||0);
         const halfWidth=Math.max(0,Number(f.halfWidth)||0);
@@ -4296,7 +4279,7 @@ const Training={
       }
 
       if(f.type==='parry'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const radius=Math.max(1,Number(f.maxRadius)||40)*progress;
         ctx.save();
 
@@ -4336,7 +4319,7 @@ const Training={
       }
 
       if(f.type==='backup'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const rgb=ColorService.rgbString(f.color,'255,119,0');
         ctx.save();
         ctx.beginPath();
@@ -4447,7 +4430,7 @@ const Training={
           );
         const lifeAlpha=
           f.fadeOut===true
-            ?baseAlpha*(1-progress)
+            ?baseAlpha*AttackVisualStyle.fadeOpacity(1-progress)
             :baseAlpha;
         const pulse=
           .65+.35*Math.sin(now*.006);
@@ -4484,7 +4467,7 @@ const Training={
         );
         const alpha=
           f.fadeOut===true
-            ?baseAlpha*(1-progress)
+            ?baseAlpha*AttackVisualStyle.fadeOpacity(1-progress)
             :baseAlpha;
         const rgb=ColorService.rgbString(f.color,'255,119,0');
         ctx.save();
@@ -4555,11 +4538,11 @@ const Training={
         }
 
         const lifeAlpha=f.fadeOut===true
-          ?Math.max(0,1-progress)
+          ?AttackVisualStyle.fadeOpacity(1-progress)
           :(
             progress<.9
               ?1
-              :Math.max(0,(1-progress)/.1)
+              :AttackVisualStyle.fadeOpacity((1-progress)/.1)
           );
         const rgb=ColorService.rgbString(
           f.color||source.color,
@@ -4622,7 +4605,7 @@ const Training={
         const lifeAlpha=
           progress<.9
             ?1
-            :Math.max(0,(1-progress)/.1);
+            :AttackVisualStyle.fadeOpacity((1-progress)/.1);
         const pulse=.78+.22*Math.sin(now*.012);
         const rgb=ColorService.rgbString(
           f.color,
@@ -4666,11 +4649,11 @@ const Training={
       }
 
       if(f.type==='dmgNum'){
-        ctx.save();ctx.globalAlpha=1-progress;ctx.fillStyle=f.col||'#ff6060';ctx.font=`bold ${f.size||19}px Pretendard`;ctx.textAlign='center';ctx.fillText(f.text,f.x,f.y-progress*22);ctx.restore();continue;
+        ctx.save();ctx.globalAlpha=AttackVisualStyle.fadeOpacity(1-progress);ctx.fillStyle=f.col||'#ff6060';ctx.font=`bold ${f.size||19}px Pretendard`;ctx.textAlign='center';ctx.fillText(f.text,f.x,f.y-progress*22);ctx.restore();continue;
       }
       if(f.type==='justDodgeText'){
         ctx.save();
-        ctx.globalAlpha=1-progress;
+        ctx.globalAlpha=AttackVisualStyle.fadeOpacity(1-progress);
         ctx.font='bold 20px Pretendard';
         ctx.textAlign='center';
         const gradient=ctx.createLinearGradient(f.x-34,f.y,f.x+34,f.y);
@@ -4684,7 +4667,7 @@ const Training={
       }
       if(f.type==='koImpact'){
         ctx.save();
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
 
         const radius=20+progress*115;
         ctx.beginPath();
@@ -4754,7 +4737,7 @@ const Training={
       }
 
       if(f.type==='healPulse'){
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const radius=Math.max(1,Number(f.maxR)||32);
         const rgb=ColorService.rgbString(
           f.color||f.col||f.strokeColor,
@@ -4786,7 +4769,7 @@ const Training={
         const radius=Math.max(4,40*(1-progress));
         const strokeColor=ColorService.rgbString(f.color,'150,150,160');
         const fillColor=ColorService.rgbString(f.fillColor,'100,100,110');
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         ctx.save();
         ctx.beginPath();
         ctx.arc(f.x,f.y,radius,0,Math.PI*2);
@@ -4812,7 +4795,7 @@ const Training={
         const radius=Math.max(4,Math.max(0,Number(f.range)||Number(f.maxR)||0)*(1-progress));
         const color=ColorService.rgbString(f.color,'255,180,80');
         const outerColor=ColorService.rgbString(f.outerColor,'200,200,210');
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const outerRadius=Math.max(0,Number(f.range)||Number(f.maxR)||0);
         ctx.beginPath();
         ctx.arc(f.x,f.y,radius,0,Math.PI*2);
@@ -4834,7 +4817,7 @@ const Training={
         const endRadius=Number.isFinite(Number(f.maxR))?Math.max(startRadius,Number(f.maxR)):42;
         const radius=startRadius+(endRadius-startRadius)*progress;
         const rgb=ColorService.rgbString(f.color,'255,215,80');
-        const alpha=(1-progress)*Math.max(0,Math.min(1,Number.isFinite(Number(f.strokeAlpha))?Number(f.strokeAlpha):1));
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress)*Math.max(0,Math.min(1,Number.isFinite(Number(f.strokeAlpha))?Number(f.strokeAlpha):1));
         ctx.beginPath();
         ctx.arc(f.x,f.y,radius,0,Math.PI*2);
         ctx.strokeStyle=`rgba(${rgb},${alpha})`;
@@ -4843,7 +4826,7 @@ const Training={
         continue;
       }
       if(f.type==='areaWallCutOutline'){
-        const alpha=Math.max(0,Math.min(1,1-progress));
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const segments=Array.isArray(f.segments)?f.segments:[];
         if(segments.length){
           const rgb=ColorService.rgbString(f.color,'255,255,255');
@@ -4869,14 +4852,14 @@ const Training={
         continue;
       }
       if(f.type==='botDrill'){
-        const alpha=1-progress,cos=Math.cos(f.angle),sin=Math.sin(f.angle),w=f.width;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress),cos=Math.cos(f.angle),sin=Math.sin(f.angle),w=f.width;
         ctx.beginPath();ctx.moveTo(f.x-sin*(-w),f.y+cos*(-w));ctx.lineTo(f.x+cos*f.len-sin*(-w),f.y+sin*f.len+cos*(-w));ctx.lineTo(f.x+cos*f.len-sin*w,f.y+sin*f.len+cos*w);ctx.lineTo(f.x-sin*w,f.y+cos*w);ctx.closePath();
         const fillAlpha=Math.max(0,Math.min(1,Number.isFinite(Number(f.fillAlpha))?Number(f.fillAlpha):AttackVisualStyle.fillAlpha));
         const strokeAlpha=Math.max(0,Math.min(1,Number.isFinite(Number(f.strokeAlpha))?Number(f.strokeAlpha):AttackVisualStyle.strokeAlpha));
         ctx.fillStyle=`rgba(${f.color},${alpha*fillAlpha})`;ctx.fill();ctx.strokeStyle=`rgba(${f.color},${alpha*strokeAlpha})`;ctx.lineWidth=AttackVisualStyle.strokeWidth;ctx.stroke();continue;
       }
       if(f.type==='botSwing'){
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const points=Array.isArray(f.points)?f.points:[];
         ctx.beginPath();
         if(points.length>=3){
@@ -4912,7 +4895,7 @@ const Training={
       }
       if(f.type==='underMove'){
         const variant=String(f.variant||'pulse');
-        const lifeAlpha=variant==='pulse'?1-progress:Math.min(1,(1-progress)*2.2);
+        const lifeAlpha=AttackVisualStyle.fadeOpacity(variant==='pulse'?1-progress:Math.min(1,(1-progress)*2.2));
         const pulse=.78+.22*Math.sin(now/120);
         const baseRange=Math.max(1,Number(f.range)||33);
         const radius=variant==='pulse'?baseRange*progress:baseRange;
@@ -4953,7 +4936,7 @@ const Training={
           growthSpeed:Number.isFinite(Number(f.growthSpeed))?Number(f.growthSpeed):2.2,
           outlineSegments:Math.max(8,Math.floor(Number(f.outlineSegments)||96))
         };
-        const alpha=Math.max(0,Math.min(1,1-progress));
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const maxR=Math.max(0,Number(f.range)||Number(f.maxR)||0);
         const tipRatio=Math.max(0,Math.min(1,Number(f.tipRatio??style.tipRatio)));
         const tipR=maxR*tipRatio;
@@ -5010,7 +4993,7 @@ const Training={
 
       if(f.type==='slowZoneAppear'){
         const pulse=.5+.5*Math.sin(now*.004);
-        const alpha=Math.max(0,Math.min(1,1-progress));
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
         const radius=Math.max(
           1,
           Number(f.r)||Number(f.range)||150
@@ -5193,7 +5176,7 @@ const Training={
               )
             )
           );
-        const alpha=Math.max(0,Math.min(1,1-rulerProgress));
+        const alpha=AttackVisualStyle.fadeOpacity(1-rulerProgress);
         RuliRulerPresentationService.drawStrike(
           ctx,
           f,
@@ -5682,7 +5665,7 @@ const Training={
       }
 
       if(f.type==='effectShape'){
-        const a=Math.max(0,1-progress);
+        const a=AttackVisualStyle.fadeOpacity(1-progress);
         const rgb=ColorService.rgbString(
           f.color||f.strokeColor,
           '200,216,240'
@@ -5809,7 +5792,7 @@ const Training={
         const cx=entity?.x??f.x;
         const cy=entity?.y??f.y;
         const radius=Math.max(34,(f.maxR||f.r||30)+12);
-        const alpha=.95*(1-progress);
+        const alpha=.95*AttackVisualStyle.fadeOpacity(1-progress);
         const rgb=ColorService.rgbString(
           f.color||f.col||f.strokeColor,
           '255,215,0'
@@ -5834,7 +5817,7 @@ const Training={
 
       if(f.type==='counter'){
         const color=ColorService.rgbString(f.color);
-        const alpha=1-progress;
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress);
 
         ctx.save();
         ctx.beginPath();
@@ -5853,7 +5836,7 @@ const Training={
       }
 
       if(f.type==='dash-line'){
-        const alpha=(1-progress)*(Number(f.alpha)||.4);
+        const alpha=AttackVisualStyle.fadeOpacity(1-progress)*(Number(f.alpha)||.4);
 
         ctx.save();
         ctx.beginPath();

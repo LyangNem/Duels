@@ -3,6 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),asse
 const root=path.resolve(__dirname,'..');let clock=1000,passed=0;
 const c=vm.createContext({console,Map,Set,WeakMap,WeakSet,Math,performance:{now:()=>clock},EMPTY_RUNTIME_ITEMS:[],EMPTY_AUGMENT_EFFECTS:[]});
 function load(file,name){vm.runInContext(fs.readFileSync(path.join(root,file),'utf8')+';globalThis.'+name+'='+name+';',c)}
+load('src/combat/AttackVisualStyle.js','AttackVisualStyle');
 function test(name,fn){fn();passed++;console.log('PASS '+name)}
 for(const n of ['characterValue','characterCount','characterSum','characterProduct','freezeCharacterData','CHARACTER_RULES'])load('src/data/'+n+'.js',n);
 c.CHARACTER_DATA={};for(const e of JSON.parse(fs.readFileSync(path.join(root,'src/data/characters/index.json'))).characters){const d=vm.runInContext('('+fs.readFileSync(path.join(root,e.path),'utf8')+')',c);c.CHARACTER_DATA[d.id]=d}
@@ -28,7 +29,7 @@ load('src/projectiles/ProjectileImpactService.js','ProjectileImpactService');loa
 const source={id:'s',alive:true,teamId:'a',character:ch,baseDamage:100,x:0,y:0,attackSequence:0,actionState:new Map()};
 function target(x=1000,y=0){return{id:'t',alive:true,teamId:'b',health:5000,maxHealth:5000,x,y,radius:20}}
 function damage(attack,t,origin={x:1000,y:0}){const execution=c.AttackExecutionService.create(source,attack,0);return c.DamagePipeline.apply({source,target:t,attack,execution,impact:{origin,directionAngle:0,execution}})}
-test('65명 공통 컴파일·체력/이속/칭호·색상 중복 없음',()=>{assert.equal(ch.maxHealth,1500);assert.equal(ch.speed,4);assert.equal(ch.moveLabel,'보통');assert.equal(ch.title,'노련한 발파원');for(const d of Object.values(c.CHARACTER_DATA))if(d.id!=='terdion')assert.notEqual(String(d.color).toLowerCase(),ch.color);assert.equal(Object.keys(c.CHARACTER_DATA).length,65)});
+test('65명 공통 컴파일·체력/이속/칭호·색상 중복 없음',()=>{assert.equal(ch.maxHealth,1500);assert.equal(ch.speed,4);assert.equal(ch.moveLabel,'보통');assert.equal(ch.title,'노련한 발파원');for(const d of Object.values(c.CHARACTER_DATA))if(d.id!=='terdion')assert.notEqual(String(d.color).toLowerCase(),ch.color);assert.equal(Object.keys(c.CHARACTER_DATA).length,66)});
 test('공통 피해 파이프라인: 직격과 착탄 중심의 3단계 피해 감쇠',()=>{assert.equal(damage(ch.attacks.lmb,target()).amount,150);assert.equal(damage(ch.attacks.rmb,target()).amount,200);for(const [key,values]of [['lmbExplosion',[300,200,100]],['rmbExplosion',[600,400,200]],['counterExplosion',[300,200,100]]]){const a=ch.attacks[key];for(let i=0;i<3;i++)assert.ok(Math.abs(damage(a,target(1000+a.range*i/2)).amount-values[i])<1e-9)}});
 test('반 내구도 타격은 체력 피해로 집계·레이카 충전·온라인 확정량 일치',()=>{
  const h=vm.createContext({...c});
@@ -55,8 +56,8 @@ test('실제 onHit: 중심 기준 방사형 넉백·거리 감쇠·반격 무력
 const impacts=[],effects=[];
 c.AreaAttackService={execute:(s,a,angle,module,volley,options)=>impacts.push({a,point:options.geometrySource,time:clock})};
 c.EffectSpawnService={shouldPresentAttack:()=>true,definitionSnapshot:s=>structuredClone(s),spawn:s=>{effects.push(s);return s}};c.OnlinePresentationSyncService={shouldSend:()=>false};
-function carrier(key='bomb'){return{source,x:1000,y:100,angle:0,networkKey:key,attack:ch.attacks.lmb,behavior:c.ProjectileModuleService.config(ch.attacks.lmb)}}
-test('실제 착탄/예약: 499ms 피해 없음·500ms 고정 좌표 폭발·중복 확정 1회',()=>{c.SimulationScheduleService.clear();impacts.length=0;effects.length=0;clock=1000;const p=carrier();assert.equal(c.ProjectileImpactService.resolve(p,'target'),true);assert.equal(effects.length,1);assert.equal(effects[0].dur,500);source.x=300;source.y=200;clock=1499;c.SimulationScheduleService.update(clock);assert.equal(impacts.length,0);clock=1500;c.SimulationScheduleService.update(clock);assert.equal(impacts.length,1);assert.equal(impacts[0].point.x,1000);assert.equal(impacts[0].point.y,100);assert.equal(c.ProjectileImpactService.resolve(carrier(),'target'),false);c.SimulationScheduleService.update(2500);assert.equal(impacts.length,1)});
+function carrier(key='bomb'){return{impactFuseRemaining:200,source,x:1000,y:100,angle:0,networkKey:key,attack:ch.attacks.lmb,behavior:c.ProjectileModuleService.config(ch.attacks.lmb)}}
+test('실제 착탄/예약: 499ms 피해 없음·500ms 고정 좌표 폭발·중복 확정 1회',()=>{c.SimulationScheduleService.clear();impacts.length=0;effects.length=0;clock=1000;const p=carrier();assert.equal(c.ProjectileImpactService.resolve(p,'target'),true);assert.equal(effects.length,1);assert.equal(effects[0].dur,200);source.x=300;source.y=200;clock=1199;c.SimulationScheduleService.update(clock);assert.equal(impacts.length,0);clock=1200;c.SimulationScheduleService.update(clock);assert.equal(impacts.length,1);assert.equal(impacts[0].point.x,1000);assert.equal(impacts[0].point.y,100);assert.equal(c.ProjectileImpactService.resolve(carrier(),'target'),false);c.SimulationScheduleService.update(2500);assert.equal(impacts.length,1)});
 test('벽/사거리 착탄·독립 폭약·소스 사망/맵 정리로 예약 취소',()=>{clock=2000;for(const reason of ['wall','range'])assert.equal(c.ProjectileImpactService.resolve(carrier(reason),reason),true);assert.equal(c.SimulationScheduleService.items.length,2);const before=impacts.length;source.alive=false;clock=2500;c.SimulationScheduleService.update(clock);assert.equal(impacts.length,before);source.alive=true;clock=3000;c.ProjectileImpactService.resolve(carrier('clear'),'wall');c.SimulationScheduleService.clear();clock=4000;c.SimulationScheduleService.update(clock);assert.equal(impacts.length,before)});
 const shots=[];c.ProjectileService={spawn:x=>shots.push(x),clear(){}};
 test('실제 순차 발사: 8발·40ms 간격·시계방향·중복 일반 발사 없음',()=>{clock=5000;c.SimulationScheduleService.clear();shots.length=0;const a=ch.attacks.counter;c.AttackModuleService.deliver(source,a,.2,{execution:c.AttackExecutionService.create(source,a,.2)});assert.equal(shots.length,0);assert.equal(c.SimulationScheduleService.items.length,8);for(let i=0;i<8;i++){clock=5000+i*40;c.SimulationScheduleService.update(clock);assert.equal(shots.length,i+1);assert.ok(Math.abs(shots[i].angle-(.2+i*Math.PI/4))<1e-9)}c.SimulationScheduleService.update(10000);assert.equal(shots.length,8)});
@@ -78,8 +79,8 @@ test('실제 스킬 착탄→범위 실행: 폭발 전 벽 유지·500ms에만 �
  c.Training.sessionMode='training';world.reset(map);c.DynamicWallService.clearAll();clock=11000;
  const a=ch.attacks.rmb,p={...carrier('skill-integration'),attack:a,x:110,y:110,behavior:c.ProjectileModuleService.config(a)};
  c.ProjectileImpactService.resolve(p,'wall');assert.equal(world.removed.size,0);
- clock=11499;c.SimulationScheduleService.update(clock);assert.equal(world.removed.size,0);
- clock=11500;c.SimulationScheduleService.update(clock);assert.ok(world.removed.size>0);assert.ok(world.removed.size<world.cells.length);
+ clock=11199;c.SimulationScheduleService.update(clock);assert.equal(world.removed.size,0);
+ clock=11200;c.SimulationScheduleService.update(clock);assert.ok(world.removed.size>0);assert.ok(world.removed.size<world.cells.length);
  world.reset(map);clock=12000;c.ProjectileImpactService.resolve({...carrier('lmb-integration'),x:110,y:110},'wall');
  clock=12500;c.SimulationScheduleService.update(clock);assert.equal(world.removed.size,0);
 });
@@ -122,7 +123,7 @@ test('실제 잔류 진입: 벽/빈 지정점/사거리→폭발 예약·무기 
   const a=ch.attacks[key],p={...carrier('linger-'+reason),attack:a,behavior:c.ProjectileModuleService.config(a),
    radius:a.modules[0].radius,renderStyle:c.ProjectileModuleService.config(a).presentation,travel:200,vx:10,vy:2,presentationEffectKeys:[]};
   assert.equal(c.TargetPointProjectileService.beginLinger(p,clock,reason),true);
-  assert.equal(p.vx,0);assert.equal(p.vy,0);assert.equal(p.stationaryArrival.endsAt,20500);
+  assert.equal(p.vx,0);assert.equal(p.vy,0);assert.equal(p.stationaryArrival.endsAt,20200);
   const visual=c.ProjectileVisualPositionService.sample(p);assert.equal(visual.x,p.x);assert.equal(visual.y,p.y);assert.equal(visual.alpha,1);
   assert.equal(c.ProjectileImpactService.resolve(p,reason),false);
  }
@@ -200,7 +201,7 @@ test('실제 스킬 도착: 적/벽/빈 지점 모두 잔류·적 우선 직격2
    targetPoint:{x:1000,y:100},radius:12,renderStyle:c.ProjectileModuleService.config(a).presentation,
    travel:500,vx:18,vy:0,presentationEffectKeys:[]};
   assert.equal(c.TargetPointProjectileService.arrived(p),'linger');
-  assert.equal(p.stationaryArrival.endsAt,28500);assert.equal(p.x,1000);assert.equal(p.y,100);
+  assert.equal(p.stationaryArrival.endsAt,28200);assert.equal(p.x,1000);assert.equal(p.y,100);
   assert.equal(t.health,mode==='target'?4800:5000);
  }
  assert.equal(c.SimulationScheduleService.items.length,3);c.EntityService.items.clear();
@@ -214,9 +215,9 @@ test('실제 온라인 착탄 수신: 예측 소비된 무기 복원·고정 좌
   spawn:data=>{const p={...data,radius:data.projectile.radius,renderStyle:data.behavior.presentation,travel:0,vx:1,vy:1,presentationEffectKeys:[]};restored.push(p);return p}};
  c.SimulationScheduleService.clear();clock=30000;source.local=true;
  const packet={type:'duel-projectile-impact-confirmed',roundToken:7,projectileOwnerPid:'owner',projectileKey:'remote-restored',
-  attackId:ch.attacks.lmb.id,executionSequence:88,angle:.4,reason:'target',impactPoint:{x:777,y:123}};
+  attackId:ch.attacks.lmb.id,executionSequence:88,angle:.4,fuseRemaining:200,reason:'target',impactPoint:{x:777,y:123}};
  assert.equal(online.receive('victim',packet),true);assert.equal(restored.length,1);
- const p=restored[0];assert.equal(p.x,777);assert.equal(p.y,123);assert.equal(p.stationaryArrival.endsAt,30500);
+ const p=restored[0];assert.equal(p.x,777);assert.equal(p.y,123);assert.equal(p.stationaryArrival.endsAt,30200);
  assert.equal(p.projectile.networkSpawnCompensation,false);assert.equal(p.renderStyle.type,'anchor-cross');assert.equal(c.SimulationScheduleService.items.length,1);
  assert.equal(online.receive('victim',packet),true);assert.equal(restored.length,1);assert.equal(c.SimulationScheduleService.items.length,1);
 });
@@ -297,24 +298,24 @@ test('실제 방패 제거/공통 제거/원격 guard: 착탄 후 폭발·호 �
   const other={...carrier('keep-'+key),attack:a,behavior:h.ProjectileModuleService.config(a)};
   h.ProjectileImpactService.resolve(p,'wall');h.ProjectileImpactService.resolve(other,'wall');
   const token=source._pendingProjectileImpacts.get(p.networkKey);assert.ok(token.effectKeys.length>0);
-  p.stationaryArrival={endsAt:clock+500,triggerOnEnter:false};h.ProjectileService.items.push(p);
-  clock+=200;h.AttackGuardService={intercept:(projectile,index,now)=>guard.remove(projectile,index,{source},now)};
+  p.stationaryArrival={endsAt:clock+200,triggerOnEnter:false};h.ProjectileService.items.push(p);
+  clock+=100;h.AttackGuardService={intercept:(projectile,index,now)=>guard.remove(projectile,index,{source},now)};
   h.ProjectileService.updateStationary(p,0,clock);assert.equal(h.ProjectileService.items.length,0);assert.equal(token.cancelled,true);
   assert.ok(!h.Training.fx.some(f=>token.effectKeys.includes(f.key)));
-  clock+=300;h.SimulationScheduleService.update(clock);assert.equal(seen.length,1);
+  clock+=100;h.SimulationScheduleService.update(clock);assert.equal(seen.length,1);
  }
  clock+=1000;h.SimulationScheduleService.clear();seen.length=0;
- const p=carrier('generic-remove');h.ProjectileImpactService.resolve(p,'wall');clock+=100;h.ProjectileService.discard(p);clock+=500;h.SimulationScheduleService.update(clock);assert.equal(seen.length,0);
+ const p=carrier('generic-remove');h.ProjectileImpactService.resolve(p,'wall');clock+=100;h.ProjectileService.discard(p);clock+=200;h.SimulationScheduleService.update(clock);assert.equal(seen.length,0);
  clock+=1000;const remote=carrier('remote-cancel');h.ProjectileImpactService.resolve(remote,'wall');clock+=100;
  loadCancellation('src/network/OnlineDuelService.js','OnlineDuelService');
  h.OnlineDuelService.active=true;h.OnlineDuelService.roundToken=7;h.OnlineDuelService.localPid='local';h.OnlineDuelService.remotePids=['owner','victim'];
  assert.equal(h.OnlineDuelService.receive('victim',{type:'duel-projectile-guard-resolved',roundToken:7,projectileOwnerPid:'owner',projectileKey:remote.networkKey,outcome:'remove',impactPoint:{x:0,y:0}}),true);
  assert.equal(source._pendingProjectileImpacts.has(remote.networkKey),false);
- clock+=500;h.SimulationScheduleService.update(clock);assert.equal(seen.length,0);h.AreaAttackService=area;
+ clock+=200;h.SimulationScheduleService.update(clock);assert.equal(seen.length,0);h.AreaAttackService=area;
 });
 test('만료 프레임 제거 먼저 실행해도 정상500ms 폭발 유지 / 미설정 지연 공격 유지',()=>{
  const area=h.AreaAttackService,seen=[];h.AreaAttackService={execute:(s,a)=>seen.push(a.id)};
- clock+=1000;h.SimulationScheduleService.clear();const p=carrier('expire-first');h.ProjectileImpactService.resolve(p,'wall');clock+=500;
+ clock+=1000;h.SimulationScheduleService.clear();const p=carrier('expire-first');h.ProjectileImpactService.resolve(p,'wall');clock+=200;
  h.ProjectileService.finish(p);h.SimulationScheduleService.update(clock);assert.equal(seen.length,1);
  clock+=1000;const independent={...carrier('independent-delay'),behavior:{impact:{attackIds:[ch.attacks.lmbExplosion.id],oncePerProjectile:true}}};
  h.ProjectileImpactService.resolve(independent,'wall');clock+=100;h.ProjectileService.discard(independent);clock+=400;h.SimulationScheduleService.update(clock);assert.equal(seen.length,2);h.AreaAttackService=area;
@@ -325,9 +326,9 @@ test('실제 정상 만료와 폭발 예약 시각이0.1/1/8ms 달라도 평타/
   clock+=1000;h.SimulationScheduleService.clear();h.ProjectileService.items.length=0;seen.length=0;
   const a=ch.attacks[key],p={...carrier(`skew-${key}-${skew}-${expiryFirst}`),attack:a,behavior:h.ProjectileModuleService.config(a)};
   h.ProjectileImpactService.resolve(p,'wall');const start=clock;
-  p.stationaryArrival={startedAt:start-skew,endsAt:start+500-skew,triggerOnEnter:false};h.ProjectileService.items.push(p);
-  if(expiryFirst){clock=start+500-skew;h.ProjectileService.updateStationary(p,0,clock);assert.equal(h.ProjectileService.items.length,0);assert.equal(seen.length,0)}
-  clock=start+500;h.SimulationScheduleService.update(clock);
+  p.stationaryArrival={startedAt:start-skew,endsAt:start+200-skew,triggerOnEnter:false};h.ProjectileService.items.push(p);
+  if(expiryFirst){clock=start+200-skew;h.ProjectileService.updateStationary(p,0,clock);assert.equal(h.ProjectileService.items.length,0);assert.equal(seen.length,0)}
+  clock=start+200;h.SimulationScheduleService.update(clock);
   if(!expiryFirst)h.ProjectileService.updateStationary(p,0,clock);
   assert.equal(seen.length,1);h.SimulationScheduleService.update(clock+100);assert.equal(seen.length,1);
  }

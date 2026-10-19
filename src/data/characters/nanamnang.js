@@ -180,7 +180,6 @@
         id: "ability.nanamnang.lmb",
         input: "lmb",
         attackId: "attack.nanamnang.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",

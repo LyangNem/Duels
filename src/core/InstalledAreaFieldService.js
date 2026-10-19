@@ -693,7 +693,7 @@ const InstalledAreaFieldService=Object.freeze({
       // Field hit effects use the current field centre, even after its owner moves.
       if(!state.execution)state.execution=AttackExecutionService.create(source,state.attack,Number(area?.angle)||0);
       if(state.execution&&area?.center){
-        state.execution.impactOrigin={mode:'point',x:Number(area.center.x)||0,y:Number(area.center.y)||0};
+        state.execution.impactOrigin={mode:'point',x:Number(area.center.x)||0,y:Number(area.center.y)||0,angle:Number(area.angle)||0};
       }
 
       const result=

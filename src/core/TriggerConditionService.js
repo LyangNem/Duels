@@ -36,6 +36,7 @@ const TriggerConditionService=Object.freeze({
     const source=context.source||context.entity||null;
     const now=Number(context.now)||performance.now();
 
+    if(condition.type==='cause.source-is-self')return !!source&&!!context.cause?.source&&EntityService.owner(context.cause.source)===EntityService.owner(source);
     if(condition.type==='condition.any')return (condition.conditions||EMPTY_RUNTIME_ITEMS).some(item=>this.matches(item,context));
     if(condition.type==='target.health-ratio-lt-source'){
       const target=context.target;
@@ -99,7 +100,8 @@ const TriggerConditionService=Object.freeze({
       return !!source&&CombatStatsService.current(source,now).canUseDodge===true;
     }
     if(condition.type==='combat.dodging'){
-      return !!source&&Math.max(0,Number(source.dodgeUntil)||0)>now;
+      const entity=condition.entity==='target'?context.target:source;
+      return !!entity&&Math.max(0,Number(entity.dodgeUntil)||0)>now;
     }
     if(condition.type==='combat.not-dodging'){
       return !!source&&Math.max(0,Number(source.dodgeUntil)||0)<=now;

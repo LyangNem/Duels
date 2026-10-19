@@ -16,7 +16,7 @@ const ModeGearPresentationService=Object.freeze({
     const id=String(entity.id),list=this.weaponEchoes.get(id)||[],live=[];
     for(const echo of list){const t=(now-echo.start)/echo.duration;if(t>=1)continue;live.push(echo);if(t<0)continue;
       ctx.save();ctx.translate(echo.snapshot.x-entity.x,echo.snapshot.y-entity.y);ctx.scale(1+echo.expansion*t,1+echo.expansion*t);
-      for(const image of echo.snapshot.images)this.drawImage(ctx,echo.snapshot.entity,image.config,alpha*.55*Math.pow(1-t,1.3),now,image.sample);
+      for(const image of echo.snapshot.images)this.drawImage(ctx,echo.snapshot.entity,image.config,alpha*.55*AttackVisualStyle.fadeOpacity(Math.pow(1-t,1.3)),now,image.sample);
       ctx.restore();
     }
     if(live.length)this.weaponEchoes.set(id,live);else this.weaponEchoes.delete(id);
@@ -46,6 +46,8 @@ const ModeGearPresentationService=Object.freeze({
   },
   movementFacing:new WeakMap(),
   facingAngle(entity,config){
+    if(config.facing==='aim')return entity===Training.player
+      ?Training.aimAngle():Number(entity._remoteAimAngle??entity.aimAngle)||0;
     if(config.facing!=='movement')return 0;
     const x=Number(entity.x)||0,y=Number(entity.y)||0;
     const previous=this.movementFacing.get(entity);
@@ -59,9 +61,15 @@ const ModeGearPresentationService=Object.freeze({
     this.movementFacing.set(entity,{x,y,angle});
     return angle;
   },
+  imageOffset(entity,config,sample=null){
+    const angle=config.offsetOrientation==='last-movement'
+      ?(sample?.offsetAngle??MovementService.lastDirectionAngle(entity)):0;
+    const x=Number(config.x)||0,y=Number(config.y)||0;
+    return {x:Math.cos(angle)*x-Math.sin(angle)*y,y:Math.sin(angle)*x+Math.cos(angle)*y};
+  },
   sampleImage(entity,config,now){
     const pose=this.weaponPose(entity,config,now);
-    return {config,sample:{facingAngle:this.facingAngle(entity,config),definition:config.formationKey?this.definition(entity,config):undefined,pose:{pulse:pose.pulse,pull:pose.pull},partSpins:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>m.rotationStateKey?this.rotation(entity,m,Number(m.rotationMs)||300,now):0),partPoses:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>{const p=this.weaponPose(entity,m,now);return {pulse:p.pulse,pull:p.pull};}),spin:config.rotationStateKey?this.rotation(entity,config,Number(config.rotationMs)||300,now):0,alpha:this.imageAlpha(entity,config,now),activeColor:this.activeColor(entity,config,now),tintAmount:this.activityTint(entity,config,now)?.amount??0,sparkActive:!!config.sparkConditions&&this.matches(entity,config.sparkConditions,now,config.conditionTarget)}};
+    return {config,sample:{offsetAngle:config.offsetOrientation==='last-movement'?MovementService.lastDirectionAngle(entity):0,facingAngle:this.facingAngle(entity,config),definition:config.formationKey?this.definition(entity,config):undefined,pose:{pulse:pose.pulse,pull:pose.pull},partSpins:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>m.rotationStateKey?this.rotation(entity,m,Number(m.rotationMs)||300,now):0),partPoses:(config.partMotions||EMPTY_RUNTIME_ITEMS).map(m=>{const p=this.weaponPose(entity,m,now);return {pulse:p.pulse,pull:p.pull};}),spin:config.rotationStateKey?this.rotation(entity,config,Number(config.rotationMs)||300,now):0,alpha:this.imageAlpha(entity,config,now),activeColor:this.activeColor(entity,config,now),tintAmount:this.activityTint(entity,config,now)?.amount??0,sparkActive:!!config.sparkConditions&&this.matches(entity,config.sparkConditions,now,config.conditionTarget)}};
   },
   captureDeath(entity,now=performance.now()){
     if(!entity)return false;
@@ -210,7 +218,8 @@ const ModeGearPresentationService=Object.freeze({
     const palette=this.palette(entity,config,now,sample?.activeColor,sample?.tintAmount);
     const reaction=sample?0:this.reaction(entity,now);
     ctx.save();ctx.globalAlpha=alpha*(reaction>0?Math.min(1,this.imageAlpha(entity,config,now)+reaction*2):sample?.alpha??this.imageAlpha(entity,config,now));
-    ctx.translate(Number(config.x||0),Number(config.y||0));
+    const offset=this.imageOffset(entity,config,sample);
+    ctx.translate(offset.x,offset.y);
     ctx.rotate(Number(config.angle||0)+(sample?.facingAngle??this.facingAngle(entity,config))+spin+Number(motion.rotation||0)*pose.pulse+Number(motion.chargeRotation||0)*pose.pull);
     ctx.translate(Number(motion.travelX||0)*size*pose.pulse,Number(motion.travelY||0)*size*pose.pulse);
     if(reaction>0)ctx.scale(1+reaction,1+reaction);
@@ -257,6 +266,19 @@ const ModeGearPresentationService=Object.freeze({
     this.drawEchoes(ctx,entity,alpha,now);
     this.deathState.liveSamples.set(entity,this.sampleWeapons(entity,alpha,now));
     for(const config of configs){if(config.type==='effect.spawn'&&config.renderType==='weaponImage'&&this.matches(entity,config.conditions,now,config.conditionTarget))drawn=this.drawImage(ctx,entity,config,alpha,now)||drawn;}
+    for(const config of configs){
+      if(config.type!=='effect.spawn'||config.renderType!=='weaponProjectile'||!this.matches(entity,config.conditions,now,config.conditionTarget))continue;
+      const attack=AbilityService.attackById(entity.character,config.attackId);
+      const module=AttackModuleService.module(attack,'projectile.presentation');
+      const style=module?.style;if(module?.kind!=='weapon-projectile'||style?.type!=='anchor-cross')continue;
+      const offset=this.imageOffset(entity,config),rgb=ColorService.rgbString(entity.character?.color||entity.color);
+      const radius=Math.max(1,Number(style.radius)||16);
+      const pulse=(Number(style.pulseMin)||.7)+((Number(style.pulseMax)||1)-(Number(style.pulseMin)||.7))*(.5+.5*Math.sin(now*(Number(style.pulseSpeed)||.014)));
+      ctx.save();TrainingWorldDrawService.drawAnchorProjectile(ctx,{x:offset.x,y:offset.y,radius,rgb,
+        crossColor:ColorService.rgbString(ColorService.brighten(entity.character?.color||entity.color)),
+        fillAlpha:alpha*(Number(style.fillAlpha)||.28),strokeAlpha:alpha*pulse,crossAlpha:alpha*.85,
+        lineWidth:Math.max(1,Number(style.strokeWidth)||3)});ctx.restore();drawn=true;
+    }
     return drawn;
   }
 });

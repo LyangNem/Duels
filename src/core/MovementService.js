@@ -1,6 +1,10 @@
 
 
 const MovementService=Object.freeze({
+  lastDirectionAngle(entity,fallback=0){
+    return entity?.lastMovementInputAngle!=null&&Number.isFinite(Number(entity.lastMovementInputAngle))
+      ?Number(entity.lastMovementInputAngle):Number(fallback)||0;
+  },
   collides(x,y,radius){
     if(
       x-radius<0||

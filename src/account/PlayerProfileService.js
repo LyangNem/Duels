@@ -65,6 +65,7 @@ const PlayerProfileService=Object.freeze({
 
     return {
       accountId:String(account?.accountId||'guest'),
+      firebaseUid:String(account?.firebaseUid||''),
       displayName:String(account?.displayName||'게스트').trim().slice(0,24)||'게스트',
       isGuest:!!account?.isGuest,
       mainCharacterId,

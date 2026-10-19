@@ -84,7 +84,7 @@ GameEvents.on('entity-defeated',event=>{
         },
         event.now||performance.now()
       );
-      Presentation.damageNumber(target,amount);
+      Presentation.damageNumber(target,amount,'',{source,attack:event.attack,executionSequence:event.execution?.sequence});
       SoundService.play('hit');
 
       const hitRing=

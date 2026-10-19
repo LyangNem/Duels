@@ -484,7 +484,8 @@
                 "value": 1,
                 "duration": "movement"
               }
-            ]
+            ],
+            "evasionUntargetable": true
           }
         },
         {
@@ -537,7 +538,8 @@
               "value": 1,
               "duration": "movement"
             }
-          ]
+          ],
+          "evasionUntargetable": true
         },
         {
           "type": "mode.set",

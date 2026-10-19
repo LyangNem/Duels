@@ -94,7 +94,8 @@ const BuffStatusPresentation=Object.freeze({
   stealthDetected(entity,now){
     return (
       this.value(entity,'stealth',now)!==0&&
-      StealthPresentationService.exposedByAnyEnemy(entity,now)
+      (StealthPresentationService.fadeRatio(entity,now)<1||
+       StealthPresentationService.exposedByAnyEnemy(entity,now))
     );
   },
 

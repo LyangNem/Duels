@@ -135,7 +135,7 @@
       "id": "attack.huri.rmb",
       "damageRatio": 0,
       "effectsOnly": true,
-      "cost": 400,
+      "cost": 600,
       "cd": 2500,
       "range": 0,
       "modules": [
@@ -816,7 +816,7 @@
           "type": "resource.restore",
           "resource": "health",
           "recipient": "source",
-          "maxResourceRatio": 0.1
+          "maxResourceRatio": 0.05
         }
       ]
     }

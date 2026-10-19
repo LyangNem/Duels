@@ -41,7 +41,7 @@ function outboundHarness(){
  c.TargetPointProjectileService={arrival:()=>null,resolveWallCollision:()=>false};c.ProjectileTargetFilterService={allows:()=>true};
  c.RemoteProjectileHomingPresentationBufferService={syncCollision(){}};c.RemoteProjectileHomingPresentationService={clear(){}};
  c.ProjectileTetherMovementService={releaseProjectile(){}};c.ProjectileStateService={clear(){}};
- c.ProjectileImpactService={resolve(p,reason){p.testImpact=reason;return true;}};
+ c.ProjectileImpactService={boundaryFieldReason:()=>'',resolve(p,reason){p.testImpact=reason;return true;}};
  c.AttackGuardService.intercept=()=>false;c.AttackModuleService.onProjectileWallHit=()=>{};
  c.AugmentService.onProjectileResolved=()=>{};c.JustDodgeService={confirmProjectile:()=>false,canConfirm:()=>false,pointSegmentDistance:(x,y,ax,ay,bx,by)=>{const dx=bx-ax,dy=by-ay,q=dx*dx+dy*dy,t=q?Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/q)):0;return Math.hypot(x-ax-dx*t,y-ay-dy*t)}};
  c.ProjectileService.items.length=0;

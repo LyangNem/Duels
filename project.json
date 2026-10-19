@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-character.332",
+  "version": "3.0.0-character.353",
   "source": "3.1717 (65).html",
   "original_script_sha256": "6fd12004e89d39fffe6a916d711147f63a7039b1a1cc995f7cc8532751f0ed8e",
   "load_order": [
@@ -757,7 +757,7 @@
     },
     {
       "path": "src/data/CHARACTER_RULES.js",
-      "role": "공용 분류/이속 표시·삭제된 요오 표시항목 제거; .314 레나 등록/빠름/보드 벡터 이미지; .319 라티스 등록/빠름/낚싯대 벡터 이미지",
+      "role": "공용 스타일·역할·이속 표시·사거리·난이도 규칙; 카샤 느림 표시",
       "symbols": [
         "CHARACTER_RULES",
         "styles",
@@ -784,21 +784,21 @@
     },
     {
       "path": "src/data/characters/miaruky.js",
-      "role": "미아루키 순수설정·반격200·설치 넉백 제거/아군200힐 보존",
+      "role": "미아루키 순수설정·반격200·설치 넉백 제거/아군200힐 보존 · 평타 비용150·근거리150/원거리100",
       "symbols": [
         "miaruky"
       ]
     },
     {
       "path": "src/data/characters/mainmad.js",
-      "role": "mainmad 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. 분할 전 원본의 이동 선 미표시를 presentation:false로 보존.",
+      "role": "mainmad 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. 분할 전 원본의 이동 선 미표시를 presentation:false로 보존. · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "mainmad"
       ]
     },
     {
       "path": "src/data/characters/mehugu.js",
-      "role": "mehugu 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.",
+      "role": "mehugu 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "mehugu"
       ]
@@ -840,7 +840,7 @@
     },
     {
       "path": "src/data/characters/maisil.js",
-      "role": "메이실 가위절삭·반격귀환 공용무력화넉백; .324 난이도1",
+      "role": "메이실 가위절삭·반격귀환 공용무력화넉백; .324 난이도1 · 체력1200; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "maisil"
       ]
@@ -854,7 +854,7 @@
     },
     {
       "path": "src/data/characters/reika.js",
-      "role": "레이카 스탯·가호·공격 데이터. 반격 dash-line 매개값만 공용 width7/alpha0.45/duration200으로 통일",
+      "role": "레이카 가호/검격/투척강하/반격 공식 데이터; 상승/강하 이동 수명 회피무적",
       "symbols": [
         "reika"
       ]
@@ -882,7 +882,7 @@
     },
     {
       "path": "src/data/characters/cherity.js",
-      "role": "체리티 순수 캐릭터 데이터: 무제한 평타·단계차징/벽관통·팀색조준선300ms잔광·연막·무기이미지",
+      "role": "체리티 순수 캐릭터 데이터: 무제한 평타·단계차징/벽관통·팀색조준선300ms잔광·연막·무기이미지 · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "cherity"
       ]
@@ -903,7 +903,7 @@
     },
     {
       "path": "src/data/characters/hatsuhats.js",
-      "role": "하츠하츠 드래그 전투 데이터·붓 이미지·실제 평타/반격/스킬 시계회전·기본 이동선 제외",
+      "role": "하츠하츠 드래그 전투 데이터·붓 이미지·실제 평타/반격/스킬 시계회전·기본 이동선 제외 · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "hatsuhats"
       ]
@@ -917,35 +917,35 @@
     },
     {
       "path": "src/data/characters/dazbin.js",
-      "role": "dazbin 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.",
+      "role": "dazbin 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "dazbin"
       ]
     },
     {
       "path": "src/data/characters/yui.js",
-      "role": "유이 직선단검·평타반격 반시계/스킬 역행 시계회전",
+      "role": "유이 직선단검·평타반격 반시계/스킬 역행 시계회전; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "yui"
       ]
     },
     {
       "path": "src/data/characters/peluna.js",
-      "role": "펠루나 교차쌍망치·소형망치/반대회전/단계색",
+      "role": "펠루나 교차쌍망치·소형망치/반대회전/단계색; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "peluna"
       ]
     },
     {
       "path": "src/data/characters/sherina.js",
-      "role": "셰리나 음파잔향·반격잔향틱 무력화넉백",
+      "role": "셰리나 음파잔향·반격잔향틱 무력화넉백 · 잔향 중심선 수직 넉백 · 반격 직격/잔향 피해 평타 통일 · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "sherina"
       ]
     },
     {
       "path": "src/data/characters/sya.js",
-      "role": "스야 순수모듈·은신/빙결·좌우반전낫/시계회전·실제전달모션",
+      "role": "스야 순수모듈·은신/빙결·좌우반전낫/시계회전·실제전달모션; .350 은신 벽통과 설명제거·초당150/최초0·본인 감지범위 점선원·반격250; .351 기본파랑/칸수게이지 #2424c2로 소폭 밝게 조정; .353 실제 은신 남은시간 본인 공용 호게이지",
       "symbols": [
         "sya"
       ]
@@ -966,14 +966,14 @@
     },
     {
       "path": "src/data/characters/intu.js",
-      "role": "인투 순수 모듈 데이터·권총420ms 반동/복원 및 다른총회전·재장전반투명·변환탄누적/오른쪽표시 ·139 무기 기본위치 중앙 정렬",
+      "role": "인투 순수 모듈 데이터·권총420ms 반동/복원 및 다른총회전·재장전반투명·변환탄누적/오른쪽표시 ·139 무기 기본위치 중앙 정렬 · 반격 저격탄 공유 쿨다운600ms",
       "symbols": [
         "intu"
       ]
     },
     {
       "path": "src/data/characters/meramona.js",
-      "role": "메라모나 전투/성장마법봉2.0 확대·빈 스킬모듈 슬롯 제거",
+      "role": "메라모나 전투/성장마법봉2.0 확대·빈 스킬모듈 슬롯 제거 · 변신 비용600; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "meramona"
       ]
@@ -987,28 +987,28 @@
     },
     {
       "path": "src/data/characters/nanamnang.js",
-      "role": "nanamnang 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.",
+      "role": "nanamnang 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "nanamnang"
       ]
     },
     {
       "path": "src/data/characters/raise.js",
-      "role": "raise 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.",
+      "role": "raise 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "raise"
       ]
     },
     {
       "path": "src/data/characters/levina.js",
-      "role": "레비나 순수 데이터·반격 출발/도착 실제 벽 차단 polygon 연출·자동영역중복 대체",
+      "role": "레비나 순수 데이터·반격 출발/도착 실제 벽 차단 polygon 연출·자동영역중복 대체 · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "levina"
       ]
     },
     {
       "path": "src/data/characters/ki.js",
-      "role": "ki 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.·예고 field reactiveEquipmentEntry:false 지정; .331 3타 적중 기존20%회복 코인효과 추가",
+      "role": "ki 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.·예고 field reactiveEquipmentEntry:false 지정; .331 3타 적중 기존20%회복 코인효과 추가 · 342: LMB 홀드반복 기본값 복구; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "ki"
       ]
@@ -1043,21 +1043,21 @@
     },
     {
       "path": "src/data/characters/clea.js",
-      "role": "클레아 달그림자유지·소환수/봇 on-hit 표시창 갱신제외·게이지충전 유지",
+      "role": "클레아 달그림자유지·소환수/봇 on-hit 표시창 갱신제외·게이지충전 유지; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "clea"
       ]
     },
     {
       "path": "src/data/characters/shello.js",
-      "role": "shello 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.",
+      "role": "shello 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "shello"
       ]
     },
     {
       "path": "src/data/characters/tinya.js",
-      "role": "티냐 순수설정·일반5별 난이도5·마법진 유지",
+      "role": "티냐 순수설정·일반5별 난이도5·마법진 유지 · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "tinya"
       ]
@@ -1071,28 +1071,28 @@
     },
     {
       "path": "src/data/characters/quri.js",
-      "role": "큐리 공식성장·5단계확대큐브/모션·반격폭발무력화넉백",
+      "role": "큐리 공식성장·5단계확대큐브/모션·반격폭발무력화넉백 · 342: LMB 홀드반복 기본값 복구; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "quri"
       ]
     },
     {
       "path": "src/data/characters/hapupu.js",
-      "role": "하푸푸 데이터·평타넉백47.25/표식/반격",
+      "role": "하푸푸 데이터·평타넉백47.25/표식/반격; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "hapupu"
       ]
     },
     {
       "path": "src/data/characters/atsuteo.js",
-      "role": "아츠테오 순수 캐릭터 데이터·회전원석 피해120·원석 채굴/보유/이동/반격 모듈 조합",
+      "role": "아츠테오 순수 캐릭터 데이터·회전원석 피해120·원석 채굴/보유/이동/반격 모듈 조합 · 스킬 비용300",
       "symbols": [
         "atsuteo"
       ]
     },
     {
       "path": "src/data/characters/nare.js",
-      "role": "나레 순수공격/탑승 데이터·249 스킬비용400·평타/반격 반경15·거대비행기112 및 기존기동/모션 유지·272 RMB 과거스테1200중복조건 제거/공용 실제소모 검사 사용",
+      "role": "나레 순수공격/탑승 데이터·249 스킬비용400·평타/반격 반경15·거대비행기112 및 기존기동/모션 유지·272 RMB 과거스테1200중복조건 제거/공용 실제소모 검사 사용; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "nare"
       ]
@@ -1127,21 +1127,21 @@
     },
     {
       "path": "src/data/characters/cyien.js",
-      "role": "사이엔 공용 단검모션/방어·방어성공650ms 밝은색+불투명 펄스/530ms 복귀",
+      "role": "사이엔 공용 단검모션/방어·방어성공650ms 밝은색+불투명 펄스/530ms 복귀 · 342: LMB 홀드반복 기본값 복구; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신; .348 절격 적중 시 최대격50% 충전 참조(현재6), 평타3타4 유지",
       "symbols": [
         "cyien"
       ]
     },
     {
       "path": "src/data/characters/kanon.js",
-      "role": "카논 회피이미지 기본표시/제자리회피잔향·실제 공격 시계회전; character.238 일반평타/제자리회피 연타 타당 스테미나 회복70",
+      "role": "카논 회피이미지 기본표시/제자리회피잔향·실제 공격 시계회전; character.238 일반평타/제자리회피 연타 타당 스테미나 회복70 · 적중 스테미나60",
       "symbols": [
         "kanon"
       ]
     },
     {
       "path": "src/data/characters/deltroove.js",
-      "role": "deltroove 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다.",
+      "role": "deltroove 공식 캐릭터의 능력치·분류·공격·기술·지속효과·설명 원본. 실행 서비스는 포함하지 않는다. · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "deltroove"
       ]
@@ -1155,7 +1155,7 @@
     },
     {
       "path": "src/data/characters/van.js",
-      "role": "반 순수모듈·내구도/복구·큰/작은스패너상호배타·소형scale2·실제발사회전",
+      "role": "반 순수모듈·내구도/복구·큰/작은스패너상호배타·소형scale2·실제발사회전; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "van"
       ]
@@ -1351,7 +1351,7 @@
     },
     {
       "path": "src/ui/CharacterCardDataService.js",
-      "role": "캐릭터 카드 카탈로그·공통 초기/미성장 평타 사거리 스타일 표시·구형 styleLabel 우선 제거",
+      "role": "공용 캐릭터 카드 카탈로그/캐시·selectable:false 임시 숨김·직접get 보존",
       "symbols": [
         "CharacterCardDataService",
         "cache",
@@ -1440,7 +1440,7 @@
     },
     {
       "path": "src/account/CharacterRecordService.js",
-      "role": "계정·프로필·기록。 담당 선언/초기화: CharacterRecordService.",
+      "role": "계정·프로필·기록。 담당 선언/초기화: CharacterRecordService. · 카드 소유자 UID 기준 TOP-PLAYER 판정",
       "symbols": [
         "CharacterRecordService",
         "rankingCache",
@@ -1547,7 +1547,7 @@
     },
     {
       "path": "src/account/PlayerProfileService.js",
-      "role": "계정·프로필·기록。 담당 선언/초기화: PlayerProfileService.",
+      "role": "계정·프로필·기록。 담당 선언/초기화: PlayerProfileService. · 랭킹 식별용 Firebase UID snapshot 보존",
       "symbols": [
         "PlayerProfileService",
         "highestRecordCharacter",
@@ -1644,7 +1644,7 @@
     },
     {
       "path": "src/combat/ActionStateCombatPolicyService.js",
-      "role": "공격·피해·상태·자원。 담당 선언/초기화: ActionStateCombatPolicyService.",
+      "role": "공용 행동·대상 정책; 로컬/원격 이동 수명 회피무적 포함",
       "symbols": [
         "ActionStateCombatPolicyService",
         "isEvasionUntargetable",
@@ -2125,7 +2125,7 @@
     },
     {
       "path": "src/render/BuffStatusPresentation.js",
-      "role": "공용 버프 라벨/수치. staminaCostScale을 감소율 -50%로 표시",
+      "role": "공용 버프 라벨/수치. staminaCostScale을 감소율 -50%로 표시; .352 은신 투명 전환 중에도 본인 빨간 STEALTH 발각 표시",
       "symbols": [
         "BuffStatusPresentation",
         "styles",
@@ -2193,7 +2193,7 @@
     },
     {
       "path": "src/core/TriggerConditionService.js",
-      "role": "공용 조건. condition.any 논리조합 및 기존 체력비율/범위/시야/확정체력 스냅샷 지원; target.matches-state-target로 시간창에 기억한 대상 ID 비교",
+      "role": "공용 선언조건·원인 공격 source 소유자와 자기 비교 포함",
       "symbols": [
         "TriggerConditionService",
         "resourceState",
@@ -2227,10 +2227,12 @@
     },
     {
       "path": "src/render/CharacterTriggerEffectService.js",
-      "role": "캐릭터 공용 이벤트 효과. 피해 직후 패시브 조건을 먼저 갱신해 첫 피식자 타격 회복 누락 방지, 확정 피해 비례 자원 회복",
+      "role": "캐릭터 선언Trigger 공용실행·state.progress 지연/source수명·효과 utility AttackSpec 선택",
       "symbols": [
         "CharacterTriggerEffectService",
-        "run"
+        "run",
+        "observedEvents",
+        "observe"
       ]
     },
     {
@@ -2301,7 +2303,7 @@
     },
     {
       "path": "src/core/initialization-120.js",
-      "role": "로컬 저회 이벤트에 캐릭터 및 증강 트리거 연결",
+      "role": "저회 이벤트 공용 Trigger/관찰 및 원인공격 전달",
       "symbols": [
         "initialization-120"
       ]
@@ -2363,7 +2365,7 @@
     },
     {
       "path": "src/core/SimulationScheduleService.js",
-      "role": "공통예약발사/능력continuation·태그또는선딜메타데이터로중단할예약선별·사망정리",
+      "role": "공용 예약/연속탄·매 발 최신 지정점 사거리/공터 보정 및 동기화",
       "symbols": [
         "SimulationScheduleService",
         "items",
@@ -2512,7 +2514,7 @@
     },
     {
       "path": "src/core/MovementService.js",
-      "role": "공용 이동·벽 충돌 거리·겹침 해소; 모든 벽 진입 비율을 동일 원본 탐색거리로 계산해 벽 목록 순서와 반복 반사 안정화",
+      "role": "공용 이동·충돌/강제이동·마지막 이동 방향각 해석",
       "symbols": [
         "MovementService",
         "collides",
@@ -2527,12 +2529,13 @@
         "moveByVector",
         "pull",
         "knockback",
-        "updateForced"
+        "updateForced",
+        "lastDirectionAngle"
       ]
     },
     {
       "path": "src/render/EffectSpawnService.js",
-      "role": "공용 월드 효과·애니메이션 피해·동기화. body-contact에서도 contactOnly/confirmContact 선언을 전달",
+      "role": "공용 월드 효과·애니메이션 피해·동기화; 선택적 준비 피해비율 snapshot 복원",
       "symbols": [
         "EffectSpawnService",
         "shouldPresentAttack",
@@ -2565,7 +2568,7 @@
     },
     {
       "path": "src/core/InstalledAreaFieldService.js",
-      "role": "공용 설치 영역·대상 권위 자연회복 시작 onTrigger 처리",
+      "role": "공용 설치 영역·대상 권위 자연회복 시작 onTrigger 처리 · 장판 충격 중심에 축 각도 보존",
       "symbols": [
         "InstalledAreaFieldService",
         "KIND",
@@ -2716,7 +2719,7 @@
     },
     {
       "path": "src/abilities/MovementAbilityService.js",
-      "role": "공용 이동기·드래그 경로 이동·운반 중 로컬 이동 입력 중복 방지; 선택적 onEndBeforeMaxDistance로 최대거리 도달 후 후속 공격 제외; finish 일회성 완료로 접촉/충돌 재진입 후속 중복 방지",
+      "role": "공용 이동 수명/충돌/연출/버프/복제; 명시적 이동 회피무적 상태 전달/정리",
       "symbols": [
         "MovementAbilityService",
         "KIND",
@@ -3363,7 +3366,7 @@
     },
     {
       "path": "src/network/OnlineDuelService.js",
-      "role": "온라인 전투/상태 복제·장착옵션 선언도 wall-relay 수신 인정·권위/중복 검증 유지; .322 준비취소 버튼/카운트다운취소·선택UI잠금 복원; .328 카운트다운 준비취소 불가·대기취소 유지/어두운클래스 동기화 검증",
+      "role": "온라인 매치/전투·저회원인 sourcePid/attackId 동기화/관찰; .347 착탄 남은 도화선 확정 전달/복원 및0ms 잔류 객체 정리",
       "symbols": [
         "OnlineDuelService",
         "active",
@@ -3743,7 +3746,7 @@
     },
     {
       "path": "src/combat/JustDodgeService.js",
-      "role": "공용 저회 시작/공간판정/확정·캐릭터설정 justWindowMultiplier 옵션",
+      "role": "공용 저회 판정/확정·원인공격을 기존확정패킷에 전달",
       "symbols": [
         "JustDodgeService",
         "begin",
@@ -3779,7 +3782,7 @@
     },
     {
       "path": "src/network/NetworkHitAuthorityService.js",
-      "role": "피격 권위와 확정 통지. 선택적 무피해 접촉 확정을 허용하고 기존 연속 공격/회복/체력 스냅샷 유지",
+      "role": "온라인 피격자권위/확정·hitSequence 패킷 중복차단/리셋·실행별 피해숫자",
       "symbols": [
         "NetworkHitAuthorityService",
         "sequence",
@@ -3990,7 +3993,7 @@
     },
     {
       "path": "src/combat/AttackModuleService.js",
-      "role": "공용 공격 모듈 전달·온힛·버프/CC/연출. 확정 체력 스냅샷을 hitConditionMatches로 전달해 조건부 잔향의 로컬/원격 판정 일치; 선택창 resolveNow·예약/즉시 일회성 완료 및 windup commit 재사용; .322 delivery.target 선택적 무피해 접촉/확정 전달",
+      "role": "공용 공격/온힛/연출·탄별 최신이동 방향 원점·선택/전체 발사 회전·착탄전용 충돌 전달; .347 projectile.boundaryMode 공용 설정 전달",
       "symbols": [
         "AttackModuleService",
         "progressConditionsMatch",
@@ -4053,9 +4056,10 @@
     },
     {
       "path": "src/combat/AttackService.js",
-      "role": "공통공격자원/쿨다운/권위/완료·활성네가지CC에서는선딜완료우회금지",
+      "role": "공용 공격 실행/자원·지정점 정책·실시간 조준 사거리 및 가까운공터 보정",
       "symbols": [
-        "AttackService"
+        "AttackService",
+        "resolveAimTargetPoint"
       ]
     },
     {
@@ -4094,7 +4098,7 @@
     },
     {
       "path": "src/combat/CounterModuleService.js",
-      "role": "공통반격 준비/0.3초선딜·완료공격CC검사제외/자원사망검사·CC/후속/preview",
+      "role": "공용 반격 준비/발동/미리보기·실제 지정점과 동일 공터 보정",
       "symbols": [
         "CounterModuleService",
         "requiredWindup",
@@ -4448,7 +4452,7 @@
     },
     {
       "path": "src/core/RuntimeValueReferenceService.js",
-      "role": "공용 런타임 값 참조. 버프 잔여시간과 선택적 fullWhen 조건으로 자연 포식자 완충·강제모드 즉시감소 지원",
+      "role": "공용 런타임 값 참조. 버프 잔여시간과 선택적 fullWhen 조건으로 자연 포식자 완충·강제모드 즉시감소 지원; .353 state-duration-remaining 범용 상태 시작/종료시각 기반 잔여비율 참조",
       "symbols": [
         "RuntimeValueReferenceService",
         "register",
@@ -4613,7 +4617,7 @@
     },
     {
       "path": "src/abilities/AbilityModuleService.js",
-      "role": "공용 능력 모듈 실행. modifier.remove와 requireExecuted로 실패 시 부작용 방지; state.window select 선택적 resolveImmediately로 기존 창 즉시 완료; action.attack alternate 선택적 targetStateKey로 시간창에 기억한 대상 지정",
+      "role": "공용 능력 모듈 조합; presentationOnly 선딜 연출은 공격 성공과 분리·aim 각도 전달",
       "symbols": [
         "AbilityModuleService"
       ]
@@ -4716,7 +4720,7 @@
     },
     {
       "path": "src/projectiles/ProjectileModuleService.js",
-      "role": "투사체 모듈 옵션 해석·후속 공격 부모 적중 대상 제외 옵션",
+      "role": "투사체 설정 변환; 적중성공·방어마감·종료사유·미리보기 옵션 및 귀환/충돌/경로 옵션 보존; .347 선언된 impact.fuse 설정의 공용 런타임 보존",
       "symbols": [
         "ProjectileModuleService",
         "type",
@@ -4806,7 +4810,7 @@
     },
     {
       "path": "src/projectiles/TargetPointProjectileService.js",
-      "role": "지정점·사거리 끝 투사체 좌표 정렬과 착탄 정책. linger와 impact의 명시적 snapToRangeEnd 설정을 해석한다.",
+      "role": "지정점·사거리 끝 투사체 좌표 정렬과 착탄 정책. linger와 impact의 명시적 snapToRangeEnd 설정을 해석한다.; .347 도화선 잔여 시간에 따른 잔류/즉발 및0ms 착탄 직격 보존",
       "symbols": [
         "TargetPointProjectileService",
         "delivery",
@@ -4835,7 +4839,7 @@
     },
     {
       "path": "src/combat/AttackGuardService.js",
-      "role": "공용 공격방어·그룹당 성공 onBlock.modes 연결·기존 방어연장/반응; protectArea opt-in 아군 영역 방어",
+      "role": "공용 방어 영역/피해/투사체 처리; landing-only 비행 탄은 방어 접촉 제외",
       "symbols": [
         "AttackGuardService",
         "active",
@@ -4878,13 +4882,14 @@
     },
     {
       "path": "src/projectiles/ProjectileImpactService.js",
-      "role": "공용 착탄·후속 공격·장판/이동; 소유자 확정 부모 적중 대상 snapshot 제외와 전방 분열 복제",
+      "role": "공용 착탄 사유/적중/후속공격/필드·sourceRelocate 이동 회피무적 전달; .347 비행 도화선 잔여 시간 산출·착탄 공격/호 시간 주입·예약 취소; .349 설치용 point 장판 외곽 종료/기존 설치사유 유지·공터 좌표 보정",
       "symbols": [
         "ProjectileImpactService",
         "updatePath",
         "resolve",
         "correctGuardPath",
-        "cancelPending"
+        "cancelPending",
+        "allowsReason"
       ]
     },
     {
@@ -4931,7 +4936,7 @@
     },
     {
       "path": "src/projectiles/ProjectileService.js",
-      "role": "공용 투사체 이동/충돌/피해·운반된 적의 단일 비관통 접촉은 carrier를 우선 피해대상으로 선택",
+      "role": "공용 투사체 이동/충돌/피해·운반된 적의 단일 비관통 접촉은 carrier를 우선 피해대상으로 선택; .347 벽 관통 유한 투사체 외곽 통과·무한/명시 정리·맵 밖 귀환 좌표 보존; .349 설치용 point 장판 외곽 종료/기존 설치사유 유지·공터 좌표 보정",
       "symbols": [
         "ProjectileService",
         "items",
@@ -4988,7 +4993,7 @@
     },
     {
       "path": "src/projectiles/ProjectileVisualPositionService.js",
-      "role": "공용 투사체 표시 위치/궤적·옵션별 잔상 위치와 시간 이력",
+      "role": "실제 충돌 위치 기반 투사체 표시/잔상·정지탄 공용 수명페이드",
       "symbols": [
         "ProjectileVisualPositionService",
         "sample"
@@ -4996,14 +5001,15 @@
     },
     {
       "path": "src/combat/AttackVisualStyle.js",
-      "role": "공격·피해·상태·자원。 담당 선언/초기화: AttackVisualStyle.",
+      "role": "공용 공격 시각 규격·fadeOpacity로 사라지기 전35% 선명도 유지",
       "symbols": [
         "AttackVisualStyle",
         "projectileDiamondScale",
         "fillAlpha",
         "strokeAlpha",
         "strokeWidth",
-        "fadeStart"
+        "fadeStart",
+        "fadeOpacity"
       ]
     },
     {
@@ -5109,7 +5115,7 @@
     },
     {
       "path": "src/render/Presentation.js",
-      "role": "공용 전투/회복/피해 숫자 연출. 선택적 character.healPresentation.color로 회복 링 색상 지정",
+      "role": "공용 피해/회복 숫자 버퍼·선택적 공격실행별 합산그룹",
       "symbols": [
         "Presentation",
         "numberBuffer",
@@ -5235,7 +5241,7 @@
     },
     {
       "path": "src/input/PointerHoldInputService.js",
-      "role": "공용 포인터홀드/해제·holdRepeatProgress onChangeModes 전달",
+      "role": "공용 포인터 홀드/차징/반복·일반평타 및 formation활성 LMB 연사·스킬연사 제외",
       "symbols": [
         "PointerHoldInputService",
         "state",
@@ -5448,7 +5454,7 @@
     },
     {
       "path": "src/render/AreaCircleEffectPresentationService.js",
-      "role": "월드 시각 표현·이펙트·게이지。 담당 선언/초기화: AreaCircleEffectPresentationService.",
+      "role": "공용 원형/코인 이동렌더·글자없는 빛 variant·기존333ms arc/추적 재사용",
       "symbols": [
         "AreaCircleEffectPresentationService",
         "draw"
@@ -5696,9 +5702,10 @@
     },
     {
       "path": "src/modes/TrainingWorldDrawService.js",
-      "role": "훈련/전투 공용 월드 렌더; 모든 장착 무기 공용 표시 경로 사용; 선택적 일반투사체 showLink 본인전용 점선 렌더",
+      "role": "공용 월드 개체/미리보기/투사체 그리기·대기/비행 anchor-cross 동일 renderer",
       "symbols": [
-        "TrainingWorldDrawService"
+        "TrainingWorldDrawService",
+        "drawAnchorProjectile"
       ]
     },
     {
@@ -5735,7 +5742,7 @@
     },
     {
       "path": "src/modes/Training.js",
-      "role": "훈련/온라인 세션 생명주기·선택/정지/나가기 시 공용설정 닫기/원위치 복원; 선택적 일반투사체 showLink 본인전용 점선 렌더",
+      "role": "게임 전투/렌더 기존 오케스트레이션·공격 FX/투사체 공용 페이드 정책 적용",
       "symbols": [
         "Training",
         "active",
@@ -5907,7 +5914,7 @@
     },
     {
       "path": "src/render/TrainingPresentationBindings.js",
-      "role": "공통 게임 이벤트 시각화. 반격 선딜/발동에도 기존 공격 조건별 색상 변형을 적용",
+      "role": "공용 전투 이벤트→표시·공격실행 context를 피해숫자로 전달",
       "symbols": [
         "TrainingPresentationBindings"
       ]
@@ -6669,7 +6676,7 @@
     },
     {
       "path": "src/data/characters/index.json",
-      "role": "공식62명 출시/조립 순서·요오 등록 제거; .314 레나 등록/빠름/보드 벡터 이미지; .319 라티스 등록/빠름/낚싯대 벡터 이미지",
+      "role": "공식66명 출시/조립 순서·요오 제거 및 카샤 마지막 등록",
       "symbols": [
         "shubi",
         "ruvu",
@@ -6728,7 +6735,8 @@
         "xianelli",
         "van",
         "sherbet",
-        "dira"
+        "dira",
+        "kasha"
       ]
     },
     {
@@ -6769,7 +6777,7 @@
     },
     {
       "path": "tools/test-structure.cjs",
-      "role": "공식62명 데이터/모듈/참조·요오파일과등록없음·반격/증강 회귀; .314 전체 캐릭터64명 등록 검증; .319 라티스 포함65명 등록/회귀",
+      "role": "공식62명 데이터/모듈/참조·요오파일과등록없음·반격/증강 회귀; .314 전체 캐릭터64명 등록 검증; .319 라티스 포함65명 등록/회귀; 카샤 추가 후66명 등록 검증; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": []
     },
     {
@@ -6804,14 +6812,14 @@
     },
     {
       "path": "src/data/characters/terdion.js",
-      "role": "테르디온 순수 데이터: 단발 평타 비용200/반경14/탄속20.8, 평타 직격150·스킬 직격200, 비행 중 적 통과/착탄 직격150/최대350의 8방향 반격(판정/표시/호 반경14); 500ms 잔류·아군 공개 호·조기 제거 취소·3단계 벽 차단 폭발·스킬 도달/접촉 벽 파괴 반격8방향 마우스 거리 조절(최대350), 선딜 aim-point 갱신.·사용자 설명4개 반영",
+      "role": "테르디온 순수 데이터: 단발 평타 비용200/반경14/탄속20.8, 평타 직격150·스킬 직격200, 비행 중 적 통과/착탄 직격150/최대350의 8방향 반격(판정/표시/호 반경14); 500ms 잔류·아군 공개 호·조기 제거 취소·3단계 벽 차단 폭발·스킬 도달/접촉 벽 파괴 반격8방향 마우스 거리 조절(최대350), 선딜 aim-point 갱신.·사용자 설명4개 반영; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "terdion"
       ]
     },
     {
       "path": "tools/test-terdion.cjs",
-      "role": "테르디온 폭약/공용 피해·스패너 체력피해 레이카 충전비율0.04 회귀; .314 전체 캐릭터64명 등록 검증; .319 라티스 포함65명 등록/회귀",
+      "role": "테르디온 폭약/공용 피해·스패너 체력피해 레이카 충전비율0.04 회귀; .314 전체 캐릭터64명 등록 검증; .319 라티스 포함65명 등록/회귀; 카샤 추가 후66명 등록 검증; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "test",
         "load",
@@ -6822,7 +6830,7 @@
     },
     {
       "path": "docs/TERDION.md",
-      "role": "테르디온 현재 단발/직격200/착탄 직격 및 모듈 책임·수치·검증·실기기 확인 안내·반격 반경14·평타 탄속20.8·평타/반격 직격150·반격350·반격 마우스 거리 조절",
+      "role": "테르디온 현재 단발/직격200/착탄 직격 및 모듈 책임·수치·검증·실기기 확인 안내·반격 반경14·평타 탄속20.8·평타/반격 직격150·반격350·반격 마우스 거리 조절; .347 347 비행 도화선·즉발/착탄 직격·온라인 잔여시간 계약",
       "symbols": []
     },
     {
@@ -6840,7 +6848,7 @@
     },
     {
       "path": "src/render/ModeGearPresentationService.js",
-      "role": "공용 무기형상/모션/색/복제·251 formationKey 동적정의 공급/사망표본 고정·기존 정적 형상 경로 유지; 선택적 movement 방향 정렬·방향 스냅샷",
+      "role": "공용 무기/회전/준비투사체/잔향·잔향 종료페이드·사망 페이드 독립",
       "symbols": [
         "ModeGearPresentationService",
         "sampleWeapons",
@@ -6860,7 +6868,8 @@
         "mixColor",
         "configs",
         "sampleImage",
-        "pathFill"
+        "pathFill",
+        "imageOffset"
       ]
     },
     {
@@ -6915,14 +6924,14 @@
     },
     {
       "path": "src/data/characters/geopin.js",
-      "role": "지오핀 순수 모듈데이터: 근거리220/넉백60·탄속30%감소/첫벽감속·타격관측10%/적별20%·느림·버터1200; .320 근거리 조건과 점선링 모두 아이디어범위350 단일참조; .322 난이도4",
+      "role": "지오핀 순수 모듈데이터: 근거리220/넉백60·탄속30%감소/첫벽감속·타격관측10%/적별20%·느림·버터1200; .320 근거리 조건과 점선링 모두 아이디어범위350 단일참조; .322 난이도4 · 346: 난이도2",
       "symbols": [
         "geopin"
       ]
     },
     {
       "path": "tools/test-geopin.cjs",
-      "role": "이전 장비fixture·현재근거리220/150피해/넉백60·온라인벽뒤피해/첫벽만감속 및 기존공통충돌회귀",
+      "role": "이전 장비fixture·현재근거리220/150피해/넉백60·온라인벽뒤피해/첫벽만감속 및 기존공통충돌회귀; .349 분리 충돌 stub의 boundaryFieldReason 계약 반영",
       "symbols": []
     },
     {
@@ -6939,19 +6948,19 @@
     },
     {
       "path": "tools/test-character-range.cjs",
-      "role": "공식62명 초기상태/풀차징/실제평타피해 최대사거리 정렬·성장/모드/폭발/이동제외·체리티 무제한 회귀; .319 라티스 포함65명 등록/회귀",
+      "role": "공식62명 초기상태/풀차징/실제평타피해 최대사거리 정렬·성장/모드/폭발/이동제외·체리티 무제한 회귀; .319 라티스 포함65명 등록/회귀; 카샤 추가 후66명 등록 검증; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": []
     },
     {
       "path": "src/data/characters/siro.js",
-      "role": "시로 전투/차징/화염 데이터·활 차징 시위/회전당김 제거·발사모션 유지",
+      "role": "시로 전투/차징/화염 데이터·활 차징 시위/회전당김 제거·발사모션 유지 · 342: LMB 홀드반복 기본값 복구",
       "symbols": [
         "siro"
       ]
     },
     {
       "path": "tools/test-siro.cjs",
-      "role": "시로 실제공격피해80·160·80 및 기존동작 회귀·공용 차징의 체리티 무제한사거리 보존 검증; .314 전체 캐릭터64명 등록 검증; .319 라티스 포함65명 등록/회귀",
+      "role": "시로 실제공격피해80·160·80 및 기존동작 회귀·공용 차징의 체리티 무제한사거리 보존 검증; .314 전체 캐릭터64명 등록 검증; .319 라티스 포함65명 등록/회귀; 카샤 추가 후66명 등록 검증",
       "symbols": []
     },
     {
@@ -6961,7 +6970,7 @@
     },
     {
       "path": "src/data/characters/hab.js",
-      "role": "헤브201·조건형중거리딜러 분류·기존전투유지",
+      "role": "헤브201·조건형중거리딜러 분류·기존전투유지; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "hab"
       ]
@@ -6973,17 +6982,17 @@
     },
     {
       "path": "tools/test-hab.cjs",
-      "role": "헤브201 조건형딜러 분류 및 기존전투회귀; .319 라티스 포함65명 등록/회귀",
+      "role": "헤브201 조건형딜러 분류 및 기존전투회귀; .319 라티스 포함65명 등록/회귀; 카샤 추가 후66명 등록 검증; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": []
     },
     {
       "path": "tools/test-hab-projectile.cjs",
-      "role": "헤브 반격1회타격/맵경계 및 체리티 무제한탄1400이후피해·일반벽차단/완충관통·외곽종료 회귀",
+      "role": "헤브 반격1회타격/맵경계 및 체리티 무제한탄1400이후피해·일반벽차단/완충관통·외곽종료 회귀; .349 분리 충돌 stub의 boundaryFieldReason 계약 반영",
       "symbols": []
     },
     {
       "path": "tools/test-weapon-updates.cjs",
-      "role": "공용 무기/모션 회귀·버터/지오핀 정확한 설명 및 비용0.7/px 실제 참조 검사",
+      "role": "공용 무기 디자인/동기화/모션 회귀; 반격 준비검 주변배치160 이내 허용/기본무기 중앙 보존; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "test",
         "entity",
@@ -7000,7 +7009,7 @@
     },
     {
       "path": "src/data/WEAPON_IMAGE_DEFS.js",
-      "role": "공용 무기 벡터·기준점·관절. 후리 wolf-claw와 adrenaline-potion을 무기/표식/공용 잔향에서 재사용; .314 레나 등록/빠름/보드 벡터 이미지; .319 라티스 등록/빠름/낚싯대 벡터 이미지",
+      "role": "공용 무기 벡터·기준점·관절; 카샤 네 방향 뾰족한 십자 집행검",
       "symbols": [
         "WEAPON_IMAGE_DEFS"
       ]
@@ -7012,7 +7021,7 @@
     },
     {
       "path": "tools/test-cyien.cjs",
-      "role": "사이엔4그룹 회귀·쌍도낙엽 실제 적중 격1·중복 방지",
+      "role": "사이엔4그룹 회귀·쌍도낙엽 실제 적중 격1·중복 방지; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "test",
         "entity",
@@ -7052,7 +7061,7 @@
     },
     {
       "path": "docs/MERAMONA.md",
-      "role": "메라모나197 수치/스킬조건/반격단계 계약 및 검증",
+      "role": "메라모나197 수치/스킬조건/반격단계 계약 및 검증; .347 347 평타300/변신0 및 기존 조건 유지 계약",
       "symbols": []
     },
     {
@@ -7141,7 +7150,7 @@
     },
     {
       "path": "src/render/AnnularSweepPresentationService.js",
-      "role": "공용 annularDoubleSweep 원호 채움/클립/페이드 렌더·Training FX 및 형성 선딜 같은 실행",
+      "role": "공용 회전형 공격 렌더·geometry/타이밍 유지 및 공용 종료페이드",
       "symbols": [
         "AnnularSweepPresentationService",
         "draw"
@@ -7232,14 +7241,14 @@
     },
     {
       "path": "src/data/characters/huri.js",
-      "role": "후리311: 자연 포식자 및 조건 없는 강제2초/즉시감소, 소모50%·직접적중 최대HP10% 회복(더미허용/봇·소환수제외), 거리400·접촉무피해/5연타, 완충강조·외곽링; .312 후리 최대체력5% 회복·베르형 원 연출·감소 중 호게이지 강조·파란 기본색 반영/검증; .313 스킬 중 자연 포식자 조건 유지/호게이지 갱신 및 이탈·재진입 검증; .316 후리/레나 완충만 점선링·레나 스킬 설명 및 공용 렌더 회귀; .325 회복10%·평타180도/150범위 및 회귀; .327 스킬 기본400/포식자중200 소비 회귀; .329 평타250ms/210도·포식자 이동속도30% 활성/잔여/종료 동기화 회귀; .331 포식자 이동속도 증가 제거",
+      "role": "후리 선언형 데이터·포식자 스테미나50%감소/타격 최대체력5%회복·기존조건/스킬/반격",
       "symbols": [
         "huri"
       ]
     },
     {
       "path": "tools/test-huri.cjs",
-      "role": "후리311 실제 runtime22개 회귀: 거리400/접촉0·범위5타, 소모50%·HP10%/더미 구분, 즉시2초·전역강제, 가산한도 보존, 완충/점선/공용 이동선; .312 후리 최대체력5% 회복·베르형 원 연출·감소 중 호게이지 강조·파란 기본색 반영/검증; .313 스킬 중 자연 포식자 조건 유지/호게이지 갱신 및 이탈·재진입 검증; .316 후리/레나 완충만 점선링·레나 스킬 설명 및 공용 렌더 회귀; .325 회복10%·평타180도/150범위 및 회귀; .327 스킬 기본400/포식자중200 소비 회귀; .329 평타250ms/210도·포식자 이동속도30% 활성/잔여/종료 동기화 회귀; .331 자연/잔여/스킬 이속증가없음",
+      "role": "후리 실제runtime27회귀·자연/강제포식자50%소모감소·타격5%회복/제외조건",
       "symbols": [
         "test-huri"
       ]
@@ -7253,7 +7262,7 @@
     },
     {
       "path": "tools/test-huri-network.cjs",
-      "role": "독립 runtime3개: 무피해 접촉 확정 및 범위5타/주변 피격 권위, 이전 체력 미러에서도 첫 피식자 타격 HP10% 회복; .312 후리 최대체력5% 회복·베르형 원 연출·감소 중 호게이지 강조·파란 기본색 반영/검증; .325 회복10%·평타180도/150범위 및 회귀",
+      "role": "후리 독립3runtime피격권위/연속범위타격·스냅샷기준5%회복",
       "symbols": [
         "test-huri-network"
       ]
@@ -7265,7 +7274,7 @@
     },
     {
       "path": "src/data/characters/lena.js",
-      "role": "레나: 500ms 연계 강화·보드 평타·접촉 이동/종료 광역·원형 반격·5초 감전; .315 피해100/150/150·소모100/300·연계호게이지·이동방향/스킬회전·초근거리중복 회귀; .316 후리/레나 완충만 점선링·레나 스킬 설명 및 공용 렌더 회귀",
+      "role": "레나: 500ms 연계 강화·보드 평타·접촉 이동/종료 광역·원형 반격·5초 감전; .315 피해100/150/150·소모100/300·연계호게이지·이동방향/스킬회전·초근거리중복 회귀; .316 후리/레나 완충만 점선링·레나 스킬 설명 및 공용 렌더 회귀 · 난이도1",
       "symbols": [
         "lena"
       ]
@@ -7293,14 +7302,14 @@
     },
     {
       "path": "src/data/characters/latis.js",
-      "role": "라티스 공식 데이터·지속전투형 근거리 딜러·체력1300·미끼 및 월척",
+      "role": "라티스 공식 데이터·지속전투형 근거리 딜러·체력1300·미끼 및 월척; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "latis"
       ]
     },
     {
       "path": "tools/test-latis.cjs",
-      "role": "라티스 실제 runtime 피해·벽관통·기억 대상만 끌기·재사용소비/시간제한·반격 검증; .320 소유자 점선연결·끌기200·평타225·반격150·적중잔향/재사용회전 검증; .321 미끼 일반투사체·적중잔향제거·점선 유지 검증; .322 월척 무피해/끌기 유지 회귀; .326 미끼100/월척100·끌기200 회귀; .331 라티스체력1300",
+      "role": "라티스 실제 runtime 피해·벽관통·기억 대상만 끌기·재사용소비/시간제한·반격 검증; .320 소유자 점선연결·끌기200·평타225·반격150·적중잔향/재사용회전 검증; .321 미끼 일반투사체·적중잔향제거·점선 유지 검증; .322 월척 무피해/끌기 유지 회귀; .326 미끼100/월척100·끌기200 회귀; .331 라티스체력1300; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "latis"
       ]
@@ -7335,10 +7344,92 @@
     },
     {
       "path": "tools/test-ki-coin.cjs",
-      "role": "키 평타3타 코인 지연회복·다중적중1회·1/2타/미스/회피 제외 실제runtime검증",
+      "role": "키 평타3타 코인 지연회복·다중적중1회·1/2타/미스/회피 제외 실제runtime검증; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
       "symbols": [
         "test-ki-coin"
       ]
+    },
+    {
+      "path": "tools/test-top-player-owner.cjs",
+      "role": "카드 소유 PID별 TOP-PLAYER 배지 회귀 검수",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-balance335.cjs",
+      "role": "335 전투 수치·인투 공유쿨·잔향 양옆 방향 회귀; .347 347 요청 밸런스·설명 또는 변경 계약의 회귀 기대값 갱신",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-projectile-config337.cjs",
+      "role": "65명 투사체 설정 전달 대조·로온 실제 저회/무적/정상접촉·셰리나 방어 잔향·후속 공격 종료사유 회귀",
+      "symbols": []
+    },
+    {
+      "path": "src/data/characters/kasha.js",
+      "role": "카샤 선언형 데이터·임시 selectable:false 선택숨김/향후복원·전체스킬/무기보존",
+      "symbols": [
+        "kasha"
+      ]
+    },
+    {
+      "path": "docs/KASHA.md",
+      "role": "카샤 설계·기본값·공용 확장·검증 및 미검증 기록",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-kasha.cjs",
+      "role": "카샤 현재 계약18그룹: 저회/소모형 관통스윙·속박/비용·순차 착탄검·실제렌더",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-kasha-network.cjs",
+      "role": "독립2runtime6그룹: 저회원인/지연빛·snapshot·3탄좌표/피해·중복확정 숫자150분리",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-kasha339.cjs",
+      "role": "339追加13그룹: 스킬 소모/geometry·최신 뒤편원점/무충돌착탄/회전/미리보기·레이카 로컬원격 무적 수명",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-kasha340.cjs",
+      "role": "카샤340: 220도 경계 실제피해·붉은준비/스윙·350넉백·실시간 탄별 착탄점·준비무기투사체 검증",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-gameplay341.cjs",
+      "role": "341: 무게0 입력 거절/1시전·매 발 공터착탄/미리보기 일치·공용 페이드/실제렌더 회귀",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-primary-hold342.cjs",
+      "role": "평타 홀드51번째회귀:66명/클레아예외·RMB제외·카샤실제연사/차징유지/티냐반복",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-kasha343.cjs",
+      "role": "343회귀5그룹: 빛회수/333ms지연·원인공격·자기상승하강·정리·실제착탄150분리표시",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-character-availability344.cjs",
+      "role": "카샤 임시 숨김:65명 선택/정렬/금지/추첨·등록66/원본/무기/직접실행 보존 회귀",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-balance347.cjs",
+      "role": "347 신규 실제runtime 회귀: 미적중 강화/비용·피해/큐리 단계별 범위/격/거리별 도화선/제거 취소/관통 외곽 정리",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-field-boundary349.cjs",
+      "role": "349 실제runtime:5종 장판25방향/모서리·외곽벽 공터·뉴 잔류·로온 적중조건 유지 회귀",
+      "symbols": []
+    },
+    {
+      "path": "tools/test-sya350.cjs",
+      "role": "350 스야 실제runtime:입력초기0/초당150/감지점선 경계/표시조건/고갈해제/반격250",
+      "symbols": []
     }
   ],
   "baseline_resources": [
@@ -7401,12 +7492,12 @@
   "baseline_rules_sha256": "eaaf531ff3eedf5244ec6829d0fe12d1932bab4c252c79b68ecf839e27ea6bac",
   "old_rule_16": "16. Duels 3.0은 반드시 단일 HTML 파일로 유지한다.\n- 외부 JS/CSS 파일로 게임 코드를 분리하지 않는다.\n- 단일 파일 내부에서도 시스템별 영역과 책임을 명확하게 구획한다.\n- 단일 파일 조건은 모듈화 금지를 의미하지 않는다.",
   "new_rule_16": "16. DUELS 3.0은 역할별 여러 소스 파일로 개발한다.\n- 캐릭터는 캐릭터별 데이터 원본, 실행 기능은 공통 서비스 단위로 분리한다.\n- 실행 순서와 공유 문맥을 유지하는 조립은 허용한다. 생성 결과를 직접 수정하지 않는다.\n- 배포 파일명은 Duels.zip, 진입 HTML은 Duels.html로 고정한다.",
-  "current_script_sha256": "b12f90991d6e264dc993f9b8dd7e0cfccee646bb405baa49b2bdbca830fdbe91",
+  "current_script_sha256": "7d329b7ccd1b407a6cf02293d760c9cfd152ffebfbe71ab8dd5b7d9ba5a6dca1",
   "baseline_layout_sha256": "91b3fa54ece362a30852be9cdb5fccd051c0afda78cc6e891b240eab54747aac",
   "current_resource_sha256": {
     "styles/game.css": "b416d3b214a49765699bbefcd8a42fb534ae39d14c3554563cbfdae51df50a0c",
     "styles/debug.css": "441cd61a3e19f337100b2cbf102519090ce58dd3b7d4040945a0b001f5237d27"
   },
   "current_layout_sha256": "a09a1e1d08017ff18dcf6ddcaf10e34c3dda9bbe92613918b1c13363105d3651",
-  "character_count": 65
+  "character_count": 66
 }

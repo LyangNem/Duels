@@ -147,7 +147,6 @@
         id: "ability.deltroove.lmb",
         input: "lmb",
         attackId: "attack.deltroove.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",

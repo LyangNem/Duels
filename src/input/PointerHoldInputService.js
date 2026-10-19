@@ -537,10 +537,8 @@ const PointerHoldInputService=Object.freeze({
 
     for(const slot of ['lmb','rmb']){
       if(
-        CircleFormationService.handlesInput(
-          source,
-          slot
-        )
+        CircleFormationService.handlesInput(source,slot)&&
+        !(slot==='lmb'&&CircleFormationService.config(source)?.activation?.input===slot)
       )continue;
 
       const current=this.state[slot];

@@ -319,12 +319,19 @@ const EffectSpawnService=Object.freeze({
     };
     const damage=effect.damage;
     if(damage&&source){
-      const attack=
+      let attack=
         damage.attack||
         (damage.attackId&&source.character
           ?AbilityService.attackById(source.character,damage.attackId)
           :null);
       if(attack){
+        if(damage.snapshotAttackScalars===true&&damage.attackScalars){
+          const scalars=damage.attackScalars;
+          attack={...attack,
+            damageRatio:Number.isFinite(scalars.damageRatio)?Math.max(0,scalars.damageRatio):attack.damageRatio,
+            modules:(attack.modules||[]).map(module=>module.type==='damage.target-max-health-ratio'&&Number.isFinite(scalars.targetMaxHealthRatio)
+              ?{...module,ratio:Math.max(0,scalars.targetMaxHealthRatio)}:module)};
+        }
         effect.animationState.attack=attack;
         effect.animationState.execution=
           AttackExecutionService.create(

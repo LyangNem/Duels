@@ -636,9 +636,6 @@
       "id": "ability.siro.lmb",
       "input": "lmb",
       "attackId": "attack.siro.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",

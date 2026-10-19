@@ -3861,13 +3861,14 @@ const ProjectileService={
     // 원격 검은 표시와 피격 판정 모두 같은 프레임의 권위 궤도를 사용한다.
     RemoteProjectileHomingPresentationBufferService.syncCollision(projectile,now);
 
+    const boundaryFieldReason=ProjectileImpactService.boundaryFieldReason(projectile);
     let targetsProcessed=false;
     if(!orbitActive&&projectile.followSource!==true){
       const sx=projectile.prevX,sy=projectile.prevY;
       const dx=projectile.x-sx,dy=projectile.y-sy,length=Math.hypot(dx,dy);
       if(length>1e-8){
         const angle=Math.atan2(dy,dx);
-        const distance=passWallsInFlight
+        const distance=policy.passWalls&&!boundaryFieldReason?length:passWallsInFlight
           ?WorldGeometryService.boundaryRayDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile))
           :WorldGeometryService.raycastDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile));
         const allowed=Math.min(length,distance);
@@ -3877,7 +3878,7 @@ const ProjectileService={
         const result=this.processTargets(projectile,index,now);
         if(result!==null)return result;
         // Ordinary flying shots resolve the earliest wall even when one fast step also crosses the map edge.
-        if(allowed<length-1e-6&&!returning&&!TargetPointProjectileService.arrival(projectile)&&!projectile.behavior?.waypoint){
+        if(!policy.passWalls&&allowed<length-1e-6&&!returning&&!TargetPointProjectileService.arrival(projectile)&&!projectile.behavior?.waypoint){
           const boundaryDistance=WorldGeometryService.boundaryRayDistance(sx,sy,angle,length,this.wallCollisionPadding(projectile));
           const boundary=boundaryDistance<=allowed+1e-6;
           this.handleWallCollision(projectile,index,{forceBlock:boundary,boundary});
@@ -3888,7 +3889,33 @@ const ProjectileService={
       }
     }
 
-    if(!this.insideBounds(projectile)){
+    if(!this.insideBounds(projectile)&&boundaryFieldReason){
+      // Placeable impact fields terminate at the playable edge, even on piercing carriers.
+      const dx=projectile.x-projectile.prevX,dy=projectile.y-projectile.prevY,length=Math.hypot(dx,dy);
+      if(length>1e-8){
+        const distance=WorldGeometryService.boundaryRayDistance(projectile.prevX,projectile.prevY,Math.atan2(dy,dx),length,this.wallCollisionPadding(projectile));
+        projectile.x=projectile.prevX+dx*distance/length;projectile.y=projectile.prevY+dy*distance/length;
+        projectile.travel-=length-distance;
+      }
+      this.clampToBounds(projectile);
+      const gap=Math.max(1,this.wallCollisionPadding(projectile));
+      const x=Math.max(gap,Math.min(WorldBoundsService.width()-gap,projectile.x));
+      const y=Math.max(gap,Math.min(WorldBoundsService.height()-gap,projectile.y));
+      const open=WorldGeometryService.nearestOpenPoint(x,y,gap);
+      projectile.x=open?.x??x;projectile.y=open?.y??y;
+      ProjectileImpactService.resolve(projectile,boundaryFieldReason);
+      if(TargetPointProjectileService.beginLinger(projectile,now,boundaryFieldReason))return false;
+      this.finish(projectile,projectile.hadHit===true);
+      this.items.splice(index,1);
+      return true;
+    }
+    if(!this.insideBounds(projectile)&&policy.passWalls&&
+      (projectile.projectile?.boundaryMode==='remove'||projectile.expireAtRange===false||!Number.isFinite(Number(projectile.attack?.range)))){
+      this.finish(projectile,projectile.hadHit===true,'boundary-exit');
+      this.items.splice(index,1);
+      return true;
+    }
+    if(!this.insideBounds(projectile)&&!policy.passWalls){
       const dx=projectile.x-projectile.prevX,dy=projectile.y-projectile.prevY,length=Math.hypot(dx,dy);
       if(length>1e-8){
         const distance=WorldGeometryService.boundaryRayDistance(projectile.prevX,projectile.prevY,Math.atan2(dy,dx),length,this.wallCollisionPadding(projectile));
@@ -4118,7 +4145,7 @@ const ProjectileService={
     const expired=
       projectile.travel>=expiryDistance||
       (
-        !orbitActive&&
+        !orbitActive&&!policy.passWalls&&
         (
           projectile.x<0||
           projectile.y<0||
@@ -4231,7 +4258,7 @@ const ProjectileService={
       projectile.x+=dx/distance*step;
       projectile.y+=dy/distance*step;
       projectile.angle=Math.atan2(dy,dx);
-      this.clampToBounds(projectile);
+      if(projectile.behavior?.collisionPolicy?.passWalls!==true)this.clampToBounds(projectile);
     }
 
     if(AttackGuardService.intercept(projectile,index,performance.now()))return true;

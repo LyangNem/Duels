@@ -577,6 +577,7 @@ const MovementAbilityService=Object.freeze({
         entity.kind==='summon',
       effects:[...(module.effects||[])],
       buffTypes:[],
+      evasionUntargetable:module.evasionUntargetable===true,
       trajectory:
         options.trajectory||
         module.trajectory||
@@ -827,6 +828,7 @@ const MovementAbilityService=Object.freeze({
 
     return {
       active:!!state,
+      evasionUntargetable:state?.evasionUntargetable===true,
       stateKey:state?state.stateKey:null,
       remaining:state?Math.max(0,state.endsAt-now):0,
       elapsed:state?Math.max(0,now-state.startedAt):0,
@@ -882,6 +884,7 @@ const MovementAbilityService=Object.freeze({
 
     return {
       stateKey:String(payload.stateKey||'movement:move'),
+      evasionUntargetable:payload.evasionUntargetable===true,
       startedAt:now-elapsed,
       duration,
       executionSequence:

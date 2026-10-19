@@ -4,6 +4,9 @@
 /* 행동 상태가 대상 지정 가능 여부를 제어하는 공통 정책이다. 캐릭터 이름을 검사하지 않는다. */
 const ActionStateCombatPolicyService=Object.freeze({
   isEvasionUntargetable(entity,now=performance.now()){
+    if(entity?._remoteMovementAbilityActive===true&&
+      entity._remoteMovementEffectState?.evasionUntargetable===true&&
+      Number(entity._remoteMovementEffectState.endsAt)>now)return true;
     if(
       entity&&
       typeof BuffService!=='undefined'&&

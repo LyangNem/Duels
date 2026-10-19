@@ -237,7 +237,8 @@ const JustDodgeService=Object.freeze({
       OnlineDuelService
         .sendJustDodgeConfirmed(
           startedAt,
-          now
+          now,
+          cause
         );
     }
 

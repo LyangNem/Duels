@@ -15,7 +15,7 @@ function entity(extra={}){return{id:'source',kind:'player',teamId:'A',alive:true
 function value(e){return c.ProgressStateService.state(e,'cyien-gyeok')?.value||0}
 function ready(e){return c.AbilityService.resolvedInputAttack(e,ch.abilities.rmb).id===ch.attacks.rmbCharged.id}
 test('모든 공격 처치와 온라인 확정은 격을 충전하지 않음',()=>{for(const attack of Object.values(ch.attacks)){const e=entity(),t=entity({id:'enemy',teamId:'B',alive:false});c.GameEvents.emit('entity-defeated',{source:e,entity:t,attack});c.GameEvents.emit('network-hit-confirmed',{source:e,target:t,attack,defeated:true});assert.equal(value(e),0);assert.equal(ready(e),false)}});
-test('직접 격 충전 최대치에서만 절격 선택·부분격 유지',()=>{const e=entity();c.ProgressStateService.apply(e,{stateKey:'cyien-gyeok',operation:'set',value:7,max:8});assert.equal(ready(e),false);c.ProgressStateService.apply(e,{stateKey:'cyien-gyeok',operation:'set',value:8,max:8});assert.equal(ready(e),true)});
+test('직접 격 충전 최대치에서만 절격 선택·부분격 유지',()=>{const e=entity();c.ProgressStateService.apply(e,{stateKey:'cyien-gyeok',operation:'set',value:11,max:12});assert.equal(ready(e),false);c.ProgressStateService.apply(e,{stateKey:'cyien-gyeok',operation:'set',value:12,max:12});assert.equal(ready(e),true)});
 test('ALWAYS 처치 문구 및 처치 충전 데이터 제거',()=>{assert.equal(ch.tooltipSkills[0].text,'격 최대치 시 절격 활성화');assert.equal(ch.killRewardProgress,undefined)});
 test('쌍도낙엽 실제 적중은 격1·같은 실행 중복 충전 차단',()=>{
  c.HealthService={isInvulnerable:()=>false};c.TagService={attackTags:a=>new Set(a.tags||[]),derivedModuleTags:()=>[]};c.NeutralizingKnockbackService={start:()=>true};

@@ -336,6 +336,13 @@ const RuntimeValueReferenceService=Object.freeze({
       );
     }
 
+    if(ref.type==='state-duration-remaining'){
+      const state=entity.actionState?.get(String(ref.stateKey||''));
+      const start=Number(state?.startedAt),end=Number(state?.expiresAt);
+      if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)return 0;
+      return Math.max(0,Math.min(1,(end-performance.now())/(end-start)));
+    }
+
     if(ref.type==='timed-action-remaining'){
       const target=
         ref.target==='owner'

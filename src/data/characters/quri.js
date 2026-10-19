@@ -497,7 +497,7 @@
       "damageRatio": 1,
       "cost": 300,
       "cd": 900,
-      "range": 150,
+      "range": 180,
       "progressScale": {
         "rangeBasis": "initial",
         "stateKey": "quri-cube-stage",
@@ -506,10 +506,8 @@
           "to": 4
         },
         "range": {
-          "from": {
-            "$ref": "attacks.lmb.range"
-          },
-          "to": 300
+          "from": 180,
+          "to": 360
         },
         "damageRatio": {
           "from": {
@@ -521,12 +519,8 @@
           {
             "type": "delivery.area",
             "property": "range",
-            "from": {
-              "$ref": "attacks.lmb.progressScale.range.from"
-            },
-            "to": {
-              "$ref": "attacks.lmb.progressScale.range.to"
-            }
+            "from": 180,
+            "to": 360
           },
           {
             "type": "movement.knockback",
@@ -677,9 +671,6 @@
       "id": "ability.quri.lmb",
       "input": "lmb",
       "attackId": "attack.quri.lmb",
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",

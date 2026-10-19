@@ -93,7 +93,7 @@
             when: "on-hit",
             operation: "add",
             amount: 1,
-            max: 8,
+            max: 12,
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
           {
@@ -116,7 +116,7 @@
       },
       lmbSecond: {
         id: "attack.cyien.lmb-second",
-        damageRatio: 1.5,
+        damageRatio: 1,
         cost: 0,
         cd: 0,
         range: 120,
@@ -179,7 +179,7 @@
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
-            amount: 2,
+            amount: 4,
             max: characterValue("attacks.lmb.modules.1.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
@@ -247,7 +247,7 @@
                 stateKey: "cyien-gyeok",
                 operation: "add",
                 amount: 1,
-                max: 8,
+                max: 12,
                 presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
               }
             },
@@ -273,7 +273,7 @@
             stateKey: "cyien-gyeok",
             when: "on-hit",
             operation: "add",
-            amount: 4,
+            amount: characterValue("attacks.lmb.modules.1.max", 0.5),
             max: characterValue("attacks.lmb.modules.1.max"),
             presentation: {type: "arc-gauge", color: "#4f79aa", readyColor: "#4f79aa", lineWidth: 3.5, maxChargeFlash: true}
           },
@@ -399,7 +399,6 @@
         id: "ability.cyien.lmb",
         input: "lmb",
         attackId: "attack.cyien.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         trigger: {
           type: "trigger",
           event: "input.press",
