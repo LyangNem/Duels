@@ -70,18 +70,8 @@ const CombatStatusApplicationService={
     const normalizedData={...(data||{})};
 
     if(type==='poison'){
-      const maximum=Math.max(
-        1,
-        Number(target.maxHealth)||1
-      );
-      if(normalizedData.mode==='flat'){
-        normalizedData.value=
-          Math.max(
-            0,
-            Number(normalizedData.value)||0
-          )/maximum;
-      }
-      normalizedData.mode='percent';
+      normalizedData.mode=normalizedData.mode==='flat'?'flat':'percent';
+      normalizedData.value=Math.max(0,Number(normalizedData.value)||0);
       delete normalizedData.flat;
     }
 

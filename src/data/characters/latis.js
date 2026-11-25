@@ -10,7 +10,7 @@
     "role": 1
   },
   "stats": {
-    "maxHealth": 1300,
+    "maxHealth": 1200,
     "speed": 4.25,
     "radius": 20,
     "baseDamage": 150,
@@ -40,14 +40,14 @@
       "key": "L-Shift",
       "name": "내려치기",
       "attack": "counter",
-      "text": "낚싯대를 강하게 내려쳐 피해 및 무력화 넉백 ({damage})"
+      "text": "낚싯대를 강하게 내려쳐 피해 ({damage})"
     }
   ],
   "attacks": {
     "lmb": {
       "id": "attack.latis.lmb",
       "damageRatio": 1.3333333333333333,
-      "cost": 150,
+      "cost": 200,
       "cd": 450,
       "range": 225,
       "modules": [

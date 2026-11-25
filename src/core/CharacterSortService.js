@@ -135,6 +135,13 @@ const CharacterSortService=Object.freeze({
     const relations=module?.targetRelations;
     return !Array.isArray(relations)||!relations.length||relations.includes('enemy');
   },
+  damagingField(field,combat){
+    if(!field||!this.enemyRangeModule(field))return false;
+    if(field.damageOnTrigger!==false&&field.attackId&&Number(this.attackById(combat,field.attackId)?.damageRatio)>0)return true;
+    return (field.onTrigger||[]).some(module=>this.enemyRangeModule(module)&&module.type==='status.apply'&&
+      ['poison','burn','bleed'].includes(module.status)&&Number(module.duration)>0&&
+      ['value','flat','ratio'].some(key=>Number(module.data?.[key])>0));
+  },
   geometryRange(module,attack){
     const range=this.rangeValue(module.range??attack.range);
     let center=this.rangeValue(module.centerDistance);
@@ -214,7 +221,7 @@ const CharacterSortService=Object.freeze({
             }else maximum=Math.max(maximum,travel+extent);
           }
           const field=module.field;
-          if(field?.damageOnTrigger!==false&&field?.attackId&&Number(this.attackById(combat,field.attackId)?.damageRatio)>0&&this.enemyRangeModule(field)){
+          if(this.damagingField(field,combat)){
             maximum=Math.max(maximum,field.anchorMode==='projectile-path'?travel:travel+this.geometryRange(field,variant));
           }
         }
@@ -222,7 +229,7 @@ const CharacterSortService=Object.freeze({
         if(type==='state.window'){
           for(const id of Object.values(module.resolveAttackIds||{}))maximum=Math.max(maximum,linkedRange(id));
         }
-        if(type==='field.area'&&module.damageOnTrigger!==false&&module.attackId&&Number(this.attackById(combat,module.attackId)?.damageRatio)>0){
+        if(type==='field.area'&&this.damagingField(module,combat)){
           const origin=module.anchorMode==='attack-end'?travel:0;
           maximum=Math.max(maximum,origin+this.geometryRange(module,variant));
         }

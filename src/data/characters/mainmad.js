@@ -53,7 +53,8 @@
           "from": {
             "$ref": "attacks.lmb.damageRatio"
           },
-          "to": 6
+          "to": 6,
+          "step": 0.5
         },
         "range": {
           "from": {

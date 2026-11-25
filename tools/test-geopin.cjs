@@ -675,6 +675,14 @@ test('근거리 실제 벽접촉: 파츠없는 반사탄/50%속도/안전원점�
  function fire(e){const a=c.AttackFeatureTransformService.prepare(e,current.attacks.lmb),m=a.modules.find(m=>m.renderType==='progressRect');const fx=c.AttackModuleService.spawnAttackEffect(e,a,0,c.AttackExecutionService.create(e,a,0),m);c.EffectSpawnService.applyProgressiveDamage(fx,0,1);c.EffectSpawnService.applyProgressiveDamage(fx,1,1);return fx}
  const shots=[];c.TriggeredAttackService={execute:(source,attack,angle)=>shots.push({source,attack,angle})};c.AugmentService={prepareAttack:(source,a)=>c.AttackFeatureTransformService.prepare(source,a)};
  let e=setup();walls=[{x:220,y:400,w:40,h:200}];let fx=fire(e);assert.equal(shots.length,1);const bullet=shots[0],delivery=bullet.attack.modules.find(m=>m.type==='delivery.projectile');assert.ok(Math.cos(bullet.angle)<-.99);assert.equal(delivery.speed,current.attacks.punchRubber.modules[0].speed*.5);assert.equal(delivery.origin.x,203);assert.equal(bullet.attack.range,483);assert.equal(c.WorldGeometryService.segmentBlocked(203,500,180,500,15),false);assert.equal(fx.animationState.deliveryInteractionResolved,true);assert.equal(damage.length,0);
+
+ for(const wallX of [320,325,334,335]){
+  shots.length=0;damage=[];e=setup();walls=[{x:wallX,y:400,w:40,h:200}];fire(e);
+  assert.equal(shots.length,1,'endpoint wall / bullet radius contact '+wallX);
+  assert.ok(Math.cos(shots[0].angle)<-.99,'reflected away from endpoint wall');
+  assert.equal(shots[0].attack.modules.find(m=>m.type==='delivery.projectile').speed,current.attacks.punchRubber.modules[0].speed*.5);
+ }
+ shots.length=0;damage=[];e=setup();walls=[{x:336,y:400,w:40,h:200}];fire(e);assert.equal(shots.length,1);assert.ok(Math.cos(shots[0].angle)>.99,'wall outside radius leaves normal forward followup');
  shots.length=0;damage=[];e=setup(true);walls=[{x:220,y:400,w:40,h:200}];enemy('wall-target',{x:300});fire(e);assert.equal(shots.length,1);assert.equal(damage.length,1);assert.equal(damage[0].attack.damageRatio*current.baseDamage,150);
  shots.length=0;damage=[];e=setup();walls=[{x:220,y:400,w:40,h:200}];enemy('front-target',{x:150});fire(e);assert.equal(shots.length,0);assert.equal(damage.length,1);
  shots.length=0;damage=[];e=setup();e.local=false;walls=[{x:220,y:400,w:40,h:200}];const a=c.AttackFeatureTransformService.prepare(e,current.attacks.lmb),m=a.modules.find(m=>m.renderType==='progressRect');const received=c.EffectSpawnService.spawn({...m,x:e.x,y:e.y,angle:0,sourceEntityId:e.id},{source:e});c.EffectSpawnService.applyProgressiveDamage(received,0,1);assert.equal(shots.length,0);assert.equal(received.animationState.deliveryInteractionResolved,true);

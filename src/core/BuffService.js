@@ -18,6 +18,7 @@ const BuffService=Object.freeze({
       end
     });
 
+    if(COMBAT_BUFF_DEFS[type]?.clearAdverseOnApply===true&&Number(value)>0&&end>performance.now())CCService.clearAdverse(entity,{preserveSelf:true});
     entity.buffs.set(type,list);
     entity.combatSnapshotDirty=true;
     return true;
@@ -46,6 +47,7 @@ const BuffService=Object.freeze({
       });
     }
 
+    if(COMBAT_BUFF_DEFS[type]?.clearAdverseOnApply===true&&Number(value)>0&&end>performance.now())CCService.clearAdverse(entity,{preserveSelf:true});
     entity.buffs.set(type,list);
     entity.combatSnapshotDirty=true;
     return true;
@@ -84,6 +86,7 @@ const BuffService=Object.freeze({
       });
     }
 
+    if(COMBAT_BUFF_DEFS[type]?.clearAdverseOnApply===true&&Number(value)>0&&end>performance.now())CCService.clearAdverse(entity,{preserveSelf:true});
     entity.buffs.set(type,list);
     entity.combatSnapshotDirty=true;
     return true;

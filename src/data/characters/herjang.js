@@ -47,7 +47,7 @@
         "module": "summon.toggle",
         "property": "activeCommand.cost"
       },
-      "text": "설치된 대포가 조준 위치를 향해 슬로우 포탄 {burstCount}발 점사 (탄당 {damage})"
+      "text": "설치된 대포가 조준 위치를 향해 포탄 {burstCount}발 점사 (탄당 {damage})"
     },
     {
       "key": "L-Shift",
@@ -156,7 +156,7 @@
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 20,
+          "speed": 24.0,
           "radius": 10
         },
         {
@@ -198,7 +198,7 @@
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 19.2,
+          "speed": 23.04,
           "radius": 15
         },
         {
@@ -220,7 +220,7 @@
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 21.6,
+          "speed": 25.92,
           "radius": 11
         },
         {
@@ -233,17 +233,6 @@
           "type": "projectile.pierce",
           "targets": false,
           "walls": true
-        },
-        {
-          "type": "status.apply",
-          "status": "slow",
-          "duration": 1500,
-          "data": {
-            "factor": {
-              "$ref": "statusDefaults.slow.factor"
-            },
-            "stackMode": "replace-source"
-          }
         }
       ],
       "tags": [
@@ -424,11 +413,6 @@
           }
         ]
       }
-    }
-  },
-  "statusDefaults": {
-    "slow": {
-      "factor": 0.5
     }
   }
 }

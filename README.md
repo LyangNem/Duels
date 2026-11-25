@@ -1,5 +1,360 @@
 # DUELS 3.0 README — 작업 전 반드시 전체 정독
 
+## 난이도·루네트 반격 아군 착탄 회복/자기 투척 — 3.0.0-character.403 (2026-11-25)
+
+아이리 난이도2→4·게레타3→5. 루네트 칵테일 착탄 시 아군/자신 즉시50회복 추가(적착탄50·독50·기존재생100 유지). target-volley의 명시적self관계 허용 및 targetEntityId 전달. delivery.projectile.selfArc 설정은 자기 위치 투척에서 기존 ScriptedProjectileMotionService anchored-arc(디라 음식과 동일)를 사용해520ms/높이96으로 상승낙하. finishReason 선택옵션으로 일반 target-point 착탄 파이프라인 실행. 공격 재생으로 원격도 같은 설정 생성, 신규 캐릭터ID 예외 없음.
+검증: 반격 대상에 자신 추가·투사체 중간 높이96·착탄 전회복0·520ms착탄50회복/재생100 확인. 아군도착50회복·적피해/독 유지 검사. 실제 브라우저 플레이 미실시.
+
+
+## 루네트 독 피해/소모 조정·반격 착탄 피해 — 3.0.0-character.402 (2026-11-25)
+
+평타·스킬·반격의 고정 독100→50(-50%), 재생100 및 지속시간 유지. 평타비용350→250·스킬600→500. 반격 cocktailBurst에 damageRatio0→0.5 및 effectsOnly=false로 착탄 적 피해50 추가. 기존 공용 범위의 비적대 applyHitEffects 분기로 아군/자신 피해 없이 재생·취기 유지. 설명에 피해/회복 별도 참조 및 반격 착탄50 표시. 새로운 전용 실행코드 없음.
+검증: 실제 칵테일 투척→착탄 적50·독50, 아군 착탄 피해0·재생100 및 회복동작 유지, 공용 설명 참조 확인. 평타/스킬 독50·재생100과 독립3runtime 독50·재생100 회귀 확인. 실제 브라우저 플레이 미실시.
+
+
+## 키 스킬 발동 클릭의 평타 중복 — 3.0.0-character.401 (2026-11-20)
+
+예고장 발동으로 field가 지워진 뒤 같은 좌클릭 홀드가 평타 fallback으로 재실행되는 원인 수정. 키 LMB에 기존 blockRepeatWhen(ki-rmb-followup-lock) 정책 추가. PointerHoldInputService.update에서도 눌림 이후 생긴 차단 상태를 감지해 버튼 해제까지 latch. 일반 평타 홀드 연사는 유지하며 새 클릭은 정상 작동. 기존 공용 입력 정책 재사용, 키 전용 서비스 없음.
+검증: 실제RMB→500ms준비 후LMB홀드→선딜/차단상태 만료 후까지 평타 추가발사0, 해제후 새클릭 평타 발사 확인. 수정 전runtime 동일 검사 실패 재현. 실제 브라우저 플레이 미실시.
+
+
+## 게레타 온라인 차징 스킬 피해 누락 — 3.0.0-character.400 (2026-11-07)
+
+원인: ChargedAttackService.release가 실제 AttackService.execute의 attackResult를 런타임 context에 연결하지 않아 ability-release.executionSequence가null. 수신측은0번 공격 복제본의 선딜을 대기하고, 발신측은 실제N번 공격의 delivery windup commit을 송신해 키 불일치·피격자 권위 타격 미실행. 일반 훈련장에서는 발생하지 않아 기존 단일runtime검사로 누락.
+수정: charge release에 attackResult:context·executionSequence·networkAttackAdjustments·abilityUseId 전달. 기존 공용 공격 결과/복제 계약 사용. 차징 수치/소모/미스기절/다른 입력 변경 없음. 같은 차징 릴리스의 번호 누락도 공용 경로에서 보완.
+검증: 독립2runtime 실제온라인 입력→릴리스패킷→선딜commit→피격자 체력 경로에서 탭200·완충800 확인. 수정 전399runtime로 같은 검사가 실제 번호 누락 재현, 수정 후 통과. 실제 브라우저 플레이 미실시.
+
+
+## 루네트·게레타·아이리 조정 — 3.0.0-character.399 (2026-11-06)
+
+루네트 평타 투척650→422.5·스킬700→455(-35%), 장판 반경/전체 대상 반격 유지. 게레타 스킬 최대피해600→800(50단위 유지), 최소피해200/최소비용200 유지·최대비용350→650. 기존 메인마드 charge.costTiming=during-charge와 staminaRegenDuringCharge=false 재사용: 시작200 소모 후1.5초간 추가450 실시간소모, 릴리스 중복소모 없음. 일반RMB 설명 제거하고 RMB HOLD만 유지. 아이리 평타 탄당100→150, 스킬비용400→500·침묵750→1000ms.
+검증: 실제 게레타 포인터 누름/중간/완충200·425·650누적소모 및 release 추가소모0, 실제 최소200/최대800 피해·50단위, 아이리2발 각150/침묵1초, 설명/루네트 투척거리 확인. 기존검사 기대값 갱신. 실제 브라우저 플레이 미실시.
+
+
+## 가변 피해50단위 — 3.0.0-character.398 (2026-11-06)
+
+최종 사용자 정정에 따라 게레타 최대500 변경 취소, 기존200~600 유지. 게레타 스킬200~600·메인마드 평타200~600·하츠하츠 평타150~450을50단위 내림 계단으로 변경. charge.damageRatio.step 공용 설정 재사용, progressScale.damageRatio.step도 같은 계산 지원. 비용/사거리/차징시간/그외 수치 유지. 신규 검사에서101개 진행률별 실제 공용 계산과 모든50단위 단계/최소최대 보존 확인.
+
+
+## 루네트 독 피해 주기 안정화 — 3.0.0-character.397 (2026-11-06)
+
+겹친 highest 독이 출처별 nextTick을 갖고 있어 우선 효과 변경 시 피해 위상이 달라지는 원인 수정. CCService.add에서 동일 간격의 겹친 우선순위 DOT는 기존 피해 시계에 합류. 신규 효과 적용 전 과거 틱은 지급하지 않으며 refresh-source의 기존 주기 보존과 최고 피해 우선 선택은 유지. 독이 완전히 끝난 뒤 새로 부여되면 새 주기 시작. 루네트 수치/재생/장판 지속시간 변경 없음.
+검증: 서로 다른 시점의 독 부여, 강한 독 전환·만료, 반복 접촉 갱신, 다중 신규 출처에서 1초 간격과 중복 피해 없음 확인. 기존 루네트384/385 및 독립3runtime 네트워크 검사 통과. 실제 브라우저 플레이 미실시.
+
+
+## 밸런스17항목·피해/비용 표시 — 3.0.0-character.396 (2026-11-06)
+
+최신 사용자첨부 계열395를 기준으로 반영. 루네트 체력1300→1100, 평타 장판/독/재생 및 취기3→2초, 스킬 장판/독/재생 및 취기5→3초·틱당150→100. 스킬 범위 감소 미지정값은 반경220→176(-20%)으로 설정; 투척거리700 유지. 반격 효과는 유지.
+게레타 rmb 비용400~600→200~350, 피해200~500→200~600. 일반RMB는 costText로 실제costMin200만 표시, RMB HOLD는 기존 공용 범위 비용200~350 표기 유지. 회색#bcbcbc/차징·사거리·미스기절 유지.
+아이리 평타비용250→150, 수갑반경18→25·침묵500→750ms. 라티스 평타비용150→200·체력1300→1200. 테르디온 스킬비용800→650·폭발 중심600/중간400/외곽200→450/300/150(직격200 유지). 모든 테르디온 공격 설명은 직격/폭발최소~최대 공용 참조로 변경:평타150/100~300·스킬200/150~450·반격150/100~300. 지오핀 버터 이동속도1200→1800(+50%).
+검증: 실제 아이리/게레타/루네트·라티스 적중·회복·독/재생 지속, 테르디온 공용파이프라인3단계 실제피해, 공용설명 비용·피해렌더 확인. 버터 경로/벽관통/운반·네트워크 복제 기존검사. 이동좌표 검증은 새속도의 부동소수점 오차에 대해1e-6 허용오차 적용(게임코드 변경 없음). 전체72개 회귀 검사에서 남아 있던 버터1200 기대값을1800으로 갱신 후 재통과. build/docs/check/verify/구문/최종ZIP의 소스·runtime·회색/CRC·저장 후 동일성 확인. 실제 브라우저 플레이 미실시.
+대상: lunet/gereta/airi/latis/terdion/geopin/회귀/README/PATCH LOG/관련설계문서/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 게레타 스킬 피해200~500 — 3.0.0-character.395 (2026-11-06)
+
+사용자 재첨부389를 회색으로 수정한394를 기준으로 작업. 엑슬래시·롱 엑슬래시 피해300~750→200~500. 기본피해150은 유지하고 rmb damageRatio 및 차징 from/to만4/3~10/3으로 변경. 평타150·반격300·회색#bcbcbc·차징시간/범위/소모/자기기절/미리보기 유지. 설명은 기존 min/max 피해 참조로 자동 반영.
+검증: 실제 스킬 최소200/최대500 적중 회귀, 기존 차징·미스 기절·선딜 미리보기·반격 판정 유지. build/docs/check/verify/구문 및 최종ZIP의 소스·runtime·회색/CRC 확인.
+대상: gereta/test-gereta388/docs GERETA/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 첨부389 원본의 게레타 회색 직접 수정 — 3.0.0-character.394 (2026-11-05)
+
+사용자가 재첨부한 Duels (2).zip 검사 결과389버전이며 소스와runtime 모두#526b3f로 확인. 이 첨부파일 자체를 기준으로 게레타를#bcbcbc로 변경하고runtime 재조립. 다른 캐시 보완·단일HTML 변경은 포함하지 않음. 전투 수치/입력/미리보기 유지.
+검증: 배포ZIP의 gereta.js와runtime.js에 회색 존재·옛초록색 없음·생성runtime 일치·69명등록·문서·구문·ZIP CRC/저장후동일성 확인.
+대상: gereta/생성runtime/README/PATCH LOG/project.json/DIVIDE TASKS.
+
+
+## 게레타 차징·선딜 미리보기/도끼 크기 — 3.0.0-character.389 (2026-11-05)
+
+우클릭 charge.preview 활성화로 차징 중180→325 실제 범위 미리보기. 기존 delayed delivery.area에 previewDuringDelay 선택옵션을 추가해 릴리스 시 확정 차징 AttackSpec으로 공용 AttackPreviewService를 만들고350ms 선딜동안 유지. preparedAttack/liveTracking으로 차징값·위치·실시간 조준을 보존하고 해당 delivery 실행 또는 기존 선딜 취소 경로에서 제거. 선택옵션을 사용하지 않는 다른 공격 변화 없음. 반격 투사체 반경18→36, 표시 반경은 같은 값 참조로 통일. 새 캐릭터 전용 모듈 없음.
+검증: 실제 포인터 차징 시작/절반/완충 미리보기180/252.5/325, release 이후350ms 유지·이동/조준 추적·타격시 제거·기절 취소시 제거. 반격 판정/표시 반경36 일치. 기존388 공격·차징/미스 자기기절, 아이리·벨·사거리 회귀와 build/docs/check/verify/구문/ZIP CRC 검사. 실제 브라우저 시각검수 미실시.
+대상: gereta/AttackModuleService/test-gereta389/docs GERETA/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 게레타 추가·벨 홀드1초 — 3.0.0-character.388 (2026-11-05)
+
+벨 평타 charge.duration1500→1000ms. 게레타 gereta/Gereta: 단련된 나무꾼, 체력1200/보통4/차징형 근거리 딜러. 색·난이도 미정 초기값 올리브#526b3f·3. 평타150/사거리225/스테미나200/쿨500ms 부채꼴. 엑슬래시350ms 선딜 후 전방 직사각 타격. 최대1.5초 홀드로 피해300→750/사거리180→325/스테미나400→600/미적중 자기 기절400→1200ms 선형 증가. 스킬 쿨800ms. 반격 도끼300피해/사거리700/탄속28/반경18/공용300ms선딜·무력화넉백84. 미지정 수치는 초기값으로 기록. 기존 공용 벡터 경로 형식으로 woodcutter-axe 무기 형상 추가·공용 회전.
+공용 확장: 기존 after-delivery 훅에 recipient source인 status.apply 허용, AreaAttackService가 해당 전달의 hits와 원격예측 접촉수를 전달해 delivery.hit-count-lte 조건 제공. 원격 미러는 자기CC를 중복 적용하지 않음. 빗나감은 전달 시점 적중 결과로 판정하며 원격예측 접촉도 적중으로 인정(피격자 권위의 뒤늦은 저회 확정에 따른 자기기절 재판정은 없음). 기존 ChargedAttackService에 charge.moduleValues 수치 보간을 추가해 같은 데이터로 실패 기절 시간을 차징비례 조절. 새 전용 모듈·캐릭터ID 분기 없음. 범위공격 적중결과 조건과 모듈 수치 보간은 다른 차징·실패 패널티 공격도 재사용 가능.
+검증: 실제 포인터 press/release 즉시/절반/풀홀드·350ms선딜·피해300/750·명중 시 자기기절 없음·미스400/800/1200ms·벽차단 미스·원격예측 적중시 잘못된 자기기절 없음·반격300/기본무력화·벨1000ms 확인. 전체70개 회귀 중 벨의 옛 완충시간 기대값1건을999/1000ms 경계로 갱신 후 재통과. build/docs/check/verify/구문/ZIP CRC 검사. 실제 브라우저 시각검수 미실시.
+대상: gereta/bell/ChargedAttackService/AreaAttackService/AttackModuleService/TriggerConditionService/WEAPON_IMAGE_DEFS/등록·규칙·검증·문서/생성runtime.
+
+
+## 아이리 — 정의의 집행자 추가 — 3.0.0-character.387 (2026-11-05)
+
+68번째 아이리 airi/Airi 등록. 체력1200/느림3.75/어두운 하늘색#39758f/파워형 원거리 딜러. 사용자 지정: 권총2연사, 벽관통 전자식 수갑 넉백 및0.5초침묵, 테이저건 피해 및1.5초침묵.
+미지정 초기값: 난이도2, 평타 탄당100/2발120ms간격/사거리850/탄속32/반경10/스테미나250/쿨500ms. 스킬 피해0/넉백100·속도14/사거리700/탄속26/반경18/스테미나400/쿨700ms. 수갑은 벽만 관통·적1명에 적중 후 종료. 테이저200/사거리750/탄속36/반경14/공용300ms반격선딜·기본무력화넉백84. 기존 pistol 무기이미지/반시계 소폭모션 사용.
+구조: 기존 delivery.delayed-projectile-volley/projectile.pierce/status.apply silence/movement.knockback/counter.execute와 권총 무기이미지 모듈 조합. 수갑은 effectsOnly+applyHitEffects로 피해 없이 온힛 효과 적용. 전용 실행코드·새모듈 없음. 공용 침묵은 이동을 허용하고 나머지 행동 제한.
+검증: 실제runtime 등록/체력/이속/사거리·색중복 없음/120ms 2연사 각100·스테미나250/벽너머 수갑 피해0·침묵500ms·넉백/테이저200·침묵1500ms·무력화넉백. 등록수 회귀 기대값68로 갱신. 전체69개 회귀 검사 통과. build/docs/check/verify/구문/ZIP CRC 검사. 실제 브라우저 시각검수 미실시.
+대상: airi/캐릭터index/CHARACTER_RULES/회귀·docs AIRI/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 반격기 기본 무력화 설명 생략 — 3.0.0-character.386 (2026-11-04)
+
+라티스·레나 반격기의 기본 무력화 넉백 문구 제거. 후리 반격기의 무력화 언급 제거, 자기 기절·연속 공격·마지막 강한 넉백 설명은 유지. 전 캐릭터 설명 검색 결과 해당3명이며 전투 모듈·수치 변경 없음. 공용 도움말·효과 태그는 그대로 유지.
+검증: 변경 전후 JSON에서 tooltipSkills.text 제외 전체 동일 확인. 전체 캐릭터 설명에서 무력화 문구 잔존0, build/docs/check/verify/구문/ZIP CRC 검사.
+대상: latis/lena/huri/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 루네트 독 라벨의 강한 효과 선택 — 3.0.0-character.385 (2026-11-03)
+
+원인:384는 CCService.active와 독 피해 우선순위를 수정했지만 실제 그리기는 StatusPresentation.selected가 모든 상태를 순회해 최신 부여 인스턴스를 선택하므로 새 평타 독100으로 라벨이 교체됨. 수정: 상태 종류 선택 chronology는 유지하되 선택된 종류가 우선순위 독이면 실제 강한 활성 독 인스턴스를 표시. 강한 독 종료 전150 유지, 종료 후 남은100 표시. 캐릭터별 예외 없음.
+검증: 실제 StatusPresentation.selected→formatCc 경로로 독150→새100→100접촉갱신→동일프레임 캐시→강한 독 만료 후100 확인. 실제 독 피해150 유지·루네트384 및 독립3runtime 온라인 회귀 통과. build/docs/check/verify/구문/ZIP CRC 검사. 실제 브라우저 플레이 미실시.
+대상: StatusPresentation/test-lunet385/README/PATCH LOG/docs LUNET/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 루네트 수치·독 우선순위·벽 판정 — 3.0.0-character.384 (2026-11-03)
+
+평타 스테미나350/탄속16/독·재생 초당100·3초, 스킬 투사체20/장판5초/독·재생 초당150·5초, XYZ 독·재생 초당100·3초. 취기 지속시간도 각 재생과 동일. 투사체 벽관통 유지, 장판과 XYZ 착탄 범위는 벽 차단. XYZ는 소환수·훈련봇 포함 살아있는 모든 아군/적에게 투척하며 장판은 남기지 않음. 설명을 공용 참조 형식으로 정리.
+고정 독은 최대체력 비율로 변환하지 않고 고정값으로 저장·계산·표시. 접촉 갱신은 출처별 틱 주기와 만료를 보존하고, highest 우선순위 독은 같은 시간에 가장 강한 효과만 피해 적용. 강한 효과 종료 후 살아있는 약한 독으로 복귀하며 누락 틱 몰아주기 없음. 표시 역시 강한 독의 초당 고정 수치 선택.
+검증: 실제 runtime 평타/스킬 독·재생 수치/지속, 벽 차단, 강한 독 유지·만료 후 복귀, XYZ 독·재생·소환수/봇 투척, 독립3runtime 온라인 회귀. build/docs/check/verify/구문/ZIP CRC 검사. 실제 브라우저 플레이 미실시.
+추가 검수: 장판 onTrigger의 독·화염·출혈도 사거리 계산에 포함하도록 CharacterSortService 보완. 루네트 평타는650+120=770으로 계산. 전체67개 회귀 중 사거리 검사1건 실패를 수정 후 해당 검사와 루네트 회귀 재통과.
+대상: lunet/CCService/CombatStatusApplicationService/StatusPresentation/루네트 회귀·문서/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## CC면역의 자기 스킬 CC 보존 — 3.0.0-character.383 (2026-11-03)
+
+원인: CCService.add는 자기출처를 면역차단에서 제외했으나 BuffService add/set/refresh가 clearAdverse 전체정화를 호출해 이미 걸린 자기 기절·속박도 삭제. CCService.clearAdverse preserveSelf 옵션을 추가하고 CC면역 획득·갱신 경로만 활성화. 상태 인스턴스의 실제 sourceEntityId/data.sourceEntityId/sourceId를 사용해 자신이 자신에게 건 상태를 그대로 보존. 외부출처만 제거, 동종상태가 섞여 있어도 자체 상태의 원래end/인스턴스 유지. 자기출처 neutralize 강제이동 completion도 보존. 기존 명시적 전체정화(status.clear all)는 기존 계약 유지. 캐릭터 예외분기 없음.
+검증: 실제 체리티 LMB차징 속박/프릴 RMB채널 속박/후리 반격회복 기절을 면역보유전·후 각각 사용. 자체CC 적용·면역set/refresh/add 후 인스턴스/만료시각 유지·같은종류 외부CC만제거·외부빙결 신규차단 확인. 기존 벨 실제runtime/독립3runtime 온라인 회복·면역 정화 회귀 통과. build/docs/check/verify/runtime구문/ZIP CRC 확인. 실제 브라우저 플레이 미실시.
+대상: CCService/BuffService/test-self-cc383·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 루네트 독·재생/벽관통/내부 Lunet 통일 — 3.0.0-character.382 (2026-11-03)
+
+평타/스킬 적 피해 모두 공용 poison만 사용, 화염 제거. 기존 flat독(value50/80)을 사용. replace-source가 접촉갱신 때 nextTick을 뒤로 미뤄 계속 밟는 동안 독피해가 누락될 수 있어 기존 refresh-type으로 변경, 피해주기는 보존하고 종료시각만 갱신. 장판 접촉 중 및 이탈 후3초간 독 유지.
+평타/스킬 아군효과 regenFlat→공용 regeneration(1000ms마다50/80,3초)으로 전환, refresh 시 nextTick 보존. 장판 대상에 self도 포함해 루네트 본인도 회복. XYZ도 단발 직접회복70→3초간초당70재생, 적은 기존단발70피해·무력화넉백/장판없음. 평타·스킬·XYZ 투사체에 기존 projectile.pierce walls true, 장판/착탄 범위 wallPolicy ignore로 벽 너머까지 적용.
+사용자 요청에 따라 표시명뿐 아니라 캐릭터ID/공격·능력ID/상태·버프출처/파일명/등록/이속라벨/회귀·설계문서를 lunet으로 통일. 원본 src/data/characters/lunet.js, docs/LUNET.md. 실행 src/tools/project.json에서 runet 문자열0개 확인. README/PATCH LOG의 과거 변경이력은 당시 표기 유지. 외부서버 기존 runet 레코드 마이그레이션은 수행하지 않음.
+검증: 실제runtime 벽너머 투척·장판 생성, 장판 안에서1000ms/2000ms 연속 독50/80·재생50/80(틱 재설정 누락 없음), 이탈 후에도독/재생 지속, 본인 재생50, XYZ 단발피해/재생70/장판0. 독립3runtime에서 실제 피해/재생 대상권위 적용과 이탈후지속 확인. 내부 lunet 등록·runet 부재/공격참조/파일경로 확인, build/docs/check/verify/runtime구문/ZIP CRC 통과. 실제 브라우저 플레이 미실시.
+대상: lunet.js/캐릭터등록·규칙/루네트회귀·docs/LUNET/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime. 공용 코드 변경 없음.
+
+
+## 루네트 접촉잔류 효과/단발 XYZ/장판·회전 — 3.0.0-character.381 (2026-11-03)
+
+사용자 정정 반영: 장판 자체의 반복 직접 피해·치유를 없애고, 접촉한 적/아군에게3초 지속효과 부여. 장판은 기존3초 유지, 접촉 틱1000ms마다 같은 출처 효과 갱신하므로 이탈 후 마지막 접촉 기준 잔여시간 유지. 평타는 공용 poison의 기존 mode flat/value50 입력을 사용(대상 최대체력으로 정규화되어 초당50,3회). 스킬은 공용 burn flat80/3초 사용. 아군은 공용 regenFlat50/80·3초로 지속회복, 이탈시 제거하지 않음. 취기25%2초 유지. 피해·회복 수치 자체는 유지.
+XYZ의 cocktail.impact.field 제거, 착탄 시 cocktailBurst 원형150 범위 단발70피해/아군70회복과 공통 반격 무력화넉백. 지대·독·재생 잔류 없음. 같은 대상이 여러 칵테일 범위에 겹치면 각 독립 공격 적중 가능.
+장판은 에즈레일 공용 areaCircle 이중원/남은시간 호게이지/동일선두께·알파, 루네트 본색#8f183b로 통일. 무기 motion.rotation pulse는0→한바퀴→0복귀로 역회전이 보여 rotationStateKey 기반 누적각도 -2π/420ms로 교체. 일반 투척1회마다 한방향1바퀴.
+검증: 실제runtime 장판 직접피해 없음/접촉후 이탈 상태에서 평타독50×3·스킬화염80×3/아군재생 이탈후작동·3초만료/에즈레일이중원·본색/한방향2π/XYZ단발70양쪽·장판0 확인. 독립3runtime 실제투사체/field패킷 대상권위로 이탈후독·회복 지속 확인. build/docs/check/verify/runtime구문/ZIP CRC 확인. 실제 브라우저 시각검수 미실시.
+대상: runet.js/루네트회귀·docs/RUNET/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime. 공용 코드 변경 없음(기존 flat독 변환 모듈 재사용).
+
+
+## 루네트 영문 표기 변경 — 3.0.0-character.380 (2026-11-03)
+
+englishName Runet→Lunet. 기존 내부ID/runet 파일명·계정 레코드키·전투 수치 유지. 생성runtime 표기 확인 및 build/docs/check/verify/구문/ZIP CRC 통과.
+대상: runet.js·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 미니맵·사망 관전 시야 프레임 줌 반영 — 3.0.0-character.379 (2026-11-03)
+
+원인: 미니맵 시야 사각형은 cam.x/y와 캔버스 width/height를 직접 사용했고, 사망관전 흰색선도 고정 캔버스 크기라80%시야 확대를 반영하지 않았다.
+수정: 미니맵은 WorldViewportVisibilityService.bounds의 실제 FOV×관전줌·흔들림 역변환 사각형 사용. 사망 후 관전대상 흰색선은 followedBounds로 정상 플레이어 시야(width/FOV,height/FOV)와 맵경계 overscan 계산. 관찰자의 관전줌은 흰색선의 월드 크기를 바꾸지 않음. 실제 렌더 호출은 TrainingWorldDrawService의 공용 프레임 함수로 분리.1200×800/기본80%면 실제1500×1000. 네트워크/캐릭터 전투 변경 없음.
+검증: 실제 Training.draw의 strokeRect 호출을 수집해 미니맵80%×관전.5/1/1.5 배율과 흰색1500×1000 확인. 관전줌 변경시 관전대상 월드시야 크기 유지·월드모서리 overscan clamp·기존 줌포인터 회귀 통과. build/docs/check/verify/runtime구문/ZIP CRC 확인. 실제 브라우저 시각검수 미실시.
+대상: Training/TrainingWorldDrawService/WorldViewportVisibilityService/test-viewport379·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 루네트 — 술의 정령 추가 — 3.0.0-character.378 (2026-11-02)
+
+루네트 runet 등록67번째. 체력1300/보통4/진한빨강#8f183b. 역할·난이도 미지정으로 범위장악형 중거리 서포터/난이도3 초기분류. 취기는 치유 직전 최대체력인 아군에게 이동속도25%2초(같은출처 갱신). 미지정 초기 수치이며 대상에게 부여하는 것으로 해석.
+블루 큐라소:650사거리/150스테/500ms쿨·탄속22/반경14 술 투척. 적이나 아군 몸체에 비행피해 없이 지정지점/벽/외곽 착탄 시 반경120 장판. 스킬 스피릭터스 렉티피코와니:700사거리/600스테/1000ms쿨/반경220. 두 장판은3초 유지, 진입시 즉시/이후1000ms마다 적50·80피해, 아군50·80회복. 지대를 벗어나면 틱 없음. 사용자 표현은 우선 '3초 지속 장판 내 피해·회복'으로 해석, 벗어난 뒤3초 DOT가 남는 형태 아님.
+XYZ: 기존 반격300ms 선딜 후 시전순간 자신을 제외한 살아있는 모든 아군/적(player/dummy/bot/summon) 위치에 각1개 칵테일 투척. 반경150/3초/초당70피해·70회복. 여러 장판 공존. 반격 피해에는 기존 규칙에 맞는 무력화넉백84/속도10 부여. 반경·피해·치유·비용·쿨·지속시간·이속버프는 미지정 초기값. 공용 spirit-bottle 벡터/회전 모션.
+모듈: 기존 targetPoint projectile/trajectory.arc/projectile.impact/InstalledAreaFieldService/BuffService/ResourceRestoreEffectService 조합. field onTrigger가 관계필터·conditions를 지원하도록 공용 확장, field 공격 피해는 적에만 적용하고 아군은 onTrigger 회복 실행. target.health-ratio-gte 범용조건 추가. 기존에 전체대상 각각 투척 모듈이 없어 delivery.target-volley를 공용으로 추가: 시전자 권위에서 대상목록 스냅샷 후 기존 TriggeredAttackService로 각 발사·기존 패킷 전송. 전용 캐릭터ID 분기/새패킷 없음.
+검증: 실제runtime 발사전 무회복/착탄 생성·적50/80 및 아군50/80·아군무피해/적치유없음·같은프레임 중복없음/초당간격/3초만료·완전체력만25%속도2초/XYZ 대상별 발사와다중장판 유지 확인. 독립3runtime 실제투사체→field-point패킷에서 아군50회복/적50피해가 각각 대상권위에서 한 번 적용. 전체회귀 및 build/docs/check/verify/runtime구문/ZIP CRC 확인. 실제 브라우저 플레이·시각검수 미실시.
+대상: runet/캐릭터등록·규칙·무기/AttackModuleService/InstalledAreaFieldService/TriggerConditionService/관련회귀·docs/RUNET/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 벨 완충 아군 효과를 실제 판정에 직접 포함 — 3.0.0-character.377 (2026-11-02)
+
+사용자 재보고: 완충 평타 아군 효과 미적용.376 단독 입력/기존 독립runtime 테스트는 통과하여 사용자 환경의 정확한 누락 경로는 확정하지 못함. 이전 검증은 직접 applyProgressiveDamage 호출과 차징 단계 복원 메타데이터가 있는 경로에 치우쳤음.
+수정: 완충 progressRect.damage.extraModules에 아군전용 최대체력10%회복/500ms CC면역 모듈을 직접 담고, stage.spec의 별도 온힛 모듈은 제거. 실제 이펙트 판정 실행이 이 모듈을 소유·스냅샷 전달하므로 원격에서 baseAttack만 복원되더라도 지원효과가 보존됨. 기존 resolvedChargeProgress 복원도 유지. 공용 spawnAttackEffect는 선언한 damage.extraModules를 실행 증강 extraModules로 덮어쓰지 않고 병합. 새 전용 모듈/캐릭터ID 예외/패킷 종류 없음. 설명 참조 경로 갱신.
+검증: 기존 벨 실제runtime·독립3runtime 온라인 통과. 추가 독립3runtime에서는 effect패킷의 chargeProgress 메타데이터를 의도적으로 제거하고 실제16ms compact/update 수명주기로 두 아군에게 각각10%회복+500ms면역·중복회복없음·시전자 미회복 확인. 기존 벽/줌 판정 회귀 및 build/docs/check/verify/runtime구문/ZIP CRC 통과. 실제 사용자 브라우저 환경 재현은 미완료.
+대상: bell.js/AttackModuleService/test-bell-network375·docs/BELL/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 줌 좌표/벨 온라인 완충·적 이동/직선 벽판정 수정 — 3.0.0-character.376 (2026-11-02)
+
+원인1: draw는 CameraFovService.scale를 곱했지만 mouseWorld는 spectatorZoom만 역변환했다.375에서 마우스도 반영됐다고 기록한 것은 잘못된 검증이었다. 기본배율.9→.8, mouseWorld가 같은 FOV·관전배율·화면흔들림 역변환. 티냐 pointerFor의 별도FOV나눗셈 제거, viewport가시성/가장자리클램프/화면HUD겹침/카메라경계도 확대된 실제 시야에 맞춤.
+원인2: effect-spawn 스냅샷은 순환참조 방지를 위해 attack 자체를 제외하므로 상대 화면은 base LMB만 복원해 완충 아군회복·면역 모듈이 사라졌다. damage.resolvedChargeProgress 스칼라 전달 후 기존 ChargedAttackService.dynamicSpec로 단계 복원. 실제 대상권위 10%회복·500ms면역 확인.
+원인3: 원격 적중 ACK의 source 효과 후처리가 module.targetRelations를 검사하지 않아 적에게 적중해도 ally전용movement가 실행됐다. 공용 ACK 루프에 같은 관계필터 추가. 아군구조는 유지, 적100피해 후 미이동.
+원인4: 벽에 잘린 progressRect의 effect.range는150이지만 damage.module.range는450이라 피해가 시각보다 빠르거나 더 멀리 적용됐다. 또 대상 중심까지의 벽검사로 실제 그림에 걸친 몸체 적중이 무효화되고 축별박스 확장으로 끝모서리 허위적중이 났다. 진행형 피해는 실제 effect.range와 동일한 길이/진행률의 사각형-대상원 최소거리로 판정. 대상중심 추가벽검사는 제거, 렌더의 기존 벽클립 geometry 재사용. 월드0좌표를 falsy로 잃는 원점도 보정. 공용 progressive-rect 사용자 모두 적용.
+무기: 둥근 울림통+길고 직선인 취구+상단 공기구멍+고리의 공용 호루라기 실루엣으로 새로 구성. 색/공통 투명도/모션 유지.
+검증: 60개 회귀 중59개 최초통과, 티냐 격리fixture에 카메라/흔들림 의존성을 추가해 남은1개도통과. 실제runtime3배율 마우스 왕복·확대뷰경계, 벽너머 비가시미적중/벽끝 몸체 적중/모서리 허위적중 방지/공격도달 전 무피해, 독립3runtime 완충 effect패킷 회복·면역 및 적스킬 실제피해 ACK 미이동 확인. build/docs/check/verify/runtime구문/ZIP CRC 확인. 실제 두 브라우저 시각 검수 미실시.
+대상: Training/TrainingWorldDrawService/WorldViewportVisibilityService/CircleFormationService/GAME_DATA/AttackModuleService/EffectSpawnService/NetworkHitAuthorityService/WEAPON_IMAGE_DEFS/관련회귀·docs/BELL/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 벨 구조 투사체·회복 개편/CC면역/시야 — 3.0.0-character.375 (2026-11-02)
+
+벨 평타650→450(미지정 축소값), 기본 비용100·완충150 표기 분리. 완충1.5초 후 빨간 진행형 직선타격은 유지하며 아군에게 최대체력10% 회복+0.5초 CC면역. CC면역 획득 즉시 기존 상태 제거. 공용 미리보기 색 유지.
+긴급 구조: 비용1000,650내 조준 대상에게 속도32/반경16 강유도 투사체 발사. 벽을 통과하며 지정 대상만 충돌. 아군·적을 모두 선택 가능, 포인터 거리 동률이면 아군 우선. 적에게100피해(미지정 초기값)만 주고 이동없음. 아군 적중 시300ms 벽통과 이동, 도착 시 선택 아군 최대체력40% 회복·2초 CC면역 및180반경 적100거리 일반넉백(미지정 초기값). 반격 회복은 시전자/적중아군 각각 본인 최대체력20%. 공용 호루라기 실루엣 재정리.
+CC면역: COMBAT_BUFF_DEFS 선언형 clearAdverseOnApply로 BuffService add/set/refresh 때 기존CC/DOT·강제넉백 정리(부활 lifecycle 제외), 피해무적은 없음. CC IMMUNITY 명칭·캐릭터 왼쪽 평상시 compact 버프 표시. 기본 카메라 배율.9(미지정 초기값)로10%줌아웃; 공용 scale로 렌더/마우스좌표 함께 반영.
+공용 target.select 관계우선순위 옵션 추가, 아군 투사체 온힛의 로컬 시전자 movement.move 허용 및 이동완료 대상ID 전달. 기존 대상권위 회복·네트워크 triggered-attack 재사용. 캐릭터ID 분기/새패킷 없음.
+검증: 실제runtime 비용1000/발사직후 미이동/아군적중 이동/도착40%·면역/적100·미이동/동률아군/벽통과/도착넉백/완충10%·500ms종료/기존CC제거·상시라벨/기본scale.9/반격각각20% 통과. 독립3runtime 실제 패킷으로 도착40% 및 반격양쪽20% 중복없음 확인. 파비벽/지오핀후속탄/벨진행형 회귀·build/docs/check/verify/runtime구문/ZIP CRC 확인. 실제 브라우저 시각검수 미실시.
+대상: bell/공용 선택·온힛·버프·표시·카메라·무기데이터/벨회귀·docs/BELL/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 벨 완충 평타 미리보기 — 3.0.0-character.374 (2026-11-02)
+
+벨 LMB charge.preview false/previewAtFull true로 공용 완충 미리보기 정책 사용. 홀드1500ms 전까지 미리보기 없음, 완료 즉시 빨간 직선 공격 미리보기. 차징 호게이지·실제 공격·정화·비용 유지. 공용 코드 변경 없음.
+검증: 실제 입력0/1499ms 미리보기 없음·1500ms 생성·완충 빨강 spec·해제 후 제거 확인. 벨 진행형 평타 회귀와 build/docs/check/verify/runtime구문/ZIP CRC 통과. 실제 브라우저 시각검수 미실시.
+대상: bell.js·docs/BELL/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 벨 우클릭 아군 선택 범위 점선 — 3.0.0-character.373 (2026-11-02)
+
+긴급 구조의 target.select에 showTargetRange 선언. 본인 화면에서 실제 지정 가능한 살아있는 아군 주변에 디라 음식과 같은 색상알파.55/선1.8/점선7·6 원 표시. 선택반경80+대상 몸체반경(기본100)을 그대로 사용하며 시전자 자신/적/사망/650밖/벽 차단 대상 제외.
+기존 AbilityModuleService의 target.select 유효성·선택반경 계산을 공통 메서드로 추출해 입력/렌더가 같은 기준 사용. 공용 AbilityTargetRangePresentationService는 선언한 선택 모듈만 렌더. 캐릭터 전용 분기·네트워크 패킷 없음. 디라 기존 음식 표시는 유지.
+검증: 실제runtime 유효아군 원1개/반경100, 사거리밖·사망·적·벽차단·원격시전자 원0개 확인. 벨 기존/독립3runtime 온라인/진행형 평타 회귀 및 build/docs/check/verify/runtime구문/ZIP CRC 통과. 실제 브라우저 시각검수 미실시.
+대상: bell.js/AbilityModuleService/AbilityTargetRangePresentationService/Training·docs/BELL/README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 벨 직선 진행형 평타·완충 빨강 — 3.0.0-character.372 (2026-11-02)
+
+벨 부채꼴 즉시평타를 샤베트의 공용 progressRect/effect.spawn 조합으로 변경. 사거리650/반너비52/전개속도3000, 실제 도달 시100피해. 차징1500ms/비용100·완충150/쿨400ms 유지. 완충 공격 채움·윤곽·미리보기는 빨강#ff6565, 일반/미완충은 벨 색. 아군 정화도 같은 직선 진행 도달 시 적용.
+공용 progressive-rect의 명시적 targetRelations/applyHitEffects로 아군 무피해 온힛 지원. 기존 enemy 타격/권위 경로 유지, 아군 효과는 대상 권위에서만 적용. 새 캐릭터 전용 분기 없음. 기존 모듈은 적만 순회해 아군 도달 정화를 표현하지 못했으므로 기존 관계/온힛 정책을 재사용해 확장.
+검증: 기본/1499ms/1500ms 실제 입력과 progressRect 도달 전 무피해·미정화/도달 후100 한 번/완충 아군 무피해 정화/벽 차단/채움·윤곽색 확인. 벨 기존/독립3runtime 온라인·파비 벽·지오핀 후속탄 회귀 통과. build/docs/check/verify/runtime구문/ZIP CRC 확인. 실제 브라우저 시각 검수 미실시.
+대상: bell.js/EffectSpawnService/test-bell370/test-bell-whistle372/docs/BELL·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 파비 반격 벽 차단 — 3.0.0-character.371 (2026-11-01)
+
+원인: 앞쪽 부채꼴과200ms 뒤 뒤쪽 부채꼴 모두 wallPolicy ignore로 선언되어 벽 너머 피해/무력화 넉백/이펙트가 발생. 두 delivery.area를 기존 공용 block 정책으로 수정. 실제 판정·미리보기·이펙트는 같은 벽 차단 geometry 사용. 스킬 파비 레이저의 관통과 기존 반격 피해240/범위/간격 유지. 전용 분기/새 모듈 없음.
+검증: 수정 전 실제 counter 선딜 후 벽 뒤240피해 재현. 수정 후 앞/뒤 벽 뒤 무피해·무넉백, 벽 없으면 각각240 및 넉백, 앞뒤 실제 이펙트 polygon 차단 확인. 기존 파비 회귀 및 build/docs/check/verify/runtime구문/ZIP CRC 통과. 실제 온라인 브라우저 플레이 미실시.
+대상: erapabi.js/test-erapabi-wall371/docs/ERAPABI·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 신규 벨 — 구조 대원 — 3.0.0-character.370 (2026-11-01)
+
+벨(Bell) 등록. 체력900/빠름4.25/따뜻한 흰색#e8e6d9, 지속전투형 중거리 서포터, 난이도2 임시. 설명은 설산 구조 임무 족제비 수인. 공용 순수 벡터 호루라기 이미지·기존 무기 모션/차징 호게이지/공용 공격 이펙트 사용.
+평타 삐이이!: 전방 중거리650 음파 부채꼴100피해/스테미나100/쿨400ms. 정신 차려요!: 기존 ChargedAttackService로1500ms 완충 후 같은 공격에 아군 전용 무피해 delivery+status.clear all 조합, 비용150.1499ms는 일반 평타. 벽/범위 준수, 부활 라이프사이클은 정화에서 제외, 빙결 제거 시 추가 파쇄피해 없음. 강제이동 완료 후 잔여 무력화까지 제거.
+긴급 구조: 마우스 근처 아군 플레이어/훈련 더미를 지정(사거리650/선택반경80+몸체). 적/자신/사망/범위밖/벽 막힘은 이동·비용 없음. 기존 movement.move300ms로 지정 위치까지 이동, 완료 시 선택 아군만200회복 및2초 상태 면역. 비용400/쿨1500ms. 대상 ID를 공용 이동 완료→기존 triggered-attack 패킷으로 전달해 주변 다른 아군에 번지지 않음. 이동 중에 회복하지 않음.
+마약성 진통제: 추가 답변 없이 진행 요청되어 일회성 약물 투사체형으로 구현(자기 투약 후 지속 강화형 아님). 기존 반격300ms 선딜·발사 사거리650/속도30/반경16. 적중한 대상이 적이면150피해·공통 무력화 넉백, 자신400회복+2초 면역. 아군이면 피해/CC 없이 자신과 해당 아군 각각400회복+2초 면역. 빗나가면 보상 없음. 피해/회복/비용/사거리/난이도는 미지정 수치의 초기 조정값.
+
+공용 확장: target.select 선언형 아군 지정, 이동 완료의 targetEntityId 보존, delivery.area.onlyExecutionTarget, status.clear all, COMBAT_BUFF_DEFS.statusImmunity 및 CCService 차단. 면역은 피해 무적을 주지 않으며 적대 상태/DOT 신규 적용·피격 넉백/끌기/무력화/투사체 속박/음수 디버프를 막는다. 기존에 걸린 효과 제거는 차징 정화가 담당. 자기 스킬의 자체 제한/부활은 유지. source/target 회복은 각 권위 클라이언트에서만 처리하고 아군 투사체 적중의 시전자 보상은 공용 소스 효과 경로를 확장해 누락/원격 예측 HP 변조를 막음. 모든 캐릭터 로직은 데이터 모듈 조합, 캐릭터ID 분기 없음.
+
+검증: 전체55회귀 스크립트 통과. 신규 실제runtime 기본/1499/1500차징, 정화의 빙결 무피해·부활 보존·넉백 후 무력화 잔여 제거, 대상없음/적/죽음/범위/벽 무소모, 이동 완료 시 대상1명200/중복완료 방지,12상태 면역/2초 정확 만료/피해 정상, 실제 반격 아군 무피해·무CC/적150·무력화/자신회복/미적중 무보상, 실제 렌더 확인. 독립3runtime 실제 패킷에서 도착 회복200/면역, 아군 반격 양쪽400/중복회복없음, 적중 확정 ACK로 시전자400/면역 확인. build/docs/check/verify/runtime구문/ZIP CRC 확인. 실제 두 브라우저 WebRTC 플레이·시각 스크린샷 검수는 미실시.
+대상: bell 및 공용 대상/이동/범위/자원/상태/무기 모듈·신규회귀/설계문서·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 지오핀 근거리·후속탄 역순 중복 적중 차단 — 3.0.0-character.369 (2026-11-01)
+
+재현: 본인x500·더미x780에서 근거리 미적중 후 끝점 고무탄 생성, 실제 ProjectileService.update로150피해. 더미를x735(근거리 끝220+몸체반경20 중첩)로 이동 후 같은 progressRect 후반 업데이트에서 추가150, 총300 확인. 원인: 끝까지 뻗은 압력은 previousLength/currentLength가 모두 끝점에 고정된 채220ms 시각효과 수명 동안 판정을 계속했고, followup 생성의 deliveryFollowupResolved는 다음 생성만 막아 압력 피해를 끝내지 않았다.
+수정: 공용 progressive-rect는 deliveryFollowupResolved 이후 피해 처리를 종료. 남은 시각효과는 정상 유지. 근거리 선적중 시 후속탄 없음·고무탄 생성 뒤 뒤늦게 끝점 진입한 대상은 근거리 미피격·다음 별개 공격은 정상. 이미 쓰는 완료 상태 재사용, 캐릭터ID 분기/추가 상태/패킷 없음.
+검증: 신규 실제runtime 고무탄150→근거리 진입 총150 유지/탄환 적중 전 진입도 압력피해 없음/근거리 먼저150 및 후속탄0/다음 공격 정상/시각효과 유지. 전체 지오핀·구조·기존 게임플레이 수정·룰리 타이밍 회귀 통과. build/docs/check/verify/구문/ZIP CRC 확인. 실기기 온라인 플레이 미검증.
+대상: EffectSpawnService/test-geopin-followup369·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 카샤 캐릭터 완전 제거 — 3.0.0-character.368 (2026-10-29)
+
+카샤 본체 데이터·characters/index 등록·이속 라벨·전용 execution-sword 이미지·전용 설계 문서와 캐릭터 전용 회귀를 제거. 공용 입력/공격/자원/무게비례/온라인 모듈은 다른 캐릭터와 향후 재사용을 위해 유지. 공유 회귀의 카샤 의존 구간 제거 및65명 구조 계약 갱신. 과거 PATCH LOG와 README의 변경 이력은 보존. 계정 서버에 저장된 과거 레코드 삭제는 수행하지 않음.
+검증: 등록65명·카샤 데이터 없음·모든 정렬/선택/금지/무작위 제외·삭제된 선택값으로 시작 거부. 공용 홀드/큐리 원 경계·렌더 페이드·구조 회귀 통과. build/docs/check/verify/구문/ZIP CRC 확인. 실제 브라우저 플레이 미검증.
+대상: 캐릭터 등록/규칙/무기 데이터 및 관련 회귀·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 카샤 스킬 시전 시작 스테미나 선결제 — 3.0.0-character.367 (2026-10-22)
+
+카샤 RMB 첫 모듈에 기존 resource.spend의 선택형 prepayAttack 선언. 현재 증강 반영 비용을 시전 시작에 실제 소모하며 해당 attackId를 문맥에 보존, AbilityAttackExecutionService가 동일 공격의 resourcePrepaid를 전달해700ms 뒤 자원 재검사/이중소모를 막는다. 다른 공격으로 전환되면 선결제 적용 안됨. 원격재생/무료공격은 기존 자원소모 제외. 기절 취소 시 비용 환불 없음. 실제 소모500은 기존 항시로 무게.5 충전되고 발동 시 함께 소모되어 피해에 반영.
+검증: 정확500으로 즉시0/699ms 준비유지/700ms 자원0에서 실행·중복소모없음. 기존 카샤18그룹/339의13그룹/독립2runtime 반격과 선결제 회귀 통과. 선결제 항시충전 반영 기대값 갱신. build/docs/check/verify/구문/ZIP CRC 통과. 실기기 플레이 미검증.
+대상: kasha.js/AbilityModuleService/AbilityAttackExecutionService/관련회귀·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 지오핀 근거리 끝점 벽 반사 누락 — 3.0.0-character.366 (2026-10-22)
+
+원인: 근거리 압력의 벽 접촉은 반경0 중심선으로 찾고, 미적중 후속탄 생성은 탄환 반경15를 포함해 벽 막힘을 검사했다. 벽이 사거리 끝보다 최대 탄환반경만큼 뒤에 있으면 중심선 접촉 없음/후속탄 생성 차단으로 탄환이 사라졌다.
+수정: 기존 중심선 접촉이 없을 때 공용 pressureContact가 후속탄 실제 radius로 추가 벽 접촉 검사. 실제 wall 반사/안전 원점/첫 벽50%감속/벽뒤전달/로컬권위 경로 재사용. 캐릭터ID 분기·새 공격 없음. 반경 밖 벽에는 기존 전방 후속탄 유지.
+검증: 기존 코드에서 신규 끝점 회귀 실패 확인 후 수정 코드 전체 지오핀 회귀 통과. 끝점 및+5/+14/+15 벽 반사·+16 전방탄·기존 적 우선/원격/외곽4변/추가벽 감속없음 검사. build/docs/check/verify/구문/ZIP CRC 통과. 실제 온라인 플레이 미검증.
+대상: ProjectileRedirectService/test-geopin·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 헤르쟝 대포 탄속·스킬 감속 제거 — 3.0.0-character.365 (2026-10-22)
+
+본체 미니대포 평타20→24, 설치대포 자동평타19.2→23.04, 스킬 명령점사21.6→25.92로 탄속20% 증가. cannonBurst의 slow 적용 모듈과 미사용 statusDefaults.slow 제거, 설명의 슬로우 문구 삭제. 반격 탄속28 및 기존 피해·비용·사거리·점사수/간격은 유지.
+검증: 생성runtime3공격 탄속/실제 발사체, 스킬 슬로우 부재 및 기존 구조 회귀 확인. build/docs/check/verify/구문/ZIP CRC 통과. 실기기 플레이 미검증.
+대상: herjang.js·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 다즈빈 평타·스킬 조정 — 3.0.0-character.364 (2026-10-22)
+
+평타 투사체 radius10→25, 스테미나350→250. 스킬 범위 투사체 radius180→216(+20%), 스테미나700→500. 스킬 비행 사거리820·탄속·피해·적중주기는 유지. 설명/미리보기/실제 판정은 동일 AttackSpec 참조.
+검증: 생성runtime 실제 평타 발사 크기25/소모250, 스킬 범위216 확인. 기존 밸런스 회귀 및 build/docs/check/verify/구문/ZIP CRC 통과. 실기기 플레이 미검증.
+대상: dazbin.js/test-balance347·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 큐리 원 안 평타 홀드 반복 차단 — 3.0.0-character.363 (2026-10-22)
+
+큐리 LMB inputPolicy.blockRepeatWithinFormulaRange 선언. 공용 PointerHold의 동적 반복 조건이 기존 FormulaSequenceService.withinActivation과 동일한 포인터/실제 activationRange를 사용한다. 원 경계 포함 내부에서 홀드 자동입력만 차단, 새 클릭 공식 입력과 원 밖 평타 연사는 유지. 홀드 중 포인터가 경계를 넘으면 즉시 해당 조건 적용. 캐릭터ID 분기 없음.
+검증: 실제 입력 루프에서 내부/경계 반복 차단·외부 반복·재진입 차단·새 클릭 허용 및 기존 평타 홀드 회귀 확인. build/docs/check/verify/구문/ZIP CRC 확인. 실기기 플레이 미검증.
+대상: quri.js/PointerHoldInputService/test-primary-hold342·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 카샤 스킬500·반격 착탄100 — 3.0.0-character.362 (2026-10-21)
+
+카샤 RMB 스테미나0→500. 반격 counterImpact damageRatio1→2/3(기본피해150 기준 각100),3발 합계300. 기존 비행중 무충돌·착탄만피해·무력화/방향/탄속/간격/중복방지 유지. 설명은 실제 AttackSpec 참조로 자동 반영.
+검증: 실제499스테미나 입력거부/정확500에서시전 및실행후0·착탄피해100 확인. 카샤 관련7개 회귀(독립2runtime 반격 중복과 착탄 확정 포함) 최신수치 기대값으로 통과. build/docs/check/verify/구문/ZIP CRC 확인. 실기기 플레이 미검증.
+대상: kasha.js/관련카샤 회귀·README/PATCH LOG/docs/KASHA/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 레이즈 평타 홀드 반복 금지 — 3.0.0-character.361 (2026-10-20)
+
+레이즈 LMB inputPolicy.repeatWhileHeld:false. 누르고 있어도 공용 PointerHold 반복 입력이 추가 클릭을 만들지 않으며 새로 눌렀을 때만 기존 multi-click 공격이 입력됨. 수동 클릭 누적/기존 공격 발동 조건·스킬/반격·다른 캐릭터 입력은 유지.
+검증: 전체66명 평타 반복 허용 목록은 클레아/레이즈만 false. 실제 레이즈1초 홀드 동안 누적1 유지, 놓고 새로 클릭 시2 확인. 기존 카샤 반복/시로 차징/티냐 홀드 검사 통과. build/docs/check/verify/구문/ZIP CRC 확인.
+대상: raise.js/test-primary-hold342·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 카샤 원격 반격 투사체 중복 수정·스킬 비용0 — 3.0.0-character.360 (2026-10-20)
+
+원인: 상대의 실제 duel-action 반격 입력이 CounterModuleService의300ms 선딜을 만들었으나 선딜 상태에 networkReplay 표시가 보존되지 않았다. 종료 시 일반 로컬 AttackService 실행으로 취급되어 live-target-point 연속발사3탄을 자체 예약했고, 이후 소유자의 실제 탄별 확정 패킷3탄도 수신하여 원격에6개가 생성되었다. 기존 네트워크 검사는 AttackModule.deliver에 replay를 직접 넣어 실제 Counter 선딜 종료 경로의 손실을 놓쳤다.
+수정: 공용 CounterModuleService.execute가 context.network를 windup.networkReplay로 보존하고 finish의 AttackService.execute에 그대로 전달. 원격 실시간 조준형 연속발사는 기존 '탄별 소유자 패킷만 생성' 정책을 정상 사용. 기존 탄별 패킷 중복키·회전/준비 표시·착탄150/CC/3발 간격은 유지. 캐릭터ID 분기 없음. 카샤 RMB cost600→0, 기존 설명 비용 참조 및 입력 자원조건도 자동0. 게이지0 사용불가/충전량 비례피해/게이지 전량 소모는 유지.
+검증: 신규360 독립2runtime 실제 Ability.activate/duel-action→Counter.update→선딜종료→3개 실제발사 패킷을 연결하여 수정 전 원격6개를 재현, 수정 후 양쪽3개와 중복패킷 미증가 확인. 스테미나0에서도 게이지가 있으면 실제스킬 발동/스테미나0 유지/게이지 소모 확인. 기존 스킬비용 기대값 갱신. 전체59개 회귀 스크립트 통과. build/docs/check/verify/구문/ZIP CRC 확인. 실기기 두 브라우저 WebRTC 플레이 미검증.
+대상: CounterModuleService/kasha.js/test-counter-replay360/test-kasha·README/PATCH LOG/docs/KASHA/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 레나 원격 무기 이동방향 동기화 — 3.0.0-character.359 (2026-10-20)
+
+원인: movement-facing 무기가 상대 화면의 위치 차이/이전 movementFacing 캐시를 우선 사용하고, lastMovementInputAngle은 최초 캐시 초기화에만 읽었다. 이미 캐시가 있거나 위치 보간/반복 렌더로 이동 차이가 사라지면 새 이동 방향을 반영하지 못하는 경로가 있었다.
+수정: 공용 ModeGearPresentationService.synchronizedMovementAngle에서 소유자 화면의 실제 movement-facing 무기 방향을 표본화하고 기존 duel-state에 optional weaponMovementAngle 전달. 수신 측은 검증된 원격 각도를 원격 movement-facing 무기의 우선 기준으로 사용하므로 렌더 위치 보간에 의해 방향이 달라지지 않음. 원격 각도가 없는 구버전 패킷은 활성 이동기 각도/매번 갱신된 lastMovementInputAngle을 사용. 로컬 실제 이동 방향 계산·정지 시 마지막 방향 유지·무기 회전/사망 표본·다른 facing모드는 유지. 캐릭터ID 분기 없음.
+검증: 신규359 독립2runtime에서 실제 statePacket→receive 후4방향·정지·즉시 스킬 돌진 방향 일치. 원격 좌표를 렌더 사이마다 바꾸거나 sampleImage 반복해도 소유자 방향 유지. 오래된 패킷 거부·원격 각도 없는 입력방향 fallback도 통과. 전체58개 회귀 스크립트 통과, build/docs/check/verify/구문/ZIP CRC 확인. 실제 두 기기 브라우저/WebRTC 플레이 미검증.
+대상: ModeGearPresentationService/OnlineDuelService·test-lena-network359·README/PATCH LOG/docs/LENA/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 카샤 상대 소모 시 연결선 실선 점멸 — 3.0.0-character.358 (2026-10-20)
+
+가장 가까운 적이 실제 스테미나를 소모하는 사건에 본인 연결선이 밝은 실선으로1회 강조되고350ms 동안 페이드 아웃. 기존 점선은 남아 자연스럽게 점선 상태로 복귀. 자기 소모/먼 적 소모는 점멸하지 않음. 연속 소모 시 최신 사건으로 강조 갱신. 게이지가 최대여도 실제 소모 사건이면 연출.
+공용 conditionalTargetLinks.eventPulse 선언과 CharacterTriggerEffectService 이벤트 전달을 사용. 본인 전용 WeakMap 표시 타이머이며 별도 효과 복제 패킷 없음. 원격 소모는 기존 누적 소모 증가분 사건에서 동일 표시. 기존 대상조건·은신 비노출·충전량/최대10000 유지.
+검증: 실제runtime 상대100소모 직후 점선+실선2stroke·175ms 실선 불투명도절반·350ms 점선1stroke 복귀·자기소모 미점멸 확인. 카샤356/독립2runtime온라인/타깃링 회귀 및 build/docs/check/verify/구문/ZIP CRC 통과. 실기기 플레이 미검증.
+대상: kasha.js/ConditionalTargetLinkPresentationService/CharacterTriggerEffectService·README/PATCH LOG/docs/KASHA/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 카샤 완충10000·가장 가까운 적 점선 연결 — 3.0.0-character.357 (2026-10-20)
+
+총 실제 스테미나 소모5000→10000에 호게이지 완충. 내부 진행도 최대10은 유지하고 소모량 배율.002→.001로 조정하여500당 게이지5% 충전. 스킬 최대체력비례 최대80% 유지. 가장 가까운 적 플레이어/훈련 더미와 본인 전용 점선 연결 추가. 충전 트리거와 동일 target.nearest-enemy 조건을 사용하므로 거리 변화·사망·동률 처리와 대상종류 기준 일치. 공용 ConditionalTargetLinkPresentationService 재사용. 감지되지 않은 은신 대상의 위치를 점선으로 노출하지 않는 기존 정책 유지.
+검증: 실제 총10000 완충·최대80% 유지·가까운 대상만1개 선 렌더·대상 이동 시 전환 확인. 카샤356/기존18/339/독립2runtime온라인/타깃링 회귀 통과. 새 충전배율에 기대값 갱신. build/docs/check/verify/구문/ZIP CRC 확인. 실기기 다인 플레이 미검증.
+대상: kasha.js/관련카샤 회귀·README/PATCH LOG/docs/KASHA/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 카샤 스테미나 소모 비례 심판·호게이지 — 3.0.0-character.356 (2026-10-20)
+
+저스트 회피 트리거2개를 제거하고 자신/가장 가까운 적 플레이어의 실제 스테미나 소모량에 비례해 심판의 무게 충전. 실제500소모당1, 최대10(총5000) 유지. 소수 진행도 허용하여 호게이지가 연속 충전되며 칸수 표시는 제거. 원래 최대10무게의 스킬 최대체력비례 최대80%는 유지하고 게이지 양에 비례. 정수 칸수가 없어져 스킬 사용 조건은 무게>0으로 조정(0사용불가 유지). 기존700ms 준비·최종 게이지 전량소모·스윙/반격/색/무기 유지. 이전 저회 빛 회수와 지연 지급은 더이상 실행하지 않음. 캐릭터 설명 갱신. 선택 가능66명 유지.
+
+소모 집계: StaminaService의 성공한 실제 spend에서 before-after 차이만 집계. 할인은 할인 후 실제값, 회복/set/실패/무한 스테미나는 제외. 자기 소모 trigger와 적 소모 observe는 기존 CharacterTriggerEffectService amountFrom/amountScale 조합 사용. 공용 target.nearest-enemy 조건은 매 사건의 살아있는 적 player/dummy 중 거리 최솟값 판별(동률은id순), 소환수/봇은 후보 및 기여에서 제외. 훈련장 더미는 검증용 대상으로 허용. 아군 소모 미포함. 캐릭터ID 분기 없음.
+
+온라인: 별도 소모 패킷을 매 프레임 보내지 않고 기존 duel-state에 라운드별 누적 staminaSpentTotal을 동기화. 원격은 수신한 누적값의 증가분만 소유자 카샤에게 적 소모 사건으로 전달. 같은 값/중복·역순 패킷 재집계 없음. 라운드 토큰별 기준 초기화로 이전 라운드의 소모량 재지급 방지. 원격 action 재생은 로컬 권위가 아니므로 집계하지 않음. 가장 가까운 적 판정은 각 화면이 보유한 최신 Entity 위치를 기준으로 함.
+
+검증: 전체57개 회귀 스크립트 통과. 신규356 실제runtime 자기125=.25/가까운적375=.75 합산1·먼적제외/이동으로가까운적변경·회복/set/실패/무한 제외·할인 실제소모·총5000 완충/최대10·저회/빛 제거·소환수 제외. 기존카샤 스킬/스윙/벽/입력/반격/이동무적 검수 유지. 독립2runtime 온라인은 적500소모=1·중복 state 미재지급·새 라운드100소모=.2 확인, 기존3검 착탄/피해/CC 및 표시 중복방지도 통과. 추가 실제부분충전 스킬 사용/설명 최대80% 확인. build/docs/check/verify/구문/ZIP CRC 통과. 실제 브라우저/실기기 다인 플레이는 미검증.
+대상: kasha 데이터·StaminaService·TriggerConditionService·OnlineDuelService·카샤 기존/신규 회귀·README/PATCH LOG/docs/KASHA/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 카샤 선택창 복구 — 3.0.0-character.355 (2026-10-20)
+
+카샤 selectable:false→true. 기존 구현/수치/무기/기록 유지. 공용 카탈로그를 통해 일반/훈련장 선택·모든 정렬·금지 목록·라운드 추첨·무작위 후보에 다시 노출. 등록66명/선택66명.
+검증: 기존 캐릭터 노출 회귀를 복구 계약으로 갱신하고 전체 정렬/금지/추첨 목록·훈련장 직접 실행 확인. build/docs/check/verify/구문/ZIP CRC 확인.
+대상: kasha.js/test-character-availability344·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
+
+## 도움말 게임 진행 순서 갱신 — 3.0.0-character.354 (2026-10-19)
+
+실제 RoomService의 모드/준비/라운드 흐름을 확인하고 도움말의 오래된 '캐릭터와 시작 증강 선택' 공통 안내를 교체. 방 참가·설정/준비→캐릭터 선택→일반전 즉시 카운트다운 또는 증강전 시작 증강→전투/관전→라운드 사이 캐릭터 교체·유지/증강전 패배자 추가 증강→선승 수 달성의6단계로 안내. 카운트다운 전 준비취소/시작 후 취소불가 명시. 스테미나·저스트 회피 설명은 별도 전투 기본 항목으로 정리. 증강은 증강전에서만 선택하고 매치 동안 유지됨을 명시. 실제 게임 로직 변경 없음.
+검증: RoomService.receiveCharacterReady/beginStartAugments/receiveStartAugment/beginBetween/receiveBetweenReady와 취소 phase 조건 대조. HTML 구조·리소스/문서 최신화/ZIP CRC 확인.
+대상: Duels.html/README/PATCH LOG/project.json/DIVIDE TASKS.
+
+
 ## 스야 은신 지속시간 호게이지 — 3.0.0-character.353 (2026-10-19)
 
 은신 상태의 실제 startedAt/expiresAt를 읽어 남은4초를 본인 공용 호게이지에 표시. 시전 즉시100%에서 감소하며 재사용/감지/스테미나 고갈/시간 종료로 은신 상태가 사라지면 호도 제거. 공용 링 배치를 사용하여 상태/반격 활성 링과 같은 슬롯 정책 적용. 기존 점선 감지 원과 공격 강화 칸수는 유지. optional 범용 값참조 state-duration-remaining을 추가하며 캐릭터ID 분기 없음.

@@ -28,6 +28,7 @@ const NeutralizingKnockbackService=Object.freeze({
     module
   }={}){
     if(!source||!target||!module)return false;
+    if(source!==target&&typeof CCService!=='undefined'&&CCService.isImmune?.(target))return false;
 
     // 같은 대상에 기존 무력화 넉백이 남아있다면
     // 이전 이동 종료 처리를 먼저 확정한다.

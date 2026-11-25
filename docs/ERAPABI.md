@@ -1,3 +1,9 @@
+## 파비 반격 벽 차단 — 3.0.0-character.371 (2026-11-01)
+
+원인: 앞쪽 부채꼴과200ms 뒤 뒤쪽 부채꼴 모두 wallPolicy ignore로 선언되어 벽 너머 피해/무력화 넉백/이펙트가 발생. 두 delivery.area를 기존 공용 block 정책으로 수정. 실제 판정·미리보기·이펙트는 같은 벽 차단 geometry 사용. 스킬 파비 레이저의 관통과 기존 반격 피해240/범위/간격 유지. 전용 분기/새 모듈 없음.
+검증: 수정 전 실제 counter 선딜 후 벽 뒤240피해 재현. 수정 후 앞/뒤 벽 뒤 무피해·무넉백, 벽 없으면 각각240 및 넉백, 앞뒤 실제 이펙트 polygon 차단 확인. 기존 파비 회귀 및 build/docs/check/verify/runtime구문/ZIP CRC 통과. 실제 온라인 브라우저 플레이 미실시.
+대상: erapabi.js/test-erapabi-wall371/docs/ERAPABI·README/PATCH LOG/project.json/DIVIDE TASKS/생성runtime.
+
 # 에라 파비 현재 계약 — 3.0.0-character.201
 
 ## 최신 조정 — character.202

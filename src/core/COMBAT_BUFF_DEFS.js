@@ -2,6 +2,7 @@
 
 
 const COMBAT_BUFF_DEFS=Object.freeze({
+  statusImmunity:Object.freeze({label:'CC IMMUNITY',clearAdverseOnApply:true,limitMode:'flat',toggleOnly:true}),
   damage:Object.freeze({label:'DAMAGE',min:-.90}),
   defense:Object.freeze({label:'DEFENSE',max:.90}),
   speed:Object.freeze({label:'SPEED',min:-.90}),

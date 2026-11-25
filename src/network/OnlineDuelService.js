@@ -1358,6 +1358,7 @@ charRow.appendChild(card);
       maxHealth:player.maxHealth,
       shield:ShieldService.current(player),
       stamina:player.stamina,
+      staminaSpentTotal:StaminaService.spentTotal(player),
       maxStamina:player.maxStamina,
       commandOverclockActive:
         player._commandOverclock?.active===true,
@@ -1413,6 +1414,7 @@ charRow.appendChild(card);
         Training.player===player
           ?Training.aimAngle()
           :0,
+      weaponMovementAngle:typeof ModeGearPresentationService!=='undefined'?ModeGearPresentationService.synchronizedMovementAngle(player):undefined,
       lastMovementInputAngle:player.lastMovementInputAngle!=null&&Number.isFinite(Number(player.lastMovementInputAngle))
         ?Number(player.lastMovementInputAngle):null,
       aimTargetPoint:
@@ -2965,6 +2967,7 @@ charRow.appendChild(card);
         );
       }
       remote.alive=payload.alive!==false;
+      StaminaService.receiveSpentTotal(remote,payload.staminaSpentTotal,performance.now());
       remote._recordPoints=
         Math.max(
           0,
@@ -2974,6 +2977,9 @@ charRow.appendChild(card);
         );
       if(Number.isFinite(Number(payload.aimAngle))){
         remote._remoteAimAngle=Number(payload.aimAngle);
+      }
+      if(typeof payload.weaponMovementAngle==='number'&&Number.isFinite(payload.weaponMovementAngle)){
+        remote._remoteWeaponMovementAngle=payload.weaponMovementAngle;
       }
       if(payload.lastMovementInputAngle!=null&&Number.isFinite(Number(payload.lastMovementInputAngle))){
         remote.lastMovementInputAngle=Number(payload.lastMovementInputAngle);

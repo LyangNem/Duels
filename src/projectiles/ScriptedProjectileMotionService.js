@@ -51,7 +51,12 @@ const ScriptedProjectileMotionService=Object.freeze({
       projectile.vy=0;
       if(progress>=1){
         GameEvents.emit('scripted-projectile-arrived',{projectile,target,motion,now});
-        ProjectileStateService.remove(projectile);
+        if(motion.finishReason){
+          projectile.targetPoint={x:Number(target.x)||0,y:Number(target.y)||0};
+          const hit=TargetPointProjectileService.arrived(projectile);
+          ProjectileService.finish(projectile,hit===true,String(motion.finishReason));
+          ProjectileStateService.remove(projectile);
+        }else ProjectileStateService.remove(projectile);
       }
       return true;
     }

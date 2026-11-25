@@ -165,6 +165,7 @@ const AttackModuleService=Object.freeze({
     return {
       speed:Math.max(0,Number(module.speed)||0),
       launchDelay:Math.max(0,Number(module.delay)||0),
+      selfArc:module.selfArc||null,
       targetPointTravelDuration:Math.max(
         0,
         Number(module.targetPointTravelDuration)||0
@@ -691,6 +692,20 @@ const AttackModuleService=Object.freeze({
     for(const module of spec.modules||[]){
       const type=this.type(module);
 
+      if(type==='delivery.target-volley'){
+        if(!EntitySimulationAuthorityService.isLocal(source))continue;
+        const attack=AbilityService.attackById(source.character,module.attackId);
+        if(!attack)continue;
+        const key='target-volley:'+module.attackId;
+        if(AttackExecutionService.hasEffect(volley?.execution,key))continue;
+        AttackExecutionService.markEffect(volley?.execution,key);
+        const targets=[...EntityService.items.values()].filter(target=>target?.alive&&!target.hidden&&
+          (module.targetRelations||['enemy']).includes(RelationService.relation(source,target))&&
+          (!Array.isArray(module.targetKinds)||module.targetKinds.includes(target.kind)));
+        for(const target of targets)TriggeredAttackService.execute(source,attack,Math.atan2(target.y-source.y,target.x-source.x),{targetPoint:{x:target.x,y:target.y},targetEntityId:target.id});
+        continue;
+      }
+
       if(type==='summon.cluster-spawn'){
         if(EntitySimulationAuthorityService.isLocal(source)){
           const key=`cluster-spawn:${String(module.summonKey||'')}`;
@@ -921,7 +936,7 @@ const AttackModuleService=Object.freeze({
           };
           const launch=()=>{
             if(!source?.alive)return;
-            ProjectileService.spawn({
+            const launched=ProjectileService.spawn({
               source,
               attack:spec,
               volley,
@@ -943,6 +958,10 @@ const AttackModuleService=Object.freeze({
               projectile:launchProjectile,
               behavior:ProjectileModuleService.config(spec)
             });
+            if(launched&&launchProjectile.selfArc&&targetDistance<.001){
+              launched.scriptedMotion={mode:'anchored-arc',targetEntityId:source.id,startedAt:performance.now(),duration:Math.max(1,Number(launchProjectile.selfArc.duration)||520),height:Math.max(0,Number(launchProjectile.selfArc.height)||96),finishReason:'target-point'};
+              launched.vx=0;launched.vy=0;launched.persistent=true;launched.expireAtRange=false;
+            }
           };
 
           if(projectile.launchDelay>0){
@@ -1113,6 +1132,7 @@ const AttackModuleService=Object.freeze({
               repeatCount<=1
                 ?.5
                 :repeatIndex/(repeatCount-1);
+            if(source.attackPreview?.deliveryExecution===volley.execution)source.attackPreview=null;
             let commitBaseAngle=baseAngle;
             if(String(module.aimMode||'locked')==='live-source'){
               if(
@@ -1213,6 +1233,12 @@ const AttackModuleService=Object.freeze({
           if(areaDelay<=0){
             executeArea();
           }else{
+            if(module.previewDuringDelay===true&&repeatIndex===0&&EntitySimulationAuthorityService.isLocal(source)){
+              const preview=AttackPreviewService.fromAttack(source,spec,baseAngle,performance.now()+areaDelay,source.attackPreview,{includeDeliveryAreas:true});
+              preview.deliveryExecution=volley.execution;
+              preview.liveTracking={attackId:spec.id,preparedAttack:spec,aimMode:String(module.aimMode||'locked'),followSource:true,includeDeliveryAreas:true,angle:baseAngle};
+              source.attackPreview=preview;
+            }
             const interruptibleWindup=
               Math.max(
                 0,
@@ -1639,6 +1665,7 @@ const AttackModuleService=Object.freeze({
     }
 
     if(effect.damage){
+      if(Number.isFinite(Number(spec.resolvedChargeProgress)))effect.damage={...effect.damage,resolvedChargeProgress:Number(spec.resolvedChargeProgress)};
       effect.damage={
         ...effect.damage,
         attack:spec
@@ -1656,9 +1683,9 @@ const AttackModuleService=Object.freeze({
     ){
       effect.damage={
         ...effect.damage,
-        extraModules:execution.extraModules.map(
+        extraModules:[...(effect.damage.extraModules||[]),...execution.extraModules.map(
           extra=>EffectSpawnService.definitionSnapshot(extra)
-        )
+        )]
       };
     }
 
@@ -2062,7 +2089,7 @@ const AttackModuleService=Object.freeze({
     }
     return instance;
   },
-  onDeliveryResolved(source,spec,angle,execution,deliveryModule=null){
+  onDeliveryResolved(source,spec,angle,execution,deliveryModule=null,result={}){
     if(!source||!spec||!execution)return false;
     const deliveryIndex=(spec.modules||[]).indexOf(deliveryModule);
     const key=`delivery-resolved:${deliveryIndex}`;
@@ -2076,10 +2103,15 @@ const AttackModuleService=Object.freeze({
         !TriggerModuleService.matches(
           {type:'trigger',event:'attack.delivery-resolved',conditions:module.conditions},
           'attack.delivery-resolved',
-          {source,attack:spec,execution,angle,deliveryModule,now:performance.now()}
+          {source,attack:spec,execution,angle,deliveryModule,deliveryHitCount:result.hitCount,now:performance.now()}
         )
       )return;
       const type=this.type(module);
+      if(type==='status.apply'&&module.recipient==='source'&&module.status){
+        if(!EntitySimulationAuthorityService.isLocal(source))return;
+        changed=CombatStatusApplicationService.apply({source,target:source,type:String(module.status),duration:Math.max(0,Number(module.duration)||0),sourceId:source.id,data:{...(module.data||{}),sourceEntityId:source.id}})||changed;
+        return;
+      }
       if(type==='mode.set'){
         ModeStateService.set(
           source,
@@ -2272,6 +2304,7 @@ const AttackModuleService=Object.freeze({
             runtimeDistance,
             targetPoint,
             trajectory:this.module(spec,'trajectory.arc'),
+            targetEntityId:execution?.targetEntityId||null,
             executionSequence:
               Math.max(
                 0,
@@ -3182,6 +3215,17 @@ const AttackModuleService=Object.freeze({
     });
 
     this.forEachModule(spec,execution,module=>{
+      if(this.type(module)==='resource.restore'&&module.when==='on-hit'&&module.recipient==='source'){
+        const relations=module.targetRelations;
+        if(Array.isArray(relations)&&!relations.includes(relation))return;
+        if(module.excludeTargetKinds?.includes(String(target.kind||'')))return;
+        if(!this.hitConditionMatches(source,target,spec,execution,attackAngle,module,{beforeHitStatuses}))return;
+        const key=`restore:${module.resource||'health'}:source`;
+        if(module.oncePerExecution!==false&&AttackExecutionService.hasEffect(execution,key))return;
+        ResourceRestoreEffectService.apply({source,target,module,defaultRecipient:'source',reason:'friendly-source-on-hit',now:performance.now()});
+        if(module.oncePerExecution!==false)AttackExecutionService.markEffect(execution,key);
+        applied=true;return;
+      }
       if(
         this.type(module)!=='modifier.set'||
         module.when!=='on-hit'||
@@ -3280,6 +3324,9 @@ const AttackModuleService=Object.freeze({
         )
       )return;
 
+      if(source!==target&&typeof CCService!=='undefined'&&CCService.isImmune?.(target)&&
+        (type==='movement.knockback'||type==='movement.neutralize-knockback'||type==='movement.pull'||type==='movement.projectile-tether'||
+          type==='modifier.set'&&Number(module.value)<0&&module.recipient==='target'))return;
       const hitPhase=String(deliveryModule?.phase||'');
       if(
         module?.when==='on-projectile-outbound-hit'&&
@@ -3638,6 +3685,7 @@ const AttackModuleService=Object.freeze({
         const recipient=recipientType==='source'?source:target;
 
         if(!recipient)return;
+        if(recipientType==='target'&&!EntitySimulationAuthorityService.isLocal(target))return;
         if(recipientType==='source'&&!sourceOnHitMayResolveLocally)return;
 
         const recipientKey=recipientType==='source'
@@ -3811,7 +3859,7 @@ const AttackModuleService=Object.freeze({
           module.when==='on-projectile-outbound-hit'||
           module.when==='on-projectile-return-hit'
         )&&
-        sourceOnHitMayResolveLocally
+        (sourceOnHitMayResolveLocally||(sourceAuthoritative&&relation!=='enemy'))
       ){
         const key=`source-move:${module.target?.stateKey||module.target||'hit-target'}`;
         if(module.oncePerExecution&&AttackExecutionService.hasEffect(execution,key))return;
@@ -3838,6 +3886,7 @@ const AttackModuleService=Object.freeze({
             moveAngle,
             {
               runtimeDistance:distance,
+              targetEntityId:target?.id||null,
               angle:moveAngle
             }
           );
@@ -3910,6 +3959,10 @@ const AttackModuleService=Object.freeze({
       }
 
       if(type==='status.clear'&&module.status){
+        if(module.status==='all'){
+          if(EntitySimulationAuthorityService.isLocal(target))CCService.clearAdverse(target);
+          return;
+        }
         const key=`status-clear:${module.status}:${target.id}`;
         if(
           module.oncePerExecution&&
@@ -3929,6 +3982,7 @@ const AttackModuleService=Object.freeze({
       }
 
       if(type==='status.apply'&&module.status){
+        if(module.when==='after-delivery')return;
         if(!this.progressConditionsMatch(source,target,module,{
           attack:spec,
           execution,
