@@ -325,6 +325,7 @@ const EffectSpawnService=Object.freeze({
           ?AbilityService.attackById(source.character,damage.attackId)
           :null);
       if(attack){
+        if(attack.charge&&Number.isFinite(Number(damage.resolvedChargeProgress)))attack=ChargedAttackService.dynamicSpec(attack,Number(damage.resolvedChargeProgress));
         if(damage.snapshotAttackScalars===true&&damage.attackScalars){
           const scalars=damage.attackScalars;
           attack={...attack,
@@ -390,6 +391,16 @@ const EffectSpawnService=Object.freeze({
       effect.damage?.oncePerExecution!==false&&
       state.execution.hitTargets.has(target.id)
     )return false;
+
+    const module=effect.damage?.module;
+    if(module?.applyHitEffects===true&&RelationService.relation(source,target)!=='enemy'){
+      if(!AreaAttackService.canApplyHitEffects(target))return false;
+      state.execution.hitTargets.add(target.id);
+      AttackModuleService.onHit(source,target,state.attack,
+        {execution:state.execution,hits:0,total:1,resolved:0,finished:false},
+        Number(effect.angle)||0,module);
+      return true;
+    }
 
     const effectOrigin={
       mode:'point',
@@ -474,18 +485,13 @@ const EffectSpawnService=Object.freeze({
       mode!=='progressive-rect'
     )return false;
 
-    const cx=Number(effect.x)||Number(source.x)||0;
-    const cy=Number(effect.y)||Number(source.y)||0;
+    const cx=Number.isFinite(Number(effect.x))?Number(effect.x):(Number(source.x)||0);
+    const cy=Number.isFinite(Number(effect.y))?Number(effect.y):(Number(source.y)||0);
     const module=damage.module||null;
     let hitAny=false;
 
     if(mode==='progressive-rect'){
-      const range=Math.max(
-        0,
-        Number(module?.range)||
-        Number(effect.range)||
-        0
-      );
+      const range=Math.min(Math.max(0,Number(module?.range)||Number(effect.range)||0),Math.max(0,Number(effect.range)||0));
       const halfWidth=Math.max(
         0,
         Number(module?.halfWidth)||
@@ -514,7 +520,9 @@ const EffectSpawnService=Object.freeze({
       const cos=Math.cos(angle);
       const sin=Math.sin(angle);
 
-      if(state.deliveryInteractionResolved)return false;
+      // A completed delivery may fade visually, but must not hit again after
+      // handing the attack off to its followup projectile.
+      if(state.deliveryInteractionResolved||state.deliveryFollowupResolved)return false;
       let interaction=null;
       if(damage.interactionAttackId){
         if(!state.interactionAttack){
@@ -564,7 +572,7 @@ const EffectSpawnService=Object.freeze({
 
       if(damage.projectileClearOnly===true)return hitAny;
 
-      EntityService.forEachEnemy(source,target=>{
+      const visitTarget=target=>{
         if(
           damage.oncePerExecution!==false&&
           state.execution.hitTargets.has(target.id)
@@ -581,16 +589,10 @@ const EffectSpawnService=Object.freeze({
         if(along+radius<previousLength)return;
         if(along-radius>currentLength)return;
         if(along+radius<0||along-radius>range)return;
-        if(
-          module?.wallPolicy!=='ignore'&&
-          WorldGeometryService.segmentBlocked(
-            cx,
-            cy,
-            point.x,
-            point.y,
-            0
-          )
-        )return;
+        // Use exactly the visible clipped rectangle, including rounded body overlap at corners.
+        const nearestAlong=Math.max(previousLength,Math.min(currentLength,along));
+        const nearestAcross=Math.max(-halfWidth,Math.min(halfWidth,-dx*sin+dy*cos));
+        if(Math.hypot(along-nearestAlong,(-dx*sin+dy*cos)-nearestAcross)>radius)return;
 
         const contactLength=Math.max(
           previousLength,
@@ -601,7 +603,15 @@ const EffectSpawnService=Object.freeze({
           y:cy+sin*contactLength
         };
         if(this.effectDamageTarget(effect,target,impactPoint))hitAny=true;
-      },state.attack);
+      };
+      EntityService.forEachEnemy(source,visitTarget,state.attack);
+      if(module?.applyHitEffects===true&&Array.isArray(module.targetRelations)){
+        for(const target of EntityService.items.values()){
+          if(!target?.alive||target.hidden||target===source)continue;
+          const relation=RelationService.relation(source,target);
+          if(relation!=='enemy'&&module.targetRelations.includes(relation))visitTarget(target);
+        }
+      }
       if(interaction&&!state.deliveryHadContact&&ProjectileRedirectService.resolvePressureContact(source,state.interactionAttack,angle,{x:cx,y:cy},range,interaction,`pressure:${source.id}:${state.execution.sequence}`)){
         state.deliveryInteractionResolved=true;state.deliveryFollowupResolved=true;state.deliveryHadContact=true;
         effect.range=interaction.length;effect.damage={...damage,module:{...module,range:interaction.length}};

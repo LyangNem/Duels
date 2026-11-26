@@ -29,21 +29,21 @@
       "name": "폭약 카트리지",
       "attack": "lmb",
       "linkedAttack": "lmbExplosion",
-      "text": "폭약 카트리지를 투척하며 적중하거나 사거리 끝에 착탄({damage}/{linkedDamage})"
+      "text": "폭약 카트리지를 투척하며 적중하거나 사거리 끝에 착탄({damage}/{linkedMinDamage}~{linkedMaxDamage})"
     },
     {
       "key": "RMB",
       "name": "발파 폭약",
       "attack": "rmb",
       "linkedAttack": "rmbExplosion",
-      "text": "지정 지점에 폭약 투척. 폭발은 벽에 막히며 폭발이 닿은 벽 파괴 ({damage}/{linkedDamage})"
+      "text": "지정 지점에 폭약 투척. 폭발은 벽에 막히며 폭발이 닿은 벽 파괴 ({damage}/{linkedMinDamage}~{linkedMaxDamage})"
     },
     {
       "key": "L-Shift",
       "name": "폭약밭",
       "attack": "counter",
       "linkedAttack": "counterExplosion",
-      "text": "주변 {v:attacks.counter.modules.3.count}방향으로 폭약 카트리지 투척 ({damage}/{linkedDamage})"
+      "text": "주변 {v:attacks.counter.modules.3.count}방향으로 폭약 카트리지 투척 ({damage}/{linkedMinDamage}~{linkedMaxDamage})"
     }
   ],
   "attacks": {
@@ -208,7 +208,7 @@
     "rmb": {
       "id": "attack.terdion.rmb",
       "damageRatio": 2,
-      "cost": 800,
+      "cost": 650,
       "cd": 1200,
       "range": 500,
       "presentation": {
@@ -295,7 +295,7 @@
     },
     "rmbExplosion": {
       "id": "attack.terdion.rmb-explosion",
-      "damageRatio": 6,
+      "damageRatio": 4.5,
       "cost": 0,
       "cd": 0,
       "range": 180,

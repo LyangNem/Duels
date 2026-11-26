@@ -269,6 +269,7 @@ const AreaAttackService=Object.freeze({
   ){
     AttackModuleService.onDelivery(source,spec,angle,volley?.execution||null);
     const resolvedModule=module;
+    let predictedHits=0;
     const networkGeometryOrigin=
       !EntitySimulationAuthorityService.isLocal(source)&&
       (
@@ -391,6 +392,7 @@ const AreaAttackService=Object.freeze({
         )
       )continue;
 
+      if(effectiveModule.onlyExecutionTarget===true&&String(target.id)!==String(volley?.execution?.targetEntityId||''))continue;
       const sourceOwner=
         EntityService.owner(source);
       const targetOwner=
@@ -548,6 +550,8 @@ const AreaAttackService=Object.freeze({
         }
       });
 
+      if(result.hit&&result.authoritative===false)predictedHits++;
+
       if(
         result.hit&&
         result.authoritative!==false&&
@@ -580,7 +584,8 @@ const AreaAttackService=Object.freeze({
       spec,
       resolvedAngle,
       volley?.execution||null,
-      module
+      module,
+      {hitCount:volley.hits+predictedHits}
     );
     volley.resolved=volley.total;
     volley.finished=true;

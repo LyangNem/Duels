@@ -7,7 +7,7 @@ function value(code){return run(code)}
 start('peluna');run('Training.dummy.x=1500;AttackService.execute(Training.player,Training.player.character.attacks.counter,0)');assert.equal(value("ProgressStateService.state(Training.player,'peluna-forge-time').value"),9000);
 run("ProgressStateService.apply(Training.player,{stateKey:'peluna-forge-time',operation:'reset'});AttackService.execute(Training.player,Training.player.character.attacks.counterStage3,0)");assert.equal(value("ProgressStateService.state(Training.player,'peluna-forge-time').value"),9000);
 console.log('PASS Peluna missed counter and enhanced counter both grant stage3');
-for(const [id,key,cost,damage] of [['meramona','lmb',300,150],['meramona','lmbStage1',300,150],['meramona','lmbStage3',300,150],['meramona','rmb',0,0],['hab','rmb',500,150],['cyien','lmbSecond',0,100],['yui','lmb',250,300],['latis','lmb',150,200],['shello','rmb',200,0]]){
+for(const [id,key,cost,damage] of [['meramona','lmb',300,150],['meramona','lmbStage1',300,150],['meramona','lmbStage3',300,150],['meramona','rmb',0,0],['hab','rmb',500,150],['cyien','lmbSecond',0,100],['yui','lmb',250,300],['latis','lmb',200,200],['shello','rmb',200,0]]){
  assert.equal(value(`GAME_DATA.characters.${id}.attacks.${key}.cost`),cost);
  assert.equal(value(`GAME_DATA.characters.${id}.attacks.${key}.damageRatio*GAME_DATA.characters.${id}.baseDamage`),damage);
 }
@@ -15,7 +15,7 @@ assert.equal(value('GAME_DATA.characters.hapupu.maxHealth'),1000);
 assert.equal(value('GAME_DATA.characters.maisil.attacks.lmbCritical.modules[0].halfAngle'),.16755160819145565*.6);
 assert.equal(value('GAME_DATA.characters.mainmad.attacks.lmb.charge.duration'),1000);
 assert.equal(value("GAME_DATA.characters.shello.attacks.rmb.modules.find(m=>m.type==='attack.guard').duration"),300);
-assert.equal(value("GAME_DATA.characters.dazbin.attacks.rmb.modules.find(m=>m.type==='delivery.range-projectile').radius"),180);
+assert.equal(value("GAME_DATA.characters.dazbin.attacks.rmb.modules.find(m=>m.type==='delivery.range-projectile').radius"),216);
 assert.equal(value('GAME_DATA.characters.ki.attacks.rmb.modules[0].range'),399.05);
 assert.equal(value("GAME_DATA.characters.ki.attacks.lmbFinal.modules.some(m=>m.type==='resource.restore'||m.travelToken===true)"),false);
 console.log('PASS requested costs, damage, health, central critical angle, guard, radius and forecast');

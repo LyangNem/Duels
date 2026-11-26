@@ -63,7 +63,7 @@
       "key": "L-Shift",
       "name": "단독 사냥",
       "attack": "counter",
-      "text": "빠르게 돌진해 기절. 적중 시 무력화 후 정지하며 5회 범위 공격. 마지막에 무력화 및 강한 넉백 (타당 {linkedDamage})",
+      "text": "빠르게 돌진해 기절. 적중 시 정지하며 5회 범위 공격. 마지막에 강한 넉백 (타당 {linkedDamage})",
       "linkedAttack": "huntSector"
     }
   ],

@@ -583,6 +583,7 @@ const MovementAbilityService=Object.freeze({
         module.trajectory||
         null,
       followup:options.followup||null,
+      targetEntityId:String(options.targetEntityId||''),
       deferAttacksUntilEnd:
         module.deferAttacksUntilEnd===true,
       blocksAction:
@@ -785,7 +786,7 @@ const MovementAbilityService=Object.freeze({
           entity,
           attack,
           Number(state.angle)||0,
-          {hitGroupSequence:state.onEndShareHitTargets===true?state.executionSequence:null}
+          {targetEntityId:state.targetEntityId||null,hitGroupSequence:state.onEndShareHitTargets===true?state.executionSequence:null}
         );
       }
     }

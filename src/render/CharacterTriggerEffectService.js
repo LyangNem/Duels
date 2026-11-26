@@ -41,6 +41,7 @@ const CharacterTriggerEffectService=Object.freeze({
         performance.now()
     };
 
+    if(typeof ConditionalTargetLinkPresentationService!=='undefined')ConditionalTargetLinkPresentationService.notifyEvent(entity,event,shared);
     for(const trigger of entity?.character?.triggers||[]){
       if(trigger?.event!==event)continue;
       if(

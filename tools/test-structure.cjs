@@ -17,7 +17,7 @@ load('src/data/AUGMENTS.js','AUGMENTS');
 c.AbilityService={attackById:(ch,id)=>Object.values(ch.attacks||{}).find(a=>a.id===id)};
 function walk(v,fn){assert.notEqual(typeof v,'function');if(!v||typeof v!=='object')return;fn(v);for(const x of Object.values(v))walk(x,fn)}
 test('65명 함수 없는 데이터·동결·Trigger·반격 및 공격 참조 검사',()=>{
- assert.equal(Object.keys(chars).length,66);assert.equal(chars.yoo,undefined);assert.equal(fs.existsSync(path.join(root,'src/data/characters/yoo.js')),false);
+ assert.equal(Object.keys(chars).length,69);assert.equal(chars.yoo,undefined);assert.equal(fs.existsSync(path.join(root,'src/data/characters/yoo.js')),false);
  for(const ch of Object.values(chars)){
   assert.ok(Object.isFrozen(ch));const attacks=Object.values(ch.attacks||{});const ids=new Set(attacks.map(a=>a.id));assert.equal(ids.size,attacks.length,ch.name);
   walk(ch,m=>{if(m.type==='counter.execute'){assert.ok(c.CounterModuleService.validate(m),ch.name);assert.equal(m.allowNoCc,undefined);if(m.ccRefAttackId)assert.ok(c.CounterModuleService.referencedCc({character:ch},m),ch.name)}if(m.type==='attack.execute')assert.ok(ids.has(m.attackId),ch.name+':'+m.attackId)});

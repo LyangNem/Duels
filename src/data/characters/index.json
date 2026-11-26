@@ -262,8 +262,20 @@
       "path": "src/data/characters/latis.js"
     },
     {
-      "before": ",\n  kasha: ",
-      "path": "src/data/characters/kasha.js"
+      "before": ",\n  bell: ",
+      "path": "src/data/characters/bell.js"
+    },
+    {
+      "before": ",\n  lunet: ",
+      "path": "src/data/characters/lunet.js"
+    },
+    {
+      "before": ",\n  airi: ",
+      "path": "src/data/characters/airi.js"
+    },
+    {
+      "before": ",\n  gereta: ",
+      "path": "src/data/characters/gereta.js"
     }
   ],
   "suffix": ",\n});"

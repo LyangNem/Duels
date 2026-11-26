@@ -438,6 +438,8 @@ const InstalledAreaFieldService=Object.freeze({
     now
   ){
     if(!module||!target)return false;
+    if(Array.isArray(module.targetRelations)&&!module.targetRelations.includes(RelationService.relation(source,target)))return false;
+    if(Array.isArray(module.conditions)&&!module.conditions.every(condition=>TriggerConditionService.matches(condition,{source,target,attack:state.attack,now})))return false;
 
     if(module.type==='health.start-natural-regen'){
       if(!EntitySimulationAuthorityService.isLocal(target)||target.kind!=='player')return false;
@@ -664,7 +666,7 @@ const InstalledAreaFieldService=Object.freeze({
     let triggered=false;
     let hit=false;
 
-    if(state.attack){
+    if(state.attack&&RelationService.relation(source,target)==='enemy'){
       const targetKey=this.targetKey(target);
       const alreadyDamagedInExecution=
         state.module?.skipIfExecutionAlreadyDamagedTarget===true&&

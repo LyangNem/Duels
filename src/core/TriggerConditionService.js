@@ -36,8 +36,23 @@ const TriggerConditionService=Object.freeze({
     const source=context.source||context.entity||null;
     const now=Number(context.now)||performance.now();
 
+    if(condition.type==='delivery.hit-count-lte')return Number.isFinite(context.deliveryHitCount)&&context.deliveryHitCount<=Number(condition.value);
+    if(condition.type==='target.nearest-enemy'){
+      const target=context.target,kinds=condition.targetKinds;
+      const eligible=e=>e?.alive&&e!==source&&RelationService.relation(source,e)==='enemy'&&
+        (!Array.isArray(kinds)||kinds.includes(e.kind));
+      if(!source||!eligible(target))return false;
+      let nearest=null,distance=Infinity;
+      for(const candidate of EntityService.items.values()){
+        if(!eligible(candidate))continue;
+        const d=(candidate.x-source.x)**2+(candidate.y-source.y)**2;
+        if(d<distance||(d===distance&&String(candidate.id)<String(nearest?.id))){nearest=candidate;distance=d;}
+      }
+      return nearest===target;
+    }
     if(condition.type==='cause.source-is-self')return !!source&&!!context.cause?.source&&EntityService.owner(context.cause.source)===EntityService.owner(source);
     if(condition.type==='condition.any')return (condition.conditions||EMPTY_RUNTIME_ITEMS).some(item=>this.matches(item,context));
+    if(condition.type==='target.health-ratio-gte')return !!context.target&&Number(context.target.maxHealth)>0&&Number(context.target.health)/Number(context.target.maxHealth)>=Number(condition.value);
     if(condition.type==='target.health-ratio-lt-source'){
       const target=context.target;
       const snapshot=context.targetHealthSnapshots?.[String(target?.id||'')];

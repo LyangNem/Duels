@@ -294,6 +294,7 @@ const CounterModuleService=Object.freeze({
     );
 
     source.counterWindup={
+      networkReplay:context.network===true,
       abilityId:context.ability.id,
       startedCharacterId:
         String(source.character?.id||''),
@@ -860,6 +861,7 @@ const CounterModuleService=Object.freeze({
       windup.angle,
       {
         completedWindup:true,
+        networkReplay:windup.networkReplay===true,
         extraModules:resolvedCounterCc?[resolvedCounterCc]:[],
         targetPoint:
           windup.targetPoint&&

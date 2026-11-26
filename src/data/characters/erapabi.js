@@ -156,7 +156,7 @@
             shape: "sector",
             range: characterValue("attacks.counter.range"),
             halfAngle: 1.8849555921538759,
-            wallPolicy: "ignore"
+            wallPolicy: "block"
           },
           {
             type: "delivery.area",
@@ -165,7 +165,7 @@
             halfAngle: 1.8849555921538759,
             angleOffset: 3.141592653589793,
             delay: 200,
-            wallPolicy: "ignore"
+            wallPolicy: "block"
           }
         ],
         tags: ["반격"]

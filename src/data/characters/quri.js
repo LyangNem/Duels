@@ -670,6 +670,7 @@
     "lmb": {
       "id": "ability.quri.lmb",
       "input": "lmb",
+      "inputPolicy": {"blockRepeatWithinFormulaRange": true},
       "attackId": "attack.quri.lmb",
       "trigger": {
         "type": "trigger",
