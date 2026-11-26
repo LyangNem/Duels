@@ -1871,7 +1871,7 @@ function freezeCharacterData(value){
 const CHARACTER_RULES=freezeCharacterData({
   weaponPresentation: {transientMs: 800},
   styles: {"1": "파워형", "2": "기동형", "3": "지속전투형", "4": "차징형", "5": "조건형", "6": "반격형", "7": "성장형", "8": "범위장악형", "9": "행동제약형"},
-  moveLabels: {"gereta":"보통", "airi":"느림", "lunet":"보통", "bell":"빠름", "latis":"빠름", "lena":"빠름", "huri":"빠름", "hab":"느림", "siro":"매우 빠름", "geopin":"느림", "shubi":"보통", "ruvu":"보통", "miaruky":"느림", "mainmad":"빠름", "mehugu":"보통", "lian":"빠름", "tau":"빠름", "veleu":"매우 빠름", "elin":"느림", "nsonya":"매우 빠름", "maisil":"빠름", "erapabi":"빠름", "reika":"느림", "shairaz":"느림", "phase":"보통", "kan":"매우 빠름", "cherity":"매우 느림", "konyeong":"빠름", "herjang":"보통", "hatsuhats":"보통", "prill":"보통", "dazbin":"빠름", "yui":"빠름", "peluna":"빠름", "sherina":"느림", "sya":"매우 빠름", "runef":"보통", "roon":"빠름", "intu":"빠름", "meramona":"보통", "tadta":"매우 느림", "nanamnang":"느림", "raise":"빠름", "levina":"매우 빠름", "ki":"빠름", "sor":"보통", "jerry":"느림", "ruli":"보통", "lete":"빠름", "clea":"빠름", "shello":"빠름", "tinya":"느림", "lime":"보통", "quri":"보통", "hapupu":"매우 빠름", "atsuteo":"보통", "nare":"빠름", "kines":"보통", "ezrail":"보통", "nyu":"매우 빠름", "gae":"느림", "cyien":"빠름", "kanon":"빠름", "deltroove":"빠름", "xianelli":"빠름", "ban":"빠름", "sherbet":"보통", "dira":"보통"},
+  moveLabels: {"kasha":"느림", "latis":"빠름", "lena":"빠름", "huri":"빠름", "hab":"느림", "siro":"매우 빠름", "geopin":"느림", "shubi":"보통", "ruvu":"보통", "miaruky":"느림", "mainmad":"빠름", "mehugu":"보통", "lian":"빠름", "tau":"빠름", "veleu":"매우 빠름", "elin":"느림", "nsonya":"매우 빠름", "maisil":"빠름", "erapabi":"빠름", "reika":"느림", "shairaz":"느림", "phase":"보통", "kan":"매우 빠름", "cherity":"매우 느림", "konyeong":"빠름", "herjang":"보통", "hatsuhats":"보통", "prill":"보통", "dazbin":"빠름", "yui":"빠름", "peluna":"빠름", "sherina":"느림", "sya":"매우 빠름", "runef":"보통", "roon":"빠름", "intu":"빠름", "meramona":"보통", "tadta":"매우 느림", "nanamnang":"느림", "raise":"빠름", "levina":"매우 빠름", "ki":"빠름", "sor":"보통", "jerry":"느림", "ruli":"보통", "lete":"빠름", "clea":"빠름", "shello":"빠름", "tinya":"느림", "lime":"보통", "quri":"보통", "hapupu":"매우 빠름", "atsuteo":"보통", "nare":"빠름", "kines":"보통", "ezrail":"보통", "nyu":"매우 빠름", "gae":"느림", "cyien":"빠름", "kanon":"빠름", "deltroove":"빠름", "xianelli":"빠름", "ban":"빠름", "sherbet":"보통", "dira":"보통"},
   roles: {"1": "딜러", "2": "저격수", "3": "탱커", "4": "서포터", "5": "컨트롤러", "6": "암살자"},
   ranges: [
     {id: 1, maxInclusive: 150, tag: "초근거리"},
@@ -3000,8 +3000,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "from": {
             "$ref": "attacks.lmb.damageRatio"
           },
-          "to": 6,
-          "step": 0.5
+          "to": 6
         },
         "range": {
           "from": {
@@ -7315,7 +7314,7 @@ const CHARACTER_DATA=freezeCharacterData({
             shape: "sector",
             range: characterValue("attacks.counter.range"),
             halfAngle: 1.8849555921538759,
-            wallPolicy: "block"
+            wallPolicy: "ignore"
           },
           {
             type: "delivery.area",
@@ -7324,7 +7323,7 @@ const CHARACTER_DATA=freezeCharacterData({
             halfAngle: 1.8849555921538759,
             angleOffset: 3.141592653589793,
             delay: 200,
-            wallPolicy: "block"
+            wallPolicy: "ignore"
           }
         ],
         tags: ["반격"]
@@ -10351,7 +10350,7 @@ const CHARACTER_DATA=freezeCharacterData({
         "module": "summon.toggle",
         "property": "activeCommand.cost"
       },
-      "text": "설치된 대포가 조준 위치를 향해 포탄 {burstCount}발 점사 (탄당 {damage})"
+      "text": "설치된 대포가 조준 위치를 향해 슬로우 포탄 {burstCount}발 점사 (탄당 {damage})"
     },
     {
       "key": "L-Shift",
@@ -10460,7 +10459,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 24.0,
+          "speed": 20,
           "radius": 10
         },
         {
@@ -10502,7 +10501,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 23.04,
+          "speed": 19.2,
           "radius": 15
         },
         {
@@ -10524,7 +10523,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 25.92,
+          "speed": 21.6,
           "radius": 11
         },
         {
@@ -10537,6 +10536,17 @@ const CHARACTER_DATA=freezeCharacterData({
           "type": "projectile.pierce",
           "targets": false,
           "walls": true
+        },
+        {
+          "type": "status.apply",
+          "status": "slow",
+          "duration": 1500,
+          "data": {
+            "factor": {
+              "$ref": "statusDefaults.slow.factor"
+            },
+            "stackMode": "replace-source"
+          }
         }
       ],
       "tags": [
@@ -10718,6 +10728,11 @@ const CHARACTER_DATA=freezeCharacterData({
         ]
       }
     }
+  },
+  "statusDefaults": {
+    "slow": {
+      "factor": 0.5
+    }
   }
 },
   // 하츠하츠: 능력치 → 분류 → 기술·상태·소환·설명 (모든 수치는 이 블록에서 편집)
@@ -10794,8 +10809,7 @@ const CHARACTER_DATA=freezeCharacterData({
           "from": {
             "$ref": "attacks.lmb.damageRatio"
           },
-          "to": 3,
-          "step": 0.3333333333333333
+          "to": 3
         },
         "moduleValues": [
           {
@@ -12030,14 +12044,14 @@ const CHARACTER_DATA=freezeCharacterData({
     "lmb": {
       "id": "attack.dazbin.lmb",
       "damageRatio": 1,
-      "cost": 250,
+      "cost": 350,
       "cd": 380,
       "range": 650,
       "modules": [
         {
           "type": "delivery.projectile",
           "speed": 16.9,
-          "radius": 25,
+          "radius": 10,
           "homing": {
             "startTravelRatio": 0.3,
             "maxTurnPerFrame": 0.03,
@@ -12055,14 +12069,14 @@ const CHARACTER_DATA=freezeCharacterData({
     "rmb": {
       "id": "attack.dazbin.rmb",
       "damageRatio": 0.3333333333333333,
-      "cost": 500,
+      "cost": 700,
       "cd": 400,
       "range": 820,
       "modules": [
         {
           "type": "delivery.range-projectile",
           "speed": 7,
-          "radius": 216,
+          "radius": 180,
           "rehitInterval": 500,
           "proximitySpeed": {
             "active": 2,
@@ -18559,7 +18573,6 @@ const CHARACTER_DATA=freezeCharacterData({
     abilities: {
       lmb: {
         id: "ability.raise.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         input: "lmb",
         attackId: "attack.raise.lmb",
         trigger: {
@@ -19678,7 +19691,6 @@ const CHARACTER_DATA=freezeCharacterData({
       lmb: {
         id: "ability.ki.lmb",
         input: "lmb",
-        inputPolicy: {blockRepeatWhen: {stateKey: "ki-rmb-followup-lock"}},
         attackId: "attack.ki.lmb",
         trigger: {
           type: "trigger",
@@ -24190,7 +24202,6 @@ const CHARACTER_DATA=freezeCharacterData({
     "lmb": {
       "id": "ability.quri.lmb",
       "input": "lmb",
-      "inputPolicy": {"blockRepeatWithinFormulaRange": true},
       "attackId": "attack.quri.lmb",
       "trigger": {
         "type": "trigger",
@@ -31198,21 +31209,21 @@ const CHARACTER_DATA=freezeCharacterData({
       "name": "폭약 카트리지",
       "attack": "lmb",
       "linkedAttack": "lmbExplosion",
-      "text": "폭약 카트리지를 투척하며 적중하거나 사거리 끝에 착탄({damage}/{linkedMinDamage}~{linkedMaxDamage})"
+      "text": "폭약 카트리지를 투척하며 적중하거나 사거리 끝에 착탄({damage}/{linkedDamage})"
     },
     {
       "key": "RMB",
       "name": "발파 폭약",
       "attack": "rmb",
       "linkedAttack": "rmbExplosion",
-      "text": "지정 지점에 폭약 투척. 폭발은 벽에 막히며 폭발이 닿은 벽 파괴 ({damage}/{linkedMinDamage}~{linkedMaxDamage})"
+      "text": "지정 지점에 폭약 투척. 폭발은 벽에 막히며 폭발이 닿은 벽 파괴 ({damage}/{linkedDamage})"
     },
     {
       "key": "L-Shift",
       "name": "폭약밭",
       "attack": "counter",
       "linkedAttack": "counterExplosion",
-      "text": "주변 {v:attacks.counter.modules.3.count}방향으로 폭약 카트리지 투척 ({damage}/{linkedMinDamage}~{linkedMaxDamage})"
+      "text": "주변 {v:attacks.counter.modules.3.count}방향으로 폭약 카트리지 투척 ({damage}/{linkedDamage})"
     }
   ],
   "attacks": {
@@ -31377,7 +31388,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "rmb": {
       "id": "attack.terdion.rmb",
       "damageRatio": 2,
-      "cost": 650,
+      "cost": 800,
       "cd": 1200,
       "range": 500,
       "presentation": {
@@ -31464,7 +31475,7 @@ const CHARACTER_DATA=freezeCharacterData({
     },
     "rmbExplosion": {
       "id": "attack.terdion.rmb-explosion",
-      "damageRatio": 4.5,
+      "damageRatio": 6,
       "cost": 0,
       "cd": 0,
       "range": 180,
@@ -32491,7 +32502,7 @@ const CHARACTER_DATA=freezeCharacterData({
           {
             "type": "movement.path-carrier",
             "pathSource": "drag-path",
-            "speed": 1800,
+            "speed": 1200,
             "radius": 25,
             "pickupRange": 45,
             "targetRelations": [
@@ -33911,7 +33922,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "key": "L-Shift",
       "name": "단독 사냥",
       "attack": "counter",
-      "text": "빠르게 돌진해 기절. 적중 시 정지하며 5회 범위 공격. 마지막에 강한 넉백 (타당 {linkedDamage})",
+      "text": "빠르게 돌진해 기절. 적중 시 무력화 후 정지하며 5회 범위 공격. 마지막에 무력화 및 강한 넉백 (타당 {linkedDamage})",
       "linkedAttack": "huntSector"
     }
   ],
@@ -34894,7 +34905,7 @@ const CHARACTER_DATA=freezeCharacterData({
       "key": "L-Shift",
       "name": "앗, 셔!",
       "attack": "counter",
-      "text": "보드를 한 바퀴 휘둘러 주변에 피해 ({damage})"
+      "text": "보드를 한 바퀴 휘둘러 주변에 피해 및 무력화 넉백 ({damage})"
     }
   ],
   "attacks": {
@@ -35597,7 +35608,7 @@ const CHARACTER_DATA=freezeCharacterData({
     "role": 1
   },
   "stats": {
-    "maxHealth": 1200,
+    "maxHealth": 1300,
     "speed": 4.25,
     "radius": 20,
     "baseDamage": 150,
@@ -35627,14 +35638,14 @@ const CHARACTER_DATA=freezeCharacterData({
       "key": "L-Shift",
       "name": "내려치기",
       "attack": "counter",
-      "text": "낚싯대를 강하게 내려쳐 피해 ({damage})"
+      "text": "낚싯대를 강하게 내려쳐 피해 및 무력화 넉백 ({damage})"
     }
   ],
   "attacks": {
     "lmb": {
       "id": "attack.latis.lmb",
       "damageRatio": 1.3333333333333333,
-      "cost": 200,
+      "cost": 150,
       "cd": 450,
       "range": 225,
       "modules": [
@@ -35981,1672 +35992,324 @@ const CHARACTER_DATA=freezeCharacterData({
     }
   ]
 },
-  bell: {
-  "id": "bell",
-  "name": "벨",
-  "englishName": "Bell",
-  "title": "구조 대원",
-  "color": "#e8e6d9",
+  kasha: {
+  "id": "kasha",
+  "name": "카샤",
+  "englishName": "Kasha",
+  "title": "심판의 집행자",
+  "color": "#FFFF7D",
   "classification": {
-    "style": 3,
-    "range": 0,
-    "role": 4
+    "style": 6,
+    "range": 2,
+    "role": 1
   },
   "stats": {
-    "maxHealth": 900,
-    "speed": 4.25,
+    "maxHealth": 1300,
+    "speed": 3.75,
     "radius": 20,
-    "baseDamage": 100,
-    "difficulty": 2
+    "baseDamage": 150,
+    "difficulty": 4
   },
-  "desc": "설산에서 구조 임무를 맡고 있는 족제비 수인",
-  "tooltipSkills": [
+  "desc": "회피의 대가를 심판의 무게로 쌓아 거대한 집행검으로 응징하는 캐릭터",
+  "passives": [
     {
-      "key": "LMB",
-      "name": "삐이이!",
-      "attack": "lmb",
-      "text": "호루라기를 불어 전방에 피해 ({damage})",
-      "costText": "스테미나 {v:attacks.lmb.cost}"
-    },
-    {
-      "key": "LMB HOLD",
-      "name": "정신 차려요!",
-      "attack": "lmb",
-      "text": "{v:attacks.lmb.charge.duration|seconds}초 홀드 후 아군의 최대 체력 {v:attacks.lmb.charge.stages.1.spec.modules.0.damage.extraModules.0.maxResourceRatio|percent}% 회복 및 {v:attacks.lmb.charge.stages.1.spec.modules.0.damage.extraModules.1.duration|seconds}초 CC 면역",
-      "costText": "스테미나 {v:attacks.lmb.charge.costMax}"
-    },
-    {
-      "key": "RMB",
-      "name": "긴급 구조",
-      "attack": "rmb",
-      "text": "지정한 대상에게 벽을 통과하는 유도탄 발사. 아군 적중 시 해당 위치로 이동해 최대 체력 {v:attacks.rescueAid.modules.1.maxResourceRatio|percent}% 회복 및 {v:attacks.rescueAid.modules.2.duration|seconds}초 CC 면역. 도착 시 주변 적 넉백 ({damage})"
-    },
-    {
-      "key": "L-Shift",
-      "name": "마약성 진통제",
-      "attack": "counter",
-      "text": "약물을 발사해 적중 시 자신과 적중 아군의 최대 체력 {v:attacks.counter.modules.1.maxResourceRatio|percent}% 회복 및 {v:attacks.counter.modules.3.duration|seconds}초 CC 면역 ({damage})"
+      "type": "state.progress-rate",
+      "stateKey": "kasha-judgment",
+      "max": 10,
+      "initial": 0,
+      "ratePerSecond": 0,
+      "presentation": {
+        "type": "segmented-gauge",
+        "height": 4,
+        "gap": 2,
+        "valueMode": "count",
+        "activeAlpha": 0.95,
+        "background": "rgba(10,18,22,0.92)",
+        "stroke": "#FFFF7D",
+        "segments": [
+          {
+            "value": 1,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 2,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 3,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 4,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 5,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 6,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 7,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 8,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 9,
+            "color": "#FFFF7D"
+          },
+          {
+            "value": 10,
+            "color": "#FFFF7D"
+          }
+        ]
+      }
     }
   ],
-  "attacks": {
-    "lmb": {
-      "id": "attack.bell.lmb",
-      "damageRatio": 1,
-      "cost": 100,
-      "cd": 400,
-      "range": 450,
+  "triggers": [
+    {
+      "id": "kasha-enemy-dodge",
+      "type": "trigger",
+      "event": "enemy-just-dodge",
       "modules": [
         {
           "type": "effect.spawn",
-          "when": "after-attack",
-          "renderType": "progressRect",
-          "position": "source",
-          "range": 450,
-          "halfWidth": 52,
-          "growthSpeed": 1,
-          "travelSpeed": 3000,
-          "animation": true,
-          "clipToAttackArea": true,
-          "color": "#e8e6d9",
-          "strokeColor": "#e8e6d9",
-          "fillAlpha": 0.18,
-          "strokeAlpha": 0.9,
-          "lineWidth": 2.5,
-          "endCap": true,
-          "duration": 220,
-          "damage": {
-            "attackId": "attack.bell.lmb",
-            "hitMode": "progressive-rect",
-            "module": {
-              "type": "delivery.area",
-              "contactType": "melee",
-              "shape": "rect",
-              "range": 450,
-              "halfWidth": 52,
-              "wallPolicy": "block"
-            }
-          }
-        },
-        {
-          "type": "mode.toggle",
-          "when": "after-attack",
-          "stateKey": "bell-whistle",
-          "values": [
-            "a",
-            "b"
-          ]
-        }
-      ],
-      "tags": [
-        "평타"
-      ],
-      "charge": {
-        "duration": 1000,
-        "maxProgress": 1,
-        "costMin": 100,
-        "costMax": 150,
-        "costTiming": "release",
-        "staminaRegenDuringCharge": true,
-        "preview": false,
-        "gauge": {
-          "layers": 1,
-          "maxChargeFlash": true
-        },
-        "costStages": [
-          {
-            "progress": 0,
-            "cost": 100
-          },
-          {
-            "progress": 1,
-            "cost": 150
-          }
-        ],
-        "stages": [
-          {
-            "progress": 0,
-            "spec": {
-              "modules": [
-                {
-                  "type": "effect.spawn",
-                  "when": "after-attack",
-                  "renderType": "progressRect",
-                  "position": "source",
-                  "range": 450,
-                  "halfWidth": 52,
-                  "growthSpeed": 1,
-                  "travelSpeed": 3000,
-                  "animation": true,
-                  "clipToAttackArea": true,
-                  "color": "#e8e6d9",
-                  "strokeColor": "#e8e6d9",
-                  "fillAlpha": 0.18,
-                  "strokeAlpha": 0.9,
-                  "lineWidth": 2.5,
-                  "endCap": true,
-                  "duration": 220,
-                  "damage": {
-                    "attackId": "attack.bell.lmb",
-                    "hitMode": "progressive-rect",
-                    "module": {
-                      "type": "delivery.area",
-                      "contactType": "melee",
-                      "shape": "rect",
-                      "range": 450,
-                      "halfWidth": 52,
-                      "wallPolicy": "block"
-                    }
-                  }
-                },
-                {
-                  "type": "mode.toggle",
-                  "when": "after-attack",
-                  "stateKey": "bell-whistle",
-                  "values": [
-                    "a",
-                    "b"
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            "progress": 1,
-            "spec": {
-              "modules": [
-                {
-                  "type": "effect.spawn",
-                  "when": "after-attack",
-                  "renderType": "progressRect",
-                  "position": "source",
-                  "range": 450,
-                  "halfWidth": 52,
-                  "growthSpeed": 1,
-                  "travelSpeed": 3000,
-                  "animation": true,
-                  "clipToAttackArea": true,
-                  "color": "#ff6565",
-                  "strokeColor": "#ff6565",
-                  "fillAlpha": 0.18,
-                  "strokeAlpha": 0.9,
-                  "lineWidth": 2.5,
-                  "endCap": true,
-                  "duration": 220,
-                  "damage": {
-                    "attackId": "attack.bell.lmb",
-                    "hitMode": "progressive-rect",
-                    "module": {
-                      "type": "delivery.area",
-                      "contactType": "melee",
-                      "shape": "rect",
-                      "range": 450,
-                      "halfWidth": 52,
-                      "wallPolicy": "block",
-                      "targetRelations": [
-                        "enemy",
-                        "ally"
-                      ],
-                      "applyHitEffects": true
-                    },
-                    "extraModules": [
-                      {
-                        "type": "resource.restore",
-                        "when": "on-hit",
-                        "resource": "health",
-                        "recipient": "target",
-                        "maxResourceRatio": 0.1,
-                        "targetRelations": [
-                          "ally"
-                        ],
-                        "oncePerExecution": true,
-                        "presentation": "ability"
-                      },
-                      {
-                        "type": "modifier.set",
-                        "when": "on-hit",
-                        "stat": "statusImmunity",
-                        "recipient": "target",
-                        "value": 1,
-                        "duration": 500,
-                        "sourceId": "bell:whistle-immunity",
-                        "targetRelations": [
-                          "ally"
-                        ],
-                        "oncePerExecution": true
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "mode.toggle",
-                  "when": "after-attack",
-                  "stateKey": "bell-whistle",
-                  "values": [
-                    "a",
-                    "b"
-                  ]
-                }
-              ],
-              "presentation": {
-                "color": "#ff6565"
-              }
-            }
-          }
-        ],
-        "previewAtFull": true
-      },
-      "halfWidth": 52,
-      "travelSpeed": 3000,
-      "previewGeometry": {
-        "shape": "rect",
-        "range": 450,
-        "halfWidth": 52,
-        "wallPolicy": "block"
-      }
-    },
-    "rmb": {
-      "id": "attack.bell.rmb",
-      "damageRatio": 1,
-      "effectsOnly": false,
-      "cost": 1000,
-      "cd": 1500,
-      "range": 650,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 32,
-          "radius": 16,
-          "targetRelations": [
-            "ally",
-            "enemy"
-          ],
-          "targetEntityOnly": true,
-          "applyHitEffects": true,
-          "homing": {
-            "startTravelRatio": 0,
-            "maxTurnPerFrame": 6.283185307179586,
-            "targetRelations": [
-              "ally",
-              "enemy"
-            ],
-            "targetEntityOnly": true
-          }
-        },
-        {
-          "type": "projectile.pierce",
-          "walls": true,
-          "targets": false
-        },
-        {
-          "type": "movement.move",
-          "distance": 650,
-          "duration": 300,
-          "easing": "ease-out",
-          "collision": {
-            "passWalls": true,
-            "passEnemies": true
-          },
-          "resolveOverlapOnEnd": true,
-          "onEndAttackIds": [
-            "attack.bell.rescueAid",
-            "attack.bell.rescuePush"
-          ],
-          "presentation": {
-            "color": "#e8e6d9"
-          },
-          "when": "on-hit",
-          "target": "hit-target",
-          "targetRelations": [
-            "ally"
-          ],
-          "oncePerExecution": true
-        }
-      ],
-      "tags": [
-        "스킬"
-      ]
-    },
-    "rescueAid": {
-      "id": "attack.bell.rescueAid",
-      "damageRatio": 0,
-      "effectsOnly": true,
-      "cost": 0,
-      "cd": 0,
-      "range": 650,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "shape": "circle",
-          "range": 650,
-          "wallPolicy": "ignore",
-          "targetRelations": [
-            "ally"
-          ],
-          "applyHitEffects": true,
-          "onlyExecutionTarget": true,
-          "visual": false
-        },
-        {
-          "type": "resource.restore",
-          "when": "on-hit",
-          "resource": "health",
-          "recipient": "target",
-          "targetRelations": [
-            "ally"
-          ],
-          "oncePerExecution": true,
-          "presentation": "ability",
-          "maxResourceRatio": 0.4
-        },
-        {
-          "type": "modifier.set",
-          "when": "on-hit",
-          "stat": "statusImmunity",
-          "recipient": "target",
-          "value": 1,
-          "duration": 2000,
-          "sourceId": "bell:rescue-immunity",
-          "targetRelations": [
-            "ally"
-          ],
-          "oncePerExecution": true
-        },
-        {
-          "type": "effect.spawn",
-          "when": "on-hit",
+          "attackId": "attack.kasha.judgment-reward",
           "renderType": "areaCircle",
           "position": "hit-target",
-          "range": 60,
-          "r": 0,
-          "maxR": 60,
-          "duration": 300,
-          "color": "232,230,217",
-          "fillAlpha": 0.1,
-          "strokeAlpha": 0.8
-        }
-      ],
-      "tags": [
-        "스킬"
-      ]
-    },
-    "counter": {
-      "id": "attack.bell.counter",
-      "damageRatio": 1.5,
-      "cost": 0,
-      "cd": 300,
-      "range": 650,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 30,
-          "radius": 16,
-          "targetRelations": [
-            "enemy",
-            "ally"
-          ],
-          "applyHitEffects": true
+          "target": "source",
+          "travelToken": true,
+          "tokenStyle": "light",
+          "followSource": false,
+          "color": "#FFFF7D",
+          "duration": 333,
+          "fadeOut": false
         },
         {
-          "type": "resource.restore",
-          "when": "on-hit",
-          "resource": "health",
-          "recipient": "source",
-          "targetRelations": [
-            "enemy",
-            "ally"
-          ],
-          "oncePerExecution": true,
-          "presentation": "ability",
-          "maxResourceRatio": 0.2
-        },
-        {
-          "type": "resource.restore",
-          "when": "on-hit",
-          "resource": "health",
-          "recipient": "target",
-          "targetRelations": [
-            "ally"
-          ],
-          "oncePerExecution": true,
-          "presentation": "ability",
-          "maxResourceRatio": 0.2
-        },
-        {
-          "type": "modifier.set",
-          "when": "on-hit",
-          "stat": "statusImmunity",
-          "recipient": "source",
-          "value": 1,
-          "duration": 2000,
-          "sourceId": "bell:rescue-immunity",
-          "targetRelations": [
-            "enemy",
-            "ally"
-          ],
-          "oncePerExecution": true
-        },
-        {
-          "type": "modifier.set",
-          "when": "on-hit",
-          "stat": "statusImmunity",
-          "recipient": "target",
-          "value": 1,
-          "duration": 2000,
-          "sourceId": "bell:rescue-immunity",
-          "targetRelations": [
-            "ally"
-          ],
-          "oncePerExecution": true
-        },
-        {
-          "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "bell-whistle",
-          "values": [
-            "a",
-            "b"
-          ]
-        }
-      ],
-      "tags": [
-        "반격"
-      ]
-    },
-    "rescuePush": {
-      "id": "attack.bell.rescuePush",
-      "damageRatio": 0,
-      "effectsOnly": true,
-      "cost": 0,
-      "cd": 0,
-      "range": 180,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "shape": "circle",
-          "range": 180,
-          "wallPolicy": "block",
-          "targetRelations": [
-            "enemy"
-          ],
-          "applyHitEffects": true
-        },
-        {
-          "type": "movement.knockback",
-          "when": "on-hit",
-          "distance": 100,
-          "speed": 12,
-          "targetRelations": [
-            "enemy"
-          ],
-          "target": "hit-target",
-          "direction": "away-from-source"
-        }
-      ],
-      "tags": [
-        "스킬"
-      ]
-    }
-  },
-  "abilities": {
-    "lmb": {
-      "id": "ability.bell.lmb",
-      "input": "lmb",
-      "attackId": "attack.bell.lmb",
-      "trigger": {
-        "type": "trigger",
-        "event": "input.press",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "lmb"
-          },
-          {
-            "type": "entity.alive"
-          },
-          {
-            "type": "ability.pending-ready"
-          },
-          {
-            "type": "combat.can-act"
-          },
-          {
-            "type": "state.absent",
-            "stateKey": "charge:primary"
-          }
-        ],
-        "modules": [
-          {
-            "type": "charge.attack.start",
-            "stateKey": "charge:primary"
-          }
-        ]
-      },
-      "releaseTrigger": {
-        "type": "trigger",
-        "event": "input.release",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "lmb"
-          },
-          {
-            "type": "entity.alive"
-          },
-          {
-            "type": "state.exists",
-            "stateKey": "charge:primary"
-          }
-        ],
-        "modules": [
-          {
-            "type": "charge.attack.release",
-            "stateKey": "charge:primary"
-          }
-        ]
-      }
-    },
-    "rmb": {
-      "id": "ability.bell.rmb",
-      "input": "rmb",
-      "attackId": "attack.bell.rmb",
-      "trigger": {
-        "type": "trigger",
-        "event": "input.press",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "rmb"
-          },
-          {
-            "type": "entity.alive"
-          },
-          {
-            "type": "ability.pending-ready"
-          },
-          {
-            "type": "combat.can-act"
-          }
-        ],
-        "modules": [
-          {
-            "type": "target.select",
-            "targetRelations": [
-              "ally",
-              "enemy"
-            ],
-            "targetKinds": [
-              "player",
-              "dummy"
-            ],
-            "pointerRadius": 80,
-            "requireClearPath": false,
-            "showTargetRange": true,
-            "preferRelations": [
-              "ally",
-              "enemy"
+          "type": "state.progress",
+          "stateKey": "kasha-judgment",
+          "operation": "add",
+          "amount": 1,
+          "max": 10,
+          "presentation": {
+            "type": "segmented-gauge",
+            "height": 4,
+            "gap": 2,
+            "valueMode": "count",
+            "activeAlpha": 0.95,
+            "background": "rgba(10,18,22,0.92)",
+            "stroke": "#FFFF7D",
+            "segments": [
+              {
+                "value": 1,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 2,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 3,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 4,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 5,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 6,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 7,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 8,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 9,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 10,
+                "color": "#FFFF7D"
+              }
             ]
           },
-          {
-            "type": "action.attack"
-          }
-        ]
-      }
+          "delay": 333
+        }
+      ],
+      "conditions": [
+        {
+          "type": "cause.source-is-self"
+        }
+      ]
     },
-    "counter": {
-      "id": "ability.bell.counter",
-      "input": "counter",
-      "attackId": "attack.bell.counter",
-      "trigger": {
-        "type": "trigger",
-        "event": "input.press",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "counter"
-          },
-          {
-            "type": "entity.alive"
-          },
-          {
-            "type": "ability.pending-ready"
-          },
-          {
-            "type": "combat.can-act"
-          },
-          {
-            "type": "source.property.falsy",
-            "property": "counterWindup"
-          },
-          {
-            "type": "counter.ready"
-          }
-        ],
-        "modules": [
-          {
-            "type": "counter.execute",
-            "windup": 300,
-            "consumeState": "counter-ready",
-            "preview": {
-              "type": "preview.create",
-              "shape": "attack-shape"
-            },
-            "cc": {
-              "type": "movement.neutralize-knockback",
-              "target": "hit-target",
-              "direction": "away-from-impact",
-              "distance": 84,
-              "speed": 10,
-              "oncePerExecution": true,
-              "targetRelations": [
-                "enemy"
-              ]
-            }
-          }
-        ]
-      }
-    }
-  },
-  "worldEffectModules": [
     {
-      "type": "effect.spawn",
-      "renderType": "weaponImage",
-      "style": "rescue-whistle",
-      "scale": 1.65,
-      "alpha": 0.4,
-      "angle": -0.45,
-      "motionStateKey": "bell-whistle",
-      "motionMs": 350,
-      "motion": {
-        "rotation": -0.15,
-        "travelX": -0.2,
-        "travelY": 0.05
-      }
+      "id": "kasha-own-dodge",
+      "type": "trigger",
+      "event": "just-dodge",
+      "modules": [
+        {
+          "type": "effect.spawn",
+          "attackId": "attack.kasha.judgment-reward",
+          "renderType": "areaCircle",
+          "position": "source",
+          "target": "source",
+          "travelToken": true,
+          "tokenStyle": "light",
+          "followSource": true,
+          "color": "#FFFF7D",
+          "duration": 333,
+          "fadeOut": false
+        },
+        {
+          "type": "state.progress",
+          "stateKey": "kasha-judgment",
+          "operation": "add",
+          "amount": 1,
+          "max": 10,
+          "presentation": {
+            "type": "segmented-gauge",
+            "height": 4,
+            "gap": 2,
+            "valueMode": "count",
+            "activeAlpha": 0.95,
+            "background": "rgba(10,18,22,0.92)",
+            "stroke": "#FFFF7D",
+            "segments": [
+              {
+                "value": 1,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 2,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 3,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 4,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 5,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 6,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 7,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 8,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 9,
+                "color": "#FFFF7D"
+              },
+              {
+                "value": 10,
+                "color": "#FFFF7D"
+              }
+            ]
+          },
+          "delay": 333
+        }
+      ]
     }
-  ]
-},
-  lunet: {
-  "id": "lunet",
-  "name": "루네트",
-  "englishName": "Lunet",
-  "title": "술의 정령",
-  "color": "#8f183b",
-  "classification": {
-    "style": 8,
-    "range": 0,
-    "role": 4
-  },
-  "stats": {
-    "maxHealth": 1100,
-    "speed": 4,
-    "radius": 20,
-    "baseDamage": 100,
-    "difficulty": 3
-  },
-  "desc": "술이 퍼진 지대로 적을 압박하고 아군을 치유하는 캐릭터",
+  ],
   "tooltipSkills": [
     {
       "key": "ALWAYS",
-      "name": "취기",
+      "name": "심판의 저울",
       "showCost": false,
-      "text": "최대 체력인 아군에게 재생 부여 시 재생 지속시간 동안 이동속도 {v:attacks.lmb.modules.2.field.onTrigger.0.value|percent}% 증가"
+      "text": "상대가 자신의 공격을 저스트 회피하거나 자신이 공격을 저스트 회피하면 빛을 획득하여 심판의 무게 1 추가. 최대 {v:passives.0.max}"
     },
     {
       "key": "LMB",
-      "name": "블루 큐라소",
+      "name": "집행검",
       "attack": "lmb",
-      "text": "술을 투척해 지대 생성. 밟은 적에게 독, 아군에게 재생 {v:attacks.lmb.modules.2.field.onTrigger.2.duration|seconds}초 부여 (초당 피해 {v:attacks.lmb.modules.2.field.onTrigger.2.data.value}/회복 {v:attacks.lmb.modules.2.field.onTrigger.1.value})"
+      "text": "정의의 의지로 만든 검을 휘둘러 피해 ({damage})"
     },
     {
       "key": "RMB",
-      "name": "스피릭터스 렉티피코와니",
+      "name": "죄의 무게",
       "attack": "rmb",
-      "text": "독한 술을 투척해 넓은 지대 생성. 밟은 적에게 독, 아군에게 재생 {v:attacks.rmb.modules.2.field.onTrigger.2.duration|seconds}초 부여 (초당 피해 {v:attacks.rmb.modules.2.field.onTrigger.2.data.value}/회복 {v:attacks.rmb.modules.2.field.onTrigger.1.value})"
+      "text": "0.7초 준비 후 심판의 무게를 모두 소모하여 전방 220도를 베어 무게당 적 최대 체력의 8% 피해 및 매우 강한 넉백. 준비와 공격 중 속박"
     },
     {
       "key": "L-Shift",
-      "name": "XYZ",
+      "name": "삼중 집행",
       "attack": "counter",
-      "text": "자신과 모든 아군 및 적에게 칵테일 투척. 착탄 범위의 적에게 피해 및 독, 아군에게 착탄 회복 및 재생 {v:attacks.cocktailBurst.modules.2.duration|seconds}초 부여 (착탄 {linkedDamage} / 초당 피해 {v:attacks.cocktailBurst.modules.4.data.value}/회복 {v:attacks.cocktailBurst.modules.2.value})",
-      "linkedAttack": "cocktailBurst"
+      "text": "마지막 이동 방향의 뒤편에 집행검 3자루를 소환하여 지정 지점으로 순차 투척. 착탄 지점에 피해 (타당 {linkedDamage})",
+      "linkedAttack": "counterImpact"
     }
   ],
   "attacks": {
     "lmb": {
-      "id": "attack.lunet.lmb",
-      "damageRatio": 0,
-      "effectsOnly": true,
-      "cost": 250,
-      "cd": 500,
-      "range": 422.5,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 16,
-          "radius": 14,
-          "targetPoint": true,
-          "targetPointClampToAttackRange": true,
-          "damageOnTravel": false,
-          "collisionTargets": false
-        },
-        {
-          "type": "trajectory.arc",
-          "height": 75
-        },
-        {
-          "type": "projectile.impact",
-          "reasons": [
-            "target-point",
-            "range",
-            "wall",
-            "boundary"
-          ],
-          "field": {
-            "type": "field.area",
-            "stateKey": "lunet-lmb",
-            "anchorMode": "point",
-            "shape": "circle",
-            "range": 120,
-            "wallPolicy": "block",
-            "duration": 2000,
-            "interval": 1000,
-            "intervalMode": "per-target",
-            "triggerOnEnter": true,
-            "targetRelations": [
-              "enemy",
-              "ally",
-              "self"
-            ],
-            "damageOnTrigger": false,
-            "onTrigger": [
-              {
-                "type": "modifier.set",
-                "stat": "speed",
-                "value": 0.25,
-                "duration": 2000,
-                "stackGroup": "lunet-tipsy",
-                "targetRelations": [
-                  "ally",
-                  "self"
-                ],
-                "conditions": [
-                  {
-                    "type": "target.health-ratio-gte",
-                    "value": 1
-                  }
-                ]
-              },
-              {
-                "type": "modifier.set",
-                "stat": "regeneration",
-                "value": 100,
-                "duration": 2000,
-                "targetRelations": [
-                  "ally",
-                  "self"
-                ],
-                "stackGroup": "lunet-healing",
-                "data": {
-                  "tickInterval": 1000,
-                  "presentationSource": "zone",
-                  "localOnly": true
-                }
-              },
-              {
-                "type": "status.apply",
-                "status": "poison",
-                "duration": 2000,
-                "targetRelations": [
-                  "enemy"
-                ],
-                "data": {
-                  "mode": "flat",
-                  "value": 50.0,
-                  "interval": 1000,
-                  "tickAtEnd": true,
-                  "stackMode": "refresh-source",
-                  "damagePriority": "highest"
-                }
-              }
-            ],
-            "presentation": {
-              "type": "areaCircle",
-              "color": "#8f183b",
-              "strokeColor": "#8f183b",
-              "strokeColorMode": "explicit",
-              "fillAlpha": 0.08,
-              "strokeAlpha": 0.72,
-              "lineWidth": 2.5,
-              "innerRingScale": 0.62,
-              "innerRingStrokeColor": "#8f183b",
-              "innerRingStrokeAlpha": 0.34,
-              "innerRingLineWidth": 1.5,
-              "remainingArcGauge": true,
-              "remainingArcOffset": 7,
-              "remainingArcLineWidth": 3,
-              "remainingArcColor": "#8f183b",
-              "remainingArcAlpha": 0.85
-            }
-          }
-        },
-        {
-          "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "lunet-bottle",
-          "values": [
-            "a",
-            "b"
-          ]
-        },
-        {
-          "type": "projectile.pierce",
-          "walls": true,
-          "targets": false
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "rmb": {
-      "id": "attack.lunet.rmb",
-      "damageRatio": 0,
-      "effectsOnly": true,
-      "cost": 500,
-      "cd": 1000,
-      "range": 455.0,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 22,
-          "radius": 20,
-          "targetPoint": true,
-          "targetPointClampToAttackRange": true,
-          "damageOnTravel": false,
-          "collisionTargets": false
-        },
-        {
-          "type": "trajectory.arc",
-          "height": 75
-        },
-        {
-          "type": "projectile.impact",
-          "reasons": [
-            "target-point",
-            "range",
-            "wall",
-            "boundary"
-          ],
-          "field": {
-            "type": "field.area",
-            "stateKey": "lunet-rmb",
-            "anchorMode": "point",
-            "shape": "circle",
-            "range": 176,
-            "wallPolicy": "block",
-            "duration": 3000,
-            "interval": 1000,
-            "intervalMode": "per-target",
-            "triggerOnEnter": true,
-            "targetRelations": [
-              "enemy",
-              "ally",
-              "self"
-            ],
-            "damageOnTrigger": false,
-            "onTrigger": [
-              {
-                "type": "modifier.set",
-                "stat": "speed",
-                "value": 0.25,
-                "duration": 3000,
-                "stackGroup": "lunet-tipsy",
-                "targetRelations": [
-                  "ally",
-                  "self"
-                ],
-                "conditions": [
-                  {
-                    "type": "target.health-ratio-gte",
-                    "value": 1
-                  }
-                ]
-              },
-              {
-                "type": "modifier.set",
-                "stat": "regeneration",
-                "value": 100,
-                "duration": 3000,
-                "targetRelations": [
-                  "ally",
-                  "self"
-                ],
-                "stackGroup": "lunet-healing",
-                "data": {
-                  "tickInterval": 1000,
-                  "presentationSource": "zone",
-                  "localOnly": true
-                }
-              },
-              {
-                "type": "status.apply",
-                "status": "poison",
-                "duration": 3000,
-                "targetRelations": [
-                  "enemy"
-                ],
-                "data": {
-                  "mode": "flat",
-                  "value": 50.0,
-                  "interval": 1000,
-                  "tickAtEnd": true,
-                  "stackMode": "refresh-source",
-                  "damagePriority": "highest"
-                }
-              }
-            ],
-            "presentation": {
-              "type": "areaCircle",
-              "color": "#8f183b",
-              "strokeColor": "#8f183b",
-              "strokeColorMode": "explicit",
-              "fillAlpha": 0.08,
-              "strokeAlpha": 0.72,
-              "lineWidth": 2.5,
-              "innerRingScale": 0.62,
-              "innerRingStrokeColor": "#8f183b",
-              "innerRingStrokeAlpha": 0.34,
-              "innerRingLineWidth": 1.5,
-              "remainingArcGauge": true,
-              "remainingArcOffset": 7,
-              "remainingArcLineWidth": 3,
-              "remainingArcColor": "#8f183b",
-              "remainingArcAlpha": 0.85
-            }
-          }
-        },
-        {
-          "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "lunet-bottle",
-          "values": [
-            "a",
-            "b"
-          ]
-        },
-        {
-          "type": "projectile.pierce",
-          "walls": true,
-          "targets": false
-        }
-      ],
-      "tags": [
-        "스킬"
-      ]
-    },
-    "cocktail": {
-      "id": "attack.lunet.cocktail",
-      "damageRatio": 0,
-      "effectsOnly": false,
-      "cost": 0,
-      "cd": 1000,
-      "range": 5000,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 22,
-          "radius": 14,
-          "targetPoint": true,
-          "targetPointClampToAttackRange": true,
-          "damageOnTravel": false,
-          "collisionTargets": false,
-          "selfArc": {
-            "duration": 520,
-            "height": 96
-          }
-        },
-        {
-          "type": "trajectory.arc",
-          "height": 75
-        },
-        {
-          "type": "projectile.impact",
-          "attackIds": [
-            "attack.lunet.cocktailBurst"
-          ],
-          "reasons": [
-            "target-point",
-            "range",
-            "wall",
-            "boundary"
-          ]
-        },
-        {
-          "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "lunet-bottle",
-          "values": [
-            "a",
-            "b"
-          ]
-        },
-        {
-          "type": "projectile.pierce",
-          "walls": true,
-          "targets": false
-        }
-      ],
-      "tags": [
-        "반격"
-      ]
-    },
-    "counter": {
-      "id": "attack.lunet.counter",
-      "damageRatio": 0,
-      "cost": 0,
-      "cd": 300,
-      "range": 0,
-      "effectsOnly": true,
-      "modules": [
-        {
-          "type": "delivery.target-volley",
-          "attackId": "attack.lunet.cocktail",
-          "targetRelations": [
-            "ally",
-            "enemy",
-            "self"
-          ]
-        }
-      ],
-      "tags": [
-        "반격"
-      ]
-    },
-    "cocktailBurst": {
-      "id": "attack.lunet.cocktailBurst",
-      "damageRatio": 0.5,
-      "cost": 0,
-      "cd": 0,
-      "range": 150,
-      "modules": [
-        {
-          "type": "delivery.area",
-          "shape": "circle",
-          "range": 150,
-          "wallPolicy": "block",
-          "targetRelations": [
-            "enemy",
-            "ally",
-            "self"
-          ],
-          "applyHitEffects": true
-        },
-        {
-          "type": "modifier.set",
-          "stat": "speed",
-          "value": 0.25,
-          "duration": 3000,
-          "stackGroup": "lunet-tipsy",
-          "targetRelations": [
-            "ally",
-            "self"
-          ],
-          "conditions": [
-            {
-              "type": "target.health-ratio-gte",
-              "value": 1
-            }
-          ],
-          "when": "on-hit",
-          "recipient": "target",
-          "sourceId": "lunet:cocktail-speed",
-          "oncePerExecution": true
-        },
-        {
-          "type": "modifier.set",
-          "when": "on-hit",
-          "stat": "regeneration",
-          "recipient": "target",
-          "value": 100,
-          "duration": 3000,
-          "targetRelations": [
-            "ally",
-            "self"
-          ],
-          "sourceId": "lunet:cocktail-regen",
-          "oncePerExecution": true,
-          "data": {
-            "tickInterval": 1000,
-            "presentationSource": "zone",
-            "localOnly": true
-          }
-        },
-        {
-          "type": "movement.neutralize-knockback",
-          "when": "on-hit",
-          "target": "hit-target",
-          "direction": "away-from-impact",
-          "distance": 84,
-          "speed": 10,
-          "targetRelations": [
-            "enemy"
-          ],
-          "oncePerExecution": true
-        },
-        {
-          "type": "status.apply",
-          "status": "poison",
-          "duration": 3000,
-          "targetRelations": [
-            "enemy"
-          ],
-          "data": {
-            "mode": "flat",
-            "value": 50.0,
-            "interval": 1000,
-            "tickAtEnd": true,
-            "stackMode": "refresh-source",
-            "damagePriority": "highest"
-          },
-          "when": "on-hit",
-          "oncePerExecution": true
-        },
-        {
-          "type": "resource.restore",
-          "when": "on-hit",
-          "resource": "health",
-          "recipient": "target",
-          "targetRelations": [
-            "ally",
-            "self"
-          ],
-          "amount": 50,
-          "oncePerExecution": true,
-          "presentation": "ability"
-        }
-      ],
-      "tags": [
-        "반격"
-      ],
-      "effectsOnly": false
-    }
-  },
-  "abilities": {
-    "lmb": {
-      "id": "ability.lunet.lmb",
-      "input": "lmb",
-      "attackId": "attack.lunet.lmb",
-      "trigger": {
-        "type": "trigger",
-        "event": "input.press",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "lmb"
-          },
-          {
-            "type": "entity.alive"
-          },
-          {
-            "type": "combat.can-act"
-          }
-        ],
-        "modules": [
-          {
-            "type": "action.attack"
-          }
-        ]
-      }
-    },
-    "rmb": {
-      "id": "ability.lunet.rmb",
-      "input": "rmb",
-      "attackId": "attack.lunet.rmb",
-      "trigger": {
-        "type": "trigger",
-        "event": "input.press",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "rmb"
-          },
-          {
-            "type": "entity.alive"
-          },
-          {
-            "type": "combat.can-act"
-          }
-        ],
-        "modules": [
-          {
-            "type": "action.attack"
-          }
-        ]
-      }
-    },
-    "counter": {
-      "id": "ability.lunet.counter",
-      "input": "counter",
-      "attackId": "attack.lunet.counter",
-      "trigger": {
-        "type": "trigger",
-        "event": "input.press",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "counter"
-          },
-          {
-            "type": "entity.alive"
-          },
-          {
-            "type": "ability.pending-ready"
-          },
-          {
-            "type": "combat.can-act"
-          },
-          {
-            "type": "source.property.falsy",
-            "property": "counterWindup"
-          },
-          {
-            "type": "counter.ready"
-          }
-        ],
-        "modules": [
-          {
-            "type": "counter.execute",
-            "windup": 300,
-            "consumeState": "counter-ready",
-            "preview": {
-              "type": "preview.create",
-              "shape": "attack-shape"
-            },
-            "cc": {
-              "type": "movement.neutralize-knockback",
-              "target": "hit-target",
-              "direction": "away-from-impact",
-              "distance": 84,
-              "speed": 10,
-              "oncePerExecution": true,
-              "targetRelations": [
-                "enemy"
-              ]
-            }
-          }
-        ]
-      }
-    }
-  },
-  "worldEffectModules": [
-    {
-      "type": "effect.spawn",
-      "renderType": "weaponImage",
-      "style": "spirit-bottle",
-      "scale": 1.6,
-      "alpha": 0.4,
-      "angle": -0.4,
-      "rotationStateKey": "lunet-bottle",
-      "rotationMs": 420,
-      "rotationRadians": -6.283185307179586
-    }
-  ]
-},
-  airi: {
-  "id": "airi",
-  "name": "아이리",
-  "englishName": "Airi",
-  "title": "정의의 집행자",
-  "color": "#39758f",
-  "classification": {
-    "style": 1,
-    "range": 0,
-    "role": 1
-  },
-  "stats": {
-    "maxHealth": 1200,
-    "speed": 3.75,
-    "radius": 20,
-    "baseDamage": 100,
-    "difficulty": 4
-  },
-  "desc": "권총 연사와 침묵으로 적을 제압하는 캐릭터",
-  "tooltipSkills": [
-    {
-      "key": "LMB",
-      "name": "정의의 권총",
-      "attack": "lmb",
-      "text": "권총을 {burstCount}발 연사해 피해 (탄당 {damage})"
-    },
-    {
-      "key": "RMB",
-      "name": "전자식 수갑",
-      "attack": "rmb",
-      "text": "벽을 관통하는 전자식 수갑을 던져 넉백 및 {v:attacks.rmb.modules.3.duration|seconds}초 침묵"
-    },
-    {
-      "key": "L-Shift",
-      "name": "테이저건",
-      "attack": "counter",
-      "text": "전방으로 테이저건을 발사해 피해 및 {v:attacks.counter.modules.1.duration|seconds}초 침묵 ({damage})"
-    }
-  ],
-  "attacks": {
-    "lmb": {
-      "id": "attack.airi.lmb",
-      "damageRatio": 1.5,
+      "id": "attack.kasha.lmb",
+      "damageRatio": 1,
       "cost": 150,
       "cd": 500,
-      "range": 850,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 32,
-          "radius": 10
-        },
-        {
-          "type": "delivery.delayed-projectile-volley",
-          "count": 2,
-          "interval": 120,
-          "aimMode": "live-source",
-          "phaseKey": "airi-pistol-burst"
-        },
-        {
-          "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "airi-weapon-motion",
-          "values": [
-            "a",
-            "b"
-          ]
-        }
-      ],
-      "tags": [
-        "평타"
-      ]
-    },
-    "rmb": {
-      "id": "attack.airi.rmb",
-      "damageRatio": 0,
-      "effectsOnly": true,
-      "cost": 500,
-      "cd": 700,
-      "range": 700,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 26,
-          "radius": 25,
-          "applyHitEffects": true
-        },
-        {
-          "type": "projectile.pierce",
-          "targets": false,
-          "walls": true
-        },
-        {
-          "type": "movement.knockback",
-          "target": "hit-target",
-          "direction": "attack",
-          "distance": 100,
-          "speed": 14,
-          "oncePerExecution": true
-        },
-        {
-          "type": "status.apply",
-          "status": "silence",
-          "duration": 1000,
-          "data": {
-            "stackMode": "refresh-type"
-          },
-          "oncePerExecution": true
-        },
-        {
-          "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "airi-weapon-motion",
-          "values": [
-            "a",
-            "b"
-          ]
-        }
-      ],
-      "tags": [
-        "스킬"
-      ]
-    },
-    "counter": {
-      "id": "attack.airi.counter",
-      "damageRatio": 2,
-      "cost": 0,
-      "cd": 300,
-      "range": 750,
-      "modules": [
-        {
-          "type": "delivery.projectile",
-          "speed": 36,
-          "radius": 14
-        },
-        {
-          "type": "status.apply",
-          "status": "silence",
-          "duration": 1500,
-          "data": {
-            "stackMode": "refresh-type"
-          },
-          "oncePerExecution": true
-        },
-        {
-          "type": "movement.neutralize-knockback",
-          "target": "hit-target",
-          "direction": "attack",
-          "distance": 84,
-          "speed": 10,
-          "oncePerExecution": true
-        },
-        {
-          "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "airi-weapon-motion",
-          "values": [
-            "a",
-            "b"
-          ]
-        }
-      ],
-      "tags": [
-        "반격"
-      ]
-    }
-  },
-  "abilities": {
-    "lmb": {
-      "id": "ability.airi.lmb",
-      "input": "lmb",
-      "attackId": "attack.airi.lmb",
-      "trigger": {
-        "type": "trigger",
-        "event": "input.press",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "lmb"
-          },
-          {
-            "type": "entity.alive"
-          },
-          {
-            "type": "ability.pending-ready"
-          },
-          {
-            "type": "combat.can-act"
-          }
-        ],
-        "modules": [
-          {
-            "type": "action.attack"
-          }
-        ]
-      }
-    },
-    "rmb": {
-      "id": "ability.airi.rmb",
-      "input": "rmb",
-      "attackId": "attack.airi.rmb",
-      "trigger": {
-        "type": "trigger",
-        "event": "input.press",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "rmb"
-          },
-          {
-            "type": "entity.alive"
-          },
-          {
-            "type": "ability.pending-ready"
-          },
-          {
-            "type": "combat.can-act"
-          }
-        ],
-        "modules": [
-          {
-            "type": "action.attack"
-          }
-        ]
-      },
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      }
-    },
-    "counter": {
-      "id": "ability.airi.counter",
-      "input": "counter",
-      "attackId": "attack.airi.counter",
-      "trigger": {
-        "type": "trigger",
-        "event": "input.press",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "counter"
-          },
-          {
-            "type": "entity.alive"
-          },
-          {
-            "type": "ability.pending-ready"
-          },
-          {
-            "type": "combat.can-act"
-          },
-          {
-            "type": "source.property.falsy",
-            "property": "counterWindup"
-          },
-          {
-            "type": "counter.ready"
-          }
-        ],
-        "modules": [
-          {
-            "type": "counter.execute",
-            "windup": 300,
-            "consumeState": "counter-ready",
-            "preview": {
-              "type": "preview.create",
-              "shape": "attack-shape"
-            },
-            "ccRefAttackId": "attack.airi.counter"
-          }
-        ]
-      },
-      "inputPolicy": {
-        "repeatWhileHeld": false
-      }
-    }
-  },
-  "worldEffectModules": [
-    {
-      "type": "effect.spawn",
-      "renderType": "weaponImage",
-      "style": "pistol",
-      "color": "#39758f",
-      "scale": 1.4,
-      "angle": -0.6,
-      "motionStateKey": "airi-weapon-motion",
-      "motionMs": 400,
-      "motion": {
-        "rotation": -0.7,
-        "travelX": -0.25
-      }
-    }
-  ]
-},
-  gereta: {
-  "id": "gereta",
-  "name": "게레타",
-  "englishName": "Gereta",
-  "title": "단련된 나무꾼",
-  "color": "#bcbcbc",
-  "classification": {
-    "style": 4,
-    "range": 0,
-    "role": 1
-  },
-  "stats": {
-    "maxHealth": 1200,
-    "speed": 4,
-    "radius": 20,
-    "baseDamage": 150,
-    "difficulty": 5
-  },
-  "desc": "도끼를 차징해 긴 사거리와 강한 일격으로 적을 베어내는 캐릭터",
-  "tooltipSkills": [
-    {
-      "key": "LMB",
-      "name": "나무를 베듯",
-      "attack": "lmb",
-      "text": "도끼를 휘둘러 피해 ({damage})"
-    },
-    {
-      "key": "RMB HOLD",
-      "name": "롱 엑슬래시",
-      "attack": "rmb",
-      "text": "최대 {chargeSeconds}초 홀드. 홀드할수록 피해·사거리와 빗나갔을 때의 기절 시간 증가 ({minDamage}~{maxDamage})"
-    },
-    {
-      "key": "L-Shift",
-      "name": "날려 찍기",
-      "attack": "counter",
-      "text": "도끼를 던져 적중한 적에게 피해 ({damage})"
-    }
-  ],
-  "attacks": {
-    "lmb": {
-      "id": "attack.gereta.lmb",
-      "damageRatio": 1,
-      "cost": 200,
-      "cd": 500,
-      "range": 225,
+      "range": 275,
       "modules": [
         {
           "type": "delivery.area",
           "shape": "sector",
-          "range": 225,
-          "halfAngle": 1.05,
-          "contactType": "melee",
-          "wallPolicy": "block"
+          "range": {
+            "$ref": "attacks.lmb.range"
+          },
+          "halfAngle": 1.2,
+          "wallPolicy": "block",
+          "contactType": "melee"
+        },
+        {
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "arcSweep",
+          "position": "source",
+          "range": {
+            "$ref": "attacks.lmb.range"
+          },
+          "halfAngle": 1.2,
+          "animateSweep": true,
+          "sweepDirection": "counterclockwise",
+          "sweepSpeed": 1.7,
+          "animation": true,
+          "color": "#FFFF7D",
+          "fillAlpha": 0.18,
+          "strokeAlpha": 0.9,
+          "duration": 300,
+          "clipToAttackArea": true,
+          "replaceAutoAreaEffect": true
         },
         {
           "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "gereta-axe-motion",
+          "when": "after-attack",
+          "stateKey": "kasha-sword-spin",
           "values": [
             "a",
             "b"
-          ]
+          ],
+          "step": 1
         }
       ],
       "tags": [
@@ -37654,128 +36317,280 @@ const CHARACTER_DATA=freezeCharacterData({
       ]
     },
     "rmb": {
-      "id": "attack.gereta.rmb",
-      "damageRatio": 1.3333333333333333,
-      "cost": 200,
-      "cd": 800,
-      "range": 180,
-      "charge": {
-        "duration": 1500,
-        "costMin": 200,
-        "costMax": 650,
-        "gauge": true,
-        "damageRatio": {
-          "from": 1.3333333333333333,
-          "to": 5.333333333333333,
-          "step": 0.3333333333333333
-        },
-        "range": {
-          "from": 180,
-          "to": 325
+      "id": "attack.kasha.rmb",
+      "damageRatio": 0,
+      "cost": 600,
+      "cd": 1800,
+      "range": 900,
+      "previewGeometry": {
+        "type": "delivery.area",
+        "shape": "sector",
+        "range": 900,
+        "halfAngle": 1.9198621771937625,
+        "wallPolicy": "ignore",
+        "contactType": "melee"
+      },
+      "progressScale": {
+        "stateKey": "kasha-judgment",
+        "valueRange": {
+          "from": 0,
+          "to": 10
         },
         "moduleValues": [
           {
-            "type": "status.apply",
-            "property": "duration",
-            "from": 400,
-            "to": 1200
+            "type": "damage.target-max-health-ratio",
+            "property": "ratio",
+            "from": 0,
+            "to": 0.8
           }
-        ],
-        "preview": true,
-        "costTiming": "during-charge",
-        "staminaRegenDuringCharge": false
+        ]
       },
       "modules": [
         {
-          "type": "delivery.area",
-          "shape": "rect",
-          "range": 180,
-          "halfWidth": 48,
-          "delay": 350,
-          "aimMode": "live-source",
-          "contactType": "melee",
-          "wallPolicy": "block",
-          "previewDuringDelay": true
+          "type": "damage.target-max-health-ratio",
+          "ratio": 0
         },
         {
-          "type": "status.apply",
-          "when": "after-delivery",
-          "recipient": "source",
-          "status": "stun",
+          "type": "effect.spawn",
+          "when": "after-attack",
+          "renderType": "arcSweep",
+          "position": "source",
+          "range": {
+            "$ref": "attacks.rmb.range"
+          },
+          "halfAngle": 1.9198621771937625,
+          "animateSweep": true,
+          "sweepDirection": "counterclockwise",
+          "sweepSpeed": 1,
+          "animation": true,
+          "color": "#FF4646",
+          "fillAlpha": 0.16,
+          "strokeAlpha": 0.9,
+          "lineWidth": 3,
           "duration": 400,
-          "conditions": [
-            {
-              "type": "delivery.hit-count-lte",
-              "value": 0
-            }
-          ]
+          "clipToAttackArea": false,
+          "replaceAutoAreaEffect": true,
+          "edgeLine": false,
+          "damage": {
+            "attackId": "attack.kasha.rmb",
+            "hitMode": "arc-sweep",
+            "module": {
+              "type": "delivery.area",
+              "shape": "sector",
+              "range": 900,
+              "halfAngle": 1.9198621771937625,
+              "wallPolicy": "ignore",
+              "contactType": "melee"
+            },
+            "oncePerExecution": true,
+            "snapshotAttackScalars": true
+          }
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "kasha-swing",
+          "duration": 400
+        },
+        {
+          "type": "state.progress",
+          "when": "after-attack",
+          "stateKey": "kasha-judgment",
+          "operation": "reset"
         },
         {
           "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "gereta-axe-motion",
+          "when": "after-attack",
+          "stateKey": "kasha-sword-spin",
           "values": [
             "a",
             "b"
-          ]
+          ],
+          "step": 1
+        },
+        {
+          "type": "movement.knockback",
+          "when": "on-hit",
+          "target": "hit-target",
+          "direction": "attack",
+          "distance": 350,
+          "speed": 22
         }
       ],
       "tags": [
         "스킬",
         "선딜레이"
-      ]
+      ],
+      "previewStyle": {
+        "strokeColor": "255,70,70",
+        "fillColor": "255,55,55",
+        "strokeAlpha": 0.95,
+        "fillAlpha": 0.13
+      }
     },
     "counter": {
-      "id": "attack.gereta.counter",
-      "damageRatio": 2,
+      "id": "attack.kasha.counter",
+      "damageRatio": 0,
       "cost": 0,
-      "cd": 300,
-      "range": 700,
+      "cd": 0,
+      "range": 850,
       "modules": [
         {
           "type": "delivery.projectile",
-          "speed": 28,
-          "radius": 36
+          "speed": 25,
+          "radius": 18,
+          "targetPoint": true,
+          "targetPointClampToAttackRange": true,
+          "targetPointResolve": "nearest-open",
+          "damageOnTravel": false,
+          "collisionTargets": false,
+          "arrival": {
+            "passWallsInFlight": true
+          },
+          "collisionMode": "landing-only"
         },
         {
           "type": "projectile.presentation",
           "kind": "weapon-projectile",
           "style": {
             "type": "anchor-cross",
-            "radius": {
-              "$ref": "attacks.counter.modules.0.radius"
-            },
+            "radius": 18,
+            "fillAlpha": 0.28,
+            "strokeWidth": 2,
             "showLink": false
           }
         },
         {
-          "type": "movement.neutralize-knockback",
-          "target": "hit-target",
-          "direction": "attack",
-          "distance": 84,
-          "speed": 10,
-          "oncePerExecution": true
+          "type": "delivery.delayed-projectile-volley",
+          "count": 3,
+          "interval": 180,
+          "aimMode": "live-target-point",
+          "originOffsets": [
+            {
+              "forward": -95,
+              "lateral": -70
+            },
+            {
+              "forward": -130,
+              "lateral": 0
+            },
+            {
+              "forward": -95,
+              "lateral": 70
+            }
+          ],
+          "originOrientation": "last-movement"
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "kasha-counter-1",
+          "duration": 180
+        },
+        {
+          "type": "state.window",
+          "when": "after-attack",
+          "stateKey": "kasha-counter-2",
+          "duration": 360
+        },
+        {
+          "type": "projectile.pierce",
+          "targets": true,
+          "walls": true
+        },
+        {
+          "type": "projectile.impact",
+          "reasons": [
+            "arrival",
+            "target-point",
+            "range",
+            "boundary",
+            "wall"
+          ],
+          "attackIds": [
+            "attack.kasha.counter-impact"
+          ],
+          "oncePerProjectile": true
         },
         {
           "type": "mode.toggle",
-          "when": "on-delivery",
-          "stateKey": "gereta-axe-motion",
+          "when": "on-projectile-shot",
+          "stateKey": "kasha-sword-spin",
           "values": [
             "a",
             "b"
-          ]
+          ],
+          "step": 1
         }
       ],
       "tags": [
         "반격"
       ]
+    },
+    "rmbPreview": {
+      "id": "attack.kasha.rmbPreview",
+      "damageRatio": 0,
+      "cost": 0,
+      "cd": 0,
+      "range": 900,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "sector",
+          "range": 900,
+          "halfAngle": 1.9198621771937625,
+          "wallPolicy": "ignore",
+          "contactType": "melee"
+        }
+      ],
+      "tags": [
+        "스킬"
+      ]
+    },
+    "counterImpact": {
+      "id": "attack.kasha.counter-impact",
+      "damageRatio": 1,
+      "cost": 0,
+      "cd": 0,
+      "range": 100,
+      "modules": [
+        {
+          "type": "delivery.area",
+          "shape": "circle",
+          "range": 100,
+          "wallPolicy": "block"
+        },
+        {
+          "type": "movement.neutralize-knockback",
+          "target": "hit-target",
+          "direction": "away-from-impact",
+          "distance": 100,
+          "speed": 14
+        }
+      ],
+      "tags": [
+        "반격"
+      ],
+      "presentation": {
+        "damageNumberGroup": "execution"
+      }
+    },
+    "judgmentReward": {
+      "id": "attack.kasha.judgment-reward",
+      "damageRatio": 0,
+      "cost": 0,
+      "cd": 0,
+      "range": 0,
+      "effectsOnly": true,
+      "modules": [],
+      "tags": []
     }
   },
   "abilities": {
     "lmb": {
-      "id": "ability.gereta.lmb",
+      "id": "ability.kasha.lmb",
       "input": "lmb",
-      "attackId": "attack.gereta.lmb",
+      "attackId": "attack.kasha.lmb",
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -37802,9 +36617,12 @@ const CHARACTER_DATA=freezeCharacterData({
       }
     },
     "rmb": {
-      "id": "ability.gereta.rmb",
+      "id": "ability.kasha.rmb",
       "input": "rmb",
-      "attackId": "attack.gereta.rmb",
+      "attackId": "attack.kasha.rmb",
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -37823,45 +36641,82 @@ const CHARACTER_DATA=freezeCharacterData({
             "type": "combat.can-act"
           },
           {
+            "type": "cooldowns.ready",
+            "attackIds": [
+              "attack.kasha.rmb"
+            ]
+          },
+          {
+            "type": "resource.can-spend-stamina",
+            "value": {
+              "$ref": "attacks.rmb.cost"
+            }
+          },
+          {
             "type": "state.absent",
-            "stateKey": "charge:gereta-skill"
+            "stateKey": "kasha-swing",
+            "activeOnly": true
+          },
+          {
+            "type": "state.progress-gte",
+            "stateKey": "kasha-judgment",
+            "value": 1
           }
         ],
         "modules": [
           {
-            "type": "charge.attack.start",
-            "stateKey": "charge:gereta-skill"
-          }
-        ]
-      },
-      "releaseTrigger": {
-        "type": "trigger",
-        "event": "input.release",
-        "conditions": [
-          {
-            "type": "input.slot",
-            "slot": "rmb"
+            "type": "state.window",
+            "stateKey": "kasha-preparing",
+            "duration": 700
           },
           {
-            "type": "entity.alive"
+            "type": "status.apply",
+            "status": "bind",
+            "target": "source",
+            "duration": 1100,
+            "sourceId": "ability:kasha:judgment-root"
           },
           {
-            "type": "state.exists",
-            "stateKey": "charge:gereta-skill"
-          }
-        ],
-        "modules": [
+            "type": "preview.create",
+            "shape": "attack-shape",
+            "duration": 700,
+            "followSource": true
+          },
           {
-            "type": "charge.attack.release",
-            "stateKey": "charge:gereta-skill"
+            "type": "effect.spawn",
+            "presentationOnly": true,
+            "renderType": "arcSweep",
+            "position": "source",
+            "range": 900,
+            "halfAngle": 1.9198621771937625,
+            "sweepDirection": "counterclockwise",
+            "animateSweep": false,
+            "duration": 700,
+            "color": "#FF4646",
+            "fillAlpha": 0.035,
+            "strokeAlpha": 0.65,
+            "lineWidth": 2,
+            "clipToAttackArea": false,
+            "followSource": true,
+            "angleMode": "aim"
+          },
+          {
+            "type": "timing.delay",
+            "duration": 700
+          },
+          {
+            "type": "action.attack"
           }
         ]
       }
     },
     "counter": {
-      "id": "ability.gereta.counter",
+      "id": "ability.kasha.counter",
       "input": "counter",
-      "attackId": "attack.gereta.counter",
+      "attackId": "attack.kasha.counter",
+      "inputPolicy": {
+        "repeatWhileHeld": false
+      },
       "trigger": {
         "type": "trigger",
         "event": "input.press",
@@ -37892,16 +36747,19 @@ const CHARACTER_DATA=freezeCharacterData({
             "type": "counter.execute",
             "windup": 300,
             "consumeState": "counter-ready",
+            "targetPointMode": "aim-point",
             "preview": {
               "type": "preview.create",
-              "shape": "attack-shape"
+              "hideAttackShape": true,
+              "targetPointArea": {
+                "shape": "circle",
+                "range": 100,
+                "wallPolicy": "block"
+              }
             },
-            "ccRefAttackId": "attack.gereta.counter"
+            "ccRefAttackId": "attack.kasha.counter-impact"
           }
         ]
-      },
-      "inputPolicy": {
-        "repeatWhileHeld": false
       }
     }
   },
@@ -37909,14 +36767,82 @@ const CHARACTER_DATA=freezeCharacterData({
     {
       "type": "effect.spawn",
       "renderType": "weaponImage",
-      "style": "woodcutter-axe",
-      "angle": -0.55,
-      "scale": 1.65,
-      "rotationStateKey": "gereta-axe-motion",
-      "rotationMs": 400,
-      "rotationRadians": 6.283185307179586
+      "style": "execution-sword",
+      "scale": 1.8,
+      "angle": 0.7,
+      "rotationStateKey": "kasha-sword-spin",
+      "rotationMs": 350,
+      "rotationRadians": -6.283185307179586
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponProjectile",
+      "x": -95,
+      "y": -70,
+      "conditions": [
+        {
+          "type": "condition.any",
+          "conditions": [
+            {
+              "type": "source.property.truthy",
+              "property": "counterWindup"
+            }
+          ]
+        }
+      ],
+      "offsetOrientation": "last-movement",
+      "attackId": "attack.kasha.counter"
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponProjectile",
+      "x": -130,
+      "y": 0,
+      "conditions": [
+        {
+          "type": "condition.any",
+          "conditions": [
+            {
+              "type": "source.property.truthy",
+              "property": "counterWindup"
+            },
+            {
+              "type": "state.exists",
+              "stateKey": "kasha-counter-1",
+              "activeOnly": true
+            }
+          ]
+        }
+      ],
+      "offsetOrientation": "last-movement",
+      "attackId": "attack.kasha.counter"
+    },
+    {
+      "type": "effect.spawn",
+      "renderType": "weaponProjectile",
+      "x": -95,
+      "y": 70,
+      "conditions": [
+        {
+          "type": "condition.any",
+          "conditions": [
+            {
+              "type": "source.property.truthy",
+              "property": "counterWindup"
+            },
+            {
+              "type": "state.exists",
+              "stateKey": "kasha-counter-2",
+              "activeOnly": true
+            }
+          ]
+        }
+      ],
+      "offsetOrientation": "last-movement",
+      "attackId": "attack.kasha.counter"
     }
-  ]
+  ],
+  "selectable": false
 },
 });
 /* ===== 캐릭터별 단일 원본: 끝 ===== */
@@ -38037,7 +36963,6 @@ const GAME_DATA=freezeCharacterData({
   dodge: {cost: 300, dist: 119, speed: 17.95, dur: 130, justWindow: 80},
   counter: {window: 5000, delay: 300},
   cameraFeedback: {
-    baseScale: .8,
     strongDamage: 600,
     strongHitZoom: {duration: 82, basePeak: 0.026, maxPeak: 0.045, damagePeakStep: 0.000024, attackRatio: 0.23, releasePower: 2.6},
     ko: {zoom: 1.085, duration: 430, shake: 46, shakeDuration: 430}
@@ -39307,13 +38232,6 @@ const CharacterSortService=Object.freeze({
     const relations=module?.targetRelations;
     return !Array.isArray(relations)||!relations.length||relations.includes('enemy');
   },
-  damagingField(field,combat){
-    if(!field||!this.enemyRangeModule(field))return false;
-    if(field.damageOnTrigger!==false&&field.attackId&&Number(this.attackById(combat,field.attackId)?.damageRatio)>0)return true;
-    return (field.onTrigger||[]).some(module=>this.enemyRangeModule(module)&&module.type==='status.apply'&&
-      ['poison','burn','bleed'].includes(module.status)&&Number(module.duration)>0&&
-      ['value','flat','ratio'].some(key=>Number(module.data?.[key])>0));
-  },
   geometryRange(module,attack){
     const range=this.rangeValue(module.range??attack.range);
     let center=this.rangeValue(module.centerDistance);
@@ -39393,7 +38311,7 @@ const CharacterSortService=Object.freeze({
             }else maximum=Math.max(maximum,travel+extent);
           }
           const field=module.field;
-          if(this.damagingField(field,combat)){
+          if(field?.damageOnTrigger!==false&&field?.attackId&&Number(this.attackById(combat,field.attackId)?.damageRatio)>0&&this.enemyRangeModule(field)){
             maximum=Math.max(maximum,field.anchorMode==='projectile-path'?travel:travel+this.geometryRange(field,variant));
           }
         }
@@ -39401,7 +38319,7 @@ const CharacterSortService=Object.freeze({
         if(type==='state.window'){
           for(const id of Object.values(module.resolveAttackIds||{}))maximum=Math.max(maximum,linkedRange(id));
         }
-        if(type==='field.area'&&this.damagingField(module,combat)){
+        if(type==='field.area'&&module.damageOnTrigger!==false&&module.attackId&&Number(this.attackById(combat,module.attackId)?.damageRatio)>0){
           const origin=module.anchorMode==='attack-end'?travel:0;
           maximum=Math.max(maximum,origin+this.geometryRange(module,variant));
         }
@@ -44873,7 +43791,6 @@ const COMBAT_DOT_STATUS_TYPES=Object.freeze(
 
 
 const COMBAT_BUFF_DEFS=Object.freeze({
-  statusImmunity:Object.freeze({label:'CC IMMUNITY',clearAdverseOnApply:true,limitMode:'flat',toggleOnly:true}),
   damage:Object.freeze({label:'DAMAGE',min:-.90}),
   defense:Object.freeze({label:'DEFENSE',max:.90}),
   speed:Object.freeze({label:'SPEED',min:-.90}),
@@ -45032,7 +43949,6 @@ const BuffService=Object.freeze({
       end
     });
 
-    if(COMBAT_BUFF_DEFS[type]?.clearAdverseOnApply===true&&Number(value)>0&&end>performance.now())CCService.clearAdverse(entity,{preserveSelf:true});
     entity.buffs.set(type,list);
     entity.combatSnapshotDirty=true;
     return true;
@@ -45061,7 +43977,6 @@ const BuffService=Object.freeze({
       });
     }
 
-    if(COMBAT_BUFF_DEFS[type]?.clearAdverseOnApply===true&&Number(value)>0&&end>performance.now())CCService.clearAdverse(entity,{preserveSelf:true});
     entity.buffs.set(type,list);
     entity.combatSnapshotDirty=true;
     return true;
@@ -45100,7 +44015,6 @@ const BuffService=Object.freeze({
       });
     }
 
-    if(COMBAT_BUFF_DEFS[type]?.clearAdverseOnApply===true&&Number(value)>0&&end>performance.now())CCService.clearAdverse(entity,{preserveSelf:true});
     entity.buffs.set(type,list);
     entity.combatSnapshotDirty=true;
     return true;
@@ -45985,28 +44899,6 @@ function nextCcPresentationOrder(){
   return CC_PRESENTATION_SEQUENCE;
 }
 const CCService=Object.freeze({
-  isImmune(entity,now=performance.now()){
-    return !!entity?.buffs?.get('statusImmunity')?.some(item=>item.end>now&&Number(item.value)>0);
-  },
-  isSelfApplied(entity,status){
-    return String(status?.sourceEntityId||status?.data?.sourceEntityId||status?.sourceId||'')===String(entity?.id||'');
-  },
-  clearAdverse(entity,{preserveSelf=false}={}){
-    if(!entity)return false;
-    const motion=entity.forcedMotion;
-    if(motion&&!(preserveSelf&&this.isSelfApplied(entity,motion.completion)))MovementService.finalizeForcedMotion(entity);
-    for(const type of [...entity.statuses.keys()]){
-      if(type==='revive')continue;
-      if(!preserveSelf){this.clear(entity,type,{applyRelease:false});continue;}
-      const list=entity.statuses.get(type)||[];
-      const kept=list.filter(status=>this.isSelfApplied(entity,status));
-      if(kept.length===list.length)continue;
-      if(kept.length)entity.statuses.set(type,kept);else entity.statuses.delete(type);
-      entity.combatSnapshotDirty=true;
-      this.touchPresentation(entity);
-    }
-    return true;
-  },
   touchPresentation(entity){
     if(!entity)return;
     entity.statusPresentationRevision=
@@ -46016,7 +44908,6 @@ const CCService=Object.freeze({
     if(!entity||!COMBAT_STATUS_DEFS[type])return false;
 
     const now=performance.now();
-    if(type!=='revive'&&this.isImmune(entity,now)&&String(data.sourceEntityId||sourceId||'')!==String(entity.id))return false;
     const list=entity.statuses.get(type)||[];
     const params=CombatModifierService.statusParams(type,data);
     const finiteDuration=duration===Infinity
@@ -46025,7 +44916,7 @@ const CCService=Object.freeze({
 
     // Maintaining an active CC instance is not a new restriction event.
     const refreshesRestriction=
-      (params.stackMode==='replace-source'||params.stackMode==='refresh-type'||params.stackMode==='refresh-source')&&
+      (params.stackMode==='replace-source'||params.stackMode==='refresh-type')&&
       list.some(item=>item.end>now&&item.sourceId===sourceId);
     if(!refreshesRestriction&&entity.character?.reactiveEquipment&&finiteDuration>0&&EntitySimulationAuthorityService.isLocal(entity))ReactiveEquipmentService.restriction(entity,type,String(data?.sourceEntityId||sourceId||''),now);
 
@@ -46034,15 +44925,6 @@ const CCService=Object.freeze({
     }
 
     let storedParams=params;
-
-    if(params.stackMode==='refresh-source'){
-      const previous=list.find(item=>item.sourceId===sourceId&&item.end>now);
-      if(previous){
-        previous.end=finiteDuration===Infinity?Infinity:now+finiteDuration;
-        previous.data={...previous.data,...params};
-        entity.combatSnapshotDirty=true;this.touchPresentation(entity);return true;
-      }
-    }
 
     if(params.stackMode==='refresh-type'){
       let primary=null;
@@ -46175,20 +45057,6 @@ const CCService=Object.freeze({
       };
     }
 
-    // Priority DOT instances share one cadence while they overlap. Switching
-    // the strongest source must not switch to an unrelated damage clock.
-    const tickInterval=Math.max(1,Number(params.interval)||1000);
-    const cadence=params.damagePriority==='highest'
-      ?list.find(item=>item.data?.damagePriority==='highest'&&
-        Number(item.data?.interval||1000)===tickInterval&&item.end>=now&&
-        Number.isFinite(item.nextTick))
-      :null;
-    let nextTick=now+tickInterval;
-    if(cadence){
-      nextTick=cadence.nextTick;
-      // Do not give a newly applied source ticks from before its application.
-      if(nextTick<now)nextTick+=Math.ceil((now-nextTick)/tickInterval)*tickInterval;
-    }
     list.push({
       sourceId,
       sourceEntityId:
@@ -46198,7 +45066,10 @@ const CCService=Object.freeze({
       end:finiteDuration===Infinity
         ?Infinity
         :now+finiteDuration,
-      nextTick,
+      nextTick:now+Math.max(
+        1,
+        Number(params.interval)||1000
+      ),
       data:storedParams
     });
 
@@ -46260,12 +45131,7 @@ const CCService=Object.freeze({
 
     for(const item of list){
       if(item.end<=now)continue;
-      const strength=entry=>{
-        const value=Math.max(0,Number(entry?.data?.value)||0);
-        return (entry?.data?.mode==='flat'?value:entity.maxHealth*value)/Math.max(1,Number(entry?.data?.interval)||1000);
-      };
-      const prioritized=type==='poison'&&(item.data?.damagePriority==='highest'||active?.data?.damagePriority==='highest');
-      if(!active||(prioritized?strength(item)>strength(active):item.end>active.end))active=item;
+      if(!active||item.end>active.end)active=item;
     }
 
     return active;
@@ -46456,7 +45322,7 @@ const CCService=Object.freeze({
           0,
           Number(status.data.value)||0
         );
-        amount=status.data.mode==='flat'?value:entity.maxHealth*value;
+        amount=entity.maxHealth*value;
       }else if(type==='burn'){
         const flat=Math.max(
           0,
@@ -46479,17 +45345,6 @@ const CCService=Object.freeze({
         );
 
         amount=flat+entity.maxHealth*ratio;
-      }
-
-      if(status.data.damagePriority==='highest'){
-        const strength=item=>{
-          const value=Math.max(0,Number(item.data?.value)||0);
-          return (item.data?.mode==='flat'?value:entity.maxHealth*value)/Math.max(1,Number(item.data?.interval)||1000);
-        };
-        const entries=entity.statuses.get(type)||[];
-        const rank=entries.indexOf(status);
-        if(entries.some((other,index)=>other!==status&&other.start<=status.nextTick&&other.end>=status.nextTick&&
-          (strength(other)>strength(status)||(strength(other)===strength(status)&&index<rank))))amount=0;
       }
 
       if(amount>0){
@@ -46865,8 +45720,18 @@ const CombatStatusApplicationService={
     const normalizedData={...(data||{})};
 
     if(type==='poison'){
-      normalizedData.mode=normalizedData.mode==='flat'?'flat':'percent';
-      normalizedData.value=Math.max(0,Number(normalizedData.value)||0);
+      const maximum=Math.max(
+        1,
+        Number(target.maxHealth)||1
+      );
+      if(normalizedData.mode==='flat'){
+        normalizedData.value=
+          Math.max(
+            0,
+            Number(normalizedData.value)||0
+          )/maximum;
+      }
+      normalizedData.mode='percent';
       delete normalizedData.flat;
     }
 
@@ -47307,7 +46172,6 @@ const StatusPresentation=Object.freeze({
         0,
         Number(item.data?.value)||0
       );
-      if(item.data?.mode==='flat')return `POISON ${Math.round(value*1000/Math.max(1,Number(item.data?.interval)||1000))}/s`;
       return `POISON ${Math.round(value*100)}%/s`;
     }
 
@@ -47430,18 +46294,6 @@ const StatusPresentation=Object.freeze({
       }
     }
 
-    // Choose the visible status type by chronology, but its poison amount by
-    // effective damage priority. A newer weak zone must not relabel strong DOT.
-    if(cache.active&&cache.type==='poison'){
-      const strongest=CCService.active(entity,'poison',now);
-      if(strongest&&CCService.live(entity,'poison',now).some(item=>item.data?.damagePriority==='highest')){
-        cache.item=strongest;
-        cache.rgb=strongest.data?.presentationColor
-          ?String(strongest.data.presentationColor)
-          :this.cc.poison.rgb;
-      }
-    }
-
     return cache.active?cache:null;
   },
 
@@ -47507,7 +46359,6 @@ const StatusPresentation=Object.freeze({
    TAB을 누르는 동안 현재 활성 버프 전체를 정확한 수치로 펼친다. */
 const BuffStatusPresentation=Object.freeze({
   styles:Object.freeze({
-    statusImmunity:Object.freeze({label:'CC IMMUNITY',rgb:'165,235,255'}),
     damage:Object.freeze({label:'DMG',rgb:'190,90,255'}),
     defense:Object.freeze({label:'DEF',rgb:'80,170,255'}),
     speed:Object.freeze({label:'SPD',rgb:'245,245,255'}),
@@ -47534,8 +46385,7 @@ const BuffStatusPresentation=Object.freeze({
     'damage',
     'defense',
     'speed',
-    'wallPass',
-    'statusImmunity'
+    'wallPass'
   ]),
 
   regenTypes:Object.freeze([
@@ -49156,23 +48006,8 @@ const TriggerConditionService=Object.freeze({
     const source=context.source||context.entity||null;
     const now=Number(context.now)||performance.now();
 
-    if(condition.type==='delivery.hit-count-lte')return Number.isFinite(context.deliveryHitCount)&&context.deliveryHitCount<=Number(condition.value);
-    if(condition.type==='target.nearest-enemy'){
-      const target=context.target,kinds=condition.targetKinds;
-      const eligible=e=>e?.alive&&e!==source&&RelationService.relation(source,e)==='enemy'&&
-        (!Array.isArray(kinds)||kinds.includes(e.kind));
-      if(!source||!eligible(target))return false;
-      let nearest=null,distance=Infinity;
-      for(const candidate of EntityService.items.values()){
-        if(!eligible(candidate))continue;
-        const d=(candidate.x-source.x)**2+(candidate.y-source.y)**2;
-        if(d<distance||(d===distance&&String(candidate.id)<String(nearest?.id))){nearest=candidate;distance=d;}
-      }
-      return nearest===target;
-    }
     if(condition.type==='cause.source-is-self')return !!source&&!!context.cause?.source&&EntityService.owner(context.cause.source)===EntityService.owner(source);
     if(condition.type==='condition.any')return (condition.conditions||EMPTY_RUNTIME_ITEMS).some(item=>this.matches(item,context));
-    if(condition.type==='target.health-ratio-gte')return !!context.target&&Number(context.target.maxHealth)>0&&Number(context.target.health)/Number(context.target.maxHealth)>=Number(condition.value);
     if(condition.type==='target.health-ratio-lt-source'){
       const target=context.target;
       const snapshot=context.targetHealthSnapshots?.[String(target?.id||'')];
@@ -49991,7 +48826,6 @@ const CharacterTriggerEffectService=Object.freeze({
         performance.now()
     };
 
-    if(typeof ConditionalTargetLinkPresentationService!=='undefined')ConditionalTargetLinkPresentationService.notifyEvent(entity,event,shared);
     for(const trigger of entity?.character?.triggers||[]){
       if(trigger?.event!==event)continue;
       if(
@@ -52677,35 +51511,6 @@ const CounterStockService=Object.freeze({
 });
 
 const StaminaService=Object.freeze({
-  spentRound(){
-    return `${typeof Training!=='undefined'?Training.sessionMode:''}:${typeof OnlineDuelService!=='undefined'?OnlineDuelService.roundToken||0:0}`;
-  },
-  spentTotal(entity){
-    return entity?._staminaSpentRound===this.spentRound()?Math.max(0,Number(entity._staminaSpentTotal)||0):0;
-  },
-  dispatchSpent(entity,amount,now){
-    if(!(amount>0)||typeof CharacterTriggerEffectService==='undefined')return;
-    CharacterTriggerEffectService.run(entity,'stamina-spent',{source:entity,target:entity,amount,now});
-    CharacterTriggerEffectService.observe('enemy-stamina-spent',entity,{amount,now});
-  },
-  notifySpent(entity,before,now){
-    if(!entity||EntitySimulationAuthorityService.isLocal(entity)!==true)return;
-    const amount=Math.max(0,(Number(before)||0)-(Number(entity.stamina)||0));
-    if(amount<=0)return;
-    entity._staminaSpentTotal=this.spentTotal(entity)+amount;
-    entity._staminaSpentRound=this.spentRound();
-    this.dispatchSpent(entity,amount,now);
-  },
-  receiveSpentTotal(entity,total,now=performance.now()){
-    if(!entity||EntitySimulationAuthorityService.isLocal(entity)||!Number.isFinite(total)||total<0)return false;
-    const round=this.spentRound();
-    const previous=entity._observedStaminaSpentRound===round?Number(entity._observedStaminaSpentTotal)||0:0;
-    if(total<=previous)return false;
-    entity._observedStaminaSpentRound=round;
-    entity._observedStaminaSpentTotal=total;
-    if(typeof CharacterTriggerEffectService!=='undefined')CharacterTriggerEffectService.observe('enemy-stamina-spent',entity,{amount:total-previous,now});
-    return true;
-  },
   notifyChanged(entity,before,after,now=performance.now()){
     if(!entity)return false;
     const from=Math.max(0,Number(before)||0);
@@ -52783,14 +51588,12 @@ const StaminaService=Object.freeze({
         now
       );
       entity.stamina=0;
-      this.notifySpent(entity,before,now);
       entity.lastStaminaUse=now;
       this.notifyChanged(entity,before,entity.stamina,now);
       return true;
     }
 
     entity.stamina=Math.max(0,entity.stamina-value);
-    this.notifySpent(entity,before,now);
     entity.lastStaminaUse=now;
     this.notifyChanged(entity,before,entity.stamina,now);
     return true;
@@ -54604,7 +53407,6 @@ const NeutralizingKnockbackService=Object.freeze({
     module
   }={}){
     if(!source||!target||!module)return false;
-    if(source!==target&&typeof CCService!=='undefined'&&CCService.isImmune?.(target))return false;
 
     // 같은 대상에 기존 무력화 넉백이 남아있다면
     // 이전 이동 종료 처리를 먼저 확정한다.
@@ -55859,7 +54661,6 @@ const MovementService=Object.freeze({
   },
   pull(entity,source,distance,speed=10,options={}){
     if(!entity||!source)return false;
-    if(entity!==source&&typeof CCService!=='undefined'&&CCService.isImmune?.(entity))return false;
 
     // 끌어오기는 피격 대상의 현재 위치에서 source 쪽으로 향하는 독립 강제이동 상태다.
     // 벽은 통과하지만 월드 경계는 MovementService 공통 규칙을 유지한다.
@@ -56399,7 +55200,6 @@ const EffectSpawnService=Object.freeze({
           ?AbilityService.attackById(source.character,damage.attackId)
           :null);
       if(attack){
-        if(attack.charge&&Number.isFinite(Number(damage.resolvedChargeProgress)))attack=ChargedAttackService.dynamicSpec(attack,Number(damage.resolvedChargeProgress));
         if(damage.snapshotAttackScalars===true&&damage.attackScalars){
           const scalars=damage.attackScalars;
           attack={...attack,
@@ -56465,16 +55265,6 @@ const EffectSpawnService=Object.freeze({
       effect.damage?.oncePerExecution!==false&&
       state.execution.hitTargets.has(target.id)
     )return false;
-
-    const module=effect.damage?.module;
-    if(module?.applyHitEffects===true&&RelationService.relation(source,target)!=='enemy'){
-      if(!AreaAttackService.canApplyHitEffects(target))return false;
-      state.execution.hitTargets.add(target.id);
-      AttackModuleService.onHit(source,target,state.attack,
-        {execution:state.execution,hits:0,total:1,resolved:0,finished:false},
-        Number(effect.angle)||0,module);
-      return true;
-    }
 
     const effectOrigin={
       mode:'point',
@@ -56559,13 +55349,18 @@ const EffectSpawnService=Object.freeze({
       mode!=='progressive-rect'
     )return false;
 
-    const cx=Number.isFinite(Number(effect.x))?Number(effect.x):(Number(source.x)||0);
-    const cy=Number.isFinite(Number(effect.y))?Number(effect.y):(Number(source.y)||0);
+    const cx=Number(effect.x)||Number(source.x)||0;
+    const cy=Number(effect.y)||Number(source.y)||0;
     const module=damage.module||null;
     let hitAny=false;
 
     if(mode==='progressive-rect'){
-      const range=Math.min(Math.max(0,Number(module?.range)||Number(effect.range)||0),Math.max(0,Number(effect.range)||0));
+      const range=Math.max(
+        0,
+        Number(module?.range)||
+        Number(effect.range)||
+        0
+      );
       const halfWidth=Math.max(
         0,
         Number(module?.halfWidth)||
@@ -56594,9 +55389,7 @@ const EffectSpawnService=Object.freeze({
       const cos=Math.cos(angle);
       const sin=Math.sin(angle);
 
-      // A completed delivery may fade visually, but must not hit again after
-      // handing the attack off to its followup projectile.
-      if(state.deliveryInteractionResolved||state.deliveryFollowupResolved)return false;
+      if(state.deliveryInteractionResolved)return false;
       let interaction=null;
       if(damage.interactionAttackId){
         if(!state.interactionAttack){
@@ -56646,7 +55439,7 @@ const EffectSpawnService=Object.freeze({
 
       if(damage.projectileClearOnly===true)return hitAny;
 
-      const visitTarget=target=>{
+      EntityService.forEachEnemy(source,target=>{
         if(
           damage.oncePerExecution!==false&&
           state.execution.hitTargets.has(target.id)
@@ -56663,10 +55456,16 @@ const EffectSpawnService=Object.freeze({
         if(along+radius<previousLength)return;
         if(along-radius>currentLength)return;
         if(along+radius<0||along-radius>range)return;
-        // Use exactly the visible clipped rectangle, including rounded body overlap at corners.
-        const nearestAlong=Math.max(previousLength,Math.min(currentLength,along));
-        const nearestAcross=Math.max(-halfWidth,Math.min(halfWidth,-dx*sin+dy*cos));
-        if(Math.hypot(along-nearestAlong,(-dx*sin+dy*cos)-nearestAcross)>radius)return;
+        if(
+          module?.wallPolicy!=='ignore'&&
+          WorldGeometryService.segmentBlocked(
+            cx,
+            cy,
+            point.x,
+            point.y,
+            0
+          )
+        )return;
 
         const contactLength=Math.max(
           previousLength,
@@ -56677,15 +55476,7 @@ const EffectSpawnService=Object.freeze({
           y:cy+sin*contactLength
         };
         if(this.effectDamageTarget(effect,target,impactPoint))hitAny=true;
-      };
-      EntityService.forEachEnemy(source,visitTarget,state.attack);
-      if(module?.applyHitEffects===true&&Array.isArray(module.targetRelations)){
-        for(const target of EntityService.items.values()){
-          if(!target?.alive||target.hidden||target===source)continue;
-          const relation=RelationService.relation(source,target);
-          if(relation!=='enemy'&&module.targetRelations.includes(relation))visitTarget(target);
-        }
-      }
+      },state.attack);
       if(interaction&&!state.deliveryHadContact&&ProjectileRedirectService.resolvePressureContact(source,state.interactionAttack,angle,{x:cx,y:cy},range,interaction,`pressure:${source.id}:${state.execution.sequence}`)){
         state.deliveryInteractionResolved=true;state.deliveryFollowupResolved=true;state.deliveryHadContact=true;
         effect.range=interaction.length;effect.damage={...damage,module:{...module,range:interaction.length}};
@@ -58168,8 +56959,6 @@ const InstalledAreaFieldService=Object.freeze({
     now
   ){
     if(!module||!target)return false;
-    if(Array.isArray(module.targetRelations)&&!module.targetRelations.includes(RelationService.relation(source,target)))return false;
-    if(Array.isArray(module.conditions)&&!module.conditions.every(condition=>TriggerConditionService.matches(condition,{source,target,attack:state.attack,now})))return false;
 
     if(module.type==='health.start-natural-regen'){
       if(!EntitySimulationAuthorityService.isLocal(target)||target.kind!=='player')return false;
@@ -58396,7 +57185,7 @@ const InstalledAreaFieldService=Object.freeze({
     let triggered=false;
     let hit=false;
 
-    if(state.attack&&RelationService.relation(source,target)==='enemy'){
+    if(state.attack){
       const targetKey=this.targetKey(target);
       const alreadyDamagedInExecution=
         state.module?.skipIfExecutionAlreadyDamagedTarget===true&&
@@ -62240,7 +61029,6 @@ const MovementAbilityService=Object.freeze({
         module.trajectory||
         null,
       followup:options.followup||null,
-      targetEntityId:String(options.targetEntityId||''),
       deferAttacksUntilEnd:
         module.deferAttacksUntilEnd===true,
       blocksAction:
@@ -62443,7 +61231,7 @@ const MovementAbilityService=Object.freeze({
           entity,
           attack,
           Number(state.angle)||0,
-          {targetEntityId:state.targetEntityId||null,hitGroupSequence:state.onEndShareHitTargets===true?state.executionSequence:null}
+          {hitGroupSequence:state.onEndShareHitTargets===true?state.executionSequence:null}
         );
       }
     }
@@ -72110,7 +70898,6 @@ charRow.appendChild(card);
       maxHealth:player.maxHealth,
       shield:ShieldService.current(player),
       stamina:player.stamina,
-      staminaSpentTotal:StaminaService.spentTotal(player),
       maxStamina:player.maxStamina,
       commandOverclockActive:
         player._commandOverclock?.active===true,
@@ -72166,7 +70953,6 @@ charRow.appendChild(card);
         Training.player===player
           ?Training.aimAngle()
           :0,
-      weaponMovementAngle:typeof ModeGearPresentationService!=='undefined'?ModeGearPresentationService.synchronizedMovementAngle(player):undefined,
       lastMovementInputAngle:player.lastMovementInputAngle!=null&&Number.isFinite(Number(player.lastMovementInputAngle))
         ?Number(player.lastMovementInputAngle):null,
       aimTargetPoint:
@@ -73719,7 +72505,6 @@ charRow.appendChild(card);
         );
       }
       remote.alive=payload.alive!==false;
-      StaminaService.receiveSpentTotal(remote,payload.staminaSpentTotal,performance.now());
       remote._recordPoints=
         Math.max(
           0,
@@ -73729,9 +72514,6 @@ charRow.appendChild(card);
         );
       if(Number.isFinite(Number(payload.aimAngle))){
         remote._remoteAimAngle=Number(payload.aimAngle);
-      }
-      if(typeof payload.weaponMovementAngle==='number'&&Number.isFinite(payload.weaponMovementAngle)){
-        remote._remoteWeaponMovementAngle=payload.weaponMovementAngle;
       }
       if(payload.lastMovementInputAngle!=null&&Number.isFinite(Number(payload.lastMovementInputAngle))){
         remote.lastMovementInputAngle=Number(payload.lastMovementInputAngle);
@@ -78388,7 +77170,7 @@ const CameraFovService={
   },
 
   scale(now=performance.now()){
-    return this.dynamicScale(now)*this.debugScale*(Number(GAME_DATA.cameraFeedback.baseScale)||1);
+    return this.dynamicScale(now)*this.debugScale;
   },
 
   reset(){
@@ -79671,8 +78453,6 @@ const NetworkHitAuthorityService={
           // 크리티컬 공격 선택/판정은 이 후처리 경로가 아니므로 영향을 받지 않는다.
           if(payload.durabilityBlocked===true)break;
           const type=AttackModuleService.type(module);
-          if(Array.isArray(module.targetRelations)&&!module.targetRelations.includes(RelationService.relation(sourceEntity,target)))continue;
-
           if(type==='hit.sequence'&&module.sourceModules){
             if(module.authority==='source')HitTargetSequenceService.start(sourceEntity,target,attack,execution,Number(payload.directionAngle)||0,module,null);
             else HitTargetSequenceService.applySourceModules(sourceEntity,target,attack,execution,Number(payload.directionAngle)||0,module);
@@ -81834,7 +80614,6 @@ const AreaAttackService=Object.freeze({
   ){
     AttackModuleService.onDelivery(source,spec,angle,volley?.execution||null);
     const resolvedModule=module;
-    let predictedHits=0;
     const networkGeometryOrigin=
       !EntitySimulationAuthorityService.isLocal(source)&&
       (
@@ -81957,7 +80736,6 @@ const AreaAttackService=Object.freeze({
         )
       )continue;
 
-      if(effectiveModule.onlyExecutionTarget===true&&String(target.id)!==String(volley?.execution?.targetEntityId||''))continue;
       const sourceOwner=
         EntityService.owner(source);
       const targetOwner=
@@ -82115,8 +80893,6 @@ const AreaAttackService=Object.freeze({
         }
       });
 
-      if(result.hit&&result.authoritative===false)predictedHits++;
-
       if(
         result.hit&&
         result.authoritative!==false&&
@@ -82149,8 +80925,7 @@ const AreaAttackService=Object.freeze({
       spec,
       resolvedAngle,
       volley?.execution||null,
-      module,
-      {hitCount:volley.hits+predictedHits}
+      module
     );
     volley.resolved=volley.total;
     volley.finished=true;
@@ -82879,7 +81654,6 @@ const AttackModuleService=Object.freeze({
     return {
       speed:Math.max(0,Number(module.speed)||0),
       launchDelay:Math.max(0,Number(module.delay)||0),
-      selfArc:module.selfArc||null,
       targetPointTravelDuration:Math.max(
         0,
         Number(module.targetPointTravelDuration)||0
@@ -83406,20 +82180,6 @@ const AttackModuleService=Object.freeze({
     for(const module of spec.modules||[]){
       const type=this.type(module);
 
-      if(type==='delivery.target-volley'){
-        if(!EntitySimulationAuthorityService.isLocal(source))continue;
-        const attack=AbilityService.attackById(source.character,module.attackId);
-        if(!attack)continue;
-        const key='target-volley:'+module.attackId;
-        if(AttackExecutionService.hasEffect(volley?.execution,key))continue;
-        AttackExecutionService.markEffect(volley?.execution,key);
-        const targets=[...EntityService.items.values()].filter(target=>target?.alive&&!target.hidden&&
-          (module.targetRelations||['enemy']).includes(RelationService.relation(source,target))&&
-          (!Array.isArray(module.targetKinds)||module.targetKinds.includes(target.kind)));
-        for(const target of targets)TriggeredAttackService.execute(source,attack,Math.atan2(target.y-source.y,target.x-source.x),{targetPoint:{x:target.x,y:target.y},targetEntityId:target.id});
-        continue;
-      }
-
       if(type==='summon.cluster-spawn'){
         if(EntitySimulationAuthorityService.isLocal(source)){
           const key=`cluster-spawn:${String(module.summonKey||'')}`;
@@ -83650,7 +82410,7 @@ const AttackModuleService=Object.freeze({
           };
           const launch=()=>{
             if(!source?.alive)return;
-            const launched=ProjectileService.spawn({
+            ProjectileService.spawn({
               source,
               attack:spec,
               volley,
@@ -83672,10 +82432,6 @@ const AttackModuleService=Object.freeze({
               projectile:launchProjectile,
               behavior:ProjectileModuleService.config(spec)
             });
-            if(launched&&launchProjectile.selfArc&&targetDistance<.001){
-              launched.scriptedMotion={mode:'anchored-arc',targetEntityId:source.id,startedAt:performance.now(),duration:Math.max(1,Number(launchProjectile.selfArc.duration)||520),height:Math.max(0,Number(launchProjectile.selfArc.height)||96),finishReason:'target-point'};
-              launched.vx=0;launched.vy=0;launched.persistent=true;launched.expireAtRange=false;
-            }
           };
 
           if(projectile.launchDelay>0){
@@ -83846,7 +82602,6 @@ const AttackModuleService=Object.freeze({
               repeatCount<=1
                 ?.5
                 :repeatIndex/(repeatCount-1);
-            if(source.attackPreview?.deliveryExecution===volley.execution)source.attackPreview=null;
             let commitBaseAngle=baseAngle;
             if(String(module.aimMode||'locked')==='live-source'){
               if(
@@ -83947,12 +82702,6 @@ const AttackModuleService=Object.freeze({
           if(areaDelay<=0){
             executeArea();
           }else{
-            if(module.previewDuringDelay===true&&repeatIndex===0&&EntitySimulationAuthorityService.isLocal(source)){
-              const preview=AttackPreviewService.fromAttack(source,spec,baseAngle,performance.now()+areaDelay,source.attackPreview,{includeDeliveryAreas:true});
-              preview.deliveryExecution=volley.execution;
-              preview.liveTracking={attackId:spec.id,preparedAttack:spec,aimMode:String(module.aimMode||'locked'),followSource:true,includeDeliveryAreas:true,angle:baseAngle};
-              source.attackPreview=preview;
-            }
             const interruptibleWindup=
               Math.max(
                 0,
@@ -84379,7 +83128,6 @@ const AttackModuleService=Object.freeze({
     }
 
     if(effect.damage){
-      if(Number.isFinite(Number(spec.resolvedChargeProgress)))effect.damage={...effect.damage,resolvedChargeProgress:Number(spec.resolvedChargeProgress)};
       effect.damage={
         ...effect.damage,
         attack:spec
@@ -84397,9 +83145,9 @@ const AttackModuleService=Object.freeze({
     ){
       effect.damage={
         ...effect.damage,
-        extraModules:[...(effect.damage.extraModules||[]),...execution.extraModules.map(
+        extraModules:execution.extraModules.map(
           extra=>EffectSpawnService.definitionSnapshot(extra)
-        )]
+        )
       };
     }
 
@@ -84803,7 +83551,7 @@ const AttackModuleService=Object.freeze({
     }
     return instance;
   },
-  onDeliveryResolved(source,spec,angle,execution,deliveryModule=null,result={}){
+  onDeliveryResolved(source,spec,angle,execution,deliveryModule=null){
     if(!source||!spec||!execution)return false;
     const deliveryIndex=(spec.modules||[]).indexOf(deliveryModule);
     const key=`delivery-resolved:${deliveryIndex}`;
@@ -84817,15 +83565,10 @@ const AttackModuleService=Object.freeze({
         !TriggerModuleService.matches(
           {type:'trigger',event:'attack.delivery-resolved',conditions:module.conditions},
           'attack.delivery-resolved',
-          {source,attack:spec,execution,angle,deliveryModule,deliveryHitCount:result.hitCount,now:performance.now()}
+          {source,attack:spec,execution,angle,deliveryModule,now:performance.now()}
         )
       )return;
       const type=this.type(module);
-      if(type==='status.apply'&&module.recipient==='source'&&module.status){
-        if(!EntitySimulationAuthorityService.isLocal(source))return;
-        changed=CombatStatusApplicationService.apply({source,target:source,type:String(module.status),duration:Math.max(0,Number(module.duration)||0),sourceId:source.id,data:{...(module.data||{}),sourceEntityId:source.id}})||changed;
-        return;
-      }
       if(type==='mode.set'){
         ModeStateService.set(
           source,
@@ -85018,7 +83761,6 @@ const AttackModuleService=Object.freeze({
             runtimeDistance,
             targetPoint,
             trajectory:this.module(spec,'trajectory.arc'),
-            targetEntityId:execution?.targetEntityId||null,
             executionSequence:
               Math.max(
                 0,
@@ -85929,17 +84671,6 @@ const AttackModuleService=Object.freeze({
     });
 
     this.forEachModule(spec,execution,module=>{
-      if(this.type(module)==='resource.restore'&&module.when==='on-hit'&&module.recipient==='source'){
-        const relations=module.targetRelations;
-        if(Array.isArray(relations)&&!relations.includes(relation))return;
-        if(module.excludeTargetKinds?.includes(String(target.kind||'')))return;
-        if(!this.hitConditionMatches(source,target,spec,execution,attackAngle,module,{beforeHitStatuses}))return;
-        const key=`restore:${module.resource||'health'}:source`;
-        if(module.oncePerExecution!==false&&AttackExecutionService.hasEffect(execution,key))return;
-        ResourceRestoreEffectService.apply({source,target,module,defaultRecipient:'source',reason:'friendly-source-on-hit',now:performance.now()});
-        if(module.oncePerExecution!==false)AttackExecutionService.markEffect(execution,key);
-        applied=true;return;
-      }
       if(
         this.type(module)!=='modifier.set'||
         module.when!=='on-hit'||
@@ -86038,9 +84769,6 @@ const AttackModuleService=Object.freeze({
         )
       )return;
 
-      if(source!==target&&typeof CCService!=='undefined'&&CCService.isImmune?.(target)&&
-        (type==='movement.knockback'||type==='movement.neutralize-knockback'||type==='movement.pull'||type==='movement.projectile-tether'||
-          type==='modifier.set'&&Number(module.value)<0&&module.recipient==='target'))return;
       const hitPhase=String(deliveryModule?.phase||'');
       if(
         module?.when==='on-projectile-outbound-hit'&&
@@ -86399,7 +85127,6 @@ const AttackModuleService=Object.freeze({
         const recipient=recipientType==='source'?source:target;
 
         if(!recipient)return;
-        if(recipientType==='target'&&!EntitySimulationAuthorityService.isLocal(target))return;
         if(recipientType==='source'&&!sourceOnHitMayResolveLocally)return;
 
         const recipientKey=recipientType==='source'
@@ -86573,7 +85300,7 @@ const AttackModuleService=Object.freeze({
           module.when==='on-projectile-outbound-hit'||
           module.when==='on-projectile-return-hit'
         )&&
-        (sourceOnHitMayResolveLocally||(sourceAuthoritative&&relation!=='enemy'))
+        sourceOnHitMayResolveLocally
       ){
         const key=`source-move:${module.target?.stateKey||module.target||'hit-target'}`;
         if(module.oncePerExecution&&AttackExecutionService.hasEffect(execution,key))return;
@@ -86600,7 +85327,6 @@ const AttackModuleService=Object.freeze({
             moveAngle,
             {
               runtimeDistance:distance,
-              targetEntityId:target?.id||null,
               angle:moveAngle
             }
           );
@@ -86673,10 +85399,6 @@ const AttackModuleService=Object.freeze({
       }
 
       if(type==='status.clear'&&module.status){
-        if(module.status==='all'){
-          if(EntitySimulationAuthorityService.isLocal(target))CCService.clearAdverse(target);
-          return;
-        }
         const key=`status-clear:${module.status}:${target.id}`;
         if(
           module.oncePerExecution&&
@@ -86696,7 +85418,6 @@ const AttackModuleService=Object.freeze({
       }
 
       if(type==='status.apply'&&module.status){
-        if(module.when==='after-delivery')return;
         if(!this.progressConditionsMatch(source,target,module,{
           attack:spec,
           execution,
@@ -87023,13 +85744,9 @@ const ProgressScaledAttackService=Object.freeze({
         t,
         Number(spec.range)||0
       );
-      let damageRatio=Array.isArray(config.damageRatio?.steps)
+      const damageRatio=Array.isArray(config.damageRatio?.steps)
         ?this.stepped(source,config,config.damageRatio,Number(spec.damageRatio)||0)
         :this.lerp(config.damageRatio,t,Number(spec.damageRatio)||0);
-      const damageStep=Number(config.damageRatio?.step);
-      if(damageStep>0&&Number.isFinite(damageStep)){
-        damageRatio=Math.floor(damageRatio/damageStep+1e-9)*damageStep;
-      }
       const rules=Array.isArray(config.moduleValues)?config.moduleValues:[];
       const modules=(spec.modules||[]).map(module=>{
         const type=AttackModuleService.type(module);
@@ -89322,7 +88039,6 @@ const CounterModuleService=Object.freeze({
     );
 
     source.counterWindup={
-      networkReplay:context.network===true,
       abilityId:context.ability.id,
       startedCharacterId:
         String(source.character?.id||''),
@@ -89889,7 +88605,6 @@ const CounterModuleService=Object.freeze({
       windup.angle,
       {
         completedWindup:true,
-        networkReplay:windup.networkReplay===true,
         extraModules:resolvedCounterCc?[resolvedCounterCc]:[],
         targetPoint:
           windup.targetPoint&&
@@ -90185,16 +88900,6 @@ const ChargedAttackService=Object.freeze({
         }
         return module;
       });
-
-    // Same declarative numeric module scaling used by range/progress variants.
-    for(let index=0;index<modules.length;index++){
-      for(const value of charge.moduleValues||EMPTY_RUNTIME_ITEMS){
-        if(value.type!==modules[index]?.type)continue;
-        if(value.index!==undefined&&Number(value.index)!==index)continue;
-        const resolved=this.lerp(value,normalizedProgress,Number(modules[index][value.property])||0);
-        modules[index]={...modules[index],[String(value.property)]:resolved};
-      }
-    }
 
     return {
       ...attack,
@@ -90593,10 +89298,6 @@ const ChargedAttackService=Object.freeze({
       context.angle,
       {
         networkReplay:context.network===true,
-        attackResult:context,
-        executionSequence:context.executionSequence,
-        networkAttackAdjustments:context.networkAttackAdjustments,
-        abilityUseId:context.abilityUseId,
         freeAttack:
           context.freeAttack===true||
           state.freeAttack===true,
@@ -103967,7 +102668,6 @@ const AbilityAttackExecutionService=Object.freeze({
         networkReplay:context.network===true,
         freeAttack:context.freeAttack===true,
         completedWindup:context.completedWindup===true,
-        resourcePrepaid:!!context.prepaidAttackId&&context.prepaidAttackId===attack.id,
         targetPoint:
           options.targetPoint!==undefined
             ?options.targetPoint
@@ -104187,16 +102887,6 @@ const PathCarrierService=Object.freeze({
 
 
 const AbilityModuleService=Object.freeze({
-  targetEligible(source,target,attack,module){
-    return !!(target?.alive&&target!==source&&
-      (module.targetRelations||['ally']).includes(RelationService.relation(source,target))&&
-      (!Array.isArray(module.targetKinds)||module.targetKinds.includes(target.kind))&&
-      Math.hypot(target.x-source.x,target.y-source.y)<=Math.max(0,Number(attack?.range)||0)&&
-      (module.requireClearPath!==true||!WorldGeometryService.segmentBlocked(source.x,source.y,target.x,target.y,Math.max(0,Number(source.radius)||0))));
-  },
-  targetPointerRadius(target,module){
-    return Math.max(0,Number(module.pointerRadius)||80)+Math.max(0,Number(target?.radius)||0);
-  },
   addUsageTags(context,module){
     if(
       !(context?.usageTags instanceof Set)||
@@ -104214,30 +102904,6 @@ const AbilityModuleService=Object.freeze({
   },
 
   handlers:Object.freeze({
-    'target.select'(context,next,module){
-      const source=context.source;
-      const point=context.targetPoint||Training.mouseWorld?.();
-      if(!source||!point){context.handled=true;return;}
-      let chosen=null,best=Infinity;
-      if(context.network===true){
-        chosen=EntityService.items.get(String(context.targetEntityId||''))||null;
-        // Owner already validated the target and supplied its cast position.
-        if(!chosen){context.handled=true;return;}
-      }else{
-        for(const target of EntityService.items.values()){
-          if(!AbilityModuleService.targetEligible(source,target,context.attack,module))continue;
-          const distance=Math.hypot(target.x-point.x,target.y-point.y);
-          if(distance>AbilityModuleService.targetPointerRadius(target,module))continue;
-          const priorities=module.preferRelations||[];const rank=t=>{const i=priorities.indexOf(RelationService.relation(source,t));return i<0?priorities.length:i;};
-          if(distance<best||(distance===best&&(rank(target)<rank(chosen)||(rank(target)===rank(chosen)&&String(target.id)<String(chosen?.id))))){chosen=target;best=distance;}
-        }
-        if(!chosen){context.handled=true;return;}
-        context.targetPoint={x:Number(chosen.x),y:Number(chosen.y)};
-        context.angle=Math.atan2(chosen.y-source.y,chosen.x-source.x);
-      }
-      context.targetEntityId=String(chosen.id);
-      next();
-    },
     'movement.path-carrier'(context,next,module){
       if(context.executed===true&&context.dragReady===true)PathCarrierService.start(context,module);
       next();
@@ -105455,10 +104121,7 @@ const AbilityModuleService=Object.freeze({
 
       const source=context.source;
       const resource=String(module.resource||'');
-      const prepaidAttack=module.prepayAttack===true&&context.attack
-        ?AugmentService.prepareAttack(source,context.attack,Number(context.now)||performance.now())
-        :null;
-      const amount=Math.max(0,Number(prepaidAttack?prepaidAttack.cost:module.amount)||0);
+      const amount=Math.max(0,Number(module.amount)||0);
 
       if(resource!=='stamina'){
         context.handled=true;
@@ -105470,7 +104133,6 @@ const AbilityModuleService=Object.freeze({
         return;
       }
 
-      if(prepaidAttack)context.prepaidAttackId=String(context.attack.id||'');
       next();
     },
     'status.apply'(context,next,module){
@@ -114456,12 +113118,7 @@ const ScriptedProjectileMotionService=Object.freeze({
       projectile.vy=0;
       if(progress>=1){
         GameEvents.emit('scripted-projectile-arrived',{projectile,target,motion,now});
-        if(motion.finishReason){
-          projectile.targetPoint={x:Number(target.x)||0,y:Number(target.y)||0};
-          const hit=TargetPointProjectileService.arrived(projectile);
-          ProjectileService.finish(projectile,hit===true,String(motion.finishReason));
-          ProjectileStateService.remove(projectile);
-        }else ProjectileStateService.remove(projectile);
+        ProjectileStateService.remove(projectile);
       }
       return true;
     }
@@ -114698,15 +113355,6 @@ const ProjectileRedirectService=Object.freeze({
     const carrier={source,attack,angle,radius:0,prevX:origin.x,prevY:origin.y,x:origin.x+dx*at,y:origin.y+dy*at};
     const contact=this.contact(carrier,false);if(contact?.wall)best={length:at,carrier,contact,relay,wallBounce:this.supports(redirect,'wall')};
    }
-  }
-  // The followup bullet has width: its center can stop short of a wall
-  // while its rim already touches it. Match the spawn clearance check.
-  if(!best&&(relay||this.supports(redirect,'wall'))){
-   const radius=Math.max(0,Number(this.module({attack},'delivery.projectile')?.radius)||0);
-   const at=WorldGeometryService.raycastDistance(origin.x,origin.y,angle,length,radius);
-   const carrier={source,attack,angle,radius,prevX:origin.x,prevY:origin.y,x:origin.x+dx*at,y:origin.y+dy*at};
-   const contact=this.contact(carrier,false);
-   if(contact?.wall)best={length:at,carrier,contact,relay,wallBounce:this.supports(redirect,'wall')};
   }
   if(this.supports(redirect,'wall')){
    // The map edge is not a wall block. Test the outgoing bullet's center boundary.
@@ -116232,9 +114880,6 @@ const ProjectileService={
               Number(projectile.angle)||0
             );
 
-          if(relation!=='enemy'&&EntitySimulationAuthorityService.isLocal(projectile.source)&&!EntitySimulationAuthorityService.isLocal(target)){
-            AttackModuleService.applyFriendlySourceOnHitModifiers(projectile.source,target,projectile.attack,execution,Number(projectile.angle)||0);
-          }
           AttackModuleService.onHit(
             projectile.source,
             target,
@@ -120339,34 +118984,33 @@ const ColorService=Object.freeze({
 
 /* 표현 */
 const WorldViewportVisibilityService=Object.freeze({
-  bounds(inset=0){
-    const camera=Training.cameraState,canvas=Training.canvas||GAME_DATA.canvas;
-    const zoom=Math.max(.01,CameraFovService.scale(performance.now())*Training.spectatorZoom());
-    const shake=ScreenShakeService.offset(performance.now());
-    const cx=camera.x+canvas.width/2-shake.x,cy=camera.y+canvas.height/2-shake.y;
-    return {left:cx-canvas.width/2/zoom+inset,top:cy-canvas.height/2/zoom+inset,right:cx+canvas.width/2/zoom-inset,bottom:cy+canvas.height/2/zoom-inset};
-  },
-  followedBounds(entity,now=performance.now()){
-    const canvas=Training.canvas||GAME_DATA.canvas;
-    // This is the followed player's view: observer spectator zoom must not change its world size.
-    const zoom=Math.max(.01,CameraFovService.scale(now));
-    const width=canvas.width/zoom,height=canvas.height/zoom;
-    const overscan=Math.max(0,Number(GAME_DATA.cameraFollow.edgeOverscanRatio)||0);
-    const ox=canvas.width*overscan,oy=canvas.height*overscan;
-    const left=Math.max(-ox,Math.min(Math.max(-ox,WorldBoundsService.width()-width+ox),Number(entity.x)-width/2));
-    const top=Math.max(-oy,Math.min(Math.max(-oy,WorldBoundsService.height()-height+oy),Number(entity.y)-height/2));
-    return {left,top,right:left+width,bottom:top+height};
-  },
   containsWorldPoint(x,y,margin=0){
-    const b=this.bounds(-margin);
-    return x>=b.left&&x<=b.right&&y>=b.top&&y<=b.bottom;
+    const camera=Training.cameraState;
+    const left=camera.x-margin;
+    const top=camera.y-margin;
+    const right=
+      camera.x+GAME_DATA.canvas.width+margin;
+    const bottom=
+      camera.y+GAME_DATA.canvas.height+margin;
+
+    return (
+      x>=left&&x<=right&&
+      y>=top&&y<=bottom
+    );
   },
   clampWorldPoint(x,y,inset=24){
-    const b=this.bounds(Math.max(0,Number(inset)||0));
-    return {x:Math.max(b.left,Math.min(b.right,Number(x)||0)),y:Math.max(b.top,Math.min(b.bottom,Number(y)||0))};
+    const camera=Training.cameraState;
+    const safeInset=Math.max(0,Number(inset)||0);
+    const left=camera.x+safeInset;
+    const top=camera.y+safeInset;
+    const right=camera.x+GAME_DATA.canvas.width-safeInset;
+    const bottom=camera.y+GAME_DATA.canvas.height-safeInset;
+    return {
+      x:Math.max(left,Math.min(right,Number(x)||0)),
+      y:Math.max(top,Math.min(bottom,Number(y)||0))
+    };
   }
 });
-
 
 const Presentation=Object.freeze({
   numberBuffer:new Map(),
@@ -121255,7 +119899,10 @@ const CircleFormationService=Object.freeze({
       Training.active
     ){
       const point=Training.mouseWorld(null,{allowOutsideWorld:true});
-      return {x:Number(point.x)||0,y:Number(point.y)||0};
+      const cam=Training.cameraState||{},canvas=Training.canvas||GAME_DATA.canvas||{};
+      const fov=typeof CameraFovService!=='undefined'?Math.max(.01,CameraFovService.scale(performance.now())):1;
+      const cx=(Number(cam.x)||0)+(Number(canvas.width)||0)/2,cy=(Number(cam.y)||0)+(Number(canvas.height)||0)/2;
+      return {x:cx+((Number(point.x)||0)-cx)/fov,y:cy+((Number(point.y)||0)-cy)/fov};
     }
     const remote=entity?._remoteAimTargetPoint;
     if(
@@ -124359,10 +123006,6 @@ const PointerHoldInputService=Object.freeze({
     );
   },
   matchesDynamicBlockCondition(source,ability){
-    if(ability?.inputPolicy?.blockRepeatWithinFormulaRange===true&&
-      FormulaSequenceService.withinActivation(
-        source,Training.mouseWorld(),FormulaSequenceConfigService(source)
-      ))return true;
     return this.matchesStateRule(
       source,
       ability?.inputPolicy?.blockRepeatWhile
@@ -124820,13 +123463,6 @@ const PointerHoldInputService=Object.freeze({
       const ability=
         source.character
           ?.abilities?.[slot];
-
-      // A press can create a repeat-blocking state itself (alternate skill).
-      // Latch it until release so expiry cannot turn that click into a primary.
-      if(this.matchesBlockCondition(source,ability)){
-        current.blockedUntilRelease=true;
-        continue;
-      }
 
       if(
         ability?.inputPolicy?.holdTriggerWhilePressed===true&&
@@ -130392,18 +129028,6 @@ const StealthModeService=Object.freeze({
 });
 
 const ConditionalTargetLinkPresentationService=Object.freeze({
-  pulses:new WeakMap(),
-  notifyEvent(entity,event,context){
-    if(!entity?.alive||entity!==Training.player||!EntitySimulationAuthorityService.isLocal(entity)||!(Number(context.amount)>0))return;
-    const target=context.target;
-    if(!target?.alive)return;
-    for(const config of entity.character?.conditionalTargetLinks||[]){
-      const style=config.eventPulse;
-      if(style?.event!==event)continue;
-      if(config.conditions&&!config.conditions.every(c=>TriggerConditionService.matches(c,{...context,source:entity,target})))continue;
-      this.pulses.set(entity,{targetId:target.id,startedAt:context.now,duration:Math.max(1,Number(style.duration)||350)});
-    }
-  },
   draw(ctx,viewer){
     if(
       !ctx||
@@ -130528,17 +129152,6 @@ const ConditionalTargetLinkPresentationService=Object.freeze({
             :[5,5]
         );
         ctx.stroke();
-        const pulse=this.pulses.get(viewer);
-        const remaining=pulse&&pulse.targetId===target.id
-          ?Math.max(0,Math.min(1,1-(performance.now()-pulse.startedAt)/pulse.duration)):0;
-        if(config.eventPulse&&remaining>0){
-          const style=config.eventPulse;
-          ctx.setLineDash([]);
-          ctx.lineWidth=Math.max(.5,Number(style.lineWidth)||2.5);
-          ctx.strokeStyle=`rgba(${ColorService.rgbString(style.color||config.color,'255,255,229')},${(Number(style.alpha)||.95)*remaining})`;
-          ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=6*remaining;
-          ctx.stroke();
-        }
         ctx.restore();
         drawn=true;
       }
@@ -130625,7 +129238,94 @@ const VanWrenchDurabilityPresentationService=Object.freeze({
     );
   }
 });
-const WEAPON_IMAGE_DEFS=freezeCharacterData({"rescue-whistle":{"origin":[0,0],"paths":[{"commands":[["M",-0.35,-0.6],["L",1.55,-0.6],["L",1.55,-0.12],["L",0.65,-0.12],["L",0.65,0.15],["C",0.65,0.78,-0.18,1.02,-0.73,0.67],["C",-1.3,0.28,-1.03,-0.6,-0.35,-0.6],["Z"]],"fill":true,"stroke":true,"lineWidth":0.06},{"points":[[0.2,-0.6],[0.2,-0.24],[0.55,-0.24],[0.55,-0.6]],"stroke":true,"fill":false,"lineWidth":0.05},{"commands":[["M",-0.58,-0.26],["C",-0.93,0.05,-0.69,0.5,-0.35,0.5]],"stroke":true,"fill":false,"lineWidth":0.045}],"rings":[{"x":-0.96,"y":0.7,"radius":0.18},{"x":-0.96,"y":0.7,"radius":0.09}]},"fishing-rod":{"origin":[0,0],"paths":[{"points":[[-0.14,1.3],[0.14,1.3],[0.1,-0.15],[0.05,-1.4],[-0.08,-2.05],[-0.14,-2.22],[-0.09,-1.35],[-0.1,-0.15]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.1,0.55],[0.1,0.55]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.04},{"commands":[["M",-0.14,-2.22],["C",0.5,-1.85,0.82,-1.1,0.68,-0.32]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[0.68,-0.4],[0.83,-0.2],[0.68,0.05],[0.53,-0.2]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.04}],"rings":[{"x":-0.22,"y":0.78,"radius":0.2},{"x":-0.22,"y":0.78,"radius":0.065}]},"lemon-board":{"origin":[0,0],"paths":[{"points":[[-0.48,-1.45],[-0.65,-1.2],[-0.65,1.2],[-0.48,1.45],[0.48,1.45],[0.65,1.2],[0.65,-1.2],[0.48,-1.45]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[-0.42,-0.95],[0.42,-0.95]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.05},{"points":[[-0.42,0.95],[0.42,0.95]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.05}],"rings":[{"x":0,"y":0,"radius":0.25}]},"adrenaline-potion":{"origin":[0,0],"paths":[{"points":[[-0.3,-1.1],[0.3,-1.1],[0.3,-0.6],[0.66,-0.24],[0.7,0.72],[0.48,1],[-0.48,1],[-0.7,0.72],[-0.66,-0.24],[-0.3,-0.6]],"closed":true,"fill":true},{"points":[[-0.38,-1.16],[0.38,-1.16],[0.38,-0.91],[-0.38,-0.91]],"closed":true,"fill":true},{"points":[[-0.5,0.3],[0.5,0.3]],"stroke":true}]},"wolf-claw":{"origin":[0,0],"paths":[{"commands":[["M",-0.21999999999999997,-0.88],["C",-0.48,-0.38,-0.6799999999999999,0.28,-1.02,1.12],["C",-0.99,0.42,-0.78,-0.38,-0.21999999999999997,-0.88],["Z"]],"closed":true,"fill":true},{"commands":[["M",0.38,-1.04],["C",0.12,-0.54,-0.08,0.12,-0.42,0.96],["C",-0.39,0.26,-0.18,-0.54,0.38,-1.04],["Z"]],"closed":true,"fill":true},{"commands":[["M",0.98,-0.88],["C",0.72,-0.38,0.52,0.28,0.18,1.12],["C",0.20999999999999996,0.42,0.42,-0.38,0.98,-0.88],["Z"]],"closed":true,"fill":true}]},"rubber-launcher":{"origin":[0.025,-0.22],"paths":[{"points":[[-1.25,-0.74],[0.87,-0.74],[0.94,-0.66],[0.94,0.2],[0.8,0.3],[-1.23,0.3],[-1.48,0.04],[-1.48,-0.45]],"closed":true,"fill":true,"fillColor":"#873b23"},{"points":[[-1.18,-0.5],[-0.29,-0.5],[-0.29,-0.08],[-1.18,-0.08]],"closed":true,"fill":true,"fillColor":"#54291e"},{"points":[[-1.02,-0.29],[-0.45,-0.29]],"lineWidth":0.035},{"points":[[0.02,-0.5],[0.02,-0.09]],"lineWidth":0.035},{"points":[[0.26,-0.5],[0.26,-0.09]],"lineWidth":0.035},{"points":[[0.5,-0.5],[0.5,-0.09]],"lineWidth":0.035},{"points":[[-1.02,-0.74],[-0.38,-0.74],[-0.56,-1.72],[-1.25,-1.72]],"closed":true,"fill":true,"fillColor":"#5c3024"},{"points":[[-0.26,-0.8],[0.5,-0.8],[0.44,-1.24],[-0.33,-1.24]],"closed":true,"lineWidth":0.055},{"points":[[-0.04,-0.78],[-0.05,-1.01],[0.13,-1.08]],"lineWidth":0.045},{"points":[[-1.04,-1.46],[-0.7,-1.46]],"lineWidth":0.035},{"points":[[-1.23,0.3],[0.8,0.3],[0.68,0.44],[-1.08,0.44]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045,"fillColor":"#54291e"}]},"rubber-muzzle":{"origin":[0.025,-0.22],"paths":[{"points":[[0.94,-0.66],[1.53,-0.66],[1.53,0.2],[0.94,0.2]],"closed":true,"fill":true,"fillColor":"#46261e"},{"points":[[1.28,-0.47],[1.28,0.01]],"lineWidth":0.035}]},"rubber-module-punch":{"origin":[0.025,-0.22],"paths":[{"points":[[0.94,-0.66],[1.57,-0.66],[1.76,-0.48],[1.76,0.04],[1.57,0.22],[0.94,0.22]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.04,"fillColor":"#5c3024"},{"points":[[1.46,-0.53],[1.6,-0.4],[1.6,-0.04],[1.46,0.09]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.04,"fillColor":"#46261e"},{"points":[[1.09,-0.54],[1.09,0.1]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.04},{"points":[[1.2,-0.38],[1.34,-0.38]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.04},{"points":[[1.2,-0.06],[1.34,-0.06]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.04}]},"rubber-module-sniper":{"origin":[0.025,-0.22],"paths":[{"points":[[-0.16,0.3],[1.06,0.3],[1.3,0.5],[1.17,0.8],[-0.08,0.8],[-0.27,0.6]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045,"fillColor":"#46261e"},{"points":[[0.02,0.38],[0.83,0.38],[1.05,0.52],[0.97,0.69],[0.02,0.69]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045,"fillColor":"#873b23"},{"points":[[0.17,0.54],[0.68,0.54]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.41,0.42],[0.41,0.66]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[1.06,0.42],[1.2,0.51]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"rubber-module-wall":{"origin":[0.025,-0.22],"paths":[{"points":[[-2.07,-0.505],[-1.48,-0.505],[-1.48,0.095],[-2.07,0.095],[-2.13,0.035],[-2.13,-0.445]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.04,"fillColor":"#5c3024"},{"points":[[-1.64,-0.505],[-1.48,-0.505],[-1.48,0.095],[-1.64,0.095]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.04,"fillColor":"#46261e"},{"points":[[-2.02,-0.305],[-1.77,-0.305],[-1.77,-0.105],[-2.02,-0.105]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.04,"fillColor":"#54291e"},{"points":[[-1.92,-0.305],[-1.92,-0.105]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.04}]},"cherity-bolt-rifle":{"origin":[0.25,0.1],"paths":[{"points":[[-3.1,-0.25],[-2.35,-0.25],[-2.12,-0.07],[-1.32,-0.07],[-1.32,0.14],[-2.14,0.14],[-2.53,0.53],[-3.1,0.53]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-3.18,-0.34],[-3.02,-0.34],[-3.02,0.6099999999999999],[-3.18,0.6099999999999999]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-2.83,-0.48],[-1.87,-0.48],[-1.87,-0.3],[-2.83,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-2.65,0.16],[-2.08,0.16],[-2.37,0.4],[-2.65,0.4]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-1.48,-0.32],[1.46,-0.32],[1.67,-0.14],[1.67,0.25],[1.44,0.39],[-0.26,0.39],[-0.46,0.21],[-1.48,0.21]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.4,-0.43],[1.5300000000000002,-0.43],[1.5300000000000002,-0.31],[-1.4,-0.31]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[1.67,-0.095],[3.11,-0.095],[3.11,0.095],[1.67,0.095]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[3.11,-0.21],[3.67,-0.21],[3.76,-0.12],[3.76,0.12],[3.67,0.21],[3.11,0.21]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[3.24,-0.14],[3.3350000000000004,-0.14],[3.3350000000000004,0.14],[3.24,0.14]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[3.48,-0.14],[3.575,-0.14],[3.575,0.14],[3.48,0.14]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.27,0.39],[0.3,0.39],[0.27,0.93],[-0.18,0.93],[-0.3,0.8]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.34,0.21],[-0.97,0.21],[-1.1,0.79],[-1.46,0.7]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.94,0.21],[-0.46,0.21],[-0.42,0.5],[-0.61,0.6],[-0.94,0.5]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-1.37,-0.78],[-1.1500000000000001,-0.78],[-1.1500000000000001,-0.43000000000000005],[-1.37,-0.43000000000000005]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.85,-0.62],[-0.72,-0.62],[-0.72,-0.43],[-0.85,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.34,-0.62],[0.47000000000000003,-0.62],[0.47000000000000003,-0.43],[0.34,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.15,-0.74],[0.48,-0.74],[0.69,-0.91],[1.02,-0.91],[1.14,-0.77],[1.14,-0.61],[1.02,-0.48],[0.69,-0.48],[0.48,-0.61],[-1.15,-0.61]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.18,-0.89],[0.020000000000000018,-0.89],[0.020000000000000018,-0.74],[-0.18,-0.74]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.5,-0.17],[0.18999999999999995,-0.17],[0.18999999999999995,0.06],[-0.5,0.06]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.14,-0.03],[0.33,0.17],[0.43,0.17]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.57,-0.08],[0.69,-0.08],[0.69,0.13],[0.57,0.13]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.85,-0.08],[0.97,-0.08],[0.97,0.13],[0.85,0.13]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[1.13,-0.08],[1.25,-0.08],[1.25,0.13],[1.13,0.13]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045}]},"tape-measure":{"origin":[0,0],"paths":[{"points":[[1.26529,-0.87882],[-1.43471,0.56118],[-1.26529,0.87882],[1.43471,-0.56118]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.76,-0.9],[1.35,-0.9],[1.53,-0.8],[1.53,-0.64],[1.35,-0.54],[-1.76,-0.54],[-1.85,-0.64],[-1.85,-0.8]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.35,0.54],[1.76,0.54],[1.85,0.64],[1.85,0.8],[1.76,0.9],[-1.35,0.9],[-1.53,0.8],[-1.53,0.64]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.59,-0.88],[-1.59,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.59,0.88],[1.59,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.365,-0.88],[-1.365,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.365,0.88],[1.365,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.14,-0.88],[-1.14,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.14,0.88],[1.14,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.915,-0.88],[-0.915,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.915,0.88],[0.915,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.69,-0.88],[-0.69,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.69,0.88],[0.69,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.465,-0.88],[-0.465,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.465,0.88],[0.465,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.24,-0.88],[-0.24,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.24,0.88],[0.24,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.015,-0.88],[-0.015,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.015,0.88],[0.015,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.21,-0.88],[0.21,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.21,0.88],[-0.21,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.435,-0.88],[0.435,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.435,0.88],[-0.435,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.66,-0.88],[0.66,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.66,0.88],[-0.66,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.885,-0.88],[0.885,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.885,0.88],[-0.885,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.11,-0.88],[1.11,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.11,0.88],[-1.11,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.0,-0.726],[1.04235,-0.64659]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.73,-0.582],[0.77235,-0.50259]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.46,-0.438],[0.54471,-0.27918]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.19,-0.294],[0.23235,-0.21459]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.08,-0.15],[-0.03765,-0.07059]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.35,-0.006],[-0.26529,0.15282]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.62,0.138],[-0.57765,0.21741]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.89,0.282],[-0.84765,0.36141]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.16,0.426],[-1.07529,0.58482]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03}],"rings":[{"x":1.35,"y":-0.72,"radius":0.09},{"x":-1.35,"y":0.72,"radius":0.09}]},"temporal-dagger":{"origin":[0,0],"paths":[{"points":[[0,-1.5],[-0.26,-1.02],[-0.26,0.05],[0.26,0.05],[0.26,-1.02]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0,-1.26],[0,0.02]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.49,0.07],["L",-0.2,0.08],["L",0.2,0.08],["L",0.49,0.07],["L",0.54,0.19],["C",0.34,0.3,0.2,0.22,0,0.22],["C",-0.2,0.22,-0.34,0.3,-0.54,0.19],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.14,0.22],["L",0.14,0.22],["L",0.12,0.97],["L",-0.12,0.97],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.19,0.95],["L",0.19,0.95],["L",0.19,1.05],["C",0.19,1.22,-0.19,1.22,-0.19,1.05],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.14,0.41],[0.14,0.41]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.13,0.66],[0.13,0.66]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"throwing-dagger":{"origin":[0,0],"paths":[{"points":[[0,-1.5],[-0.22,-1.08],[-0.22,0.04],[0.22,0.04],[0.22,-1.08]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0,-1.16],[0,-0.02]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,0.04],[0.31,0.04],[0.31,0.17],[-0.31,0.17]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.15,0.17],["L",0.15,0.17],["L",0.15,1.02],["C",0.15,1.23,-0.15,1.23,-0.15,1.02],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.065,0.4],[0.065,0.4],[0.065,0.55],[-0.065,0.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.065,0.73],[0.065,0.73],[0.065,0.88],[-0.065,0.88]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},"laser-emitter":{"origin":[0,0],"paths":[{"points":[[-1.28,-0.25],[-1.08,-0.45],[0.55,-0.45],[0.83,-0.24],[0.83,0.24],[0.55,0.45],[-1.08,0.45],[-1.28,0.25]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.89,-0.23],[-0.46,-0.23],[-0.46,0.23],[-0.89,0.23]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0.44,"y":0,"radius":0.27},{"x":0.44,"y":0,"radius":0.12}]},"laser-dual-module":{"origin":[0,0],"featureRole":"two-emission-ports","paths":[{"points":[[0.74,-0.32],[1.26,-0.32],[1.43,-0.2],[1.43,0.2],[1.26,0.32],[0.74,0.32]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.85,-0.27],[1.4,-0.27],[1.4,-0.14],[0.85,-0.14]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.85,0.14],[1.4,0.14],[1.4,0.27],[0.85,0.27]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}],"rings":[{"x":1.32,"y":-0.205,"radius":0.05},{"x":1.32,"y":0.205,"radius":0.05}]},"laser-wide-module":{"origin":[0,0],"featureRole":"flared-emission-collar","paths":[{"points":[[0.54,-0.42],[1.31,-0.69],[1.78,-0.58],[1.87,-0.43],[1.69,-0.42],[1.28,-0.52],[0.54,-0.31]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.54,0.42],[1.31,0.69],[1.78,0.58],[1.87,0.43],[1.69,0.42],[1.28,0.52],[0.54,0.31]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[1.8,-0.43],[1.8,0.43]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"laser-range-module":{"origin":[0,0],"featureRole":"long-focus-rails","paths":[{"points":[[0.51,-0.4],[2.24,-0.4],[2.24,-0.33],[0.51,-0.33]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.51,0.33],[2.24,0.33],[2.24,0.4],[0.51,0.4]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[2.18,-0.35],[2.36,-0.14],[2.36,0.14],[2.18,0.35]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":2.24,"y":0,"radius":0.14}]},"laser-pierce-module":{"origin":[0,0],"featureRole":"penetration-compression-chamber","paths":[{"points":[[0.58,-0.25],[1.08,-0.25],[1.3,-0.08],[1.3,0.08],[1.08,0.25],[0.58,0.25]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.71,-0.18],[0.78,-0.18],[0.78,0.18],[0.71,0.18]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.86,-0.15],[0.9299999999999999,-0.15],[0.9299999999999999,0.15],[0.86,0.15]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[1.01,-0.12],[1.08,-0.12],[1.08,0.12],[1.01,0.12]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},"laser-instant-module":{"origin":[0,0],"featureRole":"pulse-discharge-cell","paths":[{"points":[[-0.93,0.45],[0.33,0.45],[0.41,0.61],[0.31,0.88],[-0.9,0.88],[-1.01,0.66]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.74,0.49],[-0.74,0.84]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.43,0.49],[-0.43,0.84]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.12,0.49],[-0.12,0.84]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.19,0.49],[0.19,0.81]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.68,0.61],[-0.49,0.61],[-0.4,0.75],[-0.18,0.55],[0.03,0.69],[0.17,0.69]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"laser-knockback-module":{"origin":[0,0],"featureRole":"recoil-actuator","paths":[{"points":[[-1.79,-0.17],[-1.2000000000000002,-0.17],[-1.2000000000000002,-0.05000000000000002],[-1.79,-0.05000000000000002]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.79,0.05],[-1.2000000000000002,0.05],[-1.2000000000000002,0.16999999999999998],[-1.79,0.16999999999999998]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.79,-0.3],[-1.93,-0.18],[-1.93,0.18],[-1.79,0.3],[-1.61,0.3],[-1.61,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.74,-0.15],[-1.74,0.15]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"laser-accelerate-module":{"origin":[0,0],"featureRole":"rapid-fire-cooling-fins","paths":[{"points":[[-1.04,-0.51],[-0.10000000000000009,-0.51],[-0.10000000000000009,-0.43],[-1.04,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.98,-0.78],[-0.86,-0.78],[-0.86,-0.51],[-0.98,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.73,-0.78],[-0.61,-0.78],[-0.61,-0.51],[-0.73,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.48,-0.78],[-0.36,-0.78],[-0.36,-0.51],[-0.48,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.23,-0.78],[-0.11000000000000001,-0.78],[-0.11000000000000001,-0.51],[-0.23,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},"laser-electric-module":{"origin":[0,0],"featureRole":"electrode-windings","paths":[{"points":[[-0.31,-0.49],[-0.22999999999999998,-0.49],[-0.22999999999999998,0.49],[-0.31,0.49]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.1,-0.49],[-0.020000000000000004,-0.49],[-0.020000000000000004,0.49],[-0.1,0.49]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.11,-0.49],[0.19,-0.49],[0.19,0.49],[0.11,0.49]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,-0.49],[0.19,-0.49]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,0.49],[0.19,0.49]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"smoke-canister":{"origin":[0,0],"paths":[{"points":[[-0.5,-0.61],[0.5,-0.61],[0.64,-0.4],[0.64,0.69],[0.48,0.9],[-0.48,0.9],[-0.64,0.69],[-0.64,-0.4]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,-0.92],[0.31,-0.92],[0.31,-0.6100000000000001],[-0.31,-0.6100000000000001]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.49,-1.03],[0.49,-1.03],[0.49,-0.93],[-0.49,-0.93]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.37,-1.03],[0.61,-0.79],[0.55,-0.56]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.62,-0.13],[0.62,-0.13],[0.62,0.010000000000000009],[-0.62,0.010000000000000009]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.28,0.39],[0,0.1],[0.28,0.39]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":-0.12,"y":-1.19,"radius":0.16}]},"paper-airplane":{"origin":[0,0],"paths":[{"points":[[-1.22,-0.01],[1.42,-0.86],[0.61,1.04],[-0.05,0.49],[-0.43,0.92],[-0.42,0.22]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.22,-0.01],[-0.42,0.22],[1.42,-0.86]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.42,0.22],[-0.05,0.49],[1.42,-0.86]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.43,0.92],[-0.05,0.49]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"paired-daggers":{"origin":[0,0],"parts":[{"pivot":[-0.27,-0.04],"angle":0.78,"paths":[{"commands":[["M",-0.13,0.18],["L",-0.13,-1.25],["L",0.13,-1.65],["L",0.16,-0.91],["C",0.52,-0.57,0.44,-0.12,0.16,0.18],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.16,-0.83],[0.31,-0.44],[0.25,-0.05]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[-0.31,0.16],[-0.31,0.05],[0.29,0.05],[0.38,0.16],[0.29,0.28],[-0.24,0.28]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.115,0.28],[0.115,0.28],[0.14,0.9],[0.05,1.03],[-0.14,0.91]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.19,0.89],[0.16,0.89],[0.18,1.03],[-0.02,1.15],[-0.2,1.02]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.12,0.48],[0.12,0.48]],"fill":false,"stroke":true,"lineWidth":0.045}]},{"pivot":[0.27,0.04],"angle":0.78,"paths":[{"commands":[["M",-0.13,0.18],["L",-0.13,-1.25],["L",0.13,-1.65],["L",0.16,-0.91],["C",0.52,-0.57,0.44,-0.12,0.16,0.18],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.16,-0.83],[0.31,-0.44],[0.25,-0.05]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[-0.31,0.16],[-0.31,0.05],[0.29,0.05],[0.38,0.16],[0.29,0.28],[-0.24,0.28]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.115,0.28],[0.115,0.28],[0.14,0.9],[0.05,1.03],[-0.14,0.91]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.19,0.89],[0.16,0.89],[0.18,1.03],[-0.02,1.15],[-0.2,1.02]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.12,0.48],[0.12,0.48]],"fill":false,"stroke":true,"lineWidth":0.045}]}]},"toolbox":{"origin":[0,0],"paths":[{"points":[[-0.46,-0.68],[-0.46,-1.02],[-0.34,-1.14],[0.34,-1.14],[0.46,-1.02],[0.46,-0.68],[0.29,-0.68],[0.29,-0.96],[-0.29,-0.96],[-0.29,-0.68]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.03,-0.68],[1.03,-0.68],[1.16,-0.47],[1.12,0.83],[0.98,0.96],[-0.98,0.96],[-1.12,0.83],[-1.16,-0.47]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.12,-0.23],[1.12,-0.23]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.79,-0.4],[-0.56,-0.4],[-0.56,0.04],[-0.79,0.04]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.56,-0.4],[0.79,-0.4],[0.79,0.04],[0.56,0.04]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.78,0.26],[-0.78,0.64],[0.78,0.64],[0.78,0.26]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"toolbox-wrench":{"origin":[0,0],"paths":[{"points":[[-0.12,0.92],[-0.12,-0.23],[-0.44,-0.48],[-0.5,-0.82],[-0.33,-1.07],[-0.18,-0.67],[0.18,-0.67],[0.33,-1.07],[0.5,-0.82],[0.44,-0.48],[0.12,-0.23],[0.12,0.92],[0,1.09]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.08,-0.18],[0.08,-0.18]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0,"y":0.76,"radius":0.075}]},"magical-wand":{"origin":[0,0],"paths":[{"points":[[-0.09,0.98],[-0.09,-0.55],[0.09,-0.55],[0.09,0.98],[0,1.1]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.21,-0.55],[0.21,-0.55],[0.16,-0.43],[-0.16,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.0,-1.5],[0.1469,-1.1823],[0.4945,-1.1407],[0.2378,-0.9027],[0.3056,-0.5593],[0.0,-0.73],[-0.3056,-0.5593],[-0.2378,-0.9027],[-0.4945,-1.1407],[-0.1469,-1.1823]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.0,-1.2],[0.0617,-1.0649],[0.2092,-1.048],[0.0999,-0.9476],[0.1293,-0.802],[0.0,-0.875],[-0.1293,-0.802],[-0.0999,-0.9476],[-0.2092,-1.048],[-0.0617,-1.0649]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"magical-wand-1":{"origin":[0,0],"paths":[{"commands":[["M",-0.43,-0.78],["C",-0.87,-0.5,-0.63,-0.24,-0.14,-0.53],["L",0,-0.59],["L",0.14,-0.53],["C",0.63,-0.24,0.87,-0.5,0.43,-0.78],["L",0.24,-0.63],["L",0,-0.59],["L",-0.24,-0.63],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.14,-0.49],[-0.38,-0.09],[-0.38,-0.31],[-0.56,-0.21],[-0.24,-0.56]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.14,-0.49],[0.38,-0.09],[0.38,-0.31],[0.56,-0.21],[0.24,-0.56]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},"magical-wand-2":{"origin":[0,0],"paths":[{"points":[[-0.55,-0.99],[-0.73,-1.21],[-0.55,-1.43],[-0.5,-1.18]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.55,-0.99],[0.73,-1.21],[0.55,-1.43],[0.5,-1.18]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0,"y":-0.98,"radius":0.64}]},"magical-wand-3":{"origin":[0,0],"paths":[{"commands":[["M",-0.62,-0.86],["C",-0.91,-0.99,-1.05,-0.9,-1.13,-0.72],["L",-0.93,-0.75],["L",-0.96,-0.58],["L",-0.74,-0.7],["L",-0.71,-0.51],["C",-0.55,-0.56,-0.52,-0.69,-0.62,-0.86],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",0.62,-0.86],["C",0.91,-0.99,1.05,-0.9,1.13,-0.72],["L",0.93,-0.75],["L",0.96,-0.58],["L",0.74,-0.7],["L",0.71,-0.51],["C",0.55,-0.56,0.52,-0.69,0.62,-0.86],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045}]},"magical-wand-4":{"origin":[0,0],"paths":[{"commands":[["M",-0.44,-1.39],["C",-0.75,-1.78,-0.24,-1.83,0,-1.57],["C",0.24,-1.83,0.75,-1.78,0.44,-1.39]],"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0,"y":0.34,"radius":0.11},{"x":0,"y":0.74,"radius":0.11}]},"gacha-capsule":{"origin":[0,0],"paths":[{"points":[[1.0,0.0],[0.99144,0.13053],[0.96593,0.25882],[0.92388,0.38268],[0.86603,0.5],[0.79335,0.60876],[0.70711,0.70711],[0.60876,0.79335],[0.5,0.86603],[0.38268,0.92388],[0.25882,0.96593],[0.13053,0.99144],[0.0,1.0],[-0.13053,0.99144],[-0.25882,0.96593],[-0.38268,0.92388],[-0.5,0.86603],[-0.60876,0.79335],[-0.70711,0.70711],[-0.79335,0.60876],[-0.86603,0.5],[-0.92388,0.38268],[-0.96593,0.25882],[-0.99144,0.13053],[-1.0,0.0],[-0.99144,-0.13053],[-0.96593,-0.25882],[-0.92388,-0.38268],[-0.86603,-0.5],[-0.79335,-0.60876],[-0.70711,-0.70711],[-0.60876,-0.79335],[-0.5,-0.86603],[-0.38268,-0.92388],[-0.25882,-0.96593],[-0.13053,-0.99144],[-0.0,-1.0],[0.13053,-0.99144],[0.25882,-0.96593],[0.38268,-0.92388],[0.5,-0.86603],[0.60876,-0.79335],[0.70711,-0.70711],[0.79335,-0.60876],[0.86603,-0.5],[0.92388,-0.38268],[0.96593,-0.25882],[0.99144,-0.13053]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-1,0],[1,0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.07}]},"role-dealer":{"origin":[0,0],"paths":[{"points":[[-0.42282,-1.47041],[-0.13376,-1.11652],[0.28881,0.2083],[-0.13405,0.32989],[-0.47974,-1.01703]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.35926,-1.24937],[0.06633,0.23065]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[0.72393,0.02075],[0.67756,0.22137],[0.2726,0.36904],[-0.03494,0.45747],[-0.45648,0.54747],[-0.60233,0.40212],[-0.52281,0.31682],[-0.08192,0.29409],[0.22562,0.20566],[0.61124,-0.00928]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.24653,0.38694],[0.42761,1.05283],[0.19696,1.11916],[-0.00334,0.45879]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.4908,1.05547],[0.37032,1.28781],[0.14482,1.15496],[0.28741,0.9995]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.35299,0.79334],[0.12234,0.85967]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]},"role-tank":{"origin":[0,0],"paths":[{"points":[[-1,-1],[1,-1],[0.85,0.55],[0,1.25],[-0.85,0.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[0,-0.7],[0,0.7]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.07}]},"role-support":{"origin":[0,0],"paths":[{"points":[[-0.3,-1.2],[0.3,-1.2],[0.3,-0.3],[1.2,-0.3],[1.2,0.3],[0.3,0.3],[0.3,1.2],[-0.3,1.2],[-0.3,0.3],[-1.2,0.3],[-1.2,-0.3],[-0.3,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07}]},"role-controller":{"origin":[0,0],"paths":[{"commands":[["M",0.43841,0.19799],["L",0.46542,0.2332],["L",0.48241,0.2742],["L",0.4882,0.3182],["L",0.48241,0.3622],["L",0.46542,0.4032],["L",0.43841,0.43841],["L",0.4032,0.46542],["L",0.3622,0.48241],["L",0.3182,0.4882],["L",0.2742,0.48241],["L",0.2332,0.46542],["L",0.19799,0.43841],["L",-0.43841,-0.19799],["L",-0.46542,-0.2332],["L",-0.48241,-0.2742],["L",-0.4882,-0.3182],["L",-0.48241,-0.3622],["L",-0.46542,-0.4032],["L",-0.43841,-0.43841],["L",-0.4032,-0.46542],["L",-0.3622,-0.48241],["L",-0.3182,-0.4882],["L",-0.2742,-0.48241],["L",-0.2332,-0.46542],["L",-0.19799,-0.43841],["Z"],["M",-0.23335,-0.33941],["L",-0.24888,-0.35133],["L",-0.26697,-0.35882],["L",-0.28638,-0.36138],["L",-0.30579,-0.35882],["L",-0.32388,-0.35133],["L",-0.33941,-0.33941],["L",-0.35133,-0.32388],["L",-0.35882,-0.30579],["L",-0.36138,-0.28638],["L",-0.35882,-0.26697],["L",-0.35133,-0.24888],["L",-0.33941,-0.23335],["L",0.23335,0.33941],["L",0.24888,0.35133],["L",0.26697,0.35882],["L",0.28638,0.36138],["L",0.30579,0.35882],["L",0.32388,0.35133],["L",0.33941,0.33941],["L",0.35133,0.32388],["L",0.35882,0.30579],["L",0.36138,0.28638],["L",0.35882,0.26697],["L",0.35133,0.24888],["L",0.33941,0.23335],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",-0.14331,-0.62414],["L",-0.08928,-0.55373],["L",-0.05531,-0.47172],["L",-0.04373,-0.38373],["L",-0.05531,-0.29573],["L",-0.08928,-0.21373],["L",-0.14331,-0.14331],["L",-0.21373,-0.08928],["L",-0.29573,-0.05531],["L",-0.38373,-0.04373],["L",-0.47172,-0.05531],["L",-0.55373,-0.08928],["L",-0.62414,-0.14331],["L",-1.07669,-0.59586],["L",-1.13072,-0.66627],["L",-1.16469,-0.74828],["L",-1.17627,-0.83627],["L",-1.16469,-0.92427],["L",-1.13072,-1.00627],["L",-1.07669,-1.07669],["L",-1.00627,-1.13072],["L",-0.92427,-1.16469],["L",-0.83627,-1.17627],["L",-0.74828,-1.16469],["L",-0.66627,-1.13072],["L",-0.59586,-1.07669],["Z"],["M",-0.68778,-0.95648],["L",-0.72713,-0.98668],["L",-0.77296,-1.00566],["L",-0.82213,-1.01213],["L",-0.87131,-1.00566],["L",-0.91713,-0.98668],["L",-0.95648,-0.95648],["L",-0.98668,-0.91713],["L",-1.00566,-0.87131],["L",-1.01213,-0.82213],["L",-1.00566,-0.77296],["L",-0.98668,-0.72713],["L",-0.95648,-0.68778],["L",-0.53222,-0.26352],["L",-0.49287,-0.23332],["L",-0.44704,-0.21434],["L",-0.39787,-0.20787],["L",-0.34869,-0.21434],["L",-0.30287,-0.23332],["L",-0.26352,-0.26352],["L",-0.23332,-0.30287],["L",-0.21434,-0.34869],["L",-0.20787,-0.39787],["L",-0.21434,-0.44704],["L",-0.23332,-0.49287],["L",-0.26352,-0.53222],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",1.07669,0.59586],["L",1.13072,0.66627],["L",1.16469,0.74828],["L",1.17627,0.83627],["L",1.16469,0.92427],["L",1.13072,1.00627],["L",1.07669,1.07669],["L",1.00627,1.13072],["L",0.92427,1.16469],["L",0.83627,1.17627],["L",0.74828,1.16469],["L",0.66627,1.13072],["L",0.59586,1.07669],["L",0.14331,0.62414],["L",0.08928,0.55373],["L",0.05531,0.47172],["L",0.04373,0.38373],["L",0.05531,0.29573],["L",0.08928,0.21373],["L",0.14331,0.14331],["L",0.21373,0.08928],["L",0.29573,0.05531],["L",0.38373,0.04373],["L",0.47172,0.05531],["L",0.55373,0.08928],["L",0.62414,0.14331],["Z"],["M",0.53222,0.26352],["L",0.49287,0.23332],["L",0.44704,0.21434],["L",0.39787,0.20787],["L",0.34869,0.21434],["L",0.30287,0.23332],["L",0.26352,0.26352],["L",0.23332,0.30287],["L",0.21434,0.34869],["L",0.20787,0.39787],["L",0.21434,0.44704],["L",0.23332,0.49287],["L",0.26352,0.53222],["L",0.68778,0.95648],["L",0.72713,0.98668],["L",0.77296,1.00566],["L",0.82213,1.01213],["L",0.87131,1.00566],["L",0.91713,0.98668],["L",0.95648,0.95648],["L",0.98668,0.91713],["L",1.00566,0.87131],["L",1.01213,0.82213],["L",1.00566,0.77296],["L",0.98668,0.72713],["L",0.95648,0.68778],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05}]},"role-sniper":{"origin":[0,0],"paths":[{"points":[[1.0,0.0],[0.995185,0.098017],[0.980785,0.19509],[0.95694,0.290285],[0.92388,0.382683],[0.881921,0.471397],[0.83147,0.55557],[0.77301,0.634393],[0.707107,0.707107],[0.634393,0.77301],[0.55557,0.83147],[0.471397,0.881921],[0.382683,0.92388],[0.290285,0.95694],[0.19509,0.980785],[0.098017,0.995185],[0.0,1.0],[-0.098017,0.995185],[-0.19509,0.980785],[-0.290285,0.95694],[-0.382683,0.92388],[-0.471397,0.881921],[-0.55557,0.83147],[-0.634393,0.77301],[-0.707107,0.707107],[-0.77301,0.634393],[-0.83147,0.55557],[-0.881921,0.471397],[-0.92388,0.382683],[-0.95694,0.290285],[-0.980785,0.19509],[-0.995185,0.098017],[-1.0,0.0],[-0.995185,-0.098017],[-0.980785,-0.19509],[-0.95694,-0.290285],[-0.92388,-0.382683],[-0.881921,-0.471397],[-0.83147,-0.55557],[-0.77301,-0.634393],[-0.707107,-0.707107],[-0.634393,-0.77301],[-0.55557,-0.83147],[-0.471397,-0.881921],[-0.382683,-0.92388],[-0.290285,-0.95694],[-0.19509,-0.980785],[-0.098017,-0.995185],[-0.0,-1.0],[0.098017,-0.995185],[0.19509,-0.980785],[0.290285,-0.95694],[0.382683,-0.92388],[0.471397,-0.881921],[0.55557,-0.83147],[0.634393,-0.77301],[0.707107,-0.707107],[0.77301,-0.634393],[0.83147,-0.55557],[0.881921,-0.471397],[0.92388,-0.382683],[0.95694,-0.290285],[0.980785,-0.19509],[0.995185,-0.098017]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.28,0.0],[1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,0.28],[0.0,1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[-0.28,0.0],[-1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,-0.28],[0.0,-1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1}]},"role-assassin":{"origin":[0,0],"paths":[{"points":[[0.7056,-1.1509],[0.0587,-0.574],[-0.2954,0.0418],[0.0968,0.2822],[0.4849,-0.3126]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.554,-0.9037],[-0.0836,0.1364]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[-0.5663,-0.1478],[-0.6433,0.0161],[-0.3796,0.2365],[-0.0386,0.4455],[0.2774,0.5806],[0.3886,0.4376],[0.0077,0.2745],[-0.2481,0.1177]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.3455,0.2574],[-0.6839,0.8476],[-0.6429,1.0486],[-0.4451,0.9939],[-0.0727,0.4246]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.595,0.7026],[-0.3563,0.849]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]},"role-pair-assassin-controller":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[0.7056,-1.1509],[0.0587,-0.574],[-0.2954,0.0418],[0.0968,0.2822],[0.4849,-0.3126]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.554,-0.9037],[-0.0836,0.1364]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[-0.5663,-0.1478],[-0.6433,0.0161],[-0.3796,0.2365],[-0.0386,0.4455],[0.2774,0.5806],[0.3886,0.4376],[0.0077,0.2745],[-0.2481,0.1177]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.3455,0.2574],[-0.6839,0.8476],[-0.6429,1.0486],[-0.4451,0.9939],[-0.0727,0.4246]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.595,0.7026],[-0.3563,0.849]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"commands":[["M",0.43841,0.19799],["L",0.46542,0.2332],["L",0.48241,0.2742],["L",0.4882,0.3182],["L",0.48241,0.3622],["L",0.46542,0.4032],["L",0.43841,0.43841],["L",0.4032,0.46542],["L",0.3622,0.48241],["L",0.3182,0.4882],["L",0.2742,0.48241],["L",0.2332,0.46542],["L",0.19799,0.43841],["L",-0.43841,-0.19799],["L",-0.46542,-0.2332],["L",-0.48241,-0.2742],["L",-0.4882,-0.3182],["L",-0.48241,-0.3622],["L",-0.46542,-0.4032],["L",-0.43841,-0.43841],["L",-0.4032,-0.46542],["L",-0.3622,-0.48241],["L",-0.3182,-0.4882],["L",-0.2742,-0.48241],["L",-0.2332,-0.46542],["L",-0.19799,-0.43841],["Z"],["M",-0.23335,-0.33941],["L",-0.24888,-0.35133],["L",-0.26697,-0.35882],["L",-0.28638,-0.36138],["L",-0.30579,-0.35882],["L",-0.32388,-0.35133],["L",-0.33941,-0.33941],["L",-0.35133,-0.32388],["L",-0.35882,-0.30579],["L",-0.36138,-0.28638],["L",-0.35882,-0.26697],["L",-0.35133,-0.24888],["L",-0.33941,-0.23335],["L",0.23335,0.33941],["L",0.24888,0.35133],["L",0.26697,0.35882],["L",0.28638,0.36138],["L",0.30579,0.35882],["L",0.32388,0.35133],["L",0.33941,0.33941],["L",0.35133,0.32388],["L",0.35882,0.30579],["L",0.36138,0.28638],["L",0.35882,0.26697],["L",0.35133,0.24888],["L",0.33941,0.23335],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",-0.14331,-0.62414],["L",-0.08928,-0.55373],["L",-0.05531,-0.47172],["L",-0.04373,-0.38373],["L",-0.05531,-0.29573],["L",-0.08928,-0.21373],["L",-0.14331,-0.14331],["L",-0.21373,-0.08928],["L",-0.29573,-0.05531],["L",-0.38373,-0.04373],["L",-0.47172,-0.05531],["L",-0.55373,-0.08928],["L",-0.62414,-0.14331],["L",-1.07669,-0.59586],["L",-1.13072,-0.66627],["L",-1.16469,-0.74828],["L",-1.17627,-0.83627],["L",-1.16469,-0.92427],["L",-1.13072,-1.00627],["L",-1.07669,-1.07669],["L",-1.00627,-1.13072],["L",-0.92427,-1.16469],["L",-0.83627,-1.17627],["L",-0.74828,-1.16469],["L",-0.66627,-1.13072],["L",-0.59586,-1.07669],["Z"],["M",-0.68778,-0.95648],["L",-0.72713,-0.98668],["L",-0.77296,-1.00566],["L",-0.82213,-1.01213],["L",-0.87131,-1.00566],["L",-0.91713,-0.98668],["L",-0.95648,-0.95648],["L",-0.98668,-0.91713],["L",-1.00566,-0.87131],["L",-1.01213,-0.82213],["L",-1.00566,-0.77296],["L",-0.98668,-0.72713],["L",-0.95648,-0.68778],["L",-0.53222,-0.26352],["L",-0.49287,-0.23332],["L",-0.44704,-0.21434],["L",-0.39787,-0.20787],["L",-0.34869,-0.21434],["L",-0.30287,-0.23332],["L",-0.26352,-0.26352],["L",-0.23332,-0.30287],["L",-0.21434,-0.34869],["L",-0.20787,-0.39787],["L",-0.21434,-0.44704],["L",-0.23332,-0.49287],["L",-0.26352,-0.53222],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",1.07669,0.59586],["L",1.13072,0.66627],["L",1.16469,0.74828],["L",1.17627,0.83627],["L",1.16469,0.92427],["L",1.13072,1.00627],["L",1.07669,1.07669],["L",1.00627,1.13072],["L",0.92427,1.16469],["L",0.83627,1.17627],["L",0.74828,1.16469],["L",0.66627,1.13072],["L",0.59586,1.07669],["L",0.14331,0.62414],["L",0.08928,0.55373],["L",0.05531,0.47172],["L",0.04373,0.38373],["L",0.05531,0.29573],["L",0.08928,0.21373],["L",0.14331,0.14331],["L",0.21373,0.08928],["L",0.29573,0.05531],["L",0.38373,0.04373],["L",0.47172,0.05531],["L",0.55373,0.08928],["L",0.62414,0.14331],["Z"],["M",0.53222,0.26352],["L",0.49287,0.23332],["L",0.44704,0.21434],["L",0.39787,0.20787],["L",0.34869,0.21434],["L",0.30287,0.23332],["L",0.26352,0.26352],["L",0.23332,0.30287],["L",0.21434,0.34869],["L",0.20787,0.39787],["L",0.21434,0.44704],["L",0.23332,0.49287],["L",0.26352,0.53222],["L",0.68778,0.95648],["L",0.72713,0.98668],["L",0.77296,1.00566],["L",0.82213,1.01213],["L",0.87131,1.00566],["L",0.91713,0.98668],["L",0.95648,0.95648],["L",0.98668,0.91713],["L",1.00566,0.87131],["L",1.01213,0.82213],["L",1.00566,0.77296],["L",0.98668,0.72713],["L",0.95648,0.68778],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05}]}]},"role-pair-assassin-dealer":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[0.7056,-1.1509],[0.0587,-0.574],[-0.2954,0.0418],[0.0968,0.2822],[0.4849,-0.3126]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.554,-0.9037],[-0.0836,0.1364]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[-0.5663,-0.1478],[-0.6433,0.0161],[-0.3796,0.2365],[-0.0386,0.4455],[0.2774,0.5806],[0.3886,0.4376],[0.0077,0.2745],[-0.2481,0.1177]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.3455,0.2574],[-0.6839,0.8476],[-0.6429,1.0486],[-0.4451,0.9939],[-0.0727,0.4246]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.595,0.7026],[-0.3563,0.849]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-0.42282,-1.47041],[-0.13376,-1.11652],[0.28881,0.2083],[-0.13405,0.32989],[-0.47974,-1.01703]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.35926,-1.24937],[0.06633,0.23065]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[0.72393,0.02075],[0.67756,0.22137],[0.2726,0.36904],[-0.03494,0.45747],[-0.45648,0.54747],[-0.60233,0.40212],[-0.52281,0.31682],[-0.08192,0.29409],[0.22562,0.20566],[0.61124,-0.00928]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.24653,0.38694],[0.42761,1.05283],[0.19696,1.11916],[-0.00334,0.45879]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.4908,1.05547],[0.37032,1.28781],[0.14482,1.15496],[0.28741,0.9995]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.35299,0.79334],[0.12234,0.85967]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]}]},"role-pair-assassin-sniper":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[0.7056,-1.1509],[0.0587,-0.574],[-0.2954,0.0418],[0.0968,0.2822],[0.4849,-0.3126]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.554,-0.9037],[-0.0836,0.1364]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[-0.5663,-0.1478],[-0.6433,0.0161],[-0.3796,0.2365],[-0.0386,0.4455],[0.2774,0.5806],[0.3886,0.4376],[0.0077,0.2745],[-0.2481,0.1177]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.3455,0.2574],[-0.6839,0.8476],[-0.6429,1.0486],[-0.4451,0.9939],[-0.0727,0.4246]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.595,0.7026],[-0.3563,0.849]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[1.0,0.0],[0.995185,0.098017],[0.980785,0.19509],[0.95694,0.290285],[0.92388,0.382683],[0.881921,0.471397],[0.83147,0.55557],[0.77301,0.634393],[0.707107,0.707107],[0.634393,0.77301],[0.55557,0.83147],[0.471397,0.881921],[0.382683,0.92388],[0.290285,0.95694],[0.19509,0.980785],[0.098017,0.995185],[0.0,1.0],[-0.098017,0.995185],[-0.19509,0.980785],[-0.290285,0.95694],[-0.382683,0.92388],[-0.471397,0.881921],[-0.55557,0.83147],[-0.634393,0.77301],[-0.707107,0.707107],[-0.77301,0.634393],[-0.83147,0.55557],[-0.881921,0.471397],[-0.92388,0.382683],[-0.95694,0.290285],[-0.980785,0.19509],[-0.995185,0.098017],[-1.0,0.0],[-0.995185,-0.098017],[-0.980785,-0.19509],[-0.95694,-0.290285],[-0.92388,-0.382683],[-0.881921,-0.471397],[-0.83147,-0.55557],[-0.77301,-0.634393],[-0.707107,-0.707107],[-0.634393,-0.77301],[-0.55557,-0.83147],[-0.471397,-0.881921],[-0.382683,-0.92388],[-0.290285,-0.95694],[-0.19509,-0.980785],[-0.098017,-0.995185],[-0.0,-1.0],[0.098017,-0.995185],[0.19509,-0.980785],[0.290285,-0.95694],[0.382683,-0.92388],[0.471397,-0.881921],[0.55557,-0.83147],[0.634393,-0.77301],[0.707107,-0.707107],[0.77301,-0.634393],[0.83147,-0.55557],[0.881921,-0.471397],[0.92388,-0.382683],[0.95694,-0.290285],[0.980785,-0.19509],[0.995185,-0.098017]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.28,0.0],[1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,0.28],[0.0,1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[-0.28,0.0],[-1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,-0.28],[0.0,-1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1}]}]},"role-pair-assassin-support":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[0.7056,-1.1509],[0.0587,-0.574],[-0.2954,0.0418],[0.0968,0.2822],[0.4849,-0.3126]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.554,-0.9037],[-0.0836,0.1364]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[-0.5663,-0.1478],[-0.6433,0.0161],[-0.3796,0.2365],[-0.0386,0.4455],[0.2774,0.5806],[0.3886,0.4376],[0.0077,0.2745],[-0.2481,0.1177]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.3455,0.2574],[-0.6839,0.8476],[-0.6429,1.0486],[-0.4451,0.9939],[-0.0727,0.4246]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.595,0.7026],[-0.3563,0.849]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-0.3,-1.2],[0.3,-1.2],[0.3,-0.3],[1.2,-0.3],[1.2,0.3],[0.3,0.3],[0.3,1.2],[-0.3,1.2],[-0.3,0.3],[-1.2,0.3],[-1.2,-0.3],[-0.3,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07}]}]},"role-pair-assassin-tank":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[0.7056,-1.1509],[0.0587,-0.574],[-0.2954,0.0418],[0.0968,0.2822],[0.4849,-0.3126]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.554,-0.9037],[-0.0836,0.1364]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[-0.5663,-0.1478],[-0.6433,0.0161],[-0.3796,0.2365],[-0.0386,0.4455],[0.2774,0.5806],[0.3886,0.4376],[0.0077,0.2745],[-0.2481,0.1177]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.3455,0.2574],[-0.6839,0.8476],[-0.6429,1.0486],[-0.4451,0.9939],[-0.0727,0.4246]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.595,0.7026],[-0.3563,0.849]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-1,-1],[1,-1],[0.85,0.55],[0,1.25],[-0.85,0.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[0,-0.7],[0,0.7]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.07}]}]},"role-pair-controller-dealer":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"commands":[["M",0.43841,0.19799],["L",0.46542,0.2332],["L",0.48241,0.2742],["L",0.4882,0.3182],["L",0.48241,0.3622],["L",0.46542,0.4032],["L",0.43841,0.43841],["L",0.4032,0.46542],["L",0.3622,0.48241],["L",0.3182,0.4882],["L",0.2742,0.48241],["L",0.2332,0.46542],["L",0.19799,0.43841],["L",-0.43841,-0.19799],["L",-0.46542,-0.2332],["L",-0.48241,-0.2742],["L",-0.4882,-0.3182],["L",-0.48241,-0.3622],["L",-0.46542,-0.4032],["L",-0.43841,-0.43841],["L",-0.4032,-0.46542],["L",-0.3622,-0.48241],["L",-0.3182,-0.4882],["L",-0.2742,-0.48241],["L",-0.2332,-0.46542],["L",-0.19799,-0.43841],["Z"],["M",-0.23335,-0.33941],["L",-0.24888,-0.35133],["L",-0.26697,-0.35882],["L",-0.28638,-0.36138],["L",-0.30579,-0.35882],["L",-0.32388,-0.35133],["L",-0.33941,-0.33941],["L",-0.35133,-0.32388],["L",-0.35882,-0.30579],["L",-0.36138,-0.28638],["L",-0.35882,-0.26697],["L",-0.35133,-0.24888],["L",-0.33941,-0.23335],["L",0.23335,0.33941],["L",0.24888,0.35133],["L",0.26697,0.35882],["L",0.28638,0.36138],["L",0.30579,0.35882],["L",0.32388,0.35133],["L",0.33941,0.33941],["L",0.35133,0.32388],["L",0.35882,0.30579],["L",0.36138,0.28638],["L",0.35882,0.26697],["L",0.35133,0.24888],["L",0.33941,0.23335],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",-0.14331,-0.62414],["L",-0.08928,-0.55373],["L",-0.05531,-0.47172],["L",-0.04373,-0.38373],["L",-0.05531,-0.29573],["L",-0.08928,-0.21373],["L",-0.14331,-0.14331],["L",-0.21373,-0.08928],["L",-0.29573,-0.05531],["L",-0.38373,-0.04373],["L",-0.47172,-0.05531],["L",-0.55373,-0.08928],["L",-0.62414,-0.14331],["L",-1.07669,-0.59586],["L",-1.13072,-0.66627],["L",-1.16469,-0.74828],["L",-1.17627,-0.83627],["L",-1.16469,-0.92427],["L",-1.13072,-1.00627],["L",-1.07669,-1.07669],["L",-1.00627,-1.13072],["L",-0.92427,-1.16469],["L",-0.83627,-1.17627],["L",-0.74828,-1.16469],["L",-0.66627,-1.13072],["L",-0.59586,-1.07669],["Z"],["M",-0.68778,-0.95648],["L",-0.72713,-0.98668],["L",-0.77296,-1.00566],["L",-0.82213,-1.01213],["L",-0.87131,-1.00566],["L",-0.91713,-0.98668],["L",-0.95648,-0.95648],["L",-0.98668,-0.91713],["L",-1.00566,-0.87131],["L",-1.01213,-0.82213],["L",-1.00566,-0.77296],["L",-0.98668,-0.72713],["L",-0.95648,-0.68778],["L",-0.53222,-0.26352],["L",-0.49287,-0.23332],["L",-0.44704,-0.21434],["L",-0.39787,-0.20787],["L",-0.34869,-0.21434],["L",-0.30287,-0.23332],["L",-0.26352,-0.26352],["L",-0.23332,-0.30287],["L",-0.21434,-0.34869],["L",-0.20787,-0.39787],["L",-0.21434,-0.44704],["L",-0.23332,-0.49287],["L",-0.26352,-0.53222],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",1.07669,0.59586],["L",1.13072,0.66627],["L",1.16469,0.74828],["L",1.17627,0.83627],["L",1.16469,0.92427],["L",1.13072,1.00627],["L",1.07669,1.07669],["L",1.00627,1.13072],["L",0.92427,1.16469],["L",0.83627,1.17627],["L",0.74828,1.16469],["L",0.66627,1.13072],["L",0.59586,1.07669],["L",0.14331,0.62414],["L",0.08928,0.55373],["L",0.05531,0.47172],["L",0.04373,0.38373],["L",0.05531,0.29573],["L",0.08928,0.21373],["L",0.14331,0.14331],["L",0.21373,0.08928],["L",0.29573,0.05531],["L",0.38373,0.04373],["L",0.47172,0.05531],["L",0.55373,0.08928],["L",0.62414,0.14331],["Z"],["M",0.53222,0.26352],["L",0.49287,0.23332],["L",0.44704,0.21434],["L",0.39787,0.20787],["L",0.34869,0.21434],["L",0.30287,0.23332],["L",0.26352,0.26352],["L",0.23332,0.30287],["L",0.21434,0.34869],["L",0.20787,0.39787],["L",0.21434,0.44704],["L",0.23332,0.49287],["L",0.26352,0.53222],["L",0.68778,0.95648],["L",0.72713,0.98668],["L",0.77296,1.00566],["L",0.82213,1.01213],["L",0.87131,1.00566],["L",0.91713,0.98668],["L",0.95648,0.95648],["L",0.98668,0.91713],["L",1.00566,0.87131],["L",1.01213,0.82213],["L",1.00566,0.77296],["L",0.98668,0.72713],["L",0.95648,0.68778],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-0.42282,-1.47041],[-0.13376,-1.11652],[0.28881,0.2083],[-0.13405,0.32989],[-0.47974,-1.01703]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.35926,-1.24937],[0.06633,0.23065]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[0.72393,0.02075],[0.67756,0.22137],[0.2726,0.36904],[-0.03494,0.45747],[-0.45648,0.54747],[-0.60233,0.40212],[-0.52281,0.31682],[-0.08192,0.29409],[0.22562,0.20566],[0.61124,-0.00928]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.24653,0.38694],[0.42761,1.05283],[0.19696,1.11916],[-0.00334,0.45879]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.4908,1.05547],[0.37032,1.28781],[0.14482,1.15496],[0.28741,0.9995]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.35299,0.79334],[0.12234,0.85967]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]}]},"role-pair-controller-sniper":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"commands":[["M",0.43841,0.19799],["L",0.46542,0.2332],["L",0.48241,0.2742],["L",0.4882,0.3182],["L",0.48241,0.3622],["L",0.46542,0.4032],["L",0.43841,0.43841],["L",0.4032,0.46542],["L",0.3622,0.48241],["L",0.3182,0.4882],["L",0.2742,0.48241],["L",0.2332,0.46542],["L",0.19799,0.43841],["L",-0.43841,-0.19799],["L",-0.46542,-0.2332],["L",-0.48241,-0.2742],["L",-0.4882,-0.3182],["L",-0.48241,-0.3622],["L",-0.46542,-0.4032],["L",-0.43841,-0.43841],["L",-0.4032,-0.46542],["L",-0.3622,-0.48241],["L",-0.3182,-0.4882],["L",-0.2742,-0.48241],["L",-0.2332,-0.46542],["L",-0.19799,-0.43841],["Z"],["M",-0.23335,-0.33941],["L",-0.24888,-0.35133],["L",-0.26697,-0.35882],["L",-0.28638,-0.36138],["L",-0.30579,-0.35882],["L",-0.32388,-0.35133],["L",-0.33941,-0.33941],["L",-0.35133,-0.32388],["L",-0.35882,-0.30579],["L",-0.36138,-0.28638],["L",-0.35882,-0.26697],["L",-0.35133,-0.24888],["L",-0.33941,-0.23335],["L",0.23335,0.33941],["L",0.24888,0.35133],["L",0.26697,0.35882],["L",0.28638,0.36138],["L",0.30579,0.35882],["L",0.32388,0.35133],["L",0.33941,0.33941],["L",0.35133,0.32388],["L",0.35882,0.30579],["L",0.36138,0.28638],["L",0.35882,0.26697],["L",0.35133,0.24888],["L",0.33941,0.23335],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",-0.14331,-0.62414],["L",-0.08928,-0.55373],["L",-0.05531,-0.47172],["L",-0.04373,-0.38373],["L",-0.05531,-0.29573],["L",-0.08928,-0.21373],["L",-0.14331,-0.14331],["L",-0.21373,-0.08928],["L",-0.29573,-0.05531],["L",-0.38373,-0.04373],["L",-0.47172,-0.05531],["L",-0.55373,-0.08928],["L",-0.62414,-0.14331],["L",-1.07669,-0.59586],["L",-1.13072,-0.66627],["L",-1.16469,-0.74828],["L",-1.17627,-0.83627],["L",-1.16469,-0.92427],["L",-1.13072,-1.00627],["L",-1.07669,-1.07669],["L",-1.00627,-1.13072],["L",-0.92427,-1.16469],["L",-0.83627,-1.17627],["L",-0.74828,-1.16469],["L",-0.66627,-1.13072],["L",-0.59586,-1.07669],["Z"],["M",-0.68778,-0.95648],["L",-0.72713,-0.98668],["L",-0.77296,-1.00566],["L",-0.82213,-1.01213],["L",-0.87131,-1.00566],["L",-0.91713,-0.98668],["L",-0.95648,-0.95648],["L",-0.98668,-0.91713],["L",-1.00566,-0.87131],["L",-1.01213,-0.82213],["L",-1.00566,-0.77296],["L",-0.98668,-0.72713],["L",-0.95648,-0.68778],["L",-0.53222,-0.26352],["L",-0.49287,-0.23332],["L",-0.44704,-0.21434],["L",-0.39787,-0.20787],["L",-0.34869,-0.21434],["L",-0.30287,-0.23332],["L",-0.26352,-0.26352],["L",-0.23332,-0.30287],["L",-0.21434,-0.34869],["L",-0.20787,-0.39787],["L",-0.21434,-0.44704],["L",-0.23332,-0.49287],["L",-0.26352,-0.53222],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",1.07669,0.59586],["L",1.13072,0.66627],["L",1.16469,0.74828],["L",1.17627,0.83627],["L",1.16469,0.92427],["L",1.13072,1.00627],["L",1.07669,1.07669],["L",1.00627,1.13072],["L",0.92427,1.16469],["L",0.83627,1.17627],["L",0.74828,1.16469],["L",0.66627,1.13072],["L",0.59586,1.07669],["L",0.14331,0.62414],["L",0.08928,0.55373],["L",0.05531,0.47172],["L",0.04373,0.38373],["L",0.05531,0.29573],["L",0.08928,0.21373],["L",0.14331,0.14331],["L",0.21373,0.08928],["L",0.29573,0.05531],["L",0.38373,0.04373],["L",0.47172,0.05531],["L",0.55373,0.08928],["L",0.62414,0.14331],["Z"],["M",0.53222,0.26352],["L",0.49287,0.23332],["L",0.44704,0.21434],["L",0.39787,0.20787],["L",0.34869,0.21434],["L",0.30287,0.23332],["L",0.26352,0.26352],["L",0.23332,0.30287],["L",0.21434,0.34869],["L",0.20787,0.39787],["L",0.21434,0.44704],["L",0.23332,0.49287],["L",0.26352,0.53222],["L",0.68778,0.95648],["L",0.72713,0.98668],["L",0.77296,1.00566],["L",0.82213,1.01213],["L",0.87131,1.00566],["L",0.91713,0.98668],["L",0.95648,0.95648],["L",0.98668,0.91713],["L",1.00566,0.87131],["L",1.01213,0.82213],["L",1.00566,0.77296],["L",0.98668,0.72713],["L",0.95648,0.68778],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[1.0,0.0],[0.995185,0.098017],[0.980785,0.19509],[0.95694,0.290285],[0.92388,0.382683],[0.881921,0.471397],[0.83147,0.55557],[0.77301,0.634393],[0.707107,0.707107],[0.634393,0.77301],[0.55557,0.83147],[0.471397,0.881921],[0.382683,0.92388],[0.290285,0.95694],[0.19509,0.980785],[0.098017,0.995185],[0.0,1.0],[-0.098017,0.995185],[-0.19509,0.980785],[-0.290285,0.95694],[-0.382683,0.92388],[-0.471397,0.881921],[-0.55557,0.83147],[-0.634393,0.77301],[-0.707107,0.707107],[-0.77301,0.634393],[-0.83147,0.55557],[-0.881921,0.471397],[-0.92388,0.382683],[-0.95694,0.290285],[-0.980785,0.19509],[-0.995185,0.098017],[-1.0,0.0],[-0.995185,-0.098017],[-0.980785,-0.19509],[-0.95694,-0.290285],[-0.92388,-0.382683],[-0.881921,-0.471397],[-0.83147,-0.55557],[-0.77301,-0.634393],[-0.707107,-0.707107],[-0.634393,-0.77301],[-0.55557,-0.83147],[-0.471397,-0.881921],[-0.382683,-0.92388],[-0.290285,-0.95694],[-0.19509,-0.980785],[-0.098017,-0.995185],[-0.0,-1.0],[0.098017,-0.995185],[0.19509,-0.980785],[0.290285,-0.95694],[0.382683,-0.92388],[0.471397,-0.881921],[0.55557,-0.83147],[0.634393,-0.77301],[0.707107,-0.707107],[0.77301,-0.634393],[0.83147,-0.55557],[0.881921,-0.471397],[0.92388,-0.382683],[0.95694,-0.290285],[0.980785,-0.19509],[0.995185,-0.098017]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.28,0.0],[1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,0.28],[0.0,1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[-0.28,0.0],[-1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,-0.28],[0.0,-1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1}]}]},"role-pair-controller-support":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"commands":[["M",0.43841,0.19799],["L",0.46542,0.2332],["L",0.48241,0.2742],["L",0.4882,0.3182],["L",0.48241,0.3622],["L",0.46542,0.4032],["L",0.43841,0.43841],["L",0.4032,0.46542],["L",0.3622,0.48241],["L",0.3182,0.4882],["L",0.2742,0.48241],["L",0.2332,0.46542],["L",0.19799,0.43841],["L",-0.43841,-0.19799],["L",-0.46542,-0.2332],["L",-0.48241,-0.2742],["L",-0.4882,-0.3182],["L",-0.48241,-0.3622],["L",-0.46542,-0.4032],["L",-0.43841,-0.43841],["L",-0.4032,-0.46542],["L",-0.3622,-0.48241],["L",-0.3182,-0.4882],["L",-0.2742,-0.48241],["L",-0.2332,-0.46542],["L",-0.19799,-0.43841],["Z"],["M",-0.23335,-0.33941],["L",-0.24888,-0.35133],["L",-0.26697,-0.35882],["L",-0.28638,-0.36138],["L",-0.30579,-0.35882],["L",-0.32388,-0.35133],["L",-0.33941,-0.33941],["L",-0.35133,-0.32388],["L",-0.35882,-0.30579],["L",-0.36138,-0.28638],["L",-0.35882,-0.26697],["L",-0.35133,-0.24888],["L",-0.33941,-0.23335],["L",0.23335,0.33941],["L",0.24888,0.35133],["L",0.26697,0.35882],["L",0.28638,0.36138],["L",0.30579,0.35882],["L",0.32388,0.35133],["L",0.33941,0.33941],["L",0.35133,0.32388],["L",0.35882,0.30579],["L",0.36138,0.28638],["L",0.35882,0.26697],["L",0.35133,0.24888],["L",0.33941,0.23335],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",-0.14331,-0.62414],["L",-0.08928,-0.55373],["L",-0.05531,-0.47172],["L",-0.04373,-0.38373],["L",-0.05531,-0.29573],["L",-0.08928,-0.21373],["L",-0.14331,-0.14331],["L",-0.21373,-0.08928],["L",-0.29573,-0.05531],["L",-0.38373,-0.04373],["L",-0.47172,-0.05531],["L",-0.55373,-0.08928],["L",-0.62414,-0.14331],["L",-1.07669,-0.59586],["L",-1.13072,-0.66627],["L",-1.16469,-0.74828],["L",-1.17627,-0.83627],["L",-1.16469,-0.92427],["L",-1.13072,-1.00627],["L",-1.07669,-1.07669],["L",-1.00627,-1.13072],["L",-0.92427,-1.16469],["L",-0.83627,-1.17627],["L",-0.74828,-1.16469],["L",-0.66627,-1.13072],["L",-0.59586,-1.07669],["Z"],["M",-0.68778,-0.95648],["L",-0.72713,-0.98668],["L",-0.77296,-1.00566],["L",-0.82213,-1.01213],["L",-0.87131,-1.00566],["L",-0.91713,-0.98668],["L",-0.95648,-0.95648],["L",-0.98668,-0.91713],["L",-1.00566,-0.87131],["L",-1.01213,-0.82213],["L",-1.00566,-0.77296],["L",-0.98668,-0.72713],["L",-0.95648,-0.68778],["L",-0.53222,-0.26352],["L",-0.49287,-0.23332],["L",-0.44704,-0.21434],["L",-0.39787,-0.20787],["L",-0.34869,-0.21434],["L",-0.30287,-0.23332],["L",-0.26352,-0.26352],["L",-0.23332,-0.30287],["L",-0.21434,-0.34869],["L",-0.20787,-0.39787],["L",-0.21434,-0.44704],["L",-0.23332,-0.49287],["L",-0.26352,-0.53222],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",1.07669,0.59586],["L",1.13072,0.66627],["L",1.16469,0.74828],["L",1.17627,0.83627],["L",1.16469,0.92427],["L",1.13072,1.00627],["L",1.07669,1.07669],["L",1.00627,1.13072],["L",0.92427,1.16469],["L",0.83627,1.17627],["L",0.74828,1.16469],["L",0.66627,1.13072],["L",0.59586,1.07669],["L",0.14331,0.62414],["L",0.08928,0.55373],["L",0.05531,0.47172],["L",0.04373,0.38373],["L",0.05531,0.29573],["L",0.08928,0.21373],["L",0.14331,0.14331],["L",0.21373,0.08928],["L",0.29573,0.05531],["L",0.38373,0.04373],["L",0.47172,0.05531],["L",0.55373,0.08928],["L",0.62414,0.14331],["Z"],["M",0.53222,0.26352],["L",0.49287,0.23332],["L",0.44704,0.21434],["L",0.39787,0.20787],["L",0.34869,0.21434],["L",0.30287,0.23332],["L",0.26352,0.26352],["L",0.23332,0.30287],["L",0.21434,0.34869],["L",0.20787,0.39787],["L",0.21434,0.44704],["L",0.23332,0.49287],["L",0.26352,0.53222],["L",0.68778,0.95648],["L",0.72713,0.98668],["L",0.77296,1.00566],["L",0.82213,1.01213],["L",0.87131,1.00566],["L",0.91713,0.98668],["L",0.95648,0.95648],["L",0.98668,0.91713],["L",1.00566,0.87131],["L",1.01213,0.82213],["L",1.00566,0.77296],["L",0.98668,0.72713],["L",0.95648,0.68778],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-0.3,-1.2],[0.3,-1.2],[0.3,-0.3],[1.2,-0.3],[1.2,0.3],[0.3,0.3],[0.3,1.2],[-0.3,1.2],[-0.3,0.3],[-1.2,0.3],[-1.2,-0.3],[-0.3,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07}]}]},"role-pair-controller-tank":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"commands":[["M",0.43841,0.19799],["L",0.46542,0.2332],["L",0.48241,0.2742],["L",0.4882,0.3182],["L",0.48241,0.3622],["L",0.46542,0.4032],["L",0.43841,0.43841],["L",0.4032,0.46542],["L",0.3622,0.48241],["L",0.3182,0.4882],["L",0.2742,0.48241],["L",0.2332,0.46542],["L",0.19799,0.43841],["L",-0.43841,-0.19799],["L",-0.46542,-0.2332],["L",-0.48241,-0.2742],["L",-0.4882,-0.3182],["L",-0.48241,-0.3622],["L",-0.46542,-0.4032],["L",-0.43841,-0.43841],["L",-0.4032,-0.46542],["L",-0.3622,-0.48241],["L",-0.3182,-0.4882],["L",-0.2742,-0.48241],["L",-0.2332,-0.46542],["L",-0.19799,-0.43841],["Z"],["M",-0.23335,-0.33941],["L",-0.24888,-0.35133],["L",-0.26697,-0.35882],["L",-0.28638,-0.36138],["L",-0.30579,-0.35882],["L",-0.32388,-0.35133],["L",-0.33941,-0.33941],["L",-0.35133,-0.32388],["L",-0.35882,-0.30579],["L",-0.36138,-0.28638],["L",-0.35882,-0.26697],["L",-0.35133,-0.24888],["L",-0.33941,-0.23335],["L",0.23335,0.33941],["L",0.24888,0.35133],["L",0.26697,0.35882],["L",0.28638,0.36138],["L",0.30579,0.35882],["L",0.32388,0.35133],["L",0.33941,0.33941],["L",0.35133,0.32388],["L",0.35882,0.30579],["L",0.36138,0.28638],["L",0.35882,0.26697],["L",0.35133,0.24888],["L",0.33941,0.23335],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",-0.14331,-0.62414],["L",-0.08928,-0.55373],["L",-0.05531,-0.47172],["L",-0.04373,-0.38373],["L",-0.05531,-0.29573],["L",-0.08928,-0.21373],["L",-0.14331,-0.14331],["L",-0.21373,-0.08928],["L",-0.29573,-0.05531],["L",-0.38373,-0.04373],["L",-0.47172,-0.05531],["L",-0.55373,-0.08928],["L",-0.62414,-0.14331],["L",-1.07669,-0.59586],["L",-1.13072,-0.66627],["L",-1.16469,-0.74828],["L",-1.17627,-0.83627],["L",-1.16469,-0.92427],["L",-1.13072,-1.00627],["L",-1.07669,-1.07669],["L",-1.00627,-1.13072],["L",-0.92427,-1.16469],["L",-0.83627,-1.17627],["L",-0.74828,-1.16469],["L",-0.66627,-1.13072],["L",-0.59586,-1.07669],["Z"],["M",-0.68778,-0.95648],["L",-0.72713,-0.98668],["L",-0.77296,-1.00566],["L",-0.82213,-1.01213],["L",-0.87131,-1.00566],["L",-0.91713,-0.98668],["L",-0.95648,-0.95648],["L",-0.98668,-0.91713],["L",-1.00566,-0.87131],["L",-1.01213,-0.82213],["L",-1.00566,-0.77296],["L",-0.98668,-0.72713],["L",-0.95648,-0.68778],["L",-0.53222,-0.26352],["L",-0.49287,-0.23332],["L",-0.44704,-0.21434],["L",-0.39787,-0.20787],["L",-0.34869,-0.21434],["L",-0.30287,-0.23332],["L",-0.26352,-0.26352],["L",-0.23332,-0.30287],["L",-0.21434,-0.34869],["L",-0.20787,-0.39787],["L",-0.21434,-0.44704],["L",-0.23332,-0.49287],["L",-0.26352,-0.53222],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05},{"commands":[["M",1.07669,0.59586],["L",1.13072,0.66627],["L",1.16469,0.74828],["L",1.17627,0.83627],["L",1.16469,0.92427],["L",1.13072,1.00627],["L",1.07669,1.07669],["L",1.00627,1.13072],["L",0.92427,1.16469],["L",0.83627,1.17627],["L",0.74828,1.16469],["L",0.66627,1.13072],["L",0.59586,1.07669],["L",0.14331,0.62414],["L",0.08928,0.55373],["L",0.05531,0.47172],["L",0.04373,0.38373],["L",0.05531,0.29573],["L",0.08928,0.21373],["L",0.14331,0.14331],["L",0.21373,0.08928],["L",0.29573,0.05531],["L",0.38373,0.04373],["L",0.47172,0.05531],["L",0.55373,0.08928],["L",0.62414,0.14331],["Z"],["M",0.53222,0.26352],["L",0.49287,0.23332],["L",0.44704,0.21434],["L",0.39787,0.20787],["L",0.34869,0.21434],["L",0.30287,0.23332],["L",0.26352,0.26352],["L",0.23332,0.30287],["L",0.21434,0.34869],["L",0.20787,0.39787],["L",0.21434,0.44704],["L",0.23332,0.49287],["L",0.26352,0.53222],["L",0.68778,0.95648],["L",0.72713,0.98668],["L",0.77296,1.00566],["L",0.82213,1.01213],["L",0.87131,1.00566],["L",0.91713,0.98668],["L",0.95648,0.95648],["L",0.98668,0.91713],["L",1.00566,0.87131],["L",1.01213,0.82213],["L",1.00566,0.77296],["L",0.98668,0.72713],["L",0.95648,0.68778],["Z"]],"fill":true,"stroke":true,"lineWidth":0.05}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-1,-1],[1,-1],[0.85,0.55],[0,1.25],[-0.85,0.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[0,-0.7],[0,0.7]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.07}]}]},"role-pair-dealer-sniper":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-0.42282,-1.47041],[-0.13376,-1.11652],[0.28881,0.2083],[-0.13405,0.32989],[-0.47974,-1.01703]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.35926,-1.24937],[0.06633,0.23065]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[0.72393,0.02075],[0.67756,0.22137],[0.2726,0.36904],[-0.03494,0.45747],[-0.45648,0.54747],[-0.60233,0.40212],[-0.52281,0.31682],[-0.08192,0.29409],[0.22562,0.20566],[0.61124,-0.00928]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.24653,0.38694],[0.42761,1.05283],[0.19696,1.11916],[-0.00334,0.45879]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.4908,1.05547],[0.37032,1.28781],[0.14482,1.15496],[0.28741,0.9995]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.35299,0.79334],[0.12234,0.85967]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[1.0,0.0],[0.995185,0.098017],[0.980785,0.19509],[0.95694,0.290285],[0.92388,0.382683],[0.881921,0.471397],[0.83147,0.55557],[0.77301,0.634393],[0.707107,0.707107],[0.634393,0.77301],[0.55557,0.83147],[0.471397,0.881921],[0.382683,0.92388],[0.290285,0.95694],[0.19509,0.980785],[0.098017,0.995185],[0.0,1.0],[-0.098017,0.995185],[-0.19509,0.980785],[-0.290285,0.95694],[-0.382683,0.92388],[-0.471397,0.881921],[-0.55557,0.83147],[-0.634393,0.77301],[-0.707107,0.707107],[-0.77301,0.634393],[-0.83147,0.55557],[-0.881921,0.471397],[-0.92388,0.382683],[-0.95694,0.290285],[-0.980785,0.19509],[-0.995185,0.098017],[-1.0,0.0],[-0.995185,-0.098017],[-0.980785,-0.19509],[-0.95694,-0.290285],[-0.92388,-0.382683],[-0.881921,-0.471397],[-0.83147,-0.55557],[-0.77301,-0.634393],[-0.707107,-0.707107],[-0.634393,-0.77301],[-0.55557,-0.83147],[-0.471397,-0.881921],[-0.382683,-0.92388],[-0.290285,-0.95694],[-0.19509,-0.980785],[-0.098017,-0.995185],[-0.0,-1.0],[0.098017,-0.995185],[0.19509,-0.980785],[0.290285,-0.95694],[0.382683,-0.92388],[0.471397,-0.881921],[0.55557,-0.83147],[0.634393,-0.77301],[0.707107,-0.707107],[0.77301,-0.634393],[0.83147,-0.55557],[0.881921,-0.471397],[0.92388,-0.382683],[0.95694,-0.290285],[0.980785,-0.19509],[0.995185,-0.098017]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.28,0.0],[1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,0.28],[0.0,1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[-0.28,0.0],[-1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,-0.28],[0.0,-1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1}]}]},"role-pair-dealer-support":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-0.42282,-1.47041],[-0.13376,-1.11652],[0.28881,0.2083],[-0.13405,0.32989],[-0.47974,-1.01703]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.35926,-1.24937],[0.06633,0.23065]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[0.72393,0.02075],[0.67756,0.22137],[0.2726,0.36904],[-0.03494,0.45747],[-0.45648,0.54747],[-0.60233,0.40212],[-0.52281,0.31682],[-0.08192,0.29409],[0.22562,0.20566],[0.61124,-0.00928]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.24653,0.38694],[0.42761,1.05283],[0.19696,1.11916],[-0.00334,0.45879]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.4908,1.05547],[0.37032,1.28781],[0.14482,1.15496],[0.28741,0.9995]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.35299,0.79334],[0.12234,0.85967]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-0.3,-1.2],[0.3,-1.2],[0.3,-0.3],[1.2,-0.3],[1.2,0.3],[0.3,0.3],[0.3,1.2],[-0.3,1.2],[-0.3,0.3],[-1.2,0.3],[-1.2,-0.3],[-0.3,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07}]}]},"role-pair-dealer-tank":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-0.42282,-1.47041],[-0.13376,-1.11652],[0.28881,0.2083],[-0.13405,0.32989],[-0.47974,-1.01703]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-0.35926,-1.24937],[0.06633,0.23065]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065},{"points":[[0.72393,0.02075],[0.67756,0.22137],[0.2726,0.36904],[-0.03494,0.45747],[-0.45648,0.54747],[-0.60233,0.40212],[-0.52281,0.31682],[-0.08192,0.29409],[0.22562,0.20566],[0.61124,-0.00928]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.24653,0.38694],[0.42761,1.05283],[0.19696,1.11916],[-0.00334,0.45879]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.4908,1.05547],[0.37032,1.28781],[0.14482,1.15496],[0.28741,0.9995]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[0.35299,0.79334],[0.12234,0.85967]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.065}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-1,-1],[1,-1],[0.85,0.55],[0,1.25],[-0.85,0.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[0,-0.7],[0,0.7]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.07}]}]},"role-pair-sniper-support":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[1.0,0.0],[0.995185,0.098017],[0.980785,0.19509],[0.95694,0.290285],[0.92388,0.382683],[0.881921,0.471397],[0.83147,0.55557],[0.77301,0.634393],[0.707107,0.707107],[0.634393,0.77301],[0.55557,0.83147],[0.471397,0.881921],[0.382683,0.92388],[0.290285,0.95694],[0.19509,0.980785],[0.098017,0.995185],[0.0,1.0],[-0.098017,0.995185],[-0.19509,0.980785],[-0.290285,0.95694],[-0.382683,0.92388],[-0.471397,0.881921],[-0.55557,0.83147],[-0.634393,0.77301],[-0.707107,0.707107],[-0.77301,0.634393],[-0.83147,0.55557],[-0.881921,0.471397],[-0.92388,0.382683],[-0.95694,0.290285],[-0.980785,0.19509],[-0.995185,0.098017],[-1.0,0.0],[-0.995185,-0.098017],[-0.980785,-0.19509],[-0.95694,-0.290285],[-0.92388,-0.382683],[-0.881921,-0.471397],[-0.83147,-0.55557],[-0.77301,-0.634393],[-0.707107,-0.707107],[-0.634393,-0.77301],[-0.55557,-0.83147],[-0.471397,-0.881921],[-0.382683,-0.92388],[-0.290285,-0.95694],[-0.19509,-0.980785],[-0.098017,-0.995185],[-0.0,-1.0],[0.098017,-0.995185],[0.19509,-0.980785],[0.290285,-0.95694],[0.382683,-0.92388],[0.471397,-0.881921],[0.55557,-0.83147],[0.634393,-0.77301],[0.707107,-0.707107],[0.77301,-0.634393],[0.83147,-0.55557],[0.881921,-0.471397],[0.92388,-0.382683],[0.95694,-0.290285],[0.980785,-0.19509],[0.995185,-0.098017]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.28,0.0],[1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,0.28],[0.0,1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[-0.28,0.0],[-1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,-0.28],[0.0,-1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-0.3,-1.2],[0.3,-1.2],[0.3,-0.3],[1.2,-0.3],[1.2,0.3],[0.3,0.3],[0.3,1.2],[-0.3,1.2],[-0.3,0.3],[-1.2,0.3],[-1.2,-0.3],[-0.3,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07}]}]},"role-pair-sniper-tank":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[1.0,0.0],[0.995185,0.098017],[0.980785,0.19509],[0.95694,0.290285],[0.92388,0.382683],[0.881921,0.471397],[0.83147,0.55557],[0.77301,0.634393],[0.707107,0.707107],[0.634393,0.77301],[0.55557,0.83147],[0.471397,0.881921],[0.382683,0.92388],[0.290285,0.95694],[0.19509,0.980785],[0.098017,0.995185],[0.0,1.0],[-0.098017,0.995185],[-0.19509,0.980785],[-0.290285,0.95694],[-0.382683,0.92388],[-0.471397,0.881921],[-0.55557,0.83147],[-0.634393,0.77301],[-0.707107,0.707107],[-0.77301,0.634393],[-0.83147,0.55557],[-0.881921,0.471397],[-0.92388,0.382683],[-0.95694,0.290285],[-0.980785,0.19509],[-0.995185,0.098017],[-1.0,0.0],[-0.995185,-0.098017],[-0.980785,-0.19509],[-0.95694,-0.290285],[-0.92388,-0.382683],[-0.881921,-0.471397],[-0.83147,-0.55557],[-0.77301,-0.634393],[-0.707107,-0.707107],[-0.634393,-0.77301],[-0.55557,-0.83147],[-0.471397,-0.881921],[-0.382683,-0.92388],[-0.290285,-0.95694],[-0.19509,-0.980785],[-0.098017,-0.995185],[-0.0,-1.0],[0.098017,-0.995185],[0.19509,-0.980785],[0.290285,-0.95694],[0.382683,-0.92388],[0.471397,-0.881921],[0.55557,-0.83147],[0.634393,-0.77301],[0.707107,-0.707107],[0.77301,-0.634393],[0.83147,-0.55557],[0.881921,-0.471397],[0.92388,-0.382683],[0.95694,-0.290285],[0.980785,-0.19509],[0.995185,-0.098017]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.28,0.0],[1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,0.28],[0.0,1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[-0.28,0.0],[-1.25,0.0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1},{"points":[[0.0,-0.28],[0.0,-1.25]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.1}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-1,-1],[1,-1],[0.85,0.55],[0,1.25],[-0.85,0.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[0,-0.7],[0,0.7]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.07}]}]},"role-pair-support-tank":{"origin":[0,0],"parts":[{"pivot":[-1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-0.3,-1.2],[0.3,-1.2],[0.3,-0.3],[1.2,-0.3],[1.2,0.3],[0.3,0.3],[0.3,1.2],[-0.3,1.2],[-0.3,0.3],[-1.2,0.3],[-1.2,-0.3],[-0.3,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07}]},{"pivot":[1.15,0],"scaleX":0.85,"scaleY":0.85,"paths":[{"points":[[-1,-1],[1,-1],[0.85,0.55],[0,1.25],[-0.85,0.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[0,-0.7],[0,0.7]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.07}]}]},"sun":{"paths":[{"commands":[["M",0,-2.95],["L",0.48,-2.55],["L",0.48,0.65],["L",-0.48,0.65],["L",-0.48,-2.55],["Z"]],"fill":true,"stroke":true,"fillColor":"#9c6e2a","lineWidth":0.1},{"commands":[["M",0,-2.65],["L",0,0.48]],"stroke":true,"lineWidth":0.15},{"commands":[["M",-1,0.5],["L",-0.82,0.82],["L",-0.3,0.78],["L",0,0.9],["L",0.3,0.78],["L",0.82,0.82],["L",1,0.5],["L",0.42000000000000004,0.55],["L",0,0.35],["L",-0.42000000000000004,0.55],["Z"]],"fill":true,"stroke":true,"fillColor":"#dba94b","lineWidth":0.075},{"commands":[["A",0,0.6,0.19,0,6.283185307179586]],"fill":true,"stroke":false,"fillColor":"#fff0a3"},{"commands":[["M",-0.25,0.6],["L",-0.34,0.6],["M",0.25,0.6],["L",0.34,0.6],["M",0,0.35],["L",0,0.26],["M",0,0.85],["L",0,0.94]],"lineWidth":0.04},{"points":[[-0.15,0.83],[0.15,0.83],[0.13,1.48],[-0.13,1.48]],"closed":true,"fill":true,"fillColor":"#775c36"},{"points":[[-0.14,0.94],[0.14,1.01]]},{"points":[[-0.14,1.0699999999999998],[0.14,1.1400000000000001]]},{"points":[[-0.14,1.2],[0.14,1.27]]},{"points":[[-0.14,1.33],[0.14,1.4]]},{"points":[[-0.18,1.48],[0.18,1.48],[0.16,1.59],[-0.16,1.59]],"closed":true,"fill":true,"fillColor":"#775c36"}],"origin":[0,-0.68]},"dark":{"paths":[{"commands":[["M",0,-3.1],["L",0.5,-2.35],["L",0.35,-1.45],["L",0.53,-1.1],["L",0.32,-0.9200000000000002],["L",0.34,0.6],["L",-0.34,0.6],["L",-0.32,-0.9200000000000002],["L",-0.53,-1.1],["L",-0.35,-1.45],["L",-0.5,-2.35],["Z"]],"fill":true,"stroke":true,"fillColor":"#292035","lineWidth":0.1},{"commands":[["M",0,-2.8],["L",-0.13,-1.7],["L",0.12,-1.05],["L",0,0.48]],"stroke":true,"lineWidth":0.08499999999999999},{"commands":[["M",-0.9399999999999998,0.25],["L",-0.6,0.8],["L",0,0.65],["L",0.6,0.8],["L",0.9399999999999998,0.25],["L",0.5,0.4600000000000001],["L",0,0.42000000000000004],["L",-0.5,0.4600000000000001],["Z"]],"fill":true,"stroke":true,"fillColor":"#493057","lineWidth":0.075},{"points":[[-0.15,0.83],[0.15,0.83],[0.13,1.48],[-0.13,1.48]],"closed":true,"fill":true,"fillColor":"#49324f"},{"points":[[-0.14,0.94],[0.14,1.01]]},{"points":[[-0.14,1.0699999999999998],[0.14,1.1400000000000001]]},{"points":[[-0.14,1.2],[0.14,1.27]]},{"points":[[-0.14,1.33],[0.14,1.4]]},{"points":[[-0.18,1.48],[0.18,1.48],[0.16,1.59],[-0.16,1.59]],"closed":true,"fill":true,"fillColor":"#49324f"}],"origin":[0,-0.755]},"pistol":{"paths":[{"commands":[["M",-1.55,-0.52],["L",1.15,-0.52],["L",1.37,-0.32],["L",1.37,0.029999999999999995],["L",-1.55,0.029999999999999995],["Z"]],"fill":true,"stroke":true,"fillColor":"#66616b","lineWidth":0.05333333333333334},{"commands":[["M",-1.3,0.029999999999999995],["L",0.91,0.029999999999999995],["L",0.76,0.23],["L",-0.38,0.23],["L",-0.61,1.27],["L",-1.27,1.27],["L",-1.04,0.2],["Z"]],"fill":true,"stroke":true,"fillColor":"#292b35","lineWidth":0.05333333333333334},{"commands":[["M",-0.46,0.22],["L",0.34,0.22],["L",0.22,0.64],["L",-0.5400000000000001,0.64],["Z"]],"fill":true,"stroke":true,"fillColor":"#292b35","lineWidth":0.05333333333333334},{"commands":[["M",-0.28,0.32],["L",0.11999999999999998,0.32],["L",0.05,0.51],["L",-0.31,0.51]],"stroke":true,"lineWidth":0.04},{"commands":[["M",-1.32,-0.37],["L",0.9599999999999999,-0.37]],"stroke":true,"lineWidth":0.05},{"commands":[["M",-1.16,-0.28],["L",-1.1,-0.07]],"stroke":true,"lineWidth":0.04666666666666666},{"commands":[["M",-0.9899999999999999,-0.28],["L",-0.93,-0.07]],"stroke":true,"lineWidth":0.04666666666666666},{"commands":[["M",-0.8199999999999998,-0.28],["L",-0.76,-0.07]],"stroke":true,"lineWidth":0.04666666666666666},{"commands":[["M",-1.0800000000000003,1.12],["L",-0.7,1.12]],"stroke":true,"lineWidth":0.06666666666666667}],"origin":[-0.08999999999999997,0.375]},"shotgun":{"paths":[{"commands":[["M",0.55,-0.23999999999999996],["L",2.65,-0.23999999999999996],["L",2.65,-0.05],["L",0.55,-0.05],["Z"]],"fill":true,"stroke":true,"fillColor":"#66616b","lineWidth":0.05333333333333334},{"commands":[["M",2.52,-0.29],["L",2.77,-0.29],["L",2.77,0.02],["L",2.52,0.02],["Z"]],"fill":true,"stroke":true,"fillColor":"#292b35","lineWidth":0.05333333333333334},{"commands":[["M",-1.15,-0.39],["L",0.75,-0.39],["L",0.89,-0.2],["L",0.7099999999999999,0.3],["L",-0.93,0.3],["L",-1.15,0.09],["Z"]],"fill":true,"stroke":true,"fillColor":"#66616b","lineWidth":0.05333333333333334},{"commands":[["M",-1.15,-0.21],["L",-1.4199999999999997,-0.21],["L",-2.15,-0.38],["L",-2.58,-0.38],["L",-2.58,0.56],["L",-2.12,0.56],["L",-1.55,0.17],["L",-1.1,0.14],["Z"]],"fill":true,"stroke":true,"fillColor":"#292b35","lineWidth":0.05333333333333334},{"commands":[["M",-2.4,-0.23],["L",-2.4,0.39]],"stroke":true,"lineWidth":0.1},{"commands":[["M",-0.72,0.3],["L",-0.26,0.3],["L",-0.49,1.02],["L",-0.99,1.02],["Z"]],"fill":true,"stroke":true,"fillColor":"#292b35","lineWidth":0.05333333333333334},{"commands":[["M",-0.25,0.3],["L",0.34,0.3],["L",0.2,0.64],["L",-0.34,0.64],["Z"]],"fill":true,"stroke":true,"fillColor":"#292b35","lineWidth":0.05333333333333334},{"commands":[["M",-0.13,0.4],["L",0.2,0.4],["L",0.11999999999999998,0.5400000000000001],["L",-0.19,0.5400000000000001]],"stroke":true,"lineWidth":0.03666666666666667},{"commands":[["M",-0.95,-0.23999999999999996],["L",0.59,-0.23999999999999996]],"stroke":true,"lineWidth":0.056666666666666664},{"commands":[["M",0.8,-0.11999999999999998],["L",1.95,-0.11999999999999998],["L",1.95,0.4],["L",0.8,0.4],["Z"]],"fill":true,"stroke":true,"fillColor":"#59525e","lineWidth":0.05333333333333334},{"commands":[["M",0.97,0],["L",0.97,0.26]],"stroke":true,"lineWidth":0.05},{"commands":[["M",1.14,0],["L",1.14,0.26]],"stroke":true,"lineWidth":0.05},{"commands":[["M",1.31,0],["L",1.31,0.26]],"stroke":true,"lineWidth":0.05},{"commands":[["M",1.48,0],["L",1.48,0.26]],"stroke":true,"lineWidth":0.05},{"commands":[["M",1.65,0],["L",1.65,0.26]],"stroke":true,"lineWidth":0.05},{"commands":[["M",0.78,0.18],["L",2.25,0.18]],"stroke":true,"lineWidth":0.1}],"origin":[0.09499999999999997,0.315]},"sniper":{"paths":[{"commands":[["M",0.55,-0.23999999999999996],["L",3.1,-0.23999999999999996],["L",3.1,-0.05],["L",0.55,-0.05],["Z"]],"fill":true,"stroke":true,"fillColor":"#547c98","lineWidth":0.05333333333333334},{"commands":[["M",2.97,-0.29],["L",3.22,-0.29],["L",3.22,0.02],["L",2.97,0.02],["Z"]],"fill":true,"stroke":true,"fillColor":"#292b35","lineWidth":0.05333333333333334},{"commands":[["M",-1.15,-0.39],["L",0.75,-0.39],["L",0.89,-0.2],["L",0.7099999999999999,0.3],["L",-0.93,0.3],["L",-1.15,0.09],["Z"]],"fill":true,"stroke":true,"fillColor":"#547c98","lineWidth":0.05333333333333334},{"commands":[["M",-1.15,-0.21],["L",-1.4199999999999997,-0.21],["L",-2.15,-0.38],["L",-2.58,-0.38],["L",-2.58,0.56],["L",-2.12,0.56],["L",-1.55,0.17],["L",-1.1,0.14],["Z"]],"fill":true,"stroke":true,"fillColor":"#292b35","lineWidth":0.05333333333333334},{"commands":[["M",-2.4,-0.23],["L",-2.4,0.39]],"stroke":true,"lineWidth":0.1},{"commands":[["M",-0.72,0.3],["L",-0.26,0.3],["L",-0.49,1.02],["L",-0.99,1.02],["Z"]],"fill":true,"stroke":true,"fillColor":"#292b35","lineWidth":0.05333333333333334},{"commands":[["M",-0.25,0.3],["L",0.34,0.3],["L",0.2,0.64],["L",-0.34,0.64],["Z"]],"fill":true,"stroke":true,"fillColor":"#292b35","lineWidth":0.05333333333333334},{"commands":[["M",-0.13,0.4],["L",0.2,0.4],["L",0.11999999999999998,0.5400000000000001],["L",-0.19,0.5400000000000001]],"stroke":true,"lineWidth":0.03666666666666667},{"commands":[["M",-0.95,-0.23999999999999996],["L",0.59,-0.23999999999999996]],"stroke":true,"lineWidth":0.056666666666666664},{"commands":[["M",0.1,0.3],["L",0.55,0.3],["L",0.45,0.85],["L",-0.02,0.85],["Z"]],"fill":true,"stroke":true,"fillColor":"#36516b","lineWidth":0.05333333333333334},{"commands":[["M",-0.55,-0.42],["L",-0.55,-0.62],["L",0.25,-0.62],["L",0.25,-0.42]],"stroke":true,"lineWidth":0.06666666666666667},{"commands":[["M",-1.03,-0.85],["L",0.69,-0.85],["L",0.69,-0.56],["L",-1.03,-0.56],["Z"]],"fill":true,"stroke":true,"fillColor":"#3a607a","lineWidth":0.05333333333333334},{"commands":[["M",-1.16,-0.9599999999999999],["L",-0.85,-0.9599999999999999],["L",-0.85,-0.46],["L",-1.16,-0.46],["Z"]],"fill":true,"stroke":true,"fillColor":"#547c98","lineWidth":0.05333333333333334},{"commands":[["M",0.5,-1],["L",0.94,-1],["L",0.94,-0.42],["L",0.5,-0.42],["Z"]],"fill":true,"stroke":true,"fillColor":"#547c98","lineWidth":0.05333333333333334},{"commands":[["M",0.78,-0.87],["L",0.78,-0.55]],"stroke":true,"lineWidth":0.1}],"origin":[0.32000000000000006,0.010000000000000009]},"bow":{"paths":[{"commands":[["M",-0.2,-2.18],["C",0.12,-1.94,0.43,-1.75,0.58,-1.25],["C",0.72,-0.76,0.53,-0.46,0.44,-0.23],["L",0.34,-0.23],["C",0.35,-0.65,0.54,-0.78,0.42,-1.27],["C",0.3,-1.74,0.02,-1.93,-0.2,-2.18],["Z"]],"fill":true},{"commands":[["M",-0.2,2.18],["C",0.12,1.94,0.43,1.75,0.58,1.25],["C",0.72,0.76,0.53,0.46,0.44,0.23],["L",0.34,0.23],["C",0.35,0.65,0.54,0.78,0.42,1.27],["C",0.3,1.74,0.02,1.93,-0.2,2.18],["Z"]],"fill":true},{"points":[[0.32,-0.25],[0.48,-0.25],[0.48,0.25],[0.32,0.25]],"closed":true,"fill":true},{"points":[[0.34,-0.12],[0.46,-0.12]]},{"points":[[0.34,0.12],[0.46,0.12]]}],"string":{"start":[-0.2,-2.18],"end":[-0.2,2.18],"restX":-0.2,"pullX":-1.1},"origin":[0.21492187499999996,0]},"harpoon":{"paths":[{"points":[[-2.4,-0.09],[1.14,-0.09],[1.14,-0.29],[2.55,0],[1.14,0.29],[1.14,0.09],[-2.4,0.09]],"closed":true,"fill":true},{"points":[[-2.53,-0.17],[-2.28,-0.17],[-2.28,0.17],[-2.53,0.17]],"closed":true,"fill":true},{"points":[[1.34,0.07],[0.81,0.68],[0.61,0.46],[0.95,0.12]],"closed":true,"fill":true},{"points":[[1.24,0],[2.12,0]]},{"points":[[-1.06,-0.15],[-0.22,-0.15],[-0.16,0.15],[-1.12,0.15]],"closed":true,"fill":true,"fillColor":"#70513d"},{"points":[[-0.98,-0.14],[-1.04,0.14]]},{"points":[[-0.82,-0.14],[-0.88,0.14]]},{"points":[[-0.6599999999999999,-0.14],[-0.72,0.14]]},{"points":[[-0.5,-0.14],[-0.56,0.14]]},{"points":[[-0.33999999999999997,-0.14],[-0.4,0.14]]}],"origin":[0.010000000000000009,0.19500000000000003]},"wrench":{"paths":[{"commands":[["M",-1.12,-0.43],["L",-0.76,-0.43],["L",-0.57,-0.22],["L",0.57,-0.22],["L",0.76,-0.43],["L",1.12,-0.43],["L",1.23,-0.22],["L",0.86,-0.22],["L",0.74,0],["L",0.86,0.22],["L",1.23,0.22],["L",1.12,0.43],["L",0.76,0.43],["L",0.57,0.22],["L",-0.57,0.22],["L",-0.76,0.43],["L",-1.12,0.43],["L",-1.23,0.22],["L",-0.86,0.22],["L",-0.74,0],["L",-0.86,-0.22],["L",-1.23,-0.22],["Z"]],"fill":true,"stroke":true,"fillColor":"rgba(105,137,56,.96)","lineWidth":0.03663003663003663},{"commands":[["M",-0.5,-0.08],["L",0.5,-0.08],["L",0.5,0.08],["L",-0.5,0.08],["Z"]],"fill":true,"stroke":true,"fillColor":"rgba(12,16,14,.55)","lineWidth":0.016483516483516484},{"commands":[["M",-0.45,-0.14],["L",0.45,-0.14]],"stroke":true,"lineWidth":0.020146520146520148}],"origin":[0,0]},"gear":{"paths":[{"commands":[["M",0.87,0],["L",0.996917333733128,0.07845909572784494],["L",0.9767658813208723,0.21430915306505077],["L",0.8325380920870217,0.2525476692113822],["L",0.8037751932848195,0.3329345861576281],["L",0.8910065241883679,0.45399049973954675],["L",0.8204014435255135,0.5717879602276122],["L",0.6725190944255811,0.5519221572223716],["L",0.6151828996322964,0.6151828996322962],["L",0.6494480483301835,0.760405965600031],["L",0.5391383229110004,0.8422172337162864],["L",0.41011516103861806,0.7672714999830689],["L",0.33293458615762817,0.8037751932848195],["L",0.30901699437494745,0.9510565162951535],["L",0.1757962799343547,0.9844265680898916],["L",0.08527491208671786,0.8658107122048112],["L",5.327213576290987e-17,0.87],["L",-0.07845909572784487,0.996917333733128],["L",-0.21430915306505058,0.9767658813208725],["L",-0.2525476692113821,0.8325380920870218],["L",-0.3329345861576281,0.8037751932848195],["L",-0.45399049973954675,0.8910065241883679],["L",-0.5717879602276121,0.8204014435255137],["L",-0.5519221572223715,0.6725190944255813],["L",-0.6151828996322962,0.6151828996322964],["L",-0.7604059656000308,0.6494480483301838],["L",-0.8422172337162864,0.5391383229110004],["L",-0.7672714999830689,0.41011516103861817],["L",-0.8037751932848195,0.3329345861576282],["L",-0.9510565162951535,0.3090169943749475],["L",-0.9844265680898916,0.17579627993435473],["L",-0.8658107122048112,0.08527491208671792],["L",-0.87,1.0654427152581974e-16],["L",-0.9969173337331282,-0.07845909572784437],["L",-0.9767658813208723,-0.2143091530650509],["L",-0.8325380920870218,-0.252547669211382],["L",-0.8037751932848195,-0.332934586157628],["L",-0.8910065241883681,-0.45399049973954625],["L",-0.8204014435255135,-0.5717879602276125],["L",-0.6725190944255813,-0.5519221572223714],["L",-0.6151828996322964,-0.6151828996322962],["L",-0.6494480483301841,-0.7604059656000305],["L",-0.5391383229110001,-0.8422172337162867],["L",-0.4101151610386182,-0.7672714999830689],["L",-0.3329345861576286,-0.8037751932848193],["L",-0.30901699437494756,-0.9510565162951535],["L",-0.1757962799343548,-0.9844265680898916],["L",-0.08527491208671759,-0.8658107122048113],["L",-1.598164072887296e-16,-0.87],["L",0.07845909572784432,-0.9969173337331282],["L",0.21430915306505088,-0.9767658813208723],["L",0.252547669211382,-0.8325380920870218],["L",0.3329345861576283,-0.8037751932848194],["L",0.4539904997395466,-0.891006524188368],["L",0.571787960227612,-0.8204014435255138],["L",0.5519221572223717,-0.6725190944255811],["L",0.6151828996322962,-0.6151828996322964],["L",0.7604059656000305,-0.6494480483301841],["L",0.8422172337162867,-0.5391383229110002],["L",0.7672714999830688,-0.4101151610386182],["L",0.8037751932848193,-0.33293458615762866],["L",0.9510565162951535,-0.3090169943749476],["L",0.9844265680898916,-0.17579627993435484],["L",0.8658107122048113,-0.08527491208671764],["Z"]],"fill":true,"stroke":true,"fillColor":"rgb(64,57,17)","lineWidth":0.04},{"commands":[["A",0,0,0.73,0,6.283185307179586]],"fill":true,"stroke":true,"fillColor":"rgba(18,24,25,.96)","lineWidth":0.024},{"commands":[["M",-0.04364592461617385,-0.1951794898661211],["L",-0.06389338665397004,-0.6368026657779364],["L",0.06389338665397011,-0.6368026657779364],["L",0.04364592461617387,-0.1951794898661211],["Z"]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.42)","lineWidth":0.02},{"commands":[["M",0.14720743421366136,-0.1353882244223277],["L",0.5195405924343593,-0.3737346288651279],["L",0.5834339790883294,-0.26306803691280867],["L",0.19085335882983523,-0.059791265443793436],["Z"]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.42)","lineWidth":0.02},{"commands":[["M",0.19085335882983523,0.05979126544379339],["L",0.5834339790883294,0.2630680369128085],["L",0.5195405924343595,0.37373462886512776],["L",0.14720743421366136,0.13538822442232765],["Z"]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.42)","lineWidth":0.02},{"commands":[["M",0.04364592461617387,0.1951794898661211],["L",0.06389338665397011,0.6368026657779364],["L",-0.06389338665397004,0.6368026657779364],["L",-0.04364592461617385,0.1951794898661211],["Z"]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.42)","lineWidth":0.02},{"commands":[["M",-0.14720743421366125,0.13538822442232779],["L",-0.5195405924343592,0.3737346288651281],["L",-0.5834339790883294,0.2630680369128088],["L",-0.19085335882983517,0.05979126544379345],["Z"]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.42)","lineWidth":0.02},{"commands":[["M",-0.19085335882983523,-0.0597912654437934],["L",-0.5834339790883294,-0.2630680369128086],["L",-0.5195405924343593,-0.37373462886512804],["L",-0.1472074342136613,-0.13538822442232776],["Z"]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.42)","lineWidth":0.02},{"commands":[["A",3.551475717527324e-17,-0.58,0.06,0,6.283185307179586]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.85)","lineWidth":0.02},{"commands":[["A",0.5022947341949744,-0.29,0.06,0,6.283185307179586]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.85)","lineWidth":0.02},{"commands":[["A",0.5022947341949745,0.28999999999999987,0.06,0,6.283185307179586]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.85)","lineWidth":0.02},{"commands":[["A",3.551475717527324e-17,0.58,0.06,0,6.283185307179586]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.85)","lineWidth":0.02},{"commands":[["A",-0.5022947341949743,0.2900000000000002,0.06,0,6.283185307179586]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.85)","lineWidth":0.02},{"commands":[["A",-0.5022947341949744,-0.2900000000000001,0.06,0,6.283185307179586]],"fill":true,"stroke":true,"fillColor":"rgba(230,202,59,.85)","lineWidth":0.02},{"commands":[["M",0.19052558883257653,0.10999999999999999],["L",1.3471114790620886e-17,0.22],["L",-0.19052558883257645,0.11000000000000007],["L",-0.19052558883257653,-0.10999999999999995],["L",-4.041334437186265e-17,-0.22],["L",0.19052558883257653,-0.10999999999999993],["Z"]],"fill":true,"stroke":true,"fillColor":"rgb(64,57,17)","lineWidth":0.03},{"commands":[["A",0,0,0.075,0,6.283185307179586]],"fill":true,"stroke":false,"fillColor":"#fff7c2"}],"origin":[-1.1102230246251565e-16,-1.1102230246251565e-16]},"sun-blessed":{"paths":[{"commands":[["M",0,-2.95],["L",0.48,-2.55],["L",0.48,0.65],["L",-0.48,0.65],["L",-0.48,-2.55],["Z"]],"fill":true,"stroke":true,"fillColor":"#195a77","lineWidth":0.1},{"commands":[["M",0,-2.65],["L",0,0.48]],"stroke":true,"lineWidth":0.15},{"commands":[["M",-1,0.5],["L",-0.82,0.82],["L",-0.3,0.78],["L",0,0.9],["L",0.3,0.78],["L",0.82,0.82],["L",1,0.5],["L",0.42000000000000004,0.55],["L",0,0.35],["L",-0.42000000000000004,0.55],["Z"]],"fill":true,"stroke":true,"fillColor":"#248dbc","lineWidth":0.075},{"commands":[["A",0,0.6,0.19,0,6.283185307179586]],"fill":true,"stroke":false,"fillColor":"#8be7ff"},{"commands":[["M",-0.25,0.6],["L",-0.34,0.6],["M",0.25,0.6],["L",0.34,0.6],["M",0,0.35],["L",0,0.26],["M",0,0.85],["L",0,0.94]],"lineWidth":0.04},{"points":[[-0.15,0.83],[0.15,0.83],[0.13,1.48],[-0.13,1.48]],"closed":true,"fill":true,"fillColor":"#245c75"},{"points":[[-0.14,0.94],[0.14,1.01]]},{"points":[[-0.14,1.0699999999999998],[0.14,1.1400000000000001]]},{"points":[[-0.14,1.2],[0.14,1.27]]},{"points":[[-0.14,1.33],[0.14,1.4]]},{"points":[[-0.18,1.48],[0.18,1.48],[0.16,1.59],[-0.16,1.59]],"closed":true,"fill":true,"fillColor":"#245c75"}],"origin":[0,-0.68]},"frost-scythe":{"paths":[{"points":[[-0.1,-2.06],[0.1,-2.06],[0.09,1.86],[0,2.06],[-0.09,1.86]],"closed":true,"fill":true,"fillColor":"#293e60","stroke":true},{"commands":[["M",-0.26,-2.18],["L",0.18,-2.61],["L",0.41,-2.33],["L",0.91,-2.43],["L",1.06,-2.15],["L",1.59,-2.01],["L",1.67,-1.72],["L",2.09,-1.43],["L",2.75,-0.56],["C",1.91,-1.23,0.73,-1.71,-0.19,-1.56],["L",-0.3,-1.77],["Z"]],"fill":true,"fillColor":"#426e9c"},{"points":[[0.13,-2.39],[0.4,-1.88],[1.61,-1.77],[2.75,-0.56]],"lineWidth":0.035},{"points":[[-0.24,-1.96],[0,-2.21],[0.24,-1.96],[0,-1.68]],"closed":true,"fill":true,"fillColor":"#8ab9de","stroke":true},{"points":[[0,-2.06],[0.1,-1.96],[0,-1.79],[-0.1,-1.96]],"closed":true,"fill":true,"fillColor":"#b9dcf0","stroke":false},{"points":[[0,-1.6],[0,1.66]],"lineWidth":0.035},{"points":[[-0.16,1.66],[0,2.1],[0.16,1.66],[0,1.46]],"closed":true,"fill":true,"fillColor":"#6595bb","stroke":true}],"origin":[0,0]},"chain-scythe-right":{"paths":[{"points":[[-0.09,-1.5],[0.09,-1.5],[0.08,1.26],[-0.08,1.26]],"closed":true,"fill":true,"fillColor":"#20585d"},{"points":[[-0.18,-1.57],[0.65,-1.57],[1.46,-1.23],[1.77,-0.57],[1.72,-0.13],[1.46,-0.73],[0.52,-1.13],[-0.18,-1.13]],"closed":true,"fill":true,"fillColor":"#2d8186"},{"points":[[-0.15,-1.64],[0.15,-1.64],[0.15,-1.1],[-0.15,-1.1]],"closed":true,"fill":true,"fillColor":"#368a90"},{"points":[[-0.12,1.13],[0.12,1.13],[0.12,1.3],[-0.12,1.3]],"closed":true,"fill":true,"fillColor":"#368a90"},{"commands":[["M",-0.16,-1.05],["C",-0.22,-1.06,-0.23,-0.97,-0.14,-0.9299999999999999],["L",0.12,-0.8],["C",0.21,-0.76,0.23,-0.85,0.14,-0.89],["Z"]],"fill":true,"fillColor":"#377b80","lineWidth":0.022},{"commands":[["M",-0.16,-0.5700000000000001],["C",-0.22,-0.5800000000000001,-0.23,-0.49,-0.14,-0.45],["L",0.12,-0.32],["C",0.21,-0.28,0.23,-0.37,0.14,-0.41000000000000003],["Z"]],"fill":true,"fillColor":"#377b80","lineWidth":0.022},{"commands":[["M",-0.16,-0.09000000000000004],["C",-0.22,-0.10000000000000003,-0.23,-0.010000000000000037,-0.14,0.02999999999999997],["L",0.12,0.15999999999999998],["C",0.21,0.19999999999999996,0.23,0.10999999999999996,0.14,0.06999999999999997],["Z"]],"fill":true,"fillColor":"#377b80","lineWidth":0.022},{"commands":[["M",-0.16,0.38999999999999996],["C",-0.22,0.37999999999999995,-0.23,0.47,-0.14,0.51],["L",0.12,0.6399999999999999],["C",0.21,0.6799999999999999,0.23,0.59,0.14,0.5499999999999999],["Z"]],"fill":true,"fillColor":"#377b80","lineWidth":0.022},{"commands":[["M",-0.16,0.8699999999999999],["C",-0.22,0.8599999999999999,-0.23,0.95,-0.14,0.99],["L",0.12,1.1199999999999999],["C",0.21,1.16,0.23,1.0699999999999998,0.14,1.03],["Z"]],"fill":true,"fillColor":"#377b80","lineWidth":0.022}],"origin":[0,0]},"chain-scythe-left":{"paths":[{"points":[[0.09,-1.5],[-0.09,-1.5],[-0.08,1.26],[0.08,1.26]],"closed":true,"fill":true,"fillColor":"#20585d"},{"points":[[0.18,-1.57],[-0.65,-1.57],[-1.46,-1.23],[-1.77,-0.57],[-1.72,-0.13],[-1.46,-0.73],[-0.52,-1.13],[0.18,-1.13]],"closed":true,"fill":true,"fillColor":"#2d8186"},{"points":[[0.15,-1.64],[-0.15,-1.64],[-0.15,-1.1],[0.15,-1.1]],"closed":true,"fill":true,"fillColor":"#368a90"},{"points":[[0.12,1.13],[-0.12,1.13],[-0.12,1.3],[0.12,1.3]],"closed":true,"fill":true,"fillColor":"#368a90"},{"commands":[["M",0.16,-1.05],["C",0.22,-1.06,0.23,-0.97,0.14,-0.9299999999999999],["L",-0.12,-0.8],["C",-0.21,-0.76,-0.23,-0.85,-0.14,-0.89],["Z"]],"fill":true,"fillColor":"#377b80","lineWidth":0.022},{"commands":[["M",0.16,-0.5700000000000001],["C",0.22,-0.5800000000000001,0.23,-0.49,0.14,-0.45],["L",-0.12,-0.32],["C",-0.21,-0.28,-0.23,-0.37,-0.14,-0.41000000000000003],["Z"]],"fill":true,"fillColor":"#377b80","lineWidth":0.022},{"commands":[["M",0.16,-0.09000000000000004],["C",0.22,-0.10000000000000003,0.23,-0.010000000000000037,0.14,0.02999999999999997],["L",-0.12,0.15999999999999998],["C",-0.21,0.19999999999999996,-0.23,0.10999999999999996,-0.14,0.06999999999999997],["Z"]],"fill":true,"fillColor":"#377b80","lineWidth":0.022},{"commands":[["M",0.16,0.38999999999999996],["C",0.22,0.37999999999999995,0.23,0.47,0.14,0.51],["L",-0.12,0.6399999999999999],["C",-0.21,0.6799999999999999,-0.23,0.59,-0.14,0.5499999999999999],["Z"]],"fill":true,"fillColor":"#377b80","lineWidth":0.022},{"commands":[["M",0.16,0.8699999999999999],["C",0.22,0.8599999999999999,0.23,0.95,0.14,0.99],["L",-0.12,1.1199999999999999],["C",-0.21,1.16,-0.23,1.0699999999999998,-0.14,1.03],["Z"]],"fill":true,"fillColor":"#377b80","lineWidth":0.022}],"origin":[0,0]},"small-wrench":{"paths":[{"commands":[["M",-0.85,-0.17],["L",0.45,-0.17],["L",0.68,-0.43],["L",1.07,-0.43],["L",1.22,-0.2],["L",0.86,-0.2],["L",0.71,0],["L",0.86,0.2],["L",1.22,0.2],["L",1.07,0.43],["L",0.68,0.43],["L",0.45,0.17],["L",-0.85,0.17],["C",-1.21,0.17,-1.21,-0.17,-0.85,-0.17],["Z"]],"fill":true,"fillColor":"rgba(105,137,56,.96)"},{"points":[[-0.65,-0.065],[0.34,-0.065]],"lineWidth":0.035},{"commands":[["A",-0.94,0,0.085,0,6.283185307179586]],"stroke":true,"lineWidth":0.035}],"origin":[0.050000000000000044,0]},"melon-slice":{"paths":[{"commands":[["M",-1.65,-0.55],["L",1.65,-0.55],["C",1.31,1.16,-1.31,1.16,-1.65,-0.55],["Z"]],"fill":true,"fillColor":"#285841"},{"commands":[["M",-1.47,-0.5],["L",1.47,-0.5],["C",1.15,0.92,-1.15,0.92,-1.47,-0.5],["Z"]],"fill":true,"fillColor":"#6b9956","stroke":false},{"commands":[["M",-1.29,-0.45],["L",1.29,-0.45],["C",1,0.7,-1,0.7,-1.29,-0.45],["Z"]],"fill":true,"fillColor":"#9dbd68","stroke":false},{"points":[[-0.68,-0.29],[-0.58,-0.13],[-0.64,0.01],[-0.74,-0.15]],"closed":true,"fill":true,"fillColor":"#405c35","stroke":false},{"points":[[-0.05,-0.23],[0.05,-0.05],[0,0.1],[-0.1,-0.05]],"closed":true,"fill":true,"fillColor":"#405c35","stroke":false},{"points":[[0.64,-0.29],[0.74,-0.15],[0.64,0.01],[0.58,-0.13]],"closed":true,"fill":true,"fillColor":"#405c35","stroke":false},{"commands":[["M",-1.38,-0.34],["C",-1.09,0.87,1.09,0.87,1.38,-0.34]],"lineWidth":0.03}],"origin":[0,0.09124999999999994]},"melon-slush":{"paths":[{"commands":[["M",-1.46,-0.31],["L",1.46,-0.31],["L",1.08,0.61],["C",0.61,0.93,-0.61,0.93,-1.08,0.61],["Z"]],"fill":true,"fillColor":"#4e8c6b"},{"points":[[-0.15,0.81],[0.15,0.81],[0.18,1.03],[-0.18,1.03]],"closed":true,"fill":true,"fillColor":"#3c735b","stroke":true},{"points":[[-0.65,1.01],[0.65,1.01],[0.7,1.15],[-0.7,1.15]],"closed":true,"fill":true,"fillColor":"#4e8c6b","stroke":true},{"commands":[["M",-1.33,-0.34],["C",-1.29,-0.82,-0.76,-0.96,-0.64,-1.33],["C",-0.34,-1.63,-0.15,-1.31,0.04,-1.56],["C",0.34,-1.48,0.51,-1.16,0.76,-1.15],["C",1.1,-1.02,1.25,-0.77,1.33,-0.34],["Z"]],"fill":true,"fillColor":"#d4f0de"},{"points":[[-0.85,-0.63],[-0.57,-1.13],[-0.12,-0.89],[-0.34,-0.45]],"closed":true,"fill":true,"fillColor":"#a5d89e","stroke":true},{"points":[[0.11,-1.05],[0.47,-1.32],[0.88,-0.79],[0.5,-0.54]],"closed":true,"fill":true,"fillColor":"#a5d89e","stroke":true},{"points":[[-0.85,-0.63],[-0.34,-0.45]],"lineWidth":0.035},{"points":[[0.11,-1.05],[0.5,-0.54]],"lineWidth":0.035},{"points":[[-1.18,-0.1],[1.18,-0.1]],"lineWidth":0.035},{"commands":[["M",-0.78,0.13],["C",-0.41,0.44,0.41,0.44,0.78,0.13]],"lineWidth":0.035}],"origin":[0,-0.20500000000000007]},"snow-crystal":{"paths":[{"points":[[0.36,-0.09],[1.46,-0.09],[1.72,0],[1.46,0.09],[0.36,0.09]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[0.76,-0.02],[1.04,-0.37],[1.02,-0.56],[0.87,-0.48],[0.57,-0.1]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[0.76,0.02],[1.04,0.37],[1.02,0.56],[0.87,0.48],[0.57,0.1]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[0.2579,0.2668],[0.8079,1.2194],[0.86,1.4896],[0.6521,1.3094],[0.1021,0.3568]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[0.3973,0.6482],[0.8404,0.7157],[0.995,0.6033],[0.8507,0.5134],[0.3716,0.4436]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[0.3627,0.6682],[0.1996,1.0857],[0.025,1.1633],[0.0193,0.9934],[0.1984,0.5436]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[-0.1021,0.3568],[-0.6521,1.3094],[-0.86,1.4896],[-0.8079,1.2194],[-0.2579,0.2668]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[-0.3627,0.6682],[-0.1996,1.0857],[-0.025,1.1633],[-0.0193,0.9934],[-0.1984,0.5436]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[-0.3973,0.6482],[-0.8404,0.7157],[-0.995,0.6033],[-0.8507,0.5134],[-0.3716,0.4436]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[-0.36,0.09],[-1.46,0.09],[-1.72,0],[-1.46,-0.09],[-0.36,-0.09]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[-0.76,0.02],[-1.04,0.37],[-1.02,0.56],[-0.87,0.48],[-0.57,0.1]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[-0.76,-0.02],[-1.04,-0.37],[-1.02,-0.56],[-0.87,-0.48],[-0.57,-0.1]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[-0.2579,-0.2668],[-0.8079,-1.2194],[-0.86,-1.4896],[-0.6521,-1.3094],[-0.1021,-0.3568]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[-0.3973,-0.6482],[-0.8404,-0.7157],[-0.995,-0.6033],[-0.8507,-0.5134],[-0.3716,-0.4436]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[-0.3627,-0.6682],[-0.1996,-1.0857],[-0.025,-1.1633],[-0.0193,-0.9934],[-0.1984,-0.5436]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[0.1021,-0.3568],[0.6521,-1.3094],[0.86,-1.4896],[0.8079,-1.2194],[0.2579,-0.2668]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[0.3627,-0.6682],[0.1996,-1.0857],[0.025,-1.1633],[0.0193,-0.9934],[0.1984,-0.5436]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[0.3973,-0.6482],[0.8404,-0.7157],[0.995,-0.6033],[0.8507,-0.5134],[0.3716,-0.4436]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[0.4,0],[0.2,0.3464],[-0.2,0.3464],[-0.4,0],[-0.2,-0.3464],[0.2,-0.3464]],"closed":true,"fill":true,"fillColor":"#497c9b"},{"points":[[0.22,0],[0.11,0.1905],[-0.11,0.1905],[-0.22,0],[-0.11,-0.1905],[0.11,-0.1905]],"closed":true,"fill":true,"fillColor":"#497c9b"}],"origin":[0,0]},"electronic-shotgun":{"paths":[{"points":[[-1.25,-0.74],[0.87,-0.74],[0.94,-0.66],[0.94,0.2],[0.8,0.3],[-1.23,0.3],[-1.48,0.04],[-1.48,-0.45]],"closed":true,"fill":true,"fillColor":"#873b23"},{"points":[[0.94,-0.66],[1.53,-0.66],[1.53,0.2],[0.94,0.2]],"closed":true,"fill":true,"fillColor":"#46261e"},{"points":[[1.28,-0.47],[1.28,0.01]],"lineWidth":0.035},{"points":[[-1.02,0.3],[-0.38,0.3],[-0.56,1.28],[-1.25,1.28]],"closed":true,"fill":true,"fillColor":"#5c3024"},{"points":[[-0.26,0.36],[0.5,0.36],[0.44,0.8],[-0.33,0.8]],"closed":true,"lineWidth":0.055},{"points":[[-0.04,0.34],[-0.05,0.57],[0.13,0.64]],"lineWidth":0.045},{"points":[[-1.18,-0.5],[-0.29,-0.5],[-0.29,-0.08],[-1.18,-0.08]],"closed":true,"fill":true,"fillColor":"#54291e"},{"points":[[-1.02,-0.29],[-0.45,-0.29]],"lineWidth":0.035},{"points":[[0.02,-0.5],[0.02,-0.09]],"lineWidth":0.035},{"points":[[0.26,-0.5],[0.26,-0.09]],"lineWidth":0.035},{"points":[[0.5,-0.5],[0.5,-0.09]],"lineWidth":0.035},{"points":[[-1.25,-0.85],[-0.78,-0.85],[-0.78,-0.74],[-1.25,-0.74]],"closed":true,"fill":true,"fillColor":"#873b23"},{"points":[[-1.04,1.02],[-0.7,1.02]],"lineWidth":0.035}],"origin":[0.025000000000000022,0.21500000000000002]},"spellbook":{"paths":[{"points":[[-1.48,-1.07],[-0.12,-0.88],[0,-0.67],[0.12,-0.88],[1.48,-1.07],[1.48,0.91],[0.16,1.1],[0,0.97],[-0.16,1.1],[-1.48,0.91]],"closed":true,"fill":true,"fillColor":"#362450"},{"points":[[-1.3,-0.9],[-0.15,-0.73],[0,-0.57],[0,0.78],[-0.16,0.9],[-1.3,0.73]],"closed":true,"fill":true,"fillColor":"#8062a3"},{"points":[[1.3,-0.9],[0.15,-0.73],[0,-0.57],[0,0.78],[0.16,0.9],[1.3,0.73]],"closed":true,"fill":true,"fillColor":"#8062a3"},{"points":[[0,-0.57],[0,0.8]],"lineWidth":0.045},{"points":[[-1.05,-0.48],[-0.35,-0.36]],"lineWidth":0.025},{"points":[[0.35,-0.36],[1.05,-0.48]],"lineWidth":0.025},{"points":[[-1.05,-0.18],[-0.35,-0.06]],"lineWidth":0.025},{"points":[[0.35,-0.06],[1.05,-0.18]],"lineWidth":0.025},{"points":[[-1.05,0.12],[-0.35,0.24]],"lineWidth":0.025},{"points":[[0.35,0.24],[1.05,0.12]],"lineWidth":0.025},{"points":[[-1.05,0.42],[-0.35,0.54]],"lineWidth":0.025},{"points":[[0.35,0.54],[1.05,0.42]],"lineWidth":0.025},{"points":[[0,0.9],[0.18,1.05],[0.18,1.45],[0,1.31],[-0.18,1.45],[-0.18,1.05]],"closed":true,"fill":true,"fillColor":"#503570"}],"leaf":{"left":-1.3,"right":1.3,"top":-0.9,"bottom":0.73,"color":"#8062a3"},"origin":[0,0.18999999999999995]},"moon-crescent":{"origin":[0,0],"paths":[{"commands":[["M",1.63,0],["C",1.63,0.9002241424999999,0.9002241424999999,1.63,0,1.63],["C",-0.9002241424999999,1.63,-1.63,0.9002241424999999,-1.63,0],["C",-1.63,-0.9002241424999999,-0.9002241424999999,-1.63,0,-1.63],["C",0.9002241424999999,-1.63,1.63,-0.9002241424999999,1.63,0],["Z"],["M",1.6,0],["C",1.6,-0.563330445,1.143330445,-1.02,0.58,-1.02],["C",0.016669555000000003,-1.02,-0.44000000000000006,-0.563330445,-0.44000000000000006,0],["C",-0.44000000000000006,0.563330445,0.016669555000000003,1.02,0.58,1.02],["C",1.143330445,1.02,1.6,0.563330445,1.6,0],["Z"]],"fill":true,"fillColor":"#4e6a8c","lineWidth":0.055},{"commands":[["M",0.05,-1.44],["C",-1.21,-1.43,-1.85,0.46,-0.64,1.3]],"lineWidth":0.04},{"commands":[["M",0.12,-1.12],["C",-0.98,-0.77,-1.02,0.67,-0.14,1.11]],"lineWidth":0.045},{"points":[[-1.49,0],[-1.16,-0.15],[-0.91,0],[-1.16,0.15],[-1.49,0]],"lineWidth":0.05},{"commands":[["M",-0.86,-1.13],["L",-0.78,-0.9],["L",-0.55,-0.94]],"lineWidth":0.04},{"commands":[["M",-0.86,1.13],["L",-0.78,0.9],["L",-0.55,0.94]],"lineWidth":0.04}]},"front-fist":{"paths":[{"points":[[-0.57,0.43],[-0.84,0.08],[-0.82,-0.46],[-0.65,-0.82],[-0.32,-1.02],[0.05,-1.07],[0.4,-0.96],[0.64,-0.73],[0.71,-0.4],[0.88,-0.15],[0.86,0.23],[0.57,0.48],[0.43,0.86],[-0.44,0.86]],"closed":true,"fill":true,"fillColor":"#702e38"},{"commands":[["M",-0.62,-0.03],["C",-0.34,0.1,0.22,0.05,0.45,-0.14],["L",0.47,-0.54]],"lineWidth":0.035},{"commands":[["M",0.79,-0.13],["C",0.48,-0.22,0.36,0.02,0.41,0.26],["L",0.6,0.44]],"lineWidth":0.035},{"points":[[-0.29,-0.62],[-0.28,-0.16]],"lineWidth":0.035},{"points":[[0.05,-0.64],[0.07,-0.13]],"lineWidth":0.035},{"points":[[-0.48,0.57],[0.48,0.57],[0.43,0.94],[-0.43,0.94]],"closed":true,"fill":true,"fillColor":"#49232c"},{"points":[[-0.4,0.77],[0.4,0.77]],"lineWidth":0.035}],"origin":[0.020000000000000018,-0.06500000000000006]},"shoe-sole":{"paths":[{"commands":[["M",-0.58,-1.22],["C",-0.92,-1.02,-0.94,-0.56,-0.77,-0.21],["L",-0.5,0.39],["L",-0.48,0.96],["C",-0.27,1.24,0.28,1.24,0.48,0.96],["L",0.49,0.38],["L",0.77,-0.2],["C",0.98,-0.64,0.85,-1.08,0.55,-1.24],["C",0.2,-1.42,-0.24,-1.4,-0.58,-1.22],["Z"]],"fill":true,"fillColor":"#542b34"},{"points":[[-0.58,-1.06],[-0.11,-1.15],[-0.1,-0.68],[-0.63,-0.62]],"closed":true,"fill":true,"fillColor":"#7b3d49"},{"points":[[0.11,-1.15],[0.58,-1.06],[0.63,-0.62],[0.1,-0.68]],"closed":true,"fill":true,"fillColor":"#7b3d49"},{"points":[[-0.65,-0.43],[-0.13,-0.46],[-0.1,-0.05],[-0.48,0.07]],"closed":true,"fill":true,"fillColor":"#7b3d49"},{"points":[[0.13,-0.46],[0.65,-0.43],[0.48,0.07],[0.1,-0.05]],"closed":true,"fill":true,"fillColor":"#7b3d49"},{"points":[[-0.36,0.55],[0.36,0.55],[0.35,0.9],[0.2,1.01],[-0.2,1.01],[-0.35,0.9]],"closed":true,"fill":true,"fillColor":"#7b3d49"},{"points":[[-0.36,0.26],[0,0.41],[0.36,0.26]],"lineWidth":0.035}],"origin":[-0.0007697211371527346,-0.09770446777343744]},"puzzle-cube":{"paths":[{"points":[[-3.469446951953614e-18,-1.29587352],[0.38058666666666663,-1.096553146666667],[0,-0.8954646311111114],[-0.38058666666666663,-1.096553146666667]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4266666666666667,-1.0724201866666667],[0.8072533333333333,-0.8730998133333334],[0.42666666666666664,-0.6700290755555558],[0.04608000000000001,-0.8711175911111112]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.8533333333333333,-0.8489668533333333],[1.2339200000000001,-0.6496464799999999],[0.8533333333333335,-0.44459352],[0.47274666666666676,-0.6456820355555557]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.4266666666666667,-1.0724201866666667],[-0.046080000000000065,-0.8711175911111114],[-0.42666666666666664,-0.6700290755555557],[-0.8072533333333333,-0.8730998133333334]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0,-0.8467446311111112],[0.38058666666666663,-0.6454420355555558],[0,-0.44237129777777795],[-0.38058666666666663,-0.6454420355555557]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.42666666666666664,-0.6210690755555556],[0.8072533333333335,-0.41976648000000005],[0.42666666666666675,-0.21471352000000005],[0.046080000000000065,-0.41778425777777783]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.8533333333333333,-0.8489668533333333],[-0.47274666666666676,-0.6456820355555557],[-0.8533333333333334,-0.4445935200000001],[-1.2339200000000001,-0.6496464799999999]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.42666666666666664,-0.6210690755555557],[-0.04608000000000001,-0.4177842577777779],[-0.42666666666666675,-0.21471352000000005],[-0.8072533333333334,-0.41976648000000005]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0,-0.3931712977777778],[0.3805866666666667,-0.18988648000000002],[0,0.015166479999999982],[-0.3805866666666667,-0.18988648000000002]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-1.25696,-0.6125599999999999],[-0.8763733333333334,-0.40740000000000004],[-0.8763733333333334,0.005893333333333195],[-1.2569600000000003,-0.19926666666666668]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.8302933333333333,-0.38256000000000007],[-0.44970666666666675,-0.17740000000000003],[-0.4497066666666668,0.2358933333333333],[-0.8302933333333335,0.030733333333333224]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.4036266666666667,-0.15256000000000003],[-0.023040000000000022,0.05259999999999999],[-0.023040000000000022,0.4658933333333332],[-0.4036266666666667,0.26073333333333326]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-1.2569600000000003,-0.14922666666666667],[-0.8763733333333334,0.05593333333333328],[-0.8763733333333334,0.46922666666666657],[-1.25696,0.2640666666666666]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.8302933333333335,0.08077333333333331],[-0.4497066666666668,0.2859333333333334],[-0.44970666666666675,0.6992266666666667],[-0.8302933333333334,0.4940666666666666]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4036266666666667,0.3107733333333333],[-0.023040000000000026,0.5159333333333332],[-0.023040000000000022,0.9292266666666664],[-0.4036266666666667,0.7240666666666664]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-1.25696,0.3141066666666666],[-0.8763733333333334,0.5192666666666667],[-0.8763733333333334,0.93256],[-1.25696,0.7273999999999999]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.8302933333333333,0.5441066666666667],[-0.44970666666666675,0.7492666666666666],[-0.44970666666666675,1.16256],[-0.8302933333333334,0.9574]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.4036266666666667,0.7741066666666665],[-0.023040000000000026,0.9792666666666665],[-0.023040000000000022,1.3925599999999998],[-0.4036266666666667,1.1873999999999998]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.023039999999999998,0.052599999999999994],[0.40362666666666663,-0.15256],[0.40362666666666663,0.2607333333333333],[0.023039999999999998,0.4658933333333332]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4497066666666667,-0.1774],[0.8302933333333332,-0.38255999999999996],[0.8302933333333333,0.03073333333333328],[0.4497066666666667,0.23589333333333332]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.8763733333333333,-0.4074],[1.25696,-0.6125599999999999],[1.2569600000000003,-0.19926666666666668],[0.8763733333333333,0.0058933333333332505]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.023039999999999998,0.5159333333333332],[0.40362666666666663,0.31077333333333335],[0.4036266666666667,0.7240666666666666],[0.023039999999999998,0.9292266666666664]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4497066666666667,0.2859333333333334],[0.8302933333333333,0.08077333333333336],[0.8302933333333333,0.49406666666666665],[0.4497066666666667,0.6992266666666667]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8763733333333333,0.05593333333333328],[1.2569600000000003,-0.14922666666666667],[1.25696,0.2640666666666666],[0.8763733333333332,0.46922666666666657]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.023039999999999998,0.9792666666666665],[0.4036266666666666,0.7741066666666666],[0.40362666666666663,1.1874],[0.023039999999999998,1.3925599999999998]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4497066666666667,0.7492666666666667],[0.8302933333333333,0.5441066666666666],[0.8302933333333333,0.9573999999999999],[0.4497066666666667,1.16256]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.8763733333333332,0.5192666666666667],[1.25696,0.3141066666666666],[1.25696,0.7273999999999999],[0.8763733333333333,0.93256]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022}],"origin":[0,0.0483432399999999]},"simple-shield":{"paths":[{"points":[[-1.72,-0.7788],[-1.45,-1.0266],[1.45,-1.0266],[1.72,-0.7788],[1.72,0.7788],[1.45,1.0266],[-1.45,1.0266],[-1.72,0.7788]],"closed":true,"fill":true,"fillColor":"#694524"},{"points":[[-1.43,-0.6843999999999999],[1.43,-0.6843999999999999],[1.43,0.6843999999999999],[-1.43,0.6843999999999999],[-1.43,-0.6843999999999999]],"lineWidth":0.035},{"points":[[-0.23,-0.44839999999999997],[0.23,-0.44839999999999997],[0.32,0],[0.23,0.44839999999999997],[-0.23,0.44839999999999997],[-0.32,0]],"closed":true,"fill":true,"fillColor":"#986738"},{"points":[[-1.62,0],[-1.1,0]],"lineWidth":0.035},{"points":[[1.1,0],[1.62,0]],"lineWidth":0.035}],"origin":[0,0]},"spirit-shield":{"paths":[{"commands":[["M",-1.15,-0.98],["L",0,-1.2],["L",1.15,-0.98],["L",1.05,0.34],["C",0.8,0.95,0.3,1.24,0,1.48],["C",-0.3,1.24,-0.8,0.95,-1.05,0.34],["Z"]],"fill":true,"fillColor":"#34495d"},{"points":[[-0.87,-0.75],[0,-0.92],[0.87,-0.75],[0.78,0.28],[0,1.14],[-0.78,0.28],[-0.87,-0.75]],"lineWidth":0.035},{"points":[[0,-0.55],[0.36,-0.12],[0,0.63],[-0.36,-0.12]],"closed":true,"fill":true,"fillColor":"#536b83"}],"origin":[0,0.14]},"spirit-goggles":{"paths":[{"points":[[-1.6,-0.17],[-1.27,-0.17],[-1.27,0.2],[-1.6,0.2]],"closed":true,"fill":true,"fillColor":"#34495d"},{"points":[[1.27,-0.17],[1.6,-0.17],[1.6,0.2],[1.27,0.2]],"closed":true,"fill":true,"fillColor":"#34495d"},{"points":[[-1.3599999999999999,-0.48],[-0.37000000000000005,-0.48],[-0.19000000000000006,-0.27],[-0.28,0.31],[-0.5,0.48],[-1.1800000000000002,0.48],[-1.37,0.25],[-1.37,-0.24]],"closed":true,"fill":true,"fillColor":"#34495d"},{"points":[[0.20000000000000007,-0.48],[1.19,-0.48],[1.37,-0.27],[1.28,0.31],[1.06,0.48],[0.38,0.48],[0.19000000000000006,0.25],[0.19000000000000006,-0.24]],"closed":true,"fill":true,"fillColor":"#34495d"},{"points":[[-0.22,-0.12],[0,-0.25],[0.22,-0.12]],"lineWidth":0.035},{"points":[[-1.1800000000000002,-0.27],[-0.5,-0.27],[-0.4,-0.13],[-0.47000000000000003,0.22],[-1.08,0.25],[-1.1800000000000002,0.1],[-1.1800000000000002,-0.27]],"lineWidth":0.035},{"points":[[0.38,-0.27],[1.06,-0.27],[1.1600000000000001,-0.13],[1.09,0.22],[0.48000000000000004,0.25],[0.38,0.1],[0.38,-0.27]],"lineWidth":0.035}],"origin":[0,0]},"frying-pan":{"paths":[{"points":[[-0.14,0.63],[0.14,0.63],[0.22,2.01],[-0.22,2.01]],"closed":true,"fill":true,"fillColor":"#674a32"},{"commands":[["A",0,-0.19,0.95,0,6.283185307179586]],"fill":true,"fillColor":"#4c4740"},{"commands":[["A",0,-0.19,0.78,0,6.283185307179586]],"fill":false},{"points":[[-0.11,1.8],[0.11,1.8]],"lineWidth":0.035}],"origin":[0,0.43499999999999994]},"loaded-pan":{"paths":[{"points":[[-0.14,0.63],[0.14,0.63],[0.22,2.01],[-0.22,2.01]],"closed":true,"fill":true,"fillColor":"#674a32"},{"commands":[["A",0,-0.19,0.95,0,6.283185307179586]],"fill":true,"fillColor":"#4c4740"},{"commands":[["A",0,-0.19,0.78,0,6.283185307179586]],"fill":false},{"points":[[-0.11,1.8],[0.11,1.8]],"lineWidth":0.035},{"points":[[-0.62,-0.56],[-0.11,-0.72],[0.05,-0.29],[-0.48,-0.09]],"closed":true,"fill":true,"fillColor":"#bd8850"},{"points":[[0.13,-0.68],[0.62,-0.43],[0.36,-0.05],[-0.01,-0.27]],"closed":true,"fill":true,"fillColor":"#8f723b"},{"points":[[-0.39,0.13],[0.17,-0.07],[0.41,0.35],[-0.19,0.51]],"closed":true,"fill":true,"fillColor":"#d7a96d"},{"points":[[-0.46,-0.44],[-0.2,-0.51]],"lineWidth":0.035},{"points":[[0.14,0.16],[0.25,0.29]],"lineWidth":0.035}],"origin":[0,0.43499999999999994]},"cooked-meal":{"paths":[{"commands":[["M",-1.52,0.04],["C",-1.45,-0.74,1.45,-0.74,1.52,0.04],["C",1.41,0.83,-1.41,0.83,-1.52,0.04],["Z"]],"fill":true,"fillColor":"#cbb8a0"},{"commands":[["M",-1.26,0.02],["C",-1.19,-0.48,1.19,-0.48,1.26,0.02],["C",1.11,0.5,-1.11,0.5,-1.26,0.02],["Z"]],"lineWidth":0.035},{"commands":[["M",-0.64,-0.44],["C",-0.49,-0.67,0.08,-0.69,0.42,-0.42],["L",0.58,-0.03],["C",0.37,0.21,-0.24,0.25,-0.66,-0.02],["Z"]],"fill":true,"fillColor":"#976347"},{"commands":[["M",-0.45,-0.34],["L",0.09,-0.07],["M",-0.22,-0.46],["L",0.28,-0.2]],"lineWidth":0.035},{"commands":[["M",0.39,-0.25],["C",0.5,-0.71,0.91,-0.76,0.95,-0.4],["C",0.86,-0.24,0.67,-0.16,0.39,-0.25],["Z"]],"fill":true,"fillColor":"#647850"},{"commands":[["M",0.59,-0.17],["C",1.1,-0.5,1.28,-0.16,0.99,0.07],["C",0.82,0.11,0.7,0,0.59,-0.17],["Z"]],"fill":true,"fillColor":"#73865a"},{"commands":[["A",-0.78,0.15,0.14,0,6.283185307179586]],"fill":true,"fillColor":"#b98c4f"},{"commands":[["A",-0.4,0.32,0.12,0,6.283185307179586]],"fill":true,"fillColor":"#b98c4f"},{"commands":[["A",0.02,0.32,0.09,0,6.283185307179586]],"fill":true,"fillColor":"#b98c4f"}],"origin":[0,-0.002285156250000031]},"tailor-scissors":{"origin":[0,-0.33],"parts":[{"pivot":[0,0],"angle":0.36,"pulseAngle":-0.31,"scaleX":-1,"paths":[{"points":[[-0.055,-2.15],[-0.17,-1.77],[-0.29,-0.58],[-0.15,0.13],[0.08,0.13],[0.08,-0.25]],"closed":true,"fill":true,"fillColor":"#9b8d9f","lineWidth":0.05},{"points":[[-0.08,-1.48],[-0.11,-0.5]],"lineWidth":0.028},{"points":[[-0.08,0.05],[0.15,0.05],[0.5,0.55],[0.27,0.68],[0.1,0.34]],"closed":true,"fill":true,"fillColor":"#58415e","lineWidth":0.05},{"commands":[["M",0.25549999999999995,0.43000000000000005],["L",0.6845,0.43000000000000005],["L",0.86,0.662],["L",0.86,1.358],["L",0.6845,1.5899999999999999],["L",0.25549999999999995,1.5899999999999999],["L",0.07999999999999996,1.358],["L",0.07999999999999996,0.662],["Z"],["M",0.20999999999999996,0.746],["L",0.20999999999999996,1.274],["L",0.32699999999999996,1.45],["L",0.613,1.45],["L",0.73,1.274],["L",0.73,0.746],["L",0.613,0.5700000000000001],["L",0.32699999999999996,0.5700000000000001],["Z"]],"fill":true,"fillColor":"#58415e","lineWidth":0.05}]},{"pivot":[0,0],"angle":-0.36,"pulseAngle":0.31,"paths":[{"points":[[-0.055,-2.15],[-0.17,-1.77],[-0.29,-0.58],[-0.15,0.13],[0.08,0.13],[0.08,-0.25]],"closed":true,"fill":true,"fillColor":"#9b8d9f","lineWidth":0.05},{"points":[[-0.08,-1.48],[-0.11,-0.5]],"lineWidth":0.028},{"points":[[-0.08,0.05],[0.15,0.05],[0.5,0.55],[0.27,0.68],[0.1,0.34]],"closed":true,"fill":true,"fillColor":"#58415e","lineWidth":0.05},{"commands":[["M",0.27599999999999997,0.5],["L",0.5840000000000001,0.5],["L",0.71,0.668],["L",0.71,1.1720000000000002],["L",0.5840000000000001,1.34],["L",0.27599999999999997,1.34],["L",0.14999999999999997,1.1720000000000002],["L",0.14999999999999997,0.668],["Z"],["M",0.26,0.746],["L",0.26,1.094],["L",0.33649999999999997,1.21],["L",0.5235,1.21],["L",0.6,1.094],["L",0.6,0.746],["L",0.5235,0.6300000000000001],["L",0.33649999999999997,0.6300000000000001],["Z"]],"fill":true,"fillColor":"#58415e","lineWidth":0.05}]}],"paths":[{"commands":[["A",0,0.035,0.125,0,6.283185307179586]],"fill":true,"fillColor":"#c1afc8","lineWidth":0.045},{"points":[[-0.05,0.035],[0.05,0.035]],"lineWidth":0.025}]},"puzzle-cube-cross":{"paths":[{"points":[[-3.469446951953614e-18,-1.29587352],[0.38058666666666663,-1.096553146666667],[0,-0.8954646311111114],[-0.38058666666666663,-1.096553146666667]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4266666666666667,-1.0724201866666667],[0.8072533333333333,-0.8730998133333334],[0.42666666666666664,-0.6700290755555558],[0.04608000000000001,-0.8711175911111112]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8533333333333333,-0.8489668533333333],[1.2339200000000001,-0.6496464799999999],[0.8533333333333335,-0.44459352],[0.47274666666666676,-0.6456820355555557]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.4266666666666667,-1.0724201866666667],[-0.046080000000000065,-0.8711175911111114],[-0.42666666666666664,-0.6700290755555557],[-0.8072533333333333,-0.8730998133333334]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0,-0.8467446311111112],[0.38058666666666663,-0.6454420355555558],[0,-0.44237129777777795],[-0.38058666666666663,-0.6454420355555557]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.42666666666666664,-0.6210690755555556],[0.8072533333333335,-0.41976648000000005],[0.42666666666666675,-0.21471352000000005],[0.046080000000000065,-0.41778425777777783]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8533333333333333,-0.8489668533333333],[-0.47274666666666676,-0.6456820355555557],[-0.8533333333333334,-0.4445935200000001],[-1.2339200000000001,-0.6496464799999999]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.42666666666666664,-0.6210690755555557],[-0.04608000000000001,-0.4177842577777779],[-0.42666666666666675,-0.21471352000000005],[-0.8072533333333334,-0.41976648000000005]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0,-0.3931712977777778],[0.3805866666666667,-0.18988648000000002],[0,0.015166479999999982],[-0.3805866666666667,-0.18988648000000002]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-1.25696,-0.6125599999999999],[-0.8763733333333334,-0.40740000000000004],[-0.8763733333333334,0.005893333333333195],[-1.2569600000000003,-0.19926666666666668]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.8302933333333333,-0.38256000000000007],[-0.44970666666666675,-0.17740000000000003],[-0.4497066666666668,0.2358933333333333],[-0.8302933333333335,0.030733333333333224]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.4036266666666667,-0.15256000000000003],[-0.023040000000000022,0.05259999999999999],[-0.023040000000000022,0.4658933333333332],[-0.4036266666666667,0.26073333333333326]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-1.2569600000000003,-0.14922666666666667],[-0.8763733333333334,0.05593333333333328],[-0.8763733333333334,0.46922666666666657],[-1.25696,0.2640666666666666]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.8302933333333335,0.08077333333333331],[-0.4497066666666668,0.2859333333333334],[-0.44970666666666675,0.6992266666666667],[-0.8302933333333334,0.4940666666666666]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4036266666666667,0.3107733333333333],[-0.023040000000000026,0.5159333333333332],[-0.023040000000000022,0.9292266666666664],[-0.4036266666666667,0.7240666666666664]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-1.25696,0.3141066666666666],[-0.8763733333333334,0.5192666666666667],[-0.8763733333333334,0.93256],[-1.25696,0.7273999999999999]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.8302933333333333,0.5441066666666667],[-0.44970666666666675,0.7492666666666666],[-0.44970666666666675,1.16256],[-0.8302933333333334,0.9574]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.4036266666666667,0.7741066666666665],[-0.023040000000000026,0.9792666666666665],[-0.023040000000000022,1.3925599999999998],[-0.4036266666666667,1.1873999999999998]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.023039999999999998,0.052599999999999994],[0.40362666666666663,-0.15256],[0.40362666666666663,0.2607333333333333],[0.023039999999999998,0.4658933333333332]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4497066666666667,-0.1774],[0.8302933333333332,-0.38255999999999996],[0.8302933333333333,0.03073333333333328],[0.4497066666666667,0.23589333333333332]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.8763733333333333,-0.4074],[1.25696,-0.6125599999999999],[1.2569600000000003,-0.19926666666666668],[0.8763733333333333,0.0058933333333332505]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.023039999999999998,0.5159333333333332],[0.40362666666666663,0.31077333333333335],[0.4036266666666667,0.7240666666666666],[0.023039999999999998,0.9292266666666664]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4497066666666667,0.2859333333333334],[0.8302933333333333,0.08077333333333336],[0.8302933333333333,0.49406666666666665],[0.4497066666666667,0.6992266666666667]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8763733333333333,0.05593333333333328],[1.2569600000000003,-0.14922666666666667],[1.25696,0.2640666666666666],[0.8763733333333332,0.46922666666666657]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.023039999999999998,0.9792666666666665],[0.4036266666666666,0.7741066666666666],[0.40362666666666663,1.1874],[0.023039999999999998,1.3925599999999998]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4497066666666667,0.7492666666666667],[0.8302933333333333,0.5441066666666666],[0.8302933333333333,0.9573999999999999],[0.4497066666666667,1.16256]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.8763733333333332,0.5192666666666667],[1.25696,0.3141066666666666],[1.25696,0.7273999999999999],[0.8763733333333333,0.93256]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022}],"origin":[0,0.0483432399999999]},"puzzle-cube-f2l":{"paths":[{"points":[[-3.469446951953614e-18,-1.29587352],[0.38058666666666663,-1.096553146666667],[0,-0.8954646311111114],[-0.38058666666666663,-1.096553146666667]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4266666666666667,-1.0724201866666667],[0.8072533333333333,-0.8730998133333334],[0.42666666666666664,-0.6700290755555558],[0.04608000000000001,-0.8711175911111112]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8533333333333333,-0.8489668533333333],[1.2339200000000001,-0.6496464799999999],[0.8533333333333335,-0.44459352],[0.47274666666666676,-0.6456820355555557]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.4266666666666667,-1.0724201866666667],[-0.046080000000000065,-0.8711175911111114],[-0.42666666666666664,-0.6700290755555557],[-0.8072533333333333,-0.8730998133333334]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0,-0.8467446311111112],[0.38058666666666663,-0.6454420355555558],[0,-0.44237129777777795],[-0.38058666666666663,-0.6454420355555557]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.42666666666666664,-0.6210690755555556],[0.8072533333333335,-0.41976648000000005],[0.42666666666666675,-0.21471352000000005],[0.046080000000000065,-0.41778425777777783]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8533333333333333,-0.8489668533333333],[-0.47274666666666676,-0.6456820355555557],[-0.8533333333333334,-0.4445935200000001],[-1.2339200000000001,-0.6496464799999999]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.42666666666666664,-0.6210690755555557],[-0.04608000000000001,-0.4177842577777779],[-0.42666666666666675,-0.21471352000000005],[-0.8072533333333334,-0.41976648000000005]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0,-0.3931712977777778],[0.3805866666666667,-0.18988648000000002],[0,0.015166479999999982],[-0.3805866666666667,-0.18988648000000002]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-1.25696,-0.6125599999999999],[-0.8763733333333334,-0.40740000000000004],[-0.8763733333333334,0.005893333333333195],[-1.2569600000000003,-0.19926666666666668]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.8302933333333333,-0.38256000000000007],[-0.44970666666666675,-0.17740000000000003],[-0.4497066666666668,0.2358933333333333],[-0.8302933333333335,0.030733333333333224]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.4036266666666667,-0.15256000000000003],[-0.023040000000000022,0.05259999999999999],[-0.023040000000000022,0.4658933333333332],[-0.4036266666666667,0.26073333333333326]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-1.2569600000000003,-0.14922666666666667],[-0.8763733333333334,0.05593333333333328],[-0.8763733333333334,0.46922666666666657],[-1.25696,0.2640666666666666]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8302933333333335,0.08077333333333331],[-0.4497066666666668,0.2859333333333334],[-0.44970666666666675,0.6992266666666667],[-0.8302933333333334,0.4940666666666666]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4036266666666667,0.3107733333333333],[-0.023040000000000026,0.5159333333333332],[-0.023040000000000022,0.9292266666666664],[-0.4036266666666667,0.7240666666666664]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-1.25696,0.3141066666666666],[-0.8763733333333334,0.5192666666666667],[-0.8763733333333334,0.93256],[-1.25696,0.7273999999999999]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8302933333333333,0.5441066666666667],[-0.44970666666666675,0.7492666666666666],[-0.44970666666666675,1.16256],[-0.8302933333333334,0.9574]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4036266666666667,0.7741066666666665],[-0.023040000000000026,0.9792666666666665],[-0.023040000000000022,1.3925599999999998],[-0.4036266666666667,1.1873999999999998]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.023039999999999998,0.052599999999999994],[0.40362666666666663,-0.15256],[0.40362666666666663,0.2607333333333333],[0.023039999999999998,0.4658933333333332]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4497066666666667,-0.1774],[0.8302933333333332,-0.38255999999999996],[0.8302933333333333,0.03073333333333328],[0.4497066666666667,0.23589333333333332]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.8763733333333333,-0.4074],[1.25696,-0.6125599999999999],[1.2569600000000003,-0.19926666666666668],[0.8763733333333333,0.0058933333333332505]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.023039999999999998,0.5159333333333332],[0.40362666666666663,0.31077333333333335],[0.4036266666666667,0.7240666666666666],[0.023039999999999998,0.9292266666666664]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.4497066666666667,0.2859333333333334],[0.8302933333333333,0.08077333333333336],[0.8302933333333333,0.49406666666666665],[0.4497066666666667,0.6992266666666667]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8763733333333333,0.05593333333333328],[1.2569600000000003,-0.14922666666666667],[1.25696,0.2640666666666666],[0.8763733333333332,0.46922666666666657]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.023039999999999998,0.9792666666666665],[0.4036266666666666,0.7741066666666666],[0.40362666666666663,1.1874],[0.023039999999999998,1.3925599999999998]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.4497066666666667,0.7492666666666667],[0.8302933333333333,0.5441066666666666],[0.8302933333333333,0.9573999999999999],[0.4497066666666667,1.16256]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8763733333333332,0.5192666666666667],[1.25696,0.3141066666666666],[1.25696,0.7273999999999999],[0.8763733333333333,0.93256]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022}],"origin":[0,0.0483432399999999]},"puzzle-cube-oll":{"paths":[{"points":[[-3.469446951953614e-18,-1.29587352],[0.38058666666666663,-1.096553146666667],[0,-0.8954646311111114],[-0.38058666666666663,-1.096553146666667]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.4266666666666667,-1.0724201866666667],[0.8072533333333333,-0.8730998133333334],[0.42666666666666664,-0.6700290755555558],[0.04608000000000001,-0.8711175911111112]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8533333333333333,-0.8489668533333333],[1.2339200000000001,-0.6496464799999999],[0.8533333333333335,-0.44459352],[0.47274666666666676,-0.6456820355555557]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4266666666666667,-1.0724201866666667],[-0.046080000000000065,-0.8711175911111114],[-0.42666666666666664,-0.6700290755555557],[-0.8072533333333333,-0.8730998133333334]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0,-0.8467446311111112],[0.38058666666666663,-0.6454420355555558],[0,-0.44237129777777795],[-0.38058666666666663,-0.6454420355555557]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.42666666666666664,-0.6210690755555556],[0.8072533333333335,-0.41976648000000005],[0.42666666666666675,-0.21471352000000005],[0.046080000000000065,-0.41778425777777783]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8533333333333333,-0.8489668533333333],[-0.47274666666666676,-0.6456820355555557],[-0.8533333333333334,-0.4445935200000001],[-1.2339200000000001,-0.6496464799999999]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.42666666666666664,-0.6210690755555557],[-0.04608000000000001,-0.4177842577777779],[-0.42666666666666675,-0.21471352000000005],[-0.8072533333333334,-0.41976648000000005]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0,-0.3931712977777778],[0.3805866666666667,-0.18988648000000002],[0,0.015166479999999982],[-0.3805866666666667,-0.18988648000000002]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-1.25696,-0.6125599999999999],[-0.8763733333333334,-0.40740000000000004],[-0.8763733333333334,0.005893333333333195],[-1.2569600000000003,-0.19926666666666668]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.8302933333333333,-0.38256000000000007],[-0.44970666666666675,-0.17740000000000003],[-0.4497066666666668,0.2358933333333333],[-0.8302933333333335,0.030733333333333224]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-0.4036266666666667,-0.15256000000000003],[-0.023040000000000022,0.05259999999999999],[-0.023040000000000022,0.4658933333333332],[-0.4036266666666667,0.26073333333333326]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[-1.2569600000000003,-0.14922666666666667],[-0.8763733333333334,0.05593333333333328],[-0.8763733333333334,0.46922666666666657],[-1.25696,0.2640666666666666]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8302933333333335,0.08077333333333331],[-0.4497066666666668,0.2859333333333334],[-0.44970666666666675,0.6992266666666667],[-0.8302933333333334,0.4940666666666666]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4036266666666667,0.3107733333333333],[-0.023040000000000026,0.5159333333333332],[-0.023040000000000022,0.9292266666666664],[-0.4036266666666667,0.7240666666666664]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-1.25696,0.3141066666666666],[-0.8763733333333334,0.5192666666666667],[-0.8763733333333334,0.93256],[-1.25696,0.7273999999999999]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8302933333333333,0.5441066666666667],[-0.44970666666666675,0.7492666666666666],[-0.44970666666666675,1.16256],[-0.8302933333333334,0.9574]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4036266666666667,0.7741066666666665],[-0.023040000000000026,0.9792666666666665],[-0.023040000000000022,1.3925599999999998],[-0.4036266666666667,1.1873999999999998]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.023039999999999998,0.052599999999999994],[0.40362666666666663,-0.15256],[0.40362666666666663,0.2607333333333333],[0.023039999999999998,0.4658933333333332]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.4497066666666667,-0.1774],[0.8302933333333332,-0.38255999999999996],[0.8302933333333333,0.03073333333333328],[0.4497066666666667,0.23589333333333332]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.8763733333333333,-0.4074],[1.25696,-0.6125599999999999],[1.2569600000000003,-0.19926666666666668],[0.8763733333333333,0.0058933333333332505]],"closed":true,"fill":true,"fillColor":"#51416f","lineWidth":0.022},{"points":[[0.023039999999999998,0.5159333333333332],[0.40362666666666663,0.31077333333333335],[0.4036266666666667,0.7240666666666666],[0.023039999999999998,0.9292266666666664]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.4497066666666667,0.2859333333333334],[0.8302933333333333,0.08077333333333336],[0.8302933333333333,0.49406666666666665],[0.4497066666666667,0.6992266666666667]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8763733333333333,0.05593333333333328],[1.2569600000000003,-0.14922666666666667],[1.25696,0.2640666666666666],[0.8763733333333332,0.46922666666666657]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.023039999999999998,0.9792666666666665],[0.4036266666666666,0.7741066666666666],[0.40362666666666663,1.1874],[0.023039999999999998,1.3925599999999998]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.4497066666666667,0.7492666666666667],[0.8302933333333333,0.5441066666666666],[0.8302933333333333,0.9573999999999999],[0.4497066666666667,1.16256]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8763733333333332,0.5192666666666667],[1.25696,0.3141066666666666],[1.25696,0.7273999999999999],[0.8763733333333333,0.93256]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022}],"origin":[0,0.0483432399999999]},"puzzle-cube-pll":{"paths":[{"points":[[-3.469446951953614e-18,-1.29587352],[0.38058666666666663,-1.096553146666667],[0,-0.8954646311111114],[-0.38058666666666663,-1.096553146666667]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.4266666666666667,-1.0724201866666667],[0.8072533333333333,-0.8730998133333334],[0.42666666666666664,-0.6700290755555558],[0.04608000000000001,-0.8711175911111112]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8533333333333333,-0.8489668533333333],[1.2339200000000001,-0.6496464799999999],[0.8533333333333335,-0.44459352],[0.47274666666666676,-0.6456820355555557]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4266666666666667,-1.0724201866666667],[-0.046080000000000065,-0.8711175911111114],[-0.42666666666666664,-0.6700290755555557],[-0.8072533333333333,-0.8730998133333334]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0,-0.8467446311111112],[0.38058666666666663,-0.6454420355555558],[0,-0.44237129777777795],[-0.38058666666666663,-0.6454420355555557]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.42666666666666664,-0.6210690755555556],[0.8072533333333335,-0.41976648000000005],[0.42666666666666675,-0.21471352000000005],[0.046080000000000065,-0.41778425777777783]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8533333333333333,-0.8489668533333333],[-0.47274666666666676,-0.6456820355555557],[-0.8533333333333334,-0.4445935200000001],[-1.2339200000000001,-0.6496464799999999]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.42666666666666664,-0.6210690755555557],[-0.04608000000000001,-0.4177842577777779],[-0.42666666666666675,-0.21471352000000005],[-0.8072533333333334,-0.41976648000000005]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0,-0.3931712977777778],[0.3805866666666667,-0.18988648000000002],[0,0.015166479999999982],[-0.3805866666666667,-0.18988648000000002]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-1.25696,-0.6125599999999999],[-0.8763733333333334,-0.40740000000000004],[-0.8763733333333334,0.005893333333333195],[-1.2569600000000003,-0.19926666666666668]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8302933333333333,-0.38256000000000007],[-0.44970666666666675,-0.17740000000000003],[-0.4497066666666668,0.2358933333333333],[-0.8302933333333335,0.030733333333333224]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4036266666666667,-0.15256000000000003],[-0.023040000000000022,0.05259999999999999],[-0.023040000000000022,0.4658933333333332],[-0.4036266666666667,0.26073333333333326]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-1.2569600000000003,-0.14922666666666667],[-0.8763733333333334,0.05593333333333328],[-0.8763733333333334,0.46922666666666657],[-1.25696,0.2640666666666666]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8302933333333335,0.08077333333333331],[-0.4497066666666668,0.2859333333333334],[-0.44970666666666675,0.6992266666666667],[-0.8302933333333334,0.4940666666666666]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4036266666666667,0.3107733333333333],[-0.023040000000000026,0.5159333333333332],[-0.023040000000000022,0.9292266666666664],[-0.4036266666666667,0.7240666666666664]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-1.25696,0.3141066666666666],[-0.8763733333333334,0.5192666666666667],[-0.8763733333333334,0.93256],[-1.25696,0.7273999999999999]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.8302933333333333,0.5441066666666667],[-0.44970666666666675,0.7492666666666666],[-0.44970666666666675,1.16256],[-0.8302933333333334,0.9574]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[-0.4036266666666667,0.7741066666666665],[-0.023040000000000026,0.9792666666666665],[-0.023040000000000022,1.3925599999999998],[-0.4036266666666667,1.1873999999999998]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.023039999999999998,0.052599999999999994],[0.40362666666666663,-0.15256],[0.40362666666666663,0.2607333333333333],[0.023039999999999998,0.4658933333333332]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.4497066666666667,-0.1774],[0.8302933333333332,-0.38255999999999996],[0.8302933333333333,0.03073333333333328],[0.4497066666666667,0.23589333333333332]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8763733333333333,-0.4074],[1.25696,-0.6125599999999999],[1.2569600000000003,-0.19926666666666668],[0.8763733333333333,0.0058933333333332505]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.023039999999999998,0.5159333333333332],[0.40362666666666663,0.31077333333333335],[0.4036266666666667,0.7240666666666666],[0.023039999999999998,0.9292266666666664]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.4497066666666667,0.2859333333333334],[0.8302933333333333,0.08077333333333336],[0.8302933333333333,0.49406666666666665],[0.4497066666666667,0.6992266666666667]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8763733333333333,0.05593333333333328],[1.2569600000000003,-0.14922666666666667],[1.25696,0.2640666666666666],[0.8763733333333332,0.46922666666666657]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.023039999999999998,0.9792666666666665],[0.4036266666666666,0.7741066666666666],[0.40362666666666663,1.1874],[0.023039999999999998,1.3925599999999998]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.4497066666666667,0.7492666666666667],[0.8302933333333333,0.5441066666666666],[0.8302933333333333,0.9573999999999999],[0.4497066666666667,1.16256]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022},{"points":[[0.8763733333333332,0.5192666666666667],[1.25696,0.3141066666666666],[1.25696,0.7273999999999999],[0.8763733333333333,0.93256]],"closed":true,"fill":true,"fillColor":"#bba8ed","lineWidth":0.022}],"origin":[0,0.0483432399999999]},"workshop-hammer":{"origin":[0,0.16],"paths":[{"points":[[-0.15,-0.98],[0.19,-0.98],[0.23,1.71],[0.11,1.94],[-0.14,1.94],[-0.25,1.71]],"closed":true,"fill":true,"fillColor":"#32556b","lineWidth":0.055},{"points":[[-1.43,-1.56],[-0.8,-1.56],[-0.8,-0.55],[-1.43,-0.55]],"closed":true,"fill":true,"fillColor":"#628096","lineWidth":0.055},{"points":[[-0.86,-1.38],[0.24,-1.53],[0.72,-1.42],[1.16,-1.07],[1.48,-0.31],[1.1,-0.56],[0.75,-0.98],[0.25,-0.91],[-0.86,-0.71]],"closed":true,"fill":true,"fillColor":"#3b627a","lineWidth":0.055},{"points":[[0.66,-1.38],[1.19,-1.15],[1.5,-0.54],[1.22,-0.75],[0.85,-1.02]],"closed":true,"fill":true,"fillColor":"#294c61","lineWidth":0.055},{"points":[[-0.29,-1.38],[0.18,-1.38],[0.24,-0.76],[-0.29,-0.76]],"closed":true,"fill":true,"fillColor":"#234054","lineWidth":0.055},{"points":[[-1.27,-1.37],[-1.27,-0.73]],"lineWidth":0.045},{"points":[[-0.22,0.57],[0.21,0.57],[0.23,1.69],[0.11,1.83],[-0.13,1.83],[-0.24,1.69]],"closed":true,"fill":true,"fillColor":"#233e53","lineWidth":0.055},{"points":[[-0.16,0.89],[0.16,0.89]],"lineWidth":0.04},{"points":[[-0.16,1.16],[0.16,1.16]],"lineWidth":0.04},{"points":[[-0.16,1.43],[0.16,1.43]],"lineWidth":0.04}]},"workshop-nail":{"paths":[{"points":[[-0.13,-1.32],[0.13,-1.32],[0.14,1.5],[0,1.94],[-0.14,1.5]],"closed":true,"fill":true,"fillColor":"#285774"},{"points":[[-0.59,-1.59],[0.59,-1.59],[0.66,-1.29],[-0.66,-1.29]],"closed":true,"fill":true,"fillColor":"#254d68"},{"points":[[0,-0.86],[0,1.32]],"lineWidth":0.035}],"origin":[0,0.17499999999999993]},"artists-brush":{"paths":[{"points":[[-0.12,-0.71],[0.12,-0.71],[0.17,1.55],[0,1.88],[-0.17,1.55]],"closed":true,"fill":true,"fillColor":"#385c19"},{"points":[[-0.24,-1.04],[0.24,-1.04],[0.2,-0.65],[-0.2,-0.65]],"closed":true,"fill":true,"fillColor":"#294916"},{"commands":[["M",-0.23,-1],["C",-0.56,-1.53,-0.34,-1.99,0,-2.22],["C",0.35,-1.94,0.48,-1.49,0.23,-1],["Z"]],"fill":true,"fillColor":"#244015"},{"commands":[["M",0,-2.02],["C",-0.16,-1.64,-0.18,-1.4,-0.09,-1.2]],"lineWidth":0.035},{"points":[[0.12,-1.24],[0.17,-1.59]],"lineWidth":0.035},{"points":[[-0.08,0.89],[0.09,0.89]],"lineWidth":0.035}],"origin":[-0.01653489289460358,-0.17000000000000015]},"chocolate-pistols":{"origin":[0,0.12],"parts":[{"pivot":[-0.19,-0.25],"paths":[{"points":[[-1.31,-0.38],[-1.13,-0.57],[0.89,-0.57],[1.32,-0.3],[1.32,-0.01],[-1.31,-0.01]],"closed":true,"fill":true,"fillColor":"#956775","lineWidth":0.05},{"points":[[-1.13,-0.01],[1.05,-0.01],[0.79,0.22],[-0.1,0.22],[-0.19,0.51],[-0.23,1.13],[-0.74,1.13],[-0.98,0.94],[-0.79,0.22],[-1.13,0.22]],"closed":true,"fill":true,"fillColor":"#523442","lineWidth":0.05},{"commands":[["M",-0.11,0.22],["L",0.54,0.22],["L",0.45,0.69],["L",-0.23,0.69],["M",0.09,0.26],["L",0.01,0.47]],"lineWidth":0.06},{"points":[[-0.15,-0.42],[0.34,-0.42],[0.34,-0.15],[-0.15,-0.15]],"closed":true,"fill":true,"fillColor":"#4b303e","lineWidth":0.05},{"points":[[-1.06,-0.33],[-0.97,-0.12]],"lineWidth":0.035},{"points":[[-0.86,-0.41],[-0.73,-0.13]],"lineWidth":0.035},{"points":[[-0.66,-0.4],[-0.52,-0.13]],"lineWidth":0.035},{"points":[[1.1,-0.25],[1.1,-0.09]],"lineWidth":0.05},{"points":[[-0.67,0.53],[-0.36,0.53]],"lineWidth":0.045},{"points":[[-0.7,0.78],[-0.39,0.78]],"lineWidth":0.045},{"points":[[0.92,-0.59],[1.05,-0.59],[1.05,-0.48],[0.92,-0.48]],"closed":true,"fill":true,"fillColor":"#74505e","lineWidth":0.05}]},{"pivot":[0.19,0.25],"paths":[{"points":[[-1.31,-0.38],[-1.13,-0.57],[0.89,-0.57],[1.32,-0.3],[1.32,-0.01],[-1.31,-0.01]],"closed":true,"fill":true,"fillColor":"#956775","lineWidth":0.05},{"points":[[-1.13,-0.01],[1.05,-0.01],[0.79,0.22],[-0.1,0.22],[-0.19,0.51],[-0.23,1.13],[-0.74,1.13],[-0.98,0.94],[-0.79,0.22],[-1.13,0.22]],"closed":true,"fill":true,"fillColor":"#523442","lineWidth":0.05},{"commands":[["M",-0.11,0.22],["L",0.54,0.22],["L",0.45,0.69],["L",-0.23,0.69],["M",0.09,0.26],["L",0.01,0.47]],"lineWidth":0.06},{"points":[[-0.15,-0.42],[0.34,-0.42],[0.34,-0.15],[-0.15,-0.15]],"closed":true,"fill":true,"fillColor":"#4b303e","lineWidth":0.05},{"points":[[-1.06,-0.33],[-0.97,-0.12]],"lineWidth":0.035},{"points":[[-0.86,-0.41],[-0.73,-0.13]],"lineWidth":0.035},{"points":[[-0.66,-0.4],[-0.52,-0.13]],"lineWidth":0.035},{"points":[[1.1,-0.25],[1.1,-0.09]],"lineWidth":0.05},{"points":[[-0.67,0.53],[-0.36,0.53]],"lineWidth":0.045},{"points":[[-0.7,0.78],[-0.39,0.78]],"lineWidth":0.045},{"points":[[0.92,-0.59],[1.05,-0.59],[1.05,-0.48],[0.92,-0.48]],"closed":true,"fill":true,"fillColor":"#74505e","lineWidth":0.05}]}]},"chocolate-bazooka":{"origin":[0,0.12],"paths":[{"points":[[-1.55,-0.4],[1.3,-0.4],[1.3,0.4],[-1.55,0.4]],"closed":true,"fill":true,"fillColor":"#66515b","lineWidth":0.055},{"points":[[-1.82,-0.58],[-1.4,-0.58],[-1.4,0.58],[-1.82,0.58]],"closed":true,"fill":true,"fillColor":"#a27d87","lineWidth":0.055},{"points":[[1.28,-0.62],[1.74,-0.62],[1.88,-0.44],[1.88,0.44],[1.74,0.62],[1.28,0.62]],"closed":true,"fill":true,"fillColor":"#a27d87","lineWidth":0.055},{"points":[[-0.74,0.4],[-0.26,0.4],[-0.43,1.22],[-0.89,1.22]],"closed":true,"fill":true,"fillColor":"#372d36","lineWidth":0.055},{"points":[[0.52,0.4],[0.86,0.4],[0.83,0.91],[0.5,0.91]],"closed":true,"fill":true,"fillColor":"#493944","lineWidth":0.055},{"points":[[-0.59,-0.4],[-0.59,-0.74],[0.35,-0.74],[0.35,-0.4]],"closed":true,"fill":true,"fillColor":"#493944","lineWidth":0.055},{"points":[[-1.22,-0.18],[1.1,-0.18]],"lineWidth":0.04},{"points":[[-1.65,-0.37],[-1.65,0.37]],"lineWidth":0.07},{"points":[[1.55,-0.4],[1.55,0.4]],"lineWidth":0.075},{"points":[[-0.71,0.64],[-0.4,0.64]],"lineWidth":0.05},{"points":[[-0.78,0.87],[-0.46,0.87]],"lineWidth":0.05},{"points":[[0.4,0.4],[0.32,0.77],[-0.27,0.77]],"lineWidth":0.05}]},"chocolate-bomb":{"origin":[0,-0.12],"paths":[{"points":[[-0.85,-1.04],[0.85,-1.04],[1.06,-0.83],[1.06,0.86],[0.85,1.07],[-0.85,1.07],[-1.06,0.86],[-1.06,-0.83]],"closed":true,"fill":true,"fillColor":"#47303b","lineWidth":0.055},{"points":[[-0.88,-0.88],[0.88,-0.88],[0.88,0.32],[-0.88,0.32]],"closed":true,"fill":true,"fillColor":"#76505b","lineWidth":0.055},{"points":[[-1.06,0.32],[-0.7,0.2],[-0.34,0.38],[0,0.2],[0.35,0.38],[0.7,0.2],[1.06,0.32],[1.06,0.86],[0.85,1.07],[-0.85,1.07],[-1.06,0.86]],"closed":true,"fill":true,"fillColor":"#ab7d86","lineWidth":0.055},{"points":[[0,-0.85],[0,0.22]],"lineWidth":0.045},{"points":[[-0.86,-0.3],[0.86,-0.3]],"lineWidth":0.045},{"commands":[["M",0,-1.04],["C",-0.12,-1.43,0.38,-1.64,0.58,-1.31]],"lineWidth":0.095},{"points":[[-0.27,0.58],[0,0.4],[0.27,0.58],[0,0.78]],"closed":true,"fill":true,"fillColor":"#61414d","lineWidth":0.055}]},"dodge-slip":{"origin":[0,0],"paths":[{"commands":[["M",-1.29,-0.68],["C",-1.81,0.13,-1.25,1.35,-0.24,1.44],["C",-0.9,1.04,-1.06,0.07,-0.72,-0.58],["Z"]],"fill":true,"fillColor":"#916570"},{"commands":[["M",1.29,0.68],["C",1.81,-0.13,1.25,-1.35,0.24,-1.44],["C",0.9,-1.04,1.06,-0.07,0.72,0.58],["Z"]],"fill":true,"fillColor":"#916570"},{"points":[[-1.54,-0.97],[-0.87,-1.27]],"lineWidth":0.07},{"points":[[1.54,0.97],[0.87,1.27]],"lineWidth":0.07},{"points":[[-0.13,-0.61],[0.34,-0.12],[0.13,0.61],[-0.34,0.12]],"closed":true,"fill":true,"fillColor":"#b7808b","lineWidth":0.05}]},"demon-trident":{"origin":[0,-0.15],"paths":[{"points":[[-0.1,-1.68],[0.1,-1.68],[0.12,1.9],[0,2.13],[-0.12,1.9]],"closed":true,"fill":true,"fillColor":"#583140","lineWidth":0.05},{"points":[[0,-2.82],[0.26,-2.26],[0.13,-2.35],[0.13,-1.34],[0.43,-1.53],[0.62,-1.77],[0.65,-2.29],[0.53,-2.14],[0.7,-2.73],[1.02,-2.26],[0.89,-2.31],[0.88,-1.65],[0.61,-1.2],[0.22,-0.98],[-0.22,-0.98],[-0.61,-1.2],[-0.88,-1.65],[-0.89,-2.31],[-1.02,-2.26],[-0.7,-2.73],[-0.53,-2.14],[-0.65,-2.29],[-0.62,-1.77],[-0.43,-1.53],[-0.13,-1.34],[-0.13,-2.35],[-0.26,-2.26]],"closed":true,"fill":true,"fillColor":"#926070","lineWidth":0.05},{"points":[[-0.21,-1.05],[0,-1.3],[0.21,-1.05],[0,-0.79]],"closed":true,"fill":true,"fillColor":"#bb8292","lineWidth":0.05},{"points":[[0,-0.6],[0,1.61]],"lineWidth":0.03},{"points":[[-0.19,1.7],[0.19,1.7],[0.14,1.97],[0,2.13],[-0.14,1.97]],"closed":true,"fill":true,"fillColor":"#926070","lineWidth":0.05}]},"maid-broom":{"origin":[0,0],"paths":[{"points":[[-0.08,-2.2],[0.08,-2.2],[0.1,0.58],[-0.1,0.58]],"closed":true,"fill":true,"fillColor":"#644253","lineWidth":0.05},{"points":[[-0.17,0.43],[0.17,0.43],[0.21,0.76],[-0.21,0.76]],"closed":true,"fill":true,"fillColor":"#a97b95","lineWidth":0.05},{"points":[[-0.24,0.68],[0.24,0.68],[0.52,1.02],[0.76,1.94],[0.51,2.13],[0.29,2.02],[0,2.15],[-0.29,2.02],[-0.51,2.13],[-0.76,1.94],[-0.52,1.02]],"closed":true,"fill":true,"fillColor":"#9b6b84","lineWidth":0.05},{"points":[[-0.48,0.99],[0.48,0.99],[0.53,1.2],[-0.53,1.2]],"closed":true,"fill":true,"fillColor":"#563548","lineWidth":0.05},{"points":[[-0.32,1.32],[-0.49,1.94]],"lineWidth":0.03},{"points":[[-0.12,1.3],[-0.21,1.99]],"lineWidth":0.03},{"points":[[0.12,1.3],[0.21,1.99]],"lineWidth":0.03},{"points":[[0.32,1.32],[0.49,1.94]],"lineWidth":0.03},{"points":[[-0.12,-2.21],[0.12,-2.21],[0.12,-2.06],[-0.12,-2.06]],"closed":true,"fill":true,"fillColor":"#9b6b84","lineWidth":0.05}]},"marshmallow-skewer":{"origin":[0,0],"paths":[{"points":[[-0.075,-1.6],[0.075,-1.6],[0.095,1.47],[-0.095,1.47]],"closed":true,"fill":true,"fillColor":"#796144","lineWidth":0.045},{"points":[[-0.055,-3],[0,-3.38],[0.055,-3]],"closed":true,"fill":true,"fillColor":"#796144","lineWidth":0.045},{"commands":[["M",-0.72,-2.83],["C",-0.62,-3.04,0.53,-3.04,0.72,-2.84],["C",0.86,-2.67,0.82,-1.9,0.64,-1.72],["C",0.4,-1.5,-0.45,-1.52,-0.67,-1.73],["C",-0.84,-1.9,-0.89,-2.6,-0.72,-2.83],["Z"]],"fill":true,"fillColor":"#eadbc2","lineWidth":0.055},{"commands":[["M",-0.71,-2.81],["C",-0.46,-2.61,0.47,-2.61,0.72,-2.83]],"lineWidth":0.04},{"commands":[["M",0.6,-2.65],["C",0.69,-2.35,0.65,-1.95,0.54,-1.79]],"lineWidth":0.035},{"points":[[-0.13,0.78],[0.13,0.78],[0.19,1.12],[0.19,1.96],[0.11,2.18],[-0.11,2.18],[-0.19,1.96],[-0.19,1.12]],"closed":true,"fill":true,"fillColor":"#67533b","lineWidth":0.045},{"points":[[-0.19,1.27],[0.19,1.27]],"lineWidth":0.035},{"points":[[-0.19,1.7],[0.19,1.7]],"lineWidth":0.035}]},"forge-hammer":{"origin":[0,0],"paths":[{"points":[[-0.12,-2],[0.12,-2],[0.16,1.67],[0.09,1.88],[-0.09,1.88],[-0.16,1.67]],"closed":true,"fill":true,"fillColor":"#424247","lineWidth":0.045},{"points":[[-1.27,-2.24],[-0.66,-2.65],[0.64,-2.65],[0.64,-2.76],[1.16,-2.76],[1.29,-2.63],[1.29,-1.64],[1.16,-1.5],[0.64,-1.5],[0.64,-1.61],[-0.66,-1.61],[-1.27,-1.96]],"closed":true,"fill":true,"fillColor":"#68686d","lineWidth":0.055},{"points":[[0.64,-2.65],[0.64,-1.61]],"lineWidth":0.045},{"points":[[-0.22,-2.48],[0.22,-2.48],[0.22,-1.73],[-0.22,-1.73]],"closed":true,"fill":true,"fillColor":"#4a4a50","lineWidth":0.035},{"points":[[-0.16,0.5],[0.16,0.5],[0.18,1.53],[-0.18,1.53]],"closed":true,"fill":true,"fillColor":"#36363b","lineWidth":0.04},{"points":[[-0.18,0.8],[0.18,0.8]],"lineWidth":0.03},{"points":[[-0.18,1.2],[0.18,1.2]],"lineWidth":0.03}]},"forge-hammer-mirrored":{"origin":[0,0],"parts":[{"scaleX":-1,"paths":[{"points":[[-0.1125,-1.2],[0.1125,-1.2],[0.15,0.9],[0.1,1.12],[-0.1,1.12],[-0.15,0.9]],"lineWidth":0.04,"closed":true,"fill":true,"fillColor":"#424247"},{"points":[[-0.7,-1.592],[-0.62,-1.704],[0.62,-1.704],[0.7,-1.592],[0.7,-1.158],[0.62,-1.046],[-0.62,-1.046],[-0.7,-1.158]],"lineWidth":0.05,"closed":true,"fill":true,"fillColor":"#68686d"},{"points":[[-0.49,-1.704],[-0.49,-1.046]],"lineWidth":0.035},{"points":[[0.49,-1.704],[0.49,-1.046]],"lineWidth":0.035},{"points":[[-0.15,-1.662],[0.15,-1.662],[0.15,-1.088],[-0.15,-1.088]],"lineWidth":0.035,"closed":true,"fill":true,"fillColor":"#4a4a50"},{"points":[[-0.15,0.1],[0.15,0.1],[0.2,0.82],[0.1375,1.04],[-0.1375,1.04],[-0.2,0.82]],"lineWidth":0.04,"closed":true,"fill":true,"fillColor":"#36363b"},{"points":[[-0.175,0.4],[0.175,0.4]],"lineWidth":0.03},{"points":[[-0.1875,0.75],[0.1875,0.75]],"lineWidth":0.03}]}]},"spirit-bottle":{"origin":[0,0],"paths":[{"points":[[-0.23,-1.3],[0.23,-1.3],[0.23,-0.65],[0.6,-0.32],[0.6,1.1],[-0.6,1.1],[-0.6,-0.32],[-0.23,-0.65]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.055},{"points":[[-0.6,0.05],[0.6,0.05],[0.6,0.65],[-0.6,0.65]],"closed":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.28,-1.3],[0.28,-1.3]],"stroke":true,"lineWidth":0.1}]},"woodcutter-axe":{"origin":[0,0],"paths":[{"points":[[-0.1,-1.35],[0.11,-1.35],[0.16,1.2],[-0.14,1.2]],"closed":true,"fill":true,"lineWidth":0.045},{"points":[[-0.14,-1.17],[0.35,-1.28],[0.86,-1.43],[1.04,-0.82],[0.93,-0.27],[0.42,-0.53],[-0.14,-0.55]],"closed":true,"fill":true,"lineWidth":0.05},{"points":[[0.84,-1.36],[0.97,-0.82],[0.88,-0.34]],"lineWidth":0.035},{"points":[[-0.12,0.55],[0.14,0.55]],"lineWidth":0.04}]}});
+/* 공용 순수 무기 형상·관절·기준점. */
+const WEAPON_IMAGE_DEFS=freezeCharacterData({"execution-sword":{"origin":[0,0],"paths":[{"points":[[0,-2],[-0.22,-1.55],[-0.22,-0.22],[-0.8,-0.22],[-1.15,0],[-0.8,0.22],[-0.22,0.22],[-0.22,0.85],[0,1.2],[0.22,0.85],[0.22,0.22],[0.8,0.22],[1.15,0],[0.8,-0.22],[0.22,-0.22],[0.22,-1.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0,-1.65],[0,-0.35]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[0,-0.3],[0.3,0],[0,0.3],[-0.3,0]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.04},{"points":[[-0.8,0],[-0.35,0]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[0.35,0],[0.8,0]],"fill":false,"stroke":true,"lineWidth":0.035}]},"fishing-rod":{"origin":[0,0],"paths":[{"points":[[-0.14,1.3],[0.14,1.3],[0.1,-0.15],[0.05,-1.4],[-0.08,-2.05],[-0.14,-2.22],[-0.09,-1.35],[-0.1,-0.15]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.1,0.55],[0.1,0.55]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.04},{"commands":[["M",-0.14,-2.22],["C",0.5,-1.85,0.82,-1.1,0.68,-0.32]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[0.68,-0.4],[0.83,-0.2],[0.68,0.05],[0.53,-0.2]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.04}],"rings":[{"x":-0.22,"y":0.78,"radius":0.2},{"x":-0.22,"y":0.78,"radius":0.065}]},"lemon-board":{"origin":[0,0],"paths":[{"points":[[-0.48,-1.45],[-0.65,-1.2],[-0.65,1.2],[-0.48,1.45],[0.48,1.45],[0.65,1.2],[0.65,-1.2],[0.48,-1.45]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.07},{"points":[[-0.42,-0.95],[0.42,-0.95]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.05},{"points":[[-0.42,0.95],[0.42,0.95]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.05}],"rings":[{"x":0,"y":0,"radius":0.25}]},
+"adrenaline-potion":{"origin": [0, 0], "paths": [{"points": [[-0.3, -1.1], [0.3, -1.1], [0.3, -0.6], [0.66, -0.24], [0.7, 0.72], [0.48, 1], [-0.48, 1], [-0.7, 0.72], [-0.66, -0.24], [-0.3, -0.6]], "closed": true, "fill": true}, {"points": [[-0.38, -1.16], [0.38, -1.16], [0.38, -0.91], [-0.38, -0.91]], "closed": true, "fill": true}, {"points": [[-0.5, 0.3], [0.5, 0.3]], "stroke": true}]},
+"wolf-claw":{"origin": [0, 0], "paths": [{"commands": [["M", -0.21999999999999997, -0.88], ["C", -0.48, -0.38, -0.6799999999999999, 0.28, -1.02, 1.12], ["C", -0.99, 0.42, -0.78, -0.38, -0.21999999999999997, -0.88], ["Z"]], "closed": true, "fill": true}, {"commands": [["M", 0.38, -1.04], ["C", 0.12, -0.54, -0.08, 0.12, -0.42, 0.96], ["C", -0.39, 0.26, -0.18, -0.54, 0.38, -1.04], ["Z"]], "closed": true, "fill": true}, {"commands": [["M", 0.98, -0.88], ["C", 0.72, -0.38, 0.52, 0.28, 0.18, 1.12], ["C", 0.20999999999999996, 0.42, 0.42, -0.38, 0.98, -0.88], ["Z"]], "closed": true, "fill": true}]},
+"rubber-launcher":{"origin": [0.025, -0.22], "paths": [{"points": [[-1.25, -0.74], [0.87, -0.74], [0.94, -0.66], [0.94, 0.2], [0.8, 0.3], [-1.23, 0.3], [-1.48, 0.04], [-1.48, -0.45]], "closed": true, "fill": true, "fillColor": "#873b23"}, {"points": [[-1.18, -0.5], [-0.29, -0.5], [-0.29, -0.08], [-1.18, -0.08]], "closed": true, "fill": true, "fillColor": "#54291e"}, {"points": [[-1.02, -0.29], [-0.45, -0.29]], "lineWidth": 0.035}, {"points": [[0.02, -0.5], [0.02, -0.09]], "lineWidth": 0.035}, {"points": [[0.26, -0.5], [0.26, -0.09]], "lineWidth": 0.035}, {"points": [[0.5, -0.5], [0.5, -0.09]], "lineWidth": 0.035}, {"points": [[-1.02, -0.74], [-0.38, -0.74], [-0.56, -1.72], [-1.25, -1.72]], "closed": true, "fill": true, "fillColor": "#5c3024"}, {"points": [[-0.26, -0.8], [0.5, -0.8], [0.44, -1.24], [-0.33, -1.24]], "closed": true, "lineWidth": 0.055}, {"points": [[-0.04, -0.78], [-0.05, -1.01], [0.13, -1.08]], "lineWidth": 0.045}, {"points": [[-1.04, -1.46], [-0.7, -1.46]], "lineWidth": 0.035}, {"points": [[-1.23, 0.3], [0.8, 0.3], [0.68, 0.44], [-1.08, 0.44]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.045, "fillColor": "#54291e"}]},"rubber-muzzle":{"origin": [0.025, -0.22], "paths": [{"points": [[0.94, -0.66], [1.53, -0.66], [1.53, 0.2], [0.94, 0.2]], "closed": true, "fill": true, "fillColor": "#46261e"}, {"points": [[1.28, -0.47], [1.28, 0.01]], "lineWidth": 0.035}]},"rubber-module-punch":{"origin": [0.025, -0.22], "paths": [{"points": [[0.94, -0.66], [1.57, -0.66], [1.76, -0.48], [1.76, 0.04], [1.57, 0.22], [0.94, 0.22]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#5c3024"}, {"points": [[1.46, -0.53], [1.6, -0.4], [1.6, -0.04], [1.46, 0.09]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#46261e"}, {"points": [[1.09, -0.54], [1.09, 0.1]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}, {"points": [[1.2, -0.38], [1.34, -0.38]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}, {"points": [[1.2, -0.06], [1.34, -0.06]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}]},"rubber-module-sniper":{"origin": [0.025, -0.22], "paths": [{"points": [[-0.16, 0.3], [1.06, 0.3], [1.3, 0.5], [1.17, 0.8], [-0.08, 0.8], [-0.27, 0.6]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.045, "fillColor": "#46261e"}, {"points": [[0.02, 0.38], [0.83, 0.38], [1.05, 0.52], [0.97, 0.69], [0.02, 0.69]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.045, "fillColor": "#873b23"}, {"points": [[0.17, 0.54], [0.68, 0.54]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.045}, {"points": [[0.41, 0.42], [0.41, 0.66]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.045}, {"points": [[1.06, 0.42], [1.2, 0.51]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.045}]},"rubber-module-wall":{"origin": [0.025, -0.22], "paths": [{"points": [[-2.07, -0.505], [-1.48, -0.505], [-1.48, 0.095], [-2.07, 0.095], [-2.13, 0.035], [-2.13, -0.445]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#5c3024"}, {"points": [[-1.64, -0.505], [-1.48, -0.505], [-1.48, 0.095], [-1.64, 0.095]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#46261e"}, {"points": [[-2.02, -0.305], [-1.77, -0.305], [-1.77, -0.105], [-2.02, -0.105]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.04, "fillColor": "#54291e"}, {"points": [[-1.92, -0.305], [-1.92, -0.105]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.04}]},
+
+"cherity-bolt-rifle":{"origin":[0.25,0.1],"paths":[{"points":[[-3.1,-0.25],[-2.35,-0.25],[-2.12,-0.07],[-1.32,-0.07],[-1.32,0.14],[-2.14,0.14],[-2.53,0.53],[-3.1,0.53]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-3.18,-0.34],[-3.02,-0.34],[-3.02,0.6099999999999999],[-3.18,0.6099999999999999]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-2.83,-0.48],[-1.87,-0.48],[-1.87,-0.3],[-2.83,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-2.65,0.16],[-2.08,0.16],[-2.37,0.4],[-2.65,0.4]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-1.48,-0.32],[1.46,-0.32],[1.67,-0.14],[1.67,0.25],[1.44,0.39],[-0.26,0.39],[-0.46,0.21],[-1.48,0.21]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.4,-0.43],[1.5300000000000002,-0.43],[1.5300000000000002,-0.31],[-1.4,-0.31]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[1.67,-0.095],[3.11,-0.095],[3.11,0.095],[1.67,0.095]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[3.11,-0.21],[3.67,-0.21],[3.76,-0.12],[3.76,0.12],[3.67,0.21],[3.11,0.21]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[3.24,-0.14],[3.3350000000000004,-0.14],[3.3350000000000004,0.14],[3.24,0.14]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[3.48,-0.14],[3.575,-0.14],[3.575,0.14],[3.48,0.14]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.27,0.39],[0.3,0.39],[0.27,0.93],[-0.18,0.93],[-0.3,0.8]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.34,0.21],[-0.97,0.21],[-1.1,0.79],[-1.46,0.7]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.94,0.21],[-0.46,0.21],[-0.42,0.5],[-0.61,0.6],[-0.94,0.5]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-1.37,-0.78],[-1.1500000000000001,-0.78],[-1.1500000000000001,-0.43000000000000005],[-1.37,-0.43000000000000005]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.85,-0.62],[-0.72,-0.62],[-0.72,-0.43],[-0.85,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.34,-0.62],[0.47000000000000003,-0.62],[0.47000000000000003,-0.43],[0.34,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.15,-0.74],[0.48,-0.74],[0.69,-0.91],[1.02,-0.91],[1.14,-0.77],[1.14,-0.61],[1.02,-0.48],[0.69,-0.48],[0.48,-0.61],[-1.15,-0.61]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.18,-0.89],[0.020000000000000018,-0.89],[0.020000000000000018,-0.74],[-0.18,-0.74]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.5,-0.17],[0.18999999999999995,-0.17],[0.18999999999999995,0.06],[-0.5,0.06]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.14,-0.03],[0.33,0.17],[0.43,0.17]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.57,-0.08],[0.69,-0.08],[0.69,0.13],[0.57,0.13]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.85,-0.08],[0.97,-0.08],[0.97,0.13],[0.85,0.13]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[1.13,-0.08],[1.25,-0.08],[1.25,0.13],[1.13,0.13]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045}]},
+"tape-measure":{"origin":[0,0],"paths":[{"points":[[1.26529,-0.87882],[-1.43471,0.56118],[-1.26529,0.87882],[1.43471,-0.56118]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.76,-0.9],[1.35,-0.9],[1.53,-0.8],[1.53,-0.64],[1.35,-0.54],[-1.76,-0.54],[-1.85,-0.64],[-1.85,-0.8]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.35,0.54],[1.76,0.54],[1.85,0.64],[1.85,0.8],[1.76,0.9],[-1.35,0.9],[-1.53,0.8],[-1.53,0.64]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.59,-0.88],[-1.59,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.59,0.88],[1.59,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.365,-0.88],[-1.365,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.365,0.88],[1.365,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.14,-0.88],[-1.14,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.14,0.88],[1.14,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.915,-0.88],[-0.915,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.915,0.88],[0.915,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.69,-0.88],[-0.69,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.69,0.88],[0.69,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.465,-0.88],[-0.465,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.465,0.88],[0.465,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.24,-0.88],[-0.24,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.24,0.88],[0.24,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.015,-0.88],[-0.015,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.015,0.88],[0.015,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.21,-0.88],[0.21,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.21,0.88],[-0.21,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.435,-0.88],[0.435,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.435,0.88],[-0.435,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.66,-0.88],[0.66,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.66,0.88],[-0.66,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.885,-0.88],[0.885,-0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.885,0.88],[-0.885,0.78]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.11,-0.88],[1.11,-0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.11,0.88],[-1.11,0.68]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[1.0,-0.726],[1.04235,-0.64659]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.73,-0.582],[0.77235,-0.50259]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.46,-0.438],[0.54471,-0.27918]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[0.19,-0.294],[0.23235,-0.21459]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.08,-0.15],[-0.03765,-0.07059]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.35,-0.006],[-0.26529,0.15282]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.62,0.138],[-0.57765,0.21741]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-0.89,0.282],[-0.84765,0.36141]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03},{"points":[[-1.16,0.426],[-1.07529,0.58482]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.03}],"rings":[{"x":1.35,"y":-0.72,"radius":0.09},{"x":-1.35,"y":0.72,"radius":0.09}]},
+"temporal-dagger":{"origin":[0,0],"paths":[{"points":[[0,-1.5],[-0.26,-1.02],[-0.26,0.05],[0.26,0.05],[0.26,-1.02]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0,-1.26],[0,0.02]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.49,0.07],["L",-0.2,0.08],["L",0.2,0.08],["L",0.49,0.07],["L",0.54,0.19],["C",0.34,0.3,0.2,0.22,0,0.22],["C",-0.2,0.22,-0.34,0.3,-0.54,0.19],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.14,0.22],["L",0.14,0.22],["L",0.12,0.97],["L",-0.12,0.97],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.19,0.95],["L",0.19,0.95],["L",0.19,1.05],["C",0.19,1.22,-0.19,1.22,-0.19,1.05],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.14,0.41],[0.14,0.41]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.13,0.66],[0.13,0.66]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},
+"throwing-dagger":{"origin":[0,0],"paths":[{"points":[[0,-1.5],[-0.22,-1.08],[-0.22,0.04],[0.22,0.04],[0.22,-1.08]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0,-1.16],[0,-0.02]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,0.04],[0.31,0.04],[0.31,0.17],[-0.31,0.17]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",-0.15,0.17],["L",0.15,0.17],["L",0.15,1.02],["C",0.15,1.23,-0.15,1.23,-0.15,1.02],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.065,0.4],[0.065,0.4],[0.065,0.55],[-0.065,0.55]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.065,0.73],[0.065,0.73],[0.065,0.88],[-0.065,0.88]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},
+
+
+
+
+
+"laser-emitter":{"origin":[0,0],"paths":[{"points":[[-1.28,-0.25],[-1.08,-0.45],[0.55,-0.45],[0.83,-0.24],[0.83,0.24],[0.55,0.45],[-1.08,0.45],[-1.28,0.25]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.89,-0.23],[-0.46,-0.23],[-0.46,0.23],[-0.89,0.23]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0.44,"y":0,"radius":0.27},{"x":0.44,"y":0,"radius":0.12}]},
+"laser-dual-module":{"origin":[0,0],"featureRole":"two-emission-ports","paths":[{"points":[[0.74,-0.32],[1.26,-0.32],[1.43,-0.2],[1.43,0.2],[1.26,0.32],[0.74,0.32]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.85,-0.27],[1.4,-0.27],[1.4,-0.14],[0.85,-0.14]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.85,0.14],[1.4,0.14],[1.4,0.27],[0.85,0.27]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}],"rings":[{"x":1.32,"y":-0.205,"radius":0.05},{"x":1.32,"y":0.205,"radius":0.05}]},"laser-wide-module":{"origin":[0,0],"featureRole":"flared-emission-collar","paths":[{"points":[[0.54,-0.42],[1.31,-0.69],[1.78,-0.58],[1.87,-0.43],[1.69,-0.42],[1.28,-0.52],[0.54,-0.31]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.54,0.42],[1.31,0.69],[1.78,0.58],[1.87,0.43],[1.69,0.42],[1.28,0.52],[0.54,0.31]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[1.8,-0.43],[1.8,0.43]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"laser-range-module":{"origin":[0,0],"featureRole":"long-focus-rails","paths":[{"points":[[0.51,-0.4],[2.24,-0.4],[2.24,-0.33],[0.51,-0.33]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.51,0.33],[2.24,0.33],[2.24,0.4],[0.51,0.4]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[2.18,-0.35],[2.36,-0.14],[2.36,0.14],[2.18,0.35]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":2.24,"y":0,"radius":0.14}]},"laser-pierce-module":{"origin":[0,0],"featureRole":"penetration-compression-chamber","paths":[{"points":[[0.58,-0.25],[1.08,-0.25],[1.3,-0.08],[1.3,0.08],[1.08,0.25],[0.58,0.25]],"closed":true,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.71,-0.18],[0.78,-0.18],[0.78,0.18],[0.71,0.18]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.86,-0.15],[0.9299999999999999,-0.15],[0.9299999999999999,0.15],[0.86,0.15]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[1.01,-0.12],[1.08,-0.12],[1.08,0.12],[1.01,0.12]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},"laser-instant-module":{"origin":[0,0],"featureRole":"pulse-discharge-cell","paths":[{"points":[[-0.93,0.45],[0.33,0.45],[0.41,0.61],[0.31,0.88],[-0.9,0.88],[-1.01,0.66]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.74,0.49],[-0.74,0.84]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.43,0.49],[-0.43,0.84]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.12,0.49],[-0.12,0.84]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[0.19,0.49],[0.19,0.81]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.68,0.61],[-0.49,0.61],[-0.4,0.75],[-0.18,0.55],[0.03,0.69],[0.17,0.69]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"laser-knockback-module":{"origin":[0,0],"featureRole":"recoil-actuator","paths":[{"points":[[-1.79,-0.17],[-1.2000000000000002,-0.17],[-1.2000000000000002,-0.05000000000000002],[-1.79,-0.05000000000000002]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.79,0.05],[-1.2000000000000002,0.05],[-1.2000000000000002,0.16999999999999998],[-1.79,0.16999999999999998]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.79,-0.3],[-1.93,-0.18],[-1.93,0.18],[-1.79,0.3],[-1.61,0.3],[-1.61,-0.3]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.74,-0.15],[-1.74,0.15]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"laser-accelerate-module":{"origin":[0,0],"featureRole":"rapid-fire-cooling-fins","paths":[{"points":[[-1.04,-0.51],[-0.10000000000000009,-0.51],[-0.10000000000000009,-0.43],[-1.04,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.98,-0.78],[-0.86,-0.78],[-0.86,-0.51],[-0.98,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.73,-0.78],[-0.61,-0.78],[-0.61,-0.51],[-0.73,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.48,-0.78],[-0.36,-0.78],[-0.36,-0.51],[-0.48,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.23,-0.78],[-0.11000000000000001,-0.78],[-0.11000000000000001,-0.51],[-0.23,-0.51]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},"laser-electric-module":{"origin":[0,0],"featureRole":"electrode-windings","paths":[{"points":[[-0.31,-0.49],[-0.22999999999999998,-0.49],[-0.22999999999999998,0.49],[-0.31,0.49]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.1,-0.49],[-0.020000000000000004,-0.49],[-0.020000000000000004,0.49],[-0.1,0.49]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.11,-0.49],[0.19,-0.49],[0.19,0.49],[0.11,0.49]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,-0.49],[0.19,-0.49]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,0.49],[0.19,0.49]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"smoke-canister":{"origin":[0,0],"paths":[{"points":[[-0.5,-0.61],[0.5,-0.61],[0.64,-0.4],[0.64,0.69],[0.48,0.9],[-0.48,0.9],[-0.64,0.69],[-0.64,-0.4]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.31,-0.92],[0.31,-0.92],[0.31,-0.6100000000000001],[-0.31,-0.6100000000000001]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.49,-1.03],[0.49,-1.03],[0.49,-0.93],[-0.49,-0.93]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.37,-1.03],[0.61,-0.79],[0.55,-0.56]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.62,-0.13],[0.62,-0.13],[0.62,0.010000000000000009],[-0.62,0.010000000000000009]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.28,0.39],[0,0.1],[0.28,0.39]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":-0.12,"y":-1.19,"radius":0.16}]},"paper-airplane":{"origin":[0,0],"paths":[{"points":[[-1.22,-0.01],[1.42,-0.86],[0.61,1.04],[-0.05,0.49],[-0.43,0.92],[-0.42,0.22]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.22,-0.01],[-0.42,0.22],[1.42,-0.86]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.42,0.22],[-0.05,0.49],[1.42,-0.86]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.43,0.92],[-0.05,0.49]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},
+
+"paired-daggers": {"origin":[0,0],"parts":[{"pivot":[-0.27,-0.04],"angle":0.78,"paths":[{"commands":[["M",-0.13,0.18],["L",-0.13,-1.25],["L",0.13,-1.65],["L",0.16,-0.91],["C",0.52,-0.57,0.44,-0.12,0.16,0.18],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.16,-0.83],[0.31,-0.44],[0.25,-0.05]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[-0.31,0.16],[-0.31,0.05],[0.29,0.05],[0.38,0.16],[0.29,0.28],[-0.24,0.28]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.115,0.28],[0.115,0.28],[0.14,0.9],[0.05,1.03],[-0.14,0.91]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.19,0.89],[0.16,0.89],[0.18,1.03],[-0.02,1.15],[-0.2,1.02]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.12,0.48],[0.12,0.48]],"fill":false,"stroke":true,"lineWidth":0.045}]},{"pivot":[0.27,0.04],"angle":0.78,"paths":[{"commands":[["M",-0.13,0.18],["L",-0.13,-1.25],["L",0.13,-1.65],["L",0.16,-0.91],["C",0.52,-0.57,0.44,-0.12,0.16,0.18],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.16,-0.83],[0.31,-0.44],[0.25,-0.05]],"fill":false,"stroke":true,"lineWidth":0.035},{"points":[[-0.31,0.16],[-0.31,0.05],[0.29,0.05],[0.38,0.16],[0.29,0.28],[-0.24,0.28]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.115,0.28],[0.115,0.28],[0.14,0.9],[0.05,1.03],[-0.14,0.91]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.19,0.89],[0.16,0.89],[0.18,1.03],[-0.02,1.15],[-0.2,1.02]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.12,0.48],[0.12,0.48]],"fill":false,"stroke":true,"lineWidth":0.045}]}]},"toolbox": {"origin":[0,0],"paths":[{"points":[[-0.46,-0.68],[-0.46,-1.02],[-0.34,-1.14],[0.34,-1.14],[0.46,-1.02],[0.46,-0.68],[0.29,-0.68],[0.29,-0.96],[-0.29,-0.96],[-0.29,-0.68]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.03,-0.68],[1.03,-0.68],[1.16,-0.47],[1.12,0.83],[0.98,0.96],[-0.98,0.96],[-1.12,0.83],[-1.16,-0.47]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-1.12,-0.23],[1.12,-0.23]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045},{"points":[[-0.79,-0.4],[-0.56,-0.4],[-0.56,0.04],[-0.79,0.04]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.56,-0.4],[0.79,-0.4],[0.79,0.04],[0.56,0.04]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.78,0.26],[-0.78,0.64],[0.78,0.64],[0.78,0.26]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"toolbox-wrench": {"origin":[0,0],"paths":[{"points":[[-0.12,0.92],[-0.12,-0.23],[-0.44,-0.48],[-0.5,-0.82],[-0.33,-1.07],[-0.18,-0.67],[0.18,-0.67],[0.33,-1.07],[0.5,-0.82],[0.44,-0.48],[0.12,-0.23],[0.12,0.92],[0,1.09]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.08,-0.18],[0.08,-0.18]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0,"y":0.76,"radius":0.075}]},"magical-wand": {"origin":[0,0],"paths":[{"points":[[-0.09,0.98],[-0.09,-0.55],[0.09,-0.55],[0.09,0.98],[0,1.1]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.21,-0.55],[0.21,-0.55],[0.16,-0.43],[-0.16,-0.43]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.0,-1.5],[0.1469,-1.1823],[0.4945,-1.1407],[0.2378,-0.9027],[0.3056,-0.5593],[0.0,-0.73],[-0.3056,-0.5593],[-0.2378,-0.9027],[-0.4945,-1.1407],[-0.1469,-1.1823]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.0,-1.2],[0.0617,-1.0649],[0.2092,-1.048],[0.0999,-0.9476],[0.1293,-0.802],[0.0,-0.875],[-0.1293,-0.802],[-0.0999,-0.9476],[-0.2092,-1.048],[-0.0617,-1.0649]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.045}]},"magical-wand-1": {"origin":[0,0],"paths":[{"commands":[["M",-0.43,-0.78],["C",-0.87,-0.5,-0.63,-0.24,-0.14,-0.53],["L",0,-0.59],["L",0.14,-0.53],["C",0.63,-0.24,0.87,-0.5,0.43,-0.78],["L",0.24,-0.63],["L",0,-0.59],["L",-0.24,-0.63],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[-0.14,-0.49],[-0.38,-0.09],[-0.38,-0.31],[-0.56,-0.21],[-0.24,-0.56]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.14,-0.49],[0.38,-0.09],[0.38,-0.31],[0.56,-0.21],[0.24,-0.56]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}]},"magical-wand-2": {"origin":[0,0],"paths":[{"points":[[-0.55,-0.99],[-0.73,-1.21],[-0.55,-1.43],[-0.5,-1.18]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045},{"points":[[0.55,-0.99],[0.73,-1.21],[0.55,-1.43],[0.5,-1.18]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0,"y":-0.98,"radius":0.64}]},"magical-wand-3": {"origin":[0,0],"paths":[{"commands":[["M",-0.62,-0.86],["C",-0.91,-0.99,-1.05,-0.9,-1.13,-0.72],["L",-0.93,-0.75],["L",-0.96,-0.58],["L",-0.74,-0.7],["L",-0.71,-0.51],["C",-0.55,-0.56,-0.52,-0.69,-0.62,-0.86],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045},{"commands":[["M",0.62,-0.86],["C",0.91,-0.99,1.05,-0.9,1.13,-0.72],["L",0.93,-0.75],["L",0.96,-0.58],["L",0.74,-0.7],["L",0.71,-0.51],["C",0.55,-0.56,0.52,-0.69,0.62,-0.86],["Z"]],"fill":true,"stroke":true,"lineWidth":0.045}]},"magical-wand-4": {"origin":[0,0],"paths":[{"commands":[["M",-0.44,-1.39],["C",-0.75,-1.78,-0.24,-1.83,0,-1.57],["C",0.24,-1.83,0.75,-1.78,0.44,-1.39]],"fill":false,"stroke":true,"lineWidth":0.045}],"rings":[{"x":0,"y":0.34,"radius":0.11},{"x":0,"y":0.74,"radius":0.11}]},
+"gacha-capsule": {"origin":[0,0],"paths":[{"points":[[1.0,0.0],[0.99144,0.13053],[0.96593,0.25882],[0.92388,0.38268],[0.86603,0.5],[0.79335,0.60876],[0.70711,0.70711],[0.60876,0.79335],[0.5,0.86603],[0.38268,0.92388],[0.25882,0.96593],[0.13053,0.99144],[0.0,1.0],[-0.13053,0.99144],[-0.25882,0.96593],[-0.38268,0.92388],[-0.5,0.86603],[-0.60876,0.79335],[-0.70711,0.70711],[-0.79335,0.60876],[-0.86603,0.5],[-0.92388,0.38268],[-0.96593,0.25882],[-0.99144,0.13053],[-1.0,0.0],[-0.99144,-0.13053],[-0.96593,-0.25882],[-0.92388,-0.38268],[-0.86603,-0.5],[-0.79335,-0.60876],[-0.70711,-0.70711],[-0.60876,-0.79335],[-0.5,-0.86603],[-0.38268,-0.92388],[-0.25882,-0.96593],[-0.13053,-0.99144],[-0.0,-1.0],[0.13053,-0.99144],[0.25882,-0.96593],[0.38268,-0.92388],[0.5,-0.86603],[0.60876,-0.79335],[0.70711,-0.70711],[0.79335,-0.60876],[0.86603,-0.5],[0.92388,-0.38268],[0.96593,-0.25882],[0.99144,-0.13053]],"closed":true,"fill":true,"stroke":true,"lineWidth":0.065},{"points":[[-1,0],[1,0]],"closed":false,"fill":false,"stroke":true,"lineWidth":0.07}]},
+"role-dealer": {"origin": [0, 0], "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]},
+"role-tank": {"origin": [0, 0], "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]},
+"role-support": {"origin": [0, 0], "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]},
+"role-controller": {"origin": [0, 0], "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]},
+"role-sniper": {"origin": [0, 0], "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]},
+"role-assassin": {"origin": [0, 0], "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]},
+"role-pair-assassin-controller": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]}]},
+"role-pair-assassin-dealer": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}]},
+"role-pair-assassin-sniper": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]}]},
+"role-pair-assassin-support": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-assassin-tank": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[0.7056, -1.1509], [0.0587, -0.574], [-0.2954, 0.0418], [0.0968, 0.2822], [0.4849, -0.3126]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.554, -0.9037], [-0.0836, 0.1364]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.5663, -0.1478], [-0.6433, 0.0161], [-0.3796, 0.2365], [-0.0386, 0.4455], [0.2774, 0.5806], [0.3886, 0.4376], [0.0077, 0.2745], [-0.2481, 0.1177]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.3455, 0.2574], [-0.6839, 0.8476], [-0.6429, 1.0486], [-0.4451, 0.9939], [-0.0727, 0.4246]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.595, 0.7026], [-0.3563, 0.849]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-controller-dealer": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}]},
+"role-pair-controller-sniper": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]}]},
+"role-pair-controller-support": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-controller-tank": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"commands": [["M", 0.43841, 0.19799], ["L", 0.46542, 0.2332], ["L", 0.48241, 0.2742], ["L", 0.4882, 0.3182], ["L", 0.48241, 0.3622], ["L", 0.46542, 0.4032], ["L", 0.43841, 0.43841], ["L", 0.4032, 0.46542], ["L", 0.3622, 0.48241], ["L", 0.3182, 0.4882], ["L", 0.2742, 0.48241], ["L", 0.2332, 0.46542], ["L", 0.19799, 0.43841], ["L", -0.43841, -0.19799], ["L", -0.46542, -0.2332], ["L", -0.48241, -0.2742], ["L", -0.4882, -0.3182], ["L", -0.48241, -0.3622], ["L", -0.46542, -0.4032], ["L", -0.43841, -0.43841], ["L", -0.4032, -0.46542], ["L", -0.3622, -0.48241], ["L", -0.3182, -0.4882], ["L", -0.2742, -0.48241], ["L", -0.2332, -0.46542], ["L", -0.19799, -0.43841], ["Z"], ["M", -0.23335, -0.33941], ["L", -0.24888, -0.35133], ["L", -0.26697, -0.35882], ["L", -0.28638, -0.36138], ["L", -0.30579, -0.35882], ["L", -0.32388, -0.35133], ["L", -0.33941, -0.33941], ["L", -0.35133, -0.32388], ["L", -0.35882, -0.30579], ["L", -0.36138, -0.28638], ["L", -0.35882, -0.26697], ["L", -0.35133, -0.24888], ["L", -0.33941, -0.23335], ["L", 0.23335, 0.33941], ["L", 0.24888, 0.35133], ["L", 0.26697, 0.35882], ["L", 0.28638, 0.36138], ["L", 0.30579, 0.35882], ["L", 0.32388, 0.35133], ["L", 0.33941, 0.33941], ["L", 0.35133, 0.32388], ["L", 0.35882, 0.30579], ["L", 0.36138, 0.28638], ["L", 0.35882, 0.26697], ["L", 0.35133, 0.24888], ["L", 0.33941, 0.23335], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -0.14331, -0.62414], ["L", -0.08928, -0.55373], ["L", -0.05531, -0.47172], ["L", -0.04373, -0.38373], ["L", -0.05531, -0.29573], ["L", -0.08928, -0.21373], ["L", -0.14331, -0.14331], ["L", -0.21373, -0.08928], ["L", -0.29573, -0.05531], ["L", -0.38373, -0.04373], ["L", -0.47172, -0.05531], ["L", -0.55373, -0.08928], ["L", -0.62414, -0.14331], ["L", -1.07669, -0.59586], ["L", -1.13072, -0.66627], ["L", -1.16469, -0.74828], ["L", -1.17627, -0.83627], ["L", -1.16469, -0.92427], ["L", -1.13072, -1.00627], ["L", -1.07669, -1.07669], ["L", -1.00627, -1.13072], ["L", -0.92427, -1.16469], ["L", -0.83627, -1.17627], ["L", -0.74828, -1.16469], ["L", -0.66627, -1.13072], ["L", -0.59586, -1.07669], ["Z"], ["M", -0.68778, -0.95648], ["L", -0.72713, -0.98668], ["L", -0.77296, -1.00566], ["L", -0.82213, -1.01213], ["L", -0.87131, -1.00566], ["L", -0.91713, -0.98668], ["L", -0.95648, -0.95648], ["L", -0.98668, -0.91713], ["L", -1.00566, -0.87131], ["L", -1.01213, -0.82213], ["L", -1.00566, -0.77296], ["L", -0.98668, -0.72713], ["L", -0.95648, -0.68778], ["L", -0.53222, -0.26352], ["L", -0.49287, -0.23332], ["L", -0.44704, -0.21434], ["L", -0.39787, -0.20787], ["L", -0.34869, -0.21434], ["L", -0.30287, -0.23332], ["L", -0.26352, -0.26352], ["L", -0.23332, -0.30287], ["L", -0.21434, -0.34869], ["L", -0.20787, -0.39787], ["L", -0.21434, -0.44704], ["L", -0.23332, -0.49287], ["L", -0.26352, -0.53222], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.07669, 0.59586], ["L", 1.13072, 0.66627], ["L", 1.16469, 0.74828], ["L", 1.17627, 0.83627], ["L", 1.16469, 0.92427], ["L", 1.13072, 1.00627], ["L", 1.07669, 1.07669], ["L", 1.00627, 1.13072], ["L", 0.92427, 1.16469], ["L", 0.83627, 1.17627], ["L", 0.74828, 1.16469], ["L", 0.66627, 1.13072], ["L", 0.59586, 1.07669], ["L", 0.14331, 0.62414], ["L", 0.08928, 0.55373], ["L", 0.05531, 0.47172], ["L", 0.04373, 0.38373], ["L", 0.05531, 0.29573], ["L", 0.08928, 0.21373], ["L", 0.14331, 0.14331], ["L", 0.21373, 0.08928], ["L", 0.29573, 0.05531], ["L", 0.38373, 0.04373], ["L", 0.47172, 0.05531], ["L", 0.55373, 0.08928], ["L", 0.62414, 0.14331], ["Z"], ["M", 0.53222, 0.26352], ["L", 0.49287, 0.23332], ["L", 0.44704, 0.21434], ["L", 0.39787, 0.20787], ["L", 0.34869, 0.21434], ["L", 0.30287, 0.23332], ["L", 0.26352, 0.26352], ["L", 0.23332, 0.30287], ["L", 0.21434, 0.34869], ["L", 0.20787, 0.39787], ["L", 0.21434, 0.44704], ["L", 0.23332, 0.49287], ["L", 0.26352, 0.53222], ["L", 0.68778, 0.95648], ["L", 0.72713, 0.98668], ["L", 0.77296, 1.00566], ["L", 0.82213, 1.01213], ["L", 0.87131, 1.00566], ["L", 0.91713, 0.98668], ["L", 0.95648, 0.95648], ["L", 0.98668, 0.91713], ["L", 1.00566, 0.87131], ["L", 1.01213, 0.82213], ["L", 1.00566, 0.77296], ["L", 0.98668, 0.72713], ["L", 0.95648, 0.68778], ["Z"]], "fill": true, "stroke": true, "lineWidth": 0.05}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-dealer-sniper": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]}]},
+"role-pair-dealer-support": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-dealer-tank": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.42282, -1.47041], [-0.13376, -1.11652], [0.28881, 0.2083], [-0.13405, 0.32989], [-0.47974, -1.01703]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[-0.35926, -1.24937], [0.06633, 0.23065]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}, {"points": [[0.72393, 0.02075], [0.67756, 0.22137], [0.2726, 0.36904], [-0.03494, 0.45747], [-0.45648, 0.54747], [-0.60233, 0.40212], [-0.52281, 0.31682], [-0.08192, 0.29409], [0.22562, 0.20566], [0.61124, -0.00928]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.24653, 0.38694], [0.42761, 1.05283], [0.19696, 1.11916], [-0.00334, 0.45879]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.4908, 1.05547], [0.37032, 1.28781], [0.14482, 1.15496], [0.28741, 0.9995]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.065}, {"points": [[0.35299, 0.79334], [0.12234, 0.85967]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.065}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-sniper-support": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-sniper-tank": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[1.0, 0.0], [0.995185, 0.098017], [0.980785, 0.19509], [0.95694, 0.290285], [0.92388, 0.382683], [0.881921, 0.471397], [0.83147, 0.55557], [0.77301, 0.634393], [0.707107, 0.707107], [0.634393, 0.77301], [0.55557, 0.83147], [0.471397, 0.881921], [0.382683, 0.92388], [0.290285, 0.95694], [0.19509, 0.980785], [0.098017, 0.995185], [0.0, 1.0], [-0.098017, 0.995185], [-0.19509, 0.980785], [-0.290285, 0.95694], [-0.382683, 0.92388], [-0.471397, 0.881921], [-0.55557, 0.83147], [-0.634393, 0.77301], [-0.707107, 0.707107], [-0.77301, 0.634393], [-0.83147, 0.55557], [-0.881921, 0.471397], [-0.92388, 0.382683], [-0.95694, 0.290285], [-0.980785, 0.19509], [-0.995185, 0.098017], [-1.0, 0.0], [-0.995185, -0.098017], [-0.980785, -0.19509], [-0.95694, -0.290285], [-0.92388, -0.382683], [-0.881921, -0.471397], [-0.83147, -0.55557], [-0.77301, -0.634393], [-0.707107, -0.707107], [-0.634393, -0.77301], [-0.55557, -0.83147], [-0.471397, -0.881921], [-0.382683, -0.92388], [-0.290285, -0.95694], [-0.19509, -0.980785], [-0.098017, -0.995185], [-0.0, -1.0], [0.098017, -0.995185], [0.19509, -0.980785], [0.290285, -0.95694], [0.382683, -0.92388], [0.471397, -0.881921], [0.55557, -0.83147], [0.634393, -0.77301], [0.707107, -0.707107], [0.77301, -0.634393], [0.83147, -0.55557], [0.881921, -0.471397], [0.92388, -0.382683], [0.95694, -0.290285], [0.980785, -0.19509], [0.995185, -0.098017]], "closed": true, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.28, 0.0], [1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, 0.28], [0.0, 1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[-0.28, 0.0], [-1.25, 0.0]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}, {"points": [[0.0, -0.28], [0.0, -1.25]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.1}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]}]},
+"role-pair-support-tank": {"origin": [0, 0], "parts": [{"pivot": [-1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-0.3, -1.2], [0.3, -1.2], [0.3, -0.3], [1.2, -0.3], [1.2, 0.3], [0.3, 0.3], [0.3, 1.2], [-0.3, 1.2], [-0.3, 0.3], [-1.2, 0.3], [-1.2, -0.3], [-0.3, -0.3]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}]}, {"pivot": [1.15, 0], "scaleX": 0.85, "scaleY": 0.85, "paths": [{"points": [[-1, -1], [1, -1], [0.85, 0.55], [0, 1.25], [-0.85, 0.55]], "closed": true, "fill": true, "stroke": true, "lineWidth": 0.07}, {"points": [[0, -0.7], [0, 0.7]], "closed": false, "fill": false, "stroke": true, "lineWidth": 0.07}]}]},
+"sun": {"paths": [{"commands": [["M", 0, -2.95], ["L", 0.48, -2.55], ["L", 0.48, 0.65], ["L", -0.48, 0.65], ["L", -0.48, -2.55], ["Z"]], "fill": true, "stroke": true, "fillColor": "#9c6e2a", "lineWidth": 0.1}, {"commands": [["M", 0, -2.65], ["L", 0, 0.48]], "stroke": true, "lineWidth": 0.15}, {"commands": [["M", -1, 0.5], ["L", -0.82, 0.82], ["L", -0.3, 0.78], ["L", 0, 0.9], ["L", 0.3, 0.78], ["L", 0.82, 0.82], ["L", 1, 0.5], ["L", 0.42000000000000004, 0.55], ["L", 0, 0.35], ["L", -0.42000000000000004, 0.55], ["Z"]], "fill": true, "stroke": true, "fillColor": "#dba94b", "lineWidth": 0.075}, {"commands": [["A", 0, 0.6, 0.19, 0, 6.283185307179586]], "fill": true, "stroke": false, "fillColor": "#fff0a3"}, {"commands": [["M", -0.25, 0.6], ["L", -0.34, 0.6], ["M", 0.25, 0.6], ["L", 0.34, 0.6], ["M", 0, 0.35], ["L", 0, 0.26], ["M", 0, 0.85], ["L", 0, 0.94]], "lineWidth": 0.04}, {"points": [[-0.15, 0.83], [0.15, 0.83], [0.13, 1.48], [-0.13, 1.48]], "closed": true, "fill": true, "fillColor": "#775c36"}, {"points": [[-0.14, 0.94], [0.14, 1.01]]}, {"points": [[-0.14, 1.0699999999999998], [0.14, 1.1400000000000001]]}, {"points": [[-0.14, 1.2], [0.14, 1.27]]}, {"points": [[-0.14, 1.33], [0.14, 1.4]]}, {"points": [[-0.18, 1.48], [0.18, 1.48], [0.16, 1.59], [-0.16, 1.59]], "closed": true, "fill": true, "fillColor": "#775c36"}], "origin": [0, -0.68]},
+"dark": {"paths": [{"commands": [["M", 0, -3.1], ["L", 0.5, -2.35], ["L", 0.35, -1.45], ["L", 0.53, -1.1], ["L", 0.32, -0.9200000000000002], ["L", 0.34, 0.6], ["L", -0.34, 0.6], ["L", -0.32, -0.9200000000000002], ["L", -0.53, -1.1], ["L", -0.35, -1.45], ["L", -0.5, -2.35], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292035", "lineWidth": 0.1}, {"commands": [["M", 0, -2.8], ["L", -0.13, -1.7], ["L", 0.12, -1.05], ["L", 0, 0.48]], "stroke": true, "lineWidth": 0.08499999999999999}, {"commands": [["M", -0.9399999999999998, 0.25], ["L", -0.6, 0.8], ["L", 0, 0.65], ["L", 0.6, 0.8], ["L", 0.9399999999999998, 0.25], ["L", 0.5, 0.4600000000000001], ["L", 0, 0.42000000000000004], ["L", -0.5, 0.4600000000000001], ["Z"]], "fill": true, "stroke": true, "fillColor": "#493057", "lineWidth": 0.075}, {"points": [[-0.15, 0.83], [0.15, 0.83], [0.13, 1.48], [-0.13, 1.48]], "closed": true, "fill": true, "fillColor": "#49324f"}, {"points": [[-0.14, 0.94], [0.14, 1.01]]}, {"points": [[-0.14, 1.0699999999999998], [0.14, 1.1400000000000001]]}, {"points": [[-0.14, 1.2], [0.14, 1.27]]}, {"points": [[-0.14, 1.33], [0.14, 1.4]]}, {"points": [[-0.18, 1.48], [0.18, 1.48], [0.16, 1.59], [-0.16, 1.59]], "closed": true, "fill": true, "fillColor": "#49324f"}], "origin": [0, -0.755]},
+"pistol": {"paths": [{"commands": [["M", -1.55, -0.52], ["L", 1.15, -0.52], ["L", 1.37, -0.32], ["L", 1.37, 0.029999999999999995], ["L", -1.55, 0.029999999999999995], ["Z"]], "fill": true, "stroke": true, "fillColor": "#66616b", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.3, 0.029999999999999995], ["L", 0.91, 0.029999999999999995], ["L", 0.76, 0.23], ["L", -0.38, 0.23], ["L", -0.61, 1.27], ["L", -1.27, 1.27], ["L", -1.04, 0.2], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.46, 0.22], ["L", 0.34, 0.22], ["L", 0.22, 0.64], ["L", -0.5400000000000001, 0.64], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.28, 0.32], ["L", 0.11999999999999998, 0.32], ["L", 0.05, 0.51], ["L", -0.31, 0.51]], "stroke": true, "lineWidth": 0.04}, {"commands": [["M", -1.32, -0.37], ["L", 0.9599999999999999, -0.37]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", -1.16, -0.28], ["L", -1.1, -0.07]], "stroke": true, "lineWidth": 0.04666666666666666}, {"commands": [["M", -0.9899999999999999, -0.28], ["L", -0.93, -0.07]], "stroke": true, "lineWidth": 0.04666666666666666}, {"commands": [["M", -0.8199999999999998, -0.28], ["L", -0.76, -0.07]], "stroke": true, "lineWidth": 0.04666666666666666}, {"commands": [["M", -1.0800000000000003, 1.12], ["L", -0.7, 1.12]], "stroke": true, "lineWidth": 0.06666666666666667}], "origin": [-0.08999999999999997, 0.375]},
+"shotgun": {"paths": [{"commands": [["M", 0.55, -0.23999999999999996], ["L", 2.65, -0.23999999999999996], ["L", 2.65, -0.05], ["L", 0.55, -0.05], ["Z"]], "fill": true, "stroke": true, "fillColor": "#66616b", "lineWidth": 0.05333333333333334}, {"commands": [["M", 2.52, -0.29], ["L", 2.77, -0.29], ["L", 2.77, 0.02], ["L", 2.52, 0.02], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.15, -0.39], ["L", 0.75, -0.39], ["L", 0.89, -0.2], ["L", 0.7099999999999999, 0.3], ["L", -0.93, 0.3], ["L", -1.15, 0.09], ["Z"]], "fill": true, "stroke": true, "fillColor": "#66616b", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.15, -0.21], ["L", -1.4199999999999997, -0.21], ["L", -2.15, -0.38], ["L", -2.58, -0.38], ["L", -2.58, 0.56], ["L", -2.12, 0.56], ["L", -1.55, 0.17], ["L", -1.1, 0.14], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -2.4, -0.23], ["L", -2.4, 0.39]], "stroke": true, "lineWidth": 0.1}, {"commands": [["M", -0.72, 0.3], ["L", -0.26, 0.3], ["L", -0.49, 1.02], ["L", -0.99, 1.02], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.25, 0.3], ["L", 0.34, 0.3], ["L", 0.2, 0.64], ["L", -0.34, 0.64], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.13, 0.4], ["L", 0.2, 0.4], ["L", 0.11999999999999998, 0.5400000000000001], ["L", -0.19, 0.5400000000000001]], "stroke": true, "lineWidth": 0.03666666666666667}, {"commands": [["M", -0.95, -0.23999999999999996], ["L", 0.59, -0.23999999999999996]], "stroke": true, "lineWidth": 0.056666666666666664}, {"commands": [["M", 0.8, -0.11999999999999998], ["L", 1.95, -0.11999999999999998], ["L", 1.95, 0.4], ["L", 0.8, 0.4], ["Z"]], "fill": true, "stroke": true, "fillColor": "#59525e", "lineWidth": 0.05333333333333334}, {"commands": [["M", 0.97, 0], ["L", 0.97, 0.26]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.14, 0], ["L", 1.14, 0.26]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.31, 0], ["L", 1.31, 0.26]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.48, 0], ["L", 1.48, 0.26]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 1.65, 0], ["L", 1.65, 0.26]], "stroke": true, "lineWidth": 0.05}, {"commands": [["M", 0.78, 0.18], ["L", 2.25, 0.18]], "stroke": true, "lineWidth": 0.1}], "origin": [0.09499999999999997, 0.315]},
+"sniper": {"paths": [{"commands": [["M", 0.55, -0.23999999999999996], ["L", 3.1, -0.23999999999999996], ["L", 3.1, -0.05], ["L", 0.55, -0.05], ["Z"]], "fill": true, "stroke": true, "fillColor": "#547c98", "lineWidth": 0.05333333333333334}, {"commands": [["M", 2.97, -0.29], ["L", 3.22, -0.29], ["L", 3.22, 0.02], ["L", 2.97, 0.02], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.15, -0.39], ["L", 0.75, -0.39], ["L", 0.89, -0.2], ["L", 0.7099999999999999, 0.3], ["L", -0.93, 0.3], ["L", -1.15, 0.09], ["Z"]], "fill": true, "stroke": true, "fillColor": "#547c98", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.15, -0.21], ["L", -1.4199999999999997, -0.21], ["L", -2.15, -0.38], ["L", -2.58, -0.38], ["L", -2.58, 0.56], ["L", -2.12, 0.56], ["L", -1.55, 0.17], ["L", -1.1, 0.14], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -2.4, -0.23], ["L", -2.4, 0.39]], "stroke": true, "lineWidth": 0.1}, {"commands": [["M", -0.72, 0.3], ["L", -0.26, 0.3], ["L", -0.49, 1.02], ["L", -0.99, 1.02], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.25, 0.3], ["L", 0.34, 0.3], ["L", 0.2, 0.64], ["L", -0.34, 0.64], ["Z"]], "fill": true, "stroke": true, "fillColor": "#292b35", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.13, 0.4], ["L", 0.2, 0.4], ["L", 0.11999999999999998, 0.5400000000000001], ["L", -0.19, 0.5400000000000001]], "stroke": true, "lineWidth": 0.03666666666666667}, {"commands": [["M", -0.95, -0.23999999999999996], ["L", 0.59, -0.23999999999999996]], "stroke": true, "lineWidth": 0.056666666666666664}, {"commands": [["M", 0.1, 0.3], ["L", 0.55, 0.3], ["L", 0.45, 0.85], ["L", -0.02, 0.85], ["Z"]], "fill": true, "stroke": true, "fillColor": "#36516b", "lineWidth": 0.05333333333333334}, {"commands": [["M", -0.55, -0.42], ["L", -0.55, -0.62], ["L", 0.25, -0.62], ["L", 0.25, -0.42]], "stroke": true, "lineWidth": 0.06666666666666667}, {"commands": [["M", -1.03, -0.85], ["L", 0.69, -0.85], ["L", 0.69, -0.56], ["L", -1.03, -0.56], ["Z"]], "fill": true, "stroke": true, "fillColor": "#3a607a", "lineWidth": 0.05333333333333334}, {"commands": [["M", -1.16, -0.9599999999999999], ["L", -0.85, -0.9599999999999999], ["L", -0.85, -0.46], ["L", -1.16, -0.46], ["Z"]], "fill": true, "stroke": true, "fillColor": "#547c98", "lineWidth": 0.05333333333333334}, {"commands": [["M", 0.5, -1], ["L", 0.94, -1], ["L", 0.94, -0.42], ["L", 0.5, -0.42], ["Z"]], "fill": true, "stroke": true, "fillColor": "#547c98", "lineWidth": 0.05333333333333334}, {"commands": [["M", 0.78, -0.87], ["L", 0.78, -0.55]], "stroke": true, "lineWidth": 0.1}], "origin": [0.32000000000000006, 0.010000000000000009]},
+"bow": {"paths": [{"commands": [["M", -0.2, -2.18], ["C", 0.12, -1.94, 0.43, -1.75, 0.58, -1.25], ["C", 0.72, -0.76, 0.53, -0.46, 0.44, -0.23], ["L", 0.34, -0.23], ["C", 0.35, -0.65, 0.54, -0.78, 0.42, -1.27], ["C", 0.3, -1.74, 0.02, -1.93, -0.2, -2.18], ["Z"]], "fill": true}, {"commands": [["M", -0.2, 2.18], ["C", 0.12, 1.94, 0.43, 1.75, 0.58, 1.25], ["C", 0.72, 0.76, 0.53, 0.46, 0.44, 0.23], ["L", 0.34, 0.23], ["C", 0.35, 0.65, 0.54, 0.78, 0.42, 1.27], ["C", 0.3, 1.74, 0.02, 1.93, -0.2, 2.18], ["Z"]], "fill": true}, {"points": [[0.32, -0.25], [0.48, -0.25], [0.48, 0.25], [0.32, 0.25]], "closed": true, "fill": true}, {"points": [[0.34, -0.12], [0.46, -0.12]]}, {"points": [[0.34, 0.12], [0.46, 0.12]]}], "string": {"start": [-0.2, -2.18], "end": [-0.2, 2.18], "restX": -0.2, "pullX": -1.1}, "origin": [0.21492187499999996, 0]},
+"harpoon": {"paths": [{"points": [[-2.4, -0.09], [1.14, -0.09], [1.14, -0.29], [2.55, 0], [1.14, 0.29], [1.14, 0.09], [-2.4, 0.09]], "closed": true, "fill": true}, {"points": [[-2.53, -0.17], [-2.28, -0.17], [-2.28, 0.17], [-2.53, 0.17]], "closed": true, "fill": true}, {"points": [[1.34, 0.07], [0.81, 0.68], [0.61, 0.46], [0.95, 0.12]], "closed": true, "fill": true}, {"points": [[1.24, 0], [2.12, 0]]}, {"points": [[-1.06, -0.15], [-0.22, -0.15], [-0.16, 0.15], [-1.12, 0.15]], "closed": true, "fill": true, "fillColor": "#70513d"}, {"points": [[-0.98, -0.14], [-1.04, 0.14]]}, {"points": [[-0.82, -0.14], [-0.88, 0.14]]}, {"points": [[-0.6599999999999999, -0.14], [-0.72, 0.14]]}, {"points": [[-0.5, -0.14], [-0.56, 0.14]]}, {"points": [[-0.33999999999999997, -0.14], [-0.4, 0.14]]}], "origin": [0.010000000000000009, 0.19500000000000003]},
+"wrench": {"paths": [{"commands": [["M", -1.12, -0.43], ["L", -0.76, -0.43], ["L", -0.57, -0.22], ["L", 0.57, -0.22], ["L", 0.76, -0.43], ["L", 1.12, -0.43], ["L", 1.23, -0.22], ["L", 0.86, -0.22], ["L", 0.74, 0], ["L", 0.86, 0.22], ["L", 1.23, 0.22], ["L", 1.12, 0.43], ["L", 0.76, 0.43], ["L", 0.57, 0.22], ["L", -0.57, 0.22], ["L", -0.76, 0.43], ["L", -1.12, 0.43], ["L", -1.23, 0.22], ["L", -0.86, 0.22], ["L", -0.74, 0], ["L", -0.86, -0.22], ["L", -1.23, -0.22], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(105,137,56,.96)", "lineWidth": 0.03663003663003663}, {"commands": [["M", -0.5, -0.08], ["L", 0.5, -0.08], ["L", 0.5, 0.08], ["L", -0.5, 0.08], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(12,16,14,.55)", "lineWidth": 0.016483516483516484}, {"commands": [["M", -0.45, -0.14], ["L", 0.45, -0.14]], "stroke": true, "lineWidth": 0.020146520146520148}], "origin": [0, 0]},
+"gear": {"paths": [{"commands": [["M", 0.87, 0], ["L", 0.996917333733128, 0.07845909572784494], ["L", 0.9767658813208723, 0.21430915306505077], ["L", 0.8325380920870217, 0.2525476692113822], ["L", 0.8037751932848195, 0.3329345861576281], ["L", 0.8910065241883679, 0.45399049973954675], ["L", 0.8204014435255135, 0.5717879602276122], ["L", 0.6725190944255811, 0.5519221572223716], ["L", 0.6151828996322964, 0.6151828996322962], ["L", 0.6494480483301835, 0.760405965600031], ["L", 0.5391383229110004, 0.8422172337162864], ["L", 0.41011516103861806, 0.7672714999830689], ["L", 0.33293458615762817, 0.8037751932848195], ["L", 0.30901699437494745, 0.9510565162951535], ["L", 0.1757962799343547, 0.9844265680898916], ["L", 0.08527491208671786, 0.8658107122048112], ["L", 5.327213576290987e-17, 0.87], ["L", -0.07845909572784487, 0.996917333733128], ["L", -0.21430915306505058, 0.9767658813208725], ["L", -0.2525476692113821, 0.8325380920870218], ["L", -0.3329345861576281, 0.8037751932848195], ["L", -0.45399049973954675, 0.8910065241883679], ["L", -0.5717879602276121, 0.8204014435255137], ["L", -0.5519221572223715, 0.6725190944255813], ["L", -0.6151828996322962, 0.6151828996322964], ["L", -0.7604059656000308, 0.6494480483301838], ["L", -0.8422172337162864, 0.5391383229110004], ["L", -0.7672714999830689, 0.41011516103861817], ["L", -0.8037751932848195, 0.3329345861576282], ["L", -0.9510565162951535, 0.3090169943749475], ["L", -0.9844265680898916, 0.17579627993435473], ["L", -0.8658107122048112, 0.08527491208671792], ["L", -0.87, 1.0654427152581974e-16], ["L", -0.9969173337331282, -0.07845909572784437], ["L", -0.9767658813208723, -0.2143091530650509], ["L", -0.8325380920870218, -0.252547669211382], ["L", -0.8037751932848195, -0.332934586157628], ["L", -0.8910065241883681, -0.45399049973954625], ["L", -0.8204014435255135, -0.5717879602276125], ["L", -0.6725190944255813, -0.5519221572223714], ["L", -0.6151828996322964, -0.6151828996322962], ["L", -0.6494480483301841, -0.7604059656000305], ["L", -0.5391383229110001, -0.8422172337162867], ["L", -0.4101151610386182, -0.7672714999830689], ["L", -0.3329345861576286, -0.8037751932848193], ["L", -0.30901699437494756, -0.9510565162951535], ["L", -0.1757962799343548, -0.9844265680898916], ["L", -0.08527491208671759, -0.8658107122048113], ["L", -1.598164072887296e-16, -0.87], ["L", 0.07845909572784432, -0.9969173337331282], ["L", 0.21430915306505088, -0.9767658813208723], ["L", 0.252547669211382, -0.8325380920870218], ["L", 0.3329345861576283, -0.8037751932848194], ["L", 0.4539904997395466, -0.891006524188368], ["L", 0.571787960227612, -0.8204014435255138], ["L", 0.5519221572223717, -0.6725190944255811], ["L", 0.6151828996322962, -0.6151828996322964], ["L", 0.7604059656000305, -0.6494480483301841], ["L", 0.8422172337162867, -0.5391383229110002], ["L", 0.7672714999830688, -0.4101151610386182], ["L", 0.8037751932848193, -0.33293458615762866], ["L", 0.9510565162951535, -0.3090169943749476], ["L", 0.9844265680898916, -0.17579627993435484], ["L", 0.8658107122048113, -0.08527491208671764], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgb(64,57,17)", "lineWidth": 0.04}, {"commands": [["A", 0, 0, 0.73, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(18,24,25,.96)", "lineWidth": 0.024}, {"commands": [["M", -0.04364592461617385, -0.1951794898661211], ["L", -0.06389338665397004, -0.6368026657779364], ["L", 0.06389338665397011, -0.6368026657779364], ["L", 0.04364592461617387, -0.1951794898661211], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["M", 0.14720743421366136, -0.1353882244223277], ["L", 0.5195405924343593, -0.3737346288651279], ["L", 0.5834339790883294, -0.26306803691280867], ["L", 0.19085335882983523, -0.059791265443793436], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["M", 0.19085335882983523, 0.05979126544379339], ["L", 0.5834339790883294, 0.2630680369128085], ["L", 0.5195405924343595, 0.37373462886512776], ["L", 0.14720743421366136, 0.13538822442232765], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["M", 0.04364592461617387, 0.1951794898661211], ["L", 0.06389338665397011, 0.6368026657779364], ["L", -0.06389338665397004, 0.6368026657779364], ["L", -0.04364592461617385, 0.1951794898661211], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["M", -0.14720743421366125, 0.13538822442232779], ["L", -0.5195405924343592, 0.3737346288651281], ["L", -0.5834339790883294, 0.2630680369128088], ["L", -0.19085335882983517, 0.05979126544379345], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["M", -0.19085335882983523, -0.0597912654437934], ["L", -0.5834339790883294, -0.2630680369128086], ["L", -0.5195405924343593, -0.37373462886512804], ["L", -0.1472074342136613, -0.13538822442232776], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.42)", "lineWidth": 0.02}, {"commands": [["A", 3.551475717527324e-17, -0.58, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["A", 0.5022947341949744, -0.29, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["A", 0.5022947341949745, 0.28999999999999987, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["A", 3.551475717527324e-17, 0.58, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["A", -0.5022947341949743, 0.2900000000000002, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["A", -0.5022947341949744, -0.2900000000000001, 0.06, 0, 6.283185307179586]], "fill": true, "stroke": true, "fillColor": "rgba(230,202,59,.85)", "lineWidth": 0.02}, {"commands": [["M", 0.19052558883257653, 0.10999999999999999], ["L", 1.3471114790620886e-17, 0.22], ["L", -0.19052558883257645, 0.11000000000000007], ["L", -0.19052558883257653, -0.10999999999999995], ["L", -4.041334437186265e-17, -0.22], ["L", 0.19052558883257653, -0.10999999999999993], ["Z"]], "fill": true, "stroke": true, "fillColor": "rgb(64,57,17)", "lineWidth": 0.03}, {"commands": [["A", 0, 0, 0.075, 0, 6.283185307179586]], "fill": true, "stroke": false, "fillColor": "#fff7c2"}], "origin": [-1.1102230246251565e-16, -1.1102230246251565e-16]},
+"sun-blessed": {"paths": [{"commands": [["M", 0, -2.95], ["L", 0.48, -2.55], ["L", 0.48, 0.65], ["L", -0.48, 0.65], ["L", -0.48, -2.55], ["Z"]], "fill": true, "stroke": true, "fillColor": "#195a77", "lineWidth": 0.1}, {"commands": [["M", 0, -2.65], ["L", 0, 0.48]], "stroke": true, "lineWidth": 0.15}, {"commands": [["M", -1, 0.5], ["L", -0.82, 0.82], ["L", -0.3, 0.78], ["L", 0, 0.9], ["L", 0.3, 0.78], ["L", 0.82, 0.82], ["L", 1, 0.5], ["L", 0.42000000000000004, 0.55], ["L", 0, 0.35], ["L", -0.42000000000000004, 0.55], ["Z"]], "fill": true, "stroke": true, "fillColor": "#248dbc", "lineWidth": 0.075}, {"commands": [["A", 0, 0.6, 0.19, 0, 6.283185307179586]], "fill": true, "stroke": false, "fillColor": "#8be7ff"}, {"commands": [["M", -0.25, 0.6], ["L", -0.34, 0.6], ["M", 0.25, 0.6], ["L", 0.34, 0.6], ["M", 0, 0.35], ["L", 0, 0.26], ["M", 0, 0.85], ["L", 0, 0.94]], "lineWidth": 0.04}, {"points": [[-0.15, 0.83], [0.15, 0.83], [0.13, 1.48], [-0.13, 1.48]], "closed": true, "fill": true, "fillColor": "#245c75"}, {"points": [[-0.14, 0.94], [0.14, 1.01]]}, {"points": [[-0.14, 1.0699999999999998], [0.14, 1.1400000000000001]]}, {"points": [[-0.14, 1.2], [0.14, 1.27]]}, {"points": [[-0.14, 1.33], [0.14, 1.4]]}, {"points": [[-0.18, 1.48], [0.18, 1.48], [0.16, 1.59], [-0.16, 1.59]], "closed": true, "fill": true, "fillColor": "#245c75"}], "origin": [0, -0.68]},
+"frost-scythe": {"paths": [{"points": [[-0.1, -2.06], [0.1, -2.06], [0.09, 1.86], [0, 2.06], [-0.09, 1.86]], "closed": true, "fill": true, "fillColor": "#293e60", "stroke": true}, {"commands": [["M", -0.26, -2.18], ["L", 0.18, -2.61], ["L", 0.41, -2.33], ["L", 0.91, -2.43], ["L", 1.06, -2.15], ["L", 1.59, -2.01], ["L", 1.67, -1.72], ["L", 2.09, -1.43], ["L", 2.75, -0.56], ["C", 1.91, -1.23, 0.73, -1.71, -0.19, -1.56], ["L", -0.3, -1.77], ["Z"]], "fill": true, "fillColor": "#426e9c"}, {"points": [[0.13, -2.39], [0.4, -1.88], [1.61, -1.77], [2.75, -0.56]], "lineWidth": 0.035}, {"points": [[-0.24, -1.96], [0, -2.21], [0.24, -1.96], [0, -1.68]], "closed": true, "fill": true, "fillColor": "#8ab9de", "stroke": true}, {"points": [[0, -2.06], [0.1, -1.96], [0, -1.79], [-0.1, -1.96]], "closed": true, "fill": true, "fillColor": "#b9dcf0", "stroke": false}, {"points": [[0, -1.6], [0, 1.66]], "lineWidth": 0.035}, {"points": [[-0.16, 1.66], [0, 2.1], [0.16, 1.66], [0, 1.46]], "closed": true, "fill": true, "fillColor": "#6595bb", "stroke": true}], "origin": [0, 0]},
+"chain-scythe-right": {"paths": [{"points": [[-0.09, -1.5], [0.09, -1.5], [0.08, 1.26], [-0.08, 1.26]], "closed": true, "fill": true, "fillColor": "#20585d"}, {"points": [[-0.18, -1.57], [0.65, -1.57], [1.46, -1.23], [1.77, -0.57], [1.72, -0.13], [1.46, -0.73], [0.52, -1.13], [-0.18, -1.13]], "closed": true, "fill": true, "fillColor": "#2d8186"}, {"points": [[-0.15, -1.64], [0.15, -1.64], [0.15, -1.1], [-0.15, -1.1]], "closed": true, "fill": true, "fillColor": "#368a90"}, {"points": [[-0.12, 1.13], [0.12, 1.13], [0.12, 1.3], [-0.12, 1.3]], "closed": true, "fill": true, "fillColor": "#368a90"}, {"commands": [["M", -0.16, -1.05], ["C", -0.22, -1.06, -0.23, -0.97, -0.14, -0.9299999999999999], ["L", 0.12, -0.8], ["C", 0.21, -0.76, 0.23, -0.85, 0.14, -0.89], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", -0.16, -0.5700000000000001], ["C", -0.22, -0.5800000000000001, -0.23, -0.49, -0.14, -0.45], ["L", 0.12, -0.32], ["C", 0.21, -0.28, 0.23, -0.37, 0.14, -0.41000000000000003], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", -0.16, -0.09000000000000004], ["C", -0.22, -0.10000000000000003, -0.23, -0.010000000000000037, -0.14, 0.02999999999999997], ["L", 0.12, 0.15999999999999998], ["C", 0.21, 0.19999999999999996, 0.23, 0.10999999999999996, 0.14, 0.06999999999999997], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", -0.16, 0.38999999999999996], ["C", -0.22, 0.37999999999999995, -0.23, 0.47, -0.14, 0.51], ["L", 0.12, 0.6399999999999999], ["C", 0.21, 0.6799999999999999, 0.23, 0.59, 0.14, 0.5499999999999999], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", -0.16, 0.8699999999999999], ["C", -0.22, 0.8599999999999999, -0.23, 0.95, -0.14, 0.99], ["L", 0.12, 1.1199999999999999], ["C", 0.21, 1.16, 0.23, 1.0699999999999998, 0.14, 1.03], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}], "origin": [0, 0]},
+"chain-scythe-left": {"paths": [{"points": [[0.09, -1.5], [-0.09, -1.5], [-0.08, 1.26], [0.08, 1.26]], "closed": true, "fill": true, "fillColor": "#20585d"}, {"points": [[0.18, -1.57], [-0.65, -1.57], [-1.46, -1.23], [-1.77, -0.57], [-1.72, -0.13], [-1.46, -0.73], [-0.52, -1.13], [0.18, -1.13]], "closed": true, "fill": true, "fillColor": "#2d8186"}, {"points": [[0.15, -1.64], [-0.15, -1.64], [-0.15, -1.1], [0.15, -1.1]], "closed": true, "fill": true, "fillColor": "#368a90"}, {"points": [[0.12, 1.13], [-0.12, 1.13], [-0.12, 1.3], [0.12, 1.3]], "closed": true, "fill": true, "fillColor": "#368a90"}, {"commands": [["M", 0.16, -1.05], ["C", 0.22, -1.06, 0.23, -0.97, 0.14, -0.9299999999999999], ["L", -0.12, -0.8], ["C", -0.21, -0.76, -0.23, -0.85, -0.14, -0.89], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", 0.16, -0.5700000000000001], ["C", 0.22, -0.5800000000000001, 0.23, -0.49, 0.14, -0.45], ["L", -0.12, -0.32], ["C", -0.21, -0.28, -0.23, -0.37, -0.14, -0.41000000000000003], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", 0.16, -0.09000000000000004], ["C", 0.22, -0.10000000000000003, 0.23, -0.010000000000000037, 0.14, 0.02999999999999997], ["L", -0.12, 0.15999999999999998], ["C", -0.21, 0.19999999999999996, -0.23, 0.10999999999999996, -0.14, 0.06999999999999997], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", 0.16, 0.38999999999999996], ["C", 0.22, 0.37999999999999995, 0.23, 0.47, 0.14, 0.51], ["L", -0.12, 0.6399999999999999], ["C", -0.21, 0.6799999999999999, -0.23, 0.59, -0.14, 0.5499999999999999], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}, {"commands": [["M", 0.16, 0.8699999999999999], ["C", 0.22, 0.8599999999999999, 0.23, 0.95, 0.14, 0.99], ["L", -0.12, 1.1199999999999999], ["C", -0.21, 1.16, -0.23, 1.0699999999999998, -0.14, 1.03], ["Z"]], "fill": true, "fillColor": "#377b80", "lineWidth": 0.022}], "origin": [0, 0]},
+"small-wrench": {"paths": [{"commands": [["M", -0.85, -0.17], ["L", 0.45, -0.17], ["L", 0.68, -0.43], ["L", 1.07, -0.43], ["L", 1.22, -0.2], ["L", 0.86, -0.2], ["L", 0.71, 0], ["L", 0.86, 0.2], ["L", 1.22, 0.2], ["L", 1.07, 0.43], ["L", 0.68, 0.43], ["L", 0.45, 0.17], ["L", -0.85, 0.17], ["C", -1.21, 0.17, -1.21, -0.17, -0.85, -0.17], ["Z"]], "fill": true, "fillColor": "rgba(105,137,56,.96)"}, {"points": [[-0.65, -0.065], [0.34, -0.065]], "lineWidth": 0.035}, {"commands": [["A", -0.94, 0, 0.085, 0, 6.283185307179586]], "stroke": true, "lineWidth": 0.035}], "origin": [0.050000000000000044, 0]},
+"melon-slice": {"paths": [{"commands": [["M", -1.65, -0.55], ["L", 1.65, -0.55], ["C", 1.31, 1.16, -1.31, 1.16, -1.65, -0.55], ["Z"]], "fill": true, "fillColor": "#285841"}, {"commands": [["M", -1.47, -0.5], ["L", 1.47, -0.5], ["C", 1.15, 0.92, -1.15, 0.92, -1.47, -0.5], ["Z"]], "fill": true, "fillColor": "#6b9956", "stroke": false}, {"commands": [["M", -1.29, -0.45], ["L", 1.29, -0.45], ["C", 1, 0.7, -1, 0.7, -1.29, -0.45], ["Z"]], "fill": true, "fillColor": "#9dbd68", "stroke": false}, {"points": [[-0.68, -0.29], [-0.58, -0.13], [-0.64, 0.01], [-0.74, -0.15]], "closed": true, "fill": true, "fillColor": "#405c35", "stroke": false}, {"points": [[-0.05, -0.23], [0.05, -0.05], [0, 0.1], [-0.1, -0.05]], "closed": true, "fill": true, "fillColor": "#405c35", "stroke": false}, {"points": [[0.64, -0.29], [0.74, -0.15], [0.64, 0.01], [0.58, -0.13]], "closed": true, "fill": true, "fillColor": "#405c35", "stroke": false}, {"commands": [["M", -1.38, -0.34], ["C", -1.09, 0.87, 1.09, 0.87, 1.38, -0.34]], "lineWidth": 0.03}], "origin": [0, 0.09124999999999994]},
+"melon-slush": {"paths": [{"commands": [["M", -1.46, -0.31], ["L", 1.46, -0.31], ["L", 1.08, 0.61], ["C", 0.61, 0.93, -0.61, 0.93, -1.08, 0.61], ["Z"]], "fill": true, "fillColor": "#4e8c6b"}, {"points": [[-0.15, 0.81], [0.15, 0.81], [0.18, 1.03], [-0.18, 1.03]], "closed": true, "fill": true, "fillColor": "#3c735b", "stroke": true}, {"points": [[-0.65, 1.01], [0.65, 1.01], [0.7, 1.15], [-0.7, 1.15]], "closed": true, "fill": true, "fillColor": "#4e8c6b", "stroke": true}, {"commands": [["M", -1.33, -0.34], ["C", -1.29, -0.82, -0.76, -0.96, -0.64, -1.33], ["C", -0.34, -1.63, -0.15, -1.31, 0.04, -1.56], ["C", 0.34, -1.48, 0.51, -1.16, 0.76, -1.15], ["C", 1.1, -1.02, 1.25, -0.77, 1.33, -0.34], ["Z"]], "fill": true, "fillColor": "#d4f0de"}, {"points": [[-0.85, -0.63], [-0.57, -1.13], [-0.12, -0.89], [-0.34, -0.45]], "closed": true, "fill": true, "fillColor": "#a5d89e", "stroke": true}, {"points": [[0.11, -1.05], [0.47, -1.32], [0.88, -0.79], [0.5, -0.54]], "closed": true, "fill": true, "fillColor": "#a5d89e", "stroke": true}, {"points": [[-0.85, -0.63], [-0.34, -0.45]], "lineWidth": 0.035}, {"points": [[0.11, -1.05], [0.5, -0.54]], "lineWidth": 0.035}, {"points": [[-1.18, -0.1], [1.18, -0.1]], "lineWidth": 0.035}, {"commands": [["M", -0.78, 0.13], ["C", -0.41, 0.44, 0.41, 0.44, 0.78, 0.13]], "lineWidth": 0.035}], "origin": [0, -0.20500000000000007]},
+"snow-crystal": {"paths": [{"points": [[0.36, -0.09], [1.46, -0.09], [1.72, 0], [1.46, 0.09], [0.36, 0.09]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.76, -0.02], [1.04, -0.37], [1.02, -0.56], [0.87, -0.48], [0.57, -0.1]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.76, 0.02], [1.04, 0.37], [1.02, 0.56], [0.87, 0.48], [0.57, 0.1]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.2579, 0.2668], [0.8079, 1.2194], [0.86, 1.4896], [0.6521, 1.3094], [0.1021, 0.3568]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.3973, 0.6482], [0.8404, 0.7157], [0.995, 0.6033], [0.8507, 0.5134], [0.3716, 0.4436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.3627, 0.6682], [0.1996, 1.0857], [0.025, 1.1633], [0.0193, 0.9934], [0.1984, 0.5436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.1021, 0.3568], [-0.6521, 1.3094], [-0.86, 1.4896], [-0.8079, 1.2194], [-0.2579, 0.2668]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.3627, 0.6682], [-0.1996, 1.0857], [-0.025, 1.1633], [-0.0193, 0.9934], [-0.1984, 0.5436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.3973, 0.6482], [-0.8404, 0.7157], [-0.995, 0.6033], [-0.8507, 0.5134], [-0.3716, 0.4436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.36, 0.09], [-1.46, 0.09], [-1.72, 0], [-1.46, -0.09], [-0.36, -0.09]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.76, 0.02], [-1.04, 0.37], [-1.02, 0.56], [-0.87, 0.48], [-0.57, 0.1]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.76, -0.02], [-1.04, -0.37], [-1.02, -0.56], [-0.87, -0.48], [-0.57, -0.1]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.2579, -0.2668], [-0.8079, -1.2194], [-0.86, -1.4896], [-0.6521, -1.3094], [-0.1021, -0.3568]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.3973, -0.6482], [-0.8404, -0.7157], [-0.995, -0.6033], [-0.8507, -0.5134], [-0.3716, -0.4436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[-0.3627, -0.6682], [-0.1996, -1.0857], [-0.025, -1.1633], [-0.0193, -0.9934], [-0.1984, -0.5436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.1021, -0.3568], [0.6521, -1.3094], [0.86, -1.4896], [0.8079, -1.2194], [0.2579, -0.2668]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.3627, -0.6682], [0.1996, -1.0857], [0.025, -1.1633], [0.0193, -0.9934], [0.1984, -0.5436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.3973, -0.6482], [0.8404, -0.7157], [0.995, -0.6033], [0.8507, -0.5134], [0.3716, -0.4436]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.4, 0], [0.2, 0.3464], [-0.2, 0.3464], [-0.4, 0], [-0.2, -0.3464], [0.2, -0.3464]], "closed": true, "fill": true, "fillColor": "#497c9b"}, {"points": [[0.22, 0], [0.11, 0.1905], [-0.11, 0.1905], [-0.22, 0], [-0.11, -0.1905], [0.11, -0.1905]], "closed": true, "fill": true, "fillColor": "#497c9b"}], "origin": [0, 0]},
+"electronic-shotgun": {"paths": [{"points": [[-1.25, -0.74], [0.87, -0.74], [0.94, -0.66], [0.94, 0.2], [0.8, 0.3], [-1.23, 0.3], [-1.48, 0.04], [-1.48, -0.45]], "closed": true, "fill": true, "fillColor": "#873b23"}, {"points": [[0.94, -0.66], [1.53, -0.66], [1.53, 0.2], [0.94, 0.2]], "closed": true, "fill": true, "fillColor": "#46261e"}, {"points": [[1.28, -0.47], [1.28, 0.01]], "lineWidth": 0.035}, {"points": [[-1.02, 0.3], [-0.38, 0.3], [-0.56, 1.28], [-1.25, 1.28]], "closed": true, "fill": true, "fillColor": "#5c3024"}, {"points": [[-0.26, 0.36], [0.5, 0.36], [0.44, 0.8], [-0.33, 0.8]], "closed": true, "lineWidth": 0.055}, {"points": [[-0.04, 0.34], [-0.05, 0.57], [0.13, 0.64]], "lineWidth": 0.045}, {"points": [[-1.18, -0.5], [-0.29, -0.5], [-0.29, -0.08], [-1.18, -0.08]], "closed": true, "fill": true, "fillColor": "#54291e"}, {"points": [[-1.02, -0.29], [-0.45, -0.29]], "lineWidth": 0.035}, {"points": [[0.02, -0.5], [0.02, -0.09]], "lineWidth": 0.035}, {"points": [[0.26, -0.5], [0.26, -0.09]], "lineWidth": 0.035}, {"points": [[0.5, -0.5], [0.5, -0.09]], "lineWidth": 0.035}, {"points": [[-1.25, -0.85], [-0.78, -0.85], [-0.78, -0.74], [-1.25, -0.74]], "closed": true, "fill": true, "fillColor": "#873b23"}, {"points": [[-1.04, 1.02], [-0.7, 1.02]], "lineWidth": 0.035}], "origin": [0.025000000000000022, 0.21500000000000002]},
+"spellbook": {"paths": [{"points": [[-1.48, -1.07], [-0.12, -0.88], [0, -0.67], [0.12, -0.88], [1.48, -1.07], [1.48, 0.91], [0.16, 1.1], [0, 0.97], [-0.16, 1.1], [-1.48, 0.91]], "closed": true, "fill": true, "fillColor": "#362450"}, {"points": [[-1.3, -0.9], [-0.15, -0.73], [0, -0.57], [0, 0.78], [-0.16, 0.9], [-1.3, 0.73]], "closed": true, "fill": true, "fillColor": "#8062a3"}, {"points": [[1.3, -0.9], [0.15, -0.73], [0, -0.57], [0, 0.78], [0.16, 0.9], [1.3, 0.73]], "closed": true, "fill": true, "fillColor": "#8062a3"}, {"points": [[0, -0.57], [0, 0.8]], "lineWidth": 0.045}, {"points": [[-1.05, -0.48], [-0.35, -0.36]], "lineWidth": 0.025}, {"points": [[0.35, -0.36], [1.05, -0.48]], "lineWidth": 0.025}, {"points": [[-1.05, -0.18], [-0.35, -0.06]], "lineWidth": 0.025}, {"points": [[0.35, -0.06], [1.05, -0.18]], "lineWidth": 0.025}, {"points": [[-1.05, 0.12], [-0.35, 0.24]], "lineWidth": 0.025}, {"points": [[0.35, 0.24], [1.05, 0.12]], "lineWidth": 0.025}, {"points": [[-1.05, 0.42], [-0.35, 0.54]], "lineWidth": 0.025}, {"points": [[0.35, 0.54], [1.05, 0.42]], "lineWidth": 0.025}, {"points": [[0, 0.9], [0.18, 1.05], [0.18, 1.45], [0, 1.31], [-0.18, 1.45], [-0.18, 1.05]], "closed": true, "fill": true, "fillColor": "#503570"}], "leaf": {"left": -1.3, "right": 1.3, "top": -0.9, "bottom": 0.73, "color": "#8062a3"}, "origin": [0, 0.18999999999999995]},
+"moon-crescent": {"origin": [0, 0], "paths": [{"commands": [["M", 1.63, 0], ["C", 1.63, 0.9002241424999999, 0.9002241424999999, 1.63, 0, 1.63], ["C", -0.9002241424999999, 1.63, -1.63, 0.9002241424999999, -1.63, 0], ["C", -1.63, -0.9002241424999999, -0.9002241424999999, -1.63, 0, -1.63], ["C", 0.9002241424999999, -1.63, 1.63, -0.9002241424999999, 1.63, 0], ["Z"], ["M", 1.6, 0], ["C", 1.6, -0.563330445, 1.143330445, -1.02, 0.58, -1.02], ["C", 0.016669555000000003, -1.02, -0.44000000000000006, -0.563330445, -0.44000000000000006, 0], ["C", -0.44000000000000006, 0.563330445, 0.016669555000000003, 1.02, 0.58, 1.02], ["C", 1.143330445, 1.02, 1.6, 0.563330445, 1.6, 0], ["Z"]], "fill": true, "fillColor": "#4e6a8c", "lineWidth": 0.055}, {"commands": [["M", 0.05, -1.44], ["C", -1.21, -1.43, -1.85, 0.46, -0.64, 1.3]], "lineWidth": 0.04}, {"commands": [["M", 0.12, -1.12], ["C", -0.98, -0.77, -1.02, 0.67, -0.14, 1.11]], "lineWidth": 0.045}, {"points": [[-1.49, 0], [-1.16, -0.15], [-0.91, 0], [-1.16, 0.15], [-1.49, 0]], "lineWidth": 0.05}, {"commands": [["M", -0.86, -1.13], ["L", -0.78, -0.9], ["L", -0.55, -0.94]], "lineWidth": 0.04}, {"commands": [["M", -0.86, 1.13], ["L", -0.78, 0.9], ["L", -0.55, 0.94]], "lineWidth": 0.04}]},
+"front-fist": {"paths": [{"points": [[-0.57, 0.43], [-0.84, 0.08], [-0.82, -0.46], [-0.65, -0.82], [-0.32, -1.02], [0.05, -1.07], [0.4, -0.96], [0.64, -0.73], [0.71, -0.4], [0.88, -0.15], [0.86, 0.23], [0.57, 0.48], [0.43, 0.86], [-0.44, 0.86]], "closed": true, "fill": true, "fillColor": "#702e38"}, {"commands": [["M", -0.62, -0.03], ["C", -0.34, 0.1, 0.22, 0.05, 0.45, -0.14], ["L", 0.47, -0.54]], "lineWidth": 0.035}, {"commands": [["M", 0.79, -0.13], ["C", 0.48, -0.22, 0.36, 0.02, 0.41, 0.26], ["L", 0.6, 0.44]], "lineWidth": 0.035}, {"points": [[-0.29, -0.62], [-0.28, -0.16]], "lineWidth": 0.035}, {"points": [[0.05, -0.64], [0.07, -0.13]], "lineWidth": 0.035}, {"points": [[-0.48, 0.57], [0.48, 0.57], [0.43, 0.94], [-0.43, 0.94]], "closed": true, "fill": true, "fillColor": "#49232c"}, {"points": [[-0.4, 0.77], [0.4, 0.77]], "lineWidth": 0.035}], "origin": [0.020000000000000018, -0.06500000000000006]},
+"shoe-sole": {"paths": [{"commands": [["M", -0.58, -1.22], ["C", -0.92, -1.02, -0.94, -0.56, -0.77, -0.21], ["L", -0.5, 0.39], ["L", -0.48, 0.96], ["C", -0.27, 1.24, 0.28, 1.24, 0.48, 0.96], ["L", 0.49, 0.38], ["L", 0.77, -0.2], ["C", 0.98, -0.64, 0.85, -1.08, 0.55, -1.24], ["C", 0.2, -1.42, -0.24, -1.4, -0.58, -1.22], ["Z"]], "fill": true, "fillColor": "#542b34"}, {"points": [[-0.58, -1.06], [-0.11, -1.15], [-0.1, -0.68], [-0.63, -0.62]], "closed": true, "fill": true, "fillColor": "#7b3d49"}, {"points": [[0.11, -1.15], [0.58, -1.06], [0.63, -0.62], [0.1, -0.68]], "closed": true, "fill": true, "fillColor": "#7b3d49"}, {"points": [[-0.65, -0.43], [-0.13, -0.46], [-0.1, -0.05], [-0.48, 0.07]], "closed": true, "fill": true, "fillColor": "#7b3d49"}, {"points": [[0.13, -0.46], [0.65, -0.43], [0.48, 0.07], [0.1, -0.05]], "closed": true, "fill": true, "fillColor": "#7b3d49"}, {"points": [[-0.36, 0.55], [0.36, 0.55], [0.35, 0.9], [0.2, 1.01], [-0.2, 1.01], [-0.35, 0.9]], "closed": true, "fill": true, "fillColor": "#7b3d49"}, {"points": [[-0.36, 0.26], [0, 0.41], [0.36, 0.26]], "lineWidth": 0.035}], "origin": [-0.0007697211371527346, -0.09770446777343744]},
+"puzzle-cube": {"paths": [{"points": [[-3.469446951953614e-18, -1.29587352], [0.38058666666666663, -1.096553146666667], [0, -0.8954646311111114], [-0.38058666666666663, -1.096553146666667]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4266666666666667, -1.0724201866666667], [0.8072533333333333, -0.8730998133333334], [0.42666666666666664, -0.6700290755555558], [0.04608000000000001, -0.8711175911111112]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8533333333333333, -0.8489668533333333], [1.2339200000000001, -0.6496464799999999], [0.8533333333333335, -0.44459352], [0.47274666666666676, -0.6456820355555557]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4266666666666667, -1.0724201866666667], [-0.046080000000000065, -0.8711175911111114], [-0.42666666666666664, -0.6700290755555557], [-0.8072533333333333, -0.8730998133333334]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0, -0.8467446311111112], [0.38058666666666663, -0.6454420355555558], [0, -0.44237129777777795], [-0.38058666666666663, -0.6454420355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.42666666666666664, -0.6210690755555556], [0.8072533333333335, -0.41976648000000005], [0.42666666666666675, -0.21471352000000005], [0.046080000000000065, -0.41778425777777783]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8533333333333333, -0.8489668533333333], [-0.47274666666666676, -0.6456820355555557], [-0.8533333333333334, -0.4445935200000001], [-1.2339200000000001, -0.6496464799999999]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.42666666666666664, -0.6210690755555557], [-0.04608000000000001, -0.4177842577777779], [-0.42666666666666675, -0.21471352000000005], [-0.8072533333333334, -0.41976648000000005]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0, -0.3931712977777778], [0.3805866666666667, -0.18988648000000002], [0, 0.015166479999999982], [-0.3805866666666667, -0.18988648000000002]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.25696, -0.6125599999999999], [-0.8763733333333334, -0.40740000000000004], [-0.8763733333333334, 0.005893333333333195], [-1.2569600000000003, -0.19926666666666668]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, -0.38256000000000007], [-0.44970666666666675, -0.17740000000000003], [-0.4497066666666668, 0.2358933333333333], [-0.8302933333333335, 0.030733333333333224]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, -0.15256000000000003], [-0.023040000000000022, 0.05259999999999999], [-0.023040000000000022, 0.4658933333333332], [-0.4036266666666667, 0.26073333333333326]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.2569600000000003, -0.14922666666666667], [-0.8763733333333334, 0.05593333333333328], [-0.8763733333333334, 0.46922666666666657], [-1.25696, 0.2640666666666666]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333335, 0.08077333333333331], [-0.4497066666666668, 0.2859333333333334], [-0.44970666666666675, 0.6992266666666667], [-0.8302933333333334, 0.4940666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.3107733333333333], [-0.023040000000000026, 0.5159333333333332], [-0.023040000000000022, 0.9292266666666664], [-0.4036266666666667, 0.7240666666666664]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.25696, 0.3141066666666666], [-0.8763733333333334, 0.5192666666666667], [-0.8763733333333334, 0.93256], [-1.25696, 0.7273999999999999]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, 0.5441066666666667], [-0.44970666666666675, 0.7492666666666666], [-0.44970666666666675, 1.16256], [-0.8302933333333334, 0.9574]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.7741066666666665], [-0.023040000000000026, 0.9792666666666665], [-0.023040000000000022, 1.3925599999999998], [-0.4036266666666667, 1.1873999999999998]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.052599999999999994], [0.40362666666666663, -0.15256], [0.40362666666666663, 0.2607333333333333], [0.023039999999999998, 0.4658933333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, -0.1774], [0.8302933333333332, -0.38255999999999996], [0.8302933333333333, 0.03073333333333328], [0.4497066666666667, 0.23589333333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333333, -0.4074], [1.25696, -0.6125599999999999], [1.2569600000000003, -0.19926666666666668], [0.8763733333333333, 0.0058933333333332505]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.5159333333333332], [0.40362666666666663, 0.31077333333333335], [0.4036266666666667, 0.7240666666666666], [0.023039999999999998, 0.9292266666666664]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.2859333333333334], [0.8302933333333333, 0.08077333333333336], [0.8302933333333333, 0.49406666666666665], [0.4497066666666667, 0.6992266666666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, 0.05593333333333328], [1.2569600000000003, -0.14922666666666667], [1.25696, 0.2640666666666666], [0.8763733333333332, 0.46922666666666657]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.9792666666666665], [0.4036266666666666, 0.7741066666666666], [0.40362666666666663, 1.1874], [0.023039999999999998, 1.3925599999999998]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.7492666666666667], [0.8302933333333333, 0.5441066666666666], [0.8302933333333333, 0.9573999999999999], [0.4497066666666667, 1.16256]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333332, 0.5192666666666667], [1.25696, 0.3141066666666666], [1.25696, 0.7273999999999999], [0.8763733333333333, 0.93256]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}], "origin": [0, 0.0483432399999999]},
+"simple-shield": {"paths": [{"points": [[-1.72, -0.7788], [-1.45, -1.0266], [1.45, -1.0266], [1.72, -0.7788], [1.72, 0.7788], [1.45, 1.0266], [-1.45, 1.0266], [-1.72, 0.7788]], "closed": true, "fill": true, "fillColor": "#694524"}, {"points": [[-1.43, -0.6843999999999999], [1.43, -0.6843999999999999], [1.43, 0.6843999999999999], [-1.43, 0.6843999999999999], [-1.43, -0.6843999999999999]], "lineWidth": 0.035}, {"points": [[-0.23, -0.44839999999999997], [0.23, -0.44839999999999997], [0.32, 0], [0.23, 0.44839999999999997], [-0.23, 0.44839999999999997], [-0.32, 0]], "closed": true, "fill": true, "fillColor": "#986738"}, {"points": [[-1.62, 0], [-1.1, 0]], "lineWidth": 0.035}, {"points": [[1.1, 0], [1.62, 0]], "lineWidth": 0.035}], "origin": [0, 0]},
+"spirit-shield": {"paths": [{"commands": [["M", -1.15, -0.98], ["L", 0, -1.2], ["L", 1.15, -0.98], ["L", 1.05, 0.34], ["C", 0.8, 0.95, 0.3, 1.24, 0, 1.48], ["C", -0.3, 1.24, -0.8, 0.95, -1.05, 0.34], ["Z"]], "fill": true, "fillColor": "#34495d"}, {"points": [[-0.87, -0.75], [0, -0.92], [0.87, -0.75], [0.78, 0.28], [0, 1.14], [-0.78, 0.28], [-0.87, -0.75]], "lineWidth": 0.035}, {"points": [[0, -0.55], [0.36, -0.12], [0, 0.63], [-0.36, -0.12]], "closed": true, "fill": true, "fillColor": "#536b83"}], "origin": [0, 0.14]},
+"spirit-goggles": {"paths": [{"points": [[-1.6, -0.17], [-1.27, -0.17], [-1.27, 0.2], [-1.6, 0.2]], "closed": true, "fill": true, "fillColor": "#34495d"}, {"points": [[1.27, -0.17], [1.6, -0.17], [1.6, 0.2], [1.27, 0.2]], "closed": true, "fill": true, "fillColor": "#34495d"}, {"points": [[-1.3599999999999999, -0.48], [-0.37000000000000005, -0.48], [-0.19000000000000006, -0.27], [-0.28, 0.31], [-0.5, 0.48], [-1.1800000000000002, 0.48], [-1.37, 0.25], [-1.37, -0.24]], "closed": true, "fill": true, "fillColor": "#34495d"}, {"points": [[0.20000000000000007, -0.48], [1.19, -0.48], [1.37, -0.27], [1.28, 0.31], [1.06, 0.48], [0.38, 0.48], [0.19000000000000006, 0.25], [0.19000000000000006, -0.24]], "closed": true, "fill": true, "fillColor": "#34495d"}, {"points": [[-0.22, -0.12], [0, -0.25], [0.22, -0.12]], "lineWidth": 0.035}, {"points": [[-1.1800000000000002, -0.27], [-0.5, -0.27], [-0.4, -0.13], [-0.47000000000000003, 0.22], [-1.08, 0.25], [-1.1800000000000002, 0.1], [-1.1800000000000002, -0.27]], "lineWidth": 0.035}, {"points": [[0.38, -0.27], [1.06, -0.27], [1.1600000000000001, -0.13], [1.09, 0.22], [0.48000000000000004, 0.25], [0.38, 0.1], [0.38, -0.27]], "lineWidth": 0.035}], "origin": [0, 0]},
+"frying-pan": {"paths": [{"points": [[-0.14, 0.63], [0.14, 0.63], [0.22, 2.01], [-0.22, 2.01]], "closed": true, "fill": true, "fillColor": "#674a32"}, {"commands": [["A", 0, -0.19, 0.95, 0, 6.283185307179586]], "fill": true, "fillColor": "#4c4740"}, {"commands": [["A", 0, -0.19, 0.78, 0, 6.283185307179586]], "fill": false}, {"points": [[-0.11, 1.8], [0.11, 1.8]], "lineWidth": 0.035}], "origin": [0, 0.43499999999999994]},
+"loaded-pan": {"paths": [{"points": [[-0.14, 0.63], [0.14, 0.63], [0.22, 2.01], [-0.22, 2.01]], "closed": true, "fill": true, "fillColor": "#674a32"}, {"commands": [["A", 0, -0.19, 0.95, 0, 6.283185307179586]], "fill": true, "fillColor": "#4c4740"}, {"commands": [["A", 0, -0.19, 0.78, 0, 6.283185307179586]], "fill": false}, {"points": [[-0.11, 1.8], [0.11, 1.8]], "lineWidth": 0.035}, {"points": [[-0.62, -0.56], [-0.11, -0.72], [0.05, -0.29], [-0.48, -0.09]], "closed": true, "fill": true, "fillColor": "#bd8850"}, {"points": [[0.13, -0.68], [0.62, -0.43], [0.36, -0.05], [-0.01, -0.27]], "closed": true, "fill": true, "fillColor": "#8f723b"}, {"points": [[-0.39, 0.13], [0.17, -0.07], [0.41, 0.35], [-0.19, 0.51]], "closed": true, "fill": true, "fillColor": "#d7a96d"}, {"points": [[-0.46, -0.44], [-0.2, -0.51]], "lineWidth": 0.035}, {"points": [[0.14, 0.16], [0.25, 0.29]], "lineWidth": 0.035}], "origin": [0, 0.43499999999999994]},
+"cooked-meal": {"paths": [{"commands": [["M", -1.52, 0.04], ["C", -1.45, -0.74, 1.45, -0.74, 1.52, 0.04], ["C", 1.41, 0.83, -1.41, 0.83, -1.52, 0.04], ["Z"]], "fill": true, "fillColor": "#cbb8a0"}, {"commands": [["M", -1.26, 0.02], ["C", -1.19, -0.48, 1.19, -0.48, 1.26, 0.02], ["C", 1.11, 0.5, -1.11, 0.5, -1.26, 0.02], ["Z"]], "lineWidth": 0.035}, {"commands": [["M", -0.64, -0.44], ["C", -0.49, -0.67, 0.08, -0.69, 0.42, -0.42], ["L", 0.58, -0.03], ["C", 0.37, 0.21, -0.24, 0.25, -0.66, -0.02], ["Z"]], "fill": true, "fillColor": "#976347"}, {"commands": [["M", -0.45, -0.34], ["L", 0.09, -0.07], ["M", -0.22, -0.46], ["L", 0.28, -0.2]], "lineWidth": 0.035}, {"commands": [["M", 0.39, -0.25], ["C", 0.5, -0.71, 0.91, -0.76, 0.95, -0.4], ["C", 0.86, -0.24, 0.67, -0.16, 0.39, -0.25], ["Z"]], "fill": true, "fillColor": "#647850"}, {"commands": [["M", 0.59, -0.17], ["C", 1.1, -0.5, 1.28, -0.16, 0.99, 0.07], ["C", 0.82, 0.11, 0.7, 0, 0.59, -0.17], ["Z"]], "fill": true, "fillColor": "#73865a"}, {"commands": [["A", -0.78, 0.15, 0.14, 0, 6.283185307179586]], "fill": true, "fillColor": "#b98c4f"}, {"commands": [["A", -0.4, 0.32, 0.12, 0, 6.283185307179586]], "fill": true, "fillColor": "#b98c4f"}, {"commands": [["A", 0.02, 0.32, 0.09, 0, 6.283185307179586]], "fill": true, "fillColor": "#b98c4f"}], "origin": [0, -0.002285156250000031]},
+"tailor-scissors": {"origin": [0, -0.33], "parts": [{"pivot": [0, 0], "angle": 0.36, "pulseAngle": -0.31, "scaleX": -1, "paths": [{"points": [[-0.055, -2.15], [-0.17, -1.77], [-0.29, -0.58], [-0.15, 0.13], [0.08, 0.13], [0.08, -0.25]], "closed": true, "fill": true, "fillColor": "#9b8d9f", "lineWidth": 0.05}, {"points": [[-0.08, -1.48], [-0.11, -0.5]], "lineWidth": 0.028}, {"points": [[-0.08, 0.05], [0.15, 0.05], [0.5, 0.55], [0.27, 0.68], [0.1, 0.34]], "closed": true, "fill": true, "fillColor": "#58415e", "lineWidth": 0.05}, {"commands": [["M", 0.25549999999999995, 0.43000000000000005], ["L", 0.6845, 0.43000000000000005], ["L", 0.86, 0.662], ["L", 0.86, 1.358], ["L", 0.6845, 1.5899999999999999], ["L", 0.25549999999999995, 1.5899999999999999], ["L", 0.07999999999999996, 1.358], ["L", 0.07999999999999996, 0.662], ["Z"], ["M", 0.20999999999999996, 0.746], ["L", 0.20999999999999996, 1.274], ["L", 0.32699999999999996, 1.45], ["L", 0.613, 1.45], ["L", 0.73, 1.274], ["L", 0.73, 0.746], ["L", 0.613, 0.5700000000000001], ["L", 0.32699999999999996, 0.5700000000000001], ["Z"]], "fill": true, "fillColor": "#58415e", "lineWidth": 0.05}]}, {"pivot": [0, 0], "angle": -0.36, "pulseAngle": 0.31, "paths": [{"points": [[-0.055, -2.15], [-0.17, -1.77], [-0.29, -0.58], [-0.15, 0.13], [0.08, 0.13], [0.08, -0.25]], "closed": true, "fill": true, "fillColor": "#9b8d9f", "lineWidth": 0.05}, {"points": [[-0.08, -1.48], [-0.11, -0.5]], "lineWidth": 0.028}, {"points": [[-0.08, 0.05], [0.15, 0.05], [0.5, 0.55], [0.27, 0.68], [0.1, 0.34]], "closed": true, "fill": true, "fillColor": "#58415e", "lineWidth": 0.05}, {"commands": [["M", 0.27599999999999997, 0.5], ["L", 0.5840000000000001, 0.5], ["L", 0.71, 0.668], ["L", 0.71, 1.1720000000000002], ["L", 0.5840000000000001, 1.34], ["L", 0.27599999999999997, 1.34], ["L", 0.14999999999999997, 1.1720000000000002], ["L", 0.14999999999999997, 0.668], ["Z"], ["M", 0.26, 0.746], ["L", 0.26, 1.094], ["L", 0.33649999999999997, 1.21], ["L", 0.5235, 1.21], ["L", 0.6, 1.094], ["L", 0.6, 0.746], ["L", 0.5235, 0.6300000000000001], ["L", 0.33649999999999997, 0.6300000000000001], ["Z"]], "fill": true, "fillColor": "#58415e", "lineWidth": 0.05}]}], "paths": [{"commands": [["A", 0, 0.035, 0.125, 0, 6.283185307179586]], "fill": true, "fillColor": "#c1afc8", "lineWidth": 0.045}, {"points": [[-0.05, 0.035], [0.05, 0.035]], "lineWidth": 0.025}]},
+"puzzle-cube-cross": {"paths": [{"points": [[-3.469446951953614e-18, -1.29587352], [0.38058666666666663, -1.096553146666667], [0, -0.8954646311111114], [-0.38058666666666663, -1.096553146666667]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4266666666666667, -1.0724201866666667], [0.8072533333333333, -0.8730998133333334], [0.42666666666666664, -0.6700290755555558], [0.04608000000000001, -0.8711175911111112]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8533333333333333, -0.8489668533333333], [1.2339200000000001, -0.6496464799999999], [0.8533333333333335, -0.44459352], [0.47274666666666676, -0.6456820355555557]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4266666666666667, -1.0724201866666667], [-0.046080000000000065, -0.8711175911111114], [-0.42666666666666664, -0.6700290755555557], [-0.8072533333333333, -0.8730998133333334]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.8467446311111112], [0.38058666666666663, -0.6454420355555558], [0, -0.44237129777777795], [-0.38058666666666663, -0.6454420355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.42666666666666664, -0.6210690755555556], [0.8072533333333335, -0.41976648000000005], [0.42666666666666675, -0.21471352000000005], [0.046080000000000065, -0.41778425777777783]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8533333333333333, -0.8489668533333333], [-0.47274666666666676, -0.6456820355555557], [-0.8533333333333334, -0.4445935200000001], [-1.2339200000000001, -0.6496464799999999]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.42666666666666664, -0.6210690755555557], [-0.04608000000000001, -0.4177842577777779], [-0.42666666666666675, -0.21471352000000005], [-0.8072533333333334, -0.41976648000000005]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.3931712977777778], [0.3805866666666667, -0.18988648000000002], [0, 0.015166479999999982], [-0.3805866666666667, -0.18988648000000002]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.25696, -0.6125599999999999], [-0.8763733333333334, -0.40740000000000004], [-0.8763733333333334, 0.005893333333333195], [-1.2569600000000003, -0.19926666666666668]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, -0.38256000000000007], [-0.44970666666666675, -0.17740000000000003], [-0.4497066666666668, 0.2358933333333333], [-0.8302933333333335, 0.030733333333333224]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, -0.15256000000000003], [-0.023040000000000022, 0.05259999999999999], [-0.023040000000000022, 0.4658933333333332], [-0.4036266666666667, 0.26073333333333326]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.2569600000000003, -0.14922666666666667], [-0.8763733333333334, 0.05593333333333328], [-0.8763733333333334, 0.46922666666666657], [-1.25696, 0.2640666666666666]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333335, 0.08077333333333331], [-0.4497066666666668, 0.2859333333333334], [-0.44970666666666675, 0.6992266666666667], [-0.8302933333333334, 0.4940666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.3107733333333333], [-0.023040000000000026, 0.5159333333333332], [-0.023040000000000022, 0.9292266666666664], [-0.4036266666666667, 0.7240666666666664]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.25696, 0.3141066666666666], [-0.8763733333333334, 0.5192666666666667], [-0.8763733333333334, 0.93256], [-1.25696, 0.7273999999999999]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, 0.5441066666666667], [-0.44970666666666675, 0.7492666666666666], [-0.44970666666666675, 1.16256], [-0.8302933333333334, 0.9574]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.7741066666666665], [-0.023040000000000026, 0.9792666666666665], [-0.023040000000000022, 1.3925599999999998], [-0.4036266666666667, 1.1873999999999998]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.052599999999999994], [0.40362666666666663, -0.15256], [0.40362666666666663, 0.2607333333333333], [0.023039999999999998, 0.4658933333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, -0.1774], [0.8302933333333332, -0.38255999999999996], [0.8302933333333333, 0.03073333333333328], [0.4497066666666667, 0.23589333333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333333, -0.4074], [1.25696, -0.6125599999999999], [1.2569600000000003, -0.19926666666666668], [0.8763733333333333, 0.0058933333333332505]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.5159333333333332], [0.40362666666666663, 0.31077333333333335], [0.4036266666666667, 0.7240666666666666], [0.023039999999999998, 0.9292266666666664]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.2859333333333334], [0.8302933333333333, 0.08077333333333336], [0.8302933333333333, 0.49406666666666665], [0.4497066666666667, 0.6992266666666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, 0.05593333333333328], [1.2569600000000003, -0.14922666666666667], [1.25696, 0.2640666666666666], [0.8763733333333332, 0.46922666666666657]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.9792666666666665], [0.4036266666666666, 0.7741066666666666], [0.40362666666666663, 1.1874], [0.023039999999999998, 1.3925599999999998]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.7492666666666667], [0.8302933333333333, 0.5441066666666666], [0.8302933333333333, 0.9573999999999999], [0.4497066666666667, 1.16256]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333332, 0.5192666666666667], [1.25696, 0.3141066666666666], [1.25696, 0.7273999999999999], [0.8763733333333333, 0.93256]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}], "origin": [0, 0.0483432399999999]},
+"puzzle-cube-f2l": {"paths": [{"points": [[-3.469446951953614e-18, -1.29587352], [0.38058666666666663, -1.096553146666667], [0, -0.8954646311111114], [-0.38058666666666663, -1.096553146666667]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4266666666666667, -1.0724201866666667], [0.8072533333333333, -0.8730998133333334], [0.42666666666666664, -0.6700290755555558], [0.04608000000000001, -0.8711175911111112]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8533333333333333, -0.8489668533333333], [1.2339200000000001, -0.6496464799999999], [0.8533333333333335, -0.44459352], [0.47274666666666676, -0.6456820355555557]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4266666666666667, -1.0724201866666667], [-0.046080000000000065, -0.8711175911111114], [-0.42666666666666664, -0.6700290755555557], [-0.8072533333333333, -0.8730998133333334]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.8467446311111112], [0.38058666666666663, -0.6454420355555558], [0, -0.44237129777777795], [-0.38058666666666663, -0.6454420355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.42666666666666664, -0.6210690755555556], [0.8072533333333335, -0.41976648000000005], [0.42666666666666675, -0.21471352000000005], [0.046080000000000065, -0.41778425777777783]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8533333333333333, -0.8489668533333333], [-0.47274666666666676, -0.6456820355555557], [-0.8533333333333334, -0.4445935200000001], [-1.2339200000000001, -0.6496464799999999]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.42666666666666664, -0.6210690755555557], [-0.04608000000000001, -0.4177842577777779], [-0.42666666666666675, -0.21471352000000005], [-0.8072533333333334, -0.41976648000000005]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.3931712977777778], [0.3805866666666667, -0.18988648000000002], [0, 0.015166479999999982], [-0.3805866666666667, -0.18988648000000002]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.25696, -0.6125599999999999], [-0.8763733333333334, -0.40740000000000004], [-0.8763733333333334, 0.005893333333333195], [-1.2569600000000003, -0.19926666666666668]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, -0.38256000000000007], [-0.44970666666666675, -0.17740000000000003], [-0.4497066666666668, 0.2358933333333333], [-0.8302933333333335, 0.030733333333333224]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, -0.15256000000000003], [-0.023040000000000022, 0.05259999999999999], [-0.023040000000000022, 0.4658933333333332], [-0.4036266666666667, 0.26073333333333326]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.2569600000000003, -0.14922666666666667], [-0.8763733333333334, 0.05593333333333328], [-0.8763733333333334, 0.46922666666666657], [-1.25696, 0.2640666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333335, 0.08077333333333331], [-0.4497066666666668, 0.2859333333333334], [-0.44970666666666675, 0.6992266666666667], [-0.8302933333333334, 0.4940666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.3107733333333333], [-0.023040000000000026, 0.5159333333333332], [-0.023040000000000022, 0.9292266666666664], [-0.4036266666666667, 0.7240666666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.25696, 0.3141066666666666], [-0.8763733333333334, 0.5192666666666667], [-0.8763733333333334, 0.93256], [-1.25696, 0.7273999999999999]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, 0.5441066666666667], [-0.44970666666666675, 0.7492666666666666], [-0.44970666666666675, 1.16256], [-0.8302933333333334, 0.9574]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.7741066666666665], [-0.023040000000000026, 0.9792666666666665], [-0.023040000000000022, 1.3925599999999998], [-0.4036266666666667, 1.1873999999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.052599999999999994], [0.40362666666666663, -0.15256], [0.40362666666666663, 0.2607333333333333], [0.023039999999999998, 0.4658933333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, -0.1774], [0.8302933333333332, -0.38255999999999996], [0.8302933333333333, 0.03073333333333328], [0.4497066666666667, 0.23589333333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333333, -0.4074], [1.25696, -0.6125599999999999], [1.2569600000000003, -0.19926666666666668], [0.8763733333333333, 0.0058933333333332505]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.5159333333333332], [0.40362666666666663, 0.31077333333333335], [0.4036266666666667, 0.7240666666666666], [0.023039999999999998, 0.9292266666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.2859333333333334], [0.8302933333333333, 0.08077333333333336], [0.8302933333333333, 0.49406666666666665], [0.4497066666666667, 0.6992266666666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, 0.05593333333333328], [1.2569600000000003, -0.14922666666666667], [1.25696, 0.2640666666666666], [0.8763733333333332, 0.46922666666666657]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.9792666666666665], [0.4036266666666666, 0.7741066666666666], [0.40362666666666663, 1.1874], [0.023039999999999998, 1.3925599999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.7492666666666667], [0.8302933333333333, 0.5441066666666666], [0.8302933333333333, 0.9573999999999999], [0.4497066666666667, 1.16256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333332, 0.5192666666666667], [1.25696, 0.3141066666666666], [1.25696, 0.7273999999999999], [0.8763733333333333, 0.93256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}], "origin": [0, 0.0483432399999999]},
+"puzzle-cube-oll": {"paths": [{"points": [[-3.469446951953614e-18, -1.29587352], [0.38058666666666663, -1.096553146666667], [0, -0.8954646311111114], [-0.38058666666666663, -1.096553146666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4266666666666667, -1.0724201866666667], [0.8072533333333333, -0.8730998133333334], [0.42666666666666664, -0.6700290755555558], [0.04608000000000001, -0.8711175911111112]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8533333333333333, -0.8489668533333333], [1.2339200000000001, -0.6496464799999999], [0.8533333333333335, -0.44459352], [0.47274666666666676, -0.6456820355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4266666666666667, -1.0724201866666667], [-0.046080000000000065, -0.8711175911111114], [-0.42666666666666664, -0.6700290755555557], [-0.8072533333333333, -0.8730998133333334]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.8467446311111112], [0.38058666666666663, -0.6454420355555558], [0, -0.44237129777777795], [-0.38058666666666663, -0.6454420355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.42666666666666664, -0.6210690755555556], [0.8072533333333335, -0.41976648000000005], [0.42666666666666675, -0.21471352000000005], [0.046080000000000065, -0.41778425777777783]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8533333333333333, -0.8489668533333333], [-0.47274666666666676, -0.6456820355555557], [-0.8533333333333334, -0.4445935200000001], [-1.2339200000000001, -0.6496464799999999]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.42666666666666664, -0.6210690755555557], [-0.04608000000000001, -0.4177842577777779], [-0.42666666666666675, -0.21471352000000005], [-0.8072533333333334, -0.41976648000000005]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.3931712977777778], [0.3805866666666667, -0.18988648000000002], [0, 0.015166479999999982], [-0.3805866666666667, -0.18988648000000002]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.25696, -0.6125599999999999], [-0.8763733333333334, -0.40740000000000004], [-0.8763733333333334, 0.005893333333333195], [-1.2569600000000003, -0.19926666666666668]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, -0.38256000000000007], [-0.44970666666666675, -0.17740000000000003], [-0.4497066666666668, 0.2358933333333333], [-0.8302933333333335, 0.030733333333333224]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, -0.15256000000000003], [-0.023040000000000022, 0.05259999999999999], [-0.023040000000000022, 0.4658933333333332], [-0.4036266666666667, 0.26073333333333326]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[-1.2569600000000003, -0.14922666666666667], [-0.8763733333333334, 0.05593333333333328], [-0.8763733333333334, 0.46922666666666657], [-1.25696, 0.2640666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333335, 0.08077333333333331], [-0.4497066666666668, 0.2859333333333334], [-0.44970666666666675, 0.6992266666666667], [-0.8302933333333334, 0.4940666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.3107733333333333], [-0.023040000000000026, 0.5159333333333332], [-0.023040000000000022, 0.9292266666666664], [-0.4036266666666667, 0.7240666666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.25696, 0.3141066666666666], [-0.8763733333333334, 0.5192666666666667], [-0.8763733333333334, 0.93256], [-1.25696, 0.7273999999999999]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, 0.5441066666666667], [-0.44970666666666675, 0.7492666666666666], [-0.44970666666666675, 1.16256], [-0.8302933333333334, 0.9574]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.7741066666666665], [-0.023040000000000026, 0.9792666666666665], [-0.023040000000000022, 1.3925599999999998], [-0.4036266666666667, 1.1873999999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.052599999999999994], [0.40362666666666663, -0.15256], [0.40362666666666663, 0.2607333333333333], [0.023039999999999998, 0.4658933333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.4497066666666667, -0.1774], [0.8302933333333332, -0.38255999999999996], [0.8302933333333333, 0.03073333333333328], [0.4497066666666667, 0.23589333333333332]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.8763733333333333, -0.4074], [1.25696, -0.6125599999999999], [1.2569600000000003, -0.19926666666666668], [0.8763733333333333, 0.0058933333333332505]], "closed": true, "fill": true, "fillColor": "#51416f", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.5159333333333332], [0.40362666666666663, 0.31077333333333335], [0.4036266666666667, 0.7240666666666666], [0.023039999999999998, 0.9292266666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.2859333333333334], [0.8302933333333333, 0.08077333333333336], [0.8302933333333333, 0.49406666666666665], [0.4497066666666667, 0.6992266666666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, 0.05593333333333328], [1.2569600000000003, -0.14922666666666667], [1.25696, 0.2640666666666666], [0.8763733333333332, 0.46922666666666657]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.9792666666666665], [0.4036266666666666, 0.7741066666666666], [0.40362666666666663, 1.1874], [0.023039999999999998, 1.3925599999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.7492666666666667], [0.8302933333333333, 0.5441066666666666], [0.8302933333333333, 0.9573999999999999], [0.4497066666666667, 1.16256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333332, 0.5192666666666667], [1.25696, 0.3141066666666666], [1.25696, 0.7273999999999999], [0.8763733333333333, 0.93256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}], "origin": [0, 0.0483432399999999]},
+"puzzle-cube-pll": {"paths": [{"points": [[-3.469446951953614e-18, -1.29587352], [0.38058666666666663, -1.096553146666667], [0, -0.8954646311111114], [-0.38058666666666663, -1.096553146666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4266666666666667, -1.0724201866666667], [0.8072533333333333, -0.8730998133333334], [0.42666666666666664, -0.6700290755555558], [0.04608000000000001, -0.8711175911111112]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8533333333333333, -0.8489668533333333], [1.2339200000000001, -0.6496464799999999], [0.8533333333333335, -0.44459352], [0.47274666666666676, -0.6456820355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4266666666666667, -1.0724201866666667], [-0.046080000000000065, -0.8711175911111114], [-0.42666666666666664, -0.6700290755555557], [-0.8072533333333333, -0.8730998133333334]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.8467446311111112], [0.38058666666666663, -0.6454420355555558], [0, -0.44237129777777795], [-0.38058666666666663, -0.6454420355555557]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.42666666666666664, -0.6210690755555556], [0.8072533333333335, -0.41976648000000005], [0.42666666666666675, -0.21471352000000005], [0.046080000000000065, -0.41778425777777783]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8533333333333333, -0.8489668533333333], [-0.47274666666666676, -0.6456820355555557], [-0.8533333333333334, -0.4445935200000001], [-1.2339200000000001, -0.6496464799999999]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.42666666666666664, -0.6210690755555557], [-0.04608000000000001, -0.4177842577777779], [-0.42666666666666675, -0.21471352000000005], [-0.8072533333333334, -0.41976648000000005]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0, -0.3931712977777778], [0.3805866666666667, -0.18988648000000002], [0, 0.015166479999999982], [-0.3805866666666667, -0.18988648000000002]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.25696, -0.6125599999999999], [-0.8763733333333334, -0.40740000000000004], [-0.8763733333333334, 0.005893333333333195], [-1.2569600000000003, -0.19926666666666668]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, -0.38256000000000007], [-0.44970666666666675, -0.17740000000000003], [-0.4497066666666668, 0.2358933333333333], [-0.8302933333333335, 0.030733333333333224]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, -0.15256000000000003], [-0.023040000000000022, 0.05259999999999999], [-0.023040000000000022, 0.4658933333333332], [-0.4036266666666667, 0.26073333333333326]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.2569600000000003, -0.14922666666666667], [-0.8763733333333334, 0.05593333333333328], [-0.8763733333333334, 0.46922666666666657], [-1.25696, 0.2640666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333335, 0.08077333333333331], [-0.4497066666666668, 0.2859333333333334], [-0.44970666666666675, 0.6992266666666667], [-0.8302933333333334, 0.4940666666666666]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.3107733333333333], [-0.023040000000000026, 0.5159333333333332], [-0.023040000000000022, 0.9292266666666664], [-0.4036266666666667, 0.7240666666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-1.25696, 0.3141066666666666], [-0.8763733333333334, 0.5192666666666667], [-0.8763733333333334, 0.93256], [-1.25696, 0.7273999999999999]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.8302933333333333, 0.5441066666666667], [-0.44970666666666675, 0.7492666666666666], [-0.44970666666666675, 1.16256], [-0.8302933333333334, 0.9574]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[-0.4036266666666667, 0.7741066666666665], [-0.023040000000000026, 0.9792666666666665], [-0.023040000000000022, 1.3925599999999998], [-0.4036266666666667, 1.1873999999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.052599999999999994], [0.40362666666666663, -0.15256], [0.40362666666666663, 0.2607333333333333], [0.023039999999999998, 0.4658933333333332]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, -0.1774], [0.8302933333333332, -0.38255999999999996], [0.8302933333333333, 0.03073333333333328], [0.4497066666666667, 0.23589333333333332]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, -0.4074], [1.25696, -0.6125599999999999], [1.2569600000000003, -0.19926666666666668], [0.8763733333333333, 0.0058933333333332505]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.5159333333333332], [0.40362666666666663, 0.31077333333333335], [0.4036266666666667, 0.7240666666666666], [0.023039999999999998, 0.9292266666666664]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.2859333333333334], [0.8302933333333333, 0.08077333333333336], [0.8302933333333333, 0.49406666666666665], [0.4497066666666667, 0.6992266666666667]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333333, 0.05593333333333328], [1.2569600000000003, -0.14922666666666667], [1.25696, 0.2640666666666666], [0.8763733333333332, 0.46922666666666657]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.023039999999999998, 0.9792666666666665], [0.4036266666666666, 0.7741066666666666], [0.40362666666666663, 1.1874], [0.023039999999999998, 1.3925599999999998]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.4497066666666667, 0.7492666666666667], [0.8302933333333333, 0.5441066666666666], [0.8302933333333333, 0.9573999999999999], [0.4497066666666667, 1.16256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}, {"points": [[0.8763733333333332, 0.5192666666666667], [1.25696, 0.3141066666666666], [1.25696, 0.7273999999999999], [0.8763733333333333, 0.93256]], "closed": true, "fill": true, "fillColor": "#bba8ed", "lineWidth": 0.022}], "origin": [0, 0.0483432399999999]},
+"workshop-hammer": {"origin": [0, 0.16], "paths": [{"points": [[-0.15, -0.98], [0.19, -0.98], [0.23, 1.71], [0.11, 1.94], [-0.14, 1.94], [-0.25, 1.71]], "closed": true, "fill": true, "fillColor": "#32556b", "lineWidth": 0.055}, {"points": [[-1.43, -1.56], [-0.8, -1.56], [-0.8, -0.55], [-1.43, -0.55]], "closed": true, "fill": true, "fillColor": "#628096", "lineWidth": 0.055}, {"points": [[-0.86, -1.38], [0.24, -1.53], [0.72, -1.42], [1.16, -1.07], [1.48, -0.31], [1.1, -0.56], [0.75, -0.98], [0.25, -0.91], [-0.86, -0.71]], "closed": true, "fill": true, "fillColor": "#3b627a", "lineWidth": 0.055}, {"points": [[0.66, -1.38], [1.19, -1.15], [1.5, -0.54], [1.22, -0.75], [0.85, -1.02]], "closed": true, "fill": true, "fillColor": "#294c61", "lineWidth": 0.055}, {"points": [[-0.29, -1.38], [0.18, -1.38], [0.24, -0.76], [-0.29, -0.76]], "closed": true, "fill": true, "fillColor": "#234054", "lineWidth": 0.055}, {"points": [[-1.27, -1.37], [-1.27, -0.73]], "lineWidth": 0.045}, {"points": [[-0.22, 0.57], [0.21, 0.57], [0.23, 1.69], [0.11, 1.83], [-0.13, 1.83], [-0.24, 1.69]], "closed": true, "fill": true, "fillColor": "#233e53", "lineWidth": 0.055}, {"points": [[-0.16, 0.89], [0.16, 0.89]], "lineWidth": 0.04}, {"points": [[-0.16, 1.16], [0.16, 1.16]], "lineWidth": 0.04}, {"points": [[-0.16, 1.43], [0.16, 1.43]], "lineWidth": 0.04}]},
+"workshop-nail": {"paths": [{"points": [[-0.13, -1.32], [0.13, -1.32], [0.14, 1.5], [0, 1.94], [-0.14, 1.5]], "closed": true, "fill": true, "fillColor": "#285774"}, {"points": [[-0.59, -1.59], [0.59, -1.59], [0.66, -1.29], [-0.66, -1.29]], "closed": true, "fill": true, "fillColor": "#254d68"}, {"points": [[0, -0.86], [0, 1.32]], "lineWidth": 0.035}], "origin": [0, 0.17499999999999993]},
+"artists-brush": {"paths": [{"points": [[-0.12, -0.71], [0.12, -0.71], [0.17, 1.55], [0, 1.88], [-0.17, 1.55]], "closed": true, "fill": true, "fillColor": "#385c19"}, {"points": [[-0.24, -1.04], [0.24, -1.04], [0.2, -0.65], [-0.2, -0.65]], "closed": true, "fill": true, "fillColor": "#294916"}, {"commands": [["M", -0.23, -1], ["C", -0.56, -1.53, -0.34, -1.99, 0, -2.22], ["C", 0.35, -1.94, 0.48, -1.49, 0.23, -1], ["Z"]], "fill": true, "fillColor": "#244015"}, {"commands": [["M", 0, -2.02], ["C", -0.16, -1.64, -0.18, -1.4, -0.09, -1.2]], "lineWidth": 0.035}, {"points": [[0.12, -1.24], [0.17, -1.59]], "lineWidth": 0.035}, {"points": [[-0.08, 0.89], [0.09, 0.89]], "lineWidth": 0.035}], "origin": [-0.01653489289460358, -0.17000000000000015]},
+"chocolate-pistols": {"origin": [0, 0.12], "parts": [{"pivot": [-0.19, -0.25], "paths": [{"points": [[-1.31, -0.38], [-1.13, -0.57], [0.89, -0.57], [1.32, -0.3], [1.32, -0.01], [-1.31, -0.01]], "closed": true, "fill": true, "fillColor": "#956775", "lineWidth": 0.05}, {"points": [[-1.13, -0.01], [1.05, -0.01], [0.79, 0.22], [-0.1, 0.22], [-0.19, 0.51], [-0.23, 1.13], [-0.74, 1.13], [-0.98, 0.94], [-0.79, 0.22], [-1.13, 0.22]], "closed": true, "fill": true, "fillColor": "#523442", "lineWidth": 0.05}, {"commands": [["M", -0.11, 0.22], ["L", 0.54, 0.22], ["L", 0.45, 0.69], ["L", -0.23, 0.69], ["M", 0.09, 0.26], ["L", 0.01, 0.47]], "lineWidth": 0.06}, {"points": [[-0.15, -0.42], [0.34, -0.42], [0.34, -0.15], [-0.15, -0.15]], "closed": true, "fill": true, "fillColor": "#4b303e", "lineWidth": 0.05}, {"points": [[-1.06, -0.33], [-0.97, -0.12]], "lineWidth": 0.035}, {"points": [[-0.86, -0.41], [-0.73, -0.13]], "lineWidth": 0.035}, {"points": [[-0.66, -0.4], [-0.52, -0.13]], "lineWidth": 0.035}, {"points": [[1.1, -0.25], [1.1, -0.09]], "lineWidth": 0.05}, {"points": [[-0.67, 0.53], [-0.36, 0.53]], "lineWidth": 0.045}, {"points": [[-0.7, 0.78], [-0.39, 0.78]], "lineWidth": 0.045}, {"points": [[0.92, -0.59], [1.05, -0.59], [1.05, -0.48], [0.92, -0.48]], "closed": true, "fill": true, "fillColor": "#74505e", "lineWidth": 0.05}]}, {"pivot": [0.19, 0.25], "paths": [{"points": [[-1.31, -0.38], [-1.13, -0.57], [0.89, -0.57], [1.32, -0.3], [1.32, -0.01], [-1.31, -0.01]], "closed": true, "fill": true, "fillColor": "#956775", "lineWidth": 0.05}, {"points": [[-1.13, -0.01], [1.05, -0.01], [0.79, 0.22], [-0.1, 0.22], [-0.19, 0.51], [-0.23, 1.13], [-0.74, 1.13], [-0.98, 0.94], [-0.79, 0.22], [-1.13, 0.22]], "closed": true, "fill": true, "fillColor": "#523442", "lineWidth": 0.05}, {"commands": [["M", -0.11, 0.22], ["L", 0.54, 0.22], ["L", 0.45, 0.69], ["L", -0.23, 0.69], ["M", 0.09, 0.26], ["L", 0.01, 0.47]], "lineWidth": 0.06}, {"points": [[-0.15, -0.42], [0.34, -0.42], [0.34, -0.15], [-0.15, -0.15]], "closed": true, "fill": true, "fillColor": "#4b303e", "lineWidth": 0.05}, {"points": [[-1.06, -0.33], [-0.97, -0.12]], "lineWidth": 0.035}, {"points": [[-0.86, -0.41], [-0.73, -0.13]], "lineWidth": 0.035}, {"points": [[-0.66, -0.4], [-0.52, -0.13]], "lineWidth": 0.035}, {"points": [[1.1, -0.25], [1.1, -0.09]], "lineWidth": 0.05}, {"points": [[-0.67, 0.53], [-0.36, 0.53]], "lineWidth": 0.045}, {"points": [[-0.7, 0.78], [-0.39, 0.78]], "lineWidth": 0.045}, {"points": [[0.92, -0.59], [1.05, -0.59], [1.05, -0.48], [0.92, -0.48]], "closed": true, "fill": true, "fillColor": "#74505e", "lineWidth": 0.05}]}]},
+"chocolate-bazooka": {"origin": [0, 0.12], "paths": [{"points": [[-1.55, -0.4], [1.3, -0.4], [1.3, 0.4], [-1.55, 0.4]], "closed": true, "fill": true, "fillColor": "#66515b", "lineWidth": 0.055}, {"points": [[-1.82, -0.58], [-1.4, -0.58], [-1.4, 0.58], [-1.82, 0.58]], "closed": true, "fill": true, "fillColor": "#a27d87", "lineWidth": 0.055}, {"points": [[1.28, -0.62], [1.74, -0.62], [1.88, -0.44], [1.88, 0.44], [1.74, 0.62], [1.28, 0.62]], "closed": true, "fill": true, "fillColor": "#a27d87", "lineWidth": 0.055}, {"points": [[-0.74, 0.4], [-0.26, 0.4], [-0.43, 1.22], [-0.89, 1.22]], "closed": true, "fill": true, "fillColor": "#372d36", "lineWidth": 0.055}, {"points": [[0.52, 0.4], [0.86, 0.4], [0.83, 0.91], [0.5, 0.91]], "closed": true, "fill": true, "fillColor": "#493944", "lineWidth": 0.055}, {"points": [[-0.59, -0.4], [-0.59, -0.74], [0.35, -0.74], [0.35, -0.4]], "closed": true, "fill": true, "fillColor": "#493944", "lineWidth": 0.055}, {"points": [[-1.22, -0.18], [1.1, -0.18]], "lineWidth": 0.04}, {"points": [[-1.65, -0.37], [-1.65, 0.37]], "lineWidth": 0.07}, {"points": [[1.55, -0.4], [1.55, 0.4]], "lineWidth": 0.075}, {"points": [[-0.71, 0.64], [-0.4, 0.64]], "lineWidth": 0.05}, {"points": [[-0.78, 0.87], [-0.46, 0.87]], "lineWidth": 0.05}, {"points": [[0.4, 0.4], [0.32, 0.77], [-0.27, 0.77]], "lineWidth": 0.05}]},
+"chocolate-bomb": {"origin": [0, -0.12], "paths": [{"points": [[-0.85, -1.04], [0.85, -1.04], [1.06, -0.83], [1.06, 0.86], [0.85, 1.07], [-0.85, 1.07], [-1.06, 0.86], [-1.06, -0.83]], "closed": true, "fill": true, "fillColor": "#47303b", "lineWidth": 0.055}, {"points": [[-0.88, -0.88], [0.88, -0.88], [0.88, 0.32], [-0.88, 0.32]], "closed": true, "fill": true, "fillColor": "#76505b", "lineWidth": 0.055}, {"points": [[-1.06, 0.32], [-0.7, 0.2], [-0.34, 0.38], [0, 0.2], [0.35, 0.38], [0.7, 0.2], [1.06, 0.32], [1.06, 0.86], [0.85, 1.07], [-0.85, 1.07], [-1.06, 0.86]], "closed": true, "fill": true, "fillColor": "#ab7d86", "lineWidth": 0.055}, {"points": [[0, -0.85], [0, 0.22]], "lineWidth": 0.045}, {"points": [[-0.86, -0.3], [0.86, -0.3]], "lineWidth": 0.045}, {"commands": [["M", 0, -1.04], ["C", -0.12, -1.43, 0.38, -1.64, 0.58, -1.31]], "lineWidth": 0.095}, {"points": [[-0.27, 0.58], [0, 0.4], [0.27, 0.58], [0, 0.78]], "closed": true, "fill": true, "fillColor": "#61414d", "lineWidth": 0.055}]},
+"dodge-slip": {"origin": [0, 0], "paths": [{"commands": [["M", -1.29, -0.68], ["C", -1.81, 0.13, -1.25, 1.35, -0.24, 1.44], ["C", -0.9, 1.04, -1.06, 0.07, -0.72, -0.58], ["Z"]], "fill": true, "fillColor": "#916570"}, {"commands": [["M", 1.29, 0.68], ["C", 1.81, -0.13, 1.25, -1.35, 0.24, -1.44], ["C", 0.9, -1.04, 1.06, -0.07, 0.72, 0.58], ["Z"]], "fill": true, "fillColor": "#916570"}, {"points": [[-1.54, -0.97], [-0.87, -1.27]], "lineWidth": 0.07}, {"points": [[1.54, 0.97], [0.87, 1.27]], "lineWidth": 0.07}, {"points": [[-0.13, -0.61], [0.34, -0.12], [0.13, 0.61], [-0.34, 0.12]], "closed": true, "fill": true, "fillColor": "#b7808b", "lineWidth": 0.05}]},
+"demon-trident": {"origin": [0, -0.15], "paths": [{"points": [[-0.1, -1.68], [0.1, -1.68], [0.12, 1.9], [0, 2.13], [-0.12, 1.9]], "closed": true, "fill": true, "fillColor": "#583140", "lineWidth": 0.05}, {"points": [[0, -2.82], [0.26, -2.26], [0.13, -2.35], [0.13, -1.34], [0.43, -1.53], [0.62, -1.77], [0.65, -2.29], [0.53, -2.14], [0.7, -2.73], [1.02, -2.26], [0.89, -2.31], [0.88, -1.65], [0.61, -1.2], [0.22, -0.98], [-0.22, -0.98], [-0.61, -1.2], [-0.88, -1.65], [-0.89, -2.31], [-1.02, -2.26], [-0.7, -2.73], [-0.53, -2.14], [-0.65, -2.29], [-0.62, -1.77], [-0.43, -1.53], [-0.13, -1.34], [-0.13, -2.35], [-0.26, -2.26]], "closed": true, "fill": true, "fillColor": "#926070", "lineWidth": 0.05}, {"points": [[-0.21, -1.05], [0, -1.3], [0.21, -1.05], [0, -0.79]], "closed": true, "fill": true, "fillColor": "#bb8292", "lineWidth": 0.05}, {"points": [[0, -0.6], [0, 1.61]], "lineWidth": 0.03}, {"points": [[-0.19, 1.7], [0.19, 1.7], [0.14, 1.97], [0, 2.13], [-0.14, 1.97]], "closed": true, "fill": true, "fillColor": "#926070", "lineWidth": 0.05}]},
+"maid-broom": {"origin": [0, 0], "paths": [{"points": [[-0.08, -2.2], [0.08, -2.2], [0.1, 0.58], [-0.1, 0.58]], "closed": true, "fill": true, "fillColor": "#644253", "lineWidth": 0.05}, {"points": [[-0.17, 0.43], [0.17, 0.43], [0.21, 0.76], [-0.21, 0.76]], "closed": true, "fill": true, "fillColor": "#a97b95", "lineWidth": 0.05}, {"points": [[-0.24, 0.68], [0.24, 0.68], [0.52, 1.02], [0.76, 1.94], [0.51, 2.13], [0.29, 2.02], [0, 2.15], [-0.29, 2.02], [-0.51, 2.13], [-0.76, 1.94], [-0.52, 1.02]], "closed": true, "fill": true, "fillColor": "#9b6b84", "lineWidth": 0.05}, {"points": [[-0.48, 0.99], [0.48, 0.99], [0.53, 1.2], [-0.53, 1.2]], "closed": true, "fill": true, "fillColor": "#563548", "lineWidth": 0.05}, {"points": [[-0.32, 1.32], [-0.49, 1.94]], "lineWidth": 0.03}, {"points": [[-0.12, 1.3], [-0.21, 1.99]], "lineWidth": 0.03}, {"points": [[0.12, 1.3], [0.21, 1.99]], "lineWidth": 0.03}, {"points": [[0.32, 1.32], [0.49, 1.94]], "lineWidth": 0.03}, {"points": [[-0.12, -2.21], [0.12, -2.21], [0.12, -2.06], [-0.12, -2.06]], "closed": true, "fill": true, "fillColor": "#9b6b84", "lineWidth": 0.05}]},
+"marshmallow-skewer": {"origin": [0, 0], "paths": [{"points": [[-0.075, -1.6], [0.075, -1.6], [0.095, 1.47], [-0.095, 1.47]], "closed": true, "fill": true, "fillColor": "#796144", "lineWidth": 0.045}, {"points": [[-0.055, -3], [0, -3.38], [0.055, -3]], "closed": true, "fill": true, "fillColor": "#796144", "lineWidth": 0.045}, {"commands": [["M", -0.72, -2.83], ["C", -0.62, -3.04, 0.53, -3.04, 0.72, -2.84], ["C", 0.86, -2.67, 0.82, -1.9, 0.64, -1.72], ["C", 0.4, -1.5, -0.45, -1.52, -0.67, -1.73], ["C", -0.84, -1.9, -0.89, -2.6, -0.72, -2.83], ["Z"]], "fill": true, "fillColor": "#eadbc2", "lineWidth": 0.055}, {"commands": [["M", -0.71, -2.81], ["C", -0.46, -2.61, 0.47, -2.61, 0.72, -2.83]], "lineWidth": 0.04}, {"commands": [["M", 0.6, -2.65], ["C", 0.69, -2.35, 0.65, -1.95, 0.54, -1.79]], "lineWidth": 0.035}, {"points": [[-0.13, 0.78], [0.13, 0.78], [0.19, 1.12], [0.19, 1.96], [0.11, 2.18], [-0.11, 2.18], [-0.19, 1.96], [-0.19, 1.12]], "closed": true, "fill": true, "fillColor": "#67533b", "lineWidth": 0.045}, {"points": [[-0.19, 1.27], [0.19, 1.27]], "lineWidth": 0.035}, {"points": [[-0.19, 1.7], [0.19, 1.7]], "lineWidth": 0.035}]},
+"forge-hammer": {"origin": [0, 0], "paths": [{"points": [[-0.12, -2], [0.12, -2], [0.16, 1.67], [0.09, 1.88], [-0.09, 1.88], [-0.16, 1.67]], "closed": true, "fill": true, "fillColor": "#424247", "lineWidth": 0.045}, {"points": [[-1.27, -2.24], [-0.66, -2.65], [0.64, -2.65], [0.64, -2.76], [1.16, -2.76], [1.29, -2.63], [1.29, -1.64], [1.16, -1.5], [0.64, -1.5], [0.64, -1.61], [-0.66, -1.61], [-1.27, -1.96]], "closed": true, "fill": true, "fillColor": "#68686d", "lineWidth": 0.055}, {"points": [[0.64, -2.65], [0.64, -1.61]], "lineWidth": 0.045}, {"points": [[-0.22, -2.48], [0.22, -2.48], [0.22, -1.73], [-0.22, -1.73]], "closed": true, "fill": true, "fillColor": "#4a4a50", "lineWidth": 0.035}, {"points": [[-0.16, 0.5], [0.16, 0.5], [0.18, 1.53], [-0.18, 1.53]], "closed": true, "fill": true, "fillColor": "#36363b", "lineWidth": 0.04}, {"points": [[-0.18, 0.8], [0.18, 0.8]], "lineWidth": 0.03}, {"points": [[-0.18, 1.2], [0.18, 1.2]], "lineWidth": 0.03}]},
+"forge-hammer-mirrored": {"origin": [0, 0], "parts": [{"scaleX": -1, "paths": [{"points": [[-0.1125, -1.2], [0.1125, -1.2], [0.15, 0.9], [0.1, 1.12], [-0.1, 1.12], [-0.15, 0.9]], "lineWidth": 0.04, "closed": true, "fill": true, "fillColor": "#424247"}, {"points": [[-0.7, -1.592], [-0.62, -1.704], [0.62, -1.704], [0.7, -1.592], [0.7, -1.158], [0.62, -1.046], [-0.62, -1.046], [-0.7, -1.158]], "lineWidth": 0.05, "closed": true, "fill": true, "fillColor": "#68686d"}, {"points": [[-0.49, -1.704], [-0.49, -1.046]], "lineWidth": 0.035}, {"points": [[0.49, -1.704], [0.49, -1.046]], "lineWidth": 0.035}, {"points": [[-0.15, -1.662], [0.15, -1.662], [0.15, -1.088], [-0.15, -1.088]], "lineWidth": 0.035, "closed": true, "fill": true, "fillColor": "#4a4a50"}, {"points": [[-0.15, 0.1], [0.15, 0.1], [0.2, 0.82], [0.1375, 1.04], [-0.1375, 1.04], [-0.2, 0.82]], "lineWidth": 0.04, "closed": true, "fill": true, "fillColor": "#36363b"}, {"points": [[-0.175, 0.4], [0.175, 0.4]], "lineWidth": 0.03}, {"points": [[-0.1875, 0.75], [0.1875, 0.75]], "lineWidth": 0.03}]}]}
+});
 /* 모든 월드 무기: 공용 형상 목록·계열 팔레트·조건·투명도·회전·사용 모션. */
 const ModeGearPresentationService=Object.freeze({
   weaponEchoes:new Map(),
@@ -130673,20 +129373,10 @@ const ModeGearPresentationService=Object.freeze({
     return {entity:{radius:entity.radius,character:{color:entity.character?.color}},images,alpha,x:entity.x,y:entity.y,sampledAt:now};
   },
   movementFacing:new WeakMap(),
-  synchronizedMovementAngle(entity){
-    const config=this.configs(entity).find(item=>item.renderType==='weaponImage'&&item.facing==='movement');
-    return config?this.facingAngle(entity,config):undefined;
-  },
   facingAngle(entity,config){
     if(config.facing==='aim')return entity===Training.player
       ?Training.aimAngle():Number(entity._remoteAimAngle??entity.aimAngle)||0;
     if(config.facing!=='movement')return 0;
-    if(typeof EntitySimulationAuthorityService!=='undefined'&&!EntitySimulationAuthorityService.isLocal(entity)){
-      if(typeof entity._remoteWeaponMovementAngle==='number'&&Number.isFinite(entity._remoteWeaponMovementAngle))return entity._remoteWeaponMovementAngle;
-      const movement=MovementAbilityService.state(entity,config.facingMovementStateKey);
-      if(movement&&Number.isFinite(movement.angle))return movement.angle;
-      if(entity.lastMovementInputAngle!=null&&Number.isFinite(entity.lastMovementInputAngle))return entity.lastMovementInputAngle;
-    }
     const x=Number(entity.x)||0,y=Number(entity.y)||0;
     const previous=this.movementFacing.get(entity);
     let angle=previous?.angle??(Number.isFinite(entity.lastMovementInputAngle)?entity.lastMovementInputAngle:0);
@@ -130968,23 +129658,11 @@ const TrainingWorldDrawService=Object.freeze({
       return SummonDeployService.drawBody(bodyCtx,entity,bodyNow);
     }
   }),
-  drawMinimapViewport(ctx,x,y,sx,sy){
-    const b=WorldViewportVisibilityService.bounds();
-    ctx.strokeStyle='rgba(255,255,255,.12)';
-    ctx.strokeRect(x+b.left*sx,y+b.top*sy,(b.right-b.left)*sx,(b.bottom-b.top)*sy);
-  },
-  drawSpectatedViewport(ctx,entity,now){
-    const b=WorldViewportVisibilityService.followedBounds(entity,now);
-    ctx.save();ctx.strokeStyle='rgba(190,196,204,.78)';ctx.lineWidth=2;ctx.setLineDash([]);
-    ctx.strokeRect(b.left,b.top,b.right-b.left,b.bottom-b.top);ctx.restore();
-  },
   overlapsScreenRect(entity,cam,x,y,w,h){
     if(!entity?.alive||entity.hidden)return false;
-    const zoom=CameraFovService.scale(performance.now())*Training.spectatorZoom();
-    const canvas=Training.canvas||GAME_DATA.canvas,shake=ScreenShakeService.offset(performance.now());
-    const screenX=canvas.width/2+(Number(entity.x)-cam.x+shake.x-canvas.width/2)*zoom;
-    const screenY=canvas.height/2+(Number(entity.y)-cam.y+shake.y-canvas.height/2)*zoom;
-    const radius=Math.max(0,Number(entity.radius)||0)*zoom;
+    const screenX=Number(entity.x)-cam.x;
+    const screenY=Number(entity.y)-cam.y;
+    const radius=Math.max(0,Number(entity.radius)||0);
     return (
       screenX+radius>=x&&
       screenX-radius<=x+w&&
@@ -132323,28 +131001,6 @@ const CameraAimOffsetService=Object.freeze({
     },true);
   }
 };
-/* target.select 선택 판정과 같은 유효 대상·포인터 반경을 표시한다. */
-const AbilityTargetRangePresentationService=Object.freeze({
-  draw(ctx,source){
-    if(!ctx||!source?.alive||!EntitySimulationAuthorityService.isLocal(source))return false;
-    let drawn=false;
-    for(const ability of Object.values(source.character?.abilities||{})){
-      const attack=AbilityService.attackById(source.character,ability.attackId);
-      for(const module of ability.trigger?.modules||[]){
-        if(module.type!=='target.select'||module.showTargetRange!==true)continue;
-        for(const target of EntityService.items.values()){
-          if(target.hidden||!AbilityModuleService.targetEligible(source,target,attack,module))continue;
-          ctx.save();ctx.beginPath();
-          ctx.arc(Number(target.x)||0,Number(target.y)||0,AbilityModuleService.targetPointerRadius(target,module),0,Math.PI*2);
-          ctx.strokeStyle=`rgba(${ColorService.rgbString(source.color)},.55)`;
-          ctx.lineWidth=1.8;ctx.setLineDash([7,6]);ctx.stroke();ctx.setLineDash([]);ctx.restore();
-          drawn=true;
-        }
-      }
-    }
-    return drawn;
-  }
-});
 const TRAINING_DEFAULT_SETTINGS=Object.freeze({dummyHp:'killable',botHp:'killable',infiniteHp:false,infiniteStam:false,hasMelee:false,hasRanged:false,meleeDamage:100,rangedDamage:100,meleeAttackSpeed:100,rangedAttackSpeed:100,showCooldown:true,showDps:true});
 
 
@@ -132588,12 +131244,10 @@ const Training={
     const overscanRatio=Math.max(0,Number(GAME_DATA.cameraFollow.edgeOverscanRatio)||0);
     const overscanX=GAME_DATA.canvas.width*overscanRatio;
     const overscanY=GAME_DATA.canvas.height*overscanRatio;
-    const viewZoom=Math.max(.01,CameraFovService.scale(performance.now())*this.spectatorZoom());
-    const extraX=GAME_DATA.canvas.width*(1/viewZoom-1)/2,extraY=GAME_DATA.canvas.height*(1/viewZoom-1)/2;
-    const minCameraX=extraX-overscanX;
-    const maxCameraX=Math.max(minCameraX,WorldBoundsService.width()-GAME_DATA.canvas.width-extraX+overscanX);
-    const minCameraY=extraY-overscanY;
-    const maxCameraY=Math.max(minCameraY,WorldBoundsService.height()-GAME_DATA.canvas.height-extraY+overscanY);
+    const minCameraX=-overscanX;
+    const maxCameraX=Math.max(minCameraX,WorldBoundsService.width()-GAME_DATA.canvas.width+overscanX);
+    const minCameraY=-overscanY;
+    const maxCameraY=Math.max(minCameraY,WorldBoundsService.height()-GAME_DATA.canvas.height+overscanY);
     const targetX=Math.max(
       minCameraX,
       Math.min(
@@ -133662,13 +132316,13 @@ const Training={
 
     const canvasX=cssX*sx;
     const canvasY=cssY*sy;
-    const zoom=CameraFovService.scale(performance.now())*this.spectatorZoom();
+    const zoom=this.spectatorZoom();
     const rawX=
-      cam.x-ScreenShakeService.offset(performance.now()).x+
+      cam.x+
       canvas.width/2+
       (canvasX-canvas.width/2)/zoom;
     const rawY=
-      cam.y-ScreenShakeService.offset(performance.now()).y+
+      cam.y+
       canvas.height/2+
       (canvasY-canvas.height/2)/zoom;
     if(allowOutsideWorld){out.x=rawX;out.y=rawY;return out;}
@@ -138339,8 +136993,6 @@ const Training={
       this.player
     );
 
-    AbilityTargetRangePresentationService.draw(ctx,this.player);
-
     // 디라가 음식을 보유 중이면 자기 자신을 포함한 아군별 음식 지정 가능 범위를 표시한다.
     CookingService.drawMealTargetRanges(
       ctx,
@@ -138406,7 +137058,63 @@ const Training={
         this.spectatorFollowEntity();
 
       if(followed){
-        TrainingWorldDrawService.drawSpectatedViewport(ctx,followed,now);
+        const viewWidth=
+          GAME_DATA.canvas.width;
+        const viewHeight=
+          GAME_DATA.canvas.height;
+        const overscanRatio=
+          Math.max(
+            0,
+            Number(
+              GAME_DATA.cameraFollow
+                .edgeOverscanRatio
+            )||0
+          );
+        const overscanX=
+          viewWidth*overscanRatio;
+        const overscanY=
+          viewHeight*overscanRatio;
+        const minViewX=-overscanX;
+        const maxViewX=Math.max(
+          minViewX,
+          WorldBoundsService.width()-
+            viewWidth+
+            overscanX
+        );
+        const minViewY=-overscanY;
+        const maxViewY=Math.max(
+          minViewY,
+          WorldBoundsService.height()-
+            viewHeight+
+            overscanY
+        );
+        const viewX=Math.max(
+          minViewX,
+          Math.min(
+            maxViewX,
+            followed.x-viewWidth/2
+          )
+        );
+        const viewY=Math.max(
+          minViewY,
+          Math.min(
+            maxViewY,
+            followed.y-viewHeight/2
+          )
+        );
+
+        ctx.save();
+        ctx.strokeStyle=
+          'rgba(190,196,204,.78)';
+        ctx.lineWidth=2;
+        ctx.setLineDash([]);
+        ctx.strokeRect(
+          viewX,
+          viewY,
+          viewWidth,
+          viewHeight
+        );
+        ctx.restore();
       }
     }
 
@@ -138678,7 +137386,13 @@ const Training={
       );
     }
 
-    TrainingWorldDrawService.drawMinimapViewport(ctx,mx,my,sx,sy);
+    ctx.strokeStyle='rgba(255,255,255,.12)';
+    ctx.strokeRect(
+      mx+cam.x*sx,
+      my+cam.y*sy,
+      c.width*sx,
+      c.height*sy
+    );
 
     if(this.player?.alive&&visibleOnMinimap(this.player)){
       ctx.beginPath();

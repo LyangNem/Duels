@@ -71,8 +71,7 @@
           "from": {
             "$ref": "attacks.lmb.damageRatio"
           },
-          "to": 3,
-          "step": 0.3333333333333333
+          "to": 3
         },
         "moduleValues": [
           {

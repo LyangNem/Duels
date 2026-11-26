@@ -1,27 +1,5 @@
 
 const CCService=Object.freeze({
-  isImmune(entity,now=performance.now()){
-    return !!entity?.buffs?.get('statusImmunity')?.some(item=>item.end>now&&Number(item.value)>0);
-  },
-  isSelfApplied(entity,status){
-    return String(status?.sourceEntityId||status?.data?.sourceEntityId||status?.sourceId||'')===String(entity?.id||'');
-  },
-  clearAdverse(entity,{preserveSelf=false}={}){
-    if(!entity)return false;
-    const motion=entity.forcedMotion;
-    if(motion&&!(preserveSelf&&this.isSelfApplied(entity,motion.completion)))MovementService.finalizeForcedMotion(entity);
-    for(const type of [...entity.statuses.keys()]){
-      if(type==='revive')continue;
-      if(!preserveSelf){this.clear(entity,type,{applyRelease:false});continue;}
-      const list=entity.statuses.get(type)||[];
-      const kept=list.filter(status=>this.isSelfApplied(entity,status));
-      if(kept.length===list.length)continue;
-      if(kept.length)entity.statuses.set(type,kept);else entity.statuses.delete(type);
-      entity.combatSnapshotDirty=true;
-      this.touchPresentation(entity);
-    }
-    return true;
-  },
   touchPresentation(entity){
     if(!entity)return;
     entity.statusPresentationRevision=
@@ -31,7 +9,6 @@ const CCService=Object.freeze({
     if(!entity||!COMBAT_STATUS_DEFS[type])return false;
 
     const now=performance.now();
-    if(type!=='revive'&&this.isImmune(entity,now)&&String(data.sourceEntityId||sourceId||'')!==String(entity.id))return false;
     const list=entity.statuses.get(type)||[];
     const params=CombatModifierService.statusParams(type,data);
     const finiteDuration=duration===Infinity
@@ -40,7 +17,7 @@ const CCService=Object.freeze({
 
     // Maintaining an active CC instance is not a new restriction event.
     const refreshesRestriction=
-      (params.stackMode==='replace-source'||params.stackMode==='refresh-type'||params.stackMode==='refresh-source')&&
+      (params.stackMode==='replace-source'||params.stackMode==='refresh-type')&&
       list.some(item=>item.end>now&&item.sourceId===sourceId);
     if(!refreshesRestriction&&entity.character?.reactiveEquipment&&finiteDuration>0&&EntitySimulationAuthorityService.isLocal(entity))ReactiveEquipmentService.restriction(entity,type,String(data?.sourceEntityId||sourceId||''),now);
 
@@ -49,15 +26,6 @@ const CCService=Object.freeze({
     }
 
     let storedParams=params;
-
-    if(params.stackMode==='refresh-source'){
-      const previous=list.find(item=>item.sourceId===sourceId&&item.end>now);
-      if(previous){
-        previous.end=finiteDuration===Infinity?Infinity:now+finiteDuration;
-        previous.data={...previous.data,...params};
-        entity.combatSnapshotDirty=true;this.touchPresentation(entity);return true;
-      }
-    }
 
     if(params.stackMode==='refresh-type'){
       let primary=null;
@@ -190,20 +158,6 @@ const CCService=Object.freeze({
       };
     }
 
-    // Priority DOT instances share one cadence while they overlap. Switching
-    // the strongest source must not switch to an unrelated damage clock.
-    const tickInterval=Math.max(1,Number(params.interval)||1000);
-    const cadence=params.damagePriority==='highest'
-      ?list.find(item=>item.data?.damagePriority==='highest'&&
-        Number(item.data?.interval||1000)===tickInterval&&item.end>=now&&
-        Number.isFinite(item.nextTick))
-      :null;
-    let nextTick=now+tickInterval;
-    if(cadence){
-      nextTick=cadence.nextTick;
-      // Do not give a newly applied source ticks from before its application.
-      if(nextTick<now)nextTick+=Math.ceil((now-nextTick)/tickInterval)*tickInterval;
-    }
     list.push({
       sourceId,
       sourceEntityId:
@@ -213,7 +167,10 @@ const CCService=Object.freeze({
       end:finiteDuration===Infinity
         ?Infinity
         :now+finiteDuration,
-      nextTick,
+      nextTick:now+Math.max(
+        1,
+        Number(params.interval)||1000
+      ),
       data:storedParams
     });
 
@@ -275,12 +232,7 @@ const CCService=Object.freeze({
 
     for(const item of list){
       if(item.end<=now)continue;
-      const strength=entry=>{
-        const value=Math.max(0,Number(entry?.data?.value)||0);
-        return (entry?.data?.mode==='flat'?value:entity.maxHealth*value)/Math.max(1,Number(entry?.data?.interval)||1000);
-      };
-      const prioritized=type==='poison'&&(item.data?.damagePriority==='highest'||active?.data?.damagePriority==='highest');
-      if(!active||(prioritized?strength(item)>strength(active):item.end>active.end))active=item;
+      if(!active||item.end>active.end)active=item;
     }
 
     return active;
@@ -471,7 +423,7 @@ const CCService=Object.freeze({
           0,
           Number(status.data.value)||0
         );
-        amount=status.data.mode==='flat'?value:entity.maxHealth*value;
+        amount=entity.maxHealth*value;
       }else if(type==='burn'){
         const flat=Math.max(
           0,
@@ -494,17 +446,6 @@ const CCService=Object.freeze({
         );
 
         amount=flat+entity.maxHealth*ratio;
-      }
-
-      if(status.data.damagePriority==='highest'){
-        const strength=item=>{
-          const value=Math.max(0,Number(item.data?.value)||0);
-          return (item.data?.mode==='flat'?value:entity.maxHealth*value)/Math.max(1,Number(item.data?.interval)||1000);
-        };
-        const entries=entity.statuses.get(type)||[];
-        const rank=entries.indexOf(status);
-        if(entries.some((other,index)=>other!==status&&other.start<=status.nextTick&&other.end>=status.nextTick&&
-          (strength(other)>strength(status)||(strength(other)===strength(status)&&index<rank))))amount=0;
       }
 
       if(amount>0){

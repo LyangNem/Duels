@@ -190,7 +190,6 @@
     abilities: {
       lmb: {
         id: "ability.raise.lmb",
-        inputPolicy: {repeatWhileHeld: false},
         input: "lmb",
         attackId: "attack.raise.lmb",
         trigger: {

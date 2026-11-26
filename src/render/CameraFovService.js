@@ -113,7 +113,7 @@ const CameraFovService={
   },
 
   scale(now=performance.now()){
-    return this.dynamicScale(now)*this.debugScale*(Number(GAME_DATA.cameraFeedback.baseScale)||1);
+    return this.dynamicScale(now)*this.debugScale;
   },
 
   reset(){

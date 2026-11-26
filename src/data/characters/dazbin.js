@@ -41,14 +41,14 @@
     "lmb": {
       "id": "attack.dazbin.lmb",
       "damageRatio": 1,
-      "cost": 250,
+      "cost": 350,
       "cd": 380,
       "range": 650,
       "modules": [
         {
           "type": "delivery.projectile",
           "speed": 16.9,
-          "radius": 25,
+          "radius": 10,
           "homing": {
             "startTravelRatio": 0.3,
             "maxTurnPerFrame": 0.03,
@@ -66,14 +66,14 @@
     "rmb": {
       "id": "attack.dazbin.rmb",
       "damageRatio": 0.3333333333333333,
-      "cost": 500,
+      "cost": 700,
       "cd": 400,
       "range": 820,
       "modules": [
         {
           "type": "delivery.range-projectile",
           "speed": 7,
-          "radius": 216,
+          "radius": 180,
           "rehitInterval": 500,
           "proximitySpeed": {
             "active": 2,

@@ -158,16 +158,6 @@ const ChargedAttackService=Object.freeze({
         return module;
       });
 
-    // Same declarative numeric module scaling used by range/progress variants.
-    for(let index=0;index<modules.length;index++){
-      for(const value of charge.moduleValues||EMPTY_RUNTIME_ITEMS){
-        if(value.type!==modules[index]?.type)continue;
-        if(value.index!==undefined&&Number(value.index)!==index)continue;
-        const resolved=this.lerp(value,normalizedProgress,Number(modules[index][value.property])||0);
-        modules[index]={...modules[index],[String(value.property)]:resolved};
-      }
-    }
-
     return {
       ...attack,
       ...(full||{}),
@@ -565,10 +555,6 @@ const ChargedAttackService=Object.freeze({
       context.angle,
       {
         networkReplay:context.network===true,
-        attackResult:context,
-        executionSequence:context.executionSequence,
-        networkAttackAdjustments:context.networkAttackAdjustments,
-        abilityUseId:context.abilityUseId,
         freeAttack:
           context.freeAttack===true||
           state.freeAttack===true,

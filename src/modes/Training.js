@@ -241,12 +241,10 @@ const Training={
     const overscanRatio=Math.max(0,Number(GAME_DATA.cameraFollow.edgeOverscanRatio)||0);
     const overscanX=GAME_DATA.canvas.width*overscanRatio;
     const overscanY=GAME_DATA.canvas.height*overscanRatio;
-    const viewZoom=Math.max(.01,CameraFovService.scale(performance.now())*this.spectatorZoom());
-    const extraX=GAME_DATA.canvas.width*(1/viewZoom-1)/2,extraY=GAME_DATA.canvas.height*(1/viewZoom-1)/2;
-    const minCameraX=extraX-overscanX;
-    const maxCameraX=Math.max(minCameraX,WorldBoundsService.width()-GAME_DATA.canvas.width-extraX+overscanX);
-    const minCameraY=extraY-overscanY;
-    const maxCameraY=Math.max(minCameraY,WorldBoundsService.height()-GAME_DATA.canvas.height-extraY+overscanY);
+    const minCameraX=-overscanX;
+    const maxCameraX=Math.max(minCameraX,WorldBoundsService.width()-GAME_DATA.canvas.width+overscanX);
+    const minCameraY=-overscanY;
+    const maxCameraY=Math.max(minCameraY,WorldBoundsService.height()-GAME_DATA.canvas.height+overscanY);
     const targetX=Math.max(
       minCameraX,
       Math.min(
@@ -1315,13 +1313,13 @@ const Training={
 
     const canvasX=cssX*sx;
     const canvasY=cssY*sy;
-    const zoom=CameraFovService.scale(performance.now())*this.spectatorZoom();
+    const zoom=this.spectatorZoom();
     const rawX=
-      cam.x-ScreenShakeService.offset(performance.now()).x+
+      cam.x+
       canvas.width/2+
       (canvasX-canvas.width/2)/zoom;
     const rawY=
-      cam.y-ScreenShakeService.offset(performance.now()).y+
+      cam.y+
       canvas.height/2+
       (canvasY-canvas.height/2)/zoom;
     if(allowOutsideWorld){out.x=rawX;out.y=rawY;return out;}
@@ -5992,8 +5990,6 @@ const Training={
       this.player
     );
 
-    AbilityTargetRangePresentationService.draw(ctx,this.player);
-
     // 디라가 음식을 보유 중이면 자기 자신을 포함한 아군별 음식 지정 가능 범위를 표시한다.
     CookingService.drawMealTargetRanges(
       ctx,
@@ -6059,7 +6055,63 @@ const Training={
         this.spectatorFollowEntity();
 
       if(followed){
-        TrainingWorldDrawService.drawSpectatedViewport(ctx,followed,now);
+        const viewWidth=
+          GAME_DATA.canvas.width;
+        const viewHeight=
+          GAME_DATA.canvas.height;
+        const overscanRatio=
+          Math.max(
+            0,
+            Number(
+              GAME_DATA.cameraFollow
+                .edgeOverscanRatio
+            )||0
+          );
+        const overscanX=
+          viewWidth*overscanRatio;
+        const overscanY=
+          viewHeight*overscanRatio;
+        const minViewX=-overscanX;
+        const maxViewX=Math.max(
+          minViewX,
+          WorldBoundsService.width()-
+            viewWidth+
+            overscanX
+        );
+        const minViewY=-overscanY;
+        const maxViewY=Math.max(
+          minViewY,
+          WorldBoundsService.height()-
+            viewHeight+
+            overscanY
+        );
+        const viewX=Math.max(
+          minViewX,
+          Math.min(
+            maxViewX,
+            followed.x-viewWidth/2
+          )
+        );
+        const viewY=Math.max(
+          minViewY,
+          Math.min(
+            maxViewY,
+            followed.y-viewHeight/2
+          )
+        );
+
+        ctx.save();
+        ctx.strokeStyle=
+          'rgba(190,196,204,.78)';
+        ctx.lineWidth=2;
+        ctx.setLineDash([]);
+        ctx.strokeRect(
+          viewX,
+          viewY,
+          viewWidth,
+          viewHeight
+        );
+        ctx.restore();
       }
     }
 
@@ -6331,7 +6383,13 @@ const Training={
       );
     }
 
-    TrainingWorldDrawService.drawMinimapViewport(ctx,mx,my,sx,sy);
+    ctx.strokeStyle='rgba(255,255,255,.12)';
+    ctx.strokeRect(
+      mx+cam.x*sx,
+      my+cam.y*sy,
+      c.width*sx,
+      c.height*sy
+    );
 
     if(this.player?.alive&&visibleOnMinimap(this.player)){
       ctx.beginPath();

@@ -1,16 +1,6 @@
 
 
 const AbilityModuleService=Object.freeze({
-  targetEligible(source,target,attack,module){
-    return !!(target?.alive&&target!==source&&
-      (module.targetRelations||['ally']).includes(RelationService.relation(source,target))&&
-      (!Array.isArray(module.targetKinds)||module.targetKinds.includes(target.kind))&&
-      Math.hypot(target.x-source.x,target.y-source.y)<=Math.max(0,Number(attack?.range)||0)&&
-      (module.requireClearPath!==true||!WorldGeometryService.segmentBlocked(source.x,source.y,target.x,target.y,Math.max(0,Number(source.radius)||0))));
-  },
-  targetPointerRadius(target,module){
-    return Math.max(0,Number(module.pointerRadius)||80)+Math.max(0,Number(target?.radius)||0);
-  },
   addUsageTags(context,module){
     if(
       !(context?.usageTags instanceof Set)||
@@ -28,30 +18,6 @@ const AbilityModuleService=Object.freeze({
   },
 
   handlers:Object.freeze({
-    'target.select'(context,next,module){
-      const source=context.source;
-      const point=context.targetPoint||Training.mouseWorld?.();
-      if(!source||!point){context.handled=true;return;}
-      let chosen=null,best=Infinity;
-      if(context.network===true){
-        chosen=EntityService.items.get(String(context.targetEntityId||''))||null;
-        // Owner already validated the target and supplied its cast position.
-        if(!chosen){context.handled=true;return;}
-      }else{
-        for(const target of EntityService.items.values()){
-          if(!AbilityModuleService.targetEligible(source,target,context.attack,module))continue;
-          const distance=Math.hypot(target.x-point.x,target.y-point.y);
-          if(distance>AbilityModuleService.targetPointerRadius(target,module))continue;
-          const priorities=module.preferRelations||[];const rank=t=>{const i=priorities.indexOf(RelationService.relation(source,t));return i<0?priorities.length:i;};
-          if(distance<best||(distance===best&&(rank(target)<rank(chosen)||(rank(target)===rank(chosen)&&String(target.id)<String(chosen?.id))))){chosen=target;best=distance;}
-        }
-        if(!chosen){context.handled=true;return;}
-        context.targetPoint={x:Number(chosen.x),y:Number(chosen.y)};
-        context.angle=Math.atan2(chosen.y-source.y,chosen.x-source.x);
-      }
-      context.targetEntityId=String(chosen.id);
-      next();
-    },
     'movement.path-carrier'(context,next,module){
       if(context.executed===true&&context.dragReady===true)PathCarrierService.start(context,module);
       next();
@@ -1269,10 +1235,7 @@ const AbilityModuleService=Object.freeze({
 
       const source=context.source;
       const resource=String(module.resource||'');
-      const prepaidAttack=module.prepayAttack===true&&context.attack
-        ?AugmentService.prepareAttack(source,context.attack,Number(context.now)||performance.now())
-        :null;
-      const amount=Math.max(0,Number(prepaidAttack?prepaidAttack.cost:module.amount)||0);
+      const amount=Math.max(0,Number(module.amount)||0);
 
       if(resource!=='stamina'){
         context.handled=true;
@@ -1284,7 +1247,6 @@ const AbilityModuleService=Object.freeze({
         return;
       }
 
-      if(prepaidAttack)context.prepaidAttackId=String(context.attack.id||'');
       next();
     },
     'status.apply'(context,next,module){

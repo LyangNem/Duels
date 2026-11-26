@@ -46,7 +46,7 @@ test('counter uses same current template/no fallback; preview nonconsuming; no c
 });
 test('out-of-map placement uses actual unclamped mouseWorld option, other characters keep world clamp',()=>{
  const source=fs.readFileSync(path.join(root,'src/modes/Training.js'),'utf8'),a=source.indexOf('  mouseWorld('),b=source.indexOf('  aimAngle(){',a),method=source.slice(a,b).trim().replace(/},$/,'}');
- const h=vm.createContext({performance:{now:()=>0},CameraFovService:{scale:()=>1},ScreenShakeService:{offset:()=>({x:0,y:0})},WorldBoundsService:{width:()=>100,height:()=>100},WaypointProjectileService:{pointerAnchor:()=>({x:50,y:50})},WorldGeometryService:{boundaryRayDistance:()=>50}});
+ const h=vm.createContext({WorldBoundsService:{width:()=>100,height:()=>100},WaypointProjectileService:{pointerAnchor:()=>({x:50,y:50})},WorldGeometryService:{boundaryRayDistance:()=>50}});
  const fn=vm.runInContext('({'+method+'}).mouseWorld',h);const tr={canvas:{width:1000,height:800,getBoundingClientRect:()=>({left:0,top:0,width:1000,height:800})},mouse:{x:900,y:600},cameraState:{x:0,y:0},mouseWorldState:{},spectatorZoom:()=>1};
  assert.equal(fn.call(tr,null,{allowOutsideWorld:true}).x,900);assert.equal(fn.call(tr).x,100);
 });

@@ -1,8 +1,0 @@
-const assert=require('node:assert/strict');const {run,setClock}=require('./support/runtime-harness.cjs');
-setClock(1000);run(`Training.selectedCharacterId='lunet';Training.start();Training.player.x=500;Training.player.y=500;Training.dummy.x=800;Training.dummy.y=500;Training.dummy.healthPolicy.invulnerable=false;DebugMapService.walls=()=>[];var ally=EntityService.create({id:'ally402',kind:'player',teamId:Training.player.teamId,x:800,y:500,maxHealth:1000,radius:20});ally.health=100;ally.healthRegenPolicy=Training.player.healthRegenPolicy;ally.nextHealthRegenAt=Infinity;TriggeredAttackService.execute(Training.player,Training.player.character.attacks.cocktail,0,{targetPoint:{x:800,y:500}});ProjectileService.update(20)`);
-assert.equal(run('Training.dummy.health'),9950);assert.equal(run('ally.health'),150,'impact must not damage ally');
-assert.equal(run("BuffService.resolve(ally,'regeneration')"),100);assert.equal(run("CCService.active(Training.dummy,'poison').data.value"),50);
-run('HealthRegenService.update(ally,1000)');setClock(2000);run('CCService.update(Training.dummy,2000);HealthRegenService.update(ally,2000)');assert.equal(run('Training.dummy.health'),9900);assert.ok(run('ally.health')>100);
-assert.equal(run('GAME_DATA.characters.lunet.attacks.lmb.cost'),250);assert.equal(run('GAME_DATA.characters.lunet.attacks.rmb.cost'),500);
-const text=run("CharacterDescriptionService.interpolate(GAME_DATA.characters.lunet,GAME_DATA.characters.lunet.tooltipSkills.find(s=>s.attack==='counter'))");assert.ok(text.includes('착탄 50'));assert.ok(text.includes('피해 50/회복 100'));
-console.log('PASS402 counter impact50+poison50, allies undamaged/regen100 preserved, costs250/500 and tooltip references');

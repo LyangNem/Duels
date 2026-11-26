@@ -174,15 +174,6 @@ const ProjectileRedirectService=Object.freeze({
     const contact=this.contact(carrier,false);if(contact?.wall)best={length:at,carrier,contact,relay,wallBounce:this.supports(redirect,'wall')};
    }
   }
-  // The followup bullet has width: its center can stop short of a wall
-  // while its rim already touches it. Match the spawn clearance check.
-  if(!best&&(relay||this.supports(redirect,'wall'))){
-   const radius=Math.max(0,Number(this.module({attack},'delivery.projectile')?.radius)||0);
-   const at=WorldGeometryService.raycastDistance(origin.x,origin.y,angle,length,radius);
-   const carrier={source,attack,angle,radius,prevX:origin.x,prevY:origin.y,x:origin.x+dx*at,y:origin.y+dy*at};
-   const contact=this.contact(carrier,false);
-   if(contact?.wall)best={length:at,carrier,contact,relay,wallBounce:this.supports(redirect,'wall')};
-  }
   if(this.supports(redirect,'wall')){
    // The map edge is not a wall block. Test the outgoing bullet's center boundary.
    const radius=Math.max(0,Number(this.module({attack},'delivery.projectile')?.radius)||0);

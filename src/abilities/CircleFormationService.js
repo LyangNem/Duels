@@ -113,7 +113,10 @@ const CircleFormationService=Object.freeze({
       Training.active
     ){
       const point=Training.mouseWorld(null,{allowOutsideWorld:true});
-      return {x:Number(point.x)||0,y:Number(point.y)||0};
+      const cam=Training.cameraState||{},canvas=Training.canvas||GAME_DATA.canvas||{};
+      const fov=typeof CameraFovService!=='undefined'?Math.max(.01,CameraFovService.scale(performance.now())):1;
+      const cx=(Number(cam.x)||0)+(Number(canvas.width)||0)/2,cy=(Number(cam.y)||0)+(Number(canvas.height)||0)/2;
+      return {x:cx+((Number(point.x)||0)-cx)/fov,y:cy+((Number(point.y)||0)-cy)/fov};
     }
     const remote=entity?._remoteAimTargetPoint;
     if(

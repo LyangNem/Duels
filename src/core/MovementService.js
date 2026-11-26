@@ -504,7 +504,6 @@ const MovementService=Object.freeze({
   },
   pull(entity,source,distance,speed=10,options={}){
     if(!entity||!source)return false;
-    if(entity!==source&&typeof CCService!=='undefined'&&CCService.isImmune?.(entity))return false;
 
     // 끌어오기는 피격 대상의 현재 위치에서 source 쪽으로 향하는 독립 강제이동 상태다.
     // 벽은 통과하지만 월드 경계는 MovementService 공통 규칙을 유지한다.

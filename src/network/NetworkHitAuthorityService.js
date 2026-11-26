@@ -609,8 +609,6 @@ const NetworkHitAuthorityService={
           // 크리티컬 공격 선택/판정은 이 후처리 경로가 아니므로 영향을 받지 않는다.
           if(payload.durabilityBlocked===true)break;
           const type=AttackModuleService.type(module);
-          if(Array.isArray(module.targetRelations)&&!module.targetRelations.includes(RelationService.relation(sourceEntity,target)))continue;
-
           if(type==='hit.sequence'&&module.sourceModules){
             if(module.authority==='source')HitTargetSequenceService.start(sourceEntity,target,attack,execution,Number(payload.directionAngle)||0,module,null);
             else HitTargetSequenceService.applySourceModules(sourceEntity,target,attack,execution,Number(payload.directionAngle)||0,module);

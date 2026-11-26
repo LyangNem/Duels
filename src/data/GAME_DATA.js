@@ -9,7 +9,6 @@ const GAME_DATA=freezeCharacterData({
   dodge: {cost: 300, dist: 119, speed: 17.95, dur: 130, justWindow: 80},
   counter: {window: 5000, delay: 300},
   cameraFeedback: {
-    baseScale: .8,
     strongDamage: 600,
     strongHitZoom: {duration: 82, basePeak: 0.026, maxPeak: 0.045, damagePeakStep: 0.000024, attackRatio: 0.23, releasePower: 2.6},
     ko: {zoom: 1.085, duration: 430, shake: 46, shakeDuration: 430}

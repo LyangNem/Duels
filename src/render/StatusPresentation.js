@@ -24,7 +24,6 @@ const StatusPresentation=Object.freeze({
         0,
         Number(item.data?.value)||0
       );
-      if(item.data?.mode==='flat')return `POISON ${Math.round(value*1000/Math.max(1,Number(item.data?.interval)||1000))}/s`;
       return `POISON ${Math.round(value*100)}%/s`;
     }
 
@@ -144,18 +143,6 @@ const StatusPresentation=Object.freeze({
           :style.rgb;
         latestStart=start;
         latestOrder=order;
-      }
-    }
-
-    // Choose the visible status type by chronology, but its poison amount by
-    // effective damage priority. A newer weak zone must not relabel strong DOT.
-    if(cache.active&&cache.type==='poison'){
-      const strongest=CCService.active(entity,'poison',now);
-      if(strongest&&CCService.live(entity,'poison',now).some(item=>item.data?.damagePriority==='highest')){
-        cache.item=strongest;
-        cache.rgb=strongest.data?.presentationColor
-          ?String(strongest.data.presentationColor)
-          :this.cc.poison.rgb;
       }
     }
 

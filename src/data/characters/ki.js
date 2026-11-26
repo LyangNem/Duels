@@ -385,7 +385,6 @@
       lmb: {
         id: "ability.ki.lmb",
         input: "lmb",
-        inputPolicy: {blockRepeatWhen: {stateKey: "ki-rmb-followup-lock"}},
         attackId: "attack.ki.lmb",
         trigger: {
           type: "trigger",

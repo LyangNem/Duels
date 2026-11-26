@@ -94,10 +94,6 @@ const PointerHoldInputService=Object.freeze({
     );
   },
   matchesDynamicBlockCondition(source,ability){
-    if(ability?.inputPolicy?.blockRepeatWithinFormulaRange===true&&
-      FormulaSequenceService.withinActivation(
-        source,Training.mouseWorld(),FormulaSequenceConfigService(source)
-      ))return true;
     return this.matchesStateRule(
       source,
       ability?.inputPolicy?.blockRepeatWhile
@@ -555,13 +551,6 @@ const PointerHoldInputService=Object.freeze({
       const ability=
         source.character
           ?.abilities?.[slot];
-
-      // A press can create a repeat-blocking state itself (alternate skill).
-      // Latch it until release so expiry cannot turn that click into a primary.
-      if(this.matchesBlockCondition(source,ability)){
-        current.blockedUntilRelease=true;
-        continue;
-      }
 
       if(
         ability?.inputPolicy?.holdTriggerWhilePressed===true&&

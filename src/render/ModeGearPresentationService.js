@@ -45,20 +45,10 @@ const ModeGearPresentationService=Object.freeze({
     return {entity:{radius:entity.radius,character:{color:entity.character?.color}},images,alpha,x:entity.x,y:entity.y,sampledAt:now};
   },
   movementFacing:new WeakMap(),
-  synchronizedMovementAngle(entity){
-    const config=this.configs(entity).find(item=>item.renderType==='weaponImage'&&item.facing==='movement');
-    return config?this.facingAngle(entity,config):undefined;
-  },
   facingAngle(entity,config){
     if(config.facing==='aim')return entity===Training.player
       ?Training.aimAngle():Number(entity._remoteAimAngle??entity.aimAngle)||0;
     if(config.facing!=='movement')return 0;
-    if(typeof EntitySimulationAuthorityService!=='undefined'&&!EntitySimulationAuthorityService.isLocal(entity)){
-      if(typeof entity._remoteWeaponMovementAngle==='number'&&Number.isFinite(entity._remoteWeaponMovementAngle))return entity._remoteWeaponMovementAngle;
-      const movement=MovementAbilityService.state(entity,config.facingMovementStateKey);
-      if(movement&&Number.isFinite(movement.angle))return movement.angle;
-      if(entity.lastMovementInputAngle!=null&&Number.isFinite(entity.lastMovementInputAngle))return entity.lastMovementInputAngle;
-    }
     const x=Number(entity.x)||0,y=Number(entity.y)||0;
     const previous=this.movementFacing.get(entity);
     let angle=previous?.angle??(Number.isFinite(entity.lastMovementInputAngle)?entity.lastMovementInputAngle:0);

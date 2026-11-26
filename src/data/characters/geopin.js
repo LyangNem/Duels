@@ -635,7 +635,7 @@
           {
             "type": "movement.path-carrier",
             "pathSource": "drag-path",
-            "speed": 1800,
+            "speed": 1200,
             "radius": 25,
             "pickupRange": 45,
             "targetRelations": [

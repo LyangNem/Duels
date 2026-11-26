@@ -46,23 +46,11 @@ const TrainingWorldDrawService=Object.freeze({
       return SummonDeployService.drawBody(bodyCtx,entity,bodyNow);
     }
   }),
-  drawMinimapViewport(ctx,x,y,sx,sy){
-    const b=WorldViewportVisibilityService.bounds();
-    ctx.strokeStyle='rgba(255,255,255,.12)';
-    ctx.strokeRect(x+b.left*sx,y+b.top*sy,(b.right-b.left)*sx,(b.bottom-b.top)*sy);
-  },
-  drawSpectatedViewport(ctx,entity,now){
-    const b=WorldViewportVisibilityService.followedBounds(entity,now);
-    ctx.save();ctx.strokeStyle='rgba(190,196,204,.78)';ctx.lineWidth=2;ctx.setLineDash([]);
-    ctx.strokeRect(b.left,b.top,b.right-b.left,b.bottom-b.top);ctx.restore();
-  },
   overlapsScreenRect(entity,cam,x,y,w,h){
     if(!entity?.alive||entity.hidden)return false;
-    const zoom=CameraFovService.scale(performance.now())*Training.spectatorZoom();
-    const canvas=Training.canvas||GAME_DATA.canvas,shake=ScreenShakeService.offset(performance.now());
-    const screenX=canvas.width/2+(Number(entity.x)-cam.x+shake.x-canvas.width/2)*zoom;
-    const screenY=canvas.height/2+(Number(entity.y)-cam.y+shake.y-canvas.height/2)*zoom;
-    const radius=Math.max(0,Number(entity.radius)||0)*zoom;
+    const screenX=Number(entity.x)-cam.x;
+    const screenY=Number(entity.y)-cam.y;
+    const radius=Math.max(0,Number(entity.radius)||0);
     return (
       screenX+radius>=x&&
       screenX-radius<=x+w&&

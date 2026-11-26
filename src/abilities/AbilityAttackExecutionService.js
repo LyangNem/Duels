@@ -12,7 +12,6 @@ const AbilityAttackExecutionService=Object.freeze({
         networkReplay:context.network===true,
         freeAttack:context.freeAttack===true,
         completedWindup:context.completedWindup===true,
-        resourcePrepaid:!!context.prepaidAttackId&&context.prepaidAttackId===attack.id,
         targetPoint:
           options.targetPoint!==undefined
             ?options.targetPoint

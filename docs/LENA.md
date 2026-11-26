@@ -1,10 +1,3 @@
-## 레나 원격 무기 이동방향 동기화 — 3.0.0-character.359 (2026-10-20)
-
-원인: movement-facing 무기가 상대 화면의 위치 차이/이전 movementFacing 캐시를 우선 사용하고, lastMovementInputAngle은 최초 캐시 초기화에만 읽었다. 이미 캐시가 있거나 위치 보간/반복 렌더로 이동 차이가 사라지면 새 이동 방향을 반영하지 못하는 경로가 있었다.
-수정: 공용 ModeGearPresentationService.synchronizedMovementAngle에서 소유자 화면의 실제 movement-facing 무기 방향을 표본화하고 기존 duel-state에 optional weaponMovementAngle 전달. 수신 측은 검증된 원격 각도를 원격 movement-facing 무기의 우선 기준으로 사용하므로 렌더 위치 보간에 의해 방향이 달라지지 않음. 원격 각도가 없는 구버전 패킷은 활성 이동기 각도/매번 갱신된 lastMovementInputAngle을 사용. 로컬 실제 이동 방향 계산·정지 시 마지막 방향 유지·무기 회전/사망 표본·다른 facing모드는 유지. 캐릭터ID 분기 없음.
-검증: 신규359 독립2runtime에서 실제 statePacket→receive 후4방향·정지·즉시 스킬 돌진 방향 일치. 원격 좌표를 렌더 사이마다 바꾸거나 sampleImage 반복해도 소유자 방향 유지. 오래된 패킷 거부·원격 각도 없는 입력방향 fallback도 통과. 전체58개 회귀 스크립트 통과, build/docs/check/verify/구문/ZIP CRC 확인. 실제 두 기기 브라우저/WebRTC 플레이 미검증.
-대상: ModeGearPresentationService/OnlineDuelService·test-lena-network359·README/PATCH LOG/docs/LENA/project.json/DIVIDE TASKS/생성runtime.
-
 # 레나 구현 계약
 
 ## 레나 설명·후리/레나 완충 점선 링 수정 — 3.0.0-character.316 (2026-10-15)

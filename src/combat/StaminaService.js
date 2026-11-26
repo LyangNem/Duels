@@ -1,35 +1,6 @@
 
 
 const StaminaService=Object.freeze({
-  spentRound(){
-    return `${typeof Training!=='undefined'?Training.sessionMode:''}:${typeof OnlineDuelService!=='undefined'?OnlineDuelService.roundToken||0:0}`;
-  },
-  spentTotal(entity){
-    return entity?._staminaSpentRound===this.spentRound()?Math.max(0,Number(entity._staminaSpentTotal)||0):0;
-  },
-  dispatchSpent(entity,amount,now){
-    if(!(amount>0)||typeof CharacterTriggerEffectService==='undefined')return;
-    CharacterTriggerEffectService.run(entity,'stamina-spent',{source:entity,target:entity,amount,now});
-    CharacterTriggerEffectService.observe('enemy-stamina-spent',entity,{amount,now});
-  },
-  notifySpent(entity,before,now){
-    if(!entity||EntitySimulationAuthorityService.isLocal(entity)!==true)return;
-    const amount=Math.max(0,(Number(before)||0)-(Number(entity.stamina)||0));
-    if(amount<=0)return;
-    entity._staminaSpentTotal=this.spentTotal(entity)+amount;
-    entity._staminaSpentRound=this.spentRound();
-    this.dispatchSpent(entity,amount,now);
-  },
-  receiveSpentTotal(entity,total,now=performance.now()){
-    if(!entity||EntitySimulationAuthorityService.isLocal(entity)||!Number.isFinite(total)||total<0)return false;
-    const round=this.spentRound();
-    const previous=entity._observedStaminaSpentRound===round?Number(entity._observedStaminaSpentTotal)||0:0;
-    if(total<=previous)return false;
-    entity._observedStaminaSpentRound=round;
-    entity._observedStaminaSpentTotal=total;
-    if(typeof CharacterTriggerEffectService!=='undefined')CharacterTriggerEffectService.observe('enemy-stamina-spent',entity,{amount:total-previous,now});
-    return true;
-  },
   notifyChanged(entity,before,after,now=performance.now()){
     if(!entity)return false;
     const from=Math.max(0,Number(before)||0);
@@ -107,14 +78,12 @@ const StaminaService=Object.freeze({
         now
       );
       entity.stamina=0;
-      this.notifySpent(entity,before,now);
       entity.lastStaminaUse=now;
       this.notifyChanged(entity,before,entity.stamina,now);
       return true;
     }
 
     entity.stamina=Math.max(0,entity.stamina-value);
-    this.notifySpent(entity,before,now);
     entity.lastStaminaUse=now;
     this.notifyChanged(entity,before,entity.stamina,now);
     return true;

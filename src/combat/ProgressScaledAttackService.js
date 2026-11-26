@@ -222,13 +222,9 @@ const ProgressScaledAttackService=Object.freeze({
         t,
         Number(spec.range)||0
       );
-      let damageRatio=Array.isArray(config.damageRatio?.steps)
+      const damageRatio=Array.isArray(config.damageRatio?.steps)
         ?this.stepped(source,config,config.damageRatio,Number(spec.damageRatio)||0)
         :this.lerp(config.damageRatio,t,Number(spec.damageRatio)||0);
-      const damageStep=Number(config.damageRatio?.step);
-      if(damageStep>0&&Number.isFinite(damageStep)){
-        damageRatio=Math.floor(damageRatio/damageStep+1e-9)*damageStep;
-      }
       const rules=Array.isArray(config.moduleValues)?config.moduleValues:[];
       const modules=(spec.modules||[]).map(module=>{
         const type=AttackModuleService.type(module);

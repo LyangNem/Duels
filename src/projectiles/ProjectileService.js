@@ -1442,9 +1442,6 @@ const ProjectileService={
               Number(projectile.angle)||0
             );
 
-          if(relation!=='enemy'&&EntitySimulationAuthorityService.isLocal(projectile.source)&&!EntitySimulationAuthorityService.isLocal(target)){
-            AttackModuleService.applyFriendlySourceOnHitModifiers(projectile.source,target,projectile.attack,execution,Number(projectile.angle)||0);
-          }
           AttackModuleService.onHit(
             projectile.source,
             target,

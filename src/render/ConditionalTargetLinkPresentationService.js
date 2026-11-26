@@ -1,18 +1,6 @@
 
 
 const ConditionalTargetLinkPresentationService=Object.freeze({
-  pulses:new WeakMap(),
-  notifyEvent(entity,event,context){
-    if(!entity?.alive||entity!==Training.player||!EntitySimulationAuthorityService.isLocal(entity)||!(Number(context.amount)>0))return;
-    const target=context.target;
-    if(!target?.alive)return;
-    for(const config of entity.character?.conditionalTargetLinks||[]){
-      const style=config.eventPulse;
-      if(style?.event!==event)continue;
-      if(config.conditions&&!config.conditions.every(c=>TriggerConditionService.matches(c,{...context,source:entity,target})))continue;
-      this.pulses.set(entity,{targetId:target.id,startedAt:context.now,duration:Math.max(1,Number(style.duration)||350)});
-    }
-  },
   draw(ctx,viewer){
     if(
       !ctx||
@@ -137,17 +125,6 @@ const ConditionalTargetLinkPresentationService=Object.freeze({
             :[5,5]
         );
         ctx.stroke();
-        const pulse=this.pulses.get(viewer);
-        const remaining=pulse&&pulse.targetId===target.id
-          ?Math.max(0,Math.min(1,1-(performance.now()-pulse.startedAt)/pulse.duration)):0;
-        if(config.eventPulse&&remaining>0){
-          const style=config.eventPulse;
-          ctx.setLineDash([]);
-          ctx.lineWidth=Math.max(.5,Number(style.lineWidth)||2.5);
-          ctx.strokeStyle=`rgba(${ColorService.rgbString(style.color||config.color,'255,255,229')},${(Number(style.alpha)||.95)*remaining})`;
-          ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=6*remaining;
-          ctx.stroke();
-        }
         ctx.restore();
         drawn=true;
       }

@@ -29,8 +29,8 @@ load('src/projectiles/ProjectileImpactService.js','ProjectileImpactService');loa
 const source={id:'s',alive:true,teamId:'a',character:ch,baseDamage:100,x:0,y:0,attackSequence:0,actionState:new Map()};
 function target(x=1000,y=0){return{id:'t',alive:true,teamId:'b',health:5000,maxHealth:5000,x,y,radius:20}}
 function damage(attack,t,origin={x:1000,y:0}){const execution=c.AttackExecutionService.create(source,attack,0);return c.DamagePipeline.apply({source,target:t,attack,execution,impact:{origin,directionAngle:0,execution}})}
-test('65명 공통 컴파일·체력/이속/칭호·색상 중복 없음',()=>{assert.equal(ch.maxHealth,1500);assert.equal(ch.speed,4);assert.equal(ch.moveLabel,'보통');assert.equal(ch.title,'노련한 발파원');for(const d of Object.values(c.CHARACTER_DATA))if(d.id!=='terdion')assert.notEqual(String(d.color).toLowerCase(),ch.color);assert.equal(Object.keys(c.CHARACTER_DATA).length,69)});
-test('공통 피해 파이프라인: 직격과 착탄 중심의 3단계 피해 감쇠',()=>{assert.equal(damage(ch.attacks.lmb,target()).amount,150);assert.equal(damage(ch.attacks.rmb,target()).amount,200);for(const [key,values]of [['lmbExplosion',[300,200,100]],['rmbExplosion',[450,300,150]],['counterExplosion',[300,200,100]]]){const a=ch.attacks[key];for(let i=0;i<3;i++)assert.ok(Math.abs(damage(a,target(1000+a.range*i/2)).amount-values[i])<1e-9)}});
+test('65명 공통 컴파일·체력/이속/칭호·색상 중복 없음',()=>{assert.equal(ch.maxHealth,1500);assert.equal(ch.speed,4);assert.equal(ch.moveLabel,'보통');assert.equal(ch.title,'노련한 발파원');for(const d of Object.values(c.CHARACTER_DATA))if(d.id!=='terdion')assert.notEqual(String(d.color).toLowerCase(),ch.color);assert.equal(Object.keys(c.CHARACTER_DATA).length,66)});
+test('공통 피해 파이프라인: 직격과 착탄 중심의 3단계 피해 감쇠',()=>{assert.equal(damage(ch.attacks.lmb,target()).amount,150);assert.equal(damage(ch.attacks.rmb,target()).amount,200);for(const [key,values]of [['lmbExplosion',[300,200,100]],['rmbExplosion',[600,400,200]],['counterExplosion',[300,200,100]]]){const a=ch.attacks[key];for(let i=0;i<3;i++)assert.ok(Math.abs(damage(a,target(1000+a.range*i/2)).amount-values[i])<1e-9)}});
 test('반 내구도 타격은 체력 피해로 집계·레이카 충전·온라인 확정량 일치',()=>{
  const h=vm.createContext({...c});
  function loadH(file,name){vm.runInContext(fs.readFileSync(path.join(root,file),'utf8')+`;globalThis.${name}=${name};`,h)}
@@ -62,7 +62,7 @@ test('벽/사거리 착탄·독립 폭약·소스 사망/맵 정리로 예약 �
 const shots=[];c.ProjectileService={spawn:x=>shots.push(x),clear(){}};
 test('실제 순차 발사: 8발·40ms 간격·시계방향·중복 일반 발사 없음',()=>{clock=5000;c.SimulationScheduleService.clear();shots.length=0;const a=ch.attacks.counter;c.AttackModuleService.deliver(source,a,.2,{execution:c.AttackExecutionService.create(source,a,.2)});assert.equal(shots.length,0);assert.equal(c.SimulationScheduleService.items.length,8);for(let i=0;i<8;i++){clock=5000+i*40;c.SimulationScheduleService.update(clock);assert.equal(shots.length,i+1);assert.ok(Math.abs(shots[i].angle-(.2+i*Math.PI/4))<1e-9)}c.SimulationScheduleService.update(10000);assert.equal(shots.length,8)});
 load('src/combat/CounterModuleService.js','CounterModuleService');
-test('공통 반격 300ms·실제 폭발 무력화 CC 참조·설명 피해 참조',()=>{const m=ch.abilities.counter.trigger.modules[0];assert.equal(c.CounterModuleService.validate(m),true);assert.equal(m.windup,300);assert.equal(c.CounterModuleService.referencedCc(source,m).type,'movement.neutralize-knockback');for(const key of ['lmb','rmb','counter']){const d=c.CharacterDescriptionService.attackRangeDamage(ch,ch.attacks[key+'Explosion']);assert.equal(d.min,key==='rmb'?150:100);assert.equal(d.max,key==='rmb'?450:300)}});
+test('공통 반격 300ms·실제 폭발 무력화 CC 참조·설명 피해 참조',()=>{const m=ch.abilities.counter.trigger.modules[0];assert.equal(c.CounterModuleService.validate(m),true);assert.equal(m.windup,300);assert.equal(c.CounterModuleService.referencedCc(source,m).type,'movement.neutralize-knockback');for(const key of ['lmb','rmb','counter']){const d=c.CharacterDescriptionService.attackRangeDamage(ch,ch.attacks[key+'Explosion']);assert.equal(d.min,key==='rmb'?200:100);assert.equal(d.max,key==='rmb'?600:300)}});
 let invalidations=0;c.StaticWorldRenderer={invalidate:()=>invalidations++};load('src/world/WorldDestructionService.js','WorldDestructionService');load('src/world/DynamicWallService.js','DynamicWallService');
 const map={id:'test',tileWorldSize:50,walls:[{x:100,y:100,w:200,h:50},{x:700,y:700,w:50,h:50}]};
 c.DebugMapService={currentId:'test',current:()=>map};const world=c.WorldDestructionService;
@@ -88,7 +88,7 @@ test('실제 스킬 착탄→범위 실행: 폭발 전 벽 유지·500ms에만 �
 test('피해 단계 경계·구간 내 고정값·시전자와 착탄 중심 분리',()=>{
  c.Training.sessionMode='training';source.x=-300;source.y=-400;
  for(const key of ['lmbExplosion','rmbExplosion','counterExplosion']){
-  const a=ch.attacks[key],max=key==='rmbExplosion'?450:300;
+  const a=ch.attacks[key],max=key==='rmbExplosion'?600:300;
   for(const [distance,mult] of [[0,1],[a.range/3,1],[a.range/3+.001,2/3],[a.range*.5,2/3],[a.range*2/3,2/3],[a.range*2/3+.001,1/3],[a.range,1/3]]){
    assert.ok(Math.abs(damage(a,target(1000+distance),{x:1000,y:0}).amount-max*mult)<1e-9);
   }
@@ -98,7 +98,7 @@ test('무기 투사체 3종·스킬/근거리 반격 공중 궤적·설명 (피�
  for(const key of ['lmb','rmb','counter']){
   const b=c.ProjectileModuleService.config(ch.attacks[key]);assert.equal(b.presentation.type,'anchor-cross');
   assert.equal(ch.attacks[key].modules.find(m=>m.type==='projectile.presentation').kind,'weapon-projectile');
-  const t=ch.tooltipSkills.find(t=>t.attack===key);assert.ok(t.text.includes('({damage}/{linkedMinDamage}~{linkedMaxDamage})'));
+  const t=ch.tooltipSkills.find(t=>t.attack===key);assert.ok(t.text.includes('({damage}/{linkedDamage})'));
  }
  assert.equal(ch.attacks.counter.range,350);
  assert.equal(ch.attacks.counter.modules[0].radius,14);
@@ -230,7 +230,7 @@ test('스킬 폭발 벽 차단·도달 벽 파괴·가려진 벽 보존·탄환 
  const a=ch.attacks.rmb;const p={...carrier('blocked-blast'),attack:a,x:60,y:125,behavior:c.ProjectileModuleService.config(a)};
  c.ProjectileImpactService.resolve(p,'arrival');clock=40500;c.SimulationScheduleService.update(clock);
  assert.equal(world.removed.size,1);assert.ok(world.walls(map).some(w=>w.x===150));
- assert.equal(ch.attacks.rmb.cost,650);assert.equal(ch.attacks.rmbExplosion.modules[0].wallPolicy,'block');
+ assert.equal(ch.attacks.rmb.cost,800);assert.equal(ch.attacks.rmbExplosion.modules[0].wallPolicy,'block');
  world.reset(map);assert.equal(world.destroyCircle({x:110,y:110},180,{source,wallPolicy:'block',contactRange:12}),true);
  assert.equal(world.removed.size,1);
  // 실제 execute의 순서: 가시영역/벽 차단을 먼저 판정하고 지형 변경은 그 후.

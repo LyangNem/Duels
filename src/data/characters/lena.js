@@ -41,7 +41,7 @@
       "key": "L-Shift",
       "name": "앗, 셔!",
       "attack": "counter",
-      "text": "보드를 한 바퀴 휘둘러 주변에 피해 ({damage})"
+      "text": "보드를 한 바퀴 휘둘러 주변에 피해 및 무력화 넉백 ({damage})"
     }
   ],
   "attacks": {

@@ -5,7 +5,6 @@
    TAB을 누르는 동안 현재 활성 버프 전체를 정확한 수치로 펼친다. */
 const BuffStatusPresentation=Object.freeze({
   styles:Object.freeze({
-    statusImmunity:Object.freeze({label:'CC IMMUNITY',rgb:'165,235,255'}),
     damage:Object.freeze({label:'DMG',rgb:'190,90,255'}),
     defense:Object.freeze({label:'DEF',rgb:'80,170,255'}),
     speed:Object.freeze({label:'SPD',rgb:'245,245,255'}),
@@ -32,8 +31,7 @@ const BuffStatusPresentation=Object.freeze({
     'damage',
     'defense',
     'speed',
-    'wallPass',
-    'statusImmunity'
+    'wallPass'
   ]),
 
   regenTypes:Object.freeze([
